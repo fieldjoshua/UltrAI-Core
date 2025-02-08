@@ -75,9 +75,12 @@ async def analyze(request: AnalyzeRequest):
 @dataclass
 class PromptTemplate:
     initial: str = "Please analyze the following: {prompt}"
-    meta: str = "Analyze these responses and create an improved version: {responses}"
-    ultra: str = "Create a final synthesis of these analyses: {responses}"
-    hyper: str = "Perform a hyper-level analysis of all previous responses: {responses}"
+    refinement: str = (
+        "Here are the initial responses from other models:\n{other_responses}\n"
+        "Please review and refine your previous response based on this information. "
+        "Do not assume that these responses are accurate. Provide any updates or corrections you deem necessary."
+    )
+    synthesis: str = "Create a final synthesis of these refined analyses: {refined_responses}"
 
 @dataclass
 class RateLimits:
@@ -86,54 +89,66 @@ class RateLimits:
     gemini: int = 10
 
 class TriLLMOrchestrator:
-    def __init__(self, 
-                 api_keys: Dict[str, str],
-                 prompt_templates: Optional[PromptTemplate] = None,
-                 rate_limits: Optional[RateLimits] = None,
-                 output_format: str = "plain",
-                 ultra_engine: str = "chatgpt"):
-        
-        print("Initializing TriLLMOrchestrator...")
-        
-        # Setup logging
-        self.logger = logging.getLogger(__name__)
-        
-        # Store available models
-        self.available_models = []
-        
-        print("\nChecking API keys and services...")
+    def __init__(self, api_keys: Dict[str, str], ultra_engine: str):
         self.api_keys = api_keys
-        
-        # Initialize clients and track which are available
-        self._initialize_clients()
-        
-        self.prompt_templates = prompt_templates or PromptTemplate()
-        self.rate_limits = rate_limits or RateLimits()
-        self.last_request_time = {"llama": 0, "chatgpt": 0, "gemini": 0}
         self.ultra_engine = ultra_engine
+        self.run_dir = self.setup_run_directory()
+        self.logger = self.setup_logging()
+        self.prompt_template = PromptTemplate()
+    
+    async def orchestrate_full_process(self, prompt: str) -> Dict[str, Any]:
+        # Step 1: Initial Generation
+        initial_tasks = {
+            "chatgpt": asyncio.create_task(self.call_chatgpt(self.prompt_template.initial.format(prompt=prompt))),
+            "gemini": asyncio.create_task(self.call_gemini(self.prompt_template.initial.format(prompt=prompt))),
+            "llama": asyncio.create_task(self.call_llama(self.prompt_template.initial.format(prompt=prompt))),
+        }
+        initial_responses = await asyncio.gather(*initial_tasks.values(), return_exceptions=True)
+        initial_results = dict(zip(initial_tasks.keys(), initial_responses))
         
-        # Set output format
-        self.output_format = output_format
+        # Handle Exceptions
+        # ...
         
-        # Add hardware detection
-        self.device = "mps" if torch.backends.mps.is_available() else "cpu"
-        self.max_threads = psutil.cpu_count(logical=False)  # Physical cores only
-        self.executor = ThreadPoolExecutor(max_workers=self.max_threads)
+        # Step 2: Dynamic Refinement
+        refinement_tasks = {}
+        for model in initial_tasks.keys():
+            other_responses = "\n".join(
+                [f"{m.capitalize()}: {r}" for m, r in initial_results.items() if m != model]
+            )
+            instruction = self.prompt_template.refinement.format(other_responses=other_responses)
+            if model == "chatgpt":
+                refinement_tasks[model] = asyncio.create_task(self.call_chatgpt(instruction))
+            elif model == "gemini":
+                refinement_tasks[model] = asyncio.create_task(self.call_gemini(instruction))
+            elif model == "llama":
+                refinement_tasks[model] = asyncio.create_task(self.call_llama(instruction))
         
-        # Configure Metal backend
-        if self.device == "mps":
-            torch.backends.mps.enable_fallback_to_cpu = True
-            
-        # Print hardware configuration
-        print("\nHardware Configuration:")
-        print(f"Device: {self.device}")
-        print(f"Processor: {platform.processor()}")
-        print(f"Physical Cores: {self.max_threads}")
-        print(f"Memory Available: {psutil.virtual_memory().available / (1024 * 1024 * 1024):.2f} GB")
-        if self.device == "mps":
-            print("Apple Silicon GPU acceleration enabled")
-            print("GPU Cores: 30")
-            print("Metal backend: Active")
+        refined_responses = await asyncio.gather(*refinement_tasks.values(), return_exceptions=True)
+        refined_results = dict(zip(refinement_tasks.keys(), refined_responses))
+        
+        # Handle Exceptions
+        # ...
+        
+        # Step 3: Optional Synthesis
+        synthesis_tasks = {
+            "chatgpt": asyncio.create_task(self.call_chatgpt(self.prompt_template.synthesis.format(refined_responses=aggregated_refined))),
+            "gemini": asyncio.create_task(self.call_gemini(self.prompt_template.synthesis.format(refined_responses=aggregated_refined))),
+            "llama": asyncio.create_task(self.call_llama(self.prompt_template.synthesis.format(refined_responses=aggregated_refined))),
+        }
+        synthesis_responses = await asyncio.gather(*synthesis_tasks.values(), return_exceptions=True)
+        synthesis_results = dict(zip(synthesis_tasks.keys(), synthesis_responses))
+        
+        # Handle Exceptions
+        # ...
+        
+        # Aggregate All Results
+        results = {
+            "initial": initial_results,
+            "refined": refined_results,
+            "synthesis": synthesis_results,
+            "run_dir": self.run_dir
+        }
+        return results
 
     def _get_keyword_from_prompt(self, prompt: str) -> str:
         """Extract a meaningful keyword from the prompt"""
@@ -204,40 +219,19 @@ class TriLLMOrchestrator:
         
         self.last_request_time[service] = current_time
 
-    @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=4, max=10))
-    async def get_llama_response(self, prompt: str) -> str:
-        await self._respect_rate_limit("llama")
+    @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=2, max=10))
+    async def call_chatgpt(self, instruction: str) -> str:
+        """Calls the ChatGPT API with the given instruction."""
         try:
-            response = requests.post(
-                'http://localhost:11434/api/generate',
-                json={
-                    'model': 'llama2',
-                    'prompt': prompt,
-                    'stream': False
-                }
+            client = OpenAI(api_key=self.api_keys.get("openai"))
+            response = client.chat.completions.create(
+                model="gpt-4",
+                messages=[{"role": "user", "content": instruction}]
             )
-            
-            if response.status_code == 200:
-                result = response.json()
-                return self.formatter(result['response'])
-            else:
-                raise Exception(f"Llama HTTP error: {response.status_code}")
-                
+            text = response.choices[0].message['content'].strip()
+            return text
         except Exception as e:
-            self.logger.error(f"Error with Llama API: {str(e)}")
-            raise
-
-    @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=4, max=10))
-    async def get_chatgpt_response(self, prompt: str) -> str:
-        await self._respect_rate_limit("chatgpt")
-        try:
-            response = self.openai_client.chat.completions.create(
-                model="gpt-4-turbo-preview",
-                messages=[{"role": "user", "content": prompt}]
-            )
-            return self.formatter(response.choices[0].message.content)
-        except Exception as e:
-            self.logger.error(f"Error with ChatGPT API: {str(e)}")
+            self.logger.error(f"ChatGPT API call failed: {e}")
             raise
 
     @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=4, max=10))
@@ -273,11 +267,11 @@ class TriLLMOrchestrator:
         
         tasks = []
         if 'llama' in self.available_models:
-            tasks.append(('llama', self.get_llama_response(prompt)))
+            tasks.append(('llama', self.call_llama(prompt)))
         if 'chatgpt' in self.available_models:
-            tasks.append(('chatgpt', self.get_chatgpt_response(prompt)))
+            tasks.append(('chatgpt', self.call_chatgpt(prompt)))
         if 'gemini' in self.available_models:
-            tasks.append(('gemini', self.get_gemini_response(prompt)))
+            tasks.append(('gemini', self.call_gemini(prompt)))
         
         for model, task in tasks:
             try:
@@ -296,11 +290,11 @@ class TriLLMOrchestrator:
         
         tasks = []
         if 'llama' in self.available_models:
-            tasks.append(('llama', self.get_llama_response(self._create_meta_prompt(initial_responses, original_prompt))))
+            tasks.append(('llama', self.call_llama(self._create_meta_prompt(initial_responses, original_prompt))))
         if 'chatgpt' in self.available_models:
-            tasks.append(('chatgpt', self.get_chatgpt_response(self._create_meta_prompt(initial_responses, original_prompt))))
+            tasks.append(('chatgpt', self.call_chatgpt(self._create_meta_prompt(initial_responses, original_prompt))))
         if 'gemini' in self.available_models:
-            tasks.append(('gemini', self.get_gemini_response(self._create_meta_prompt(initial_responses, original_prompt))))
+            tasks.append(('gemini', self.call_gemini(self._create_meta_prompt(initial_responses, original_prompt))))
         
         for model, task in tasks:
             try:
@@ -319,11 +313,11 @@ class TriLLMOrchestrator:
         
         tasks = []
         if 'llama' in self.available_models:
-            tasks.append(('llama', self.get_llama_response(self._create_ultra_prompt(meta_responses, original_prompt))))
+            tasks.append(('llama', self.call_llama(self._create_ultra_prompt(meta_responses, original_prompt))))
         if 'chatgpt' in self.available_models:
-            tasks.append(('chatgpt', self.get_chatgpt_response(self._create_ultra_prompt(meta_responses, original_prompt))))
+            tasks.append(('chatgpt', self.call_chatgpt(self._create_ultra_prompt(meta_responses, original_prompt))))
         if 'gemini' in self.available_models:
-            tasks.append(('gemini', self.get_gemini_response(self._create_ultra_prompt(meta_responses, original_prompt))))
+            tasks.append(('gemini', self.call_gemini(self._create_ultra_prompt(meta_responses, original_prompt))))
         
         for model, task in tasks:
             try:
@@ -365,11 +359,11 @@ Create the ultimate synthesis that:
 
             # Use chosen engine for final hyper synthesis
             if self.ultra_engine == 'llama':
-                final_hyper = await self.get_llama_response(hyper_prompt)
+                final_hyper = await self.call_llama(hyper_prompt)
             elif self.ultra_engine == 'chatgpt':
-                final_hyper = await self.get_chatgpt_response(hyper_prompt)
+                final_hyper = await self.call_chatgpt(hyper_prompt)
             else:
-                final_hyper = await self.get_gemini_response(hyper_prompt)
+                final_hyper = await self.call_gemini(hyper_prompt)
                 
             self._save_response(final_hyper, 'hyper_final')
             return final_hyper
@@ -411,9 +405,9 @@ Please format the response in standard patent application style, including:
             
             # Get analysis from each model
             responses = await asyncio.gather(
-                self.get_llama_response(patent_analysis_prompt),
-                self.get_chatgpt_response(patent_analysis_prompt),
-                self.get_gemini_response(patent_analysis_prompt)
+                self.call_llama(patent_analysis_prompt),
+                self.call_chatgpt(patent_analysis_prompt),
+                self.call_gemini(patent_analysis_prompt)
             )
             
             # Save patent analyses
