@@ -1,0 +1,6 @@
+{
+  "start_time": "2024-11-15T11:20:37.062614",
+  "end_time": "2024-11-15T11:22:07.166791",
+  "prompt": "rewrite the following passage to be the most effective for a VC audience:\nAs GIDEON prepares to launch its version 1.0, our pricing strategy is designed to maximize market penetration while ensuring accessibility for all segments of the criminal defense community. We will offer flexible, tiered monthly subscriptions, with rates competitive with existing legal tech solutions that range from $50-500 per month for individual attorneys and small firms. Understanding the resource constraints often faced by public defenders, we plan to offer reduced rates to public defender organizations and data-sharing partners.",
+  "success": true
+}

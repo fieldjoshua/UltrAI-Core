@@ -1,0 +1,11 @@
+# Analysis of Two Runs
+
+## Current Run
+- Better technical understanding
+- Focused on actual system architecture
+- Specific patent-related recommendations
+
+## Previous Run
+- More abstract/philosophical
+- Generic technology discussion
+- Less system-specific understanding

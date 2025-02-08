@@ -1,0 +1,7 @@
+{
+  "start_time": "2024-12-04T22:14:25.157725",
+  "end_time": "2024-12-04T22:17:21.416398",
+  "prompt": "will you clean this up for me? the reciepient is a managing director of the AI Fund and they were kicking the tires on GIDEON but I havent heard back for a month",
+  "keyword": "will",
+  "success": true
+}

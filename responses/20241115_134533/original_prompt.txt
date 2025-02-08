@@ -1,0 +1,15 @@
+interpret the function of the following code as a service that you want patened  and write it up in a way that would be effetive to present to the us patent office for a provisional patent application:
+import asyncio
+from typing import Dict, Any, Optional, List
+import json
+import time
+from datetime import datetime
+from dataclasses import dataclass, asdict
+from string import Template
+import logging
+from tenacity import retry, stop_after_attempt, wait_exponential
+import os
+from dotenv import load_dotenv
+import openai
+import google.generativeai as genai
+import requests
