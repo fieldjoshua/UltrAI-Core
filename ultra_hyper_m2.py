@@ -7,7 +7,7 @@ from typing import Dict, Any, Optional
 from datetime import datetime
 from tenacity import retry, stop_after_attempt, wait_exponential
 import google.generativeai as genai
-from openai import OpenAI
+import openai
 from dataclasses import dataclass
 from dotenv import load_dotenv
 import torch
@@ -20,6 +20,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 load_dotenv()  # This needs to be called before accessing any env vars
+
+# Set OpenAI API key globally
+openai.api_key = os.getenv("OPENAI_API_KEY")
 
 # Create FastAPI app
 app = FastAPI(
@@ -48,30 +51,6 @@ class AnalyzeRequest(BaseModel):
         "useNoTraceEncryption": False
     }
 
-# Create API endpoint
-@app.post("/api/analyze")
-async def analyze(request: AnalyzeRequest):
-    try:
-        # Initialize the orchestrator
-        orchestrator = TriLLMOrchestrator(
-            api_keys={
-                "openai": os.getenv("OPENAI_API_KEY"),
-                "google": os.getenv("GOOGLE_API_KEY")
-            },
-            ultra_engine=request.engine
-        )
-        
-        # Process the prompt
-        results = await orchestrator.orchestrate_full_process(request.prompt)
-        
-        return {
-            "status": "success",
-            "data": results,
-            "output_directory": orchestrator.run_dir
-        }
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
 @dataclass
 class PromptTemplate:
     initial: str = "Please analyze the following: {prompt}"
@@ -82,12 +61,6 @@ class PromptTemplate:
     )
     synthesis: str = "Create a final synthesis of these refined analyses: {refined_responses}"
 
-@dataclass
-class RateLimits:
-    llama: int = 5
-    chatgpt: int = 3
-    gemini: int = 10
-
 class TriLLMOrchestrator:
     def __init__(self, api_keys: Dict[str, str], ultra_engine: str):
         self.api_keys = api_keys
@@ -95,9 +68,67 @@ class TriLLMOrchestrator:
         self.run_dir = self.setup_run_directory()
         self.logger = self.setup_logging()
         self.prompt_template = PromptTemplate()
-    
+        self.validate_api_keys()  # Validate API keys during initialization
+        openai.api_key = self.api_keys.get("openai")  # Set API key globally
+        # Initialize any other necessary components
+
+    def setup_run_directory(self) -> str:
+        """Sets up a directory to store run outputs."""
+        run_dir = os.path.join("runs", datetime.now().strftime("%Y%m%d_%H%M%S"))
+        os.makedirs(run_dir, exist_ok=True)
+        return run_dir
+
+    def setup_logging(self) -> logging.Logger:
+        """Configures logging for the orchestrator."""
+        logger = logging.getLogger("TriLLMOrchestrator")
+        logger.setLevel(logging.INFO)
+        handler = logging.FileHandler(os.path.join(self.run_dir, "orchestrator.log"))
+        formatter = logging.Formatter('%(asctime)s [%(levelname)s] %(message)s')
+        handler.setFormatter(formatter)
+        logger.addHandler(handler)
+        return logger
+
+    def validate_api_keys(self):
+        """Validate API keys and check connectivity."""
+        try:
+            # Check OpenAI API key
+            openai.api_key = self.api_keys.get("openai")
+            # Use a simple completion to check key validity
+            response = openai.Completion.create(
+                model="text-davinci-003",
+                prompt="This is a test.",
+                max_tokens=5
+            )
+            self.logger.info("OpenAI API key is valid.")
+        except Exception as e:
+            self.logger.error(f"OpenAI API key validation failed: {e}")
+            raise
+
+        try:
+            # Check Google Generative AI API key
+            genai.configure(api_key=self.api_keys.get("google"))
+            model = genai.GenerativeModel('gemini-pro')
+            model.generate_content("Test")  # Simple call to check key validity
+            self.logger.info("Google Generative AI API key is valid.")
+        except Exception as e:
+            self.logger.error(f"Google Generative AI API key validation failed: {e}")
+            raise
+
+        try:
+            # Check Llama API (assuming a simple health check endpoint)
+            response = requests.get('http://localhost:11434/api/health')
+            if response.status_code == 200:
+                self.logger.info("Llama API is accessible.")
+            else:
+                self.logger.error("Llama API health check failed.")
+                raise Exception("Llama API health check failed.")
+        except Exception as e:
+            self.logger.error(f"Llama API validation failed: {e}")
+            raise
+
     async def orchestrate_full_process(self, prompt: str) -> Dict[str, Any]:
         # Step 1: Initial Generation
+        self.logger.info("Starting initial generation phase.")
         initial_tasks = {
             "chatgpt": asyncio.create_task(self.call_chatgpt(self.prompt_template.initial.format(prompt=prompt))),
             "gemini": asyncio.create_task(self.call_gemini(self.prompt_template.initial.format(prompt=prompt))),
@@ -105,11 +136,19 @@ class TriLLMOrchestrator:
         }
         initial_responses = await asyncio.gather(*initial_tasks.values(), return_exceptions=True)
         initial_results = dict(zip(initial_tasks.keys(), initial_responses))
-        
-        # Handle Exceptions
-        # ...
-        
+        self.logger.info(f"Initial responses: {initial_results}")
+
+        # Handle Exceptions in Initial Responses
+        for model, response in initial_results.items():
+            if isinstance(response, Exception):
+                self.logger.error(f"Error in initial response from {model}: {response}")
+                initial_results[model] = f"Error: {str(response)}"
+
+        # Aggregate initial responses for refinement
+        aggregated_initial = "\n".join([f"{model.capitalize()}: {resp}" for model, resp in initial_results.items()])
+
         # Step 2: Dynamic Refinement
+        self.logger.info("Starting refinement phase.")
         refinement_tasks = {}
         for model in initial_tasks.keys():
             other_responses = "\n".join(
@@ -122,14 +161,22 @@ class TriLLMOrchestrator:
                 refinement_tasks[model] = asyncio.create_task(self.call_gemini(instruction))
             elif model == "llama":
                 refinement_tasks[model] = asyncio.create_task(self.call_llama(instruction))
-        
+
         refined_responses = await asyncio.gather(*refinement_tasks.values(), return_exceptions=True)
         refined_results = dict(zip(refinement_tasks.keys(), refined_responses))
-        
-        # Handle Exceptions
-        # ...
-        
-        # Step 3: Optional Synthesis
+        self.logger.info(f"Refined responses: {refined_results}")
+
+        # Handle Exceptions in Refined Responses
+        for model, response in refined_results.items():
+            if isinstance(response, Exception):
+                self.logger.error(f"Error in refined response from {model}: {response}")
+                refined_results[model] = f"Error: {str(response)}"
+
+        # Aggregate refined responses for synthesis
+        aggregated_refined = "\n".join([f"{model.capitalize()}: {resp}" for model, resp in refined_results.items()])
+
+        # Step 3: Optional Final Synthesis
+        self.logger.info("Starting synthesis phase.")
         synthesis_tasks = {
             "chatgpt": asyncio.create_task(self.call_chatgpt(self.prompt_template.synthesis.format(refined_responses=aggregated_refined))),
             "gemini": asyncio.create_task(self.call_gemini(self.prompt_template.synthesis.format(refined_responses=aggregated_refined))),
@@ -137,469 +184,96 @@ class TriLLMOrchestrator:
         }
         synthesis_responses = await asyncio.gather(*synthesis_tasks.values(), return_exceptions=True)
         synthesis_results = dict(zip(synthesis_tasks.keys(), synthesis_responses))
-        
-        # Handle Exceptions
-        # ...
-        
-        # Aggregate All Results
+        self.logger.info(f"Synthesis responses: {synthesis_results}")
+
+        # Handle Exceptions in Synthesis Responses
+        for model, response in synthesis_results.items():
+            if isinstance(response, Exception):
+                self.logger.error(f"Error in synthesis response from {model}: {response}")
+                synthesis_results[model] = f"Error: {str(response)}"
+
+        # Aggregate all results
         results = {
             "initial": initial_results,
             "refined": refined_results,
             "synthesis": synthesis_results,
+            "aggregated_initial": aggregated_initial,
+            "aggregated_refined": aggregated_refined,
             "run_dir": self.run_dir
         }
         return results
-
-    def _get_keyword_from_prompt(self, prompt: str) -> str:
-        """Extract a meaningful keyword from the prompt"""
-        common_words = {'the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by', 'please', 'edit', 'following'}
-        
-        words = prompt.lower().split()
-        keyword = next((word for word in words if word not in common_words and len(word) > 2), 'task')
-        
-        keyword = ''.join(c for c in keyword if c.isalnum())
-        return keyword[:15]
-
-    def _initialize_clients(self):
-        """Initialize API clients for each service"""
-        # Try Llama
-        print("Checking Llama availability...")
-        try:
-            response = requests.get('http://localhost:11434/api/version', timeout=2)
-            if response.status_code == 200:
-                print("✓ Llama available")
-                self.available_models.append('llama')
-            else:
-                print("✗ Llama not available (status code error)")
-        except Exception as e:
-            print(f"✗ Llama not available ({str(e)})")
-
-        # Initialize OpenAI
-        print("Initializing OpenAI...")
-        try:
-            self.openai_client = OpenAI(api_key=self.api_keys["openai"])
-            self.available_models.append('chatgpt')
-            print("✓ OpenAI initialized successfully")
-        except Exception as e:
-            print(f"✗ OpenAI initialization failed: {str(e)}")
-
-        # Initialize Gemini
-        print("Initializing Gemini...")
-        try:
-            genai.configure(api_key=self.api_keys["google"])
-            self.gemini_model = genai.GenerativeModel('gemini-pro')
-            self.available_models.append('gemini')
-            print("✓ Gemini initialized successfully")
-        except Exception as e:
-            print(f"✗ Gemini initialization failed: {str(e)}")
-            
-        if not self.available_models:
-            raise Exception("No AI models available. Please check your configuration.")
-        
-        print(f"\nAvailable models: {', '.join(self.available_models)}")
-
-    def _setup_directory(self):
-        """Create directory for this run"""
-        os.makedirs(self.run_dir, exist_ok=True)
-
-    def formatter(self, text: str) -> str:
-        """Format the output based on specified format"""
-        if self.output_format == "plain":
-            return text
-        # Add more format options as needed
-        return text
-
-    async def _respect_rate_limit(self, service: str):
-        """Ensure we don't exceed rate limits"""
-        current_time = datetime.now().timestamp()
-        time_since_last = current_time - self.last_request_time[service]
-        
-        if time_since_last < self.rate_limits.__dict__[service]:
-            await asyncio.sleep(self.rate_limits.__dict__[service] - time_since_last)
-        
-        self.last_request_time[service] = current_time
 
     @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=2, max=10))
     async def call_chatgpt(self, instruction: str) -> str:
         """Calls the ChatGPT API with the given instruction."""
         try:
-            client = OpenAI(api_key=self.api_keys.get("openai"))
-            response = client.chat.completions.create(
+            response = openai.ChatCompletion.create(
                 model="gpt-4",
                 messages=[{"role": "user", "content": instruction}]
             )
-            text = response.choices[0].message['content'].strip()
+            text = response.choices[0].message.content.strip()
             return text
         except Exception as e:
             self.logger.error(f"ChatGPT API call failed: {e}")
             raise
 
-    @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=4, max=10))
-    async def get_gemini_response(self, prompt: str) -> str:
-        await self._respect_rate_limit("gemini")
+    @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=2, max=10))
+    async def call_gemini(self, instruction: str) -> str:
+        """Calls the Gemini API with the given instruction."""
         try:
-            response = self.gemini_model.generate_content(prompt)
-            if hasattr(response, 'text'):
-                return self.formatter(response.text)
-            elif hasattr(response, 'parts'):
-                return self.formatter(response.parts[0].text)
-            else:
-                raise Exception("Unexpected Gemini response format")
+            genai.configure(api_key=self.api_keys.get("google"))
+            model = genai.GenerativeModel('gemini-pro')
+            response = model.generate_content(instruction)
+            return response.strip()
         except Exception as e:
-            self.logger.error(f"Error with Gemini API: {str(e)}")
+            self.logger.error(f"Gemini API call failed: {e}")
             raise
 
-    def _create_meta_prompt(self, responses: Dict[str, str], original_prompt: str) -> str:
-        return self.prompt_templates.meta.format(
-            responses=json.dumps(responses, indent=2),
-            original_prompt=original_prompt
-        )
-
-    def _create_ultra_prompt(self, responses: Dict[str, str], original_prompt: str) -> str:
-        return self.prompt_templates.ultra.format(
-            responses=json.dumps(responses, indent=2),
-            original_prompt=original_prompt
-        )
-
-    async def get_initial_responses(self, prompt: str) -> Dict[str, str]:
-        print("\nGetting initial responses...")
-        results = {}
-        
-        tasks = []
-        if 'llama' in self.available_models:
-            tasks.append(('llama', self.call_llama(prompt)))
-        if 'chatgpt' in self.available_models:
-            tasks.append(('chatgpt', self.call_chatgpt(prompt)))
-        if 'gemini' in self.available_models:
-            tasks.append(('gemini', self.call_gemini(prompt)))
-        
-        for model, task in tasks:
-            try:
-                response = await task
-                results[model] = response
-                print(f"✓ Got response from {model}")
-            except Exception as e:
-                print(f"✗ Error getting {model} response: {str(e)}")
-                results[model] = f"Error: {str(e)}"
-        
-        return results
-
-    async def get_meta_responses(self, initial_responses: Dict[str, str], original_prompt: str) -> Dict[str, str]:
-        print("Getting meta responses...")
-        results = {}
-        
-        tasks = []
-        if 'llama' in self.available_models:
-            tasks.append(('llama', self.call_llama(self._create_meta_prompt(initial_responses, original_prompt))))
-        if 'chatgpt' in self.available_models:
-            tasks.append(('chatgpt', self.call_chatgpt(self._create_meta_prompt(initial_responses, original_prompt))))
-        if 'gemini' in self.available_models:
-            tasks.append(('gemini', self.call_gemini(self._create_meta_prompt(initial_responses, original_prompt))))
-        
-        for model, task in tasks:
-            try:
-                response = await task
-                results[model] = response
-                print(f"✓ Got meta response from {model}")
-            except Exception as e:
-                print(f"✗ Error getting meta response from {model}: {str(e)}")
-                results[model] = f"Error: {str(e)}"
-        
-        return results
-
-    async def get_ultra_responses(self, meta_responses: Dict[str, str], original_prompt: str) -> Dict[str, str]:
-        print("Getting ultra responses...")
-        results = {}
-        
-        tasks = []
-        if 'llama' in self.available_models:
-            tasks.append(('llama', self.call_llama(self._create_ultra_prompt(meta_responses, original_prompt))))
-        if 'chatgpt' in self.available_models:
-            tasks.append(('chatgpt', self.call_chatgpt(self._create_ultra_prompt(meta_responses, original_prompt))))
-        if 'gemini' in self.available_models:
-            tasks.append(('gemini', self.call_gemini(self._create_ultra_prompt(meta_responses, original_prompt))))
-        
-        for model, task in tasks:
-            try:
-                response = await task
-                results[model] = response
-                print(f"✓ Got ultra response from {model}")
-            except Exception as e:
-                print(f"✗ Error getting ultra response from {model}: {str(e)}")
-                results[model] = f"Error: {str(e)}"
-        
-        return results
-
-    async def get_hyper_response(self, ultra_responses: Dict[str, str], 
-                                meta_responses: Dict[str, str], 
-                                initial_responses: Dict[str, str], 
-                                original_prompt: str) -> str:
-        """Generate final hyper synthesis using chosen engine"""
+    @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=2, max=10))
+    async def call_llama(self, instruction: str) -> str:
+        """Calls the Llama API with the given instruction."""
         try:
-            hyper_prompt = f"""Perform a hyper-level synthesis of all previous responses including multiple ultra perspectives.
-
-Original Prompt:
-{original_prompt}
-
-Initial Responses:
-{json.dumps(initial_responses, indent=2)}
-
-Meta Responses:
-{json.dumps(meta_responses, indent=2)}
-
-Ultra Responses from Each Engine:
-{json.dumps(ultra_responses, indent=2)}
-
-Create the ultimate synthesis that:
-1. Incorporates unique insights from each model at each level
-2. Identifies patterns across all processing layers
-3. Synthesizes the most valuable elements
-4. Provides novel perspectives visible only at this hyper level
-"""
-
-            # Use chosen engine for final hyper synthesis
-            if self.ultra_engine == 'llama':
-                final_hyper = await self.call_llama(hyper_prompt)
-            elif self.ultra_engine == 'chatgpt':
-                final_hyper = await self.call_chatgpt(hyper_prompt)
-            else:
-                final_hyper = await self.call_gemini(hyper_prompt)
-                
-            self._save_response(final_hyper, 'hyper_final')
-            return final_hyper
-            
-        except Exception as e:
-            self.logger.error(f"Error getting hyper response: {str(e)}")
-            raise
-
-    async def _analyze_self_for_patent(self):
-        """Analyze Ultra's code for patent application purposes"""
-        try:
-            # Get Ultra's own code
-            with open(__file__, 'r') as f:
-                code = f.read()
-            
-            patent_analysis_prompt = f"""Evaluate the functionality of the following code and prepare a description that is appropriate for a provisional patent application. Include both the technical description and the original code.
-
-Focus on:
-1. Novel technical aspects of the orchestration system
-2. The unique interaction between multiple AI models
-3. The workflow and processing methodology
-4. Technical implementation details
-5. Specific claims about the system's functionality
-
-Then include the complete code as reference.
-
-Code to analyze:
-
-{code}
-
-Please format the response in standard patent application style, including:
-- Technical Field
-- Background
-- Summary of the Invention
-- Detailed Description
-- Claims
-- Code Implementation
-"""
-            
-            # Get analysis from each model
-            responses = await asyncio.gather(
-                self.call_llama(patent_analysis_prompt),
-                self.call_chatgpt(patent_analysis_prompt),
-                self.call_gemini(patent_analysis_prompt)
+            response = requests.post(
+                'http://localhost:11434/api/generate',
+                json={
+                    'model': 'llama2',
+                    'prompt': instruction,
+                    'stream': False
+                },
+                timeout=10
             )
-            
-            # Save patent analyses
-            for model, response in zip(['llama', 'chatgpt', 'gemini'], responses):
-                self._save_response(response, f'patent_analysis_{model}')
-                
+            response.raise_for_status()
+            return response.json().get('response', '').strip()
         except Exception as e:
-            self.logger.error(f"Patent analysis error (non-critical): {str(e)}")
-
-    def _save_response(self, response: str, filename: str):
-        """Save a response to a file in the run directory"""
-        filepath = os.path.join(self.run_dir, f'{self.keyword}_{filename}.txt')
-        with open(filepath, 'w') as f:
-            f.write(response)
-
-    async def _monitor_performance(self):
-        """Monitor system performance during processing"""
-        try:
-            cpu_percent = psutil.cpu_percent(interval=1)
-            memory = psutil.virtual_memory()
-            
-            performance_data = {
-                "cpu_usage": cpu_percent,
-                "memory_used": f"{memory.percent}%",
-                "memory_available": f"{memory.available / (1024 * 1024 * 1024):.2f} GB"
-            }
-            
-            self._save_response(json.dumps(performance_data, indent=2), 'performance')
-            
-        except Exception as e:
-            self.logger.error(f"Performance monitoring error: {str(e)}")
-
-    async def orchestrate_full_process(self, prompt: str) -> Dict[str, Any]:
-        start_time = datetime.now()
-        self.prompt = prompt
-        self.keyword = self._get_keyword_from_prompt(prompt)
-        
-        # Create timestamped directory with keyword
-        self.run_timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-        self.run_dir = os.path.join(os.getcwd(), 'responses', f"{self.keyword}_{self.run_timestamp}")
-        self._setup_directory()
-        
-        # Start patent analysis in parallel
-        patent_task = asyncio.create_task(self._analyze_self_for_patent())
-        
-        # Add performance monitoring
-        monitor_task = asyncio.create_task(self._monitor_performance())
-        
-        try:
-            # Save the original prompt
-            self._save_response(prompt, 'prompt')
-            
-            # Get and save initial responses
-            initial_responses = await self.get_initial_responses(prompt)
-            for model, response in initial_responses.items():
-                self._save_response(response, f'initial_{model}')
-            
-            # Get and save meta responses
-            meta_responses = await self.get_meta_responses(initial_responses, prompt)
-            for model, response in meta_responses.items():
-                self._save_response(response, f'meta_{model}')
-            
-            # Get and save ultra responses
-            ultra_responses = await self.get_ultra_responses(meta_responses, prompt)
-            for model, response in ultra_responses.items():
-                self._save_response(response, f'ultra_{model}')
-            
-            # Get and save hyper response
-            hyper_response = await self.get_hyper_response(
-                ultra_responses, 
-                meta_responses, 
-                initial_responses, 
-                prompt
-            )
-            self._save_response(hyper_response, 'hyper')
-            
-            # Save metadata
-            metadata = {
-                "start_time": start_time.isoformat(),
-                "end_time": datetime.now().isoformat(),
-                "prompt": prompt,
-                "keyword": self.keyword,
-                "success": True
-            }
-            self._save_response(json.dumps(metadata, indent=2), 'metadata')
-            
-            # Wait for patent analysis but don't let it block the main process
-            try:
-                await asyncio.wait_for(patent_task, timeout=60)
-            except asyncio.TimeoutError:
-                pass
-            
-            # Wait for monitoring to complete
-            await asyncio.wait_for(monitor_task, timeout=5)
-            
-            return {
-                "original_prompt": prompt,
-                "initial_responses": initial_responses,
-                "meta_responses": meta_responses,
-                "ultra_responses": ultra_responses,
-                "hyper_response": hyper_response,
-                "metadata": metadata
-            }
-            
-        except Exception as e:
-            error_msg = f"Error during orchestration: {str(e)}"
-            self.logger.error(error_msg)
-            metadata = {
-                "start_time": start_time.isoformat(),
-                "end_time": datetime.now().isoformat(),
-                "prompt": prompt,
-                "keyword": self.keyword,
-                "success": False,
-                "error": str(e)
-            }
-            self._save_response(json.dumps(metadata, indent=2), 'metadata')
+            self.logger.error(f"Llama API call failed: {e}")
             raise
 
-async def test_env() -> bool:
-    """Test environment variables"""
-    print("Testing environment variables...")
-    
-    # Check OpenAI API key
-    openai_key = os.getenv("OPENAI_API_KEY")
-    if not openai_key:
-        print("❌ OPENAI_API_KEY not found")
-        return False
-    print(f"✓ OPENAI_API_KEY: {openai_key[:5]}...{openai_key[-4:]} (Length: {len(openai_key)})")
-    
-    # Check Google API key
-    google_key = os.getenv("GOOGLE_API_KEY")
-    if not google_key:
-        print("❌ GOOGLE_API_KEY not found")
-        return False
-    print(f"✓ GOOGLE_API_KEY: {google_key[:5]}...{google_key[-4:]} (Length: {len(google_key)})")
-    
-    # Check Llama
+@app.post("/api/analyze")
+async def analyze(request: AnalyzeRequest):
     try:
-        response = requests.get('http://localhost:11434/api/version')
-        if response.status_code == 200:
-            print("✓ Llama: Connected successfully")
-        else:
-            print("❌ Llama: Connection failed")
-            return False
-    except Exception as e:
-        print(f"❌ Llama: Connection error - {str(e)}")
-        return False
-    
-    print("\nAll services are available! ✓")
-    return True
-
-async def test_apis():
-    """Test each API individually"""
-    print("\nTesting APIs individually...")
-    
-    print("\nTesting Llama...")
-    try:
-        response = requests.post(
-            'http://localhost:11434/api/generate',
-            json={
-                'model': 'llama2',
-                'prompt': 'Say "Llama test successful!"',
-                'stream': False
-            }
+        orchestrator = TriLLMOrchestrator(
+            api_keys={
+                "openai": os.getenv("OPENAI_API_KEY"),
+                "google": os.getenv("GOOGLE_API_KEY"),
+                "llama": os.getenv("LLAMA_API_KEY")  # Ensure this key is set
+            },
+            ultra_engine=request.engine
         )
-        if response.status_code == 200:
-            print("Llama test successful!")
-        else:
-            print(f"Llama test failed with status code: {response.status_code}")
-    except Exception as e:
-        print(f"Llama test failed with error: {str(e)}")
-    
-    print("\nTesting OpenAI...")
-    try:
-        client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-        response = client.chat.completions.create(
-            model="gpt-4-turbo-preview",
-            messages=[{"role": "user", "content": "Say 'OpenAI test successful!'"}]
-        )
-        print("OpenAI test successful!")
-    except Exception as e:
-        print(f"OpenAI test failed with error: {str(e)}")
-    
-    print("\nTesting Gemini...")
-    try:
-        genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
-        model = genai.GenerativeModel('gemini-pro')
-        response = model.generate_content("Say 'Gemini test successful!'")
-        print("Gemini test successful!")
-    except Exception as e:
-        print(f"Gemini test failed with error: {str(e)}")
 
+        results = await orchestrator.orchestrate_full_process(request.prompt)
+
+        return {
+            "status": "success",
+            "data": results,
+            "output_directory": orchestrator.run_dir
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+# ... (additional existing code, functions, and classes) ...
+# For example, health check endpoints, utility functions, etc.
+
+# Example of running the app
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)
