@@ -7,7 +7,10 @@ from typing import Dict, Any, Optional
 from datetime import datetime
 from tenacity import retry, stop_after_attempt, wait_exponential
 import google.generativeai as genai
-import openai
+from openai import OpenAI
+
+# Initialize the OpenAI client with the API key
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 from dataclasses import dataclass
 from dotenv import load_dotenv
 import torch
@@ -20,9 +23,6 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 load_dotenv()  # This needs to be called before accessing any env vars
-
-# Set OpenAI API key globally
-openai.api_key = os.getenv("OPENAI_API_KEY")
 
 # Create FastAPI app
 app = FastAPI(
@@ -69,7 +69,6 @@ class TriLLMOrchestrator:
         self.logger = self.setup_logging()
         self.prompt_template = PromptTemplate()
         self.validate_api_keys()  # Validate API keys during initialization
-        openai.api_key = self.api_keys.get("openai")  # Set API key globally
         # Initialize any other necessary components
 
     def setup_run_directory(self) -> str:
@@ -92,13 +91,9 @@ class TriLLMOrchestrator:
         """Validate API keys and check connectivity."""
         try:
             # Check OpenAI API key
-            openai.api_key = self.api_keys.get("openai")
-            # Use a simple completion to check key validity
-            response = openai.Completion.create(
-                model="text-davinci-003",
-                prompt="This is a test.",
-                max_tokens=5
-            )
+            # Use a simple chat completion to check key validity
+            response = client.chat.completions.create(model="gpt-3.5-turbo",
+            messages=[{"role": "user", "content": "This is a test."}])
             self.logger.info("OpenAI API key is valid.")
         except Exception as e:
             self.logger.error(f"OpenAI API key validation failed: {e}")
@@ -126,91 +121,105 @@ class TriLLMOrchestrator:
             self.logger.error(f"Llama API validation failed: {e}")
             raise
 
+    def chunk_input(self, input_text: str, max_chunk_size: int = 1000) -> list:
+        """Splits the input text into smaller chunks."""
+        return [input_text[i:i + max_chunk_size] for i in range(0, len(input_text), max_chunk_size)]
+
     async def orchestrate_full_process(self, prompt: str) -> Dict[str, Any]:
-        # Step 1: Initial Generation
-        self.logger.info("Starting initial generation phase.")
-        initial_tasks = {
-            "chatgpt": asyncio.create_task(self.call_chatgpt(self.prompt_template.initial.format(prompt=prompt))),
-            "gemini": asyncio.create_task(self.call_gemini(self.prompt_template.initial.format(prompt=prompt))),
-            "llama": asyncio.create_task(self.call_llama(self.prompt_template.initial.format(prompt=prompt))),
-        }
-        initial_responses = await asyncio.gather(*initial_tasks.values(), return_exceptions=True)
-        initial_results = dict(zip(initial_tasks.keys(), initial_responses))
-        self.logger.info(f"Initial responses: {initial_results}")
-
-        # Handle Exceptions in Initial Responses
-        for model, response in initial_results.items():
-            if isinstance(response, Exception):
-                self.logger.error(f"Error in initial response from {model}: {response}")
-                initial_results[model] = f"Error: {str(response)}"
-
-        # Aggregate initial responses for refinement
-        aggregated_initial = "\n".join([f"{model.capitalize()}: {resp}" for model, resp in initial_results.items()])
-
-        # Step 2: Dynamic Refinement
-        self.logger.info("Starting refinement phase.")
-        refinement_tasks = {}
-        for model in initial_tasks.keys():
-            other_responses = "\n".join(
-                [f"{m.capitalize()}: {r}" for m, r in initial_results.items() if m != model]
-            )
-            instruction = self.prompt_template.refinement.format(other_responses=other_responses)
-            if model == "chatgpt":
-                refinement_tasks[model] = asyncio.create_task(self.call_chatgpt(instruction))
-            elif model == "gemini":
-                refinement_tasks[model] = asyncio.create_task(self.call_gemini(instruction))
-            elif model == "llama":
-                refinement_tasks[model] = asyncio.create_task(self.call_llama(instruction))
-
-        refined_responses = await asyncio.gather(*refinement_tasks.values(), return_exceptions=True)
-        refined_results = dict(zip(refinement_tasks.keys(), refined_responses))
-        self.logger.info(f"Refined responses: {refined_results}")
-
-        # Handle Exceptions in Refined Responses
-        for model, response in refined_results.items():
-            if isinstance(response, Exception):
-                self.logger.error(f"Error in refined response from {model}: {response}")
-                refined_results[model] = f"Error: {str(response)}"
-
-        # Aggregate refined responses for synthesis
-        aggregated_refined = "\n".join([f"{model.capitalize()}: {resp}" for model, resp in refined_results.items()])
-
-        # Step 3: Optional Final Synthesis
-        self.logger.info("Starting synthesis phase.")
-        synthesis_tasks = {
-            "chatgpt": asyncio.create_task(self.call_chatgpt(self.prompt_template.synthesis.format(refined_responses=aggregated_refined))),
-            "gemini": asyncio.create_task(self.call_gemini(self.prompt_template.synthesis.format(refined_responses=aggregated_refined))),
-            "llama": asyncio.create_task(self.call_llama(self.prompt_template.synthesis.format(refined_responses=aggregated_refined))),
-        }
-        synthesis_responses = await asyncio.gather(*synthesis_tasks.values(), return_exceptions=True)
-        synthesis_results = dict(zip(synthesis_tasks.keys(), synthesis_responses))
-        self.logger.info(f"Synthesis responses: {synthesis_results}")
-
-        # Handle Exceptions in Synthesis Responses
-        for model, response in synthesis_results.items():
-            if isinstance(response, Exception):
-                self.logger.error(f"Error in synthesis response from {model}: {response}")
-                synthesis_results[model] = f"Error: {str(response)}"
-
-        # Aggregate all results
-        results = {
-            "initial": initial_results,
-            "refined": refined_results,
-            "synthesis": synthesis_results,
-            "aggregated_initial": aggregated_initial,
-            "aggregated_refined": aggregated_refined,
+        # Split the prompt into chunks
+        chunks = self.chunk_input(prompt)
+        all_results = {
+            "initial": {},
+            "refined": {},
+            "synthesis": {},
+            "aggregated_initial": "",
+            "aggregated_refined": "",
             "run_dir": self.run_dir
         }
-        return results
+
+        for idx, chunk in enumerate(chunks):
+            self.logger.info(f"Processing chunk {idx + 1}/{len(chunks)}")
+
+            # Step 1: Initial Generation
+            self.logger.info("Starting initial generation phase.")
+            initial_tasks = {
+                "chatgpt": asyncio.create_task(self.call_chatgpt(self.prompt_template.initial.format(prompt=chunk))),
+                "gemini": asyncio.create_task(self.call_gemini(self.prompt_template.initial.format(prompt=chunk))),
+                "llama": asyncio.create_task(self.call_llama(self.prompt_template.initial.format(prompt=chunk))),
+            }
+            initial_responses = await asyncio.gather(*initial_tasks.values(), return_exceptions=True)
+            initial_results = dict(zip(initial_tasks.keys(), initial_responses))
+            self.logger.info(f"Initial responses for chunk {idx + 1}: {initial_results}")
+
+            # Handle Exceptions in Initial Responses
+            for model, response in initial_results.items():
+                if isinstance(response, Exception):
+                    self.logger.error(f"Error in initial response from {model}: {response}")
+                    initial_results[model] = f"Error: {str(response)}"
+
+            # Aggregate initial responses for refinement
+            aggregated_initial = "\n".join([f"{model.capitalize()}: {resp}" for model, resp in initial_results.items()])
+
+            # Step 2: Dynamic Refinement
+            self.logger.info("Starting refinement phase.")
+            refinement_tasks = {}
+            for model in initial_tasks.keys():
+                other_responses = "\n".join(
+                    [f"{m.capitalize()}: {r}" for m, r in initial_results.items() if m != model]
+                )
+                instruction = self.prompt_template.refinement.format(other_responses=other_responses)
+                if model == "chatgpt":
+                    refinement_tasks[model] = asyncio.create_task(self.call_chatgpt(instruction))
+                elif model == "gemini":
+                    refinement_tasks[model] = asyncio.create_task(self.call_gemini(instruction))
+                elif model == "llama":
+                    refinement_tasks[model] = asyncio.create_task(self.call_llama(instruction))
+
+            refined_responses = await asyncio.gather(*refinement_tasks.values(), return_exceptions=True)
+            refined_results = dict(zip(refinement_tasks.keys(), refined_responses))
+            self.logger.info(f"Refined responses for chunk {idx + 1}: {refined_results}")
+
+            # Handle Exceptions in Refined Responses
+            for model, response in refined_results.items():
+                if isinstance(response, Exception):
+                    self.logger.error(f"Error in refined response from {model}: {response}")
+                    refined_results[model] = f"Error: {str(response)}"
+
+            # Aggregate refined responses for synthesis
+            aggregated_refined = "\n".join([f"{model.capitalize()}: {resp}" for model, resp in refined_results.items()])
+
+            # Step 3: Optional Final Synthesis
+            self.logger.info("Starting synthesis phase.")
+            synthesis_tasks = {
+                "chatgpt": asyncio.create_task(self.call_chatgpt(self.prompt_template.synthesis.format(refined_responses=aggregated_refined))),
+                "gemini": asyncio.create_task(self.call_gemini(self.prompt_template.synthesis.format(refined_responses=aggregated_refined))),
+                "llama": asyncio.create_task(self.call_llama(self.prompt_template.synthesis.format(refined_responses=aggregated_refined))),
+            }
+            synthesis_responses = await asyncio.gather(*synthesis_tasks.values(), return_exceptions=True)
+            synthesis_results = dict(zip(synthesis_tasks.keys(), synthesis_responses))
+            self.logger.info(f"Synthesis responses for chunk {idx + 1}: {synthesis_results}")
+
+            # Handle Exceptions in Synthesis Responses
+            for model, response in synthesis_results.items():
+                if isinstance(response, Exception):
+                    self.logger.error(f"Error in synthesis response from {model}: {response}")
+                    synthesis_results[model] = f"Error: {str(response)}"
+
+            # Aggregate all results for this chunk
+            all_results["initial"].update(initial_results)
+            all_results["refined"].update(refined_results)
+            all_results["synthesis"].update(synthesis_results)
+            all_results["aggregated_initial"] += aggregated_initial + "\n"
+            all_results["aggregated_refined"] += aggregated_refined + "\n"
+
+        return all_results
 
     @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=2, max=10))
     async def call_chatgpt(self, instruction: str) -> str:
         """Calls the ChatGPT API with the given instruction."""
         try:
-            response = openai.ChatCompletion.create(
-                model="gpt-4",
-                messages=[{"role": "user", "content": instruction}]
-            )
+            response = client.chat.completions.create(model="gpt-3.5-turbo",
+            messages=[{"role": "user", "content": instruction}])
             text = response.choices[0].message.content.strip()
             return text
         except Exception as e:
