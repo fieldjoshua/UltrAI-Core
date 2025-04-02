@@ -102,6 +102,10 @@ class PatternOrchestrator:
         self.current_session_dir = None
         os.makedirs(self.outputs_dir, exist_ok=True)
         
+        # Initialize file attachment storage
+        self.file_attachments = []
+        self.documents_processor = None
+        
         # Initialize API clients
         self._initialize_clients()
             
@@ -175,6 +179,22 @@ class PatternOrchestrator:
             
             # Llama will be checked on first use
             self.last_request["llama"] = datetime.now()
+            
+            # Initialize document processor
+            try:
+                from ultra_documents import UltraDocuments
+                self.documents_processor = UltraDocuments(
+                    api_keys={
+                        "anthropic": self.anthropic_key,
+                        "openai": self.openai_key,
+                        "google": self.google_key,
+                    },
+                    output_format="plain"
+                )
+                self.logger.info("Document processor initialized")
+            except Exception as e:
+                self.logger.error(f"Error initializing document processor: {e}")
+                self.documents_processor = None
             
             if not self.available_models:
                 raise ConfigurationError("No API clients could be initialized. Please check your API keys.")
@@ -450,6 +470,22 @@ class PatternOrchestrator:
             print("3. Verify that the API services are accessible")
             raise ValidationError(error_msg)
             
+        # Process file attachments if any
+        attachment_content = self._process_attachments()
+        
+        # Enhance prompt with attachment content if available
+        enhanced_prompt = prompt
+        if attachment_content:
+            enhanced_prompt = f"{prompt}\n\n--- CONTENT FROM ATTACHED DOCUMENTS ---\n{attachment_content}\n--- END OF DOCUMENT CONTENT ---\n\nBased on the above documents and the original prompt, please provide a comprehensive response."
+            self.logger.info(f"Enhanced prompt with content from {len(self.file_attachments)} attached documents")
+            
+            # Save the enhanced prompt
+            if self.current_session_dir:
+                enhanced_prompt_path = os.path.join(self.current_session_dir, "enhanced_prompt.txt")
+                with open(enhanced_prompt_path, "w", encoding="utf-8") as f:
+                    f.write(enhanced_prompt)
+                self.logger.info(f"Saved enhanced prompt to {enhanced_prompt_path}")
+            
         tasks = []
         model_names = []
         
@@ -461,7 +497,7 @@ class PatternOrchestrator:
                 self.logger.warning(f"No handler method for model: {model}")
                 continue
                 
-            tasks.append(getattr(self, handler_method)(prompt))
+            tasks.append(getattr(self, handler_method)(enhanced_prompt))
             model_names.append(model)
             self.logger.debug(f"Added task for model: {model}")
             
@@ -747,7 +783,10 @@ class PatternOrchestrator:
             "models_used": list(initial_responses.keys()),
             "ultra_model": self.ultra_model,
             "pattern": self.pattern.name,
-            "timestamp": datetime.now().isoformat()
+            "timestamp": datetime.now().isoformat(),
+            "has_attachments": len(self.file_attachments) > 0,
+            "num_attachments": len(self.file_attachments),
+            "attachment_files": [os.path.basename(f) for f in self.file_attachments]
         }
         
         # Save performance metrics
@@ -762,13 +801,19 @@ class PatternOrchestrator:
             "hyper_responses": hyper_responses,
             "ultra_response": ultra_response,
             "performance": performance_metrics,
-            "output_dir": self.current_session_dir
+            "output_dir": self.current_session_dir,
+            "attachments": [os.path.basename(f) for f in self.file_attachments] if self.file_attachments else []
         }
         
         print("\n=========== FINAL RESULT ===========")
         print(f"```markdown\n{ultra_response}\n```")
         print("====================================")
         print(f"\nAll results saved to: {self.current_session_dir}")
+        
+        if self.file_attachments:
+            print(f"\nAnalysis included {len(self.file_attachments)} attached files:")
+            for i, file_path in enumerate(self.file_attachments, 1):
+                print(f"  {i}. {os.path.basename(file_path)}")
         
         return result
 
@@ -882,6 +927,20 @@ class PatternOrchestrator:
             }
         }
         
+        # Add file attachment info if available
+        if self.file_attachments:
+            metadata["attachments"] = {
+                "count": len(self.file_attachments),
+                "files": [
+                    {
+                        "filename": os.path.basename(path),
+                        "path": path,
+                        "size_bytes": os.path.getsize(path) if os.path.exists(path) else 0,
+                        "extension": os.path.splitext(path)[1].lower()
+                    } for path in self.file_attachments
+                ]
+            }
+        
         filepath = os.path.join(self.current_session_dir, "metadata.json")
         
         try:
@@ -891,6 +950,98 @@ class PatternOrchestrator:
             return filepath
         except Exception as e:
             self.logger.error(f"Error saving metadata to {filepath}: {e}")
+            return None
+
+    def attach_file(self, file_path: str) -> bool:
+        """
+        Attach a file to be used as context for the analysis.
+        
+        Args:
+            file_path: Path to the file to attach
+            
+        Returns:
+            bool: True if the file was successfully attached, False otherwise
+        """
+        if not os.path.exists(file_path):
+            self.logger.error(f"File not found: {file_path}")
+            return False
+            
+        # Get file extension
+        _, ext = os.path.splitext(file_path)
+        ext = ext.lower()
+        
+        # Check if file type is supported
+        if not self.documents_processor:
+            self.logger.error("Document processor not available")
+            return False
+            
+        supported_formats = self.documents_processor.supported_formats.keys()
+        if ext not in supported_formats:
+            self.logger.error(f"Unsupported file format: {ext}. Supported formats: {', '.join(supported_formats)}")
+            return False
+            
+        # Add file to attachments
+        self.file_attachments.append(file_path)
+        self.logger.info(f"File attached: {file_path}")
+        return True
+        
+    def clear_attachments(self):
+        """Clear all attached files"""
+        self.file_attachments = []
+        self.logger.info("All file attachments cleared")
+        
+    def _process_attachments(self) -> Optional[str]:
+        """
+        Process all attached files and return their contents.
+        
+        Returns:
+            str: Combined content from all attached files, or None if processing failed
+        """
+        if not self.file_attachments:
+            self.logger.info("No file attachments to process")
+            return None
+            
+        if not self.documents_processor:
+            self.logger.error("Document processor not available")
+            return None
+            
+        try:
+            # Process all attached files
+            results = self.documents_processor.process_documents(self.file_attachments)
+            
+            # Format the results
+            formatted_content = []
+            for i, (file_path, content) in enumerate(results.items()):
+                if content.startswith("Error:"):
+                    self.logger.error(f"Error processing {file_path}: {content}")
+                    continue
+                    
+                filename = os.path.basename(file_path)
+                formatted_content.append(f"[DOCUMENT {i+1}: {filename}]\n{content}\n")
+                
+            if not formatted_content:
+                self.logger.warning("No content extracted from attached files")
+                return None
+                
+            combined_content = "\n".join(formatted_content)
+            
+            # Save attachments to the session directory
+            if self.current_session_dir:
+                attachment_info = {
+                    "files": [{
+                        "filename": os.path.basename(path),
+                        "path": path
+                    } for path in self.file_attachments]
+                }
+                attachments_file = os.path.join(self.current_session_dir, "attachments.json")
+                with open(attachments_file, "w", encoding="utf-8") as f:
+                    json.dump(attachment_info, f, indent=2)
+                self.logger.info(f"Saved attachments info to {attachments_file}")
+                
+            return combined_content
+            
+        except Exception as e:
+            self.logger.error(f"Error processing attachments: {e}")
             return None
 
 class ResponseFormatter:
@@ -1026,6 +1177,30 @@ async def main():
         orchestrator.pattern = pattern  # Set the full pattern object
         orchestrator.ultra_model = ultra_model
         
+        # File attachment option
+        attach_files = input("\nWould you like to attach files for analysis? (y/n): ").lower().strip()
+        if attach_files == 'y':
+            print("\nSupported file formats: .pdf, .txt, .md, .docx")
+            
+            while True:
+                file_path = input("\nEnter the file path (or press Enter to stop adding files): ").strip()
+                if not file_path:
+                    break
+                    
+                # Try to attach the file
+                if orchestrator.attach_file(file_path):
+                    print(f"File attached: {file_path}")
+                else:
+                    print(f"Could not attach file: {file_path}")
+                    
+            # Summary of attached files
+            if orchestrator.file_attachments:
+                print(f"\n{len(orchestrator.file_attachments)} files attached:")
+                for i, file_path in enumerate(orchestrator.file_attachments, 1):
+                    print(f"  {i}. {file_path}")
+            else:
+                print("\nNo files attached.")
+        
         # Get user prompt
         default_prompt = "What are the most common misconceptions about artificial intelligence?"
         user_prompt = input(f"\nEnter your prompt (press Enter to use default): ")
@@ -1033,13 +1208,15 @@ async def main():
             user_prompt = default_prompt
             
         print(f"\nStarting {pattern.name} process with {ultra_model.upper()} for ultra synthesis...")
+        if orchestrator.file_attachments:
+            print(f"Including {len(orchestrator.file_attachments)} attached files in the analysis.")
         
         # Execute the pattern
         result = await orchestrator.orchestrate_full_process(user_prompt)
         
         # Display result
         print("\n=========== FINAL RESULT ===========")
-        print(result)
+        print(result["ultra_response"])
         print("====================================")
         
     except Exception as e:
