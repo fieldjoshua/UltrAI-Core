@@ -3,10 +3,13 @@ import psutil
 import torch
 import logging
 import platform
+import time
+import sys
 from typing import Dict, Any, Optional, List
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from ultra_config import UltraConfig
+from ultra_base import UltraBase
 
 @dataclass
 class PerformanceConfig:
@@ -87,7 +90,6 @@ class CacheManager:
     def add_to_cache(self, key: str, value: Any):
         """Add item to cache with size tracking."""
         try:
-            import sys
             item_size = sys.getsizeof(value) / (1024 * 1024)  # Size in MB
             
             if self.cache_size + item_size > self.config.performance.cache_size_mb:
