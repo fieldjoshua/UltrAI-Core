@@ -2,6 +2,24 @@
 
 The Ultra Framework is a powerful orchestration system for LLMs that allows for complex, multi-stage reasoning patterns. It leverages multiple models to enhance analysis quality and reliability.
 
+## Important Updates
+
+- **Port Configuration**: Backend now runs on port 8080 (changed from 11434)
+- **Docker Support**: New multi-stage Dockerfile and docker-compose.yml for optimized deployment
+- **Build Optimizations**: Improved build process with code splitting and minification
+- **Document Processing**: Enhanced document handling with better chunking and relevance scoring
+
+### Quick Start with Docker
+
+```bash
+# Build and run with Docker
+docker-compose up -d
+
+# Access the application
+Frontend: http://localhost:3000
+Backend API: http://localhost:8080
+```
+
 ## Key Features
 
 - **Multiple Analysis Patterns**: Gut Analysis, Confidence Analysis, Critique Analysis, Fact Check Analysis, Perspective Analysis, and Scenario Analysis

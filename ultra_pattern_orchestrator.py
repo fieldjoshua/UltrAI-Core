@@ -20,7 +20,7 @@ from anthropic import AsyncAnthropic
 from openai import AsyncOpenAI
 import google.generativeai as genai
 from google.generativeai import GenerativeModel
-from mistralai.async_client import MistralAsyncClient
+# from mistralai.async_client import MistralAsyncClient
 import cohere
 
 from ultra_analysis_patterns import AnalysisPatterns, AnalysisPattern
@@ -155,13 +155,15 @@ class PatternOrchestrator:
                 self.logger.info("Cohere client initialized")
             else:
                 self.logger.warning("Cohere not available - API key missing")
-                
+            
             # Mistral
             if self.mistral_key:
-                self.mistral = MistralAsyncClient(api_key=self.mistral_key)
-                self.available_models.append("mistral")
-                self.last_request["mistral"] = datetime.now()
-                self.logger.info("Mistral client initialized")
+                # Commenting out Mistral client initialization due to deprecation
+                # self.mistral = MistralAsyncClient(api_key=self.mistral_key)
+                # self.available_models.append("mistral")
+                # self.last_request["mistral"] = datetime.now()
+                # self.logger.info("Mistral client initialized")
+                self.logger.warning("Mistral client disabled due to API version incompatibility")
             else:
                 self.logger.warning("Mistral not available - API key missing")
                 
@@ -214,13 +216,22 @@ class PatternOrchestrator:
             
     async def _check_ollama_availability(self) -> bool:
         """Check if Ollama is running and accessible"""
-        async with httpx.AsyncClient() as client:
+        ports_to_try = [8080, 11434, 8000]
+        
+        for port in ports_to_try:
             try:
-                response = await client.get("http://localhost:11434/api/version")
-                response.raise_for_status()
-                return True
+                async with httpx.AsyncClient(timeout=5.0) as client:
+                    response = await client.get(f"http://localhost:{port}/api/version")
+                    if response.status_code == 200:
+                        self.logger.info(f"Ollama found on port {port}")
+                        # Store the working port for future use
+                        self.ollama_port = port
+                        return True
             except Exception as e:
-                raise Exception(f"Ollama not available: {e}")
+                self.logger.debug(f"Ollama not available on port {port}: {e}")
+                
+        # If we get here, Ollama is not available on any port
+        raise Exception(f"Ollama not available on any of the ports: {ports_to_try}")
 
     @retry(
         stop=stop_after_attempt(3), 
@@ -356,6 +367,10 @@ class PatternOrchestrator:
     )
     async def get_llama_response(self, prompt: str) -> str:
         """Get response from Ollama's Llama model"""
+        # Initialize the ollama_port attribute if not present
+        if not hasattr(self, "ollama_port"):
+            self.ollama_port = 8080  # Default to our new port
+            
         # Check Ollama availability if we haven't yet
         if self.ollama_available is None:
             try:
@@ -381,7 +396,7 @@ class PatternOrchestrator:
             # Check if the selected model exists
             async with httpx.AsyncClient(timeout=30.0) as client:
                 try:
-                    model_check = await client.get("http://localhost:11434/api/tags")
+                    model_check = await client.get(f"http://localhost:{self.ollama_port}/api/tags")
                     model_check.raise_for_status()
                     available_models = model_check.json()
                     
@@ -401,7 +416,7 @@ class PatternOrchestrator:
             
             async with httpx.AsyncClient(timeout=60.0) as client:
                 response = await client.post(
-                    "http://localhost:11434/api/generate",
+                    f"http://localhost:{self.ollama_port}/api/generate",
                     json={
                         "model": f"{model_to_use}:latest",
                         "prompt": prompt,
