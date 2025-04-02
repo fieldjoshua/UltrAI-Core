@@ -180,7 +180,7 @@ class PatternOrchestrator:
             # Llama will be checked on first use
             self.last_request["llama"] = datetime.now()
             
-            # Initialize document processor
+            # Initialize document processor with improved capabilities
             try:
                 from ultra_documents import UltraDocuments
                 self.documents_processor = UltraDocuments(
@@ -189,9 +189,16 @@ class PatternOrchestrator:
                         "openai": self.openai_key,
                         "google": self.google_key,
                     },
-                    output_format="plain"
+                    output_format="plain",
+                    cache_enabled=True,
+                    chunk_size=1500,
+                    chunk_overlap=150,
+                    embedding_model="all-MiniLM-L6-v2"  # Lightweight model with good performance
                 )
-                self.logger.info("Document processor initialized")
+                self.logger.info("Enhanced document processor initialized with embedding support")
+            except ImportError as e:
+                self.logger.error(f"Error importing UltraDocuments: {e}")
+                self.documents_processor = None
             except Exception as e:
                 self.logger.error(f"Error initializing document processor: {e}")
                 self.documents_processor = None
@@ -476,8 +483,33 @@ class PatternOrchestrator:
         # Enhance prompt with attachment content if available
         enhanced_prompt = prompt
         if attachment_content:
-            enhanced_prompt = f"{prompt}\n\n--- CONTENT FROM ATTACHED DOCUMENTS ---\n{attachment_content}\n--- END OF DOCUMENT CONTENT ---\n\nBased on the above documents and the original prompt, please provide a comprehensive response."
+            # Format the prompt differently depending on if we have RAG-processed content
+            if "From:" in attachment_content and "Relevance:" in attachment_content:
+                # This is content from semantic retrieval with relevance scores
+                enhanced_prompt = (
+                    f"{prompt}\n\n"
+                    f"--- RELEVANT DOCUMENT EXCERPTS ---\n{attachment_content}\n"
+                    f"--- END OF DOCUMENT EXCERPTS ---\n\n"
+                    f"Please provide a comprehensive analysis based on the query and the most relevant parts "
+                    f"of the provided documents. Focus on addressing the original query directly, using "
+                    f"information from the document excerpts to support your answer."
+                )
+            else:
+                # This is regular document content
+                enhanced_prompt = (
+                    f"{prompt}\n\n"
+                    f"--- CONTENT FROM ATTACHED DOCUMENTS ---\n{attachment_content}\n"
+                    f"--- END OF DOCUMENT CONTENT ---\n\n"
+                    f"Based on the above documents and the original prompt, please provide a comprehensive "
+                    f"analysis that focuses specifically on answering the original query."
+                )
+                
             self.logger.info(f"Enhanced prompt with content from {len(self.file_attachments)} attached documents")
+            
+            # Calculate tokens (approximate)
+            words = len(enhanced_prompt.split())
+            tokens = words * 1.3  # Rough approximation of tokens
+            self.logger.info(f"Enhanced prompt length: ~{words} words, ~{int(tokens)} tokens")
             
             # Save the enhanced prompt
             if self.current_session_dir:
@@ -1006,7 +1038,30 @@ class PatternOrchestrator:
             return None
             
         try:
-            # Process all attached files
+            # Use the enhanced RAG-based processing if available
+            if hasattr(self.documents_processor, 'process_query_with_documents'):
+                # This method automatically handles chunking and semantic retrieval
+                prompt = "Please analyze these documents"  # Generic prompt for embedding
+                enhanced_prompt = self.documents_processor.process_query_with_documents(
+                    prompt, 
+                    self.file_attachments,
+                    max_chunks=10
+                )
+                
+                # Remove the generic prompt and instructions as we'll add our own
+                if "--- RELEVANT DOCUMENT EXCERPTS ---" in enhanced_prompt:
+                    _, content = enhanced_prompt.split("--- RELEVANT DOCUMENT EXCERPTS ---", 1)
+                    content, _ = content.split("Please provide a comprehensive response", 1)
+                    return content.strip()
+                elif "--- CONTENT FROM ATTACHED DOCUMENTS ---" in enhanced_prompt:
+                    _, content = enhanced_prompt.split("--- CONTENT FROM ATTACHED DOCUMENTS ---", 1)
+                    content, _ = content.split("Based on the above documents", 1)
+                    return content.strip()
+                
+                # Fallback: return the whole processed prompt
+                return enhanced_prompt
+            
+            # Fallback to the original document processing
             results = self.documents_processor.process_documents(self.file_attachments)
             
             # Format the results
@@ -1017,6 +1072,12 @@ class PatternOrchestrator:
                     continue
                     
                 filename = os.path.basename(file_path)
+                
+                # Truncate very long content for better prompt management
+                max_length = 8000  # Character limit per document
+                if len(content) > max_length:
+                    content = content[:max_length] + f"... [Document truncated, {len(content)} total characters]"
+                
                 formatted_content.append(f"[DOCUMENT {i+1}: {filename}]\n{content}\n")
                 
             if not formatted_content:
@@ -1030,7 +1091,9 @@ class PatternOrchestrator:
                 attachment_info = {
                     "files": [{
                         "filename": os.path.basename(path),
-                        "path": path
+                        "path": path,
+                        "size_bytes": os.path.getsize(path) if os.path.exists(path) else 0,
+                        "extension": os.path.splitext(path)[1].lower()
                     } for path in self.file_attachments]
                 }
                 attachments_file = os.path.join(self.current_session_dir, "attachments.json")

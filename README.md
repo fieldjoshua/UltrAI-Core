@@ -9,6 +9,7 @@ The Ultra Framework is a powerful orchestration system for LLMs that allows for 
 - **Multi-Level Processing**: Initial, meta, hyper, and ultra level analysis for thorough reasoning
 - **Local Output Storage**: All outputs are saved to disk for review and analysis
 - **File Attachment Support**: Analyze documents by attaching files to provide context for LLMs
+- **Advanced RAG Capabilities**: Semantic search, document chunking, and embedding-based retrieval
 
 ## Output Structure
 
@@ -44,19 +45,33 @@ Then follow the prompts to:
 
 The framework supports attaching files to provide context for your analysis:
 
-- Supported file formats: `.pdf`, `.txt`, `.md`, `.docx`, `.doc`
-- Files are processed and their content is included in the analysis
-- File content is stored securely and only used for the current analysis
-- Metadata about attached files is saved for reference
+- **Supported file formats**: `.pdf`, `.txt`, `.md`, `.docx`, `.doc`
+- **Smart document processing**: Files are processed, chunked, and semantically indexed
+- **Relevance-based retrieval**: Only the most relevant parts of documents are included in the prompt
+- **Memory efficient**: Large documents are handled without exceeding LLM context limits
+
+## Document Processing Features
+
+The Ultra framework implements advanced document processing capabilities:
+
+- **Smart chunking**: Documents are split into semantic chunks with proper overlap
+- **Vector embeddings**: Document chunks are converted to vector embeddings for semantic search
+- **Relevance scoring**: Chunks are ranked by relevance to the query
+- **Context optimization**: Only the most relevant chunks are included in the prompt
+- **Performance optimization**: Document processing results are cached for faster repeat analysis
+- **Multiple format support**: PDF, TXT, DOCX, DOC, and Markdown files are supported
 
 ## Requirements
 
 See `requirements.txt` for required Python packages.
 
 For file attachment support:
-- PyPDF2 (for PDF files)
+- PyPDF2 and PyMuPDF (for PDF files)
 - python-docx (for DOCX files)
 - textract (for DOC files)
+- sentence-transformers (for embedding generation)
+- faiss-cpu (for similarity search)
+- langchain (for text processing)
 
 ## Architecture
 
@@ -73,7 +88,7 @@ The Ultra framework follows a multi-stage orchestration pattern:
 - `ultra_analysis_patterns.py`: Definitions of various analysis patterns
 - `ultra_llm.py`: LLM client integration
 - `ultra_models.py`: Model definitions and configurations
-- `ultra_documents.py`: Document processing and file handling
+- `ultra_documents.py`: Document processing and file handling with RAG capabilities
 - `ultra_error_handling.py`: Error handling mechanisms
 - `ultra_config.py`: Configuration management
 - `ultra_base.py`: Base classes and utilities
