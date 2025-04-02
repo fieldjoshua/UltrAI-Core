@@ -255,6 +255,29 @@ class ResponseFormatter:
     def format_json(text: str) -> str:
         return json.dumps({"response": text}, indent=2)
 
+async def test_env() -> bool:
+    """Test if all required environment variables are set"""
+    required_vars = [
+        "ANTHROPIC_API_KEY",
+        "OPENAI_API_KEY",
+        "GOOGLE_API_KEY"
+    ]
+    
+    missing_vars = []
+    for var in required_vars:
+        if not os.getenv(var):
+            missing_vars.append(var)
+    
+    if missing_vars:
+        print("\nError: Missing required environment variables:")
+        for var in missing_vars:
+            print(f"- {var}")
+        print("\nPlease set these variables in your .env file")
+        return False
+    
+    print("\nAll required environment variables are set")
+    return True
+
 async def main():
     # Test environment variables first
     env_ok = await test_env()
