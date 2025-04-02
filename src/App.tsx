@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import UltraWithDocuments from './components/UltraWithDocuments';
 import { PerformanceMonitor } from './components/PerformanceMonitor';
 import PerformanceDashboard from './components/PerformanceDashboard';
-import { ChevronUp, ChevronDown, BarChart3, Home, LayoutDashboard } from 'lucide-react';
+import { BarChart3, Home, LayoutDashboard } from 'lucide-react';
 import './index.css';
 
 // Main app component with metrics panel
