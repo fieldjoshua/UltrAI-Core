@@ -1,8 +1,25 @@
-import numpy as np
+import logging
 import pandas as pd
 import matplotlib.pyplot as plt
+import numpy as np
 from typing import Dict, Any, Optional, List, Union
+from datetime import datetime
+import os
+from dataclasses import dataclass
 from ultra_base import UltraBase
+from ultra_llm import PromptTemplate, RateLimits
+
+@dataclass
+class DataConfig:
+    """Configuration for data processing and visualization."""
+    cache_dir: str = "cache"
+    max_cache_age_hours: int = 24
+    default_plot_style: str = "seaborn"
+    supported_formats: List[str] = None
+
+    def __post_init__(self):
+        if self.supported_formats is None:
+            self.supported_formats = ["csv", "json", "xlsx", "parquet"]
 
 class UltraData(UltraBase):
     def __init__(
