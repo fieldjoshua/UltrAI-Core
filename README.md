@@ -1,113 +1,104 @@
-# Ultra - AI-Powered Content and Data Processing Platform
+# Ultra Framework
 
-Ultra is a comprehensive platform that combines multiple AI language models (LLMs) with advanced data processing and visualization capabilities. It provides a unified interface for content generation, analysis, and data manipulation.
+The Ultra Framework is a powerful orchestration system for LLMs that allows for complex, multi-stage reasoning patterns. It leverages multiple models to enhance analysis quality and reliability.
 
-## Features
+## Key Features
 
-### Language Model Integration
-- OpenAI's ChatGPT
-- Google's Gemini
-- Llama
-- Configurable rate limits and API keys
-- Feature-based enabling/disabling
+- **Multiple Analysis Patterns**: Gut Analysis, Confidence Analysis, Critique Analysis, Fact Check Analysis, Perspective Analysis, and Scenario Analysis
+- **Multi-Model Orchestration**: Utilizes multiple LLMs (Claude, ChatGPT, Gemini, etc.) in parallel 
+- **Multi-Level Processing**: Initial, meta, hyper, and ultra level analysis for thorough reasoning
+- **Local Output Storage**: All outputs are saved to disk for review and analysis
 
-### Data Processing
-- Pandas-based data manipulation
-- Advanced data scaling and transformation
-- Custom filtering and aggregation
-- Support for multiple data formats
+## Output Structure
 
-### Visualization
-- Matplotlib integration
-- Multiple chart types (line, bar, scatter)
-- Customizable plot parameters
-- Automatic file saving
+Each Ultra analysis run creates a timestamped directory in the `outputs/` folder. The directory name includes the timestamp and a snippet of the user's prompt.
 
-## Installation
+Each output directory contains:
 
-1. Clone the repository:
-```bash
-git clone https://github.com/yourusername/ultra.git
-cd ultra
-```
-
-2. Install dependencies:
-```bash
-pip install -r requirements.txt
-```
-
-3. Set up environment variables:
-Create a `.env` file with your API keys:
-```
-OPENAI_API_KEY=your_openai_key
-GOOGLE_API_KEY=your_google_key
-LLAMA_API_KEY=your_llama_key
-```
+- `prompt.txt`: The original user prompt
+- `initial_*.txt`: Initial responses from each LLM (e.g., `initial_claude.txt`, `initial_chatgpt.txt`)
+- `meta_*.txt`: Meta-level responses from each LLM
+- `hyper_*.txt`: Hyper-level responses from each LLM
+- `ultra.txt`: The final synthesized ultra-level response
+- `metadata.json`: Information about the run, including timestamp, pattern used, models used, and system info
+- `performance.txt`: Performance metrics in JSON format
 
 ## Usage
 
-### Basic Usage
+Run the pattern orchestrator:
 
-```python
-import asyncio
-from ultra_main import UltraOrchestrator
-
-async def main():
-    # Initialize orchestrator
-    orchestrator = UltraOrchestrator(
-        api_keys={
-            'openai': 'your_openai_key',
-            'google': 'your_google_key',
-            'llama': 'your_llama_key'
-        },
-        enabled_features=["openai", "gemini", "llama", "pandas", "matplotlib"]
-    )
-    
-    # Process with LLMs
-    responses = await orchestrator.process_with_llm("Your prompt here")
-    
-    # Process data
-    results = await orchestrator.process_with_data(
-        your_data,
-        processing_params={"scale": {"method": "standard"}},
-        viz_params={
-            "type": "line",
-            "columns": ["column1", "column2"],
-            "title": "Your Visualization"
-        }
-    )
-
-if __name__ == "__main__":
-    asyncio.run(main())
+```bash
+python ultra_pattern_orchestrator.py
 ```
 
-### Feature Configuration
+Then follow the prompts to select an analysis pattern, an ultra synthesis model, and enter your query.
 
-You can enable or disable specific features when initializing the orchestrator:
+## Requirements
 
-```python
-orchestrator = UltraOrchestrator(
-    api_keys=api_keys,
-    enabled_features=["openai", "pandas"]  # Only enable specific features
-)
-```
+See `requirements.txt` for required Python packages.
 
 ## Architecture
 
-The platform is built with a modular architecture:
+The Ultra framework follows a multi-stage orchestration pattern:
 
-- `UltraBase`: Base class with common functionality
-- `UltraLLM`: Handles language model interactions
-- `UltraData`: Manages data processing and visualization
-- `UltraOrchestrator`: Main class that coordinates all features
+1. **Initial Responses**: Get responses from all available models
+2. **Meta Analysis**: Each model analyzes and reviews the collective responses
+3. **Hyper Analysis**: Models analyze the meta-level reviews
+4. **Ultra Synthesis**: A final comprehensive synthesis is produced
+
+## Core Components
+
+- `ultra_pattern_orchestrator.py`: Main orchestrator for the multi-stage pattern
+- `ultra_analysis_patterns.py`: Definitions of various analysis patterns
+- `ultra_llm.py`: LLM client integration
+- `ultra_models.py`: Model definitions and configurations
+- `ultra_error_handling.py`: Error handling mechanisms
+- `ultra_config.py`: Configuration management
+- `ultra_base.py`: Base classes and utilities
+
+## Setup and Usage
+
+### Prerequisites
+
+- Python 3.11+
+- API keys for Claude, ChatGPT/OpenAI, Google (Gemini)
+- Optional: Ollama for local Llama integration
+
+### Environment Variables
+
+Create a `.env` file with your API keys:
+
+```
+ANTHROPIC_API_KEY=your_anthropic_key_here
+OPENAI_API_KEY=your_openai_key_here
+GOOGLE_API_KEY=your_google_key_here
+```
+
+Optional API keys:
+```
+MISTRAL_API_KEY=your_mistral_key_here
+PERPLEXITY_API_KEY=your_perplexity_key_here
+COHERE_API_KEY=your_cohere_key_here
+```
+
+## Analysis Patterns
+
+- **Gut Analysis**: Intuitive analysis without assuming factual correctness
+- **Confidence Analysis**: Analysis with confidence scoring and agreement tracking
+- **Critique Analysis**: Structured critique and revision process
+- **Fact Check Analysis**: Focus on factual accuracy
+- **Perspective Analysis**: Analysis from multiple perspectives and viewpoints
+- **Scenario Analysis**: Analysis under different scenarios and conditions
 
 ## Contributing
 
+To contribute to the Ultra framework:
+
 1. Fork the repository
-2. Create your feature branch
-3. Commit your changes
-4. Push to the branch
-5. Create a new Pull Request
+2. Create a feature branch: `git checkout -b feature-name`
+3. Commit your changes: `git commit -m 'Add some feature'`
+4. Push to the branch: `git push origin feature-name`
+5. Submit a pull request
 
 ## License
 
