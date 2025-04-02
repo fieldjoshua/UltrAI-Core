@@ -8,6 +8,7 @@ The Ultra Framework is a powerful orchestration system for LLMs that allows for 
 - **Docker Support**: New multi-stage Dockerfile and docker-compose.yml for optimized deployment
 - **Build Optimizations**: Improved build process with code splitting and minification
 - **Document Processing**: Enhanced document handling with better chunking and relevance scoring
+- **Performance Dashboard**: New comprehensive dashboard for real-time system monitoring and metrics
 
 ### Quick Start with Docker
 
@@ -18,6 +19,7 @@ docker-compose up -d
 # Access the application
 Frontend: http://localhost:3000
 Backend API: http://localhost:8080
+Performance Dashboard: http://localhost:3000/dashboard
 ```
 
 ## Key Features
@@ -158,3 +160,20 @@ To contribute to the Ultra framework:
 ## License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
+
+## Performance Dashboard
+
+The Ultra Framework includes a detailed performance monitoring dashboard that provides real-time metrics and visualizations:
+
+### Dashboard Features
+- **System Overview**: CPU, memory, and disk usage metrics with trend indicators
+- **Performance Metrics**: Request counts, document processing stats, and response times
+- **Efficiency Analytics**: Average processing times, cache hit rates, and resource utilization
+- **System Information**: Runtime environment details, uptime, and system status
+
+### Accessing the Dashboard
+- Navigate to `/dashboard` in your browser
+- Click the dashboard icon in the top-right corner of the main application
+- Auto-refreshes every 5 seconds to show real-time data
+
+For detailed information about the Performance Dashboard, see [PERFORMANCE_DASHBOARD.md](PERFORMANCE_DASHBOARD.md).
