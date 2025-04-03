@@ -22,101 +22,223 @@ class ModelConfig:
     description: str = ""
     max_tokens: int = 2000
     temperature: float = 0.7
+    input_cost_per_1k_tokens: Optional[float] = None
+    output_cost_per_1k_tokens: Optional[float] = None
     cost_per_1k_tokens: Optional[float] = None
+    context_window: Optional[int] = None
     is_enabled: bool = True
+    is_thinking_model: bool = False
     strengths: List[str] = None  # List of task types this model excels at
     limitations: List[str] = None  # List of task types this model is less suitable for
 
 class UltraModels:
     def __init__(self):
         self.available_models: Dict[str, ModelConfig] = {
-            # Commercial Models
-            "openai": ModelConfig(
-                name="OpenAI",
+            # OpenAI Models
+            "gpt4o": ModelConfig(
+                name="GPT-4o",
                 category=ModelCategory.COMMERCIAL,
                 provider="openai",
                 api_key_required=True,
                 base_url="https://api.openai.com/v1",
-                models=["gpt-4", "gpt-3.5-turbo"],
-                description="OpenAI's powerful language models",
-                cost_per_1k_tokens=0.03,
-                strengths=["general reasoning", "complex analysis", "creative writing", "code generation"],
+                models=["gpt-4o-2024-05-13"],
+                description="OpenAI's balanced model optimized for reasoning and instruction following",
+                input_cost_per_1k_tokens=0.0025,
+                output_cost_per_1k_tokens=0.0100,
+                cost_per_1k_tokens=0.0125,
+                context_window=128000,
+                is_thinking_model=True,
+                strengths=["reasoning", "complex analysis", "synthesizing information", "balanced outputs"],
                 limitations=["cost", "API rate limits"]
             ),
-            "anthropic": ModelConfig(
-                name="Anthropic Claude",
+            "gpto1": ModelConfig(
+                name="GPT-o1",
+                category=ModelCategory.COMMERCIAL,
+                provider="openai",
+                api_key_required=True,
+                base_url="https://api.openai.com/v1",
+                models=["gpt-o1"],
+                description="OpenAI's most powerful model with exceptional reasoning and analysis",
+                input_cost_per_1k_tokens=0.015,
+                output_cost_per_1k_tokens=0.060,
+                cost_per_1k_tokens=0.075,
+                context_window=200000,
+                is_thinking_model=True,
+                strengths=["advanced reasoning", "complex problem solving", "nuanced understanding", "largest context awareness"],
+                limitations=["highest cost", "API rate limits"]
+            ),
+            "gpto3mini": ModelConfig(
+                name="GPT-o3 mini",
+                category=ModelCategory.COMMERCIAL,
+                provider="openai",
+                api_key_required=True,
+                base_url="https://api.openai.com/v1",
+                models=["gpt-o3-mini"],
+                description="Efficient OpenAI model with large context window and good performance",
+                input_cost_per_1k_tokens=0.00110,
+                output_cost_per_1k_tokens=0.00440,
+                cost_per_1k_tokens=0.00550,
+                context_window=200000,
+                strengths=["efficiency", "large context window", "good reasoning", "affordable"],
+                limitations=["less powerful than GPT-o1"]
+            ),
+            "gpt4o_mini": ModelConfig(
+                name="GPT-4o Mini",
+                category=ModelCategory.COMMERCIAL,
+                provider="openai",
+                api_key_required=True,
+                base_url="https://api.openai.com/v1",
+                models=["gpt-4o-mini"],
+                description="More affordable version of GPT-4o with very good performance",
+                input_cost_per_1k_tokens=0.00015,
+                output_cost_per_1k_tokens=0.00060,
+                cost_per_1k_tokens=0.00075,
+                context_window=128000,
+                strengths=["efficiency", "good reasoning", "fast responses", "affordable"],
+                limitations=["less powerful than GPT-4o"]
+            ),
+            "gpt4_turbo": ModelConfig(
+                name="GPT-4 Turbo",
+                category=ModelCategory.COMMERCIAL,
+                provider="openai",
+                api_key_required=True, 
+                base_url="https://api.openai.com/v1",
+                models=["gpt-4-turbo"],
+                description="OpenAI's powerful GPT-4 model with optimized performance",
+                input_cost_per_1k_tokens=0.01,
+                output_cost_per_1k_tokens=0.03,
+                cost_per_1k_tokens=0.04,
+                context_window=128000,
+                is_thinking_model=True,
+                strengths=["reasoning", "complex analysis", "synthesizing information"],
+                limitations=["cost", "API rate limits"]
+            ),
+            "gpt35_turbo": ModelConfig(
+                name="GPT-3.5 Turbo",
+                category=ModelCategory.COMMERCIAL,
+                provider="openai",
+                api_key_required=True,
+                base_url="https://api.openai.com/v1",
+                models=["gpt-3.5-turbo"],
+                description="OpenAI's fast and cost-effective model",
+                input_cost_per_1k_tokens=0.0005,
+                output_cost_per_1k_tokens=0.0015,
+                cost_per_1k_tokens=0.0020,
+                context_window=4096,
+                strengths=["speed", "cost", "good for simple tasks"],
+                limitations=["limited reasoning", "smaller context window"]
+            ),
+            
+            # Anthropic Models
+            "claude37": ModelConfig(
+                name="Claude 3.7 Sonnet",
                 category=ModelCategory.COMMERCIAL,
                 provider="anthropic",
                 api_key_required=True,
                 base_url="https://api.anthropic.com/v1",
-                models=["claude-3-opus-20240229", "claude-3-sonnet-20240229"],
-                description="Anthropic's Claude models with strong reasoning capabilities",
-                cost_per_1k_tokens=0.015,
-                strengths=["detailed analysis", "ethical reasoning", "long-form content", "research"],
+                models=["claude-3-7-sonnet-20240620"],
+                description="Anthropic's latest model with excellent reasoning capabilities",
+                input_cost_per_1k_tokens=0.003,
+                output_cost_per_1k_tokens=0.015,
+                cost_per_1k_tokens=0.018,
+                context_window=200000,
+                is_thinking_model=True,
+                strengths=["detailed analysis", "synthesis", "long-form content", "research"],
                 limitations=["cost", "API rate limits"]
             ),
-            "mistral": ModelConfig(
-                name="Mistral AI",
+            "claude3_opus": ModelConfig(
+                name="Claude 3 Opus",
                 category=ModelCategory.COMMERCIAL,
-                provider="mistral",
+                provider="anthropic",
                 api_key_required=True,
-                base_url="https://api.mistral.ai/v1",
-                models=["mistral-tiny", "mistral-small", "mistral-medium", "mistral-large"],
-                description="Mistral's efficient and powerful models",
-                cost_per_1k_tokens=0.0002,
-                strengths=["efficiency", "multilingual", "code generation", "reasoning"],
-                limitations=["API rate limits"]
+                base_url="https://api.anthropic.com/v1",
+                models=["claude-3-opus-20240229"],
+                description="Anthropic's most capable model with exceptional reasoning",
+                input_cost_per_1k_tokens=0.015,
+                output_cost_per_1k_tokens=0.075,
+                cost_per_1k_tokens=0.090,
+                context_window=200000,
+                is_thinking_model=True,
+                strengths=["complex reasoning", "nuanced understanding", "comprehensive analysis"],
+                limitations=["highest cost", "API rate limits"]
             ),
-            "deepseek": ModelConfig(
-                name="DeepSeek",
+            "claude35_haiku": ModelConfig(
+                name="Claude 3.5 Haiku",
                 category=ModelCategory.COMMERCIAL,
-                provider="deepseek",
+                provider="anthropic",
                 api_key_required=True,
-                base_url="https://api.deepseek.com/v1",
-                models=["deepseek-chat", "deepseek-coder"],
-                description="DeepSeek's specialized models for chat and code",
-                cost_per_1k_tokens=0.0001,
-                strengths=["code generation", "technical analysis", "chat", "efficiency"],
-                limitations=["API rate limits"]
+                base_url="https://api.anthropic.com/v1",
+                models=["claude-3-5-haiku-20240307"],
+                description="Anthropic's fast, cost-effective model with good capabilities",
+                input_cost_per_1k_tokens=0.0008,
+                output_cost_per_1k_tokens=0.0040,
+                cost_per_1k_tokens=0.0048,
+                context_window=200000,
+                strengths=["speed", "efficiency", "good balance of capabilities and cost"],
+                limitations=["less capable than larger Claude models"]
             ),
             
-            # Open Source Models (API)
-            "google": ModelConfig(
-                name="Google Gemini",
-                category=ModelCategory.OPEN_SOURCE,
+            # Google Models
+            "gemini15": ModelConfig(
+                name="Google Gemini 1.5",
+                category=ModelCategory.COMMERCIAL,
                 provider="google",
                 api_key_required=True,
-                models=["gemini-pro"],
-                description="Google's open source language model",
-                cost_per_1k_tokens=0.00025,
-                strengths=["multimodal", "general knowledge", "creative tasks"],
+                models=["gemini-1.5-pro"],
+                description="Google's efficient model with excellent capabilities",
+                input_cost_per_1k_tokens=0.000075,
+                output_cost_per_1k_tokens=0.000300,
+                cost_per_1k_tokens=0.000375,
+                context_window=128000,
+                strengths=["efficiency", "multimodal capabilities", "cost-effectiveness"],
                 limitations=["API rate limits"]
             ),
-            
-            # Local Models
-            "ollama": ModelConfig(
-                name="Ollama",
-                category=ModelCategory.LOCAL,
-                provider="ollama",
-                api_key_required=False,
-                base_url="http://localhost:11434",
-                models=["mixtral", "llama2", "codellama", "mistral", "neural-chat"],
-                description="Local models running through Ollama",
-                cost_per_1k_tokens=0,
-                strengths=["privacy", "no rate limits", "offline use", "customization"],
-                limitations=["hardware requirements", "model size"]
+            "gemini25_pro_max": ModelConfig(
+                name="Google Gemini 2.5 Pro Max",
+                category=ModelCategory.COMMERCIAL,
+                provider="google",
+                api_key_required=True,
+                models=["gemini-2.5-pro-max"],
+                description="Google's latest flagship model with massive context window",
+                input_cost_per_1k_tokens=0.003,
+                output_cost_per_1k_tokens=0.015,
+                cost_per_1k_tokens=0.018,
+                context_window=1000000,
+                is_thinking_model=True,
+                strengths=["massive context window", "complex analysis", "advanced reasoning"],
+                limitations=["cost", "API rate limits"]
             ),
-            "llama": ModelConfig(
-                name="Llama",
+            
+            # Local Models            
+            "llama3": ModelConfig(
+                name="Llama 3",
                 category=ModelCategory.LOCAL,
-                provider="llama",
+                provider="meta",
                 api_key_required=False,
                 base_url="http://localhost:5000",
-                models=["llama2-7b", "llama2-13b", "llama2-70b"],
-                description="Meta's Llama models running locally",
+                models=["llama3-70b", "llama3-8b"],
+                description="Meta's Llama 3 model running locally",
+                input_cost_per_1k_tokens=0,
+                output_cost_per_1k_tokens=0,
                 cost_per_1k_tokens=0,
+                context_window=8192,
                 strengths=["privacy", "no rate limits", "offline use"],
                 limitations=["hardware requirements", "model size"]
+            ),
+            "mistral": ModelConfig(
+                name="Mistral",
+                category=ModelCategory.LOCAL,
+                provider="mistral",
+                api_key_required=False,
+                base_url="http://localhost:11434",
+                models=["mistral-small", "mistral-medium", "mistral-large"],
+                description="Mistral models running locally",
+                input_cost_per_1k_tokens=0,
+                output_cost_per_1k_tokens=0,
+                cost_per_1k_tokens=0,
+                context_window=8192,
+                strengths=["privacy", "no rate limits", "offline use", "efficiency"],
+                limitations=["hardware requirements"]
             )
         }
         
@@ -164,6 +286,13 @@ class UltraModels:
             if config.category == category
         ]
     
+    def get_thinking_models(self) -> List[str]:
+        """Get list of models designated as thinking models."""
+        return [
+            model_id for model_id, config in self.available_models.items()
+            if config.is_thinking_model
+        ]
+    
     def enable_model(self, model_id: str) -> bool:
         """Enable a specific model."""
         if model_id in self.available_models:
@@ -194,8 +323,14 @@ class UltraModels:
                 'description': config.description,
                 'max_tokens': config.max_tokens,
                 'temperature': config.temperature,
+                'input_cost_per_1k_tokens': config.input_cost_per_1k_tokens,
+                'output_cost_per_1k_tokens': config.output_cost_per_1k_tokens,
                 'cost_per_1k_tokens': config.cost_per_1k_tokens,
-                'is_enabled': config.is_enabled
+                'context_window': config.context_window,
+                'is_enabled': config.is_enabled,
+                'is_thinking_model': config.is_thinking_model,
+                'strengths': config.strengths,
+                'limitations': config.limitations
             }
         return None
     
