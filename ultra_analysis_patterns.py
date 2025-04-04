@@ -476,6 +476,347 @@ Please create a final synthesis that:
         }
     )
 
+    # New Intelligence Multiplication Methods
+
+    STAKEHOLDER_VISION = AnalysisPattern(
+        name="Stakeholder Vision",
+        description="Analyzes from multiple stakeholder perspectives to reveal diverse interests and needs",
+        stages=["initial", "meta", "hyper", "ultra"],
+        templates={
+            "initial": """Please analyze the following: {prompt}
+
+Then re-analyze from the distinct perspectives of all key stakeholders:
+1. List all significant stakeholders affected
+2. For each stakeholder, describe their unique:
+   a) Goals and success metrics
+   b) Constraints and limitations
+   c) Risks and concerns
+   d) Likely reactions to various approaches""",
+
+            "meta": """Original prompt: $original_prompt
+
+Your initial stakeholder analysis:
+$own_response
+
+Other LLM stakeholder analyses:
+$other_responses
+
+Please map the stakeholder analyses by:
+1. Identifying stakeholders present in all analyses vs. those missed by some
+2. Noting consistent vs. contradictory stakeholder motivations
+3. Analyzing potential coalition patterns and power dynamics
+4. Creating a holistic ecosystem view of interconnected stakeholder relationships""",
+
+            "hyper": """Original prompt: $original_prompt
+
+Your meta stakeholder mapping:
+$own_meta
+
+Other LLM meta analyses:
+$other_meta_responses
+
+Please provide a refined stakeholder-based analysis that:
+1. Identifies key stakeholder alignments and conflicts
+2. Presents a comprehensive power and interest matrix
+3. Suggests coalition-building opportunities
+4. Reveals hidden stakeholder dependencies
+5. Maps the full stakeholder ecosystem""",
+
+            "ultra": """Original prompt: $original_prompt
+
+All hyper-level stakeholder analyses:
+$hyper_responses
+
+Please create a stakeholder-integrated synthesis:
+1. Present a comprehensive stakeholder map with interest alignment/conflicts
+2. Suggest multi-win strategies addressing core stakeholder needs
+3. Outline an implementation approach accounting for stakeholder dynamics
+4. Provide a communication strategy tailored to each stakeholder group
+5. Identify success metrics from multiple stakeholder perspectives"""
+        },
+        instructions={
+            "initial": [
+                "Identify all stakeholders",
+                "Map stakeholder goals",
+                "Assess constraints and limitations",
+                "Evaluate risks and concerns",
+                "Predict likely reactions"
+            ],
+            "meta": [
+                "Compare stakeholder identification",
+                "Analyze motivation consistency",
+                "Map coalition patterns",
+                "Create ecosystem view"
+            ],
+            "hyper": [
+                "Identify alignments/conflicts",
+                "Create power/interest matrix",
+                "Suggest coalition opportunities",
+                "Reveal hidden dependencies",
+                "Map stakeholder ecosystem"
+            ],
+            "ultra": [
+                "Create comprehensive stakeholder map",
+                "Suggest multi-win strategies",
+                "Design implementation approach",
+                "Tailor communication strategy",
+                "Identify multi-stakeholder metrics"
+            ]
+        }
+    )
+
+    SYSTEMS_MAPPER = AnalysisPattern(
+        name="Systems Mapper",
+        description="Maps complex system dynamics with feedback loops and leverage points",
+        stages=["initial", "meta", "hyper", "ultra"],
+        templates={
+            "initial": """Please analyze the following: {prompt}
+
+Using systems thinking methodology:
+1. Map the system components and their interconnections
+2. Identify key feedback loops (reinforcing and balancing)
+3. Locate potential leverage points where small changes yield large effects
+4. Anticipate emergent properties and second-order consequences""",
+
+            "meta": """Original prompt: $original_prompt
+
+Your initial systems analysis:
+$own_response
+
+Other LLM systems analyses:
+$other_responses
+
+Please integrate the system models by:
+1. Creating a composite system map incorporating all identified elements
+2. Analyzing feedback dynamics identified by multiple models
+3. Comparing consensus vs. disputed leverage points
+4. Developing a comprehensive view of potential unintended consequences""",
+
+            "hyper": """Original prompt: $original_prompt
+
+Your meta systems integration:
+$own_meta
+
+Other LLM meta analyses:
+$other_meta_responses
+
+Please provide a refined systems analysis that:
+1. Presents a fully integrated causal loop diagram
+2. Quantifies relative impact of different leverage points
+3. Models system behavior under different intervention scenarios
+4. Anticipates emergent properties and non-linear effects
+5. Identifies critical thresholds and tipping points""",
+
+            "ultra": """Original prompt: $original_prompt
+
+All hyper-level systems analyses:
+$hyper_responses
+
+Please create a systems-based synthesis:
+1. Present an integrated system model with causal loop diagrams
+2. Identify high-leverage intervention points with expected system effects
+3. Outline an implementation strategy accounting for feedback dynamics
+4. Develop a monitoring framework for system behavior and emergent properties
+5. Provide a timeline of expected system changes with key indicators"""
+        },
+        instructions={
+            "initial": [
+                "Map system components",
+                "Identify feedback loops",
+                "Locate leverage points",
+                "Anticipate emergent properties"
+            ],
+            "meta": [
+                "Create composite system map",
+                "Analyze feedback dynamics",
+                "Compare leverage points",
+                "Assess unintended consequences"
+            ],
+            "hyper": [
+                "Create causal loop diagram",
+                "Quantify leverage impacts",
+                "Model intervention scenarios",
+                "Anticipate non-linear effects",
+                "Identify critical thresholds"
+            ],
+            "ultra": [
+                "Present integrated system model",
+                "Identify high-leverage points",
+                "Design feedback-aware strategy",
+                "Develop monitoring framework",
+                "Map system change timeline"
+            ]
+        }
+    )
+
+    TIME_HORIZON = AnalysisPattern(
+        name="Time Horizon",
+        description="Analyzes across multiple time frames to balance short and long-term considerations",
+        stages=["initial", "meta", "hyper", "ultra"],
+        templates={
+            "initial": """Please analyze the following: {prompt}
+
+Then reframe your analysis across three time horizons:
+1. IMMEDIATE (0-1 year): Short-term actions and consequences
+2. TRANSITIONAL (1-5 years): Medium-term developments and adaptations
+3. HORIZON (5-20+ years): Long-term transformational possibilities
+
+For each timeframe, consider what differs in your analysis and recommendations.""",
+
+            "meta": """Original prompt: $original_prompt
+
+Your initial temporal analysis:
+$own_response
+
+Other LLM temporal analyses:
+$other_responses
+
+Please compare the temporal analyses by:
+1. Identifying temporal consistency vs. divergence across models
+2. Analyzing short-term vs. long-term tradeoffs identified
+3. Mapping critical transition points where futures diverge
+4. Evaluating time-horizon biases in different models' thinking""",
+
+            "hyper": """Original prompt: $original_prompt
+
+Your meta temporal comparison:
+$own_meta
+
+Other LLM meta analyses:
+$other_meta_responses
+
+Please provide a refined temporal analysis that:
+1. Creates a coherent timeline across all time horizons
+2. Identifies key decision points that affect future trajectories
+3. Analyzes dependencies between short and long-term actions
+4. Evaluates opportunity costs across different time horizons
+5. Outlines a temporal decision framework""",
+
+            "ultra": """Original prompt: $original_prompt
+
+All hyper-level temporal analyses:
+$hyper_responses
+
+Please create a temporally-integrated synthesis:
+1. Present a time-coherent roadmap linking immediate actions to long-term goals
+2. Design an adaptive strategy with explicit time-based decision points
+3. Balance present vs. future capability investments with optimal sequencing
+4. Stratify recommendations by time-criticality and time-horizon
+5. Identify temporal flexibility areas vs. time-sensitive commitments"""
+        },
+        instructions={
+            "initial": [
+                "Analyze immediate impacts",
+                "Explore transitional developments",
+                "Project long-term possibilities",
+                "Compare across timeframes"
+            ],
+            "meta": [
+                "Identify temporal consistency",
+                "Analyze time-based tradeoffs",
+                "Map transition points",
+                "Evaluate time biases"
+            ],
+            "hyper": [
+                "Create coherent timeline",
+                "Identify key decision points",
+                "Analyze temporal dependencies",
+                "Evaluate opportunity costs",
+                "Design decision framework"
+            ],
+            "ultra": [
+                "Present time-coherent roadmap",
+                "Design adaptive strategy",
+                "Balance capability investments",
+                "Stratify by time-criticality",
+                "Identify temporal flexibility"
+            ]
+        }
+    )
+
+    INNOVATION_BRIDGE = AnalysisPattern(
+        name="Innovation Bridge",
+        description="Uses cross-domain analogies to discover non-obvious patterns and solutions",
+        stages=["initial", "meta", "hyper", "ultra"],
+        templates={
+            "initial": """Please analyze the following: {prompt}
+
+Then identify at least 3 analogies from different domains (e.g., biology, physics, history, other industries) that offer insight into this situation. For each analogy explain:
+1. The pattern similarity
+2. Insights derived from the analogy
+3. Limitations of the analogy""",
+
+            "meta": """Original prompt: $original_prompt
+
+Your initial analogical analysis:
+$own_response
+
+Other LLM analogical analyses:
+$other_responses
+
+Please analyze the analogies across all models by:
+1. Identifying the most powerful recurring analogical patterns
+2. Highlighting novel cross-domain insights unique to specific models
+3. Exploring potential new analogies by combining elements
+4. Evaluating which insights are revealed only through analogical thinking""",
+
+            "hyper": """Original prompt: $original_prompt
+
+Your meta analogical mapping:
+$own_meta
+
+Other LLM meta analyses:
+$other_meta_responses
+
+Please provide a refined analogical analysis that:
+1. Develops composite analogies building on multiple domains
+2. Creates a unified analogical framework across domains
+3. Extracts key principles that transcend specific analogies
+4. Maps novel solution approaches directly from analogical insights
+5. Evaluates limitations of the analogical approach""",
+
+            "ultra": """Original prompt: $original_prompt
+
+All hyper-level analogical analyses:
+$hyper_responses
+
+Please create an analogical synthesis:
+1. Present the most illuminating cross-domain patterns with implementation implications
+2. Develop a composite analogical model drawing best elements from each analogy
+3. Outline novel solution approaches inspired by analogical reasoning
+4. Translate analogical insights into practical applications
+5. Create an innovation framework based on cross-domain knowledge transfer"""
+        },
+        instructions={
+            "initial": [
+                "Identify domain analogies",
+                "Extract pattern similarities",
+                "Derive analogical insights",
+                "Acknowledge limitations"
+            ],
+            "meta": [
+                "Map recurring patterns",
+                "Highlight unique insights",
+                "Explore combined analogies",
+                "Evaluate analogical discoveries"
+            ],
+            "hyper": [
+                "Develop composite analogies",
+                "Create unified framework",
+                "Extract transcendent principles",
+                "Map novel solutions",
+                "Evaluate approach limitations"
+            ],
+            "ultra": [
+                "Present illuminating patterns",
+                "Develop composite model",
+                "Outline novel approaches",
+                "Translate to applications",
+                "Create innovation framework"
+            ]
+        }
+    )
+
     @classmethod
     def get_pattern(cls, pattern_name: str) -> Optional[AnalysisPattern]:
         """Get an analysis pattern by name"""
@@ -485,6 +826,10 @@ Please create a final synthesis that:
             "critique": cls.CRITIQUE_ANALYSIS,
             "fact_check": cls.FACT_CHECK_ANALYSIS,
             "perspective": cls.PERSPECTIVE_ANALYSIS,
-            "scenario": cls.SCENARIO_ANALYSIS
+            "scenario": cls.SCENARIO_ANALYSIS,
+            "stakeholder": cls.STAKEHOLDER_VISION,
+            "systems": cls.SYSTEMS_MAPPER,
+            "time": cls.TIME_HORIZON,
+            "innovation": cls.INNOVATION_BRIDGE
         }
         return patterns.get(pattern_name.lower()) 

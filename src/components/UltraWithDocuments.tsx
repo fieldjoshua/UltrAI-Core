@@ -19,6 +19,9 @@ import {
   Quote,
   Eye,
   Clock,
+  Users,
+  Network,
+  Lightbulb,
 } from 'lucide-react'
 import axios from 'axios'
 
@@ -123,7 +126,11 @@ const analysisPatterns = [
   { id: 'confidence', label: 'Confidence Analysis', description: 'Evaluates the strength of each model response and selects the most reliable one', icon: <Brain className="w-4 h-4" /> },
   { id: 'critique', label: 'Critique', description: 'Asks models to critically evaluate each other\'s reasoning and answers', icon: <Feather className="w-4 h-4" /> },
   { id: 'gut', label: 'Gut Check', description: 'Rapid evaluation of different perspectives to identify the most likely correct answer', icon: <Zap className="w-4 h-4" /> },
-  { id: 'scenario', label: 'Scenario Analysis', description: 'Explores potential future outcomes and alternative possibilities', icon: <Lock className="w-4 h-4" /> }
+  { id: 'scenario', label: 'Scenario Analysis', description: 'Explores potential future outcomes and alternative possibilities', icon: <Lock className="w-4 h-4" /> },
+  { id: 'stakeholder', label: 'Stakeholder Vision', description: 'Analyzes from multiple stakeholder perspectives to reveal diverse interests and needs', icon: <Users className="w-4 h-4" /> },
+  { id: 'systems', label: 'Systems Mapper', description: 'Maps complex system dynamics with feedback loops and leverage points', icon: <Network className="w-4 h-4" /> },
+  { id: 'time', label: 'Time Horizon', description: 'Analyzes across multiple time frames to balance short and long-term considerations', icon: <Clock className="w-4 h-4" /> },
+  { id: 'innovation', label: 'Innovation Bridge', description: 'Uses cross-domain analogies to discover non-obvious patterns and solutions', icon: <Lightbulb className="w-4 h-4" /> }
 ]
 
 // Additional options

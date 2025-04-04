@@ -1194,7 +1194,11 @@ async def main():
             analysis_patterns.get_pattern("critique"),
             analysis_patterns.get_pattern("fact_check"),
             analysis_patterns.get_pattern("perspective"),
-            analysis_patterns.get_pattern("scenario")
+            analysis_patterns.get_pattern("scenario"),
+            analysis_patterns.get_pattern("stakeholder"),
+            analysis_patterns.get_pattern("systems"),
+            analysis_patterns.get_pattern("time"),
+            analysis_patterns.get_pattern("innovation")
         ]
         
         # Display available patterns
@@ -1203,7 +1207,7 @@ async def main():
             print(f"{i}. {pattern.name}")
             
         # Get user choice
-        choice = int(input("\nEnter your choice (1-6): ")) - 1
+        choice = int(input("\nEnter your choice (1-10): ")) - 1
         if choice < 0 or choice >= len(patterns):
             print("Invalid choice. Exiting.")
             return
