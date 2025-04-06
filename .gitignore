@@ -1,82 +1,103 @@
 # Dependencies
-/node_modules
+node_modules
 /.pnp
 .pnp.js
+.venv
+venv
+__pycache__/
+*.py[cod]
+*$py.class
+.swc
+
+# Testing
+/coverage
+.pytest_cache
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.hypothesis/
 
 # Build outputs
 /dist
 /build
-/.vite
-
-# Python
-__pycache__/
-*.py[cod]
-*$py.class
 *.so
 .Python
-/venv
-/.venv
-/env
-/.env
-env/
-venv/
-ENV/
-env.bak/
-venv.bak/
+develop-eggs/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
 
-# Environment variables
+# Local env files
 .env
 .env.local
 .env.development.local
 .env.test.local
 .env.production.local
+*.env
+!.env.example
 
-# Logs
-logs
-*.log
+# Debug logs
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
+pip-log.txt
+pip-delete-this-directory.txt
+*.log
 
-# Testing
-/coverage
-/htmlcov/
-.tox/
-.nox/
-.hypothesis/
-.pytest_cache/
-nosetests.xml
-coverage.xml
-*.cover
+# Vercel
+.vercel
+.next
 
-# Cache
-.npm
-.eslintcache
-.stylelintcache
-.cache
-.parcel-cache
-.rpt2_cache/
-.rts2_cache_cjs/
-.rts2_cache_es/
-.rts2_cache_umd/
+# OS specific
+.DS_Store
+.AppleDouble
+.LSOverride
+Thumbs.db
+ehthumbs.db
+Desktop.ini
 
-# Editor directories and files
+# IDE specific
 .idea/
 .vscode/
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
-.DS_Store
+*.swp
+*.swo
+*~
+.project
+.classpath
+.settings/
 
-# Temporary uploads and outputs
-/temp_uploads
-/outputs
-/backend/outputs
-/backend/temp_uploads
-ultra_orchestrator.log
+# Temp/Cache directories
+.temp
+.tmp
+.cache
+temp/
+temp_uploads/
+logs/
+
+# Large binary files
+*.dmg
+*.iso
+*.tar
+*.zip
+*.gz
+*.tgz
+*.bz2
+*.rar
+
+# Specific large directories
+Nontechnical/
+outputs/
 
 # Ollama
 /ollama
@@ -90,17 +111,9 @@ __pycache__/
 *.so
 
 # Distribution / packaging
-.Python
 build/
-develop-eggs/
 dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
 parts/
-sdist/
 var/
 wheels/
 share/python-wheels/
@@ -115,23 +128,11 @@ MANIFEST
 *.manifest
 *.spec
 
-# Installer logs
-pip-log.txt
-pip-delete-this-directory.txt
-
 # Unit test / coverage reports
-htmlcov/
-.tox/
-.nox/
-.coverage
-.coverage.*
-.cache
 nosetests.xml
 coverage.xml
 *.cover
 *.py,cover
-.hypothesis/
-.pytest_cache/
 cover/
 
 # Translations
@@ -139,7 +140,6 @@ cover/
 *.pot
 
 # Django stuff:
-*.log
 local_settings.py
 db.sqlite3
 db.sqlite3-journal
@@ -246,11 +246,6 @@ cython_debug/
 
 # PyPI configuration file
 .pypirc
-
-# Virtual environments
-venv/
-ENV/
-env/
 
 # IDE
 .idea/

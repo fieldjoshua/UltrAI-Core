@@ -1,0 +1,46 @@
+# Dependencies
+node_modules
+.venv
+venv
+__pycache__
+*.pyc
+.swc
+
+# Large directories not needed for frontend 
+Nontechnical
+archive
+responses
+outputs
+
+# Local env files
+.env
+.env.*
+*.env
+!.env.example
+
+# Build outputs (will be generated)
+dist
+build
+coverage
+
+# Caches and logs
+.vercel
+.next
+.cache
+.pytest_cache
+logs
+temp
+temp_uploads
+
+# Git
+.git
+.github
+
+# Misc
+*.dmg
+*.zip
+*.tar.gz
+*.gz
+*.rar
+*.log
+.DS_Store 
