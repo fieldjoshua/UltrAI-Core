@@ -17,6 +17,8 @@ from fastapi.responses import JSONResponse, PlainTextResponse
 import uvicorn
 import logging
 import sentry_sdk
+from cachetools import TTLCache, cached
+import hashlib
 
 # Import error handling system
 from error_handler import register_exception_handlers, error_handling_middleware
@@ -48,7 +50,7 @@ class Config:
 # Create a stub class for UltraDocumentsOptimized
 class UltraDocumentsOptimized:
     """Stub implementation of UltraDocumentsOptimized for testing"""
-    def __init__(self, cache_enabled=True, chunk_size=1000, chunk_overlap=100, 
+    def __init__(self, cache_enabled=True, chunk_size=1000, chunk_overlap=100,
                  embedding_model="default", max_workers=4, memory_cache_size=100):
         self.cache_enabled = cache_enabled
         self.chunk_size = chunk_size
@@ -59,7 +61,7 @@ class UltraDocumentsOptimized:
         self.logger = logging.getLogger(__name__)
         self.logger.info(f"Initialized UltraDocumentsOptimized stub with chunk_size={chunk_size}")
         self.cache = self._create_mock_cache()
-    
+
     def _create_mock_cache(self):
         """Create a mock cache object"""
         return type('MockCache', (), {
@@ -81,29 +83,29 @@ class UltraDocumentsOptimized:
                 'hit_rate': 0.625
             }
         })
-    
+
     def process_document(self, file_path, **kwargs):
         """Mock document processing with realistic chunks based on file content"""
         self.logger.info(f"Processing document: {file_path}")
-        
+
         # Default mock chunks
         mock_chunks = [
             {"text": "This is a mock chunk 1", "relevance": 0.95},
             {"text": "This is a mock chunk 2", "relevance": 0.87}
         ]
-        
+
         # Try to read the actual file and generate more realistic chunks
         try:
             with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
                 content = f.read()
-                
+
                 # Create more realistic chunks from the actual content
                 if content:
                     words = content.split()
                     chunk_size = min(50, max(10, len(words) // 5))  # Divide into 5 chunks at most
-                    
+
                     mock_chunks = []
-                    
+
                     # Create chunks from actual content
                     for i in range(0, len(words), chunk_size):
                         if i + chunk_size <= len(words):
@@ -111,41 +113,41 @@ class UltraDocumentsOptimized:
                             # Generate random relevance score between 0.6 and 1.0
                             relevance = 0.6 + (0.4 * (1 - (i / len(words))))
                             mock_chunks.append({"text": chunk_text, "relevance": round(relevance, 2)})
-                    
+
                     if not mock_chunks:
                         # Fallback if no chunks were created
                         mock_chunks = [{"text": content[:300], "relevance": 0.9}]
-                    
+
                     self.logger.info(f"Created {len(mock_chunks)} realistic chunks from document content")
         except Exception as e:
             self.logger.warning(f"Could not read file content, using mock chunks instead: {str(e)}")
-        
+
         return {
             "chunks": mock_chunks,
             "total_chunks": len(mock_chunks),
             "file_name": os.path.basename(file_path)
         }
-    
+
     def get_relevant_chunks(self, query, document_chunks, top_k=5):
         """Mock method to get relevant chunks for a query"""
         self.logger.info(f"Getting relevant chunks for query: {query}")
-        
+
         # Sort chunks by relevance to simulate ranking
         sorted_chunks = sorted(document_chunks, key=lambda x: x.get('relevance', 0), reverse=True)
-        
+
         # Return top_k chunks
         return sorted_chunks[:min(top_k, len(sorted_chunks))]
-    
+
     def process_query(self, query, document_chunks, **kwargs):
         """Mock method to process a query against document chunks"""
         relevant_chunks = self.get_relevant_chunks(query, document_chunks)
-        
+
         return {
             "query": query,
             "relevant_chunks": relevant_chunks,
             "context": "\n\n".join([chunk.get('text', '') for chunk in relevant_chunks])
         }
-    
+
     def cleanup(self):
         """Mock cleanup method"""
         self.logger.info("Cleaning up document processor resources")
@@ -264,17 +266,17 @@ class AddFundsRequest(BaseModel):
 def update_metrics_history():
     """Update the metrics history with current values"""
     global metrics_history, performance_metrics, MAX_HISTORY_POINTS
-    
+
     # Get current timestamp
     now = datetime.now().isoformat()
-    
+
     # Get current CPU and memory usage
     current_memory = psutil.Process().memory_info().rss / (1024 * 1024)  # MB
     current_cpu = psutil.Process().cpu_percent(interval=0.1)
-    
+
     # Update performance metrics with current memory usage
     performance_metrics["current_memory_usage_mb"] = current_memory
-    
+
     # Update history with current metrics
     metrics_history["timestamps"].append(now)
     metrics_history["memory_usage"].append(current_memory)
@@ -283,7 +285,7 @@ def update_metrics_history():
     metrics_history["avg_processing_time"].append(performance_metrics["avg_processing_time"])
     metrics_history["documents_processed"].append(performance_metrics["documents_processed"])
     metrics_history["chunks_processed"].append(performance_metrics["total_chunks_processed"])
-    
+
     # Trim history to maximum points
     if len(metrics_history["timestamps"]) > MAX_HISTORY_POINTS:
         for key in metrics_history:
@@ -304,13 +306,13 @@ def find_available_port(start_port, max_attempts=10):
     """Find an available port starting from start_port."""
     port = start_port
     attempts = 0
-    
+
     while attempts < max_attempts:
         if is_port_available(port):
             return port
         port += 1
         attempts += 1
-    
+
     # If we've tried max_attempts ports and none are available, raise an error
     raise RuntimeError(f"Could not find an available port after {max_attempts} attempts")
 
@@ -319,20 +321,20 @@ def find_available_port(start_port, max_attempts=10):
 async def lifespan(app: FastAPI):
     # Startup logic
     logger.info("Application startup")
-    
+
     try:
         yield
     finally:
         # Shutdown logic
         logger.info("Application shutdown")
-        
+
         # Clean up resources
         if 'document_processor' in globals():
             document_processor.cleanup()
-            
+
         # Save any pending data
         pricing_integration.save_user_accounts()
-        
+
         # Log final metrics
         logger.info(f"Final metrics - Requests processed: {performance_metrics['requests_processed']}")
 
@@ -352,13 +354,13 @@ app.middleware("http")(error_handling_middleware)
 
 # Configure CORS
 origins = [
-    "http://localhost:3000", 
-    "http://localhost:3001", 
+    "http://localhost:3000",
+    "http://localhost:3001",
     "http://localhost:3002",
-    "http://localhost:3003", 
-    "http://localhost:3004", 
+    "http://localhost:3003",
+    "http://localhost:3004",
     "http://localhost:3005",
-    "http://localhost:3009", 
+    "http://localhost:3009",
     "http://localhost:3010",
 ]
 
@@ -366,7 +368,7 @@ origins = [
 vercel_url = os.getenv("VERCEL_URL")
 if vercel_url:
     origins.append(f"https://{vercel_url}")
-    
+
 # In production, accept requests from any origin
 if os.getenv("ENVIRONMENT") == "production":
     origins = ["*"]
@@ -378,6 +380,15 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Add response caching
+response_cache = TTLCache(maxsize=100, ttl=3600)  # Cache for 1 hour
+
+# Function to generate cache key from request data
+def generate_cache_key(prompt, models, ultra_model, pattern):
+    """Generate a unique cache key based on request parameters"""
+    key_data = f"{prompt}|{','.join(sorted(models))}|{ultra_model}|{pattern}"
+    return hashlib.md5(key_data.encode()).hexdigest()
 
 @app.options("/api/analyze")
 async def options_analyze():
@@ -393,6 +404,8 @@ async def options_analyze_with_docs():
 
 @app.post("/api/analyze")
 async def analyze_prompt(request: Request):
+    start_time = time.time()
+
     try:
         data = await request.json()
         prompt = data.get("prompt")
@@ -400,9 +413,44 @@ async def analyze_prompt(request: Request):
         ultra_model = data.get("ultraLLM", data.get("ultraModel"))
         pattern_name = data.get("pattern", "Confidence Analysis")
         options = data.get("options", {})
-        
+        user_id = data.get("userId")
+
+        # Validate required fields
+        if not prompt:
+            raise ValidationError("Prompt is required")
+        if not selected_models:
+            raise ValidationError("At least one model must be selected")
+        if not ultra_model:
+            raise ValidationError("Ultra model is required")
+
+        # Update metrics
+        performance_metrics["requests_processed"] += 1
+
+        # Check cache for identical request
+        cache_key = generate_cache_key(prompt, selected_models, ultra_model, pattern_name)
+        cached_response = response_cache.get(cache_key)
+
+        if cached_response and not options.get("bypass_cache", False):
+            logger.info(f"Cache hit for prompt: {prompt[:30]}...")
+            performance_metrics["cache_hits"] += 1
+
+            # Add cache indicator to response
+            cached_response["cached"] = True
+            cached_response["cache_time"] = datetime.now().isoformat()
+
+            # Track cost (even for cached responses)
+            if user_id and pricing_integration.pricing_enabled:
+                await track_request_cost(
+                    user_id=user_id,
+                    request_type="cached_analyze",
+                    model=ultra_model,
+                    tokens_used=0,  # No tokens used for cached response
+                )
+
+            return cached_response
+
         logger.info(f"Received analyze request with pattern: {pattern_name}")
-        
+
         # Use mock service if in mock mode
         if Config.use_mock and Config.mock_service:
             try:
@@ -412,56 +460,114 @@ async def analyze_prompt(request: Request):
                     ultra_model=ultra_model,
                     pattern=pattern_name
                 )
-                
+
                 # Format the result to match expected response structure
-                return {
+                response = {
                     "status": "success",
                     "results": result.get("results", {}),
                     "ultra_response": result.get("ultra_response", ""),
                     "pattern": result.get("pattern", pattern_name)
                 }
+
+                # Cache the response
+                response_cache[cache_key] = response
+
+                return response
             except Exception as e:
                 logger.error(f"Error in mock analyze: {str(e)}")
                 raise HTTPException(status_code=500, detail=f"Mock service error: {str(e)}")
-        
+
         # Map frontend pattern names to backend pattern keys
         pattern_map = {
             "Confidence Analysis": "confidence",
             "Critique": "critique",
-            "Gut Check": "gut", 
+            "Gut Check": "gut",
             "Fact Check": "fact_check",
             "Perspective Analysis": "perspective",
             "Scenario Analysis": "scenario"
         }
-        
+
         pattern_key = pattern_map.get(pattern_name, "confidence")
-        
+
+        # Check authorization if pricing is enabled
+        if user_id and pricing_integration.pricing_enabled:
+            auth_result = await check_request_authorization(
+                user_id=user_id,
+                request_type="analyze",
+                model=ultra_model,
+                estimated_tokens=len(prompt.split()) * 8  # Rough estimate
+            )
+
+            if not auth_result["authorized"]:
+                return JSONResponse(
+                    status_code=402,  # Payment Required
+                    content={
+                        "status": "error",
+                        "code": "insufficient_balance",
+                        "message": "Your account balance is insufficient for this request",
+                        "details": auth_result.get("details", {})
+                    }
+                )
+
         try:
             # Initialize the orchestrator with the selected models and pattern
             try:
                 # Note: ultra_model is set as a separate attribute after initialization
                 orchestrator = PatternOrchestrator(
-                api_keys={
+                    api_keys={
                         "anthropic": os.getenv("ANTHROPIC_API_KEY"),
-                    "openai": os.getenv("OPENAI_API_KEY"),
-                    "google": os.getenv("GOOGLE_API_KEY")
-                },
+                        "openai": os.getenv("OPENAI_API_KEY"),
+                        "google": os.getenv("GOOGLE_API_KEY"),
+                        "mistral": os.getenv("MISTRAL_API_KEY"),
+                        "deepseek": os.getenv("DEEPSEEK_API_KEY"),
+                        "cohere": os.getenv("COHERE_API_KEY"),
+                    },
                     pattern=pattern_key,
                     output_format="plain"
                 )
-                
+
                 # Set the ultra model after initialization
                 orchestrator.ultra_model = ultra_model
-                
+
                 # Process the prompt with the orchestrator
                 result = await orchestrator.orchestrate_full_process(prompt)
+
+                # Format the result
+                response = {
+                    "status": "success",
+                    "ultra_response": result.get("ultra_response", ""),
+                    "results": {
+                        model: content for model, content in result.get("initial_responses", {}).items()
+                    },
+                    "pattern": pattern_name,
+                    "processing_time": time.time() - start_time
+                }
+
+                # Cache the response
+                response_cache[cache_key] = response
+
+                # Track the request cost if pricing is enabled
+                if user_id and pricing_integration.pricing_enabled:
+                    # Estimate token usage
+                    token_count = sum(len(text.split()) * 4 for text in result.get("initial_responses", {}).values())
+                    token_count += len(result.get("ultra_response", "").split()) * 4
+
+                    await track_request_cost(
+                        user_id=user_id,
+                        request_type="analyze",
+                        model=ultra_model,
+                        tokens_used=token_count
+                    )
+
+                return response
+
             except TypeError as e:
                 # Handle specific initialization errors for different API clients
                 logger.warning(f"API client initialization error: {str(e)}")
-                
+
                 # Filter selected_models to only include models we can initialize
                 working_models = []
-                
+
                 # Check which models we can use based on the error
                 if "AsyncClient.__init__() got an unexpected keyword argument 'proxies'" in str(e):
                     logger.warning("Anthropic/Claude client incompatible - removing from available models")
@@ -469,18 +575,18 @@ async def analyze_prompt(request: Request):
                 else:
                     # For other errors, assume we can use OpenAI and Gemini (but not Claude)
                     working_models = [model for model in selected_models if not model.startswith("claude")]
-                
+
                 if not working_models:
                     # If no selected models can work, add a default that usually works
                     if "gpt4turbo" not in selected_models:
                         working_models.append("gpt4turbo")
                     if "gemini15" not in selected_models:
                         working_models.append("gemini15")
-                
+
                 # Create custom safe response with working models only
                 result = {
                     "initial_responses": {
-                        model: f"Response from {model} model. Some models were unavailable due to API initialization errors." 
+                        model: f"Response from {model} model. Some models were unavailable due to API initialization errors."
                         for model in working_models
                     },
                     "meta_responses": {
@@ -493,7 +599,7 @@ async def analyze_prompt(request: Request):
                     },
                     "ultra_response": f"This analysis was limited to working models only. The following API client had initialization errors: Claude/Anthropic.\n\nTo fix this issue, you need to update the anthropic library to a compatible version (0.22.0 is not compatible with the current code).\n\nBased on your query: \"{prompt[:100]}...\"\n\nAnalysis: This is a synthesized response from the working models. For a more complete analysis, please fix the API client compatibility issues."
                 }
-                
+
                 # Add a note about the error to the response metadata
                 response = {
                     "status": "partial_success",
@@ -510,7 +616,7 @@ async def analyze_prompt(request: Request):
                         "unavailable_models": [model for model in selected_models if model not in working_models]
                     }
                 }
-                
+
                 return JSONResponse(content=response)
             except Exception as e:
                 # Re-raise if it's not a specific error we're handling
@@ -520,10 +626,10 @@ async def analyze_prompt(request: Request):
             if "got an unexpected keyword argument" in str(e):
                 # Return a simulated response for development/testing
                 logger.warning(f"Using simulated response due to error: {str(e)}")
-                
+
                 # Create a mock response with the input data
                 mock_responses = {model: f"Simulated response from {model}" for model in selected_models}
-                
+
                 return JSONResponse(content={
                     "status": "success",
                     "data": {
@@ -537,12 +643,18 @@ async def analyze_prompt(request: Request):
             else:
                 # Re-raise any other TypeError
                 raise
+    except ValidationError as e:
+        logger.warning(f"Validation error: {str(e)}")
+        return JSONResponse(
+            status_code=400,
+            content={"status": "error", "message": str(e)}
+        )
     except Exception as e:
         logger.error(f"Error in analyze_prompt: {str(e)}")
         logger.error(f"Traceback: {traceback.format_exc()}")
         return JSONResponse(
             status_code=500,
-            content={"detail": f"An error occurred: {str(e)}"}
+            content={"status": "error", "message": f"An error occurred: {str(e)}"}
         )
 
 @app.post("/api/upload-files")
@@ -553,29 +665,29 @@ async def upload_files(
     try:
         processed_documents = []
         temp_paths = []
-        
+
         # Create document processor instance at the beginning
         document_processor = UltraDocumentsOptimized()
-        
+
         try:
             # First save all files to temp directory
             for file in files:
                 file_id = str(uuid.uuid4())
                 # Get the file extension
                 extension = os.path.splitext(file.filename)[1].lower()
-                
+
                 # Create a temporary file with the same extension
                 with tempfile.NamedTemporaryFile(delete=False, suffix=extension, dir="temp_uploads") as temp_file:
                     # Write the uploaded file content to the temp file
                     content = await file.read()
                     temp_file.write(content)
                     temp_paths.append((temp_file.name, file_id, file.filename, file.content_type or extension[1:].upper()))
-            
+
             # Create processed documents
             for temp_path, file_id, filename, content_type in temp_paths:
                 # Use the stub document processor to create mock chunks
                 processed_doc = document_processor.process_document(temp_path)
-                
+
                 # Convert to the expected format
                 doc_chunks = []
                 for chunk in processed_doc["chunks"]:
@@ -585,7 +697,7 @@ async def upload_files(
                         relevance=chunk["relevance"],
                         page=None
                     ))
-                
+
                 processed_documents.append(ProcessedDocument(
                     id=file_id,
                     name=filename,
@@ -593,17 +705,17 @@ async def upload_files(
                     totalChunks=len(doc_chunks),
                     type=content_type
                 ))
-                
+
                 # Update performance metrics
                 performance_metrics["documents_processed"] += 1
                 performance_metrics["total_chunks_processed"] += len(doc_chunks)
-                
+
         except Exception as e:
             # Log the specific error for debugging
             print(f"Error processing files: {str(e)}")
             traceback.print_exc()
             raise HTTPException(status_code=500, detail=f"Error processing files: {str(e)}")
-        
+
         finally:
             # Clean up the temp files
             for temp_path, _, _, _ in temp_paths:
@@ -612,7 +724,7 @@ async def upload_files(
                         os.unlink(temp_path)
                     except:
                         pass
-        
+
         # Update performance metrics
         processing_time = time.time() - start_time
         performance_metrics["total_processing_time"] += processing_time
@@ -620,13 +732,13 @@ async def upload_files(
             performance_metrics["max_memory_usage"],
             psutil.Process().memory_info().rss / (1024 * 1024)  # MB
         )
-        
+
         return {
             "status": "success",
             "documents": processed_documents,
             "processing_time": processing_time
         }
-    
+
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -649,35 +761,35 @@ async def check_status():
     try:
         return {"status": "operational"}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e)) 
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/api/metrics")
 async def get_metrics():
     """Get current performance metrics"""
     try:
         global performance_metrics
-        
+
         # Add current memory usage and update history
         update_metrics_history()
-        
+
         # Add cache stats if available
         cache_stats = {}
         document_processor = UltraDocumentsOptimized()
         if document_processor and document_processor.cache_enabled:
             memory_cache_size = document_processor.cache.memory_cache.size()
             cache_stats["memory_cache_size"] = memory_cache_size
-        
+
         # Calculate uptime
         start_time = datetime.fromisoformat(performance_metrics["start_time"])
         uptime_seconds = (datetime.now() - start_time).total_seconds()
-        
+
         # Prepare detailed metrics response
         metrics = {
             **performance_metrics,
             "uptime_seconds": uptime_seconds,
             "cache_stats": cache_stats
         }
-        
+
         return metrics
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error getting metrics: {str(e)}")
@@ -687,10 +799,10 @@ async def get_metrics_history():
     """Get historical metrics data for time-series visualization"""
     try:
         global metrics_history
-        
+
         # Update history with current values before returning
         update_metrics_history()
-        
+
         return metrics_history
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error getting metrics history: {str(e)}")
@@ -701,16 +813,16 @@ async def health_check():
     try:
         # Check if we can initialize our main classes as a basic health check
         from ultra_pattern_orchestrator import PatternOrchestrator
-        
+
         # Get memory usage
         memory_usage = psutil.Process().memory_info().rss / (1024 * 1024)  # MB
-        
+
         # Get CPU usage
         cpu_percent = psutil.Process().cpu_percent(interval=0.1)
-        
+
         # Check disk space
         disk_usage = psutil.disk_usage('/')
-        
+
         # System information
         system_info = {
             "platform": sys.platform,
@@ -718,9 +830,9 @@ async def health_check():
             "cpu_count": multiprocessing.cpu_count(),
             "memory_total": psutil.virtual_memory().total / (1024 * 1024 * 1024),  # GB
         }
-        
+
         return {
-            "status": "healthy", 
+            "status": "healthy",
             "timestamp": datetime.now().isoformat(),
             "version": "1.0.0",
             "system_info": system_info,
@@ -755,10 +867,10 @@ async def health_check():
 async def estimate_tokens(request: TokenEstimateRequest):
     # Simple token estimation logic
     estimated_tokens = len(request.prompt.split()) * 4  # Simple estimate
-    
+
     # Get cost estimate if pricing is enabled
     cost_estimate = {"cost": 0, "details": {}}
-    
+
     if request.userId:
         estimate = pricing_integration.estimate_request_cost(
             user_id=request.userId,
@@ -766,7 +878,7 @@ async def estimate_tokens(request: TokenEstimateRequest):
             estimated_tokens=estimated_tokens,
             request_type=request.requestType
         )
-        
+
         cost_estimate = {
             "cost": estimate["estimated_cost"],
             "tier": estimate["tier"],
@@ -778,7 +890,7 @@ async def estimate_tokens(request: TokenEstimateRequest):
                 "features": estimate["cost_details"].get("feature_costs", {})
             }
         }
-    
+
     return {
         "prompt_length": len(request.prompt),
         "estimated_tokens": estimated_tokens,
@@ -802,10 +914,10 @@ async def process_documents_with_pricing(
 ):
     global requests_processed, processing_times
     start_process_time = time.time()
-    
+
     # Generate a session ID for this request
     session_id = str(uuid.uuid4())
-    
+
     # Parse JSON strings
     try:
         selected_models = json.loads(selectedModels)
@@ -815,13 +927,13 @@ async def process_documents_with_pricing(
             status_code=400,
             content={"status": "error", "message": "Invalid JSON in selectedModels or options"}
         )
-    
+
     # Estimate token usage and check authorization if pricing is enabled
     # Calculate a base token estimate from prompt + additional for each document
     base_token_estimate = len(prompt.split()) * 4
     doc_token_estimate = sum([5000 for _ in files])  # Rough estimate per document
     estimated_tokens = base_token_estimate + doc_token_estimate
-    
+
     if pricing_integration.pricing_enabled and userId:
         auth_result = await check_request_authorization(
             price_integration=pricing_integration,
@@ -830,7 +942,7 @@ async def process_documents_with_pricing(
             estimated_tokens=estimated_tokens,
             request_type="document_processing"
         )
-        
+
         if not auth_result["authorized"]:
             return JSONResponse(
                 status_code=402,  # Payment Required
@@ -841,7 +953,7 @@ async def process_documents_with_pricing(
                     "current_balance": auth_result.get("current_balance", 0)
                 }
             )
-    
+
     try:
         # Process documents
         document_data = []
@@ -850,21 +962,21 @@ async def process_documents_with_pricing(
             # Save the file temporarily
             temp_path = f"temp/{file.filename}"
             os.makedirs(os.path.dirname(temp_path), exist_ok=True)
-            
+
             with open(temp_path, "wb") as f:
                 f.write(content)
-            
+
             # Process the document
             document_data.append({
                 "name": file.filename,
                 "path": temp_path,
                 "size": len(content)
             })
-        
+
         # Process the request with your documents
         # This is a placeholder for your actual document processing logic
         processed_docs = document_processor.process_documents(document_data)
-        
+
         # Process the query with documents
         response = {
             "result": f"Processed prompt with {len(files)} documents: {prompt[:50]}...",
@@ -879,12 +991,12 @@ async def process_documents_with_pricing(
             "processing_time": time.time() - start_process_time,
             "session_id": session_id
         }
-        
+
         # Update metrics
         requests_processed += 1
         processing_time = time.time() - start_process_time
         processing_times.append(processing_time)
-        
+
         # Track token usage in background
         background_tasks.add_task(
             track_token_usage_background,
@@ -894,17 +1006,17 @@ async def process_documents_with_pricing(
             request_type="document_processing",
             session_id=session_id
         )
-        
+
         # Clean up temp files in background
         background_tasks.add_task(cleanup_temp_files, [doc["path"] for doc in document_data])
-        
+
         return {
             "status": "success",
             "result": response,
             "document_metadata": response["document_metadata"],
             "processing_time": processing_time
         }
-        
+
     except Exception as e:
         logger.error(f"Error processing documents: {str(e)}")
         return JSONResponse(
@@ -918,9 +1030,9 @@ async def toggle_pricing(request: PricingToggleRequest):
     # In a real system, you would add authentication/authorization here
     prev_state = pricing_integration.pricing_enabled
     pricing_integration.pricing_enabled = request.enabled
-    
+
     logger.info(f"Pricing {'enabled' if request.enabled else 'disabled'}, reason: {request.reason}")
-    
+
     return {
         "status": "success",
         "pricing_enabled": pricing_integration.pricing_enabled,
@@ -936,13 +1048,13 @@ async def create_user(request: UserAccountRequest):
         tier=request.tier,
         initial_balance=request.initialBalance
     )
-    
+
     if "error" in result:
         return JSONResponse(
             status_code=400,
             content={"status": "error", "message": result["error"]}
         )
-    
+
     return {
         "status": "success",
         "user": result
@@ -955,13 +1067,13 @@ async def add_funds(request: AddFundsRequest):
         amount=request.amount,
         description=request.description
     )
-    
+
     if "error" in result:
         return JSONResponse(
             status_code=400,
             content={"status": "error", "message": result["error"]}
         )
-    
+
     return {
         "status": "success",
         "transaction": result
@@ -970,13 +1082,13 @@ async def add_funds(request: AddFundsRequest):
 @app.get("/api/user/{user_id}/balance")
 async def get_user_balance(user_id: str):
     result = pricing_integration.check_balance(user_id)
-    
+
     if "error" in result:
         return JSONResponse(
             status_code=404,
             content={"status": "error", "message": result["error"]}
         )
-    
+
     return {
         "status": "success",
         "balance": result
@@ -985,13 +1097,13 @@ async def get_user_balance(user_id: str):
 @app.get("/api/user/{user_id}/usage")
 async def get_user_usage(user_id: str):
     result = pricing_integration.get_user_usage_summary(user_id)
-    
+
     if "error" in result and "No usage data" not in result["error"]:
         return JSONResponse(
             status_code=404,
             content={"status": "error", "message": result["error"]}
         )
-    
+
     return {
         "status": "success",
         "usage": result
@@ -1000,13 +1112,13 @@ async def get_user_usage(user_id: str):
 @app.get("/api/session/{session_id}")
 async def get_session(session_id: str):
     result = pricing_integration.get_session_summary(session_id)
-    
+
     if "error" in result:
         return JSONResponse(
             status_code=404,
             content={"status": "error", "message": result["error"]}
         )
-    
+
     return {
         "status": "success",
         "session": result
@@ -1014,9 +1126,9 @@ async def get_session(session_id: str):
 
 # Background tasks
 async def track_token_usage_background(
-    user_id: str, 
-    model: str, 
-    token_count: int, 
+    user_id: str,
+    model: str,
+    token_count: int,
     request_type: str = "completion",
     session_id: Optional[str] = None
 ):
@@ -1052,7 +1164,7 @@ async def get_health():
             "memory_usage_mb": performance_metrics["current_memory_usage_mb"],
             "requests_processed": performance_metrics["requests_processed"]
         })
-        
+
         # Return an explicit Response with hard-coded content length
         return Response(
             content=health_data,
@@ -1079,10 +1191,10 @@ async def get_available_models():
     # Use mock service if in mock mode
     if Config.use_mock and Config.mock_service:
         return await Config.mock_service.get_available_models()
-        
+
     available_models = []
     error_messages = {}
-    
+
     # Check if OpenAI models are available
     try:
         # Just validate that we can initialize the client
@@ -1092,7 +1204,7 @@ async def get_available_models():
         available_models.extend(["gpt4o", "gpto1", "gpto3mini", "gpt4turbo"])
     except Exception as e:
         error_messages["openai"] = str(e)
-    
+
     # Check if Anthropic/Claude models are available
     try:
         # Just validate that we can initialize the client
@@ -1102,7 +1214,7 @@ async def get_available_models():
         available_models.extend(["claude37", "claude3opus"])
     except Exception as e:
         error_messages["anthropic"] = str(e)
-    
+
     # Check if Google/Gemini models are available
     try:
         # Just validate that we can configure the API
@@ -1112,10 +1224,10 @@ async def get_available_models():
         available_models.append("gemini15")
     except Exception as e:
         error_messages["google"] = str(e)
-    
+
     # Llama is a local model - assume it's always available
     available_models.append("llama3")
-    
+
     # Return the list of available models and any errors
     return {
         "status": "success",
@@ -1143,7 +1255,7 @@ if __name__ == "__main__":
     parser.add_argument("--find-port", action="store_true", help="Find an available port if specified port is in use")
     parser.add_argument("--mock", action="store_true", help="Run in mock mode with simulated responses")
     args = parser.parse_args()
-    
+
     # Set config from arguments
     Config.use_mock = args.mock
     if Config.use_mock:
@@ -1154,36 +1266,36 @@ if __name__ == "__main__":
         except ImportError:
             print("⚠️ Mock service module not found. Please create mock_llm_service.py first.")
             sys.exit(1)
-    
+
     # Create temp directories for file uploads and document processing
     os.makedirs("temp_uploads", exist_ok=True)
     os.makedirs("temp", exist_ok=True)
     os.makedirs("logs", exist_ok=True)
-    
+
     port = args.port
-    
+
     # If find-port is specified and the port is not available, find an available port
     if args.find_port and not is_port_available(port):
         original_port = port
         port = find_available_port(original_port)
         logger.info(f"Port {original_port} is in use, using port {port} instead")
-    
+
     # Add CORS origins for the actual port we're using
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=[f"http://localhost:{port}"] + 
+        allow_origins=[f"http://localhost:{port}"] +
                      [f"http://localhost:{i}" for i in range(3000, 3020)],
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
     )
-    
+
     print(f"Starting server on http://{args.host}:{port}")
-    
+
     # Run the server
     uvicorn.run(
         "main:app",
         host=args.host,
         port=port,
         reload=args.reload
-    ) 
+    )
