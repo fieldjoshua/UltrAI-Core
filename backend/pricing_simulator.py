@@ -14,93 +14,181 @@ logging.basicConfig(level=logging.INFO,
                    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger("ultra_pricing")
 
+BASELINE_MODEL_PRICING = {
+    # OpenAI GPT-4 variants
+    "gpt-4-8k":     {"input": 0.03,   "output": 0.06,   "context": 8000},
+    "gpt-4-32k":    {"input": 0.06,   "output": 0.12,   "context": 32000},
+    "gpt-4.5-128k": {"input": 0.075,  "output": 0.15,   "context": 128000},
+    "gpt-4-turbo":  {"input": 0.01,   "output": 0.03,   "context": 128000},
+    "gpt-4o":       {"input": 0.005,  "output": 0.015,  "context": 128000},
+    "gpt-4o-mini":  {"input": 0.00015,"output": 0.00060,"context": 128000},
+    "gpt-3.5-4k":   {"input": 0.0015, "output": 0.002,  "context": 4000},
+    "gpt-3.5-16k":  {"input": 0.0005, "output": 0.0015, "context": 16000},
+
+    # Anthropic Claude variants
+    "claude-instant":      {"input": 0.0008, "output": 0.0024, "context": 9000},
+    "claude-2-100k":       {"input": 0.008,  "output": 0.024,  "context": 100000},
+    "claude-3.5-sonnet":   {"input": 0.003,  "output": 0.015,  "context": 128000},
+    "claude-3-opus":       {"input": 0.015,  "output": 0.075,  "context": 128000},
+    
+    # Google models
+    "gemini-1.0-pro":      {"input": 0.0005, "output": 0.0015, "context": 128000},
+    "gemini-1.5-pro":      {"input": 0.0035, "output": 0.0105, "context": 128000},
+    "gemini-2.0-flash":    {"input": 0.0001, "output": 0.0004, "context": 1000000},
+
+    # Our UI mappings
+    "chatgpt":             {"input": 0.01,   "output": 0.03,   "context": 128000}, # GPT-4 Turbo
+    "claude":              {"input": 0.003,  "output": 0.015,  "context": 128000}, # Claude 3.5 Sonnet
+    "gemini":              {"input": 0.0035, "output": 0.0105, "context": 128000}, # Gemini 1.5 Pro
+    "llama":               {"input": 0.0001, "output": 0.0004, "context": 128000}, # Lowest tier
+}
+
 class PricingSimulator:
-    def __init__(self, config_file: str = "pricing_config.json"):
-        """
-        Initialize the pricing simulator with default values or from a config file
-        
-        Args:
-            config_file: Path to the pricing configuration file
-        """
-        self.config_file = config_file
-        
-        # Default pricing model
-        self.default_pricing = {
-            # Base costs per 1K tokens for common models (USD)
-            "base_costs": {
-                "claude-3-opus": 0.015,       # Anthropic Claude 3 Opus
-                "claude-3-sonnet": 0.008,     # Anthropic Claude 3 Sonnet
-                "gpt-4": 0.03,                # OpenAI GPT-4
-                "gpt-3.5-turbo": 0.001,       # OpenAI GPT-3.5 Turbo
-                "mistral-large": 0.008,       # Mistral Large
-                "mistral-medium": 0.002,      # Mistral Medium
-                "mistral-small": 0.0006,      # Mistral Small
-                "gemini-pro": 0.0005,         # Google Gemini Pro
-                "llama-70b": 0.0001,          # Meta Llama 70B (self-hosted)
-                "local": 0.00005              # Local models (estimated electricity/compute cost)
+    def __init__(self, config_path=None):
+        # Default model pricing based on 2025 pricing data
+        self.model_pricing = {
+            # OpenAI models
+            "gpt4o": {
+                "input_cost_per_1k": 0.0025,
+                "output_cost_per_1k": 0.01,
+                "total_cost_per_1k": 0.0125,
+                "context_window": 128000,
+                "is_thinking_model": True
+            },
+            "gpt4o_mini": {
+                "input_cost_per_1k": 0.00015,
+                "output_cost_per_1k": 0.00060,
+                "total_cost_per_1k": 0.00075,
+                "context_window": 128000,
+                "is_thinking_model": False
+            },
+            "gpt4_turbo": {
+                "input_cost_per_1k": 0.01,
+                "output_cost_per_1k": 0.03,
+                "total_cost_per_1k": 0.04,
+                "context_window": 128000,
+                "is_thinking_model": True
+            },
+            "gpt35_turbo": {
+                "input_cost_per_1k": 0.0005,
+                "output_cost_per_1k": 0.0015,
+                "total_cost_per_1k": 0.0020,
+                "context_window": 4000,
+                "is_thinking_model": False
             },
             
-            # Markup percentages for different tiers
-            "markup_percentages": {
-                "basic": 20,      # 20% markup for basic tier
-                "pro": 35,        # 35% markup for pro tier
-                "enterprise": 50  # 50% markup for enterprise tier
+            # Anthropic models
+            "claude37": {
+                "input_cost_per_1k": 0.003,
+                "output_cost_per_1k": 0.015,
+                "total_cost_per_1k": 0.018,
+                "context_window": 200000,
+                "is_thinking_model": True
+            },
+            "claude3_opus": {
+                "input_cost_per_1k": 0.015,
+                "output_cost_per_1k": 0.075,
+                "total_cost_per_1k": 0.090,
+                "context_window": 200000,
+                "is_thinking_model": True
+            },
+            "claude35_haiku": {
+                "input_cost_per_1k": 0.0008,
+                "output_cost_per_1k": 0.0040,
+                "total_cost_per_1k": 0.0048,
+                "context_window": 200000,
+                "is_thinking_model": False
             },
             
-            # Tiered pricing model
-            "tiers": {
-                "basic": {
-                    "monthly_fee": 10.00,        # Base monthly subscription fee
-                    "included_tokens": 100000,   # Free tokens included per month
-                    "model_access": ["gpt-3.5-turbo", "mistral-small", "local"]
-                },
-                "pro": {
-                    "monthly_fee": 30.00,
-                    "included_tokens": 500000,
-                    "model_access": ["gpt-3.5-turbo", "gpt-4", "claude-3-sonnet", "mistral-medium", "gemini-pro", "local"]
-                },
-                "enterprise": {
-                    "monthly_fee": 100.00,
-                    "included_tokens": 2000000,
-                    "model_access": ["gpt-4", "claude-3-opus", "claude-3-sonnet", "mistral-large", "gemini-pro", "local"]
-                }
+            # Google models
+            "gemini15": {
+                "input_cost_per_1k": 0.000075,
+                "output_cost_per_1k": 0.000300,
+                "total_cost_per_1k": 0.000375,
+                "context_window": 128000,
+                "is_thinking_model": False
+            },
+            "gemini25_pro_max": {
+                "input_cost_per_1k": 0.003,
+                "output_cost_per_1k": 0.015,
+                "total_cost_per_1k": 0.018,
+                "context_window": 1000000,
+                "is_thinking_model": True
             },
             
-            # Volume discounts (applied after basic markup)
-            "volume_discounts": {
-                "1000000": 5,     # 5% discount for >1M tokens
-                "5000000": 10,    # 10% discount for >5M tokens
-                "10000000": 15,   # 15% discount for >10M tokens
-                "50000000": 20    # 20% discount for >50M tokens
+            # Local models            
+            "llama3": {
+                "input_cost_per_1k": 0.0,
+                "output_cost_per_1k": 0.0,
+                "total_cost_per_1k": 0.0,
+                "context_window": 8192,
+                "is_thinking_model": False
             },
-            
-            # Feature pricing (additional costs)
-            "feature_costs": {
-                "document_processing": 0.001,    # Per page
-                "additional_iterations": 0.01,   # Per additional iteration
-                "custom_patterns": 5.00,         # Monthly fee for custom patterns
-                "api_access": 20.00,             # Monthly fee for API access
-                "priority_processing": 0.02      # Per request
+            "mistral": {
+                "input_cost_per_1k": 0.0,
+                "output_cost_per_1k": 0.0,
+                "total_cost_per_1k": 0.0,
+                "context_window": 8192,
+                "is_thinking_model": False
             }
         }
         
-        # Usage history for simulation
+        # Pricing tiers with percentage markup
+        self.pricing_tiers = {
+            "basic": {
+                "markup_percentage": 20,  # 20% markup
+                "minimum_charge": 0.01,   # Minimum $0.01 per query
+                "thinking_model_surcharge": 5, # Additional 5% for thinking models
+            },
+            "pro": {
+                "markup_percentage": 15,  # 15% markup
+                "minimum_charge": 0.005,  # Minimum $0.005 per query
+                "thinking_model_surcharge": 3, # Additional 3% for thinking models
+            },
+            "enterprise": {
+                "markup_percentage": 10,  # 10% markup
+                "minimum_charge": 0.00,   # No minimum charge
+                "thinking_model_surcharge": 0, # No additional charge for thinking models
+            }
+        }
+        
+        # Volume discounts - amount to subtract from markup percentage
+        self.volume_discounts = {
+            1000: 0,      # No discount for under 1000 queries
+            10000: 2,     # 2% discount for 1000-10000 queries
+            100000: 5,    # 5% discount for 10000-100000 queries
+            1000000: 10,  # 10% discount for over 100000 queries
+        }
+        
+        # Feature costs (add-ons)
+        self.feature_costs = {
+            "private": 0.05,          # $0.05 for private data processing
+            "anti_ai_detect": 0.05,   # $0.05 for AI detection prevention
+            "citation": 0.05,         # $0.05 for including citations
+            "express": 0.03,          # $0.03 for express processing
+        }
+        
+        # Usage tracking
         self.usage_history = []
         
-        # Load config if exists
-        self.load_config()
+        # Load configuration from file if provided
+        if config_path:
+            self.load_config(config_path)
+        
+        # Could store usage or other config here
+        self.model_configs = BASELINE_MODEL_PRICING
     
-    def load_config(self) -> None:
+    def load_config(self, config_path: str) -> None:
         """Load pricing configuration from file if it exists"""
-        if os.path.exists(self.config_file):
+        if os.path.exists(config_path):
             try:
-                with open(self.config_file, 'r') as f:
+                with open(config_path, 'r') as f:
                     config = json.load(f)
                     # Update only the keys that exist in the config file
                     for key, value in config.items():
-                        if key in self.default_pricing:
-                            self.default_pricing[key] = value
-                logger.info(f"Loaded pricing configuration from {self.config_file}")
+                        if key in self.model_pricing:
+                            self.model_pricing[key] = value
+                logger.info(f"Loaded pricing configuration from {config_path}")
             except Exception as e:
                 logger.error(f"Error loading pricing configuration: {e}")
         else:
@@ -110,9 +198,9 @@ class PricingSimulator:
     def save_config(self) -> None:
         """Save current pricing configuration to file"""
         try:
-            with open(self.config_file, 'w') as f:
-                json.dump(self.default_pricing, f, indent=2)
-            logger.info(f"Pricing configuration saved to {self.config_file}")
+            with open("pricing_config.json", 'w') as f:
+                json.dump(self.model_pricing, f, indent=2)
+            logger.info(f"Pricing configuration saved to pricing_config.json")
         except Exception as e:
             logger.error(f"Error saving pricing configuration: {e}")
     
@@ -128,127 +216,88 @@ class PricingSimulator:
         """
         try:
             for key, value in pricing_data.items():
-                if key in self.default_pricing:
-                    self.default_pricing[key] = value
+                if key in self.model_pricing:
+                    self.model_pricing[key] = value
             self.save_config()
             return True
         except Exception as e:
             logger.error(f"Error updating pricing: {e}")
             return False
     
-    def calculate_token_cost(self, 
-                          model: str, 
-                          token_count: int, 
-                          tier: str = "basic", 
-                          features: List[str] = None) -> Dict[str, Union[float, str]]:
+    def calculate_token_cost(self, model_id, input_tokens, output_tokens, tier="basic", features=None, apply_markup=True):
         """
-        Calculate the cost for a specific token usage with a model
+        Calculate the cost for token usage
         
         Args:
-            model: The model used (e.g., "gpt-4", "claude-3-opus")
-            token_count: Number of tokens used
-            tier: Service tier (basic, pro, enterprise)
-            features: List of additional features used
-        
+            model_id (str): The model identifier
+            input_tokens (int): Number of input tokens
+            output_tokens (int): Number of output tokens
+            tier (str): Pricing tier (basic, pro, enterprise)
+            features (list): List of add-on features
+            apply_markup (bool): Whether to apply markup percentage
+            
         Returns:
-            dict: Detailed cost breakdown
+            dict: Cost breakdown
         """
-        if features is None:
-            features = []
+        if model_id not in self.model_pricing:
+            raise ValueError(f"Unknown model: {model_id}")
             
-        # Validate inputs
-        if model not in self.default_pricing["base_costs"]:
-            model = "gpt-3.5-turbo"  # Default to a standard model
-            
-        if tier not in self.default_pricing["markup_percentages"]:
-            tier = "basic"  # Default to basic tier
-            
-        # Calculate base cost (per 1000 tokens)
-        base_cost_per_1k = self.default_pricing["base_costs"][model]
-        base_cost = (token_count / 1000) * base_cost_per_1k
+        # Get base costs from pricing data
+        pricing = self.model_pricing[model_id]
         
-        # Apply markup based on tier
-        markup_percentage = self.default_pricing["markup_percentages"][tier]
-        markup_cost = base_cost * (markup_percentage / 100)
+        # Calculate raw token costs
+        input_cost = (input_tokens / 1000) * pricing["input_cost_per_1k"]
+        output_cost = (output_tokens / 1000) * pricing["output_cost_per_1k"]
+        total_raw_cost = input_cost + output_cost
         
-        # Check allowed models for the tier
-        tier_models = self.default_pricing["tiers"][tier]["model_access"]
-        if model not in tier_models:
-            return {
-                "status": "error",
-                "message": f"Model {model} is not available in the {tier} tier",
-                "allowed_models": tier_models,
-                "cost": 0.0
-            }
-        
-        # Apply volume discount if applicable
-        volume_discount = 0
-        for threshold, discount in sorted(self.default_pricing["volume_discounts"].items(), key=lambda x: int(x[0])):
-            if token_count > int(threshold):
-                volume_discount = discount / 100
-                break
-        
-        discount_amount = (base_cost + markup_cost) * volume_discount
-        
-        # Calculate included tokens
-        included_tokens = self.default_pricing["tiers"][tier]["included_tokens"]
-        tokens_charged = max(0, token_count - included_tokens)
-        
-        # Recalculate costs with included tokens
-        adjusted_base_cost = (tokens_charged / 1000) * base_cost_per_1k
-        adjusted_markup_cost = adjusted_base_cost * (markup_percentage / 100)
-        adjusted_discount = (adjusted_base_cost + adjusted_markup_cost) * volume_discount
+        # Initialize cost breakdown
+        cost_breakdown = {
+            "input_tokens": input_tokens,
+            "output_tokens": output_tokens,
+            "input_cost": input_cost,
+            "output_cost": output_cost,
+            "raw_cost": total_raw_cost,
+            "features_cost": 0,
+            "thinking_model_surcharge": 0,
+            "markup_cost": 0,
+            "total_cost": total_raw_cost
+        }
         
         # Add feature costs
-        feature_cost = 0
-        feature_breakdown = {}
+        if features:
+            feature_cost = 0
+            for feature in features:
+                if feature in self.feature_costs:
+                    feature_cost += self.feature_costs[feature]
+            cost_breakdown["features_cost"] = feature_cost
+            cost_breakdown["total_cost"] += feature_cost
+            
+        # Apply markup if specified
+        if apply_markup and tier in self.pricing_tiers:
+            # Get markup percentage
+            markup_pct = self.pricing_tiers[tier]["markup_percentage"]
+            
+            # Calculate markup amount
+            markup_amount = (total_raw_cost * markup_pct) / 100
+            cost_breakdown["markup_cost"] = markup_amount
+            cost_breakdown["total_cost"] += markup_amount
+            
+            # Add thinking model surcharge if applicable
+            if pricing.get("is_thinking_model", False):
+                thinking_surcharge_pct = self.pricing_tiers[tier]["thinking_model_surcharge"]
+                thinking_surcharge = (total_raw_cost * thinking_surcharge_pct) / 100
+                cost_breakdown["thinking_model_surcharge"] = thinking_surcharge
+                cost_breakdown["total_cost"] += thinking_surcharge
+            
+            # Apply minimum charge if needed
+            min_charge = self.pricing_tiers[tier]["minimum_charge"]
+            if cost_breakdown["total_cost"] < min_charge and total_raw_cost > 0:
+                cost_breakdown["total_cost"] = min_charge
         
-        for feature in features:
-            if feature in self.default_pricing["feature_costs"]:
-                feature_price = self.default_pricing["feature_costs"][feature]
-                feature_cost += feature_price
-                feature_breakdown[feature] = feature_price
+        # Track usage for reporting
+        self._track_usage(model_id, input_tokens, output_tokens, cost_breakdown["total_cost"])
         
-        # Calculate final cost
-        subtotal = adjusted_base_cost + adjusted_markup_cost - adjusted_discount
-        total_cost = subtotal + feature_cost
-        
-        # Round to 4 decimal places
-        total_cost = round(total_cost, 4)
-        
-        # Record this calculation in usage history
-        self.usage_history.append({
-            "timestamp": datetime.now().isoformat(),
-            "model": model,
-            "token_count": token_count,
-            "tokens_charged": tokens_charged,
-            "tier": tier,
-            "features": features,
-            "base_cost": adjusted_base_cost,
-            "markup_cost": adjusted_markup_cost,
-            "discount": adjusted_discount,
-            "feature_cost": feature_cost,
-            "total_cost": total_cost
-        })
-        
-        # Return detailed cost breakdown
-        return {
-            "status": "success",
-            "model": model,
-            "token_count": token_count,
-            "tokens_charged": tokens_charged,
-            "included_tokens": included_tokens,
-            "tier": tier,
-            "base_cost": round(adjusted_base_cost, 6),
-            "markup_percentage": markup_percentage,
-            "markup_cost": round(adjusted_markup_cost, 6),
-            "volume_discount_percentage": volume_discount * 100,
-            "discount_amount": round(adjusted_discount, 6),
-            "feature_costs": feature_breakdown,
-            "feature_cost_total": round(feature_cost, 6),
-            "total_cost": total_cost,
-            "cost_per_1k_tokens": round(total_cost / (token_count / 1000), 6) if token_count > 0 else 0
-        }
+        return cost_breakdown
     
     def estimate_monthly_cost(self, 
                            daily_queries: int, 
@@ -277,7 +326,7 @@ class PricingSimulator:
         monthly_tokens = monthly_queries * avg_tokens_per_query
         
         # Calculate base subscription cost
-        monthly_subscription = self.default_pricing["tiers"][tier]["monthly_fee"]
+        monthly_subscription = self.model_pricing["tiers"][tier]["monthly_fee"]
         
         # Calculate model usage costs
         model_costs = {}
@@ -285,7 +334,7 @@ class PricingSimulator:
         
         for model, percentage in model_distribution.items():
             # Check if model is available in this tier
-            if model not in self.default_pricing["tiers"][tier]["model_access"]:
+            if model not in self.model_pricing["tiers"][tier]["model_access"]:
                 continue
                 
             model_token_count = monthly_tokens * percentage
@@ -304,27 +353,27 @@ class PricingSimulator:
         total_feature_cost = 0
         
         for feature in features:
-            if feature in self.default_pricing["feature_costs"]:
+            if feature in self.feature_costs:
                 if feature in ["custom_patterns", "api_access"]:
                     # These are monthly fixed costs
-                    feature_costs[feature] = self.default_pricing["feature_costs"][feature]
-                    total_feature_cost += self.default_pricing["feature_costs"][feature]
+                    feature_costs[feature] = self.feature_costs[feature]
+                    total_feature_cost += self.feature_costs[feature]
                 elif feature == "document_processing":
                     # Assume 5 pages per query on average
                     pages = monthly_queries * 5
-                    cost = pages * self.default_pricing["feature_costs"][feature]
+                    cost = pages * self.feature_costs[feature]
                     feature_costs[feature] = cost
                     total_feature_cost += cost
                 elif feature == "additional_iterations":
                     # Assume 2 additional iterations per query on average
                     iterations = monthly_queries * 2
-                    cost = iterations * self.default_pricing["feature_costs"][feature]
+                    cost = iterations * self.feature_costs[feature]
                     feature_costs[feature] = cost
                     total_feature_cost += cost
                 elif feature == "priority_processing":
                     # Assume 30% of queries are priority
                     priority_queries = monthly_queries * 0.3
-                    cost = priority_queries * self.default_pricing["feature_costs"][feature]
+                    cost = priority_queries * self.feature_costs[feature]
                     feature_costs[feature] = cost
                     total_feature_cost += cost
         
@@ -609,6 +658,21 @@ class PricingSimulator:
         plt.tight_layout()
         plt.savefig(f"{output_dir}/per_query_cost.png")
         plt.close()
+
+    def estimate_query_cost(self, model_name: str, input_tokens: float, output_tokens: float) -> float:
+        """
+        Return the total cost (USD) for a single query,
+        based on input and output token usage for a chosen model.
+        """
+        if model_name not in self.model_configs:
+            raise ValueError(f"Model '{model_name}' not found in baseline pricing data.")
+
+        pricing = self.model_configs[model_name]
+        input_price = pricing["input"] * (input_tokens / 1000.0)
+        output_price = pricing["output"] * (output_tokens / 1000.0)
+        total_cost = input_price + output_price
+
+        return total_cost
 
 # Example usage
 if __name__ == "__main__":

@@ -1,0 +1,170 @@
+**Technical Field**
+
+The present invention relates to a system and method for orchestrating multiple AI models to generate comprehensive and insightful responses to complex user prompts.
+
+**Background**
+
+Artificial intelligence (AI) has emerged as a powerful tool for processing and generating human-like text. However, individual AI models often have limitations in terms of their scope and depth of understanding. To overcome these limitations, it is desirable to combine the capabilities of multiple AI models in a coordinated manner.
+
+**Summary of the Invention**
+
+The present invention provides a system and method for orchestrating multiple AI models to generate comprehensive and insightful responses to complex user prompts. The system includes a prompt processor that analyzes the user prompt to extract key concepts and intentions. The system then selects a set of AI models that are best suited to address the specific requirements of the prompt. The selected AI models are then executed in a sequence, with the output of each model being used as input for the next model. The final output of the system is a comprehensive and insightful response that leverages the unique strengths of each AI model.
+
+**Detailed Description**
+
+The present invention will now be described in more detail with reference to the accompanying drawings.
+
+**Figure 1** is a block diagram of the system according to the present invention. The system includes a prompt processor 10, a model selector 20, an AI model executor 30, and a response generator 40.
+
+The prompt processor 10 receives the user prompt as input. The prompt processor 10 analyzes the prompt to extract key concepts and intentions. The prompt processor 10 then generates a set of parameters that define the specific requirements of the prompt.
+
+The model selector 20 receives the parameters from the prompt processor 10. The model selector 20 selects a set of AI models that are best suited to address the specific requirements of the prompt. The model selector 20 considers factors such as the domain expertise, language proficiency, and reasoning capabilities of each AI model.
+
+The AI model executor 30 receives the selected AI models from the model selector 20. The AI model executor 30 executes the selected AI models in a sequence. The output of each AI model is passed as input to the next AI model in the sequence.
+
+The response generator 40 receives the output of the last AI model in the sequence. The response generator 40 generates a comprehensive and insightful response based on the output of the AI models. The response generator 40 considers factors such as the coherence, consistency, and relevance of the output from the AI models.
+
+**Claims**
+
+1. A system for orchestrating multiple AI models to generate comprehensive and insightful responses to complex user prompts, the system comprising:
+
+    * a prompt processor that analyzes the user prompt to extract key concepts and intentions;
+    * a model selector that selects a set of AI models that are best suited to address the specific requirements of the prompt;
+    * an AI model executor that executes the selected AI models in a sequence; and
+    * a response generator that generates a comprehensive and insightful response based on the output of the AI models.
+
+2. A method for orchestrating multiple AI models to generate comprehensive and insightful responses to complex user prompts, the method comprising:
+
+    * analyzing the user prompt to extract key concepts and intentions;
+    * selecting a set of AI models that are best suited to address the specific requirements of the prompt;
+    * executing the selected AI models in a sequence; and
+    * generating a comprehensive and insightful response based on the output of the AI models.
+
+**Code Implementation**
+
+The following code is an example implementation of the present invention in Python:
+
+```python
+import os
+import json
+import asyncio
+import logging
+import requests
+from typing import Dict, Any, Optional
+from datetime import datetime
+from tenacity import retry, stop_after_attempt, wait_exponential
+import google.generativeai as genai
+from openai import OpenAI
+from dataclasses import dataclass
+from dotenv import load_dotenv
+import torch
+import platform
+
+load_dotenv()  # This needs to be called before accessing any env vars
+
+@dataclass
+class PromptTemplate:
+    initial: str = "Please analyze the following: {prompt}"
+    meta: str = "Analyze these responses and create an improved version: {responses}"
+    ultra: str = "Create a final synthesis of these analyses: {responses}"
+    hyper: str = "Perform a hyper-level analysis of all previous responses: {responses}"
+
+@dataclass
+class RateLimits:
+    llama: int = 5
+    chatgpt: int = 3
+    gemini: int = 10
+
+class TriLLMOrchestrator:
+    def __init__(self, 
+                 api_keys: Dict[str, str],
+                 prompt_templates: Optional[PromptTemplate] = None,
+                 rate_limits: Optional[RateLimits] = None,
+                 output_format: str = "plain",
+                 ultra_engine: str = "llama"):
+        
+        print("Initializing TriLLMOrchestrator...")
+        
+        # Setup logging
+        self.logger = logging.getLogger(__name__)
+        
+        # Store the prompt first so we can use it for the directory name
+        self.prompt = None
+        self.base_dir = os.path.join(os.getcwd(), 'responses')
+        
+        print("\nChecking API keys...")
+        self.api_keys = api_keys
+        print(f"OpenAI: {api_keys.get('openai', '')[:5]}...{api_keys.get('openai', '')[-4:]}")
+        print(f"Google: {api_keys.get('google', '')[:5]}...{api_keys.get('google', '')[-4:]}")
+        
+        print("\nSetting up formatter...")
+        self.output_format = output_format
+        
+        print("\nInitializing API clients...")
+        self._initialize_clients()
+        
+        self.prompt_templates = prompt_templates or PromptTemplate()
+        self.rate_limits = rate_limits or RateLimits()
+        self.last_request_time = {"llama": 0, "chatgpt": 0, "gemini": 0}
+        self.ultra_engine = ultra_engine
+        
+        # Add hardware detection
+        self.device = "mps" if torch.backends.mps.is_available() else "cpu"
+        print(f"\nHardware Configuration:")
+        print(f"Device: {self.device}")
+        print(f"Processor: {platform.processor()}")
+        if self.device == "mps":
+            print("Apple Silicon GPU acceleration enabled")
+            print("GPU Cores: 30")
+            # Enable Metal optimizations
+            torch.backends.mps.enable_fallback_to_cpu = True
+
+    def _get_keyword_from_prompt(self, prompt: str) -> str:
+        """Extract a meaningful keyword from the prompt"""
+        common_words = {'the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by', 'please', 'edit', 'following'}
+        
+        words = prompt.lower().split()
+        keyword = next((word for word in words if word not in common_words and len(word) > 2), 'task')
+        
+        keyword = ''.join(c for c in keyword if c.isalnum())
+        return keyword[:15]
+
+    def _initialize_clients(self):
+        """Initialize API clients for each service"""
+        print("Initializing Llama...")
+        # Llama uses local API, no initialization needed
+        print("Llama initialized successfully")
+        
+        print("Initializing OpenAI...")
+        self.openai_client = OpenAI(api_key=self.api_keys["openai"])
+        print("OpenAI initialized successfully")
+        
+        print("Initializing Gemini...")
+        genai.configure(api_key=self.api_keys["google"])
+        self.gemini_model = genai.GenerativeModel('gemini-pro')
+        print("Gemini initialized successfully")
+
+    def _setup_directory(self):
+        """Create directory for this run"""
+        os.makedirs(self.run_dir, exist_ok=True)
+
+    def formatter(self, text: str) -> str:
+        """Format the output based on specified format"""
+        if self.output_format == "plain":
+            return text
+        # Add more format options as needed
+        return text
+
+    async def _respect_rate_limit(self, service: str):
+        """Ensure we don't exceed rate limits"""
+        current_time = datetime.now().timestamp()
+        time_since_last = current_time - self.last_request_time[service]
+        
+        if time_since_last < self.rate_limits.__dict__[service]:
+            await asyncio.sleep(self.rate_limits.__dict__[service] - time_since_last)
+        
+        self.last_request_time[service] = current_time
+
+    @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=4, max=10))
+    async def get_llama_response(self, prompt: str) -> str:
+        await self._respect_rate_

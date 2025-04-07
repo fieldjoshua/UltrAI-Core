@@ -1,0 +1,7 @@
+{
+  "start_time": "2024-12-02T10:19:14.139651",
+  "end_time": "2024-12-02T10:23:13.993104",
+  "prompt": "I am curious about applying to incubators for my AI startup. Can you recommend some I should try? Include the amount of support the incubator will provide and ",
+  "keyword": "curious",
+  "success": true
+}

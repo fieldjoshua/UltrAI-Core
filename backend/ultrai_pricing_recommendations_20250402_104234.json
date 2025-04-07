@@ -1,0 +1,271 @@
+{
+  "pricing_tiers": {
+    "standard": {
+      "models": [
+        "gpt-3.5-turbo",
+        "mistral-small",
+        "local"
+      ],
+      "markup_percentage": 20,
+      "target_audience": "Individual users and small teams",
+      "positioning": "Affordable access to quality AI",
+      "sample_pricing": {
+        "gpt-3.5-turbo_1000": {
+          "model": "gpt-3.5-turbo",
+          "tokens": 1000,
+          "cost": 0.0012,
+          "cost_per_1k": 0.0012,
+          "effective_cost_per_1k": 0.0018,
+          "savings_vs_direct": 40.00000000000001
+        },
+        "gpt-3.5-turbo_10000": {
+          "model": "gpt-3.5-turbo",
+          "tokens": 10000,
+          "cost": 0.012,
+          "cost_per_1k": 0.0012,
+          "effective_cost_per_1k": 0.0018000000000000002,
+          "savings_vs_direct": 40.0
+        },
+        "gpt-3.5-turbo_100000": {
+          "model": "gpt-3.5-turbo",
+          "tokens": 100000,
+          "cost": 0.12,
+          "cost_per_1k": 0.0012,
+          "effective_cost_per_1k": 0.0018,
+          "savings_vs_direct": 40.00000000000001
+        },
+        "mistral-small_1000": {
+          "model": "mistral-small",
+          "tokens": 1000,
+          "cost": 0.0007199999999999999,
+          "cost_per_1k": 0.0007199999999999999,
+          "effective_cost_per_1k": 0.000936,
+          "savings_vs_direct": 33.33333333333334
+        },
+        "mistral-small_10000": {
+          "model": "mistral-small",
+          "tokens": 10000,
+          "cost": 0.007199999999999999,
+          "cost_per_1k": 0.0007199999999999999,
+          "effective_cost_per_1k": 0.0009359999999999998,
+          "savings_vs_direct": 33.33333333333335
+        },
+        "mistral-small_100000": {
+          "model": "mistral-small",
+          "tokens": 100000,
+          "cost": 0.072,
+          "cost_per_1k": 0.0007199999999999999,
+          "effective_cost_per_1k": 0.000936,
+          "savings_vs_direct": 33.333333333333336
+        }
+      }
+    },
+    "premium": {
+      "models": [
+        "claude-3-sonnet",
+        "mistral-medium",
+        "gpt-4"
+      ],
+      "markup_percentage": 20,
+      "target_audience": "Professionals and medium-sized businesses",
+      "positioning": "High-quality AI with excellent performance",
+      "sample_pricing": {
+        "claude-3-sonnet_1000": {
+          "model": "claude-3-sonnet",
+          "tokens": 1000,
+          "cost": 0.0096,
+          "cost_per_1k": 0.0096,
+          "effective_cost_per_1k": 0.00864,
+          "savings_vs_direct": 36.00000000000001
+        },
+        "claude-3-sonnet_10000": {
+          "model": "claude-3-sonnet",
+          "tokens": 10000,
+          "cost": 0.096,
+          "cost_per_1k": 0.0096,
+          "effective_cost_per_1k": 0.00864,
+          "savings_vs_direct": 36.0
+        },
+        "claude-3-sonnet_100000": {
+          "model": "claude-3-sonnet",
+          "tokens": 100000,
+          "cost": 0.96,
+          "cost_per_1k": 0.0096,
+          "effective_cost_per_1k": 0.00864,
+          "savings_vs_direct": 36.00000000000001
+        },
+        "mistral-medium_1000": {
+          "model": "mistral-medium",
+          "tokens": 1000,
+          "cost": 0.0024,
+          "cost_per_1k": 0.0024,
+          "effective_cost_per_1k": 0.00264,
+          "savings_vs_direct": 33.33333333333335
+        },
+        "mistral-medium_10000": {
+          "model": "mistral-medium",
+          "tokens": 10000,
+          "cost": 0.024,
+          "cost_per_1k": 0.0024,
+          "effective_cost_per_1k": 0.00264,
+          "savings_vs_direct": 33.333333333333336
+        },
+        "mistral-medium_100000": {
+          "model": "mistral-medium",
+          "tokens": 100000,
+          "cost": 0.24,
+          "cost_per_1k": 0.0024,
+          "effective_cost_per_1k": 0.00264,
+          "savings_vs_direct": 33.33333333333334
+        }
+      }
+    },
+    "enterprise": {
+      "models": [
+        "claude-3-opus",
+        "mistral-large"
+      ],
+      "markup_percentage": 20,
+      "target_audience": "Large organizations with high-volume needs",
+      "positioning": "Top-tier AI for mission-critical applications",
+      "sample_pricing": {
+        "claude-3-opus_1000": {
+          "model": "claude-3-opus",
+          "tokens": 1000,
+          "cost": 0.018,
+          "cost_per_1k": 0.018,
+          "effective_cost_per_1k": 0.012599999999999998,
+          "savings_vs_direct": 40.0
+        },
+        "claude-3-opus_10000": {
+          "model": "claude-3-opus",
+          "tokens": 10000,
+          "cost": 0.18,
+          "cost_per_1k": 0.018000000000000002,
+          "effective_cost_per_1k": 0.0126,
+          "savings_vs_direct": 40.0
+        },
+        "claude-3-opus_100000": {
+          "model": "claude-3-opus",
+          "tokens": 100000,
+          "cost": 1.7999999999999998,
+          "cost_per_1k": 0.018,
+          "effective_cost_per_1k": 0.012599999999999998,
+          "savings_vs_direct": 40.00000000000001
+        },
+        "mistral-large_1000": {
+          "model": "mistral-large",
+          "tokens": 1000,
+          "cost": 0.0096,
+          "cost_per_1k": 0.0096,
+          "effective_cost_per_1k": 0.008159999999999999,
+          "savings_vs_direct": 33.33333333333335
+        },
+        "mistral-large_10000": {
+          "model": "mistral-large",
+          "tokens": 10000,
+          "cost": 0.096,
+          "cost_per_1k": 0.0096,
+          "effective_cost_per_1k": 0.00816,
+          "savings_vs_direct": 33.333333333333336
+        },
+        "mistral-large_100000": {
+          "model": "mistral-large",
+          "tokens": 100000,
+          "cost": 0.96,
+          "cost_per_1k": 0.0096,
+          "effective_cost_per_1k": 0.00816,
+          "savings_vs_direct": 33.33333333333334
+        }
+      }
+    }
+  },
+  "reserve_accounts": {
+    "optimal_entry_point": 50000,
+    "discount_structure": {
+      "10000": 2,
+      "50000": 5,
+      "100000": 8,
+      "500000": 12,
+      "1000000": 15
+    },
+    "breakeven_calculations": {
+      "10000": {
+        "amount": 10000,
+        "discount": 2,
+        "breakeven_queries": 50.0
+      },
+      "50000": {
+        "amount": 50000,
+        "discount": 5,
+        "breakeven_queries": 20.0
+      },
+      "100000": {
+        "amount": 100000,
+        "discount": 8,
+        "breakeven_queries": 12.5
+      },
+      "500000": {
+        "amount": 500000,
+        "discount": 12,
+        "breakeven_queries": 8.333333333333334
+      },
+      "1000000": {
+        "amount": 1000000,
+        "discount": 15,
+        "breakeven_queries": 6.666666666666667
+      }
+    }
+  },
+  "model_recommendations": {
+    "efficiency_leaders": [
+      [
+        "claude-3-opus",
+        0.7
+      ],
+      [
+        "gpt-4",
+        0.8
+      ],
+      [
+        "mistral-large",
+        0.85
+      ]
+    ],
+    "cost_effectiveness_leaders": [
+      [
+        "local",
+        5e-05
+      ],
+      [
+        "llama-70b",
+        0.0001
+      ],
+      [
+        "gemini-pro",
+        0.0005
+      ]
+    ],
+    "best_models_by_volume": {
+      "1000": "local",
+      "10000": "local",
+      "100000": "local",
+      "1000000": "local"
+    }
+  },
+  "marketing_messaging": {
+    "value_proposition": "Enterprise-grade AI at affordable prices with pay-as-you-go flexibility",
+    "key_differentiators": [
+      "Token efficiency optimization saves money",
+      "Reserve account discounts for predictable pricing",
+      "No technical overhead or API management",
+      "Access to premium models with enterprise features"
+    ],
+    "customer_benefits": [
+      "Save up to 15.0% with reserve accounts",
+      "Pay only for what you use",
+      "Access multiple AI models through one interface",
+      "Predictable pricing without fluctuations"
+    ]
+  }
+}

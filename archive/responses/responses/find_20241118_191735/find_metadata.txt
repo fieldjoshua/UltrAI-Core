@@ -1,0 +1,7 @@
+{
+  "start_time": "2024-11-18T19:17:35.731775",
+  "end_time": "2024-11-18T19:21:05.050321",
+  "prompt": "find me the top 10 peer reviewed articles on the future of the economy when AGI occurs",
+  "keyword": "find",
+  "success": true
+}

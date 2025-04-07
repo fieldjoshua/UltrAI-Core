@@ -1,0 +1,232 @@
+/* Base container for logo */
+.ultra-logo-v3 {
+  position: relative;
+  width: 100px;
+  height: 100px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: visible;
+}
+
+/* Size variations */
+.ultra-logo-v3--small {
+  width: 64px;
+  height: 64px;
+}
+
+.ultra-logo-v3--medium {
+  width: 120px;
+  height: 120px;
+}
+
+.ultra-logo-v3--large {
+  width: 150px;
+  height: 150px;
+}
+
+/* Main container - diamond with rounded corners */
+.ultra-logo-v3__container {
+  position: relative;
+  width: 90%;
+  height: 90%;
+  background-color: rgba(80, 40, 40, 0.3);
+  border-radius: 20%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+  border: 2px solid rgba(0, 0, 0, 0.8);
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+}
+
+/* Circle backdrop */
+.ultra-logo-v3__circle {
+  width: 75%;
+  height: 75%;
+  background-color: #000000;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Symbol container */
+.ultra-logo-v3__symbol {
+  position: relative;
+  width: 80%;
+  height: 80%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* L-shape part of the logo */
+.ultra-logo-v3__l-shape {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  fill: #FFFFFF;
+}
+
+/* Angled part of the logo */
+.ultra-logo-v3__angled-shape {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  fill: #DDDDDD;
+}
+
+/* Wireframe container */
+.ultra-logo-v3__wireframe-container {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  z-index: 1;
+}
+
+/* Wireframe grid */
+.ultra-logo-v3__wireframe {
+  position: absolute;
+  width: 160%;
+  height: 160%;
+  top: -30%;
+  left: -30%;
+  transform: rotate(0deg);
+  transition: transform 0.3s ease;
+  pointer-events: none;
+}
+
+.ultra-logo-v3__wireframe--outer {
+  width: 180%;
+  height: 180%;
+  top: -40%;
+  left: -40%;
+}
+
+.ultra-logo-v3__wireframe--inner {
+  width: 140%;
+  height: 140%;
+  top: -20%;
+  left: -20%;
+}
+
+/* Wireframe lines */
+.ultra-logo-v3__wireframe-line {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border: 1px solid rgba(255, 135, 0, 0.2);
+  border-radius: 50%;
+}
+
+/* Corner glow effects */
+.ultra-logo-v3__corner-glow {
+  position: absolute;
+  width: 30%;
+  height: 30%;
+  opacity: 0.3;
+  background-image: radial-gradient(circle, rgba(255, 100, 0, 0.4) 0%, rgba(255, 100, 0, 0) 70%);
+  z-index: 1;
+  pointer-events: none;
+}
+
+.ultra-logo-v3__corner-glow--tl {
+  top: 0;
+  left: 0;
+}
+
+.ultra-logo-v3__corner-glow--tr {
+  top: 0;
+  right: 0;
+}
+
+.ultra-logo-v3__corner-glow--bl {
+  bottom: 0;
+  left: 0;
+}
+
+.ultra-logo-v3__corner-glow--br {
+  bottom: 0;
+  right: 0;
+}
+
+/* Processing glow effect */
+.ultra-logo-v3__glow {
+  position: absolute;
+  width: 200%;
+  height: 200%;
+  top: -50%;
+  left: -50%;
+  background: radial-gradient(circle, rgba(255, 135, 0, 0.3) 0%, rgba(255, 135, 0, 0) 70%);
+  z-index: 0;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+/* Color variations for processing state */
+.ultra-logo-v3--orange.ultra-logo-v3--processing .ultra-logo-v3__wireframe-line {
+  border-color: rgba(255, 135, 0, calc(0.3 + var(--intensity) * 0.7));
+  box-shadow: 0 0 calc(var(--intensity) * 3px) rgba(255, 135, 0, calc(var(--intensity) * 0.7));
+}
+
+.ultra-logo-v3--blue.ultra-logo-v3--processing .ultra-logo-v3__wireframe-line {
+  border-color: rgba(60, 170, 255, calc(0.3 + var(--intensity) * 0.7));
+  box-shadow: 0 0 calc(var(--intensity) * 3px) rgba(60, 170, 255, calc(var(--intensity) * 0.7));
+}
+
+.ultra-logo-v3--purple.ultra-logo-v3--processing .ultra-logo-v3__wireframe-line {
+  border-color: rgba(170, 60, 255, calc(0.3 + var(--intensity) * 0.7));
+  box-shadow: 0 0 calc(var(--intensity) * 3px) rgba(170, 60, 255, calc(var(--intensity) * 0.7));
+}
+
+.ultra-logo-v3--rainbow.ultra-logo-v3--processing .ultra-logo-v3__wireframe-line {
+  border-color: rgba(255, 255, 255, calc(0.3 + var(--intensity) * 0.7));
+  box-shadow: 0 0 calc(var(--intensity) * 3px) rgba(255, 255, 255, calc(var(--intensity) * 0.7));
+  filter: hue-rotate(calc(var(--angle) * 5));
+}
+
+/* Processing state effects */
+.ultra-logo-v3--processing .ultra-logo-v3__corner-glow {
+  opacity: calc(0.3 + var(--intensity) * 0.5);
+}
+
+.ultra-logo-v3--processing .ultra-logo-v3__wireframe--outer {
+  animation: rotate-slow 60s linear infinite;
+}
+
+.ultra-logo-v3--processing .ultra-logo-v3__wireframe--inner {
+  animation: rotate-reverse 90s linear infinite;
+}
+
+.ultra-logo-v3--processing.ultra-logo-v3--orange .ultra-logo-v3__corner-glow {
+  background-image: radial-gradient(circle, rgba(255, 135, 0, 0.6) 0%, rgba(255, 135, 0, 0) 70%);
+}
+
+.ultra-logo-v3--processing.ultra-logo-v3--blue .ultra-logo-v3__corner-glow {
+  background-image: radial-gradient(circle, rgba(60, 170, 255, 0.6) 0%, rgba(60, 170, 255, 0) 70%);
+}
+
+.ultra-logo-v3--processing.ultra-logo-v3--purple .ultra-logo-v3__corner-glow {
+  background-image: radial-gradient(circle, rgba(170, 60, 255, 0.6) 0%, rgba(170, 60, 255, 0) 70%);
+}
+
+.ultra-logo-v3--processing.ultra-logo-v3--rainbow .ultra-logo-v3__corner-glow {
+  background-image: radial-gradient(circle, rgba(255, 255, 255, 0.6) 0%, rgba(255, 255, 255, 0) 70%);
+  filter: hue-rotate(calc(var(--angle) * 5));
+}
+
+/* Animation keyframes */
+@keyframes rotate-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes rotate-reverse {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(-360deg); }
+} 

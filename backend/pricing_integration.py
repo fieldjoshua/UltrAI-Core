@@ -7,7 +7,7 @@ from datetime import datetime
 import asyncio
 from pathlib import Path
 
-from .pricing_simulator import PricingSimulator
+from pricing_simulator import PricingSimulator
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, 

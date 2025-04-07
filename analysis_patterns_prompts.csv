@@ -1,0 +1,243 @@
+Pattern,Stage,Template
+Gut Analysis,Meta,"Original prompt: $original_prompt
+
+Your initial response:
+$own_response
+
+Other LLM responses:
+$other_responses
+
+Please provide an edited version of your original response that:
+1. Maintains your core insights
+2. Incorporates any valuable perspectives from other responses
+3. Addresses any potential gaps or limitations
+4. Does not assume factual correctness of other responses
+5. Preserves your unique analytical approach"
+Gut Analysis,Hyper,"Original prompt: $original_prompt
+
+Your meta response:
+$own_meta
+
+Other LLM meta responses:
+$other_meta_responses
+
+Please provide a refined version of your meta response that:
+1. Strengthens your key arguments
+2. Addresses any valid points from other responses
+3. Maintains your analytical perspective
+4. Highlights unique insights
+5. Preserves your original reasoning"
+Gut Analysis,Ultra,"Original prompt: $original_prompt
+
+All hyper-level responses:
+$hyper_responses
+
+Please create a final synthesis that:
+1. Preserves the unique analytical approaches
+2. Highlights the most compelling insights
+3. Maintains distinct perspectives
+4. Emphasizes original reasoning
+5. Presents a balanced view of different approaches"
+Confidence Analysis,Meta,"Original prompt: $original_prompt
+
+Your initial response:
+$own_response
+
+Other LLM responses:
+$other_responses
+
+Please analyze the responses and:
+1. Identify key concepts and themes
+2. Note areas of agreement/disagreement
+3. Highlight unique perspectives
+4. Identify consensus points
+5. Evaluate the strength of different arguments"
+Confidence Analysis,Hyper,"Original prompt: $original_prompt
+
+Your meta analysis:
+$own_meta
+
+Other LLM meta analyses:
+$other_meta_responses
+
+Please provide a refined analysis that:
+1. Highlights consensus points
+2. Identifies unique insights
+3. Notes areas of disagreement
+4. Evaluates argument strength
+5. Suggests potential synthesis approaches"
+Confidence Analysis,Ultra,"Original prompt: $original_prompt
+
+All hyper-level analyses:
+$hyper_responses
+
+Please create a final synthesis with:
+1. Key points with confidence scores:
+   - ⭐ Very High: Mentioned by all models with strong agreement
+   - 🟢 High: Mentioned by all models
+   - 🟡 Medium: Mentioned by 2-3 models
+   - 🔴 Low: Mentioned by only 1 model
+2. For each major point:
+   - List which models mentioned it
+   - Show the exact number of models in agreement
+   - Explain why it received its confidence score
+   - Note any variations in how different models presented it
+3. Unique insights from each model
+4. Areas of consensus
+5. Summary of confidence distribution"
+Critique Analysis,Meta,"Original prompt: $original_prompt
+
+Your initial response:
+$own_response
+
+Other LLM responses to critique:
+$other_responses
+
+Please provide a detailed critique that:
+1. Identifies strengths and weaknesses
+2. Notes similarities and differences
+3. Suggests potential improvements
+4. Highlights unique insights
+5. Evaluates analytical approach"
+Critique Analysis,Hyper,"Original prompt: $original_prompt
+
+Your initial response:
+$own_response
+
+Critiques received:
+$critiques
+
+Please revise your response to:
+1. Address valid critique points
+2. Strengthen identified weaknesses
+3. Maintain valuable unique elements
+4. Incorporate helpful suggestions
+5. Preserve core insights"
+Critique Analysis,Ultra,"Original prompt: $original_prompt
+
+All hyper-level revised responses:
+$hyper_responses
+
+Please create a final synthesis that:
+1. Incorporates the best elements from all responses
+2. Maintains unique valuable insights
+3. Addresses key critique points
+4. Presents balanced perspectives
+5. Highlights the strongest arguments"
+Fact Check Analysis,Meta,"Original prompt: $original_prompt
+
+Your initial response:
+$own_response
+
+Other LLM responses to fact-check:
+$other_responses
+
+Please provide a detailed fact-check that:
+1. Verifies factual claims
+2. Identifies potential errors
+3. Notes inconsistencies
+4. Highlights supported claims
+5. Evaluates evidence quality"
+Fact Check Analysis,Hyper,"Original prompt: $original_prompt
+
+Your initial response:
+$own_response
+
+Fact-check results:
+$fact_checks
+
+Please revise your response to:
+1. Correct any factual errors
+2. Strengthen evidence
+3. Address inconsistencies
+4. Support claims better
+5. Maintain valid insights"
+Fact Check Analysis,Ultra,"Original prompt: $original_prompt
+
+All hyper-level fact-checked responses:
+$hyper_responses
+
+Please create a final synthesis that:
+1. Ensures factual accuracy
+2. Maintains strong evidence
+3. Presents verified insights
+4. Highlights well-supported claims
+5. Notes confidence levels"
+Perspective Analysis,Meta,"Original prompt: $original_prompt
+
+Your initial response:
+$own_response
+
+Other LLM responses:
+$other_responses
+
+Please analyze the responses from different perspectives:
+1. Technical vs. Strategic
+2. Short-term vs. Long-term
+3. Theoretical vs. Practical
+4. Local vs. Global
+5. Qualitative vs. Quantitative"
+Perspective Analysis,Hyper,"Original prompt: $original_prompt
+
+Your meta analysis:
+$own_meta
+
+Other LLM meta analyses:
+$other_meta_responses
+
+Please provide a multi-perspective analysis that:
+1. Integrates different viewpoints
+2. Balances competing priorities
+3. Highlights perspective-specific insights
+4. Identifies perspective gaps
+5. Suggests perspective combinations"
+Perspective Analysis,Ultra,"Original prompt: $original_prompt
+
+All hyper-level analyses:
+$hyper_responses
+
+Please create a final synthesis that:
+1. Integrates all perspectives
+2. Highlights key insights from each
+3. Identifies optimal combinations
+4. Addresses perspective gaps
+5. Provides balanced recommendations"
+Scenario Analysis,Meta,"Original prompt: $original_prompt
+
+Your initial response:
+$own_response
+
+Other LLM responses:
+$other_responses
+
+Please analyze the responses through scenarios:
+1. Best case
+2. Worst case
+3. Most likely case
+4. Edge cases
+5. Alternative scenarios"
+Scenario Analysis,Hyper,"Original prompt: $original_prompt
+
+Your meta analysis:
+$own_meta
+
+Other LLM meta analyses:
+$other_meta_responses
+
+Please provide a scenario-based analysis that:
+1. Evaluates scenario robustness
+2. Identifies scenario-specific insights
+3. Highlights scenario dependencies
+4. Notes scenario limitations
+5. Suggests scenario combinations"
+Scenario Analysis,Ultra,"Original prompt: $original_prompt
+
+All hyper-level analyses:
+$hyper_responses
+
+Please create a final synthesis that:
+1. Integrates scenario insights
+2. Highlights robust solutions
+3. Identifies scenario dependencies
+4. Addresses limitations
+5. Provides scenario-based recommendations" 

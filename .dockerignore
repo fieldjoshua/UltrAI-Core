@@ -1,0 +1,49 @@
+# Node modules and dependencies
+node_modules
+.npm
+npm-debug.log
+
+# Python virtual environments
+.venv
+venv
+env
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.Python
+.coverage
+htmlcov/
+
+# Development tools
+.git
+.github
+.gitignore
+.vscode
+.idea
+.DS_Store
+
+# Build files
+build
+dist
+*.log
+logs
+coverage
+.nyc_output
+
+# Environment variables (security!)
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+
+# Temp files
+temp_uploads/
+*.tmp
+*.temp
+
+# Tests
+__tests__
+test
+tests

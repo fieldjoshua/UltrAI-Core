@@ -1,0 +1,110 @@
+{
+  "gpt4o": {
+    "provider": "openai",
+    "model_name": "GPT-4o",
+    "input_cost_per_1k": 0.0025,
+    "output_cost_per_1k": 0.01,
+    "total_cost_per_1k": 0.0125,
+    "context_window": 128000,
+    "is_thinking_model": true
+  },
+  "gpt4_turbo": {
+    "provider": "openai",
+    "model_name": "GPT-4 Turbo",
+    "input_cost_per_1k": 0.01,
+    "output_cost_per_1k": 0.03,
+    "total_cost_per_1k": 0.04,
+    "context_window": 128000,
+    "is_thinking_model": true
+  },
+  "gpt35_turbo": {
+    "provider": "openai",
+    "model_name": "GPT-3.5 Turbo",
+    "input_cost_per_1k": 0.0005,
+    "output_cost_per_1k": 0.0015,
+    "total_cost_per_1k": 0.002,
+    "context_window": 4000,
+    "is_thinking_model": false
+  },
+  "gpto1": {
+    "provider": "openai",
+    "model_name": "GPT-o1",
+    "input_cost_per_1k": 0.015,
+    "output_cost_per_1k": 0.06,
+    "total_cost_per_1k": 0.075,
+    "context_window": 200000,
+    "is_thinking_model": true
+  },
+  "gpto3mini": {
+    "provider": "openai",
+    "model_name": "GPT-o3 mini",
+    "input_cost_per_1k": 0.0011,
+    "output_cost_per_1k": 0.0044,
+    "total_cost_per_1k": 0.0055,
+    "context_window": 200000,
+    "is_thinking_model": false
+  },
+  "claude37": {
+    "provider": "anthropic",
+    "model_name": "Claude 3.7 Sonnet",
+    "input_cost_per_1k": 0.003,
+    "output_cost_per_1k": 0.015,
+    "total_cost_per_1k": 0.018,
+    "context_window": 200000,
+    "is_thinking_model": true
+  },
+  "claude3_opus": {
+    "provider": "anthropic",
+    "model_name": "Claude 3 Opus",
+    "input_cost_per_1k": 0.015,
+    "output_cost_per_1k": 0.075,
+    "total_cost_per_1k": 0.09,
+    "context_window": 200000,
+    "is_thinking_model": true
+  },
+  "claude35_haiku": {
+    "provider": "anthropic",
+    "model_name": "Claude 3.5 Haiku",
+    "input_cost_per_1k": 0.0008,
+    "output_cost_per_1k": 0.004,
+    "total_cost_per_1k": 0.0048,
+    "context_window": 200000,
+    "is_thinking_model": false
+  },
+  "gemini15": {
+    "provider": "google",
+    "model_name": "Gemini 1.5 Pro",
+    "input_cost_per_1k": 7.5e-05,
+    "output_cost_per_1k": 0.0003,
+    "total_cost_per_1k": 0.000375,
+    "context_window": 128000,
+    "is_thinking_model": false
+  },
+  "gemini25_pro_max": {
+    "provider": "google",
+    "model_name": "Gemini 2.5 Pro Max",
+    "input_cost_per_1k": 0.003,
+    "output_cost_per_1k": 0.015,
+    "total_cost_per_1k": 0.018,
+    "context_window": 1000000,
+    "is_thinking_model": true
+  },
+  "cohere_command_rplus": {
+    "provider": "cohere",
+    "model_name": "Command R+",
+    "input_cost_per_1k": 0.0025,
+    "output_cost_per_1k": 0.01,
+    "total_cost_per_1k": 0.0125,
+    "context_window": 256000,
+    "is_thinking_model": false
+  },
+  "cohere_command_r": {
+    "provider": "cohere",
+    "model_name": "Command R",
+    "input_cost_per_1k": 0.00015,
+    "output_cost_per_1k": 0.0006,
+    "total_cost_per_1k": 0.00075,
+    "context_window": 100000,
+    "is_thinking_model": false
+  }
+}

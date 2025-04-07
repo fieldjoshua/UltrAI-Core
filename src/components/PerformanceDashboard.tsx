@@ -45,7 +45,7 @@ interface SystemMetrics {
   memory_usage_mb: number;
 }
 
-const API_URL = 'http://localhost:8080';
+const API_URL = 'http://localhost:8081';
 const HISTORY_LIMIT = 20; // Number of data points to keep in history
 
 // Simple mini chart component

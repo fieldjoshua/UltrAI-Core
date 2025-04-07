@@ -114,7 +114,21 @@ class PatternOrchestrator:
         try:
             # Claude (Anthropic)
             if self.anthropic_key:
-                self.anthropic = AsyncAnthropic(api_key=self.anthropic_key)
+                try:
+                    # Try initializing with newer Anthropic library versions
+                    self.anthropic = AsyncAnthropic(api_key=self.anthropic_key)
+                except TypeError as e:
+                    if "AsyncClient.__init__() got an unexpected keyword argument" in str(e):
+                        # Handle older versions that don't support certain parameters
+                        import inspect
+                        init_params = inspect.signature(AsyncAnthropic.__init__).parameters
+                        # Only pass parameters that are accepted by this version
+                        kwargs = {}
+                        if 'api_key' in init_params:
+                            kwargs['api_key'] = self.anthropic_key
+                        
+                        self.anthropic = AsyncAnthropic(**kwargs)
+                
                 self.available_models.append("claude")
                 self.last_request["claude"] = datetime.now()
                 self.logger.info("Claude client initialized")

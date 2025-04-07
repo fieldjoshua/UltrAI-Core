@@ -26,7 +26,7 @@ interface PerformanceMetrics {
   };
 }
 
-const API_URL = 'http://localhost:8080';
+const API_URL = 'http://localhost:8081';
 
 // Thin gauge component for visualizing metrics
 const PerformanceGauge = React.memo(({

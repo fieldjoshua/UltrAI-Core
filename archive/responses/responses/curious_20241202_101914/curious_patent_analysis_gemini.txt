@@ -1,0 +1,175 @@
+## Technical Field
+This invention relates to the field of natural language processing (NLP) and more specifically to a system and method for orchestrating multiple NLP models to generate comprehensive and insightful responses.
+
+## Background
+In the field of NLP, researchers and practitioners have been developing and using individual NLP models to perform various tasks, such as language translation, text summarization, and question answering. However, these individual models often have their own strengths and weaknesses, and they may not always be able to produce satisfactory results when dealing with complex or multifaceted tasks.
+
+## Summary of the Invention
+The present invention provides a novel system and method for orchestrating multiple NLP models to generate comprehensive and insightful responses. The system and method are based on the insight that by combining the strengths of different models, it is possible to overcome the limitations of individual models and achieve superior results.
+
+## Detailed Description
+### System Overview
+The system comprises multiple NLP models, each of which is trained on a different dataset or for a different purpose. The models are orchestrated by a central controller, which is responsible for distributing input tasks to the models, collecting their responses, and aggregating the results.
+
+### Model Selection
+The system uses a novel approach to model selection. Instead of relying on a single model for all tasks, the system dynamically selects the best model for each task based on the task's characteristics. For example, if the task involves translating text from English to Spanish, the system might select a model that has been specifically trained on English-Spanish translation.
+
+### Response Aggregation
+The system uses a sophisticated algorithm to aggregate the responses from the individual models. The algorithm takes into account the confidence scores of each model, as well as the diversity of the responses. The goal is to produce a final response that is both accurate and comprehensive.
+
+### Claims
+1. A system for orchestrating multiple NLP models to generate comprehensive and insightful responses, comprising:
+    - a plurality of NLP models, each of which is trained on a different dataset or for a different purpose;
+    - a central controller for distributing input tasks to the models, collecting their responses, and aggregating the results; and
+    - a model selection algorithm for dynamically selecting the best model for each task based on the task's characteristics;
+    - a response aggregation algorithm for combining the responses from the individual models to produce a final response that is both accurate and comprehensive.
+
+2. The system of claim 1, wherein the models are selected from a group consisting of:
+    - language translation models;
+    - text summarization models;
+    - question answering models;
+    - dialogue generation models;
+    - text classification models.
+
+3. The system of claim 1, wherein the response aggregation algorithm takes into account the confidence scores of each model, as well as the diversity of the responses.
+
+## Code Implementation
+```python
+import os
+import json
+import asyncio
+import logging
+import requests
+from typing import Dict, Any, Optional
+from datetime import datetime
+from tenacity import retry, stop_after_attempt, wait_exponential
+import google.generativeai as genai
+from openai import OpenAI
+from dataclasses import dataclass
+from dotenv import load_dotenv
+import torch
+import platform
+import psutil
+from concurrent.futures import ThreadPoolExecutor
+import numpy as np
+
+load_dotenv()  # This needs to be called before accessing any env vars
+
+@dataclass
+class PromptTemplate:
+    initial: str = "Please analyze the following: {prompt}"
+    meta: str = "Analyze these responses and create an improved version: {responses}"
+    ultra: str = "Create a final synthesis of these analyses: {responses}"
+    hyper: str = "Perform a hyper-level analysis of all previous responses: {responses}"
+
+@dataclass
+class RateLimits:
+    llama: int = 5
+    chatgpt: int = 3
+    gemini: int = 10
+
+class TriLLMOrchestrator:
+    def __init__(self, 
+                 api_keys: Dict[str, str],
+                 prompt_templates: Optional[PromptTemplate] = None,
+                 rate_limits: Optional[RateLimits] = None,
+                 output_format: str = "plain",
+                 ultra_engine: str = "llama"):
+        
+        print("Initializing TriLLMOrchestrator...")
+        
+        # Setup logging
+        self.logger = logging.getLogger(__name__)
+        
+        # Store the prompt first so we can use it for the directory name
+        self.prompt = None
+        self.base_dir = os.path.join(os.getcwd(), 'responses')
+        
+        print("\nChecking API keys...")
+        self.api_keys = api_keys
+        print(f"OpenAI: {api_keys.get('openai', '')[:5]}...{api_keys.get('openai', '')[-4:]}")
+        print(f"Google: {api_keys.get('google', '')[:5]}...{api_keys.get('google', '')[-4:]}")
+        
+        print("\nSetting up formatter...")
+        self.output_format = output_format
+        
+        print("\nInitializing API clients...")
+        self._initialize_clients()
+        
+        self.prompt_templates = prompt_templates or PromptTemplate()
+        self.rate_limits = rate_limits or RateLimits()
+        self.last_request_time = {"llama": 0, "chatgpt": 0, "gemini": 0}
+        self.ultra_engine = ultra_engine
+        
+        # Add hardware detection
+        self.device = "mps" if torch.backends.mps.is_available() else "cpu"
+        self.max_threads = psutil.cpu_count(logical=False)  # Physical cores only
+        self.executor = ThreadPoolExecutor(max_workers=self.max_threads)
+        
+        # Configure Metal backend
+        if self.device == "mps":
+            torch.backends.mps.enable_fallback_to_cpu = True
+            
+        # Print hardware configuration
+        print("\nHardware Configuration:")
+        print(f"Device: {self.device}")
+        print(f"Processor: {platform.processor()}")
+        print(f"Physical Cores: {self.max_threads}")
+        print(f"Memory Available: {psutil.virtual_memory().available / (1024 * 1024 * 1024):.2f} GB")
+        if self.device == "mps":
+            print("Apple Silicon GPU acceleration enabled")
+            print("GPU Cores: 30")
+            print("Metal backend: Active")
+
+    def _get_keyword_from_prompt(self, prompt: str) -> str:
+        """Extract a meaningful keyword from the prompt"""
+        common_words = {'the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by', 'please', 'edit', 'following'}
+        
+        words = prompt.lower().split()
+        keyword = next((word for word in words if word not in common_words and len(word) > 2), 'task')
+        
+        keyword = ''.join(c for c in keyword if c.isalnum())
+        return keyword[:15]
+
+    def _initialize_clients(self):
+        """Initialize API clients for each service"""
+        print("Initializing Llama...")
+        # Llama uses local API, no initialization needed
+        print("Llama initialized successfully")
+        
+        print("Initializing OpenAI...")
+        self.openai_client = OpenAI(api_key=self.api_keys["openai"])
+        print("OpenAI initialized successfully")
+        
+        print("Initializing Gemini...")
+        genai.configure(api_key=self.api_keys["google"])
+        self.gemini_model = genai.GenerativeModel('gemini-pro')
+        print("Gemini initialized successfully")
+
+    def _setup_directory(self):
+        """Create directory for this run"""
+        os.makedirs(self.run_dir, exist_ok=True)
+
+    def formatter(self, text: str) -> str:
+        """Format the output based on specified format"""
+        if self.output_format == "plain":
+            return text
+        # Add more format options as needed
+        return text
+
+    async def _respect_rate_limit(self, service: str):
+        """Ensure we don't exceed rate limits"""
+        current_time = datetime.now().timestamp()
+        time_since_last = current_time - self.last_request_time[service]
+        
+        if time_since_last < self.rate_limits.__dict__[service]:
+            await asyncio.sleep(self.rate_limits.__dict__[service] - time_since_last)
+        
+        self.last_request_time[service] = current_time
+
+    @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=4, max=10))
+    async def get_llama_response(self, prompt: str) -> str:
+        await self._respect_rate_limit("llama")
+        try:
+            response = requests.post(
+                'http://localhost:11434/api/generate',

@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, UploadFile, File, Form, Response, Request, BackgroundTasks
+from fastapi import FastAPI, HTTPException, UploadFile, File, Form, Response, Request, BackgroundTasks, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import List, Dict, Any, Optional
@@ -16,12 +16,34 @@ import psutil
 from fastapi.responses import JSONResponse, PlainTextResponse
 import uvicorn
 import logging
+import sentry_sdk
+
+# Import error handling system
+from error_handler import register_exception_handlers, error_handling_middleware
+
+# Configure Sentry for error tracking and performance monitoring
+sentry_sdk.init(
+    dsn="https://860c945f86e625b606babebefb04c009@o4509109008531456.ingest.us.sentry.io/4509109123350528",
+    # Add data like request headers and IP for users
+    send_default_pii=True,
+    # Adjust this in production to reduce the volume of performance data
+    traces_sample_rate=1.0,
+    # Set environment based on ENVIRONMENT variable
+    environment=os.getenv("ENVIRONMENT", "development"),
+)
+
 from pricing_simulator import PricingSimulator
 from pricing_integration import PricingIntegration, track_request_cost, check_request_authorization
 import argparse
 import socket
 from contextlib import contextmanager
 from contextlib import asynccontextmanager
+
+# Instead of using global variables directly, let's use a simple config object
+class Config:
+    """Configuration object to hold runtime settings"""
+    use_mock = False
+    mock_service = None
 
 # Create a stub class for UltraDocumentsOptimized
 class UltraDocumentsOptimized:
@@ -322,6 +344,12 @@ app = FastAPI(
     lifespan=lifespan
 )
 
+# Register exception handlers
+register_exception_handlers(app)
+
+# Add error handling middleware
+app.middleware("http")(error_handling_middleware)
+
 # Configure CORS
 origins = [
     "http://localhost:3000", 
@@ -376,9 +404,9 @@ async def analyze_prompt(request: Request):
         logger.info(f"Received analyze request with pattern: {pattern_name}")
         
         # Use mock service if in mock mode
-        if USE_MOCK and mock_service:
+        if Config.use_mock and Config.mock_service:
             try:
-                result = await mock_service.analyze_prompt(
+                result = await Config.mock_service.analyze_prompt(
                     prompt=prompt,
                     models=selected_models,
                     ultra_model=ultra_model,
@@ -709,23 +737,17 @@ async def health_check():
         raise HTTPException(status_code=500, detail=f"Service unhealthy: {str(e)}")
 
 # Health check endpoint
-@app.get("/api/health")
+@app.get("/api/health", tags=["Health"])
 async def health_check():
-    uptime = time.time() - start_time
-    memory_info = psutil.Process(os.getpid()).memory_info()
-    current_memory = memory_info.rss / (1024 * 1024)  # Convert to MB
-    
-    global max_memory_usage
-    max_memory_usage = max(max_memory_usage, current_memory)
-    
+    """
+    Health check endpoint to verify the API is running correctly.
+    This is used for monitoring and load balancer health checks.
+    """
     return {
         "status": "ok",
-        "uptime_seconds": uptime,
-        "requests_processed": requests_processed,
-        "avg_processing_time": sum(processing_times) / len(processing_times) if processing_times else 0,
-        "current_memory_mb": current_memory,
-        "max_memory_mb": max_memory_usage,
-        "pricing_enabled": pricing_integration.pricing_enabled
+        "version": app.version,
+        "timestamp": datetime.now().isoformat(),
+        "environment": os.getenv("ENVIRONMENT", "development")
     }
 
 # Token usage estimate endpoint
@@ -1055,8 +1077,8 @@ async def test_api():
 async def get_available_models():
     """Check which LLM models are available for use"""
     # Use mock service if in mock mode
-    if USE_MOCK and mock_service:
-        return await mock_service.get_available_models()
+    if Config.use_mock and Config.mock_service:
+        return await Config.mock_service.get_available_models()
         
     available_models = []
     error_messages = {}
@@ -1101,6 +1123,16 @@ async def get_available_models():
         "errors": error_messages
     }
 
+@app.get("/api/sentry-debug")
+async def trigger_error():
+    """
+    Test endpoint to verify Sentry integration
+    This endpoint deliberately raises an exception that will be caught by Sentry
+    """
+    logger.info("Testing Sentry integration by triggering a deliberate error")
+    division_by_zero = 1 / 0
+    return {"status": "This will never be returned"}
+
 # Run server
 if __name__ == "__main__":
     # Parse command line arguments
@@ -1112,18 +1144,16 @@ if __name__ == "__main__":
     parser.add_argument("--mock", action="store_true", help="Run in mock mode with simulated responses")
     args = parser.parse_args()
     
-    # Setup mock mode if requested
-    USE_MOCK = args.mock
-    if USE_MOCK:
+    # Set config from arguments
+    Config.use_mock = args.mock
+    if Config.use_mock:
         try:
             from mock_llm_service import MockLLMService
+            Config.mock_service = MockLLMService()
             print("🧪 Running in MOCK MODE - all responses will be simulated")
-            mock_service = MockLLMService()
         except ImportError:
             print("⚠️ Mock service module not found. Please create mock_llm_service.py first.")
             sys.exit(1)
-    else:
-        mock_service = None
     
     # Create temp directories for file uploads and document processing
     os.makedirs("temp_uploads", exist_ok=True)

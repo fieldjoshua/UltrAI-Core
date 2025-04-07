@@ -1,62 +1,77 @@
-# Stage 1: Build the frontend
-FROM node:18-alpine AS frontend-builder
+# Multi-stage build for Ultra
 
-WORKDIR /app
-COPY package*.json ./
+# ----- Frontend Build Stage -----
+FROM node:20-slim AS frontend-build
+WORKDIR /app/frontend
+
+# Copy frontend files
+COPY package.json package-lock.json ./
+# Install dependencies
 RUN npm ci
 
-COPY . .
+# Copy the rest of the frontend source code
+COPY src ./src
+COPY public ./public
+COPY index.html vite.config.js tsconfig*.json ./
+
+# Build the frontend
 RUN npm run build
 
-# Stage 2: Build the backend
-FROM python:3.10-slim AS backend-builder
-
-WORKDIR /app
+# ----- Backend Dependencies Stage -----
+FROM python:3.12-slim AS backend-deps
+WORKDIR /app/backend
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
+    curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy and install Python dependencies
-COPY requirements.txt backend/requirements.txt ./
-RUN pip install --no-cache-dir -r requirements.txt \
-    && pip install --no-cache-dir -r backend/requirements.txt
+# Copy backend requirements
+COPY backend/requirements.txt .
+COPY .env* ./
 
-# Stage 3: Create the final image
-FROM python:3.10-slim
+# Install Python dependencies
+RUN pip install --no-cache-dir -r requirements.txt
 
-# Set environment variables
-ENV PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1 \
-    PORT=8080
-
+# ----- Final Image -----
+FROM python:3.12-slim
 WORKDIR /app
 
-# Install only necessary runtime dependencies
+# Install production system dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy Python dependencies from the backend builder
-COPY --from=backend-builder /usr/local/lib/python3.10/site-packages /usr/local/lib/python3.10/site-packages
-COPY --from=backend-builder /usr/local/bin /usr/local/bin
+# Copy backend from backend-deps stage
+COPY --from=backend-deps /usr/local/lib/python3.12/site-packages /usr/local/lib/python3.12/site-packages
+COPY --from=backend-deps /usr/local/bin /usr/local/bin
+COPY --from=backend-deps /app/backend/.env* /app/
 
-# Copy built frontend from the frontend builder
-COPY --from=frontend-builder /app/dist /app/dist
+# Copy backend source
+COPY backend/ /app/backend/
+COPY api.py ultra_pattern_orchestrator.py /app/
 
-# Copy application code
-COPY backend /app/backend
-COPY ultra*.py /app/
-COPY .env /app/.env
-COPY README.md /app/README.md
+# Copy frontend build from frontend-build stage
+COPY --from=frontend-build /app/frontend/dist /app/static
 
-# Default command
-CMD ["python", "backend/run.py"]
+# Create a non-root user
+RUN useradd -m ultrauser && chown -R ultrauser:ultrauser /app
+USER ultrauser
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:$PORT/health || exit 1
+# Create directories needed at runtime
+RUN mkdir -p /app/backend/temp_uploads /app/logs
 
-# Expose the application port
-EXPOSE $PORT 
+# Set environment variables
+ENV PYTHONPATH=/app
+ENV PORT=8085
+
+# Expose the port the app runs on
+EXPOSE 8085
+
+# Create healthcheck
+HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
+  CMD curl -f http://localhost:8085/api/system/health || exit 1
+
+# Start the application
+CMD ["python", "backend/main.py"] 

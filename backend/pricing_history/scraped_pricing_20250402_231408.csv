@@ -1,0 +1,18 @@
+Model,Input Cost per 1K,Output Cost per 1K,Total Cost per 1K,Context Window,Is Thinking Model
+OpenAI GPT-4o,$0.0025,$0.0100,$0.0125,128K,True
+OpenAI GPT-4o mini,$0.00015,$0.00060,$0.00075,128K,False
+OpenAI GPT-4 Turbo,$0.01,$0.03,$0.04,128K,True
+OpenAI GPT-3.5 Turbo,$0.0005,$0.0015,$0.0020,4K,False
+OpenAI GPT-o1,$0.015,$0.060,$0.075,200K,True
+OpenAI GPT-o3 mini,$0.00110,$0.00440,$0.00550,200K,False
+Anthropic Claude 3.7 Sonnet,$0.003,$0.015,$0.018,200K,True
+Anthropic Claude 3 Opus,$0.015,$0.075,$0.090,200K,True
+Anthropic Claude 3.5 Haiku,$0.0008,$0.0040,$0.0048,200K,False
+Google Gemini 1.5 Pro,$0.000075,$0.000300,$0.000375,128K,False
+Google Gemini 2.5 Pro Max,$0.003,$0.015,$0.018,1M,True
+Cohere Command R+,$0.00250,$0.01000,$0.0125,256K,False
+Cohere Command R,$0.00015,$0.00060,$0.00075,100K,False
+AI21 Jamba Large,$0.0020,$0.0080,$0.0100,100K,False
+AI21 Jamba Mini,$0.0002,$0.0004,$0.0006,100K,False
+AWS Bedrock Titan Text Express,$0.0008,$0.0016,$0.0024,8K,False
+AWS Bedrock Titan Text Lite,$0.00015,$0.00020,$0.00035,4K,False
