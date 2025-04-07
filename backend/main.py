@@ -1,6 +1,6 @@
 from fastapi import FastAPI, HTTPException, UploadFile, File, Form, Response, Request, BackgroundTasks, Depends
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
+from pydantic import BaseModel, ValidationError
 from typing import List, Dict, Any, Optional
 import asyncio
 import os
@@ -16,7 +16,11 @@ import psutil
 from fastapi.responses import JSONResponse, PlainTextResponse
 import uvicorn
 import logging
-import sentry_sdk
+try:
+    import sentry_sdk
+    SENTRY_AVAILABLE = True
+except ImportError:
+    SENTRY_AVAILABLE = False
 from cachetools import TTLCache, cached
 import hashlib
 import shutil
@@ -25,16 +29,17 @@ from pathlib import Path
 # Import error handling system
 from error_handler import register_exception_handlers, error_handling_middleware
 
-# Configure Sentry for error tracking and performance monitoring
-sentry_sdk.init(
-    dsn="https://860c945f86e625b606babebefb04c009@o4509109008531456.ingest.us.sentry.io/4509109123350528",
-    # Add data like request headers and IP for users
-    send_default_pii=True,
-    # Adjust this in production to reduce the volume of performance data
-    traces_sample_rate=1.0,
-    # Set environment based on ENVIRONMENT variable
-    environment=os.getenv("ENVIRONMENT", "development"),
-)
+# Configure Sentry for error tracking and performance monitoring if available
+if SENTRY_AVAILABLE:
+    sentry_sdk.init(
+        dsn="https://860c945f86e625b606babebefb04c009@o4509109008531456.ingest.us.sentry.io/4509109123350528",
+        # Add data like request headers and IP for users
+        send_default_pii=True,
+        # Adjust this in production to reduce the volume of performance data
+        traces_sample_rate=1.0,
+        # Set environment based on ENVIRONMENT variable
+        environment=os.getenv("ENVIRONMENT", "development"),
+    )
 
 from pricing_simulator import PricingSimulator
 from pricing_integration import PricingIntegration, track_request_cost, check_request_authorization
@@ -43,127 +48,9 @@ import socket
 from contextlib import contextmanager
 from contextlib import asynccontextmanager
 
-# Instead of using global variables directly, let's use a simple config object
-class Config:
-    """Configuration object to hold runtime settings"""
-    use_mock = False
-    mock_service = None
-
-# Create a stub class for UltraDocumentsOptimized
-class UltraDocumentsOptimized:
-    """Stub implementation of UltraDocumentsOptimized for testing"""
-    def __init__(self, cache_enabled=True, chunk_size=1000, chunk_overlap=100,
-                 embedding_model="default", max_workers=4, memory_cache_size=100):
-        self.cache_enabled = cache_enabled
-        self.chunk_size = chunk_size
-        self.chunk_overlap = chunk_overlap
-        self.embedding_model = embedding_model
-        self.max_workers = max_workers
-        self.memory_cache_size = memory_cache_size
-        self.logger = logging.getLogger(__name__)
-        self.logger.info(f"Initialized UltraDocumentsOptimized stub with chunk_size={chunk_size}")
-        self.cache = self._create_mock_cache()
-
-    def _create_mock_cache(self):
-        """Create a mock cache object"""
-        return type('MockCache', (), {
-            'memory_cache': type('MockMemoryCache', (), {
-                'size': lambda: 10,
-                'get': lambda key: None,
-                'set': lambda key, value: None,
-                'clear': lambda: None
-            }),
-            'disk_cache': type('MockDiskCache', (), {
-                'size': lambda: 20,
-                'get': lambda key: None,
-                'set': lambda key, value: None,
-                'clear': lambda: None
-            }),
-            'stats': {
-                'hits': 5,
-                'misses': 3,
-                'hit_rate': 0.625
-            }
-        })
-
-    def process_document(self, file_path, **kwargs):
-        """Mock document processing with realistic chunks based on file content"""
-        self.logger.info(f"Processing document: {file_path}")
-
-        # Default mock chunks
-        mock_chunks = [
-            {"text": "This is a mock chunk 1", "relevance": 0.95},
-            {"text": "This is a mock chunk 2", "relevance": 0.87}
-        ]
-
-        # Try to read the actual file and generate more realistic chunks
-        try:
-            with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
-                content = f.read()
-
-                # Create more realistic chunks from the actual content
-                if content:
-                    words = content.split()
-                    chunk_size = min(50, max(10, len(words) // 5))  # Divide into 5 chunks at most
-
-                    mock_chunks = []
-
-                    # Create chunks from actual content
-                    for i in range(0, len(words), chunk_size):
-                        if i + chunk_size <= len(words):
-                            chunk_text = ' '.join(words[i:i+chunk_size])
-                            # Generate random relevance score between 0.6 and 1.0
-                            relevance = 0.6 + (0.4 * (1 - (i / len(words))))
-                            mock_chunks.append({"text": chunk_text, "relevance": round(relevance, 2)})
-
-                    if not mock_chunks:
-                        # Fallback if no chunks were created
-                        mock_chunks = [{"text": content[:300], "relevance": 0.9}]
-
-                    self.logger.info(f"Created {len(mock_chunks)} realistic chunks from document content")
-        except Exception as e:
-            self.logger.warning(f"Could not read file content, using mock chunks instead: {str(e)}")
-
-        return {
-            "chunks": mock_chunks,
-            "total_chunks": len(mock_chunks),
-            "file_name": os.path.basename(file_path)
-        }
-
-    def get_relevant_chunks(self, query, document_chunks, top_k=5):
-        """Mock method to get relevant chunks for a query"""
-        self.logger.info(f"Getting relevant chunks for query: {query}")
-
-        # Sort chunks by relevance to simulate ranking
-        sorted_chunks = sorted(document_chunks, key=lambda x: x.get('relevance', 0), reverse=True)
-
-        # Return top_k chunks
-        return sorted_chunks[:min(top_k, len(sorted_chunks))]
-
-    def process_query(self, query, document_chunks, **kwargs):
-        """Mock method to process a query against document chunks"""
-        relevant_chunks = self.get_relevant_chunks(query, document_chunks)
-
-        return {
-            "query": query,
-            "relevant_chunks": relevant_chunks,
-            "context": "\n\n".join([chunk.get('text', '') for chunk in relevant_chunks])
-        }
-
-    def cleanup(self):
-        """Mock cleanup method"""
-        self.logger.info("Cleaning up document processor resources")
-        # Nothing to actually clean up in the mock implementation
-
-# Add parent directory to path to access Ultra modules
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from ultra_pattern_orchestrator import PatternOrchestrator
-
-# Create the temp directory for file uploads if it doesn't exist
-os.makedirs("temp_uploads", exist_ok=True)
-
 # Create the necessary directories - use environment variable for document storage in cloud
 DOCUMENT_STORAGE_PATH = os.getenv("DOCUMENT_STORAGE_PATH", "document_storage")
+os.makedirs("temp_uploads", exist_ok=True)
 os.makedirs(DOCUMENT_STORAGE_PATH, exist_ok=True)
 
 # Configure logging
@@ -171,193 +58,65 @@ logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger("ultra_api")
 
-# Global performance metrics
-performance_metrics = {
-    "requests_processed": 0,
-    "documents_processed": 0,
-    "avg_processing_time": 0,
-    "total_processing_time": 0,
-    "max_memory_usage": 0,
-    "total_chunks_processed": 0,
-    "cache_hits": 0,
-    "current_memory_usage_mb": 0,
-    "start_time": datetime.now().isoformat()
-}
+# Define document processor placeholder
+document_processor = None
 
-# Add metrics history for time-series data
-metrics_history = {
-    "timestamps": [],
-    "memory_usage": [],
-    "cpu_usage": [],
-    "requests_processed": [],
-    "avg_processing_time": [],
-    "documents_processed": [],
-    "chunks_processed": []
-}
+# Mock LLM Service for testing
+class MockLLMService:
+    """Mock LLM service for testing and development"""
+    def analyze(self, prompt, llms, ultra_llm, pattern):
+        """Mock analysis that returns formatted results"""
+        logger.info(f"Mock service analyzing prompt with {len(llms)} models")
+        return {
+            "status": "success",
+            "ultra_response": f"This is a mock response from the Ultra model: {ultra_llm}\n\nAnalysis of your query: {prompt}\n\nPattern used: {pattern}",
+            "timing": {
+                "total_seconds": 2.5,
+                "model_seconds": {model: 1.2 for model in llms}
+            }
+        }
 
-# Maximum history points to store
-MAX_HISTORY_POINTS = 100
+# Import pricing system
+try:
+    from pricing_simulator import PricingSimulator
+    from pricing_integration import PricingIntegration, track_request_cost, check_request_authorization
+    PRICING_AVAILABLE = True
+except ImportError:
+    PRICING_AVAILABLE = False
+    logger.warning("Pricing modules not available. Continuing without pricing functionality.")
 
-# Initialize pricing system
-pricing_simulator = PricingSimulator()
-pricing_integration = PricingIntegration(
-    pricing_simulator=pricing_simulator,
-    pricing_enabled=False,  # Initially disabled, can be toggled through API
-    default_tier="basic",
-    usage_log_file="logs/token_usage_log.jsonl"
-)
-pricing_integration.load_user_accounts()
+# Instead of using global variables directly, let's use a simple config object
+class Config:
+    """Configuration object to hold runtime settings"""
+    use_mock = False
+    mock_service = None
 
-# Create logs directory if it doesn't exist
-os.makedirs("logs", exist_ok=True)
+# Process tokens and tracking for pricing
+def process_tokens(prompt, model=None, tokens_used=None):
+    """Process token usage for pricing"""
+    if not PRICING_AVAILABLE:
+        return {"status": "success", "message": "Pricing not enabled"}
 
-# Performance metrics tracking
-start_time = time.time()
-requests_processed = 0
-processing_times = []
-max_memory_usage = 0
+    # Implementation would go here
+    return {"status": "success", "tokens_processed": True}
 
-# Request models
-class AnalyzeRequest(BaseModel):
-    prompt: str
-    selectedModels: List[str]
-    ultraModel: str
-    pattern: Optional[str] = "Confidence Analysis"
-    options: Optional[Dict[str, Any]] = {}
-    userId: Optional[str] = None
+# Document storage path - use environment variable
+DOCUMENT_STORAGE_PATH = os.getenv("DOCUMENT_STORAGE_PATH", "document_storage")
 
-class PromptRequest(BaseModel):
-    prompt: str
-    selectedModels: List[str]
-    ultraModel: str
-    pattern: str = "Confidence Analysis"
-    options: dict = {
-        "keepDataPrivate": False,
-        "useNoTraceEncryption": False
-    }
+# Add response caching
+response_cache = TTLCache(maxsize=100, ttl=3600)  # Cache for 1 hour
 
-class DocumentChunk(BaseModel):
-    text: str
-    relevance: float
-    page: Optional[int] = None
+# Function to generate cache key from request data
+def generate_cache_key(prompt, models, ultra_model, pattern):
+    """Generate a unique cache key based on request parameters"""
+    key_data = f"{prompt}|{','.join(sorted(models))}|{ultra_model}|{pattern}"
+    return hashlib.md5(key_data.encode()).hexdigest()
 
-class ProcessedDocument(BaseModel):
-    id: str
-    name: str
-    chunks: List[DocumentChunk]
-    totalChunks: int
-    type: str
-
-class TokenEstimateRequest(BaseModel):
-    prompt: str
-    model: str
-    requestType: str = "completion"
-    userId: Optional[str] = None
-
-class PricingToggleRequest(BaseModel):
-    enabled: bool
-    reason: Optional[str] = None
-
-class UserAccountRequest(BaseModel):
-    userId: str
-    tier: str = "basic"
-    initialBalance: float = 0.0
-
-class AddFundsRequest(BaseModel):
-    userId: str
-    amount: float
-    description: str = "Deposit"
-
-class DocumentUploadResponse(BaseModel):
-    id: str
-    name: str
-    size: int
-    type: str
-    status: str
-    message: Optional[str] = None
-
-# Function to update metrics history
-def update_metrics_history():
-    """Update the metrics history with current values"""
-    global metrics_history, performance_metrics, MAX_HISTORY_POINTS
-
-    # Get current timestamp
-    now = datetime.now().isoformat()
-
-    # Get current CPU and memory usage
-    current_memory = psutil.Process().memory_info().rss / (1024 * 1024)  # MB
-    current_cpu = psutil.Process().cpu_percent(interval=0.1)
-
-    # Update performance metrics with current memory usage
-    performance_metrics["current_memory_usage_mb"] = current_memory
-
-    # Update history with current metrics
-    metrics_history["timestamps"].append(now)
-    metrics_history["memory_usage"].append(current_memory)
-    metrics_history["cpu_usage"].append(current_cpu)
-    metrics_history["requests_processed"].append(performance_metrics["requests_processed"])
-    metrics_history["avg_processing_time"].append(performance_metrics["avg_processing_time"])
-    metrics_history["documents_processed"].append(performance_metrics["documents_processed"])
-    metrics_history["chunks_processed"].append(performance_metrics["total_chunks_processed"])
-
-    # Trim history to maximum points
-    if len(metrics_history["timestamps"]) > MAX_HISTORY_POINTS:
-        for key in metrics_history:
-            metrics_history[key] = metrics_history[key][-MAX_HISTORY_POINTS:]
-
-# Define a function to check if a port is available
-def is_port_available(port, host='0.0.0.0'):
-    """Check if a port is available on the specified host."""
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        try:
-            s.bind((host, port))
-            return True
-        except OSError:
-            return False
-
-# Find an available port starting from the specified port
-def find_available_port(start_port, max_attempts=10):
-    """Find an available port starting from start_port."""
-    port = start_port
-    attempts = 0
-
-    while attempts < max_attempts:
-        if is_port_available(port):
-            return port
-        port += 1
-        attempts += 1
-
-    # If we've tried max_attempts ports and none are available, raise an error
-    raise RuntimeError(f"Could not find an available port after {max_attempts} attempts")
-
-# Lifespan context manager (replacing on_event)
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    # Startup logic
-    logger.info("Application startup")
-
-    try:
-        yield
-    finally:
-        # Shutdown logic
-        logger.info("Application shutdown")
-
-        # Clean up resources
-        if 'document_processor' in globals():
-            document_processor.cleanup()
-
-        # Save any pending data
-        pricing_integration.save_user_accounts()
-
-        # Log final metrics
-        logger.info(f"Final metrics - Requests processed: {performance_metrics['requests_processed']}")
-
-# Initialize FastAPI with lifespan
+# Create FastAPI app instance
 app = FastAPI(
     title="Ultra Framework API",
     description="API for the Ultra Framework orchestrating multiple LLMs",
-    version="1.0.0",
-    lifespan=lifespan
+    version="1.0.0"
 )
 
 # Register exception handlers
@@ -395,17 +154,23 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Add response caching
-response_cache = TTLCache(maxsize=100, ttl=3600)  # Cache for 1 hour
+# Import the pattern orchestrator if available
+try:
+    sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    from ultra_pattern_orchestrator import PatternOrchestrator
+    ORCHESTRATOR_AVAILABLE = True
+except ImportError:
+    ORCHESTRATOR_AVAILABLE = False
+    logger.warning("PatternOrchestrator not available, using mock implementation")
 
-# Function to generate cache key from request data
-def generate_cache_key(prompt, models, ultra_model, pattern):
-    """Generate a unique cache key based on request parameters"""
-    key_data = f"{prompt}|{','.join(sorted(models))}|{ultra_model}|{pattern}"
-    return hashlib.md5(key_data.encode()).hexdigest()
-
-# Document storage path - use environment variable
-DOCUMENT_STORAGE_PATH = os.getenv("DOCUMENT_STORAGE_PATH", "document_storage")
+    # Define a mock PatternOrchestrator if the real one isn't available
+    class PatternOrchestrator:
+        def analyze(self, prompt, llms, ultra_llm, pattern):
+            return {
+                "status": "success",
+                "ultra_response": f"Mock response from PatternOrchestrator. The prompt was: {prompt[:50]}...",
+                "results": {"ultra": "Mock ultra response"}
+            }
 
 @app.options("/api/analyze")
 async def options_analyze():
