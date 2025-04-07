@@ -252,3 +252,52 @@ cython_debug/
 .vscode/
 *.swp
 *.swo
+
+# VS Code specific files
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+!.vscode/extensions.json.recommended
+
+# Security and environment files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+.key-*
+.cert-*
+
+# Coverage reports
+coverage/
+.coverage
+coverage.xml
+htmlcov/
+
+# Python virtual environment
+venv/
+.venv/
+env/
+ENV/
+
+# Backup files
+*.bak
+*.tmp
+*.temp
+
+# Pre-commit
+.pre-commit-config.yaml.bak
+
+# IDE files
+.idea/
+.vs/
+*.swp
+*.swo
+.DS_Store

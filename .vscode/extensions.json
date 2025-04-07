@@ -1,0 +1,36 @@
+{
+    "recommendations": [
+        // Core language support
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        // Git integration
+        "eamodio.gitlens",
+        // Docker support
+        "ms-azuretools.vscode-docker",
+        // Workflow and CI/CD
+        "github.vscode-github-actions",
+        "redhat.vscode-yaml",
+        // Testing and debugging
+        "ms-python.debugpy",
+        "ryanluker.vscode-coverage-gutters",
+        // Security
+        "snyk-security.snyk-vulnerability-scanner",
+        "sonarsource.sonarlint-vscode",
+        // REST API development
+        "humao.rest-client",
+        // Dependency management
+        "pflannery.vscode-versionlens",
+        // Backend development
+        "ms-python.black-formatter",
+        "matangover.mypy",
+        // Frontend development
+        "dsznajder.es7-react-js-snippets",
+        "bradlc.vscode-tailwindcss",
+        "EditorConfig.EditorConfig",
+        // Documentation
+        "yzhang.markdown-all-in-one",
+        "bierner.markdown-preview-github-styles"
+    ]
+}
