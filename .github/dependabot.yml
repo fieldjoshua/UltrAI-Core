@@ -1,54 +1,77 @@
 version: 2
 updates:
-  # Check for updates to npm dependencies
+  # Maintain dependencies for npm (JavaScript/TypeScript)
   - package-ecosystem: "npm"
     directory: "/"
     schedule:
       interval: "weekly"
-      day: "monday"
     open-pull-requests-limit: 10
     target-branch: "main"
     labels:
       - "dependencies"
-      - "npm"
-    allow:
-      # Allow both direct and indirect updates for all packages
-      - dependency-type: "all"
-    commit-message:
-      prefix: "npm"
-      include: "scope"
     versioning-strategy: auto
+    groups:
+      dev-dependencies:
+        patterns:
+          - "*eslint*"
+          - "*jest*"
+          - "*testing-library*"
+        exclude-patterns:
+          - "@types/*"
+      minor-patch-dependencies:
+        update-types:
+          - "minor"
+          - "patch"
+    commit-message:
+      prefix: "fix"
+      prefix-development: "chore"
+      include: "scope"
+    security-updates-only: true
 
-  # Check for updates to Python dependencies
+  # Maintain dependencies for pip (Python)
   - package-ecosystem: "pip"
     directory: "/backend"
     schedule:
       interval: "weekly"
-      day: "monday"
     open-pull-requests-limit: 10
     target-branch: "main"
     labels:
       - "dependencies"
-      - "python"
-    allow:
-      # Allow both direct and indirect updates for all packages
-      - dependency-type: "all"
-    commit-message:
-      prefix: "pip"
-      include: "scope"
+      - "backend"
     versioning-strategy: auto
+    groups:
+      dev-dependencies:
+        patterns:
+          - "pytest*"
+          - "flake8*"
+          - "black"
+      ai-dependencies:
+        patterns:
+          - "openai"
+          - "anthropic"
+          - "google-generativeai"
+          - "cohere"
+      web-dependencies:
+        patterns:
+          - "fastapi"
+          - "uvicorn"
+          - "starlette"
+    commit-message:
+      prefix: "fix"
+      prefix-development: "chore"
+      include: "scope"
+    security-updates-only: true
     
-  # Check for updates to GitHub Actions
+  # Maintain dependencies for GitHub Actions
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
-      interval: "weekly"
-      day: "monday"
+      interval: "monthly"
     open-pull-requests-limit: 5
     target-branch: "main"
     labels:
       - "dependencies"
-      - "github-actions"
+      - "ci"
     commit-message:
-      prefix: "github-actions"
+      prefix: "ci"
       include: "scope" 
