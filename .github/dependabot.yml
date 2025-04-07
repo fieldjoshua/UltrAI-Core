@@ -1,5 +1,40 @@
 version: 2
 updates:
+  # Check for updates to npm packages
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 10
+    versioning-strategy: auto
+    labels:
+      - "dependencies"
+      - "security"
+    reviewers:
+      - "fieldjoshua"
+
+  # Check for updates to Python packages
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 10
+    labels:
+      - "dependencies"
+      - "security"
+    reviewers:
+      - "fieldjoshua"
+
+  # Check for updates to GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "github-actions"
+
   # Maintain dependencies for npm (JavaScript/TypeScript)
   - package-ecosystem: "npm"
     directory: "/"
@@ -61,7 +96,7 @@ updates:
       prefix-development: "chore"
       include: "scope"
     security-updates-only: true
-    
+
   # Maintain dependencies for GitHub Actions
   - package-ecosystem: "github-actions"
     directory: "/"
@@ -74,4 +109,4 @@ updates:
       - "ci"
     commit-message:
       prefix: "ci"
-      include: "scope" 
+      include: "scope"
