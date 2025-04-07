@@ -7,13 +7,46 @@ import { Textarea } from './ui/textarea';
 import { Label } from './ui/label';
 import { Checkbox } from './ui/checkbox';
 import { Progress } from './ui/progress';
-import { Zap, Award, Brain, Feather, Shield, FileText, Users, Network, Clock, Lightbulb, RefreshCw, Upload, X, File, Check, History, Save, Trash2, WifiOff, Share2, Copy, Link, ExternalLink } from 'lucide-react';
+import { Zap, Award, Brain, Feather, Shield, FileText, Users, Network, Clock, Lightbulb, RefreshCw, Upload, X, File, Check, History, Save, Trash2, WifiOff, Share2, Copy, Link, ExternalLink, DollarSign } from 'lucide-react';
+import AnimatedLogoV3 from './AnimatedLogoV3';
 
 // Simplified API URL
 const API_URL = import.meta.env.VITE_API_URL || 'https://ultra-api.vercel.app';
 
-// Step definitions - add INTRO as the first step
-type Step = 'INTRO' | 'PROMPT' | 'MODELS' | 'PROCESSING' | 'RESULTS';
+// Step definitions - expanded to include 7 distinct steps with clear progression
+type Step = 'INTRO' | 'PROMPT' | 'DOCUMENTS' | 'MODELS' | 'ANALYSIS_TYPE' | 'PROCESSING' | 'RESULTS';
+
+// Step information with titles and descriptions
+const stepInfo: Record<Step, { title: string, description: string }> = {
+  'INTRO': {
+    title: 'Welcome to Ultra AI',
+    description: 'Experience AI intelligence multiplication through our multi-model analysis system.'
+  },
+  'PROMPT': {
+    title: 'Enter Your Prompt',
+    description: 'What would you like Ultra to analyze? Be specific for better results.'
+  },
+  'DOCUMENTS': {
+    title: 'Add Context',
+    description: 'Upload documents to provide additional context for your analysis.'
+  },
+  'MODELS': {
+    title: 'Select AI Models',
+    description: 'Choose which AI models to use for your analysis. Each model brings unique strengths.'
+  },
+  'ANALYSIS_TYPE': {
+    title: 'Analysis Method',
+    description: 'Select how Ultra should approach your query.'
+  },
+  'PROCESSING': {
+    title: 'Processing',
+    description: 'Ultra is analyzing your query across multiple models.'
+  },
+  'RESULTS': {
+    title: 'Results',
+    description: 'Review your analysis from multiple AI perspectives.'
+  }
+};
 
 // Define the model price mapping
 const prices: { [key: string]: number } = {
@@ -84,6 +117,15 @@ interface ShareItem extends HistoryItem {
   createdAt: string;
 }
 
+// Analysis pattern options
+const analysisTypes = [
+  { id: 'confidence', name: 'Confidence', description: 'Standard analysis with confidence scoring', icon: Shield },
+  { id: 'critique', name: 'Critique', description: 'Critical evaluation with pros and cons', icon: FileText },
+  { id: 'perspective', name: 'Perspective', description: 'Multiple viewpoints on the topic', icon: Users },
+  { id: 'fact_check', name: 'Fact Check', description: 'Verification of factual claims', icon: Check },
+  { id: 'scenario', name: 'Scenario', description: 'Future scenario exploration', icon: Network }
+];
+
 export default function UltraWithDocuments() {
   // Basic state
   const [prompt, setPrompt] = useState('');
@@ -131,6 +173,15 @@ export default function UltraWithDocuments() {
   const [shareDialogItem, setShareDialogItem] = useState<HistoryItem | null>(null);
   const [sharedItems, setSharedItems] = useState<ShareItem[]>([]);
   const [copySuccess, setCopySuccess] = useState(false);
+
+  // Add state for floating price component
+  const [floatingPriceVisible, setFloatingPriceVisible] = useState<boolean>(true);
+  const [selectedAnalysisType, setSelectedAnalysisType] = useState<string>('confidence');
+  const [floatingPricePosition, setFloatingPricePosition] = useState({ top: 0, right: 20 });
+  const floatingPriceRef = useRef<HTMLDivElement>(null);
+
+  // Add a ref for the main container
+  const containerRef = useRef<HTMLDivElement>(null);
 
   // Check online status on component mount and add event listeners
   useEffect(() => {
@@ -574,125 +625,217 @@ export default function UltraWithDocuments() {
       });
   };
 
+  // Track scroll position to update floating price position
+  useEffect(() => {
+    const handleScroll = () => {
+      if (containerRef.current && floatingPriceRef.current) {
+        const containerRect = containerRef.current.getBoundingClientRect();
+        const scrollY = window.scrollY;
+
+        // Keep price visible when container is in view
+        if (containerRect.top < window.innerHeight && containerRect.bottom > 0) {
+          const newTop = Math.max(
+            20, // Minimum top position
+            Math.min(
+              window.innerHeight - floatingPriceRef.current.offsetHeight - 20, // Maximum top position
+              scrollY - containerRect.top + 100 // Dynamic position that follows scroll
+            )
+          );
+
+          setFloatingPricePosition({
+            top: newTop,
+            right: 20
+          });
+          setFloatingPriceVisible(true);
+        } else {
+          // Hide when container is not in view
+          setFloatingPriceVisible(false);
+        }
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    // Initial positioning
+    handleScroll();
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, [currentStep]);
+
+  // Calculate current progress percentage based on steps
+  const calculateProgress = () => {
+    const steps: Step[] = ['INTRO', 'PROMPT', 'DOCUMENTS', 'MODELS', 'ANALYSIS_TYPE', 'PROCESSING', 'RESULTS'];
+    const currentIndex = steps.indexOf(currentStep);
+    return Math.round((currentIndex / (steps.length - 1)) * 100);
+  };
+
+  // Handle analysis type selection
+  const handleAnalysisTypeChange = (type: string) => {
+    setSelectedAnalysisType(type);
+  };
+
+  // Handle step navigation
+  const goToNextStep = () => {
+    const steps: Step[] = ['INTRO', 'PROMPT', 'DOCUMENTS', 'MODELS', 'ANALYSIS_TYPE', 'PROCESSING', 'RESULTS'];
+    const currentIndex = steps.indexOf(currentStep);
+    if (currentIndex < steps.length - 1) {
+      setCurrentStep(steps[currentIndex + 1]);
+      setProgress(calculateProgress());
+    }
+  };
+
+  const goToPreviousStep = () => {
+    const steps: Step[] = ['INTRO', 'PROMPT', 'DOCUMENTS', 'MODELS', 'ANALYSIS_TYPE', 'PROCESSING', 'RESULTS'];
+    const currentIndex = steps.indexOf(currentStep);
+    if (currentIndex > 0) {
+      setCurrentStep(steps[currentIndex - 1]);
+      setProgress(calculateProgress());
+    }
+  };
+
+  // Validate if user can proceed to the next step
+  const validateCurrentStep = () => {
+    switch (currentStep) {
+      case 'INTRO':
+        return true; // Can always proceed from intro
+      case 'PROMPT':
+        return prompt.trim().length > 0; // Need a prompt to continue
+      case 'DOCUMENTS':
+        return true; // Documents are optional
+      case 'MODELS':
+        return selectedLLMs.length > 0 && ultraLLM !== null; // Need models selected
+      case 'ANALYSIS_TYPE':
+        return true; // Default analysis type is pre-selected
+      case 'PROCESSING':
+        return isComplete; // Wait until processing is done
+      default:
+        return true;
+    }
+  };
+
+  // Modify the analyze function to use the updated step flow
+  const handleAnalyzeClick = async () => {
+    if (currentStep === 'ANALYSIS_TYPE') {
+      setCurrentStep('PROCESSING');
+      setProgress(calculateProgress());
+      await handleAnalyze();
+    } else if (currentStep === 'PROCESSING' && isComplete) {
+      setCurrentStep('RESULTS');
+      setProgress(calculateProgress());
+    }
+  };
+
   // Main function to analyze the prompt
   const handleAnalyze = async () => {
-    // Don't allow analysis when offline
     if (isOffline) {
-      setError('You cannot analyze prompts while offline. Please reconnect to the internet.');
+      setError('Cannot analyze while offline. Please reconnect to the internet.');
+      return;
+    }
+
+    setError(null);
+    setIsProcessing(true);
+    setIsComplete(false);
+    setOutput('');
+    setProgress(0);
+    updateProgress(10, 'Initializing analysis...');
+
+    try {
+      // Prepare document IDs if using documents
+      const documentIds = isUsingDocuments ? uploadedDocuments.map(doc => doc.id) : [];
+
+      updateProgress(30, 'Preparing models for analysis...');
+
+      // Call the API with appropriate parameters
+      const response = await axiosWithRetry.post('/api/analyze', {
+        prompt,
+        models: selectedLLMs,
+        ultraModel: ultraLLM,
+        pattern: selectedAnalysisType,
+        documentIds,
+        userId: 'user-' + Math.random().toString(36).substring(2, 9), // Anonymous user ID for tracking
+        sessionId: 'session-' + Date.now() // Session ID for tracking
+      });
+
+      if (response.data && response.data.cached) {
+        setIsCached(true);
+        updateProgress(100, 'Retrieved cached results');
+      } else {
+        updateProgress(60, 'Processing with multiple models...');
+        updateProgress(90, 'Synthesizing insights...');
+        updateProgress(100, 'Analysis complete');
+      }
+
+      // Extract the response - check both formats
+      const analysisResult = response.data.ultra_response || response.data.ultraResponse || '';
+      setOutput(analysisResult);
+      setIsComplete(true);
+    } catch (err: any) {
+      console.error('Analysis error:', err);
+      setError(`Analysis failed: ${err.message || 'Unknown error'}`);
+      updateProgress(100, 'Analysis failed');
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  // Function to share an analysis
+  const shareAnalysis = async () => {
+    if (isOffline) {
+      setError('Cannot share while offline. Please reconnect to the internet.');
       return;
     }
 
     try {
-      // Validate inputs
-      if (!prompt.trim()) {
-        setError('Please enter a prompt');
-        return;
-      }
-
-      if (selectedLLMs.length < 2) {
-        setError('Please select at least two AI models');
-        return;
-      }
-
-      if (!ultraLLM) {
-        setError('Please select a synthesizer model');
-        return;
-      }
-
-      setIsProcessing(true);
-      setCurrentStep('PROCESSING');
-      setIsComplete(false);
-      setError(null);
-      setOutput('');
-      setIsCached(false);
-
-      // Reset and start progress
-      updateProgress(10, 'Initializing models...');
-
-      // Filter out unavailable models
-      const availableSelectedModels = selectedLLMs.filter(modelId =>
-        availableModels.includes(modelId)
-      );
-
-      // If no selected models are available, show error
-      if (availableSelectedModels.length === 0) {
-        throw new Error("None of the selected models are available. Please select available models.");
-      }
-
-      // If ultra model isn't available, use the first available model
-      let safeUltraModel = ultraLLM;
-      if (ultraLLM && !availableModels.includes(ultraLLM)) {
-        safeUltraModel = availableSelectedModels[0];
-      }
-
-      // Update progress
-      updateProgress(30, 'Requesting analysis from models...');
-
-      // Create request data with or without document IDs
-      const requestData = {
+      // Create a shareable item from current analysis
+      const shareItem: HistoryItem = {
+        id: `share-${Date.now()}`,
         prompt,
-        llms: availableSelectedModels,
-        ultraLLM: safeUltraModel,
-        pattern: "Confidence Analysis", // Default pattern
-        documentIds: isUsingDocuments && uploadedDocuments.length > 0
-          ? uploadedDocuments.map(doc => doc.id)
-          : undefined
+        output,
+        models: selectedLLMs,
+        ultraModel: ultraLLM || '',
+        timestamp: new Date().toISOString(),
+        usingDocuments: isUsingDocuments,
+        documents: uploadedDocuments
       };
 
-      // Make API request with retry capability
-      const response = await axiosWithRetry.post(`/api/analyze`, requestData);
+      // Generate a share ID
+      const shareId = `s-${Math.random().toString(36).substring(2, 9)}`;
 
-      updateProgress(90, 'Processing results...');
+      // Create share URL
+      const baseUrl = window.location.origin;
+      const shareUrl = `${baseUrl}/share/${shareId}`;
 
-      // Check if the response was from cache
-      if (response.data && response.data.cached) {
-        setIsCached(true);
-        updateProgress(100, 'Retrieved from cache');
-      } else {
-        updateProgress(100, 'Analysis complete');
+      // Save to API if available
+      try {
+        await axiosWithRetry.post('/api/share', {
+          shareId,
+          content: shareItem
+        });
+      } catch (err) {
+        console.error('Error saving share to API:', err);
+        // Continue with local storage fallback
       }
 
-      // Handle response
-      if (response.data && (response.data.ultra_response || response.data.status === 'success')) {
-        const resultText = response.data.ultra_response || response.data.results?.ultra;
-        setOutput(resultText || 'No response received from AI models.');
-        setIsComplete(true);
-        setCurrentStep('RESULTS');
+      // Save locally too as backup
+      const newShareItem: ShareItem = {
+        ...shareItem,
+        shareId,
+        shareUrl,
+        createdAt: new Date().toISOString()
+      };
 
-        // Save this successful interaction to history
-        setTimeout(() => {
-          saveToHistory();
-        }, 500);
-      } else {
-        setError('Received invalid response from server');
-      }
-    } catch (err: any) {
-      let errorMessage = `An error occurred: ${err.message || err}`;
+      const updatedSharedItems = [...sharedItems, newShareItem];
+      setSharedItems(updatedSharedItems);
+      localStorage.setItem('ultraAiSharedItems', JSON.stringify(updatedSharedItems));
 
-      // Enhanced error handling for different error types
-      if (err.response) {
-        // Backend returned an error response
-        const status = err.response.status;
-        const errorData = err.response.data;
-
-        if (status === 400) {
-          errorMessage = `Error: ${errorData.message || 'Invalid request parameters'}`;
-        } else if (status === 402) {
-          errorMessage = `Error: ${errorData.message || 'Insufficient account balance for this request'}`;
-        } else if (status === 429) {
-          errorMessage = 'Error: Rate limit exceeded. Please try again later.';
-        } else if (status >= 500) {
-          errorMessage = `Server error: ${errorData.message || 'The server encountered an error'}`;
-        }
-      } else if (err.request) {
-        // Request was made but no response received
-        errorMessage = 'Error: No response received from server. Please check your internet connection.';
-      }
-
-      setError(errorMessage);
-      updateProgress(100, 'Error occurred');
-    } finally {
-      setIsProcessing(false);
+      // Set share URL and dialog
+      setShareUrl(shareUrl);
+      setShareDialogItem(shareItem);
+      setShowShareDialog(true);
+    } catch (err) {
+      console.error('Error creating share:', err);
+      setError('Failed to create shareable link. Please try again.');
     }
   };
 
@@ -711,125 +854,6 @@ export default function UltraWithDocuments() {
     );
   };
 
-  // Handle step navigation with animation
-  const goToNextStep = () => {
-    // If offline and not in history viewing mode, don't allow progress
-    if (isOffline && currentStep !== 'RESULTS') {
-      setError('You cannot create new analyses while offline. Please reconnect to the internet.');
-      return;
-    }
-
-    setAnimating(true);
-
-    setTimeout(() => {
-      if (currentStep === 'INTRO') {
-        setCurrentStep('PROMPT');
-      } else if (currentStep === 'PROMPT') {
-        if (!prompt.trim()) {
-          setError('Please enter a prompt');
-          setAnimating(false);
-          return;
-        }
-        setError(null);
-        setCurrentStep('MODELS');
-      } else if (currentStep === 'MODELS') {
-        handleAnalyze();
-      }
-      setAnimating(false);
-    }, 400); // Match this timing with the CSS transition
-  };
-
-  const goToPreviousStep = () => {
-    setAnimating(true);
-
-    setTimeout(() => {
-      if (currentStep === 'PROMPT') {
-        setCurrentStep('INTRO');
-      } else if (currentStep === 'MODELS') {
-        setCurrentStep('PROMPT');
-      } else if (currentStep === 'RESULTS') {
-        setCurrentStep('MODELS');
-      }
-      setAnimating(false);
-    }, 400); // Match this timing with the CSS transition
-  };
-
-  // Reset everything and start over
-  const handleReset = () => {
-    setPrompt('');
-    setOutput('');
-    setSelectedLLMs([]);
-    setUltraLLM(null);
-    setIsComplete(false);
-    setError(null);
-    setCurrentStep('INTRO');
-    setProgress(0);
-  };
-
-  // Human-readable model names
-  const getModelDisplayName = (modelId: string) => {
-    const modelNames: { [key: string]: string } = {
-      'gpt4o': 'GPT-4o',
-      'gpt4turbo': 'GPT-4 Turbo',
-      'gpto3mini': 'GPT-3.5',
-      'gpto1': 'GPT-o1',
-      'claude37': 'Claude 3.5',
-      'claude3opus': 'Claude 3 Opus',
-      'gemini15': 'Gemini 1.5',
-      'llama3': 'Llama 3'
-    };
-
-    return modelNames[modelId] || modelId;
-  };
-
-  // Calculate total price based on selected models
-  const calculatePrice = () => {
-    return selectedLLMs.reduce((total, model) => total + (prices[model] || 0), 0);
-  };
-
-  // Render model selection cards
-  const renderModelOptions = () => {
-    return availableModels.map((model) => (
-      <div
-        key={model}
-        className={`border rounded-lg p-3 cursor-pointer transition-all ${selectedLLMs.includes(model)
-          ? 'border-cyan-400 bg-cyan-900/30'
-          : 'border-gray-700 bg-gray-800/40 hover:bg-gray-800/70'
-          }`}
-        onClick={() => handleLLMChange(model)}
-      >
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <Checkbox
-              checked={selectedLLMs.includes(model)}
-              onCheckedChange={() => handleLLMChange(model)}
-              className="data-[state=checked]:bg-cyan-500 data-[state=checked]:text-white"
-            />
-            <span className="font-medium text-cyan-100">{getModelDisplayName(model)}</span>
-          </div>
-
-          {/* Ultra model selection */}
-          {selectedLLMs.includes(model) && (
-            <Button
-              variant={ultraLLM === model ? "default" : "outline"}
-              size="sm"
-              onClick={(e) => {
-                e.stopPropagation();
-                handleUltraChange(model);
-              }}
-              className={ultraLLM === model ? "bg-amber-500 hover:bg-amber-600" : ""}
-            >
-              {ultraLLM === model ? "Synthesizer ✓" : "Set as Synthesizer"}
-            </Button>
-          )}
-        </div>
-        <div className="text-xs text-gray-400 mt-1">
-          ${model !== 'llama3' ? (prices[model] || 0).toFixed(5) : '0.00000'}/1K tokens
-        </div>
-      </div>
-    ));
-  };
-
   // Render the step indicator
   const renderStepIndicator = () => {
     // Only show step indicator after the intro step
@@ -841,11 +865,17 @@ export default function UltraWithDocuments() {
           <div className={`text-sm font-medium ${currentStep === 'PROMPT' ? 'text-cyan-400' : 'text-gray-500'}`}>
             1. Enter Prompt
           </div>
+          <div className={`text-sm font-medium ${currentStep === 'DOCUMENTS' ? 'text-cyan-400' : 'text-gray-500'}`}>
+            2. Add Context
+          </div>
           <div className={`text-sm font-medium ${currentStep === 'MODELS' ? 'text-cyan-400' : 'text-gray-500'}`}>
-            2. Select Models
+            3. Select AI Models
+          </div>
+          <div className={`text-sm font-medium ${currentStep === 'ANALYSIS_TYPE' ? 'text-cyan-400' : 'text-gray-500'}`}>
+            4. Analysis Method
           </div>
           <div className={`text-sm font-medium ${['PROCESSING', 'RESULTS'].includes(currentStep) ? 'text-cyan-400' : 'text-gray-500'}`}>
-            3. Get Results
+            5. Get Results
           </div>
         </div>
         <div className="relative w-full bg-gray-800 h-2 rounded-full overflow-hidden">
@@ -853,7 +883,8 @@ export default function UltraWithDocuments() {
             className="absolute top-0 left-0 h-full bg-gradient-to-r from-cyan-500 to-cyan-400 transition-all duration-300"
             style={{
               width: currentStep === 'PROMPT' ? '33%' :
-                currentStep === 'MODELS' ? '66%' : '100%'
+                currentStep === 'DOCUMENTS' ? '66%' :
+                  currentStep === 'MODELS' ? '100%' : '100%'
             }}
           />
         </div>
@@ -863,7 +894,7 @@ export default function UltraWithDocuments() {
 
   // Pricing display component
   const PricingDisplay = () => {
-    const totalPrice = calculatePrice();
+    const totalPrice = selectedLLMs.reduce((total, model) => total + (prices[model] || 0), 0);
 
     return (
       <div className="bg-gradient-to-r from-purple-900 via-cyan-800 to-pink-900 p-3 rounded-lg border border-cyan-500 relative overflow-hidden">
@@ -936,104 +967,124 @@ export default function UltraWithDocuments() {
 
   // Render document upload UI
   const renderDocumentUpload = () => {
+    if (isOffline) return null;
+
     return (
-      <div className="mt-6 p-4 border border-cyan-800 rounded-lg bg-black/40">
-        <div className="flex items-center mb-4">
-          <FileText className="text-cyan-400 mr-2 h-5 w-5" />
-          <h3 className="text-lg font-medium text-cyan-300">Document Processing</h3>
-          <div className="ml-auto">
-            <Checkbox
-              checked={isUsingDocuments}
-              onCheckedChange={() => toggleDocumentMode()}
-              className="data-[state=checked]:bg-cyan-500"
-            />
-            <span className="ml-2 text-sm text-cyan-200">
-              {isUsingDocuments ? 'Using documents' : 'Not using documents'}
-            </span>
-          </div>
+      <div className="mt-6">
+        <div className="flex items-center space-x-2 mb-2">
+          <Checkbox
+            id="useDocuments"
+            checked={isUsingDocuments}
+            onCheckedChange={(checked) => setIsUsingDocuments(checked as boolean)}
+            disabled={isProcessing}
+          />
+          <Label htmlFor="useDocuments" className="text-cyan-300">
+            Include documents in your analysis
+          </Label>
         </div>
 
         {isUsingDocuments && (
-          <>
-            <div className="mb-4">
-              <p className="text-sm text-gray-400 mb-2">
-                Upload documents to analyze alongside your prompt. The AI will reference these documents when generating its response.
+          <div className="space-y-4 mt-3">
+            <div
+              className="border-2 border-dashed border-cyan-700 rounded-lg p-6 text-center cursor-pointer hover:bg-cyan-900/10 transition-colors"
+              onClick={() => fileInputRef.current?.click()}
+            >
+              <Upload className="h-10 w-10 text-cyan-700 mx-auto mb-3" />
+              <p className="text-cyan-100">
+                Drag and drop files here, or click to select
               </p>
-
-              {/* Document upload button */}
-              <div className="flex items-center">
-                <input
-                  type="file"
-                  onChange={handleFileSelect}
-                  className="hidden"
-                  ref={fileInputRef}
-                  multiple
-                  accept=".pdf,.doc,.docx,.txt,.md"
-                />
-                <Button
-                  onClick={() => fileInputRef.current?.click()}
-                  variant="outline"
-                  size="sm"
-                  className="text-cyan-400 border-cyan-700 hover:bg-cyan-900/30 mr-2"
-                >
-                  <Upload className="h-4 w-4 mr-1" />
-                  Select Files
-                </Button>
-
-                {documents.length > 0 && (
-                  <Button
-                    onClick={uploadDocuments}
-                    size="sm"
-                    className="bg-cyan-700 hover:bg-cyan-600"
-                  >
-                    Upload {documents.length} Files
-                  </Button>
-                )}
-              </div>
+              <p className="text-xs text-cyan-500 mt-1">
+                Supports PDF, TXT, DOCX, and more (max 4MB per file)
+              </p>
+              <input
+                type="file"
+                ref={fileInputRef}
+                className="hidden"
+                multiple
+                onChange={handleFileSelect}
+                disabled={isProcessing}
+              />
             </div>
 
-            {/* Selected files list */}
+            {/* Document List */}
             {documents.length > 0 && (
-              <div className="mb-4">
-                <h4 className="text-sm font-medium text-cyan-300 mb-2">Selected Files:</h4>
-                <div className="space-y-2 max-h-40 overflow-y-auto pr-2">
-                  {documents.map((file, index) => (
-                    <div key={index} className="flex items-center justify-between bg-black/60 p-2 rounded-md">
-                      <div className="flex items-center">
-                        <File className="h-4 w-4 text-cyan-500 mr-2" />
-                        <span className="text-sm text-gray-300 truncate max-w-[200px]">{file.name}</span>
+              <div className="mt-4">
+                <h3 className="font-medium text-cyan-300 mb-2">
+                  Selected Documents ({documents.length})
+                </h3>
+                <div className="space-y-2">
+                  {documents.map((doc, index) => (
+                    <div
+                      key={index}
+                      className="flex items-center justify-between bg-cyan-900/20 p-3 rounded-md"
+                    >
+                      <div className="flex items-center space-x-3">
+                        <File className="h-5 w-5 text-cyan-400" />
+                        <div>
+                          <p className="text-sm font-medium text-cyan-100">{doc.name}</p>
+                          <p className="text-xs text-cyan-500">
+                            {(doc.size / 1024).toFixed(1)} KB
+                          </p>
+                        </div>
                       </div>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-6 w-6 p-0 text-gray-500 hover:text-red-400"
-                        onClick={() => removeDocument(index)}
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
+
+                      <div className="flex items-center">
+                        {uploadProgress[doc.name] !== undefined && uploadProgress[doc.name] < 100 ? (
+                          <div className="w-16">
+                            <Progress value={uploadProgress[doc.name]} size="sm" />
+                          </div>
+                        ) : uploadProgress[doc.name] === 100 ? (
+                          <Check className="h-5 w-5 text-green-500" />
+                        ) : (
+                          <button
+                            onClick={() => removeDocument(index)}
+                            className="text-cyan-500 hover:text-red-500"
+                          >
+                            <X className="h-5 w-5" />
+                          </button>
+                        )}
+                      </div>
                     </div>
                   ))}
                 </div>
               </div>
             )}
 
-            {/* Uploaded files list */}
+            {/* Uploaded Documents */}
             {uploadedDocuments.length > 0 && (
-              <div>
-                <h4 className="text-sm font-medium text-cyan-300 mb-2">Uploaded Documents:</h4>
-                <div className="space-y-2 max-h-40 overflow-y-auto pr-2">
-                  {uploadedDocuments.map((doc, index) => (
-                    <div key={index} className="flex items-center justify-between bg-black/60 p-2 rounded-md border border-green-900/30">
-                      <div className="flex items-center">
-                        <Check className="h-4 w-4 text-green-500 mr-2" />
-                        <span className="text-sm text-gray-300 truncate max-w-[250px]">{doc.name}</span>
+              <div className="mt-4">
+                <h3 className="font-medium text-cyan-300 mb-2">
+                  Uploaded Documents ({uploadedDocuments.length})
+                </h3>
+                <div className="space-y-2">
+                  {uploadedDocuments.map((doc) => (
+                    <div
+                      key={doc.id}
+                      className="flex items-center justify-between bg-green-900/20 p-3 rounded-md"
+                    >
+                      <div className="flex items-center space-x-3">
+                        <File className="h-5 w-5 text-green-500" />
+                        <p className="text-sm font-medium text-cyan-100">{doc.name}</p>
                       </div>
+                      <Check className="h-5 w-5 text-green-500" />
                     </div>
                   ))}
                 </div>
               </div>
             )}
-          </>
+
+            {documents.length > 0 && (
+              <div className="flex justify-center mt-4">
+                <Button
+                  onClick={uploadDocuments}
+                  disabled={isProcessing || documents.length === 0}
+                  className="bg-cyan-700 hover:bg-cyan-600 text-white"
+                >
+                  Upload Selected Documents
+                </Button>
+              </div>
+            )}
+          </div>
         )}
       </div>
     );
@@ -1060,54 +1111,26 @@ export default function UltraWithDocuments() {
                   <h2 className="text-2xl font-bold text-cyan-400">Welcome to UltrAI</h2>
                 </div>
                 <p className="text-lg text-cyan-100 mb-4">
-                  UltrAI is more powerful than other AI modules because it uses multiple premium AI Programs to provide you with a product that is formed from the best of multiple models.
+                  Ultra multiplies intelligence by analyzing your prompt with multiple AI models simultaneously,
+                  then synthesizing the insights into a comprehensive response.
                 </p>
-                <p className="text-lg text-cyan-100 mb-6">
-                  We are here to make it easy for everyone to use AI to make their WorkLife/SchoolLife/LifeLife more efficient and happy.
-                </p>
-                <p className="text-xl text-cyan-300 font-medium mb-4">
-                  So what do you want to analyze or know more about?
-                </p>
-                <div className="pt-4">
-                  <Button
-                    onClick={goToNextStep}
-                    size="lg"
-                    className="font-medium text-lg bg-gradient-to-r from-cyan-600 to-cyan-700 hover:from-cyan-500 hover:to-cyan-600 w-full"
-                  >
-                    <Zap className="mr-2 h-5 w-5" />
-                    Get Started
-                  </Button>
-                </div>
-              </div>
-            </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
-              <div className="bg-black/40 border border-cyan-900 rounded-lg p-4">
-                <div className="flex items-center mb-2">
-                  <Brain className="w-5 h-5 text-pink-400 mr-2" />
-                  <h3 className="text-lg font-semibold text-cyan-300">Multiple Models</h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                  <div className="bg-blue-50 dark:bg-blue-900/30 p-4 rounded-lg">
+                    <Brain className="w-8 h-8 text-blue-500 mb-2 mx-auto" />
+                    <h3 className="font-semibold text-gray-800 dark:text-gray-200 mb-1">Multiple Models</h3>
+                  </div>
+
+                  <div className="bg-purple-50 dark:bg-purple-900/30 p-4 rounded-lg">
+                    <Lightbulb className="w-8 h-8 text-purple-500 mb-2 mx-auto" />
+                    <h3 className="font-semibold text-gray-800 dark:text-gray-200 mb-1">Enhanced Analysis</h3>
+                  </div>
+
+                  <div className="bg-green-50 dark:bg-green-900/30 p-4 rounded-lg">
+                    <FileText className="w-8 h-8 text-green-500 mb-2 mx-auto" />
+                    <h3 className="font-semibold text-gray-800 dark:text-gray-200 mb-1">Document Context</h3>
+                  </div>
                 </div>
-                <p className="text-gray-300 text-sm">
-                  Get insights from multiple AI models at once for better perspectives.
-                </p>
-              </div>
-              <div className="bg-black/40 border border-cyan-900 rounded-lg p-4">
-                <div className="flex items-center mb-2">
-                  <Feather className="w-5 h-5 text-yellow-400 mr-2" />
-                  <h3 className="text-lg font-semibold text-cyan-300">Expert Synthesis</h3>
-                </div>
-                <p className="text-gray-300 text-sm">
-                  One model combines all perspectives into a unified response.
-                </p>
-              </div>
-              <div className="bg-black/40 border border-cyan-900 rounded-lg p-4">
-                <div className="flex items-center mb-2">
-                  <Shield className="w-5 h-5 text-green-400 mr-2" />
-                  <h3 className="text-lg font-semibold text-cyan-300">More Accurate</h3>
-                </div>
-                <p className="text-gray-300 text-sm">
-                  Multiple models reduce errors and provide well-rounded answers.
-                </p>
               </div>
             </div>
           </div>
@@ -1121,7 +1144,7 @@ export default function UltraWithDocuments() {
               <div className="relative z-10">
                 <div className="flex items-center mb-4">
                   <div className="w-8 h-8 rounded-full bg-cyan-700 flex items-center justify-center mr-3 text-white font-bold">1</div>
-                  <h2 className="text-2xl font-bold text-cyan-400">What would you like analyzed?</h2>
+                  <h2 className="text-2xl font-bold text-cyan-400">What would you like Ultra to analyze?</h2>
                 </div>
                 <div className="space-y-2">
                   <Label className="text-lg text-cyan-200">Enter your prompt or question</Label>
@@ -1154,6 +1177,9 @@ export default function UltraWithDocuments() {
           </div>
         );
 
+      case 'DOCUMENTS':
+        return renderDocumentUpload();
+
       case 'MODELS':
         return (
           <div className={`space-y-4 ${animating ? 'fadeOut' : 'fadeIn'}`}>
@@ -1172,7 +1198,60 @@ export default function UltraWithDocuments() {
                 <div className="space-y-2">
                   <Label className="text-lg text-cyan-200">Available AI Models</Label>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-2">
-                    {renderModelOptions()}
+                    {availableModels.map((model) => {
+                      const isSelected = selectedLLMs.includes(model);
+                      const isUltra = ultraLLM === model;
+
+                      return (
+                        <div
+                          key={model}
+                          className={`
+                            border rounded-lg p-4 cursor-pointer transition-all
+                            ${isSelected
+                              ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
+                              : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'}
+                            ${isUltra ? 'ring-2 ring-purple-500' : ''}
+                          `}
+                          onClick={() => handleLLMChange(model)}
+                        >
+                          <div className="flex justify-between items-center">
+                            <div className="flex items-center gap-2">
+                              <Checkbox
+                                checked={isSelected}
+                                onCheckedChange={() => handleLLMChange(model)}
+                                disabled={isProcessing || isOffline}
+                                className="data-[state=checked]:bg-blue-600"
+                              />
+                              <span className="font-medium text-gray-800 dark:text-gray-200">
+                                {model.charAt(0).toUpperCase() + model.slice(1)}
+                              </span>
+                            </div>
+                            <div className="text-sm text-gray-500 dark:text-gray-400">
+                              ${prices[model]?.toFixed(4)} / 1K tokens
+                            </div>
+                          </div>
+
+                          <div className="mt-4 flex justify-between items-center">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleUltraChange(model);
+                              }}
+                              disabled={!isSelected || isProcessing || isOffline}
+                              className={`
+                                text-xs font-medium px-3 py-1 rounded-full
+                                ${isUltra
+                                  ? 'bg-purple-600 text-white'
+                                  : 'bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300 hover:bg-purple-200'}
+                                ${!isSelected ? 'opacity-50 cursor-not-allowed' : ''}
+                              `}
+                            >
+                              {isUltra ? 'Ultra Model ✓' : 'Set as Ultra Model'}
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               </div>
@@ -1203,70 +1282,124 @@ export default function UltraWithDocuments() {
           </div>
         );
 
+      case 'ANALYSIS_TYPE':
+        return (
+          <div className="space-y-6">
+            <div className="mb-6">
+              <h3 className="text-lg font-medium text-gray-800 dark:text-white mb-2">
+                Select Analysis Method
+              </h3>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                Choose how Ultra should approach your query.
+              </p>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {analysisTypes.map((type) => {
+                  const isSelected = selectedAnalysisType === type.id;
+                  const Icon = type.icon;
+
+                  return (
+                    <div
+                      key={type.id}
+                      className={`
+                        border rounded-lg p-4 cursor-pointer transition-all
+                        ${isSelected
+                          ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/20'
+                          : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'}
+                      `}
+                      onClick={() => handleAnalysisTypeChange(type.id)}
+                    >
+                      <div className="flex flex-col items-center text-center">
+                        <div className={`p-3 rounded-full mb-3 ${isSelected ? 'bg-purple-100 dark:bg-purple-900/30' : 'bg-gray-100 dark:bg-gray-800'}`}>
+                          <Icon className={`h-6 w-6 ${isSelected ? 'text-purple-600' : 'text-gray-500 dark:text-gray-400'}`} />
+                        </div>
+                        <h4 className="font-medium text-gray-800 dark:text-gray-200 mb-1">
+                          {type.name}
+                        </h4>
+                        <p className="text-xs text-gray-600 dark:text-gray-400">
+                          {type.description}
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        );
+
       case 'PROCESSING':
         return renderProcessingStep();
 
       case 'RESULTS':
         return (
-          <div className="space-y-4 fadeIn">
-            <div className="border-2 border-cyan-700 rounded-lg p-6 bg-black/50 relative overflow-hidden" ref={outputRef}>
-              <div className="absolute inset-0 bg-gradient-to-r from-cyan-900/20 to-purple-900/20"></div>
-              <div className="relative z-10">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center">
-                    <div className="w-8 h-8 rounded-full bg-cyan-700 flex items-center justify-center mr-3 text-white font-bold">3</div>
-                    <h2 className="text-2xl font-bold text-cyan-400">Analysis Results</h2>
-                  </div>
-
-                  {/* Share button */}
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="text-purple-400 border-purple-800 hover:bg-purple-900/30"
-                    onClick={() => {
-                      const currentItem: HistoryItem = {
-                        id: Date.now().toString(),
-                        prompt,
-                        output,
-                        models: selectedLLMs,
-                        ultraModel: ultraLLM || '',
-                        timestamp: new Date().toISOString(),
-                        usingDocuments: isUsingDocuments,
-                        documents: isUsingDocuments ? uploadedDocuments : undefined
-                      };
-                      shareHistoryItem(currentItem);
-                    }}
+          <div className="space-y-6" ref={outputRef}>
+            <div className="mb-6">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-xl font-medium text-gray-800 dark:text-white">
+                  Ultra Analysis Results
+                </h3>
+                <div className="flex items-center space-x-2">
+                  <button
+                    onClick={() => saveToHistory()}
+                    disabled={isOffline}
+                    className="text-sm text-blue-600 dark:text-blue-400 flex items-center gap-1 hover:underline"
                   >
-                    <Share2 className="h-4 w-4 mr-1" />
+                    <Save className="h-4 w-4" />
+                    Save
+                  </button>
+                  <button
+                    onClick={() => shareAnalysis()}
+                    disabled={isOffline}
+                    className="text-sm text-purple-600 dark:text-purple-400 flex items-center gap-1 hover:underline"
+                  >
+                    <Share2 className="h-4 w-4" />
                     Share
-                  </Button>
+                  </button>
                 </div>
+              </div>
 
-                {isCached && (
-                  <div className="mb-4 bg-blue-900/20 border border-blue-800 rounded-lg p-3 text-blue-300 flex items-center">
-                    <Clock className="h-5 w-5 mr-2" />
-                    <span>Results retrieved from cache for faster response.</span>
+              <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 mb-4">
+                <h4 className="font-medium text-gray-700 dark:text-gray-300 mb-2">Your Prompt</h4>
+                <p className="text-gray-800 dark:text-gray-200">{prompt}</p>
+              </div>
+
+              <div className="prose prose-lg dark:prose-invert max-w-none">
+                {output && (
+                  <div className="whitespace-pre-wrap rounded-lg border border-gray-200 dark:border-gray-700 p-4">
+                    {output}
                   </div>
                 )}
-
-                <div className="bg-gray-900 border border-gray-700 rounded-lg p-6 mt-4">
-                  <div className="prose prose-invert max-w-none">
-                    <div className="whitespace-pre-line text-lg leading-relaxed text-cyan-50">
-                      {output}
-                    </div>
-                  </div>
-                </div>
               </div>
             </div>
 
-            <div className="pt-6 flex justify-between">
+            <div className="flex flex-col md:flex-row gap-4 mt-8">
               <Button
-                onClick={handleReset}
-                variant="outline"
-                size="lg"
-                className="border-cyan-700 text-cyan-400 hover:bg-cyan-950"
+                onClick={() => {
+                  setCurrentStep('PROMPT');
+                  setPrompt('');
+                  setSelectedLLMs([]);
+                  setUltraLLM(null);
+                  setDocuments([]);
+                  setUploadedDocuments([]);
+                  setOutput('');
+                  setIsComplete(false);
+                  setProgress(0);
+                  setIsUsingDocuments(false);
+                }}
+                className="bg-blue-600 hover:bg-blue-700 text-white"
               >
+                <RefreshCw className="h-4 w-4 mr-2" />
                 Start New Analysis
+              </Button>
+
+              <Button
+                onClick={() => setShowHistory(true)}
+                variant="outline"
+                className="border-gray-300 dark:border-gray-700"
+              >
+                <History className="h-4 w-4 mr-2" />
+                View History
               </Button>
             </div>
           </div>
@@ -1455,88 +1588,566 @@ export default function UltraWithDocuments() {
     );
   };
 
-  return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-900 to-black text-white p-4 md:p-6">
-      <div className="max-w-4xl mx-auto bg-black border-4 border-cyan-700 rounded-lg shadow-2xl shadow-cyan-500/20 p-6 md:p-8 relative overflow-hidden">
-        {/* Offline banner */}
-        {renderOfflineBanner()}
+  // Render floating price component
+  const renderFloatingPrice = () => {
+    if (!floatingPriceVisible) return null;
 
-        {/* Step indicator */}
-        {renderStepIndicator()}
+    return (
+      <div
+        ref={floatingPriceRef}
+        className="fixed shadow-lg rounded-lg bg-white dark:bg-gray-800 p-4 z-50 border border-gray-200 dark:border-gray-700 transition-all duration-300"
+        style={{
+          top: `${floatingPricePosition.top}px`,
+          right: `${floatingPricePosition.right}px`,
+          opacity: isOffline ? 0.5 : 1
+        }}
+      >
+        <div className="flex flex-col gap-2">
+          <h3 className="font-medium text-sm text-gray-700 dark:text-gray-300">Estimated Cost</h3>
+          <div className="flex items-center gap-2">
+            <DollarSign className="w-4 h-4 text-cyan-500" />
+            <span className="text-lg font-medium text-cyan-500">
+              {(selectedLLMs.reduce((total, model) => total + (prices[model] || 0), 0)).toFixed(4)}
+            </span>
+          </div>
 
-        {/* History button - shown in all steps */}
-        <div className="absolute top-4 right-4 flex space-x-2">
-          <Button
-            variant="outline"
-            size="sm"
-            className="text-cyan-400 border-cyan-800 hover:bg-cyan-900/30"
-            onClick={() => setShowHistory(true)}
-          >
-            <History className="h-4 w-4 mr-1" />
-            History{history.length > 0 ? ` (${history.length})` : ''}
-          </Button>
-
-          {/* Save button - only shown in RESULTS step */}
-          {currentStep === 'RESULTS' && (
-            <Button
-              variant="outline"
-              size="sm"
-              className="text-green-400 border-green-800 hover:bg-green-900/30"
-              onClick={saveToHistory}
-            >
-              <Save className="h-4 w-4 mr-1" />
-              Save
-            </Button>
-          )}
+          {/* Step completion indicator */}
+          <div className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+            Step {Object.keys(stepInfo).indexOf(currentStep) + 1} of {Object.keys(stepInfo).length}
+          </div>
         </div>
+      </div>
+    );
+  };
 
-        {/* Error display */}
-        {error && (
-          <div className="mb-6 bg-red-900/20 border border-red-800 rounded-lg p-4 text-red-400">
-            {error}
+  // Render the main component
+  return (
+    <div className="container mx-auto p-4 md:p-8 max-w-6xl" ref={containerRef}>
+      {/* Step Progress Bar */}
+      <div className="mb-8">
+        <Progress
+          value={progress}
+          animated={true}
+          labels={Object.values(stepInfo).map(step => step.title)}
+          showLabels={true}
+          activeStep={Object.keys(stepInfo).indexOf(currentStep)}
+        />
+      </div>
+
+      {/* Current Step Title and Description */}
+      <div className="mb-8 text-center">
+        <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-2">
+          {stepInfo[currentStep].title}
+        </h2>
+        <p className="text-gray-600 dark:text-gray-300">
+          {stepInfo[currentStep].description}
+        </p>
+      </div>
+
+      {/* Floating Price Component */}
+      {renderFloatingPrice()}
+
+      {/* Main Content Area - Different for each step */}
+      <div className="bg-white dark:bg-gray-900 rounded-xl shadow-md p-6 mb-8 transition-all duration-500">
+        {/* Step 1: Introduction */}
+        {currentStep === 'INTRO' && (
+          <div className="space-y-6">
+            <div className="flex justify-center mb-8">
+              <AnimatedLogoV3 size="large" />
+            </div>
+
+            <div className="text-center max-w-2xl mx-auto">
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
+                Welcome to Ultra AI
+              </h1>
+              <p className="text-gray-700 dark:text-gray-300 mb-6">
+                Ultra multiplies intelligence by analyzing your prompt with multiple AI models simultaneously,
+                then synthesizing the insights into a comprehensive response.
+              </p>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                <div className="bg-blue-50 dark:bg-blue-900/30 p-4 rounded-lg">
+                  <Brain className="w-8 h-8 text-blue-500 mb-2 mx-auto" />
+                  <h3 className="font-semibold text-gray-800 dark:text-gray-200 mb-1">Multiple Models</h3>
+                </div>
+
+                <div className="bg-purple-50 dark:bg-purple-900/30 p-4 rounded-lg">
+                  <Lightbulb className="w-8 h-8 text-purple-500 mb-2 mx-auto" />
+                  <h3 className="font-semibold text-gray-800 dark:text-gray-200 mb-1">Enhanced Analysis</h3>
+                </div>
+
+                <div className="bg-green-50 dark:bg-green-900/30 p-4 rounded-lg">
+                  <FileText className="w-8 h-8 text-green-500 mb-2 mx-auto" />
+                  <h3 className="font-semibold text-gray-800 dark:text-gray-200 mb-1">Document Context</h3>
+                </div>
+              </div>
+            </div>
           </div>
         )}
 
-        {/* Step content */}
-        {renderStepContent()}
+        {/* Step 2: Prompt Input */}
+        {currentStep === 'PROMPT' && (
+          <div className="space-y-6">
+            <div className="mb-6">
+              <Label htmlFor="prompt" className="text-lg font-medium mb-2 block">
+                What would you like Ultra to analyze?
+              </Label>
+              <div className="relative">
+                <Textarea
+                  id="prompt"
+                  placeholder="Enter your question or request here..."
+                  className="w-full min-h-32 p-3 text-md"
+                  value={prompt}
+                  onChange={(e) => setPrompt(e.target.value)}
+                  disabled={isProcessing || isOffline}
+                />
+                {prompt.length > 0 && (
+                  <div className="absolute bottom-2 right-2 text-xs text-gray-500">
+                    {prompt.length} characters
+                  </div>
+                )}
+              </div>
 
-        {/* Document upload UI - shown in PROMPT step when online */}
-        {currentStep === 'PROMPT' && !isOffline && renderDocumentUpload()}
+              <div className="text-sm text-gray-600 dark:text-gray-400 mt-2">
+                <p>Tips for great prompts:</p>
+                <ul className="list-disc pl-5 mt-1 space-y-1">
+                  <li>Be specific about what you're looking for</li>
+                  <li>Provide context when relevant</li>
+                  <li>Ask for analysis, comparisons, or evaluations</li>
+                </ul>
+              </div>
+            </div>
 
-        {/* Footer note */}
-        <div className="mt-6 text-center text-sm text-gray-500">
-          Ultra AI combines multiple AI models to provide more balanced and thorough analysis.
-          {isOffline && " (Offline mode available for viewing saved analyses)"}
-        </div>
+            {error && (
+              <div className="bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-300 p-3 rounded-md mb-4">
+                {error}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Step 3: Documents Upload */}
+        {currentStep === 'DOCUMENTS' && (
+          <div className="space-y-6">
+            <div className="mb-4">
+              <div className="flex items-center space-x-2 mb-2">
+                <Checkbox
+                  id="useDocuments"
+                  checked={isUsingDocuments}
+                  onCheckedChange={(checked) => setIsUsingDocuments(checked as boolean)}
+                  disabled={isProcessing || isOffline}
+                />
+                <Label htmlFor="useDocuments" className="text-lg font-medium">
+                  Include documents in your analysis
+                </Label>
+              </div>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                Upload files that provide context or information relevant to your query.
+              </p>
+            </div>
+
+            {isUsingDocuments && (
+              <div className="space-y-4">
+                <div
+                  className="border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-lg p-8 text-center cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  <Upload className="h-10 w-10 text-gray-400 dark:text-gray-600 mx-auto mb-3" />
+                  <p className="text-gray-600 dark:text-gray-400">
+                    Drag and drop files here, or click to select
+                  </p>
+                  <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
+                    Supports PDF, TXT, DOCX, and more (max 4MB per file)
+                  </p>
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    className="hidden"
+                    multiple
+                    onChange={handleFileSelect}
+                    disabled={isProcessing || isOffline}
+                  />
+                </div>
+
+                {/* Document List */}
+                {documents.length > 0 && (
+                  <div className="mt-4">
+                    <h3 className="font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Selected Documents ({documents.length})
+                    </h3>
+                    <div className="space-y-2">
+                      {documents.map((doc, index) => (
+                        <div
+                          key={index}
+                          className="flex items-center justify-between bg-gray-50 dark:bg-gray-800 p-3 rounded-md"
+                        >
+                          <div className="flex items-center space-x-3">
+                            <File className="h-5 w-5 text-blue-500" />
+                            <div>
+                              <p className="text-sm font-medium text-gray-800 dark:text-gray-200">{doc.name}</p>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center">
+                            {uploadProgress[doc.name] !== undefined && uploadProgress[doc.name] < 100 ? (
+                              <div className="w-16">
+                                <Progress value={uploadProgress[doc.name]} size="sm" />
+                              </div>
+                            ) : uploadProgress[doc.name] === 100 ? (
+                              <Check className="h-5 w-5 text-green-500" />
+                            ) : (
+                              <button
+                                onClick={() => removeDocument(index)}
+                                className="text-gray-500 hover:text-red-600 dark:text-gray-400 dark:hover:text-red-400"
+                              >
+                                <X className="h-5 w-5" />
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Uploaded Documents */}
+                {uploadedDocuments.length > 0 && (
+                  <div className="mt-4">
+                    <h3 className="font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Uploaded Documents ({uploadedDocuments.length})
+                    </h3>
+                    <div className="space-y-2">
+                      {uploadedDocuments.map((doc) => (
+                        <div
+                          key={doc.id}
+                          className="flex items-center justify-between bg-green-50 dark:bg-green-900/20 p-3 rounded-md"
+                        >
+                          <div className="flex items-center space-x-3">
+                            <File className="h-5 w-5 text-green-500" />
+                            <p className="text-sm font-medium text-gray-800 dark:text-gray-200">{doc.name}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {documents.length > 0 && (
+                  <div className="flex justify-center mt-4">
+                    <Button
+                      onClick={uploadDocuments}
+                      disabled={isProcessing || documents.length === 0 || isOffline}
+                      className="bg-blue-600 hover:bg-blue-700 text-white"
+                    >
+                      Upload Selected Documents
+                    </Button>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Step 4: Model Selection */}
+        {currentStep === 'MODELS' && (
+          <div className={`space-y-4 ${animating ? 'fadeOut' : 'fadeIn'}`}>
+            <div className="border-2 border-cyan-700 rounded-lg p-6 bg-black/50 relative overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-r from-cyan-900/20 to-purple-900/20"></div>
+              <div className="relative z-10">
+                <div className="flex items-center mb-4">
+                  <div className="w-8 h-8 rounded-full bg-cyan-700 flex items-center justify-center mr-3 text-white font-bold">2</div>
+                  <h2 className="text-2xl font-bold text-cyan-400">Select AI models</h2>
+                </div>
+                <p className="text-cyan-100 mb-4">
+                  Choose which AI models will analyze your query. Each model brings unique strengths and perspectives.
+                </p>
+
+                <div className="space-y-2">
+                  <Label className="text-lg text-cyan-200">Available AI Models</Label>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-2">
+                    {availableModels.map((model) => {
+                      const isSelected = selectedLLMs.includes(model);
+                      const isUltra = ultraLLM === model;
+
+                      return (
+                        <div
+                          key={model}
+                          className={`
+                            border rounded-lg p-4 cursor-pointer transition-all
+                            ${isSelected
+                              ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
+                              : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'}
+                            ${isUltra ? 'ring-2 ring-purple-500' : ''}
+                          `}
+                          onClick={() => handleLLMChange(model)}
+                        >
+                          <div className="flex justify-between items-center">
+                            <div className="flex items-center gap-2">
+                              <Checkbox
+                                checked={isSelected}
+                                onCheckedChange={() => handleLLMChange(model)}
+                                disabled={isProcessing || isOffline}
+                                className="data-[state=checked]:bg-blue-600"
+                              />
+                              <span className="font-medium text-gray-800 dark:text-gray-200">
+                                {model.charAt(0).toUpperCase() + model.slice(1)}
+                              </span>
+                            </div>
+                            <div className="text-sm text-gray-500 dark:text-gray-400">
+                              ${prices[model]?.toFixed(4)} / 1K tokens
+                            </div>
+                          </div>
+
+                          <div className="mt-4 flex justify-between items-center">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleUltraChange(model);
+                              }}
+                              disabled={!isSelected || isProcessing || isOffline}
+                              className={`
+                                text-xs font-medium px-3 py-1 rounded-full
+                                ${isUltra
+                                  ? 'bg-purple-600 text-white'
+                                  : 'bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300 hover:bg-purple-200'}
+                                ${!isSelected ? 'opacity-50 cursor-not-allowed' : ''}
+                              `}
+                            >
+                              {isUltra ? 'Ultra Model ✓' : 'Set as Ultra Model'}
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-4">
+              <PricingDisplay />
+            </div>
+
+            <div className="pt-4 flex justify-between">
+              <Button
+                onClick={goToPreviousStep}
+                variant="outline"
+                size="lg"
+                className="border-cyan-700 text-cyan-400 hover:bg-cyan-950"
+              >
+                Back
+              </Button>
+              <Button
+                onClick={goToNextStep}
+                size="lg"
+                className="font-medium text-lg bg-gradient-to-r from-cyan-600 to-cyan-700 hover:from-cyan-500 hover:to-cyan-600"
+                disabled={selectedLLMs.length < 2 || !ultraLLM}
+              >
+                Analyze Now
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {/* Step 5: Analysis Type Selection */}
+        {currentStep === 'ANALYSIS_TYPE' && (
+          <div className="space-y-6">
+            <div className="mb-6">
+              <h3 className="text-lg font-medium text-gray-800 dark:text-white mb-2">
+                Select Analysis Method
+              </h3>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                Choose how Ultra should approach your query.
+              </p>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {analysisTypes.map((type) => {
+                  const isSelected = selectedAnalysisType === type.id;
+                  const Icon = type.icon;
+
+                  return (
+                    <div
+                      key={type.id}
+                      className={`
+                        border rounded-lg p-4 cursor-pointer transition-all
+                        ${isSelected
+                          ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/20'
+                          : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'}
+                      `}
+                      onClick={() => handleAnalysisTypeChange(type.id)}
+                    >
+                      <div className="flex flex-col items-center text-center">
+                        <div className={`p-3 rounded-full mb-3 ${isSelected ? 'bg-purple-100 dark:bg-purple-900/30' : 'bg-gray-100 dark:bg-gray-800'}`}>
+                          <Icon className={`h-6 w-6 ${isSelected ? 'text-purple-600' : 'text-gray-500 dark:text-gray-400'}`} />
+                        </div>
+                        <h4 className="font-medium text-gray-800 dark:text-gray-200 mb-1">
+                          {type.name}
+                        </h4>
+                        <p className="text-xs text-gray-600 dark:text-gray-400">
+                          {type.description}
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Step 6: Processing */}
+        {currentStep === 'PROCESSING' && (
+          <div className="space-y-6 text-center">
+            <div className="flex justify-center mb-8">
+              <div className="relative">
+                <AnimatedLogoV3 size="large" />
+              </div>
+            </div>
+
+            <h3 className="text-xl font-medium text-gray-800 dark:text-white mb-2">
+              {isComplete ? 'Analysis Complete!' : 'Processing Your Analysis'}
+            </h3>
+
+            <div className="max-w-md mx-auto mb-6">
+              <Progress value={isComplete ? 100 : progress} animated={!isComplete} />
+              <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
+                {progressMessage}
+              </p>
+            </div>
+
+            {isComplete && (
+              <div className="text-center">
+                <p className="text-green-600 dark:text-green-400 font-medium mb-4">
+                  {isCached ? 'Results retrieved from cache' : 'Analysis completed successfully'}
+                </p>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Step 7: Results */}
+        {currentStep === 'RESULTS' && (
+          <div className="space-y-6" ref={outputRef}>
+            <div className="mb-6">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-xl font-medium text-gray-800 dark:text-white">
+                  Ultra Analysis Results
+                </h3>
+                <div className="flex items-center space-x-2">
+                  <button
+                    onClick={() => saveToHistory()}
+                    disabled={isOffline}
+                    className="text-sm text-blue-600 dark:text-blue-400 flex items-center gap-1 hover:underline"
+                  >
+                    <Save className="h-4 w-4" />
+                    Save
+                  </button>
+                  <button
+                    onClick={() => shareAnalysis()}
+                    disabled={isOffline}
+                    className="text-sm text-purple-600 dark:text-purple-400 flex items-center gap-1 hover:underline"
+                  >
+                    <Share2 className="h-4 w-4" />
+                    Share
+                  </button>
+                </div>
+              </div>
+
+              <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 mb-4">
+                <h4 className="font-medium text-gray-700 dark:text-gray-300 mb-2">Your Prompt</h4>
+                <p className="text-gray-800 dark:text-gray-200">{prompt}</p>
+              </div>
+
+              <div className="prose prose-lg dark:prose-invert max-w-none">
+                {output && (
+                  <div className="whitespace-pre-wrap rounded-lg border border-gray-200 dark:border-gray-700 p-4">
+                    {output}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="flex flex-col md:flex-row gap-4 mt-8">
+              <Button
+                onClick={() => {
+                  setCurrentStep('PROMPT');
+                  setPrompt('');
+                  setSelectedLLMs([]);
+                  setUltraLLM(null);
+                  setDocuments([]);
+                  setUploadedDocuments([]);
+                  setOutput('');
+                  setIsComplete(false);
+                  setProgress(0);
+                  setIsUsingDocuments(false);
+                }}
+                className="bg-blue-600 hover:bg-blue-700 text-white"
+              >
+                <RefreshCw className="h-4 w-4 mr-2" />
+                Start New Analysis
+              </Button>
+
+              <Button
+                onClick={() => setShowHistory(true)}
+                variant="outline"
+                className="border-gray-300 dark:border-gray-700"
+              >
+                <History className="h-4 w-4 mr-2" />
+                View History
+              </Button>
+            </div>
+          </div>
+        )}
       </div>
 
-      {/* History panel */}
+      {/* Navigation Buttons */}
+      <div className="flex justify-between mt-8">
+        <Button
+          onClick={goToPreviousStep}
+          disabled={currentStep === 'INTRO' || isProcessing}
+          variant="outline"
+          className="border-gray-300 dark:border-gray-700"
+        >
+          Previous
+        </Button>
+
+        {currentStep !== 'PROCESSING' && currentStep !== 'RESULTS' ? (
+          <Button
+            onClick={goToNextStep}
+            disabled={!validateCurrentStep() || isProcessing || isOffline}
+            className="bg-blue-600 hover:bg-blue-700 text-white"
+          >
+            {currentStep === 'ANALYSIS_TYPE' ? 'Start Analysis' : 'Next'}
+          </Button>
+        ) : currentStep === 'PROCESSING' ? (
+          <Button
+            onClick={handleAnalyzeClick}
+            disabled={!isComplete || isOffline}
+            className="bg-green-600 hover:bg-green-700 text-white"
+          >
+            View Results
+          </Button>
+        ) : null}
+      </div>
+
+      {/* History Dialog */}
       {renderHistoryPanel()}
 
-      {/* Share dialog */}
+      {/* Share Dialog */}
       {renderShareDialog()}
 
-      {/* Add styles for animations */}
-      <style dangerouslySetInnerHTML={{
-        __html: `
-        @keyframes fadeIn {
-          from { opacity: 0; transform: translateY(20px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-
-        @keyframes fadeOut {
-          from { opacity: 1; transform: translateY(0); }
-          to { opacity: 0; transform: translateY(-20px); }
-        }
-
-        .fadeIn {
-          animation: fadeIn 0.5s ease-out forwards;
-        }
-
-        .fadeOut {
-          animation: fadeOut 0.4s ease-in forwards;
-        }
-      ` }} />
+      {/* Offline Mode Banner */}
+      {isOffline && (
+        <div className="fixed bottom-4 right-4 bg-amber-50 dark:bg-amber-900/30 text-amber-800 dark:text-amber-300 p-4 rounded-lg shadow-lg flex items-center gap-3 max-w-md z-50">
+          <div className="bg-amber-200 dark:bg-amber-800 p-2 rounded-full">
+            <WifiOff className="h-5 w-5 text-amber-700 dark:text-amber-300" />
+          </div>
+          <div>
+            <h3 className="font-medium mb-1">Offline Mode</h3>
+            <p className="text-sm">You're currently offline. You can view saved analyses, but cannot make new requests.</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

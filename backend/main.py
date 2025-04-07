@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, UploadFile, File, Form, Response, Request, BackgroundTasks, Depends
+from fastapi import FastAPI, HTTPException, UploadFile, File, Form, Response, Request, BackgroundTasks, Depends, Query, Body
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, ValidationError
 from typing import List, Dict, Any, Optional
@@ -76,32 +76,24 @@ class MockLLMService:
             }
         }
 
-# Import pricing system
-try:
-    from pricing_simulator import PricingSimulator
-    from pricing_integration import PricingIntegration, track_request_cost, check_request_authorization
-    PRICING_AVAILABLE = True
-except ImportError:
-    PRICING_AVAILABLE = False
-    logger.warning("Pricing modules not available. Continuing without pricing functionality.")
+    # Add method for get_available_models
+    async def get_available_models(self):
+        return {
+            "status": "success",
+            "available_models": ["gpt4o", "gpt4turbo", "gpto3mini", "gpto1", "claude37", "claude3opus", "gemini15", "llama3"],
+            "errors": {}
+        }
 
-# Instead of using global variables directly, let's use a simple config object
+    # Add analyze_prompt method that would be awaited
+    async def analyze_prompt(self, prompt, models, ultra_model, pattern):
+        result = self.analyze(prompt, models, ultra_model, pattern)
+        return result
+
+# Config class for runtime settings
 class Config:
     """Configuration object to hold runtime settings"""
     use_mock = False
     mock_service = None
-
-# Process tokens and tracking for pricing
-def process_tokens(prompt, model=None, tokens_used=None):
-    """Process token usage for pricing"""
-    if not PRICING_AVAILABLE:
-        return {"status": "success", "message": "Pricing not enabled"}
-
-    # Implementation would go here
-    return {"status": "success", "tokens_processed": True}
-
-# Document storage path - use environment variable
-DOCUMENT_STORAGE_PATH = os.getenv("DOCUMENT_STORAGE_PATH", "document_storage")
 
 # Add response caching
 response_cache = TTLCache(maxsize=100, ttl=3600)  # Cache for 1 hour
@@ -111,6 +103,256 @@ def generate_cache_key(prompt, models, ultra_model, pattern):
     """Generate a unique cache key based on request parameters"""
     key_data = f"{prompt}|{','.join(sorted(models))}|{ultra_model}|{pattern}"
     return hashlib.md5(key_data.encode()).hexdigest()
+
+# Initialize performance metrics
+performance_metrics = {
+    "start_time": datetime.now().isoformat(),
+    "requests_processed": 0,
+    "documents_processed": 0,
+    "total_chunks_processed": 0,
+    "total_processing_time": 0,
+    "avg_processing_time": 0,
+    "max_memory_usage": 0,
+    "cache_hits": 0,
+    "current_memory_usage_mb": psutil.Process().memory_info().rss / (1024 * 1024)
+}
+
+# Initialize metrics history
+metrics_history = {
+    "timestamps": [],
+    "memory_usage": [],
+    "requests_processed": [],
+    "response_times": []
+}
+
+# Initialize processing metrics
+requests_processed = 0
+processing_times = []
+start_time = time.time()
+
+# Define the update_metrics_history function
+def update_metrics_history():
+    """Update the metrics history with current values"""
+    global metrics_history, performance_metrics
+
+    # Update current memory usage
+    current_memory = psutil.Process().memory_info().rss / (1024 * 1024)  # MB
+    performance_metrics["current_memory_usage_mb"] = current_memory
+
+    # Add current values to history
+    metrics_history["timestamps"].append(datetime.now().isoformat())
+    metrics_history["memory_usage"].append(current_memory)
+    metrics_history["requests_processed"].append(performance_metrics["requests_processed"])
+
+    # Calculate average processing time if we have data
+    if processing_times:
+        performance_metrics["avg_processing_time"] = sum(processing_times) / len(processing_times)
+
+    # Limit history size to prevent memory issues
+    max_history = 100
+    if len(metrics_history["timestamps"]) > max_history:
+        for key in metrics_history:
+            metrics_history[key] = metrics_history[key][-max_history:]
+
+# Define port availability check functions
+def is_port_available(port):
+    """Check if a port is available"""
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        try:
+            s.bind(('localhost', port))
+            return True
+        except socket.error:
+            return False
+
+def find_available_port(start_port):
+    """Find an available port starting from start_port"""
+    port = start_port
+    while not is_port_available(port) and port < start_port + 100:
+        port += 1
+    return port
+
+# Define document-related models
+class DocumentChunk(BaseModel):
+    text: str
+    relevance: float
+    page: Optional[int] = None
+
+class ProcessedDocument(BaseModel):
+    id: str
+    name: str
+    chunks: List[DocumentChunk]
+    totalChunks: int
+    type: str
+
+class DocumentUploadResponse(BaseModel):
+    id: str
+    name: str
+    size: int
+    type: str
+    status: str
+    message: str
+
+# Define request models for API endpoints
+class TokenEstimateRequest(BaseModel):
+    prompt: str
+    model: str
+    requestType: str
+    userId: Optional[str] = None
+
+class PricingToggleRequest(BaseModel):
+    enabled: bool
+    reason: str
+
+class UserAccountRequest(BaseModel):
+    userId: str
+    tier: str
+    initialBalance: float
+
+class AddFundsRequest(BaseModel):
+    userId: str
+    amount: float
+    description: str = "Account deposit"
+
+# Document processor class - simplified version
+class UltraDocumentsOptimized:
+    def __init__(self):
+        """Initialize the optimized document processor"""
+        self.cache_enabled = True
+
+        # Create a simple object with the required memory_cache attribute
+        class MemoryCacheObject:
+            def size(self):
+                return 0
+
+        class CacheObject:
+            def __init__(self):
+                self.memory_cache = MemoryCacheObject()
+
+        self.cache = CacheObject()
+
+    def process_document(self, file_path):
+        """Process a document and extract text chunks with mock relevance"""
+        try:
+            # For demonstration, just return some mock chunks
+            chunks = []
+
+            # Handle different file types - safely handle None
+            if file_path:
+                extension = os.path.splitext(file_path)[1].lower()
+            else:
+                extension = ""
+
+            # For text files, try to read content
+            if file_path and extension in ['.txt', '.md']:
+                try:
+                    with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
+                        content = f.read()
+
+                    # Split into chunks (simplified)
+                    lines = content.split('\n')
+                    chunk_size = 10  # lines per chunk
+                    for i in range(0, len(lines), chunk_size):
+                        chunk_text = '\n'.join(lines[i:i+chunk_size])
+                        if chunk_text.strip():
+                            chunks.append({
+                                "text": chunk_text,
+                                "relevance": 0.8  # Mock relevance
+                            })
+                except Exception as e:
+                    logger.error(f"Error reading text file: {str(e)}")
+                    # Fall back to mock chunks
+                    chunks = [{"text": f"Mock content from {file_path}", "relevance": 0.7}]
+            else:
+                # For other file types, return mock chunks
+                chunks = [
+                    {"text": f"Mock content from {file_path or 'unknown'} - part 1", "relevance": 0.8},
+                    {"text": f"Mock content from {file_path or 'unknown'} - part 2", "relevance": 0.6}
+                ]
+
+            return {"chunks": chunks}
+        except Exception as e:
+            logger.error(f"Error processing document: {str(e)}")
+            return {"chunks": [{"text": "Error processing document", "relevance": 0.1}]}
+
+    def process_documents(self, document_data):
+        """Process multiple documents"""
+        total_chunks = 0
+        processed_chunks = []
+
+        for doc in document_data:
+            path = doc.get("path", "")
+            doc_result = self.process_document(path)
+            doc_chunks = doc_result.get("chunks", [])
+            total_chunks += len(doc_chunks)
+            processed_chunks.extend(doc_chunks)
+
+        return {
+            "chunks_processed": total_chunks,
+            "chunks": processed_chunks
+        }
+
+# Create a pricing integration mock if not available
+class MockPricingIntegration:
+    def __init__(self):
+        self.pricing_enabled = False
+
+    def estimate_request_cost(self, **kwargs):
+        return {
+            "estimated_cost": 0.01,
+            "tier": "free",
+            "has_sufficient_balance": True,
+            "cost_details": {
+                "base_cost": 0.01,
+                "markup_cost": 0,
+                "discount_amount": 0,
+                "feature_costs": {}
+            }
+        }
+
+    def check_balance(self, user_id):
+        return {"balance": 100.0}
+
+    def create_user_account(self, **kwargs):
+        return {"user_id": kwargs.get("user_id"), "tier": kwargs.get("tier")}
+
+    def add_funds(self, **kwargs):
+        return {"transaction_id": "mock-123", "amount": kwargs.get("amount")}
+
+    def get_user_usage_summary(self, user_id):
+        return {"usage": [], "total_cost": 0}
+
+    def get_session_summary(self, session_id):
+        return {"session_id": session_id, "total_cost": 0}
+
+# Initialize pricing integration
+try:
+    from pricing_integration import PricingIntegration
+    pricing_integration = PricingIntegration()
+except ImportError:
+    pricing_integration = MockPricingIntegration()
+
+# Define mock track_request_cost function if not available
+async def track_request_cost(price_integration=None, user_id=None, model=None, token_count=0, tokens_used=None, request_type=None, session_id=None):
+    """Track token usage cost - mock implementation"""
+    if tokens_used is not None:
+        token_count = tokens_used
+
+    logger.info(f"Tracking request cost: {token_count} tokens for {model}")
+    return {"status": "success", "cost": 0.01}
+
+# Define check_request_authorization function
+async def check_request_authorization(price_integration=None, user_id=None, model=None, estimated_tokens=0, request_type=None):
+    """Check if a request is authorized based on user balance"""
+    if price_integration is None:
+        price_integration = pricing_integration
+
+    # Mock implementation - always authorize
+    return {
+        "authorized": True,
+        "reason": "Request authorized",
+        "estimated_cost": 0.01,
+        "current_balance": 100.0
+    }
 
 # Create FastAPI app instance
 app = FastAPI(
@@ -159,17 +401,52 @@ try:
     sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     from ultra_pattern_orchestrator import PatternOrchestrator
     ORCHESTRATOR_AVAILABLE = True
+    logger.info("PatternOrchestrator loaded successfully")
 except ImportError:
     ORCHESTRATOR_AVAILABLE = False
     logger.warning("PatternOrchestrator not available, using mock implementation")
 
     # Define a mock PatternOrchestrator if the real one isn't available
     class PatternOrchestrator:
-        def analyze(self, prompt, llms, ultra_llm, pattern):
+        """Mock implementation of the PatternOrchestrator"""
+        def __init__(self, api_keys=None, pattern=None, output_format=None):
+            # Store the init parameters
+            self.api_keys = api_keys or {}
+            self.pattern = pattern or "confidence"
+            self.output_format = output_format or "plain"
+            self.ultra_model = None
+            logger.info(f"Initialized mock PatternOrchestrator with pattern: {self.pattern}")
+
+        async def analyze(self, prompt, llms, ultra_llm, pattern):
+            """Basic analyze method - made async for compatibility"""
+            logger.info(f"Mock PatternOrchestrator analyzing prompt with {len(llms)} models and pattern: {pattern}")
             return {
                 "status": "success",
-                "ultra_response": f"Mock response from PatternOrchestrator. The prompt was: {prompt[:50]}...",
+                "ultra_response": f"Mock response from PatternOrchestrator using {ultra_llm}. The prompt was: {prompt[:50]}...",
                 "results": {"ultra": "Mock ultra response"}
+            }
+
+        async def orchestrate_full_process(self, prompt):
+            """Mock orchestration process"""
+            logger.info(f"Mock orchestration process for prompt: {prompt[:30]}...")
+
+            # Simulate model responses
+            initial_responses = {
+                "gpt4o": f"GPT-4o analysis of: {prompt[:30]}...",
+                "claude37": f"Claude 3.7 analysis of: {prompt[:30]}...",
+                "gemini15": f"Gemini 1.5 analysis of: {prompt[:30]}..."
+            }
+
+            # Simulate ultra response
+            ultra_model = self.ultra_model or "gpt4o"
+            ultra_response = f"This is a synthesized response from {ultra_model} analyzing multiple perspectives.\n\nAnalysis: {prompt[:50]}..."
+
+            return {
+                "status": "success",
+                "initial_responses": initial_responses,
+                "meta_responses": {},
+                "hyper_responses": {},
+                "ultra_response": ultra_response
             }
 
 @app.options("/api/analyze")
@@ -1166,92 +1443,90 @@ async def list_documents():
 
 # Analyze endpoint - modify to handle documents
 @app.post("/api/analyze")
-async def analyze(request: Request):
+async def analyze(request: dict = Body(...)):
     """
     Analyze a prompt using multiple LLMs and an Ultra LLM
     """
-    # Get the raw request body and parse it
-    body = await request.json()
-
-    # Extract parameters
-    prompt = body.get("prompt", "")
-    llms = body.get("llms", [])
-    ultra_llm = body.get("ultraLLM", "")
-    pattern = body.get("pattern", "Confidence Analysis")
-    document_ids = body.get("documentIds", [])
-
-    # Check for valid input
-    if not prompt:
-        raise HTTPException(status_code=400, detail="Prompt is required")
-    if not llms or len(llms) < 1:
-        raise HTTPException(status_code=400, detail="At least one LLM must be selected")
-    if not ultra_llm:
-        raise HTTPException(status_code=400, detail="Ultra LLM is required")
-
-    # Update metrics
-    global requests_processed
-    requests_processed += 1
-    update_metrics_history()
-
-    # Generate cache key
-    document_ids_str = ",".join(sorted(document_ids)) if document_ids else ""
-    cache_key = generate_cache_key(prompt, llms, ultra_llm, pattern + document_ids_str)
-
-    # Check cache first
-    cached_response = response_cache.get(cache_key)
-    if cached_response:
-        # Add cached flag to the response
-        if isinstance(cached_response, dict):
-            cached_response["cached"] = True
-        return cached_response
-
-    # Process documents if document IDs are provided
-    document_context = ""
-    if document_ids:
-        document_context = await process_document_context(document_ids, prompt)
-
-    # Prepare an enhanced prompt with document context if available
-    enhanced_prompt = prompt
-    if document_context:
-        enhanced_prompt = f"""Please analyze the following prompt in the context of the provided documents:
-
-DOCUMENTS:
-{document_context}
-
-PROMPT:
-{prompt}
-
-Your task is to analyze the prompt while using the documents as reference material."""
+    global processing_times
+    start_processing = time.time()
 
     try:
-        # If we're running with mock service
-        if Config.use_mock:
-            logger.info(f"Using mock service for analysis")
-            if Config.mock_service is None:
-                Config.mock_service = MockLLMService()
+        # Extract request parameters
+        prompt = request.get("prompt", "")
+        models = request.get("models", ["gpt4o", "gpt4turbo"])
+        ultra_model = request.get("ultraModel", "gpt4o")
+        pattern = request.get("pattern", "confidence")
+        user_id = request.get("userId")
+        session_id = request.get("sessionId")
 
-            # Use the mock service
-            result = Config.mock_service.analyze(enhanced_prompt, llms, ultra_llm, pattern)
+        # Basic validation
+        if not prompt.strip():
+            raise HTTPException(status_code=400, detail="Prompt cannot be empty")
 
-            # Add to cache
-            response_cache[cache_key] = result
+        # Use cache if available
+        cache_key = generate_cache_key(prompt, models, ultra_model, pattern)
+        cached_response = response_cache.get(cache_key) if hasattr(response_cache, "get") else None
+
+        if cached_response:
+            performance_metrics["cache_hits"] += 1
+            logger.info(f"Cache hit for prompt: {prompt[:30]}...")
+            end_processing = time.time()
+            processing_time = end_processing - start_processing
+            processing_times.append(processing_time)
+            performance_metrics["requests_processed"] += 1
+            update_metrics_history()
+
+            return cached_response
+
+        # Check if we should use mock
+        if Config.use_mock and Config.mock_service:
+            logger.info(f"Using mock service for prompt: {prompt[:30]}...")
+            # Use the async analyze_prompt for consistency
+            result = await Config.mock_service.analyze_prompt(prompt, models, ultra_model, pattern)
+
+            # Cache the result
+            if hasattr(response_cache, "update"):
+                response_cache[cache_key] = result
+
+            # Update metrics
+            end_processing = time.time()
+            processing_time = end_processing - start_processing
+            processing_times.append(processing_time)
+            performance_metrics["requests_processed"] += 1
+            update_metrics_history()
+
             return result
 
-        # Otherwise use the real orchestrator
-        orchestrator = PatternOrchestrator()
-        logger.info(f"Using real orchestrator with models: {llms}")
+        # Use orchestrator if available
+        if ORCHESTRATOR_AVAILABLE:
+            logger.info(f"Using pattern orchestrator for prompt: {prompt[:30]}...")
+            # Get or create orchestrator
+            orchestrator = PatternOrchestrator()
+            orchestrator.ultra_model = ultra_model
 
-        # Call the orchestrator with the (possibly enhanced) prompt
-        result = orchestrator.analyze(enhanced_prompt, llms, ultra_llm, pattern)
+            # Use the full process for better results
+            result = await orchestrator.orchestrate_full_process(prompt)
 
-        # Add to cache
-        response_cache[cache_key] = result
-        return result
+            # Cache the result
+            if hasattr(response_cache, "update"):
+                response_cache[cache_key] = result
+
+            # Update metrics
+            end_processing = time.time()
+            processing_time = end_processing - start_processing
+            processing_times.append(processing_time)
+            performance_metrics["requests_processed"] += 1
+            update_metrics_history()
+
+            return result
+
+        # Fallback to basic analysis
+        raise HTTPException(status_code=500, detail="No analysis service available")
 
     except Exception as e:
-        logger.error(f"Error analyzing prompt: {str(e)}")
-        logger.error(traceback.format_exc())
-        raise HTTPException(status_code=500, detail=f"Error in analysis: {str(e)}")
+        logger.error(f"Error in analyze endpoint: {str(e)}")
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Analysis error: {str(e)}")
 
 async def process_document_context(document_ids: List[str], query: str) -> str:
     """
