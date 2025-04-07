@@ -1,0 +1,64 @@
+name: Dependabot Auto-PR
+
+on:
+  # Run on a schedule to regularly check for vulnerable dependencies
+  schedule:
+    - cron: '0 0 * * 1' # Run every Monday at midnight UTC
+  
+  # Allow manual triggers
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  dependabot:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '18'
+          cache: 'npm'
+      
+      - name: Setup Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.9'
+      
+      # Check npm dependencies for vulnerabilities
+      - name: Check npm vulnerabilities
+        run: npm audit --json || true
+      
+      # Check Python dependencies for vulnerabilities
+      - name: Check Python vulnerabilities
+        run: |
+          pip install safety
+          safety check -r backend/requirements.txt --json || true
+      
+      # Setup Dependabot automation
+      - name: Setup Dependabot Automation
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ secrets.DEPENDABOT_APP_ID }}
+          private-key: ${{ secrets.DEPENDABOT_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+          repositories: ${{ github.event.repository.name }}
+      
+      # Run Dependabot to create PRs for vulnerable dependencies
+      - name: Run Dependabot
+        uses: dependabot/fetch-metadata@v1
+        with:
+          github-token: ${{ steps.dependabot.outputs.token }}
+      
+      # Auto-merge non-major updates (minor and patch)
+      - name: Enable auto-merge for Dependabot PRs
+        run: |
+          gh auth login --with-token <<< "${{ steps.dependabot.outputs.token }}"
+          gh pr list --repo ${{ github.repository }} --author dependabot --json number,title | \
+          jq -r '.[] | select(.title | contains("bump") and (contains("minor") or contains("patch"))) | .number' | \
+          xargs -I{} gh pr merge --auto --rebase {} || true 

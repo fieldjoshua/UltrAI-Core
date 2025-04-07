@@ -1032,6 +1032,78 @@ class PricingUpdater:
         
         return pricing_data
 
+    # TODO: Add code to insert new model configurations
+    def insert_new_model_configuration(self, model_name, configuration):
+        """
+        Insert a new model configuration
+        
+        Args:
+            model_name (str): Name of the model
+            configuration (dict): Model configuration parameters
+        
+        Returns:
+            bool: True if successful, False otherwise
+        """
+        try:
+            self.logger.info(f"Adding new model configuration for: {model_name}")
+            
+            # Check if model already exists
+            if model_name in self.models_config:
+                self.logger.warning(f"Model {model_name} already exists in config, updating instead")
+                self.models_config[model_name].update(configuration)
+            else:
+                # Add new model configuration
+                self.models_config[model_name] = configuration
+                
+            # Save updated configuration
+            self._save_config()
+            self.logger.info(f"Successfully added/updated model configuration for: {model_name}")
+            return True
+            
+        except Exception as e:
+            self.logger.error(f"Error adding model configuration for {model_name}: {str(e)}")
+            return False
+
+    # TODO: Add code to insert new model in the pricing block
+    def insert_model_in_pricing_block(self, model_name, pricing_data):
+        """
+        Insert a new model in the pricing block
+        
+        Args:
+            model_name (str): Name of the model
+            pricing_data (dict): Pricing data for different tiers
+            
+        Returns:
+            bool: True if successful, False otherwise
+        """
+        try:
+            self.logger.info(f"Adding pricing data for model: {model_name}")
+            
+            # Validate pricing data structure
+            required_tiers = ["basic", "standard", "premium", "enterprise"]
+            missing_tiers = [tier for tier in required_tiers if tier not in pricing_data]
+            
+            if missing_tiers:
+                self.logger.warning(f"Missing pricing tiers for {model_name}: {', '.join(missing_tiers)}")
+                # Fill in missing tiers with null values
+                for tier in missing_tiers:
+                    pricing_data[tier] = None
+                    
+            # Add or update model in pricing block
+            if "models" not in self.pricing:
+                self.pricing["models"] = {}
+                
+            self.pricing["models"][model_name] = pricing_data
+            
+            # Save updated pricing
+            self._save_pricing()
+            self.logger.info(f"Successfully added/updated pricing for model: {model_name}")
+            return True
+            
+        except Exception as e:
+            self.logger.error(f"Error adding pricing for model {model_name}: {str(e)}")
+            return False
+
 
 def main():
     """Main entry point"""

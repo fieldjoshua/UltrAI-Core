@@ -20,7 +20,8 @@ from anthropic import AsyncAnthropic
 from openai import AsyncOpenAI
 import google.generativeai as genai
 from google.generativeai import GenerativeModel
-# from mistralai.async_client import MistralAsyncClient
+from mistralai.client import MistralClient
+from mistralai.async_client import MistralAsyncClient
 import cohere
 
 from ultra_analysis_patterns import AnalysisPatterns, AnalysisPattern
@@ -172,12 +173,17 @@ class PatternOrchestrator:
             
             # Mistral
             if self.mistral_key:
-                # Commenting out Mistral client initialization due to deprecation
-                # self.mistral = MistralAsyncClient(api_key=self.mistral_key)
-                # self.available_models.append("mistral")
-                # self.last_request["mistral"] = datetime.now()
-                # self.logger.info("Mistral client initialized")
-                self.logger.warning("Mistral client disabled due to API version incompatibility")
+                try:
+                    # Initialize both sync and async clients with newer version
+                    self.mistral = MistralClient(api_key=self.mistral_key)
+                    self.mistral_async = MistralAsyncClient(api_key=self.mistral_key)
+                    self.available_models.append("mistral")
+                    self.last_request["mistral"] = datetime.now()
+                    self.logger.info("Mistral client initialized")
+                except ImportError as e:
+                    self.logger.warning(f"Mistral client import error: {e}")
+                except Exception as e:
+                    self.logger.warning(f"Mistral client initialization error: {e}")
             else:
                 self.logger.warning("Mistral not available - API key missing")
                 
