@@ -19,6 +19,8 @@ import logging
 import sentry_sdk
 from cachetools import TTLCache, cached
 import hashlib
+import shutil
+from pathlib import Path
 
 # Import error handling system
 from error_handler import register_exception_handlers, error_handling_middleware
@@ -160,6 +162,10 @@ from ultra_pattern_orchestrator import PatternOrchestrator
 # Create the temp directory for file uploads if it doesn't exist
 os.makedirs("temp_uploads", exist_ok=True)
 
+# Create the necessary directories - use environment variable for document storage in cloud
+DOCUMENT_STORAGE_PATH = os.getenv("DOCUMENT_STORAGE_PATH", "document_storage")
+os.makedirs(DOCUMENT_STORAGE_PATH, exist_ok=True)
+
 # Configure logging
 logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -261,6 +267,14 @@ class AddFundsRequest(BaseModel):
     userId: str
     amount: float
     description: str = "Deposit"
+
+class DocumentUploadResponse(BaseModel):
+    id: str
+    name: str
+    size: int
+    type: str
+    status: str
+    message: Optional[str] = None
 
 # Function to update metrics history
 def update_metrics_history():
@@ -389,6 +403,9 @@ def generate_cache_key(prompt, models, ultra_model, pattern):
     """Generate a unique cache key based on request parameters"""
     key_data = f"{prompt}|{','.join(sorted(models))}|{ultra_model}|{pattern}"
     return hashlib.md5(key_data.encode()).hexdigest()
+
+# Document storage path - use environment variable
+DOCUMENT_STORAGE_PATH = os.getenv("DOCUMENT_STORAGE_PATH", "document_storage")
 
 @app.options("/api/analyze")
 async def options_analyze():
@@ -1244,6 +1261,274 @@ async def trigger_error():
     logger.info("Testing Sentry integration by triggering a deliberate error")
     division_by_zero = 1 / 0
     return {"status": "This will never be returned"}
+
+# Document processing endpoint
+@app.post("/api/upload-document", response_model=DocumentUploadResponse)
+async def upload_document(file: UploadFile = File(...)):
+    """
+    Upload a document file to be analyzed by the AI.
+    Supports PDF, TXT, MD, DOC, and DOCX files.
+    """
+    try:
+        # Generate a unique ID for the document
+        document_id = str(uuid.uuid4())
+
+        # Get file extension and validate file type
+        file_ext = os.path.splitext(file.filename)[1].lower()
+        allowed_extensions = ['.pdf', '.txt', '.md', '.doc', '.docx']
+
+        if file_ext not in allowed_extensions:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Unsupported file type. Allowed types: {', '.join(allowed_extensions)}"
+            )
+
+        # Create document storage path with the UUID
+        document_dir = os.path.join(DOCUMENT_STORAGE_PATH, document_id)
+        os.makedirs(document_dir, exist_ok=True)
+
+        # Save the file to disk
+        file_path = os.path.join(document_dir, file.filename)
+        with open(file_path, "wb") as f:
+            shutil.copyfileobj(file.file, f)
+
+        # Get file size
+        file_size = os.path.getsize(file_path)
+
+        # Create a metadata file for the document
+        metadata = {
+            "id": document_id,
+            "original_filename": file.filename,
+            "file_path": file_path,
+            "file_size": file_size,
+            "file_type": file_ext,
+            "upload_timestamp": datetime.now().isoformat(),
+            "processing_status": "pending"
+        }
+
+        # Save metadata
+        with open(os.path.join(document_dir, "metadata.json"), "w") as f:
+            json.dump(metadata, f, indent=2)
+
+        # Process the document in the background (don't wait for completion)
+        try:
+            # Use the document processor if available, otherwise just log
+            if 'document_processor' in globals():
+                document_processor.process_document(file_path)
+                processing_status = "processing"
+            else:
+                # For mock operation
+                logger.info(f"Document uploaded: {file.filename} (ID: {document_id})")
+                processing_status = "ready"  # Simulate ready for mock
+
+            # Update processing status
+            metadata["processing_status"] = processing_status
+            with open(os.path.join(document_dir, "metadata.json"), "w") as f:
+                json.dump(metadata, f, indent=2)
+
+        except Exception as e:
+            logger.error(f"Error processing document {document_id}: {str(e)}")
+            # Continue despite processing error - we can try to process later
+
+        # Return document info
+        return DocumentUploadResponse(
+            id=document_id,
+            name=file.filename,
+            size=file_size,
+            type=file_ext,
+            status="uploaded",
+            message="Document uploaded successfully"
+        )
+
+    except Exception as e:
+        # Log the detailed error
+        logger.error(f"Error uploading document: {str(e)}")
+        logger.error(traceback.format_exc())
+
+        # Re-raise as HTTP exception
+        if isinstance(e, HTTPException):
+            raise
+        raise HTTPException(status_code=500, detail=f"Upload failed: {str(e)}")
+    finally:
+        # Make sure to close the file
+        await file.close()
+
+# Document retrieval endpoint
+@app.get("/api/documents/{document_id}", response_model=Dict[str, Any])
+async def get_document(document_id: str):
+    """Get document metadata and status"""
+    # Construct the document path
+    document_dir = os.path.join(DOCUMENT_STORAGE_PATH, document_id)
+    metadata_path = os.path.join(document_dir, "metadata.json")
+
+    # Check if document exists
+    if not os.path.exists(metadata_path):
+        raise HTTPException(status_code=404, detail="Document not found")
+
+    # Read metadata
+    try:
+        with open(metadata_path, "r") as f:
+            metadata = json.load(f)
+        return metadata
+    except Exception as e:
+        logger.error(f"Error reading document metadata: {str(e)}")
+        raise HTTPException(status_code=500, detail="Error retrieving document metadata")
+
+# Document list endpoint
+@app.get("/api/documents", response_model=List[Dict[str, Any]])
+async def list_documents():
+    """List all uploaded documents"""
+    documents = []
+
+    # Scan document storage directory
+    try:
+        for document_id in os.listdir(DOCUMENT_STORAGE_PATH):
+            document_dir = os.path.join(DOCUMENT_STORAGE_PATH, document_id)
+            metadata_path = os.path.join(document_dir, "metadata.json")
+
+            if os.path.isdir(document_dir) and os.path.exists(metadata_path):
+                try:
+                    with open(metadata_path, "r") as f:
+                        metadata = json.load(f)
+                    documents.append(metadata)
+                except Exception as e:
+                    logger.warning(f"Error reading metadata for document {document_id}: {str(e)}")
+    except Exception as e:
+        logger.error(f"Error listing documents: {str(e)}")
+        raise HTTPException(status_code=500, detail="Error retrieving document list")
+
+    return documents
+
+# Analyze endpoint - modify to handle documents
+@app.post("/api/analyze")
+async def analyze(request: Request):
+    """
+    Analyze a prompt using multiple LLMs and an Ultra LLM
+    """
+    # Get the raw request body and parse it
+    body = await request.json()
+
+    # Extract parameters
+    prompt = body.get("prompt", "")
+    llms = body.get("llms", [])
+    ultra_llm = body.get("ultraLLM", "")
+    pattern = body.get("pattern", "Confidence Analysis")
+    document_ids = body.get("documentIds", [])
+
+    # Check for valid input
+    if not prompt:
+        raise HTTPException(status_code=400, detail="Prompt is required")
+    if not llms or len(llms) < 1:
+        raise HTTPException(status_code=400, detail="At least one LLM must be selected")
+    if not ultra_llm:
+        raise HTTPException(status_code=400, detail="Ultra LLM is required")
+
+    # Update metrics
+    global requests_processed
+    requests_processed += 1
+    update_metrics_history()
+
+    # Generate cache key
+    document_ids_str = ",".join(sorted(document_ids)) if document_ids else ""
+    cache_key = generate_cache_key(prompt, llms, ultra_llm, pattern + document_ids_str)
+
+    # Check cache first
+    cached_response = response_cache.get(cache_key)
+    if cached_response:
+        # Add cached flag to the response
+        if isinstance(cached_response, dict):
+            cached_response["cached"] = True
+        return cached_response
+
+    # Process documents if document IDs are provided
+    document_context = ""
+    if document_ids:
+        document_context = await process_document_context(document_ids, prompt)
+
+    # Prepare an enhanced prompt with document context if available
+    enhanced_prompt = prompt
+    if document_context:
+        enhanced_prompt = f"""Please analyze the following prompt in the context of the provided documents:
+
+DOCUMENTS:
+{document_context}
+
+PROMPT:
+{prompt}
+
+Your task is to analyze the prompt while using the documents as reference material."""
+
+    try:
+        # If we're running with mock service
+        if Config.use_mock:
+            logger.info(f"Using mock service for analysis")
+            if Config.mock_service is None:
+                Config.mock_service = MockLLMService()
+
+            # Use the mock service
+            result = Config.mock_service.analyze(enhanced_prompt, llms, ultra_llm, pattern)
+
+            # Add to cache
+            response_cache[cache_key] = result
+            return result
+
+        # Otherwise use the real orchestrator
+        orchestrator = PatternOrchestrator()
+        logger.info(f"Using real orchestrator with models: {llms}")
+
+        # Call the orchestrator with the (possibly enhanced) prompt
+        result = orchestrator.analyze(enhanced_prompt, llms, ultra_llm, pattern)
+
+        # Add to cache
+        response_cache[cache_key] = result
+        return result
+
+    except Exception as e:
+        logger.error(f"Error analyzing prompt: {str(e)}")
+        logger.error(traceback.format_exc())
+        raise HTTPException(status_code=500, detail=f"Error in analysis: {str(e)}")
+
+async def process_document_context(document_ids: List[str], query: str) -> str:
+    """
+    Process and retrieve relevant content from documents based on the query.
+    Returns a string of relevant content to include in the prompt.
+    """
+    context_parts = []
+
+    for doc_id in document_ids:
+        document_dir = os.path.join(DOCUMENT_STORAGE_PATH, doc_id)
+        metadata_path = os.path.join(document_dir, "metadata.json")
+
+        if not os.path.exists(metadata_path):
+            logger.warning(f"Document {doc_id} not found")
+            continue
+
+        try:
+            # Read metadata
+            with open(metadata_path, "r") as f:
+                metadata = json.load(f)
+
+            file_path = metadata.get("file_path")
+            if not file_path or not os.path.exists(file_path):
+                logger.warning(f"File not found for document {doc_id}")
+                continue
+
+            # Simple document processing - just read the file content
+            # In a real implementation, you'd use semantic search or chunking
+            with open(file_path, "r", encoding="utf-8", errors="ignore") as f:
+                content = f.read()
+
+            # For simplicity, just use the first 1000 characters
+            # In production, this would use proper document processing and relevance ranking
+            doc_context = f"Document: {metadata.get('original_filename', 'Unnamed document')}\n{content[:3000]}\n\n"
+            context_parts.append(doc_context)
+
+        except Exception as e:
+            logger.error(f"Error processing document {doc_id}: {str(e)}")
+            # Continue with other documents
+
+    # Combine all document contexts
+    return "\n".join(context_parts)
 
 # Run server
 if __name__ == "__main__":
