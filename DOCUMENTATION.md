@@ -15,8 +15,7 @@ This index provides a central location for all project documentation, organized 
 
 | Document | Description | Priority |
 |----------|-------------|----------|
-| [CLOUD_DEPLOYMENT.md](./CLOUD_DEPLOYMENT.md) | Guide for deploying to Vercel cloud services | ⭐⭐⭐ HIGH |
-| [CLOUD_DEPLOYMENT_GUIDE.md](./CLOUD_DEPLOYMENT_GUIDE.md) | Detailed cloud deployment procedures | ⭐⭐ MEDIUM |
+| [CLOUD_DEPLOYMENT_COMPLETE.md](./CLOUD_DEPLOYMENT_COMPLETE.md) | Comprehensive guide for deploying to cloud services | ⭐⭐⭐ HIGH |
 | [GIT_UPDATE_INSTRUCTIONS.md](./GIT_UPDATE_INSTRUCTIONS.md) | Instructions for Git repository management | ⭐⭐ MEDIUM |
 | [deploy.sh](./deploy.sh) | General deployment script | ⭐⭐ MEDIUM |
 | [deploy-to-cloud.sh](./deploy-to-cloud.sh) | Frontend cloud deployment script | ⭐⭐⭐ HIGH |
