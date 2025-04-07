@@ -1,52 +1,38 @@
+"""
+Ultra Pattern Orchestrator Module
+
+This module implements the orchestration of different large language models
+for multi-level analysis of prompts using various patterns.
+"""
+# noqa: E501
+# pylint: disable=line-too-long
+
 import asyncio
 from typing import Dict, Any, Optional, List
 import json
-import time
 from datetime import datetime, timedelta
 import logging
-from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
+from tenacity import (
+    retry, stop_after_attempt, wait_exponential, retry_if_exception_type
+)
 import os
 from dotenv import load_dotenv
 from string import Template
 import httpx
-from llama_cpp import Llama
-import sys
-import traceback
 import platform
-import shutil
 import re
 
 from anthropic import AsyncAnthropic
 from openai import AsyncOpenAI
 import google.generativeai as genai
-from google.generativeai import GenerativeModel
 from mistralai.client import MistralClient
 from mistralai.async_client import MistralAsyncClient
 import cohere
 
+from ultra_error_handling import (
+    ValidationError, ConfigurationError, APIError, RateLimitError
+)
 from ultra_analysis_patterns import AnalysisPatterns, AnalysisPattern
-from ultra_error_handling import ValidationError, ConfigurationError, APIError, RateLimitError
-
-# Define custom exception classes
-class UltraError(Exception):
-    """Base exception for Ultra platform errors."""
-    pass
-
-class APIError(UltraError):
-    """Exception for API-related errors."""
-    pass
-
-class RateLimitError(UltraError):
-    """Exception for rate limit violations."""
-    pass
-
-class ConfigurationError(UltraError):
-    """Exception for configuration-related errors."""
-    pass
-
-class ValidationError(UltraError):
-    """Exception for input validation errors."""
-    pass
 
 # Load environment variables
 load_dotenv()
@@ -62,12 +48,22 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+
 class PatternOrchestrator:
-    def __init__(self,
-                 api_keys: Dict[str, str],
-                 pattern: str = "gut",
-                 output_format: str = "plain"):
-        """Initialize the Pattern Orchestrator"""
+    """
+    Orchestrates the execution of analysis patterns using multiple LLMs.
+
+    This class manages API clients, rate limiting, and the execution flow
+    of the various analysis levels in the patterns.
+    """
+
+    def __init__(
+        self,
+        api_keys: Dict[str, str],
+        pattern: str = "gut",
+        output_format: str = "plain"
+    ):
+        """Initialize the Pattern Orchestrator with API keys and pattern."""
         self.logger = logging.getLogger(__name__)
         self.logger.info("Initializing Pattern Orchestrator")
 
@@ -80,10 +76,20 @@ class PatternOrchestrator:
         self.deepseek_key = api_keys.get("deepseek")
         self.mistral_key = api_keys.get("mistral")
 
+        # Ensure pattern is not None
+        pattern_str = pattern if pattern else "gut"
+
         # Load pattern
-        self.pattern = AnalysisPatterns().get_pattern(pattern)
+        self.pattern = AnalysisPatterns().get_pattern(pattern_str)
         if not self.pattern:
-            raise ValidationError(f"Invalid pattern: {pattern}")
+            self.logger.warning(
+                f"Invalid pattern: {pattern_str}, defaulting to 'gut'"
+            )
+            self.pattern = AnalysisPatterns().get_pattern("gut")
+            if not self.pattern:
+                raise ValidationError(
+                    "Failed to load any pattern, including default 'gut'"
+                )
 
         # Set formatter
         self.formatter = self._get_formatter(output_format)
@@ -111,147 +117,187 @@ class PatternOrchestrator:
         self._initialize_clients()
 
     def _initialize_clients(self):
-        """Initialize API clients and check which models are available"""
+        """Initialize API clients for various LLM providers."""
+        self.logger.info("Initializing API clients")
+        self.clients = {}
+
+        # Initialize Anthropic client if key is available
+        if self.anthropic_key:
+            self.clients["anthropic"] = AsyncAnthropic(
+                api_key=self.anthropic_key
+            )
+            self.available_models.append("anthropic")
+            self.logger.info("Anthropic client initialized")
+
+        # Initialize OpenAI client if key is available
+        if self.openai_key:
+            self.clients["openai"] = AsyncOpenAI(api_key=self.openai_key)
+            self.available_models.append("openai")
+            self.logger.info("OpenAI client initialized")
+
+        # Initialize Google client if key is available
+        if self.google_key:
+            genai.configure(api_key=self.google_key)
+            self.clients["google"] = genai
+            self.available_models.append("google")
+            self.logger.info("Google client initialized")
+
+        # Initialize Mistral client if key is available
+        if self.mistral_key:
+            self.clients["mistral"] = MistralClient(
+                api_key=self.mistral_key
+            )
+            self.clients["mistral_async"] = MistralAsyncClient(
+                api_key=self.mistral_key
+            )
+            self.available_models.append("mistral")
+            self.logger.info("Mistral client initialized")
+
+        # Initialize Cohere client if key is available
+        if self.cohere_key:
+            self.clients["cohere"] = cohere.Client(api_key=self.cohere_key)
+            self.available_models.append("cohere")
+            self.logger.info("Cohere client initialized")
+
+        # Check if any clients were initialized
+        if not self.available_models:
+            self.logger.warning(
+                "No API clients initialized. Please provide at least one API key."
+            )
+            raise ConfigurationError(
+                "No API clients initialized. Please provide at least one API key."
+            )
+
+    async def check_ollama_availability(self):
+        """
+        Check if Ollama is available and running locally.
+
+        Returns:
+            bool: True if Ollama is available, False otherwise.
+        """
+        if self.ollama_available is not None:
+            return self.ollama_available
+
         try:
-            # Claude (Anthropic)
-            if self.anthropic_key:
-                try:
-                    # Try initializing with newer Anthropic library versions
-                    self.anthropic = AsyncAnthropic(api_key=self.anthropic_key)
-                except TypeError as e:
-                    if "AsyncClient.__init__() got an unexpected keyword argument" in str(e):
-                        # Handle older versions that don't support certain parameters
-                        import inspect
-                        init_params = inspect.signature(AsyncAnthropic.__init__).parameters
-                        # Only pass parameters that are accepted by this version
-                        kwargs = {}
-                        if 'api_key' in init_params:
-                            kwargs['api_key'] = self.anthropic_key
-
-                        self.anthropic = AsyncAnthropic(**kwargs)
-
-                self.available_models.append("claude")
-                self.last_request["claude"] = datetime.now()
-                self.logger.info("Claude client initialized")
-            else:
-                self.logger.warning("Claude not available - API key missing")
-
-            # ChatGPT (OpenAI)
-            if self.openai_key:
-                self.openai = AsyncOpenAI(api_key=self.openai_key)
-                self.available_models.append("chatgpt")
-                self.last_request["chatgpt"] = datetime.now()
-                self.logger.info("ChatGPT client initialized")
-            else:
-                self.logger.warning("ChatGPT not available - API key missing")
-
-            # Gemini (Google)
-            if self.google_key:
-                genai.configure(api_key=self.google_key)
-                self.available_models.append("gemini")
-                self.last_request["gemini"] = datetime.now()
-                self.logger.info("Gemini client initialized")
-            else:
-                self.logger.warning("Gemini not available - API key missing")
-
-            # Perplexity
-            if self.perplexity_key:
-                self.available_models.append("perplexity")
-                self.last_request["perplexity"] = datetime.now()
-                self.logger.info("Perplexity client initialized")
-            else:
-                self.logger.warning("Perplexity not available - API key missing")
-
-            # Cohere
-            if self.cohere_key:
-                self.cohere = cohere.Client(api_key=self.cohere_key)
-                self.available_models.append("cohere")
-                self.last_request["cohere"] = datetime.now()
-                self.logger.info("Cohere client initialized")
-            else:
-                self.logger.warning("Cohere not available - API key missing")
-
-            # Mistral
-            if self.mistral_key:
-                try:
-                    # Initialize both sync and async clients with newer version
-                    self.mistral = MistralClient(api_key=self.mistral_key)
-                    self.mistral_async = MistralAsyncClient(api_key=self.mistral_key)
-                    self.available_models.append("mistral")
-                    self.last_request["mistral"] = datetime.now()
-                    self.logger.info("Mistral client initialized")
-                except ImportError as e:
-                    self.logger.warning(f"Mistral client import error: {e}")
-                except Exception as e:
-                    self.logger.warning(f"Mistral client initialization error: {e}")
-            else:
-                self.logger.warning("Mistral not available - API key missing")
-
-            # DeepSeek
-            if self.deepseek_key:
-                self.deepseek = AsyncOpenAI(
-                    api_key=self.deepseek_key,
-                    base_url="https://api.deepseek.com/v1"
+            async with httpx.AsyncClient() as client:
+                response = await client.get(
+                    "http://localhost:11434/api/tags",
+                    timeout=2.0
                 )
-                self.available_models.append("deepseek")
-                self.last_request["deepseek"] = datetime.now()
-                self.logger.info("DeepSeek client initialized")
-            else:
-                self.logger.warning("DeepSeek not available - API key missing")
 
-            # Llama will be checked on first use
-            self.last_request["llama"] = datetime.now()
-
-            # Initialize document processor with improved capabilities
-            try:
-                from ultra_documents import UltraDocuments
-                self.documents_processor = UltraDocuments(
-                    api_keys={
-                        "anthropic": self.anthropic_key,
-                        "openai": self.openai_key,
-                        "google": self.google_key,
-                    },
-                    output_format="plain",
-                    cache_enabled=True,
-                    chunk_size=1500,
-                    chunk_overlap=150,
-                    embedding_model="all-MiniLM-L6-v2"  # Lightweight model with good performance
-                )
-                self.logger.info("Enhanced document processor initialized with embedding support")
-            except ImportError as e:
-                self.logger.error(f"Error importing UltraDocuments: {e}")
-                self.documents_processor = None
-            except Exception as e:
-                self.logger.error(f"Error initializing document processor: {e}")
-                self.documents_processor = None
-
-            if not self.available_models:
-                raise ConfigurationError("No API clients could be initialized. Please check your API keys.")
-
-            self.logger.info(f"Available models: {', '.join(self.available_models)}")
-
+                if response.status_code == 200:
+                    models_data = response.json()
+                    models_count = len(models_data.get('models', []))
+                    self.logger.info(
+                        f"Ollama available with {models_count} models"
+                    )
+                    self.available_models.append("ollama")
+                    self.ollama_available = True
+                    return True
+                else:
+                    self.logger.warning(
+                        "Ollama responded but with non-200 status code"
+                    )
+                    self.ollama_available = False
+                    return False
         except Exception as e:
-            self.logger.error(f"Error initializing clients: {e}")
-            raise ConfigurationError(f"Failed to initialize API clients: {str(e)}")
+            self.logger.info(f"Ollama not available: {str(e)}")
+            self.ollama_available = False
+            return False
 
-    async def _check_ollama_availability(self) -> bool:
-        """Check if Ollama is running and accessible"""
-        ports_to_try = [8080, 11434, 8000]
+    async def call_claude(self, prompt: str) -> str:
+        """Call Anthropic's Claude model with a prompt."""
+        await self._respect_rate_limit("claude")
+        try:
+            message = await self.clients["anthropic"].messages.create(
+                model="claude-3-opus-20240229",
+                max_tokens=1000,
+                messages=[{"role": "user", "content": prompt}]
+            )
+            return message.content[0].text
+        except Exception as e:
+            error_msg = str(e)
+            return f"Error calling Claude: {error_msg or 'Unknown error'}"
 
-        for port in ports_to_try:
-            try:
-                async with httpx.AsyncClient(timeout=5.0) as client:
-                    response = await client.get(f"http://localhost:{port}/api/version")
-                    if response.status_code == 200:
-                        self.logger.info(f"Ollama found on port {port}")
-                        # Store the working port for future use
-                        self.ollama_port = port
-                        return True
-            except Exception as e:
-                self.logger.debug(f"Ollama not available on port {port}: {e}")
+    async def call_chatgpt(self, prompt: str) -> str:
+        """Call OpenAI's GPT model with a prompt."""
+        await self._respect_rate_limit("chatgpt")
+        try:
+            response = await self.clients["openai"].chat.completions.create(
+                model="gpt-4-turbo-preview",
+                messages=[{"role": "user", "content": prompt}],
+                temperature=0.7,
+                max_tokens=2000
+            )
+            return response.choices[0].message.content or ""
+        except Exception as e:
+            error_msg = str(e)
+            return f"Error calling ChatGPT: {error_msg or 'Unknown error'}"
 
-        # If we get here, Ollama is not available on any port
-        raise Exception(f"Ollama not available on any of the ports: {ports_to_try}")
+    async def call_cohere(self, prompt: str) -> str:
+        """Call Cohere's API with a prompt."""
+        try:
+            await self._respect_rate_limit("cohere")
+            response = self.clients["cohere"].chat(
+                message=prompt,
+                model="command"
+            )
+            return response.text
+        except Exception as e:
+            error_msg = str(e)
+            return f"Error calling Cohere: {error_msg or 'Unknown error'}"
+
+    async def call_gemini(self, prompt: str) -> str:
+        """Call Google's Gemini model with a prompt."""
+        await self._respect_rate_limit("gemini")
+        try:
+            # Use the generative_models API
+            model = self.clients["google"].GenerativeModel(
+                model_name="gemini-pro"
+            )
+
+            response = model.generate_content(prompt)
+            if hasattr(response, 'text') and response.text:
+                return response.text
+            else:
+                return "No response from Gemini (empty text)"
+        except Exception as e:
+            error_msg = str(e)
+            # Safely handle error without using len() on Exception
+            return f"Error calling Gemini: {error_msg or 'Unknown error'}"
+
+    async def call_perplexity(self, prompt: str) -> str:
+        """Call Perplexity AI API with a prompt."""
+        await self._respect_rate_limit("perplexity")
+        try:
+            headers = {
+                "Authorization": f"Bearer {self.perplexity_key}",
+                "Content-Type": "application/json"
+            }
+            payload = {
+                "model": "llama-3-sonar-large-32k-online",
+                "messages": [{"role": "user", "content": prompt}],
+                "stream": False
+            }
+            async with httpx.AsyncClient(timeout=30.0) as client:
+                response = await client.post(
+                    "https://api.perplexity.ai/chat/completions",
+                    headers=headers,
+                    json=payload
+                )
+                if response.status_code == 200:
+                    data = response.json()
+                    return data["choices"][0]["message"]["content"]
+                else:
+                    error_msg = (
+                        f"Perplexity API error {response.status_code}: "
+                        f"{response.text}"
+                    )
+                    return f"Error: {error_msg}"
+        except Exception as e:
+            error_msg = str(e)
+            # Safely handle error without using len() on Exception
+            return f"Perplexity error: {error_msg or 'Unknown error'}"
 
     @retry(
         stop=stop_after_attempt(3),
@@ -266,7 +312,7 @@ class PatternOrchestrator:
 
         await self._respect_rate_limit("claude")
         try:
-            message = await self.anthropic.messages.create(
+            message = await self.clients["anthropic"].messages.create(
                 model="claude-3-opus-20240229",
                 max_tokens=1000,
                 messages=[{"role": "user", "content": prompt}]
@@ -293,12 +339,14 @@ class PatternOrchestrator:
 
         await self._respect_rate_limit("chatgpt")
         try:
-            response = await self.openai.chat.completions.create(
+            response = await self.clients["openai"].chat.completions.create(
                 model="gpt-4-turbo-preview",
                 messages=[{"role": "user", "content": prompt}],
                 max_tokens=1024
             )
-            return response.choices[0].message.content
+            # Explicitly check for None before returning
+            content = response.choices[0].message.content
+            return content if content is not None else ""
         except Exception as e:
             if "rate limit" in str(e).lower():
                 self.logger.error(f"ChatGPT rate limit exceeded: {e}")
@@ -320,30 +368,32 @@ class PatternOrchestrator:
 
         await self._respect_rate_limit("gemini")
         try:
-            # Different versions of the API have different structures
-            try:
-                # Newer API version
-                model = genai.GenerativeModel('gemini-1.5-pro')
-                response = await model.generate_content_async(prompt)
-                return response.text
-            except (AttributeError, TypeError):
-                # Older API version fallback
-                response = await asyncio.to_thread(
-                    genai.generate_text,
-                    model="gemini-pro",
-                    prompt=prompt,
-                    temperature=0.7
-                )
-                return response.text
-        except Exception as e:
-            if "rate limit" in str(e).lower():
-                self.logger.error(f"Gemini rate limit exceeded: {e}")
-                raise RateLimitError(f"Gemini rate limit exceeded: {e}")
-            else:
-                self.logger.error(f"Error with Gemini API: {e}")
-                raise APIError(f"Error with Gemini API: {e}")
+            # Use the generative_models API
+            model = self.clients["google"].GenerativeModel(
+                model_name="gemini-pro",
+                generation_config={
+                    "temperature": 0.6,
+                    "top_p": 0.95,
+                    "top_k": 40,
+                    "max_output_tokens": 2048,
+                }
+            )
 
-    @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=4, max=10))
+            response = model.generate_content(prompt)
+            if response.text:
+                return response.text
+            else:
+                return "No response from Gemini (empty text)"
+        except Exception as e:
+            error_message = str(e)
+            # Safely check the error message length without using len() on the exception
+            return f"Error calling Gemini: {error_message if error_message else 'Unknown error'}"
+
+    @retry(
+        stop=stop_after_attempt(3),
+        wait=wait_exponential(multiplier=1, min=4, max=10),
+        retry=retry_if_exception_type((APIError, RateLimitError))
+    )
     async def get_perplexity_response(self, prompt: str) -> str:
         """Get response from Perplexity API"""
         try:
@@ -356,22 +406,31 @@ class PatternOrchestrator:
                         "Content-Type": "application/json"
                     },
                     json={
-                        "model": "pplx-7b-online",
-                        "messages": [{"role": "user", "content": prompt}]
+                        "model": "llama-3-sonar-large-32k-online",  # Updated model
+                        "messages": [{"role": "user", "content": prompt}],
+                        "stream": False
                     }
                 )
-                response.raise_for_status()
-                return response.json()["choices"][0]["message"]["content"]
+                if response.status_code == 200:
+                    data = response.json()
+                    return data["choices"][0]["message"]["content"]
+                else:
+                    error_msg = (
+                        f"Perplexity API returned status {response.status_code}: "
+                        f"{response.text}"
+                    )
+                    return f"Error calling Perplexity: {error_msg}"
         except Exception as e:
-            logging.error(f"Error with Perplexity API: {e}")
-            return ""
+            error_message = str(e)
+            # Safely check the error message length without using len() on the exception
+            return f"Error calling Perplexity: {error_message if error_message else 'Unknown error'}"
 
     @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=4, max=10))
     async def get_cohere_response(self, prompt: str) -> str:
         """Get response from Cohere API"""
         try:
             await self._respect_rate_limit("cohere")
-            response = self.cohere.chat(
+            response = self.clients["cohere"].chat(
                 message=prompt,
                 model="command"
             )
@@ -394,7 +453,7 @@ class PatternOrchestrator:
         # Check Ollama availability if we haven't yet
         if self.ollama_available is None:
             try:
-                await self._check_ollama_availability()
+                await self.check_ollama_availability()
                 self.ollama_available = True
                 if "llama" not in self.available_models:
                     self.available_models.append("llama")
@@ -469,7 +528,7 @@ class PatternOrchestrator:
         await self._respect_rate_limit("mistral")
         try:
             # Use the async client for non-blocking operation
-            response = await self.mistral_async.chat(
+            response = await self.clients["mistral_async"].chat(
                 model="mistral-large-latest",
                 messages=[{"role": "user", "content": prompt}],
                 max_tokens=1024
@@ -494,7 +553,7 @@ class PatternOrchestrator:
                 "claude": 1.0,    # 60 RPM (requests per minute)
                 "chatgpt": 3.0,   # 20 RPM
                 "gemini": 1.0,    # 60 RPM
-                "perplexity": 3.0, # 20 RPM
+                "perplexity": 3.0,  # 20 RPM
                 "cohere": 2.0,    # 30 RPM
                 "mistral": 2.0,   # 30 RPM
                 "deepseek": 1.0,  # 60 RPM
@@ -517,6 +576,13 @@ class PatternOrchestrator:
     def _create_stage_prompt(self, stage: str, context: Dict[str, Any]) -> str:
         """Create a prompt for a specific analysis stage"""
         try:
+            # Check if pattern exists and has templates
+            if not self.pattern:
+                raise ValidationError(f"No pattern defined for stage: {stage}")
+
+            if not hasattr(self.pattern, 'templates'):
+                raise ValidationError(f"Pattern does not have templates attribute for stage: {stage}")
+
             template = self.pattern.templates.get(stage)
             if not template:
                 raise ValidationError(f"Unknown stage: {stage}")
@@ -610,9 +676,14 @@ class PatternOrchestrator:
             if isinstance(response, Exception):
                 self.logger.error(f"Error from {model}: {response}")
                 continue
-            if response:  # Only add non-empty responses
-                self.logger.info(f"Got response from {model} ({len(response)} chars)")
-                results[model] = response
+
+            # Safely check if response is valid and has a length
+            if response and not isinstance(response, Exception):
+                try:
+                    self.logger.info(f"Got response from {model} ({len(str(response))} chars)")
+                    results[model] = str(response)
+                except Exception as e:
+                    self.logger.error(f"Error processing response from {model}: {e}")
             else:
                 self.logger.warning(f"Empty response from {model}")
 
@@ -669,9 +740,14 @@ class PatternOrchestrator:
             if isinstance(response, Exception):
                 self.logger.error(f"Error getting meta response from {model}: {response}")
                 continue
-            if response:
-                self.logger.info(f"Got meta response from {model} ({len(response)} chars)")
-                meta_responses[model] = response
+
+            # Safe response handling
+            if response and not isinstance(response, Exception):
+                try:
+                    self.logger.info(f"Got meta response from {model} ({len(str(response))} chars)")
+                    meta_responses[model] = str(response)
+                except Exception as e:
+                    self.logger.error(f"Error processing meta response from {model}: {e}")
             else:
                 self.logger.warning(f"Empty meta response from {model}")
 
@@ -823,7 +899,9 @@ class PatternOrchestrator:
 
     async def orchestrate_full_process(self, prompt: str) -> Dict[str, Any]:
         """Execute the full orchestration process"""
-        self.logger.info(f"Running pattern: {self.pattern.name}")
+        # Safely access pattern name
+        pattern_name = self.pattern.name if self.pattern and hasattr(self.pattern, 'name') else "unknown_pattern"
+        self.logger.info(f"Running pattern: {pattern_name}")
 
         # Create a session directory for this analysis
         self._create_session_directory(prompt)
@@ -862,12 +940,15 @@ class PatternOrchestrator:
         # Save ultra response
         self._save_response(ultra_response, "ultra")
 
+        # Use a default value if ultra_model is None
+        ultra_model_safe = self.ultra_model if self.ultra_model else "unknown"
+
         # Save metadata
         self._save_metadata(
             prompt=prompt,
-            pattern=self.pattern.name,
+            pattern=pattern_name,
             models=list(initial_responses.keys()),
-            ultra_model=self.ultra_model
+            ultra_model=ultra_model_safe
         )
 
         self.logger.info("Pattern execution complete")
@@ -876,9 +957,8 @@ class PatternOrchestrator:
         performance_metrics = {
             "num_models": len(initial_responses),
             "models_used": list(initial_responses.keys()),
-            "ultra_model": self.ultra_model,
-            "pattern": self.pattern.name,
-            "timestamp": datetime.now().isoformat(),
+            "ultra_model": ultra_model_safe,
+            "pattern": pattern_name,
             "has_attachments": len(self.file_attachments) > 0,
             "num_attachments": len(self.file_attachments),
             "attachment_files": [os.path.basename(f) for f in self.file_attachments]
@@ -890,7 +970,7 @@ class PatternOrchestrator:
 
         # Create output mapping for returning
         result = {
-            "pattern": self.pattern.name,
+            "pattern": pattern_name,
             "initial_responses": initial_responses,
             "meta_responses": meta_responses,
             "hyper_responses": hyper_responses,
@@ -912,7 +992,7 @@ class PatternOrchestrator:
 
         return result
 
-    def _get_pattern(self, pattern: str) -> Dict[str, Any]:
+    def _get_pattern(self, pattern: str) -> Optional[AnalysisPattern]:
         """Get the analysis pattern configuration"""
         patterns = {
             "gut": AnalysisPatterns().get_pattern("gut"),
@@ -940,7 +1020,9 @@ class PatternOrchestrator:
     # Main execution function
     async def execute(self, prompt: str) -> str:
         """Execute the full pattern-based orchestration for a given prompt"""
-        self.logger.info(f"Running pattern: {self.pattern.name}")
+        # Safely access pattern name
+        pattern_name = self.pattern.name if self.pattern and hasattr(self.pattern, 'name') else "unknown_pattern"
+        self.logger.info(f"Running pattern: {pattern_name}")
 
         # Initial responses
         self.logger.info("Getting initial responses...")
@@ -983,7 +1065,7 @@ class PatternOrchestrator:
         self.current_session_dir = session_dir
         return session_dir
 
-    def _save_response(self, response: str, stage: str, model: str = None):
+    def _save_response(self, response: str, stage: str, model: Optional[str] = None):
         """Save a response to a file in the current session directory"""
         if not self.current_session_dir:
             self.logger.warning("No session directory available, cannot save response")
@@ -1113,13 +1195,21 @@ class PatternOrchestrator:
 
                 # Remove the generic prompt and instructions as we'll add our own
                 if "--- RELEVANT DOCUMENT EXCERPTS ---" in enhanced_prompt:
-                    _, content = enhanced_prompt.split("--- RELEVANT DOCUMENT EXCERPTS ---", 1)
-                    content, _ = content.split("Please provide a comprehensive response", 1)
-                    return content.strip()
+                    try:
+                        _, content = enhanced_prompt.split("--- RELEVANT DOCUMENT EXCERPTS ---", 1)
+                        content, _ = content.split("Please provide a comprehensive response", 1)
+                        return content.strip()
+                    except ValueError:
+                        # If split fails, return the whole content
+                        return enhanced_prompt
                 elif "--- CONTENT FROM ATTACHED DOCUMENTS ---" in enhanced_prompt:
-                    _, content = enhanced_prompt.split("--- CONTENT FROM ATTACHED DOCUMENTS ---", 1)
-                    content, _ = content.split("Based on the above documents", 1)
-                    return content.strip()
+                    try:
+                        _, content = enhanced_prompt.split("--- CONTENT FROM ATTACHED DOCUMENTS ---", 1)
+                        content, _ = content.split("Based on the above documents", 1)
+                        return content.strip()
+                    except ValueError:
+                        # If split fails, return the whole content
+                        return enhanced_prompt
 
                 # Fallback: return the whole processed prompt
                 return enhanced_prompt
@@ -1249,10 +1339,14 @@ async def main():
             analysis_patterns.get_pattern("innovation")
         ]
 
+        # Filter out None patterns
+        patterns = [p for p in patterns if p is not None]
+
         # Display available patterns
         print("\nAvailable analysis patterns:")
         for i, pattern in enumerate(patterns, 1):
-            print(f"{i}. {pattern.name}")
+            pattern_name = pattern.name if hasattr(pattern, 'name') else f"Pattern {i}"
+            print(f"{i}. {pattern_name}")
 
         # Get user choice
         choice = int(input("\nEnter your choice (1-10): ")) - 1
@@ -1261,6 +1355,7 @@ async def main():
             return
 
         pattern = patterns[choice]
+        pattern_name = pattern.name if hasattr(pattern, 'name') else "unknown"
 
         # Get user choice for ultra model
         print("\nSelect the LLM for ultra synthesis:")
@@ -1292,15 +1387,24 @@ async def main():
             "Scenario Analysis": "scenario"
         }
 
-        pattern_id = pattern_name_map.get(pattern.name)
+        # Get pattern ID safely
+        pattern_id = pattern_name_map.get(pattern_name) if pattern_name in pattern_name_map else "gut"
+
+        # Filter None values from API keys
+        api_keys = {
+            "anthropic": os.getenv("ANTHROPIC_API_KEY", ""),
+            "openai": os.getenv("OPENAI_API_KEY", ""),
+            "google": os.getenv("GOOGLE_API_KEY", ""),
+            "perplexity": os.getenv("PERPLEXITY_API_KEY", ""),
+            "cohere": os.getenv("COHERE_API_KEY", ""),
+            "mistral": os.getenv("MISTRAL_API_KEY", ""),
+            "deepseek": os.getenv("DEEPSEEK_API_KEY", "")
+        }
+        # Remove empty keys
+        api_keys = {k: v for k, v in api_keys.items() if v}
+
         orchestrator = PatternOrchestrator(
-            api_keys={
-                "anthropic": os.getenv("ANTHROPIC_API_KEY"),
-                "openai": os.getenv("OPENAI_API_KEY"),
-                "google": os.getenv("GOOGLE_API_KEY"),
-                "perplexity": os.getenv("PERPLEXITY_API_KEY"),
-                "cohere": os.getenv("COHERE_API_KEY")
-            },
+            api_keys=api_keys,
             pattern=pattern_id,
             output_format="markdown"
         )
@@ -1333,11 +1437,13 @@ async def main():
 
         # Get user prompt
         default_prompt = "What are the most common misconceptions about artificial intelligence?"
-        user_prompt = input(f"\nEnter your prompt (press Enter to use default): ")
+        user_prompt = input("\nEnter your prompt (press Enter to use default): ")
         if not user_prompt:
             user_prompt = default_prompt
 
-        print(f"\nStarting {pattern.name} process with {ultra_model.upper()} for ultra synthesis...")
+        # Safe access to pattern name
+        start_pattern_name = pattern.name if hasattr(pattern, 'name') else "unknown"
+        print(f"\nStarting {start_pattern_name} process with {ultra_model.upper()} for ultra synthesis...")
         if orchestrator.file_attachments:
             print(f"Including {len(orchestrator.file_attachments)} attached files in the analysis.")
 

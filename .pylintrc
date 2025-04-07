@@ -1,0 +1,51 @@
+[MASTER]
+ignore=CVS
+ignore-patterns=
+persistent=yes
+load-plugins=
+
+[MESSAGES CONTROL]
+disable=
+    C0103, # invalid-name
+    C0111, # missing-docstring
+    C0303, # trailing-whitespace
+    C0330, # bad-continuation
+    C0326, # bad-whitespace
+    C0305, # trailing-newlines
+    E0401, # import-error
+    E1101, # no-member
+    R0201, # no-self-use
+    R0903, # too-few-public-methods
+    R0913, # too-many-arguments
+    R0914, # too-many-locals
+    W0613, # unused-argument
+    W0703, # broad-except
+    C0301, # line-too-long
+    C0303, # trailing-whitespace
+    C0411, # wrong-import-order
+    W0212, # protected-access
+    W0621, # redefined-outer-name
+    E0611, # no-name-in-module
+    E1136, # unsubscriptable-object
+
+[FORMAT]
+max-line-length=150
+ignore-long-lines=^\s*(# )?<?https?://\S+>?$
+single-line-if-stmt=yes
+indent-string='    '
+indent-after-paren=4
+
+[TYPECHECK]
+ignored-modules=numpy,torch,tensorflow,cv2
+ignored-classes=numpy,torch,tensorflow,cv2
+
+[DESIGN]
+max-args=10
+max-locals=20
+max-returns=10
+max-branches=15
+max-statements=100
+max-parents=7
+max-attributes=15
+min-public-methods=0
+max-public-methods=30
