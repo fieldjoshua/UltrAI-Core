@@ -1,0 +1,7 @@
+{
+  "start_time": "2024-11-18T19:22:23.580974",
+  "end_time": "2024-11-18T19:25:50.078987",
+  "prompt": "identify the top 10 futyre looking articles written about what the future with AGI will look like",
+  "keyword": "identify",
+  "success": true
+}

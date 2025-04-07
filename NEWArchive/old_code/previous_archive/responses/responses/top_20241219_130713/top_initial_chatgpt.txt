@@ -1,0 +1,53 @@
+As of my last update in September 2023, here's a list of renowned incubators known for supporting AI startups. The incubation landscape is quite dynamic, with programs, deadlines, and focuses evolving frequently. It's crucial to check their official websites for the most current information, including application deadlines which often vary yearly or by cohort.
+
+1. **Y Combinator (YC)**
+   - **Focus**: Broad, including AI and tech startups.
+   - **Deadlines**: They typically run two batches a year, with applications roughly due in March for the Summer batch and in September for the Winter batch.
+   - **Link**: [https://www.ycombinator.com/](https://www.ycombinator.com/)
+
+2. **Techstars**
+   - **Focus**: Wide range, with certain programs specifically dedicated to AI and machine learning.
+   - **Deadlines**: They have multiple programs worldwide with different deadlines.
+   - **Link**: [https://www.techstars.com/](https://www.techstars.com/)
+
+3. **AI Seed**
+   - **Focus**: Specifically targets AI and machine learning startups in their early stages.
+   - **Deadlines**: No specific deadlines mentioned; applications seem to be on a rolling basis.
+   - **Link**: [https://www.aiseed.co/](https://www.aiseed.co/)
+
+4. **Entrepreneur First (EF)**
+   - **Focus**: Focuses on individuals and teams building technology startups, including AI.
+   - **Deadlines**: They run cohorts in several major cities globally, with various application dates.
+   - **Link**: [https://www.joinef.com/](https://www.joinef.com/)
+
+5. **DataTribe**
+   - **Focus**: They specialize in cybersecurity, big data, and analytics startups, which often include AI components.
+   - **Deadlines**: They accept applications on a rolling basis.
+   - **Link**: [https://datatribe.com/](https://datatribe.com/)
+
+6. **Intel Ignite**
+   - **Focus**: Tech startups, including AI and machine learning, offering a 12-week program for early-stage companies.
+   - **Deadlines**: Varies by location and year.
+   - **Link**: [https://www.intel.com/content/www/us/en/ignite/intel-ignite.html](https://www.intel.com/content/www/us/en/ignite/intel-ignite.html)
+
+7. **Plug and Play Tech Center**
+   - **Focus**: Broad, including Internet of Things (IoT), fintech, healthtech, and AI.
+   - **Deadlines**: Multiple programs and locations with varying deadlines.
+   - **Link**: [https://www.plugandplaytechcenter.com/](https://www.plugandplaytechcenter.com/)
+
+8. **The AI2 Incubator**
+   - **Focus**: AI startups, providing mentoring and funding, especially in natural language processing and computer vision.
+   - **Deadlines**: Rolling basis application.
+   - **Link**: [https://incubator.allenai.org/](https://incubator.allenai.org/)
+
+9. **Next AI**
+   - **Focus**: Early-stage AI startups, offering funding, mentorship, and resources.
+   - **Deadlines**: Typically, the application period is till early January each year for the program starting in March.
+   - **Link**: [https://www.nextcanada.com/next-ai/](https://www.nextcanada.com/next-ai/)
+
+10. **NVIDIA Inception**
+    - **Focus**: AI startups at different stages, providing unique tools, technology, and resources.
+    - **Deadlines**: Open enrollment, not cohort-based.
+    - **Link**: [https://www.nvidia.com/en-us/startups/](https://www.nvidia.com/en-us/startups/)
+
+Before applying, make sure to carefully review each program’s specific focus areas and prerequisites. The best fit for your AI startup may depend on your industry, development stage, geographic location, and the specific resources or networking opportunities you're seeking.

@@ -1,0 +1,203 @@
+**Technical Field**
+
+The present invention relates to systems and methods for orchestrating multiple AI models to generate enhanced responses to user prompts.
+
+**Background**
+
+AI-powered language models have become increasingly popular for performing a variety of tasks, such as generating text, translating languages, and answering questions. However, individual AI models often have limitations, such as being biased, inaccurate, or lacking creativity.
+
+**Summary of the Invention**
+
+The present invention provides a system and method for orchestrating multiple AI models to generate enhanced responses to user prompts. The system includes a plurality of AI models, each of which is specialized in a different domain or task. The system also includes a controller that coordinates the execution of the AI models and combines their outputs to generate a single, enhanced response.
+
+**Detailed Description**
+
+The TriLLM Orchestrator is a system that orchestrates multiple AI models to generate enhanced responses to user prompts. The system includes the following components:
+
+* A plurality of AI models, each of which is specialized in a different domain or task.
+* A controller that coordinates the execution of the AI models and combines their outputs to generate a single, enhanced response.
+* A user interface that allows users to input prompts and receive responses from the system.
+
+The controller is responsible for coordinating the execution of the AI models. The controller first receives a user prompt from the user interface. The controller then selects a subset of AI models that are most likely to be able to generate a relevant response to the prompt. The controller then sends the prompt to the selected AI models and waits for them to return their outputs.
+
+Once the controller has received the outputs from the AI models, it combines them to generate a single, enhanced response. The controller may use a variety of methods to combine the outputs, such as averaging the outputs, selecting the best output, or generating a new output that is based on the outputs of the AI models.
+
+The TriLLM Orchestrator provides a number of advantages over traditional AI models. First, the TriLLM Orchestrator is able to generate more accurate and comprehensive responses than individual AI models. This is because the TriLLM Orchestrator is able to leverage the strengths of multiple AI models to compensate for the weaknesses of individual AI models.
+
+Second, the TriLLM Orchestrator is able to generate more creative and innovative responses than individual AI models. This is because the TriLLM Orchestrator is able to combine the outputs of multiple AI models to generate new ideas and perspectives.
+
+Third, the TriLLM Orchestrator is able to generate responses that are more tailored to the needs of individual users. This is because the TriLLM Orchestrator is able to take into account the user's preferences and context when generating responses.
+
+**Claims**
+
+1. A system for orchestrating multiple AI models to generate enhanced responses to user prompts, comprising:
+    * a plurality of AI models, each of which is specialized in a different domain or task;
+    * a controller that coordinates the execution of the AI models and combines their outputs to generate a single, enhanced response; and
+    * a user interface that allows users to input prompts and receive responses from the system.
+2. The system of claim 1, wherein the controller selects a subset of AI models that are most likely to be able to generate a relevant response to a user prompt.
+3. The system of claim 1, wherein the controller combines the outputs of the AI models to generate a single, enhanced response by averaging the outputs.
+4. The system of claim 1, wherein the controller combines the outputs of the AI models to generate a single, enhanced response by selecting the best output.
+5. The system of claim 1, wherein the controller combines the outputs of the AI models to generate a single, enhanced response by generating a new output that is based on the outputs of the AI models.
+6. A method for orchestrating multiple AI models to generate enhanced responses to user prompts, comprising:
+    * receiving a user prompt;
+    * selecting a subset of AI models that are most likely to be able to generate a relevant response to the user prompt;
+    * sending the user prompt to the selected AI models;
+    * receiving the outputs from the AI models; and
+    * combining the outputs to generate a single, enhanced response.
+7. The method of claim 6, wherein the outputs are combined by averaging the outputs.
+8. The method of claim 6, wherein the outputs are combined by selecting the best output.
+9. The method of claim 6, wherein the outputs are combined by generating a new output that is based on the outputs of the AI models.
+
+**Code Implementation**
+
+The following code is an implementation of the TriLLM Orchestrator in Python:
+
+```python
+import asyncio
+from typing import Dict, Any, Optional, List
+import json
+import time
+from datetime import datetime
+from dataclasses import dataclass, asdict
+from string import Template
+import logging
+from tenacity import retry, stop_after_attempt, wait_exponential
+import os
+from dotenv import load_dotenv
+import openai
+import google.generativeai as genai
+import requests
+
+# Load environment variables
+load_dotenv()
+
+print("Testing API clients individually...")
+
+# Test Llama
+try:
+    response = requests.post('http://localhost:11434/api/generate',
+        json={
+            'model': 'llama2',
+            'prompt': 'test',
+            'stream': False
+        }
+    )
+    print("Llama client initialized successfully")
+except Exception as e:
+    print(f"Llama Error: {str(e)}")
+
+# Test OpenAI
+try:
+    oai = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+    print("OpenAI client initialized successfully")
+except Exception as e:
+    print(f"OpenAI Error: {str(e)}")
+
+# Test Google
+try:
+    genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
+    gemini = genai.GenerativeModel('gemini-pro')
+    print("Gemini client initialized successfully")
+except Exception as e:
+    print(f"Gemini Error: {str(e)}")
+
+# Continue with rest of your code...
+
+# Debug environment variables immediately
+print("Checking environment variables...")
+api_keys = {
+    "openai": os.getenv("OPENAI_API_KEY"),
+    "google": os.getenv("GOOGLE_API_KEY")
+}
+
+for name, key in api_keys.items():
+    if key:
+        print(f"{name}: {key[:4]}...{key[-4:]}")
+    else:
+        print(f"{name}: NOT FOUND")
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+@dataclass
+class PromptTemplate:
+    meta_round: str = """Original prompt: $original_prompt
+
+Here are responses from three different LLMs to this prompt:
+
+Llama's response:
+$llama_response
+
+ChatGPT's response:
+$chatgpt_response
+
+Gemini's response:
+$gemini_response
+
+Please provide an improved response that:
+1. $meta_instruction_1
+2. $meta_instruction_2
+3. $meta_instruction_3
+4. $meta_instruction_4
+5. $meta_instruction_5"""
+
+    ultra_round: str = """Original prompt: $original_prompt
+
+Here are the meta-responses where each LLM improved upon the initial responses:
+
+Llama's meta-response:
+$llama_meta
+
+ChatGPT's meta-response:
+$chatgpt_meta
+
+Gemini's meta-response:
+$gemini_meta
+
+Please synthesize these meta-responses into a single optimal response that:
+1. $ultra_instruction_1
+2. $ultra_instruction_2
+3. $ultra_instruction_3
+4. $ultra_instruction_4"""
+
+    meta_instructions: List[str] = None
+    ultra_instructions: List[str] = None
+
+    def __post_init__(self):
+        if self.meta_instructions is None:
+            self.meta_instructions = [
+                "Incorporates the unique insights from each response",
+                "Addresses any limitations or gaps in the individual responses",
+                "Resolves any contradictions between the responses",
+                "Maintains accuracy while being more comprehensive",
+                "Is clearly structured and well-organized"
+            ]
+        if self.ultra_instructions is None:
+            self.ultra_instructions = [
+                "Captures the most valuable insights from all meta-responses",
+                "Eliminates redundancy and reconciles any remaining contradictions",
+                "Presents the information in the most effective and coherent way",
+                "Represents the best possible answer to the original prompt"
+            ]
+
+@dataclass
+class RateLimits:
+    llama_rpm: int = 100
+    chatgpt_rpm: int = 200
+    gemini_rpm: int = 60
+
+class ResponseFormatter:
+    @staticmethod
+    def format_markdown(response: str) -> str:
+        return f"```markdown\n{response}\n```"
+    
+    @staticmethod
+    def format_json(response: str) -> str:
+        return json.dumps({"response": response}, indent=2)
+    
+    @staticmethod
+    def format_plain(response: str) -> str:
+        return response
+
+class TriLLM
