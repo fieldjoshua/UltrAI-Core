@@ -25,7 +25,7 @@ Performance Dashboard: http://localhost:3000/dashboard
 ## Key Features
 
 - **Multiple Analysis Patterns**: Gut Analysis, Confidence Analysis, Critique Analysis, Fact Check Analysis, Perspective Analysis, and Scenario Analysis
-- **Multi-Model Orchestration**: Utilizes multiple LLMs (Claude, ChatGPT, Gemini, etc.) in parallel 
+- **Multi-Model Orchestration**: Utilizes multiple LLMs (Claude, ChatGPT, Gemini, etc.) in parallel
 - **Multi-Level Processing**: Initial, meta, hyper, and ultra level analysis for thorough reasoning
 - **Local Output Storage**: All outputs are saved to disk for review and analysis
 - **File Attachment Support**: Analyze documents by attaching files to provide context for LLMs
@@ -177,3 +177,9 @@ The Ultra Framework includes a detailed performance monitoring dashboard that pr
 - Auto-refreshes every 5 seconds to show real-time data
 
 For detailed information about the Performance Dashboard, see [PERFORMANCE_DASHBOARD.md](PERFORMANCE_DASHBOARD.md).
+
+## Documentation
+
+For a comprehensive view of all project documentation, please see [DOCUMENTATION.md](./DOCUMENTATION.md) which contains a categorized index of all documentation files along with their priority levels.
+
+The documentation index also includes the current development priorities based on our roadmap.
