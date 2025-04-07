@@ -1295,6 +1295,214 @@ async def process_document_context(document_ids: List[str], query: str) -> str:
     # Combine all document contexts
     return "\n".join(context_parts)
 
+# Document chunking endpoints
+@app.post("/api/create-document-session")
+async def create_document_session(request: Request):
+    """Initialize a chunked document upload session"""
+    try:
+        # Parse request data
+        body = await request.json()
+        file_name = body.get("fileName")
+        file_size = body.get("fileSize")
+        total_chunks = body.get("totalChunks")
+        session_id = body.get("sessionId")
+
+        # Validate inputs
+        if not all([file_name, file_size, total_chunks, session_id]):
+            return JSONResponse(
+                status_code=400,
+                content={"success": False, "message": "Missing required parameters"}
+            )
+
+        # Create session directory
+        session_dir = os.path.join("temp_uploads", session_id)
+        os.makedirs(session_dir, exist_ok=True)
+
+        # Save session metadata
+        metadata = {
+            "file_name": file_name,
+            "file_size": file_size,
+            "total_chunks": total_chunks,
+            "received_chunks": 0,
+            "created_at": datetime.now().isoformat(),
+            "status": "initialized"
+        }
+
+        with open(os.path.join(session_dir, "metadata.json"), "w") as f:
+            json.dump(metadata, f)
+
+        return JSONResponse(
+            content={"success": True, "message": "Upload session created", "session_id": session_id}
+        )
+
+    except Exception as e:
+        logger.error(f"Error creating document session: {str(e)}")
+        return JSONResponse(
+            status_code=500,
+            content={"success": False, "message": f"Error: {str(e)}"}
+        )
+
+@app.post("/api/upload-document-chunk")
+async def upload_document_chunk(
+    chunk: UploadFile = File(...),
+    sessionId: str = Form(...),
+    chunkIndex: str = Form(...),
+    fileName: str = Form(...)
+):
+    """Upload a chunk of a document"""
+    try:
+        # Verify session exists
+        session_dir = os.path.join("temp_uploads", sessionId)
+        if not os.path.exists(session_dir):
+            return JSONResponse(
+                status_code=400,
+                content={"success": False, "message": "Session not found"}
+            )
+
+        # Verify metadata
+        metadata_path = os.path.join(session_dir, "metadata.json")
+        if not os.path.exists(metadata_path):
+            return JSONResponse(
+                status_code=400,
+                content={"success": False, "message": "Session metadata not found"}
+            )
+
+        # Load metadata
+        with open(metadata_path, "r") as f:
+            metadata = json.load(f)
+
+        # Save the chunk
+        chunk_index = int(chunkIndex)
+        chunk_path = os.path.join(session_dir, f"chunk_{chunk_index}")
+
+        # Write chunk to file
+        with open(chunk_path, "wb") as f:
+            chunk_content = await chunk.read()
+            f.write(chunk_content)
+
+        # Update metadata
+        metadata["received_chunks"] = metadata.get("received_chunks", 0) + 1
+        with open(metadata_path, "w") as f:
+            json.dump(metadata, f)
+
+        return JSONResponse(content={
+            "success": True,
+            "message": f"Chunk {chunk_index} received",
+            "received": metadata["received_chunks"],
+            "total": metadata["total_chunks"]
+        })
+
+    except Exception as e:
+        logger.error(f"Error uploading chunk: {str(e)}")
+        return JSONResponse(
+            status_code=500,
+            content={"success": False, "message": f"Error: {str(e)}"}
+        )
+    finally:
+        await chunk.close()
+
+@app.post("/api/finalize-document-upload")
+async def finalize_document_upload(request: Request):
+    """Finalize a chunked document upload by combining all chunks"""
+    try:
+        # Parse request data
+        body = await request.json()
+        session_id = body.get("sessionId")
+        file_name = body.get("fileName")
+
+        # Validate inputs
+        if not all([session_id, file_name]):
+            return JSONResponse(
+                status_code=400,
+                content={"success": False, "message": "Missing required parameters"}
+            )
+
+        # Verify session exists
+        session_dir = os.path.join("temp_uploads", session_id)
+        if not os.path.exists(session_dir):
+            return JSONResponse(
+                status_code=400,
+                content={"success": False, "message": "Session not found"}
+            )
+
+        # Load metadata
+        metadata_path = os.path.join(session_dir, "metadata.json")
+        with open(metadata_path, "r") as f:
+            metadata = json.load(f)
+
+        # Verify all chunks received
+        received_chunks = metadata.get("received_chunks", 0)
+        total_chunks = metadata.get("total_chunks", 0)
+
+        if received_chunks != total_chunks:
+            return JSONResponse(
+                status_code=400,
+                content={
+                    "success": False,
+                    "message": f"Not all chunks received ({received_chunks}/{total_chunks})"
+                }
+            )
+
+        # Generate a unique ID for the document
+        document_id = str(uuid.uuid4())
+
+        # Create document storage path with the UUID
+        document_dir = os.path.join(DOCUMENT_STORAGE_PATH, document_id)
+        os.makedirs(document_dir, exist_ok=True)
+
+        # Combine all chunks into the final file
+        file_path = os.path.join(document_dir, file_name)
+        with open(file_path, "wb") as outfile:
+            for i in range(total_chunks):
+                chunk_path = os.path.join(session_dir, f"chunk_{i}")
+                if os.path.exists(chunk_path):
+                    with open(chunk_path, "rb") as chunk_file:
+                        outfile.write(chunk_file.read())
+
+        # Get file size
+        file_size = os.path.getsize(file_path)
+
+        # Create document metadata
+        doc_metadata = {
+            "id": document_id,
+            "original_filename": file_name,
+            "file_path": file_path,
+            "file_size": file_size,
+            "file_type": os.path.splitext(file_name)[1].lower(),
+            "upload_timestamp": datetime.now().isoformat(),
+            "processing_status": "ready",
+            "chunked_upload": True,
+            "upload_session_id": session_id
+        }
+
+        # Save document metadata
+        with open(os.path.join(document_dir, "metadata.json"), "w") as f:
+            json.dump(doc_metadata, f, indent=2)
+
+        # Clean up the session directory
+        try:
+            shutil.rmtree(session_dir)
+        except Exception as e:
+            logger.warning(f"Could not clean up session directory: {str(e)}")
+
+        return JSONResponse(content={
+            "success": True,
+            "message": "Document upload completed successfully",
+            "id": document_id,
+            "name": file_name,
+            "size": file_size,
+            "type": os.path.splitext(file_name)[1].lower(),
+            "status": "uploaded"
+        })
+
+    except Exception as e:
+        logger.error(f"Error finalizing document upload: {str(e)}")
+        logger.error(traceback.format_exc())
+        return JSONResponse(
+            status_code=500,
+            content={"success": False, "message": f"Error: {str(e)}"}
+        )
+
 # Run server
 if __name__ == "__main__":
     # Parse command line arguments

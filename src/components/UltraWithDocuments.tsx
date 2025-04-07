@@ -254,12 +254,30 @@ export default function UltraWithDocuments() {
     setProgressMessage(message);
   };
 
-  // Handle file selection
+  // Handle file selection with size validation
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const fileList = e.target.files;
     if (fileList) {
-      const newFiles = Array.from(fileList);
-      setDocuments(prev => [...prev, ...newFiles]);
+      // Check if any file exceeds the size limit (4MB for cloud environment)
+      const MAX_FILE_SIZE = 4 * 1024 * 1024; // 4MB in bytes
+      const validFiles: File[] = [];
+      let hasOversize = false;
+
+      Array.from(fileList).forEach(file => {
+        if (file.size > MAX_FILE_SIZE) {
+          hasOversize = true;
+        } else {
+          validFiles.push(file);
+        }
+      });
+
+      if (hasOversize) {
+        setError(`Some files exceed the 4MB size limit. Only files smaller than 4MB will be uploaded.`);
+      }
+
+      if (validFiles.length > 0) {
+        setDocuments(prev => [...prev, ...validFiles]);
+      }
     }
 
     // Reset file input
@@ -273,7 +291,7 @@ export default function UltraWithDocuments() {
     setDocuments(docs => docs.filter((_, index) => index !== indexToRemove));
   };
 
-  // Upload documents to server
+  // Upload documents to server with chunking for large files
   const uploadDocuments = async () => {
     if (documents.length === 0) return;
 
@@ -282,32 +300,132 @@ export default function UltraWithDocuments() {
     for (let i = 0; i < documents.length; i++) {
       const file = documents[i];
       const formData = new FormData();
-      formData.append('file', file);
 
-      try {
-        // Track upload progress
-        setUploadProgress(prev => ({ ...prev, [file.name]: 0 }));
-
-        const response = await axiosWithRetry.post('/api/upload-document', formData, {
-          onUploadProgress: (progressEvent) => {
-            if (progressEvent.total) {
-              const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
-              setUploadProgress(prev => ({ ...prev, [file.name]: percentCompleted }));
-            }
-          }
-        });
-
-        if (response.data && response.data.id) {
-          setUploadedDocuments(prev => [...prev, { id: response.data.id, name: file.name }]);
+      // For text files, we might want to chunk large files
+      if (file.type === 'text/plain' && file.size > 1024 * 1024) { // >1MB
+        try {
+          // Use chunked upload for large text files
+          await uploadLargeTextFile(file);
+        } catch (err: any) {
+          setError(`Failed to upload ${file.name}: ${err.message}`);
         }
-      } catch (err: any) {
-        setError(`Failed to upload ${file.name}: ${err.message}`);
-        // Continue with other files even if one fails
+      } else {
+        // Standard upload for smaller files
+        formData.append('file', file);
+
+        try {
+          // Track upload progress
+          setUploadProgress(prev => ({ ...prev, [file.name]: 0 }));
+
+          const response = await axiosWithRetry.post('/api/upload-document', formData, {
+            onUploadProgress: (progressEvent) => {
+              if (progressEvent.total) {
+                const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+                setUploadProgress(prev => ({ ...prev, [file.name]: percentCompleted }));
+              }
+            }
+          });
+
+          if (response.data && response.data.id) {
+            setUploadedDocuments(prev => [...prev, { id: response.data.id, name: file.name }]);
+          }
+        } catch (err: any) {
+          setError(`Failed to upload ${file.name}: ${err.message}`);
+          // Continue with other files even if one fails
+        }
       }
     }
 
     // Clear documents list after upload attempts
     setDocuments([]);
+  };
+
+  // Helper function to upload large text files in chunks
+  const uploadLargeTextFile = async (file: File): Promise<void> => {
+    const CHUNK_SIZE = 1024 * 1024; // 1MB chunk size
+    const reader = new FileReader();
+
+    // Generate a unique session ID for this file upload
+    const sessionId = Date.now().toString();
+
+    // Set initial progress
+    setUploadProgress(prev => ({ ...prev, [file.name]: 0 }));
+
+    let uploadedChunks = 0;
+    const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
+
+    // Read the file as text
+    return new Promise((resolve, reject) => {
+      reader.onload = async (e) => {
+        if (!e.target || typeof e.target.result !== 'string') {
+          reject(new Error('Failed to read file'));
+          return;
+        }
+
+        const content = e.target.result;
+
+        // Split content into chunks
+        const totalChunks = Math.ceil(content.length / CHUNK_SIZE);
+        let uploadedChunks = 0;
+
+        try {
+          // Create file metadata first
+          const metadataResponse = await axiosWithRetry.post('/api/create-document-session', {
+            fileName: file.name,
+            fileSize: file.size,
+            totalChunks: totalChunks,
+            sessionId: sessionId
+          });
+
+          if (!metadataResponse.data || !metadataResponse.data.success) {
+            throw new Error('Failed to initialize chunked upload');
+          }
+
+          // Upload each chunk
+          for (let i = 0; i < totalChunks; i++) {
+            const start = i * CHUNK_SIZE;
+            const end = Math.min(start + CHUNK_SIZE, content.length);
+            const chunk = content.substring(start, end);
+
+            const formData = new FormData();
+            formData.append('chunk', new Blob([chunk], { type: 'text/plain' }));
+            formData.append('sessionId', sessionId);
+            formData.append('chunkIndex', i.toString());
+            formData.append('fileName', file.name);
+
+            await axiosWithRetry.post('/api/upload-document-chunk', formData);
+
+            uploadedChunks++;
+            const percentCompleted = Math.round((uploadedChunks * 100) / totalChunks);
+            setUploadProgress(prev => ({ ...prev, [file.name]: percentCompleted }));
+          }
+
+          // Finalize the upload
+          const finalizeResponse = await axiosWithRetry.post('/api/finalize-document-upload', {
+            sessionId: sessionId,
+            fileName: file.name
+          });
+
+          if (finalizeResponse.data && finalizeResponse.data.id) {
+            setUploadedDocuments(prev => [...prev, {
+              id: finalizeResponse.data.id,
+              name: file.name
+            }]);
+            resolve();
+          } else {
+            throw new Error('Failed to finalize document upload');
+          }
+        } catch (err: any) {
+          reject(err);
+        }
+      };
+
+      reader.onerror = () => {
+        reject(new Error('Error reading file'));
+      };
+
+      reader.readAsText(file);
+    });
   };
 
   // Toggle document mode
