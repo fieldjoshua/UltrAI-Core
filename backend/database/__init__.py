@@ -20,6 +20,15 @@ from backend.database.models.user import User
 from backend.database.models.document import Document, DocumentChunk
 from backend.database.models.analysis import Analysis
 
+# Import repositories
+from backend.database.repositories import (
+    BaseRepository,
+    UserRepository,
+    DocumentRepository,
+    DocumentChunkRepository,
+    AnalysisRepository,
+)
+
 __all__ = [
     # Connection
     "Base",
@@ -34,4 +43,11 @@ __all__ = [
     "Document",
     "DocumentChunk",
     "Analysis",
+
+    # Repositories
+    "BaseRepository",
+    "UserRepository",
+    "DocumentRepository",
+    "DocumentChunkRepository",
+    "AnalysisRepository",
 ]
