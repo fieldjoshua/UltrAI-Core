@@ -1,0 +1,38 @@
+[
+    {
+        "id": "doc-1",
+        "user_id": "user-1",
+        "filename": "test-document-1.pdf",
+        "content_type": "application/pdf",
+        "size_bytes": 125000,
+        "created_at": "2024-04-12T14:30:00Z",
+        "status": "processed",
+        "word_count": 1250,
+        "chunk_count": 5,
+        "embedding_model": "text-embedding-3-small"
+    },
+    {
+        "id": "doc-2",
+        "user_id": "user-1",
+        "filename": "test-document-2.txt",
+        "content_type": "text/plain",
+        "size_bytes": 8500,
+        "created_at": "2024-04-11T09:15:00Z",
+        "status": "processed",
+        "word_count": 850,
+        "chunk_count": 3,
+        "embedding_model": "text-embedding-3-small"
+    },
+    {
+        "id": "doc-3",
+        "user_id": "user-1",
+        "filename": "test-document-3.docx",
+        "content_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "size_bytes": 78000,
+        "created_at": "2024-04-10T16:45:00Z",
+        "status": "processing",
+        "word_count": 0,
+        "chunk_count": 0,
+        "embedding_model": null
+    }
+]

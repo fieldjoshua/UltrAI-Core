@@ -1,0 +1,65 @@
+[
+    {
+        "id": "analysis-1",
+        "user_id": "user-1",
+        "document_id": "doc-1",
+        "pattern": "summarize",
+        "prompt": "Summarize the key points of this document",
+        "models": [
+            "gpt-4-turbo"
+        ],
+        "status": "completed",
+        "created_at": "2024-04-12T15:30:00Z",
+        "completed_at": "2024-04-12T15:32:00Z",
+        "result": {
+            "summary": "This is a test summary of the document content. It includes the main points and conclusions from the text."
+        },
+        "error": null,
+        "options": {
+            "max_tokens": 500
+        }
+    },
+    {
+        "id": "analysis-2",
+        "user_id": "user-1",
+        "document_id": "doc-2",
+        "pattern": "extract-insights",
+        "prompt": "Extract the main insights from this text",
+        "models": [
+            "gpt-4-turbo",
+            "claude-3-opus"
+        ],
+        "status": "completed",
+        "created_at": "2024-04-11T10:15:00Z",
+        "completed_at": "2024-04-11T10:18:00Z",
+        "result": {
+            "insights": [
+                "First key insight from the document",
+                "Second important insight with supporting details",
+                "Third insight related to the document content"
+            ]
+        },
+        "error": null,
+        "options": {
+            "max_tokens": 1000
+        }
+    },
+    {
+        "id": "analysis-3",
+        "user_id": "user-1",
+        "document_id": "doc-1",
+        "pattern": "question-answer",
+        "prompt": "What are the primary recommendations in this document?",
+        "models": [
+            "claude-3-sonnet"
+        ],
+        "status": "failed",
+        "created_at": "2024-04-12T16:45:00Z",
+        "completed_at": "2024-04-12T16:46:00Z",
+        "result": null,
+        "error": "Model service unavailable or timed out",
+        "options": {
+            "max_tokens": 500
+        }
+    }
+]
