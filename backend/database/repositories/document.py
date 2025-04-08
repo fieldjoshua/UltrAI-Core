@@ -1,231 +1,171 @@
+"""Document repository for the Ultra backend.
+
+This module provides data access operations for document-related models.
 """
-Document repository for the Ultra backend.
 
-This module provides repositories for document-related database operations.
-"""
-
-from datetime import datetime
-from typing import Dict, List, Optional, Any
-
-from sqlalchemy import desc
+import logging
+from typing import List, Optional
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
-from backend.database.models.document import Document, DocumentChunk, DocumentStatus
 from backend.database.repositories.base import BaseRepository
-from backend.utils.logging import get_logger
+from backend.database.models.document import Document, DocumentChunk
+from backend.utils.exceptions import DatabaseException
 
-logger = get_logger("database.document_repository", "logs/database.log")
+logger = logging.getLogger(__name__)
 
 
 class DocumentRepository(BaseRepository[Document]):
-    """Repository for document operations"""
+    """Repository for document operations."""
 
     def __init__(self):
+        """Initialize the document repository."""
         super().__init__(Document)
 
-    def get_by_uuid(self, db: Session, uuid: str) -> Optional[Document]:
-        """
-        Get a document by its UUID
+    def get_by_filename(self, db: Session, filename: str, user_id: str) -> Optional[Document]:
+        """Get a document by its filename and user ID.
 
         Args:
             db: Database session
-            uuid: Document UUID
+            filename: The name of the file
+            user_id: The ID of the user who owns the document
 
         Returns:
             The document if found, None otherwise
         """
         try:
-            return db.query(Document).filter(Document.uuid == uuid).first()
-        except Exception as e:
-            logger.error(f"Error getting document with UUID {uuid}: {str(e)}")
-            return None
+            return db.query(Document).filter(
+                Document.filename == filename,
+                Document.user_id == user_id
+            ).first()
+        except SQLAlchemyError as e:
+            logger.error(f"Error retrieving document by filename: {e}")
+            raise DatabaseException(f"Failed to retrieve document: {str(e)}")
 
-    def get_user_documents(
-        self, db: Session, user_id: int, skip: int = 0, limit: int = 100
-    ) -> List[Document]:
-        """
-        Get documents for a specific user
+    def get_user_documents(self, db: Session, user_id: str, skip: int = 0, limit: int = 100) -> List[Document]:
+        """Get all documents for a specific user.
 
         Args:
             db: Database session
-            user_id: User ID
-            skip: Number of records to skip
+            user_id: The ID of the user
+            skip: Number of records to skip (for pagination)
             limit: Maximum number of records to return
 
         Returns:
-            List of user documents
+            List of documents owned by the user
         """
-        return (
-            db.query(Document)
-            .filter(Document.user_id == user_id)
-            .order_by(desc(Document.created_at))
-            .offset(skip)
-            .limit(limit)
-            .all()
-        )
+        try:
+            return db.query(Document).filter(
+                Document.user_id == user_id
+            ).offset(skip).limit(limit).all()
+        except SQLAlchemyError as e:
+            logger.error(f"Error retrieving user documents: {e}")
+            raise DatabaseException(f"Failed to retrieve user documents: {str(e)}")
 
-    def update_status(
-        self,
-        db: Session,
-        document_id: int,
-        status: DocumentStatus,
-        error_message: Optional[str] = None
-    ) -> Document:
-        """
-        Update document status
+    def count_user_documents(self, db: Session, user_id: str) -> int:
+        """Count the number of documents for a specific user.
 
         Args:
             db: Database session
-            document_id: Document ID
-            status: New status
-            error_message: Optional error message
+            user_id: The ID of the user
 
         Returns:
-            The updated document
+            The count of documents
         """
-        document = self.get_by_id(db, document_id, raise_if_not_found=True)
+        try:
+            return db.query(Document).filter(Document.user_id == user_id).count()
+        except SQLAlchemyError as e:
+            logger.error(f"Error counting user documents: {e}")
+            raise DatabaseException(f"Failed to count user documents: {str(e)}")
 
-        update_data = {"status": status}
-        if error_message is not None:
-            update_data["error_message"] = error_message
-
-        if status == DocumentStatus.PROCESSED:
-            update_data["processed_at"] = datetime.utcnow()
-
-        return self.update(db, db_obj=document, obj_in=update_data)
-
-    def update_processing_metadata(
-        self,
-        db: Session,
-        document_id: int,
-        word_count: Optional[int] = None,
-        chunk_count: Optional[int] = None,
-        embedding_model: Optional[str] = None
-    ) -> Document:
-        """
-        Update document processing metadata
+    def delete_user_documents(self, db: Session, user_id: str) -> int:
+        """Delete all documents for a specific user.
 
         Args:
             db: Database session
-            document_id: Document ID
-            word_count: Total word count
-            chunk_count: Number of chunks
-            embedding_model: Name of embedding model used
+            user_id: The ID of the user
 
         Returns:
-            The updated document
+            The number of documents deleted
         """
-        document = self.get_by_id(db, document_id, raise_if_not_found=True)
+        try:
+            documents = db.query(Document).filter(Document.user_id == user_id).all()
+            count = len(documents)
 
-        update_data = {}
-        if word_count is not None:
-            update_data["word_count"] = word_count
-        if chunk_count is not None:
-            update_data["chunk_count"] = chunk_count
-        if embedding_model is not None:
-            update_data["embedding_model"] = embedding_model
+            for doc in documents:
+                db.delete(doc)
 
-        return self.update(db, db_obj=document, obj_in=update_data)
+            db.commit()
+            return count
+        except SQLAlchemyError as e:
+            db.rollback()
+            logger.error(f"Error deleting user documents: {e}")
+            raise DatabaseException(f"Failed to delete user documents: {str(e)}")
 
 
 class DocumentChunkRepository(BaseRepository[DocumentChunk]):
-    """Repository for document chunk operations"""
+    """Repository for document chunk operations."""
 
     def __init__(self):
+        """Initialize the document chunk repository."""
         super().__init__(DocumentChunk)
 
-    def get_document_chunks(
-        self, db: Session, document_id: int, skip: int = 0, limit: int = 100
-    ) -> List[DocumentChunk]:
-        """
-        Get chunks for a specific document
+    def get_chunks_by_document_id(self, db: Session, document_id: str, skip: int = 0, limit: int = 100) -> List[DocumentChunk]:
+        """Get all chunks for a specific document.
 
         Args:
             db: Database session
-            document_id: Document ID
-            skip: Number of records to skip
+            document_id: The ID of the document
+            skip: Number of records to skip (for pagination)
             limit: Maximum number of records to return
 
         Returns:
             List of document chunks
         """
-        return (
-            db.query(DocumentChunk)
-            .filter(DocumentChunk.document_id == document_id)
-            .order_by(DocumentChunk.chunk_index)
-            .offset(skip)
-            .limit(limit)
-            .all()
-        )
+        try:
+            return db.query(DocumentChunk).filter(
+                DocumentChunk.document_id == document_id
+            ).offset(skip).limit(limit).all()
+        except SQLAlchemyError as e:
+            logger.error(f"Error retrieving document chunks: {e}")
+            raise DatabaseException(f"Failed to retrieve document chunks: {str(e)}")
 
-    def add_chunk(
-        self,
-        db: Session,
-        document_id: int,
-        chunk_index: int,
-        content: str,
-        metadata: Optional[Dict[str, Any]] = None,
-        page_number: Optional[int] = None,
-        embedding: Optional[Dict[str, Any]] = None,
-        embedding_model: Optional[str] = None
-    ) -> DocumentChunk:
-        """
-        Add a new document chunk
+    def count_chunks_by_document_id(self, db: Session, document_id: str) -> int:
+        """Count the number of chunks for a specific document.
 
         Args:
             db: Database session
-            document_id: Document ID
-            chunk_index: Chunk index
-            content: Text content
-            metadata: Optional chunk metadata
-            page_number: Optional page number
-            embedding: Optional embedding vector
-            embedding_model: Optional embedding model name
+            document_id: The ID of the document
 
         Returns:
-            The created document chunk
+            The count of document chunks
         """
-        chunk_data = {
-            "document_id": document_id,
-            "chunk_index": chunk_index,
-            "content": content,
-        }
+        try:
+            return db.query(DocumentChunk).filter(DocumentChunk.document_id == document_id).count()
+        except SQLAlchemyError as e:
+            logger.error(f"Error counting document chunks: {e}")
+            raise DatabaseException(f"Failed to count document chunks: {str(e)}")
 
-        if metadata is not None:
-            chunk_data["metadata"] = metadata
-        if page_number is not None:
-            chunk_data["page_number"] = page_number
-        if embedding is not None:
-            chunk_data["embedding"] = embedding
-        if embedding_model is not None:
-            chunk_data["embedding_model"] = embedding_model
-
-        return self.create(db, chunk_data)
-
-    def update_embedding(
-        self,
-        db: Session,
-        chunk_id: int,
-        embedding: Dict[str, Any],
-        embedding_model: str
-    ) -> DocumentChunk:
-        """
-        Update embedding for a document chunk
+    def delete_document_chunks(self, db: Session, document_id: str) -> int:
+        """Delete all chunks for a specific document.
 
         Args:
             db: Database session
-            chunk_id: Chunk ID
-            embedding: Embedding vector
-            embedding_model: Embedding model name
+            document_id: The ID of the document
 
         Returns:
-            The updated document chunk
+            The number of chunks deleted
         """
-        chunk = self.get_by_id(db, chunk_id, raise_if_not_found=True)
+        try:
+            chunks = db.query(DocumentChunk).filter(DocumentChunk.document_id == document_id).all()
+            count = len(chunks)
 
-        update_data = {
-            "embedding": embedding,
-            "embedding_model": embedding_model
-        }
+            for chunk in chunks:
+                db.delete(chunk)
 
-        return self.update(db, db_obj=chunk, obj_in=update_data)
+            db.commit()
+            return count
+        except SQLAlchemyError as e:
+            db.rollback()
+            logger.error(f"Error deleting document chunks: {e}")
+            raise DatabaseException(f"Failed to delete document chunks: {str(e)}")

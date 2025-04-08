@@ -1,200 +1,199 @@
 """
 Analysis repository for the Ultra backend.
 
-This module provides repository for analysis-related database operations.
+This module provides data access operations for analysis-related models.
 """
 
+import logging
+from typing import List, Optional, Dict, Any
 from datetime import datetime
-from typing import Dict, List, Optional, Any
-
-from sqlalchemy import desc
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
+from sqlalchemy import func
 
-from backend.database.models.analysis import Analysis, AnalysisStatus
 from backend.database.repositories.base import BaseRepository
-from backend.utils.logging import get_logger
+from backend.database.models.analysis import Analysis
+from backend.utils.exceptions import DatabaseException
 
-logger = get_logger("database.analysis_repository", "logs/database.log")
+logger = logging.getLogger(__name__)
 
 
 class AnalysisRepository(BaseRepository[Analysis]):
-    """Repository for analysis operations"""
+    """Repository for analysis operations."""
 
     def __init__(self):
+        """Initialize the analysis repository."""
         super().__init__(Analysis)
 
-    def get_by_uuid(self, db: Session, uuid: str) -> Optional[Analysis]:
-        """
-        Get an analysis by its UUID
+    def get_by_user_id(self, db: Session, user_id: str, skip: int = 0, limit: int = 100) -> List[Analysis]:
+        """Get all analyses for a specific user.
 
         Args:
             db: Database session
-            uuid: Analysis UUID
-
-        Returns:
-            The analysis if found, None otherwise
-        """
-        try:
-            return db.query(Analysis).filter(Analysis.uuid == uuid).first()
-        except Exception as e:
-            logger.error(f"Error getting analysis with UUID {uuid}: {str(e)}")
-            return None
-
-    def get_user_analyses(
-        self, db: Session, user_id: int, skip: int = 0, limit: int = 100
-    ) -> List[Analysis]:
-        """
-        Get analyses for a specific user
-
-        Args:
-            db: Database session
-            user_id: User ID
-            skip: Number of records to skip
+            user_id: The ID of the user
+            skip: Number of records to skip (for pagination)
             limit: Maximum number of records to return
 
         Returns:
-            List of user analyses
-        """
-        return (
-            db.query(Analysis)
-            .filter(Analysis.user_id == user_id)
-            .order_by(desc(Analysis.created_at))
-            .offset(skip)
-            .limit(limit)
-            .all()
-        )
-
-    def get_cached_analysis(
-        self, db: Session, cache_key: str
-    ) -> Optional[Analysis]:
-        """
-        Get an analysis by its cache key
-
-        Args:
-            db: Database session
-            cache_key: Cache key
-
-        Returns:
-            The analysis if found and cached, None otherwise
+            List of analyses performed by the user
         """
         try:
-            return (
-                db.query(Analysis)
-                .filter(
-                    Analysis.cache_key == cache_key,
-                    Analysis.is_cached.is_(True),
-                    Analysis.status == AnalysisStatus.COMPLETED
-                )
-                .first()
-            )
-        except Exception as e:
-            logger.error(f"Error getting cached analysis with key {cache_key}: {str(e)}")
-            return None
+            return db.query(Analysis).filter(
+                Analysis.user_id == user_id
+            ).order_by(Analysis.created_at.desc()).offset(skip).limit(limit).all()
+        except SQLAlchemyError as e:
+            logger.error(f"Error retrieving user analyses: {e}")
+            raise DatabaseException(f"Failed to retrieve user analyses: {str(e)}")
 
-    def update_status(
-        self,
-        db: Session,
-        analysis_id: int,
-        status: AnalysisStatus,
-        error_message: Optional[str] = None
-    ) -> Analysis:
-        """
-        Update analysis status
+    def get_by_document_id(self, db: Session, document_id: str, skip: int = 0, limit: int = 100) -> List[Analysis]:
+        """Get all analyses for a specific document.
 
         Args:
             db: Database session
-            analysis_id: Analysis ID
-            status: New status
-            error_message: Optional error message
+            document_id: The ID of the document
+            skip: Number of records to skip (for pagination)
+            limit: Maximum number of records to return
 
         Returns:
-            The updated analysis
+            List of analyses performed on the document
         """
-        analysis = self.get_by_id(db, analysis_id, raise_if_not_found=True)
+        try:
+            return db.query(Analysis).filter(
+                Analysis.document_id == document_id
+            ).order_by(Analysis.created_at.desc()).offset(skip).limit(limit).all()
+        except SQLAlchemyError as e:
+            logger.error(f"Error retrieving document analyses: {e}")
+            raise DatabaseException(f"Failed to retrieve document analyses: {str(e)}")
 
-        update_data = {"status": status}
-        if error_message is not None:
-            update_data["error_message"] = error_message
-
-        if status == AnalysisStatus.COMPLETED:
-            update_data["completed_at"] = datetime.utcnow()
-
-        return self.update(db, db_obj=analysis, obj_in=update_data)
-
-    def update_result(
-        self,
-        db: Session,
-        analysis_id: int,
-        result: Dict[str, Any],
-        ultra_response: Optional[str] = None,
-        model_times: Optional[Dict[str, float]] = None,
-        token_counts: Optional[Dict[str, int]] = None,
-        total_tokens: Optional[int] = None,
-        total_time_seconds: Optional[float] = None,
-        estimated_cost: Optional[float] = None
-    ) -> Analysis:
-        """
-        Update analysis result
+    def get_by_pattern(self, db: Session, pattern: str, skip: int = 0, limit: int = 100) -> List[Analysis]:
+        """Get all analyses using a specific pattern.
 
         Args:
             db: Database session
-            analysis_id: Analysis ID
-            result: Analysis result data
-            ultra_response: Ultra's processed response
-            model_times: Timing data for each model
-            token_counts: Token usage data for each model
-            total_tokens: Total tokens used
-            total_time_seconds: Total processing time
-            estimated_cost: Estimated cost of the analysis
+            pattern: The pattern name
+            skip: Number of records to skip (for pagination)
+            limit: Maximum number of records to return
 
         Returns:
-            The updated analysis
+            List of analyses using the specified pattern
+        """
+        try:
+            return db.query(Analysis).filter(
+                Analysis.pattern == pattern
+            ).order_by(Analysis.created_at.desc()).offset(skip).limit(limit).all()
+        except SQLAlchemyError as e:
+            logger.error(f"Error retrieving analyses by pattern: {e}")
+            raise DatabaseException(f"Failed to retrieve analyses by pattern: {str(e)}")
+
+    def create_analysis(
+        self,
+        db: Session,
+        user_id: str,
+        document_id: Optional[str],
+        pattern: str,
+        prompt: str,
+        models: List[str],
+        options: Dict[str, Any]
+    ) -> Analysis:
+        """Create a new analysis record.
+
+        Args:
+            db: Database session
+            user_id: The ID of the user
+            document_id: Optional ID of the document being analyzed
+            pattern: The pattern used for analysis
+            prompt: The user prompt
+            models: List of models used for the analysis
+            options: Additional options used for the analysis
+
+        Returns:
+            The created analysis record
+        """
+        analysis_data = {
+            "user_id": user_id,
+            "document_id": document_id,
+            "pattern": pattern,
+            "prompt": prompt,
+            "models": models,
+            "options": options,
+            "created_at": datetime.utcnow(),
+            "status": "pending"
+        }
+
+        return self.create(db, analysis_data)
+
+    def update_analysis_status(
+        self,
+        db: Session,
+        analysis_id: int,
+        status: str,
+        result: Optional[Dict[str, Any]] = None,
+        error: Optional[str] = None
+    ) -> Analysis:
+        """Update the status of an analysis.
+
+        Args:
+            db: Database session
+            analysis_id: The ID of the analysis
+            status: The new status ('completed', 'failed', etc.)
+            result: Optional result data for successful analyses
+            error: Optional error message for failed analyses
+
+        Returns:
+            The updated analysis record
         """
         analysis = self.get_by_id(db, analysis_id, raise_if_not_found=True)
 
         update_data = {
-            "result": result,
-            "status": AnalysisStatus.COMPLETED,
+            "status": status,
             "completed_at": datetime.utcnow()
         }
 
-        if ultra_response is not None:
-            update_data["ultra_response"] = ultra_response
-        if model_times is not None:
-            update_data["model_times"] = model_times
-        if token_counts is not None:
-            update_data["token_counts"] = token_counts
-        if total_tokens is not None:
-            update_data["total_tokens"] = total_tokens
-        if total_time_seconds is not None:
-            update_data["total_time_seconds"] = total_time_seconds
-        if estimated_cost is not None:
-            update_data["estimated_cost"] = estimated_cost
+        if result is not None:
+            update_data["result"] = result
+
+        if error is not None:
+            update_data["error"] = error
 
         return self.update(db, db_obj=analysis, obj_in=update_data)
 
-    def set_as_cached(
-        self,
-        db: Session,
-        analysis_id: int,
-        cache_key: str
-    ) -> Analysis:
-        """
-        Mark an analysis as cached
+    def get_recent_analyses(self, db: Session, limit: int = 10) -> List[Analysis]:
+        """Get the most recent analyses across all users.
 
         Args:
             db: Database session
-            analysis_id: Analysis ID
-            cache_key: Cache key for the analysis
+            limit: Maximum number of records to return
 
         Returns:
-            The updated analysis
+            List of recent analyses
         """
-        analysis = self.get_by_id(db, analysis_id, raise_if_not_found=True)
+        try:
+            return db.query(Analysis).order_by(
+                Analysis.created_at.desc()
+            ).limit(limit).all()
+        except SQLAlchemyError as e:
+            logger.error(f"Error retrieving recent analyses: {e}")
+            raise DatabaseException(f"Failed to retrieve recent analyses: {str(e)}")
 
-        update_data = {
-            "is_cached": True,
-            "cache_key": cache_key
-        }
+    def get_stats_by_pattern(self, db: Session) -> Dict[str, int]:
+        """Get statistics on analysis usage by pattern.
 
-        return self.update(db, db_obj=analysis, obj_in=update_data)
+        Args:
+            db: Database session
+
+        Returns:
+            Dictionary mapping pattern names to usage count
+        """
+        try:
+            result = {}
+            patterns = db.query(Analysis.pattern, func.count(Analysis.id)).group_by(
+                Analysis.pattern
+            ).all()
+
+            for pattern, count in patterns:
+                result[pattern] = count
+
+            return result
+        except SQLAlchemyError as e:
+            logger.error(f"Error retrieving analysis statistics: {e}")
+            raise DatabaseException(f"Failed to retrieve analysis statistics: {str(e)}")
