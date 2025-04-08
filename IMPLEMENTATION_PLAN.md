@@ -13,6 +13,7 @@ This document outlines the detailed steps to implement Phase 1 of our refactorin
 ✅ Created `MODULARIZATION_PLAN.md` for Phase 2 backend refactoring
 ✅ Created directory for archiving older components (`NEWArchive/components/`)
 ✅ Consolidated environment variables and removed redundant files
+✅ Archived older AnimatedLogo components and debug files
 
 ## Remaining Tasks for Phase 1
 
@@ -28,13 +29,13 @@ This document outlines the detailed steps to implement Phase 1 of our refactorin
 
 ### 2. Remove/Archive Redundant Files
 
-- [ ] Consolidate AnimatedLogo files:
-  - [ ] Determine which version of AnimatedLogo is currently in use (V3 appears to be used in UltraWithDocuments.tsx)
-  - [ ] Move older versions to `NEWArchive/components/`
+- [x] Consolidate AnimatedLogo files:
+  - [x] Determine which version of AnimatedLogo is currently in use (V3 is used in UltraWithDocuments.tsx)
+  - [x] Move older versions to `NEWArchive/components/`
 
-- [ ] Consolidate debug files:
-  - [ ] Determine if both `debug.py` and `debug2.py` are needed
-  - [ ] Move unnecessary ones to `NEWArchive/examples/`
+- [x] Consolidate debug files:
+  - [x] Determine if both `debug.py` and `debug2.py` are needed (neither are imported elsewhere)
+  - [x] Move to `NEWArchive/examples/`
 
 - [x] Clean up DS_Store files:
   - [x] Remove all `.DS_Store` files from the repository
@@ -59,7 +60,7 @@ This document outlines the detailed steps to implement Phase 1 of our refactorin
 ## Implementation Order
 
 1. Start with cleaning up environment variables (most urgent, to prevent secrets leaks) ✅
-2. Remove redundant files (quick wins, declutters the workspace)
+2. Remove redundant files (quick wins, declutters the workspace) ✅
 3. Fix linting issues (improves code quality across the board)
 4. Set up CI (ensures future code follows standards) ✅
 
