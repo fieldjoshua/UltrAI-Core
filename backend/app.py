@@ -16,6 +16,9 @@ from backend.utils.logging import get_logger
 from backend.utils.error_handler import error_handling_middleware, register_exception_handlers
 from backend.utils.middleware import setup_middleware
 
+# Import database
+from backend.database import init_db, check_database_connection
+
 # Import routes
 from backend.routes.health import health_router
 from backend.routes.metrics import metrics_router
@@ -47,6 +50,17 @@ async def lifespan(app: FastAPI):
     """
     # Startup: Create necessary directories
     Config.create_directories()
+
+    # Initialize database
+    try:
+        init_db()
+        if check_database_connection():
+            logger.info("Database connection established successfully")
+        else:
+            logger.warning("Database connection failed - some features may not work correctly")
+    except Exception as e:
+        logger.error(f"Database initialization error: {str(e)}")
+        logger.warning("Continuing without database connection - some features may not work correctly")
 
     # Initialize Sentry if available
     if SENTRY_AVAILABLE:
