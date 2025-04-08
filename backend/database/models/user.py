@@ -1,29 +1,21 @@
 """
 User model for the Ultra backend.
 
-This module defines the SQLAlchemy ORM model for user accounts and related tables.
+This module provides the SQLAlchemy ORM model for User entities.
 """
 
 import enum
 from datetime import datetime
-from typing import List, Optional
+from typing import Optional
 
-from sqlalchemy import (Boolean, Column, DateTime, Enum, Float, ForeignKey,
-                        Integer, String, Table)
+from sqlalchemy import Column, Integer, String, Float, DateTime, Enum, Boolean, ForeignKey
 from sqlalchemy.orm import relationship
 
-from backend.database.connection import Base
+from backend.database.base import Base
 
 
-class UserRole(enum.Enum):
-    """User role enumeration"""
-    USER = "user"
-    ADMIN = "admin"
-    DEVELOPER = "developer"
-
-
-class SubscriptionTier(enum.Enum):
-    """Subscription tier enumeration"""
+class SubscriptionTier(str, enum.Enum):
+    """Subscription tiers for users"""
     FREE = "free"
     BASIC = "basic"
     PREMIUM = "premium"
@@ -31,42 +23,36 @@ class SubscriptionTier(enum.Enum):
 
 
 class User(Base):
-    """User account model"""
-
+    """User model for authentication and billing"""
     __tablename__ = "users"
 
     id = Column(Integer, primary_key=True, index=True)
     email = Column(String, unique=True, index=True, nullable=False)
     username = Column(String, unique=True, index=True, nullable=True)
     full_name = Column(String, nullable=True)
-
-    # Authentication
     hashed_password = Column(String, nullable=False)
-    is_active = Column(Boolean, default=True, nullable=False)
-    is_verified = Column(Boolean, default=False, nullable=False)
-    role = Column(Enum(UserRole), default=UserRole.USER, nullable=False)
-    last_login = Column(DateTime, nullable=True)
 
-    # OAuth information
+    # OAuth fields
     oauth_provider = Column(String, nullable=True)
     oauth_id = Column(String, nullable=True)
+    is_verified = Column(Boolean, default=False)
 
-    # Account information
-    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+    # Subscription fields
+    subscription_tier = Column(Enum(SubscriptionTier), default=SubscriptionTier.FREE)
+    subscription_expiry = Column(DateTime, nullable=True)
+    account_balance = Column(Float, default=0.0)
 
-    # Subscription
-    subscription_tier = Column(Enum(SubscriptionTier), default=SubscriptionTier.FREE, nullable=False)
-    subscription_expires = Column(DateTime, nullable=True)
-    account_balance = Column(Float, default=0.0, nullable=False)
+    # Timestamps
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    last_login = Column(DateTime, nullable=True)
 
     # Relationships
-    documents = relationship("Document", back_populates="user", cascade="all, delete-orphan")
-    analyses = relationship("Analysis", back_populates="user", cascade="all, delete-orphan")
-    api_keys = relationship("ApiKey", back_populates="user", cascade="all, delete-orphan")
+    documents = relationship("Document", back_populates="owner")
+    analyses = relationship("Analysis", back_populates="user")
 
     def __repr__(self) -> str:
-        return f"<User {self.email}>"
+        return f"<User {self.username or self.email}>"
 
 
 class ApiKey(Base):

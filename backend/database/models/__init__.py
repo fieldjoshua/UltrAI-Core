@@ -1,7 +1,18 @@
 """
 Database models for the Ultra backend.
 
-This module contains SQLAlchemy ORM models for the application's data structures.
+This package contains the SQLAlchemy ORM models for database entities.
 """
 
-__all__ = []
+from backend.database.models.user import User, SubscriptionTier
+from backend.database.models.document import Document, DocumentChunk
+from backend.database.models.analysis import Analysis, AnalysisResult
+
+__all__ = [
+    "User",
+    "SubscriptionTier",
+    "Document",
+    "DocumentChunk",
+    "Analysis",
+    "AnalysisResult"
+]

@@ -1,319 +1,229 @@
+"""
+Analysis routes for the Ultra backend.
+
+This module provides API routes for analyzing prompts with various models.
+"""
+
 import json
 import logging
 import os
 import time
 import traceback
 from datetime import datetime
-from typing import Dict, List, Any, Optional
+from typing import Dict, List, Any, Optional, Union
 
-from fastapi import APIRouter, BackgroundTasks, Body, Depends, File, Form, HTTPException, Request, UploadFile
+from fastapi import APIRouter, BackgroundTasks, Body, Depends, File, Form, HTTPException, Request, UploadFile, Query
 from fastapi.responses import JSONResponse
+from sqlalchemy.orm import Session
 
 from backend.config import Config
 from backend.utils.cache import response_cache, generate_cache_key
 from backend.utils.metrics import performance_metrics, update_metrics_history, processing_times
+from backend.database.connection import get_db
+from backend.decorators.cache_decorator import cached
+from backend.database.models import User
+from backend.services.auth_service import auth_service
+from backend.services.cache_service import cache_service
 
-# Create an analysis router
-analyze_router = APIRouter(tags=["Analysis"])
+# Import the mock service for development
+from backend.services.mock_llm_service import MockLLMService
+
+# Check if PatternOrchestrator is available, use mock if not
+try:
+    from backend.integrations.pattern_orchestrator import PatternOrchestrator
+    ORCHESTRATOR_AVAILABLE = True
+except ImportError:
+    ORCHESTRATOR_AVAILABLE = False
+    from backend.services.mock_llm_service import MockLLMService
+    mock_service = MockLLMService()
+
+# Check if PricingIntegration is available, use mock if not
+try:
+    from backend.integrations.pricing import PricingIntegration
+    PRICING_INTEGRATION_AVAILABLE = True
+except ImportError:
+    PRICING_INTEGRATION_AVAILABLE = False
+    from backend.services.mock_pricing_service import MockPricingService
+    mock_pricing = MockPricingService()
 
 # Configure logging
 logger = logging.getLogger("analyze_routes")
 
-# Check if pattern orchestrator is available
-try:
-    from ultra_pattern_orchestrator import PatternOrchestrator
-    ORCHESTRATOR_AVAILABLE = True
-except ImportError:
-    logger.warning("PatternOrchestrator not available, using mock/basic functionality")
-    ORCHESTRATOR_AVAILABLE = False
+# Create a router
+analyze_router = APIRouter(tags=["Analysis"])
 
-# Check if pricing integration is available
-try:
-    from pricing_integration import (
-        PricingIntegration, check_request_authorization, track_request_cost
-    )
-    pricing_integration = PricingIntegration()
-except ImportError:
-    logger.warning("PricingIntegration not available, using mock")
-    # Create a mock pricing integration
-    class MockPricingIntegration:
-        def __init__(self):
-            self.pricing_enabled = False
+# Create a mock service instance
+mock_service = MockLLMService()
 
-        def estimate_request_cost(self, **kwargs):
-            return {
-                "estimated_cost": 0.01,
-                "tier": "free",
-                "has_sufficient_balance": True,
-                "cost_details": {
-                    "base_cost": 0.01,
-                    "markup_cost": 0,
-                    "discount_amount": 0,
-                    "feature_costs": {},
-                },
-            }
+# Define pattern name mappings
+PATTERN_NAME_MAPPING = {
+    "comparative": "comparative_analysis",
+    "comprehensive": "comprehensive_analysis",
+    "concise": "concise_analysis",
+    "contextual": "contextual_understanding",
+    "creative": "creative_exploration",
+    "critical": "critical_evaluation",
+    "empirical": "empirical_assessment",
+    "evaluative": "evaluative_assessment",
+    "explanatory": "explanatory_discourse",
+    "investigative": "investigative_inquiry",
+    "reflective": "reflective_consideration",
+    "speculative": "speculative_reasoning",
+    "structured": "structured_analysis",
+    "custom": "custom_pattern",
+}
 
-    pricing_integration = MockPricingIntegration()
+async def get_current_user(request: Request, db: Session = Depends(get_db)) -> Optional[User]:
+    """
+    Get the current user from the request
 
-    # Define mock functions for pricing
-    async def check_request_authorization(**kwargs):
-        return {"authorized": True, "details": {}}
+    Args:
+        request: FastAPI request
+        db: Database session
 
-    async def track_request_cost(**kwargs):
-        return {"status": "success", "cost": 0.01}
+    Returns:
+        User if authenticated, None otherwise
+    """
+    auth_header = request.headers.get("Authorization")
+    if not auth_header:
+        return None
+
+    try:
+        scheme, token = auth_header.split()
+        if scheme.lower() != "bearer":
+            return None
+
+        user_id = auth_service.verify_token(token)
+        if not user_id:
+            return None
+
+        # Convert to int
+        try:
+            user_id_int = int(user_id)
+        except ValueError:
+            return None
+
+        return auth_service.get_user(db, user_id_int)
+    except Exception as e:
+        logger.error(f"Error getting user from token: {str(e)}")
+        return None
 
 
 @analyze_router.post("/api/analyze")
-async def analyze_prompt(request: Request):
-    """Analyze a prompt using multiple LLMs and an Ultra LLM"""
+@cached(prefix="analyze", ttl=60*60*24)  # Cache for 24 hours
+async def analyze_prompt(
+    request: Request,
+    prompt: str = Body(..., description="Prompt to analyze"),
+    selected_models: List[str] = Body(..., description="Models to use"),
+    ultra_model: str = Body(..., description="Ultra model to use"),
+    pattern: Optional[str] = Body(None, description="Analysis pattern"),
+    options: Dict[str, Any] = Body({}, description="Additional options"),
+    user_id: Optional[str] = Body(None, description="User ID"),
+    db: Session = Depends(get_db)
+):
+    """
+    Analyze a prompt using multiple LLMs and an Ultra LLM
+
+    Args:
+        request: FastAPI request
+        prompt: Prompt to analyze
+        selected_models: Models to use for analysis
+        ultra_model: Ultra model to use
+        pattern: Analysis pattern
+        options: Additional options
+        user_id: User ID
+        db: Database session
+
+    Returns:
+        Analysis results
+    """
+    # Get current user
+    user = await get_current_user(request, db)
+
+    # Start timer
     start_time = time.time()
 
     try:
-        data = await request.json()
-        prompt = data.get("prompt")
-        selected_models = data.get("llms", data.get("selectedModels", []))
-        ultra_model = data.get("ultraLLM", data.get("ultraModel"))
-        pattern_name = data.get("pattern", "Confidence Analysis")
-        options = data.get("options", {})
-        user_id = data.get("userId")
-
         # Validate required fields
         if not prompt:
-            raise HTTPException(status_code=400, detail="Prompt is required")
-        if not selected_models:
-            raise HTTPException(status_code=400, detail="At least one model must be selected")
+            return JSONResponse(
+                status_code=400,
+                content={"status": "error", "message": "Prompt is required"}
+            )
+
+        if not selected_models or not isinstance(selected_models, list):
+            return JSONResponse(
+                status_code=400,
+                content={"status": "error", "message": "Selected models are required"}
+            )
+
         if not ultra_model:
-            raise HTTPException(status_code=400, detail="Ultra model is required")
+            return JSONResponse(
+                status_code=400,
+                content={"status": "error", "message": "Ultra model is required"}
+            )
 
-        # Update metrics
-        performance_metrics["requests_processed"] += 1
+        # Map pattern name
+        pattern_key = pattern.lower() if pattern else "comprehensive"
+        pattern_name = PATTERN_NAME_MAPPING.get(pattern_key, "comprehensive_analysis")
 
-        # Check cache for identical request
-        cache_key = generate_cache_key(
-            prompt, selected_models, ultra_model, pattern_name
-        )
-        cached_response = response_cache.get(cache_key)
-
-        if cached_response and not options.get("bypass_cache", False):
-            logger.info(f"Cache hit for prompt: {prompt[:30]}...")
-            performance_metrics["cache_hits"] += 1
-
-            # Add cache indicator to response
-            cached_response["cached"] = True
-            cached_response["cache_time"] = datetime.now().isoformat()
-
-            # Track cost (even for cached responses)
-            if user_id and pricing_integration.pricing_enabled:
-                await track_request_cost(
-                    user_id=user_id,
-                    request_type="cached_analyze",
-                    model=ultra_model,
-                    tokens_used=0,  # No tokens used for cached response
-                )
-
-            return cached_response
-
-        logger.info(f"Received analyze request with pattern: {pattern_name}")
-
-        # Use mock service if in mock mode
-        if Config.use_mock and hasattr(Config, 'mock_service') and Config.mock_service:
-            try:
-                result = await Config.mock_service.analyze_prompt(
-                    prompt=prompt,
-                    models=selected_models,
-                    ultra_model=ultra_model,
-                    pattern=pattern_name,
-                )
-
-                # Format the result to match expected response structure
-                response = {
-                    "status": "success",
-                    "results": result.get("results", {}),
-                    "ultra_response": result.get("ultra_response", ""),
-                    "pattern": result.get("pattern", pattern_name),
-                }
-
-                # Cache the response
-                response_cache[cache_key] = response
-
-                return response
-            except Exception as e:
-                logger.error(f"Error in mock analyze: {str(e)}")
-                raise HTTPException(
-                    status_code=500, detail=f"Mock service error: {str(e)}"
-                )
-
-        # Map frontend pattern names to backend pattern keys
-        pattern_map = {
-            "Confidence Analysis": "confidence",
-            "Critique": "critique",
-            "Gut Check": "gut",
-            "Fact Check": "fact_check",
-            "Perspective Analysis": "perspective",
-            "Scenario Analysis": "scenario",
+        # Create cache key data for checking
+        cache_key_data = {
+            "prompt": prompt,
+            "selected_models": sorted(selected_models),
+            "ultra_model": ultra_model,
+            "pattern": pattern_name,
+            "options": options
         }
 
-        pattern_key = pattern_map.get(pattern_name, "confidence")
+        # Check if we have cached results
+        if await cache_service.exists("analyze", cache_key_data):
+            # Update performance metrics
+            logger.info(f"Cache hit for prompt: {prompt[:30]}...")
 
-        # Check authorization if pricing is enabled
-        if user_id and pricing_integration.pricing_enabled:
-            auth_result = await check_request_authorization(
-                user_id=user_id,
-                request_type="analyze",
-                model=ultra_model,
-                estimated_tokens=len(prompt.split()) * 8,  # Rough estimate
-            )
+            # Get cached result
+            cached_result = await cache_service.get("analyze", cache_key_data)
+            if cached_result:
+                return cached_result
 
-            if not auth_result["authorized"]:
-                return JSONResponse(
-                    status_code=402,  # Payment Required
-                    content={
-                        "status": "error",
-                        "code": "insufficient_balance",
-                        "message": "Your account balance is insufficient for this request",
-                        "details": auth_result.get("details", {}),
-                    },
-                )
+        # Use mock service to process the request
+        result = mock_service.analyze(
+            prompt=prompt,
+            llms=selected_models,
+            ultra_llm=ultra_model,
+            pattern=pattern_name,
+            options=options
+        )
 
-        try:
-            # Initialize the orchestrator with the selected models and pattern
-            try:
-                # Note: ultra_model is set as a separate attribute after initialization
-                orchestrator = PatternOrchestrator(
-                    api_keys={
-                        "anthropic": os.getenv("ANTHROPIC_API_KEY"),
-                        "openai": os.getenv("OPENAI_API_KEY"),
-                        "google": os.getenv("GOOGLE_API_KEY"),
-                        "mistral": os.getenv("MISTRAL_API_KEY"),
-                        "deepseek": os.getenv("DEEPSEEK_API_KEY"),
-                        "cohere": os.getenv("COHERE_API_KEY"),
-                    },
-                    pattern=pattern_key,
-                    output_format="plain",
-                )
+        # Get processing time
+        processing_time = time.time() - start_time
 
-                # Set the ultra model after initialization
-                orchestrator.ultra_model = ultra_model
+        # Add performance metrics
+        result["performance"] = {
+            "total_time_seconds": processing_time,
+            "model_times": result.get("model_times", {}),
+            "token_counts": result.get("token_counts", {})
+        }
 
-                # Process the prompt with the orchestrator
-                result = await orchestrator.orchestrate_full_process(prompt)
+        # Add request info
+        result["request"] = {
+            "prompt": prompt,
+            "selected_models": selected_models,
+            "ultra_model": ultra_model,
+            "pattern": pattern_name
+        }
 
-                # Format the result
-                response = {
-                    "status": "success",
-                    "ultra_response": result.get("ultra_response", ""),
-                    "results": {
-                        model: content
-                        for model, content in result.get(
-                            "initial_responses", {}
-                        ).items()
-                    },
-                    "pattern": pattern_name,
-                    "processing_time": time.time() - start_time,
-                }
+        # Cache the result for future requests
+        await cache_service.set("analyze", cache_key_data, result)
 
-                # Cache the response
-                response_cache[cache_key] = response
+        return result
 
-                # Track the request cost if pricing is enabled
-                if user_id and pricing_integration.pricing_enabled:
-                    # Estimate token usage
-                    token_count = sum(
-                        len(text.split()) * 4
-                        for text in result.get("initial_responses", {}).values()
-                    )
-                    token_count += len(result.get("ultra_response", "").split()) * 4
-
-                    await track_request_cost(
-                        user_id=user_id,
-                        request_type="analyze",
-                        model=ultra_model,
-                        tokens_used=token_count,
-                    )
-
-                return response
-
-            except TypeError as e:
-                # Handle specific initialization errors for different API clients
-                logger.warning(f"API client initialization error: {str(e)}")
-
-                # Filter selected_models to only include models we can initialize
-                working_models = []
-
-                # Check which models we can use based on the error
-                if (
-                    "AsyncClient.__init__() got an unexpected keyword argument 'proxies'"
-                    in str(e)
-                ):
-                    logger.warning(
-                        "Anthropic/Claude client incompatible - removing from available models"
-                    )
-                    working_models = [
-                        model
-                        for model in selected_models
-                        if model != "claude37" and model != "claude3opus"
-                    ]
-                else:
-                    # For other errors, assume we can use OpenAI and Gemini (but not Claude)
-                    working_models = [
-                        model
-                        for model in selected_models
-                        if not model.startswith("claude")
-                    ]
-
-                if not working_models:
-                    # If no selected models can work, add a default that usually works
-                    working_models = ["gpt4o"]
-
-                # Create a simplified orchestrator
-                orchestrator = PatternOrchestrator(
-                    api_keys={
-                        "openai": os.getenv("OPENAI_API_KEY"),
-                        "google": os.getenv("GOOGLE_API_KEY"),
-                    },
-                    pattern=pattern_key,
-                    output_format="plain",
-                )
-
-                orchestrator.ultra_model = ultra_model
-
-                # Process with the working models
-                result = await orchestrator.orchestrate_full_process(prompt)
-
-                # Format the result
-                response = {
-                    "status": "success",
-                    "ultra_response": result.get("ultra_response", ""),
-                    "results": {
-                        model: content
-                        for model, content in result.get(
-                            "initial_responses", {}
-                        ).items()
-                    },
-                    "pattern": pattern_name,
-                    "processing_time": time.time() - start_time,
-                    "models_adjusted": True,
-                    "working_models": working_models,
-                }
-
-                # Cache the response
-                response_cache[cache_key] = response
-
-                return response
-
-        except Exception as e:
-            logger.error(f"Error in pattern orchestration: {str(e)}")
-            raise HTTPException(
-                status_code=500, detail=f"Pattern orchestration error: {str(e)}"
-            )
-
-    except HTTPException:
-        raise
     except Exception as e:
-        logger.error(f"Error processing analyze request: {str(e)}")
-        traceback.print_exc()
-        raise HTTPException(status_code=500, detail=f"Error: {str(e)}")
-
+        logger.error(f"Error analyzing prompt: {str(e)}")
+        return JSONResponse(
+            status_code=500,
+            content={"status": "error", "message": f"Error analyzing prompt: {str(e)}"}
+        )
 
 @analyze_router.post("/api/analyze-with-docs")
 async def analyze_with_docs(
@@ -370,7 +280,6 @@ async def analyze_with_docs(
             status_code=500,
             content={"status": "error", "message": f"Error: {str(e)}"},
         )
-
 
 # Second implementation of analyze that differs from the first one in main.py
 @analyze_router.post("/api/analyze-legacy")
