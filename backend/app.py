@@ -1,5 +1,4 @@
 import argparse
-import logging
 import os
 import sys
 from contextlib import asynccontextmanager
@@ -8,14 +7,14 @@ import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-# Import error handling system
-from error_handler import error_handling_middleware, register_exception_handlers
-
 # Import configuration
 from backend.config import Config
 
 # Import utility functions
 from backend.utils.server import is_port_available, find_available_port
+from backend.utils.logging import get_logger
+from backend.utils.error_handler import error_handling_middleware, register_exception_handlers
+from backend.utils.middleware import setup_middleware
 
 # Import routes
 from backend.routes.health import health_router
@@ -25,11 +24,8 @@ from backend.routes.analyze_routes import analyze_router
 from backend.routes.pricing_routes import pricing_router
 from backend.routes.user_routes import user_router
 
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-)
-logger = logging.getLogger("ultra_api")
+# Get logger
+logger = get_logger("ultra_api", "logs/api.log")
 
 # Check if Sentry is available
 try:
@@ -89,8 +85,11 @@ app = FastAPI(
     redoc_url="/api/redoc",
 )
 
-# Add middleware
+# Add error handling middleware
 app.middleware("http")(error_handling_middleware)
+
+# Set up additional middleware (request validation, logging, performance)
+setup_middleware(app)
 
 # Include routers
 app.include_router(health_router)
@@ -136,23 +135,34 @@ def run_server():
         port = find_available_port(original_port)
         logger.info(f"Port {original_port} is in use, using port {port} instead")
 
-    # Add CORS origins for the actual port we're using
+    # Add CORS middleware
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=[f"http://localhost:{port}"]
-        + [f"http://localhost:{i}" for i in range(3000, 3020)],
+        allow_origins=[
+            f"http://localhost:{port}",
+            *[f"http://localhost:{i}" for i in range(3000, 3020)],
+            "https://ultrai.app",
+            "https://api.ultrai.app",
+        ],
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
     )
 
     # Start the server
+    env = os.getenv("ENVIRONMENT", "development")
+    log_level = "debug" if env == "development" else "info"
+
+    logger.info(f"Starting UltraAI backend server in {env} environment")
+    logger.info(f"Server running at http://{args.host}:{port}")
+    logger.info(f"API documentation available at http://{args.host}:{port}/api/docs")
+
     uvicorn.run(
         "app:app",
         host=args.host,
         port=port,
         reload=args.reload,
-        log_level="info",
+        log_level=log_level,
     )
 
 
