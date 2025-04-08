@@ -7,9 +7,9 @@ for interacting with the PostgreSQL database.
 
 import os
 from contextlib import contextmanager
-from typing import Any, Generator
+from typing import Generator, Optional
 
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 from sqlalchemy.engine import Engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import Session, sessionmaker
@@ -33,7 +33,7 @@ DB_PASSWORD = os.environ.get("DB_PASSWORD", "ultrapassword")
 DATABASE_URL = f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
 
 # Global engine instance
-_engine: Engine = None
+_engine: Optional[Engine] = None
 
 # Session factory
 SessionLocal = None
@@ -111,6 +111,9 @@ def get_db_session() -> Generator[Session, None, None]:
             users = session.query(User).all()
         ```
     """
+    if SessionLocal is None:
+        raise RuntimeError("Database session factory not initialized. Call init_db() first.")
+
     session = SessionLocal()
     try:
         yield session
@@ -137,6 +140,9 @@ def get_db() -> Generator[Session, None, None]:
             return db.query(User).all()
         ```
     """
+    if SessionLocal is None:
+        raise RuntimeError("Database session factory not initialized. Call init_db() first.")
+
     session = SessionLocal()
     try:
         yield session
@@ -154,7 +160,7 @@ def check_database_connection() -> bool:
     try:
         engine = get_engine()
         with engine.connect() as conn:
-            conn.execute("SELECT 1")
+            conn.execute(text("SELECT 1"))
         return True
     except Exception as e:
         logger.error(f"Database connection error: {str(e)}")

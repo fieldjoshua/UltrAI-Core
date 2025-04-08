@@ -8,7 +8,7 @@ import enum
 from datetime import datetime
 
 from sqlalchemy import (Column, DateTime, Enum, Float, ForeignKey, Integer,
-                        String, Text)
+                        String, Text, Boolean)
 from sqlalchemy.dialects.postgresql import ARRAY, JSONB
 from sqlalchemy.orm import relationship
 
@@ -75,7 +75,7 @@ class Analysis(Base):
 
     # Cache metadata
     cache_key = Column(String, nullable=True, index=True)
-    is_cached = Column(Enum(bool), default=False, nullable=False)
+    is_cached = Column(Boolean, default=False, nullable=False)
 
     # Relationships
     user = relationship("User", back_populates="analyses")

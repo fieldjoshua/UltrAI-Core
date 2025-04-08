@@ -10,7 +10,7 @@ from sqlalchemy.orm import Session
 
 from backend.database.models.user import User, UserRole
 from backend.database.repositories.base import BaseRepository
-from backend.utils.exceptions import ResourceAlreadyExistsException, ResourceNotFoundException
+from backend.utils.exceptions import ResourceAlreadyExistsException
 from backend.utils.logging import get_logger
 
 # Set up logger
@@ -127,7 +127,7 @@ class UserRepository(BaseRepository[User]):
         """
         return (
             db.query(User)
-            .filter(User.is_active == True)
+            .filter(User.is_active.is_(True))
             .offset(skip)
             .limit(limit)
             .all()
@@ -177,8 +177,9 @@ class UserRepository(BaseRepository[User]):
         """
         user = self.get_by_id(db, user_id, raise_if_not_found=True)
 
-        # Update account balance
-        new_balance = user.account_balance + amount
+        # Update account balance, ensuring it's not None
+        current_balance = user.account_balance if user.account_balance is not None else 0.0
+        new_balance = current_balance + amount
         return self.update(db, db_obj=user, obj_in={"account_balance": new_balance})
 
     def deduct_funds(self, db: Session, user_id: int, amount: float) -> User:
@@ -198,6 +199,7 @@ class UserRepository(BaseRepository[User]):
         """
         user = self.get_by_id(db, user_id, raise_if_not_found=True)
 
-        # Update account balance
-        new_balance = max(0, user.account_balance - amount)
+        # Update account balance, ensuring it's not None
+        current_balance = user.account_balance if user.account_balance is not None else 0.0
+        new_balance = max(0.0, current_balance - amount)
         return self.update(db, db_obj=user, obj_in={"account_balance": new_balance})
