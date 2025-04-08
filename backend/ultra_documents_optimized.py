@@ -368,8 +368,8 @@ class UltraDocumentsOptimized:
         pages_info = []
 
         try:
-            # Try PyPDF2 first
-            from PyPDF2 import PdfReader
+            # Use pypdf (safer alternative to PyPDF2)
+            from pypdf import PdfReader
 
             reader = PdfReader(file_path)
             for i, page in enumerate(reader.pages):
@@ -383,7 +383,7 @@ class UltraDocumentsOptimized:
                     )
 
         except Exception as e:
-            self.logger.warning(f"Error with PyPDF2 for {file_path}: {e}")
+            self.logger.warning(f"Error with pypdf for {file_path}: {e}")
 
             # Fallback to PyMuPDF if available
             try:
