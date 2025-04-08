@@ -1,6 +1,7 @@
 from dataclasses import dataclass
-from typing import Dict, List, Optional
 from string import Template
+from typing import Dict, List, Optional
+
 
 @dataclass
 class AnalysisPattern:
@@ -9,6 +10,7 @@ class AnalysisPattern:
     stages: List[str]
     templates: Dict[str, str]
     instructions: Dict[str, List[str]]
+
 
 class AnalysisPatterns:
     GUT_ANALYSIS = AnalysisPattern(
@@ -30,7 +32,6 @@ Please provide an edited version of your original response that:
 3. Addresses any potential gaps or limitations
 4. Does not assume factual correctness of other responses
 5. Preserves your unique analytical approach""",
-
             "hyper": """Original prompt: $original_prompt
 
 Your meta response:
@@ -45,7 +46,6 @@ Please provide a refined version of your meta response that:
 3. Maintains your analytical perspective
 4. Highlights unique insights
 5. Preserves your original reasoning""",
-
             "ultra": """Original prompt: $original_prompt
 
 All hyper-level responses:
@@ -56,7 +56,7 @@ Please create a final synthesis that:
 2. Highlights the most compelling insights
 3. Maintains distinct perspectives
 4. Emphasizes original reasoning
-5. Presents a balanced view of different approaches"""
+5. Presents a balanced view of different approaches""",
         },
         instructions={
             "meta": [
@@ -64,23 +64,23 @@ Please create a final synthesis that:
                 "Consider alternative perspectives",
                 "Address potential gaps",
                 "Preserve unique approach",
-                "Question assumptions"
+                "Question assumptions",
             ],
             "hyper": [
                 "Strengthen arguments",
                 "Address valid points",
                 "Maintain perspective",
                 "Highlight unique insights",
-                "Preserve reasoning"
+                "Preserve reasoning",
             ],
             "ultra": [
                 "Preserve unique approaches",
                 "Highlight compelling insights",
                 "Maintain distinct perspectives",
                 "Emphasize original reasoning",
-                "Present balanced view"
-            ]
-        }
+                "Present balanced view",
+            ],
+        },
     )
 
     CONFIDENCE_ANALYSIS = AnalysisPattern(
@@ -102,7 +102,6 @@ Please analyze the responses and:
 3. Highlight unique perspectives
 4. Identify consensus points
 5. Evaluate the strength of different arguments""",
-
             "hyper": """Original prompt: $original_prompt
 
 Your meta analysis:
@@ -117,7 +116,6 @@ Please provide a refined analysis that:
 3. Notes areas of disagreement
 4. Evaluates argument strength
 5. Suggests potential synthesis approaches""",
-
             "ultra": """Original prompt: $original_prompt
 
 All hyper-level analyses:
@@ -158,7 +156,7 @@ Please create a final synthesis with:
      * X-axis: Analysis stages (Initial → Meta → Hyper)
      * Y-axis: Number of agreeing models
      * Lines for each major point
-     * Color-coded based on final confidence level"""
+     * Color-coded based on final confidence level""",
         },
         instructions={
             "meta": [
@@ -166,14 +164,14 @@ Please create a final synthesis with:
                 "Note agreement/disagreement",
                 "Highlight unique perspectives",
                 "Identify consensus",
-                "Evaluate arguments"
+                "Evaluate arguments",
             ],
             "hyper": [
                 "Highlight consensus",
                 "Identify unique insights",
                 "Note disagreements",
                 "Evaluate arguments",
-                "Suggest synthesis"
+                "Suggest synthesis",
             ],
             "ultra": [
                 "Score based on model agreement",
@@ -181,9 +179,9 @@ Please create a final synthesis with:
                 "Highlight unique insights",
                 "Note consensus areas",
                 "Provide scoring distribution",
-                "Suggest visualizations"
-            ]
-        }
+                "Suggest visualizations",
+            ],
+        },
     )
 
     CRITIQUE_ANALYSIS = AnalysisPattern(
@@ -205,7 +203,6 @@ Please provide a detailed critique that:
 3. Suggests potential improvements
 4. Highlights unique insights
 5. Evaluates analytical approach""",
-
             "hyper": """Original prompt: $original_prompt
 
 Your initial response:
@@ -220,7 +217,6 @@ Please revise your response to:
 3. Maintain valuable unique elements
 4. Incorporate helpful suggestions
 5. Preserve core insights""",
-
             "ultra": """Original prompt: $original_prompt
 
 All hyper-level revised responses:
@@ -231,7 +227,7 @@ Please create a final synthesis that:
 2. Maintains unique valuable insights
 3. Addresses key critique points
 4. Presents balanced perspectives
-5. Highlights the strongest arguments"""
+5. Highlights the strongest arguments""",
         },
         instructions={
             "meta": [
@@ -239,23 +235,23 @@ Please create a final synthesis that:
                 "Note similarities/differences",
                 "Suggest improvements",
                 "Highlight unique insights",
-                "Evaluate approach"
+                "Evaluate approach",
             ],
             "hyper": [
                 "Address valid critiques",
                 "Strengthen weaknesses",
                 "Maintain unique elements",
                 "Incorporate suggestions",
-                "Preserve core insights"
+                "Preserve core insights",
             ],
             "ultra": [
                 "Incorporate best elements",
                 "Maintain unique insights",
                 "Address key critiques",
                 "Present balanced view",
-                "Highlight strong arguments"
-            ]
-        }
+                "Highlight strong arguments",
+            ],
+        },
     )
 
     FACT_CHECK_ANALYSIS = AnalysisPattern(
@@ -277,7 +273,6 @@ Please provide a detailed fact-check that:
 3. Notes inconsistencies
 4. Highlights supported claims
 5. Evaluates evidence quality""",
-
             "hyper": """Original prompt: $original_prompt
 
 Your initial response:
@@ -292,7 +287,6 @@ Please revise your response to:
 3. Address inconsistencies
 4. Support claims better
 5. Maintain valid insights""",
-
             "ultra": """Original prompt: $original_prompt
 
 All hyper-level fact-checked responses:
@@ -303,7 +297,7 @@ Please create a final synthesis that:
 2. Maintains strong evidence
 3. Presents verified insights
 4. Highlights well-supported claims
-5. Notes confidence levels"""
+5. Notes confidence levels""",
         },
         instructions={
             "meta": [
@@ -311,23 +305,23 @@ Please create a final synthesis that:
                 "Identify potential errors",
                 "Note inconsistencies",
                 "Highlight supported claims",
-                "Evaluate evidence"
+                "Evaluate evidence",
             ],
             "hyper": [
                 "Correct factual errors",
                 "Strengthen evidence",
                 "Address inconsistencies",
                 "Support claims better",
-                "Maintain valid insights"
+                "Maintain valid insights",
             ],
             "ultra": [
                 "Ensure factual accuracy",
                 "Maintain strong evidence",
                 "Present verified insights",
                 "Highlight supported claims",
-                "Note confidence levels"
-            ]
-        }
+                "Note confidence levels",
+            ],
+        },
     )
 
     # Additional Analysis Patterns
@@ -351,7 +345,6 @@ Please analyze the responses from different perspectives:
 3. Theoretical vs. Practical
 4. Local vs. Global
 5. Qualitative vs. Quantitative""",
-
             "hyper": """Original prompt: $original_prompt
 
 Your meta analysis:
@@ -366,7 +359,6 @@ Please provide a multi-perspective analysis that:
 3. Highlights perspective-specific insights
 4. Identifies perspective gaps
 5. Suggests perspective combinations""",
-
             "ultra": """Original prompt: $original_prompt
 
 All hyper-level analyses:
@@ -377,7 +369,7 @@ Please create a final synthesis that:
 2. Highlights key insights from each
 3. Identifies optimal combinations
 4. Addresses perspective gaps
-5. Provides balanced recommendations"""
+5. Provides balanced recommendations""",
         },
         instructions={
             "meta": [
@@ -385,23 +377,23 @@ Please create a final synthesis that:
                 "Consider timeframes",
                 "Evaluate theory/practice",
                 "Assess scope",
-                "Balance qualitative/quantitative"
+                "Balance qualitative/quantitative",
             ],
             "hyper": [
                 "Integrate viewpoints",
                 "Balance priorities",
                 "Highlight perspective insights",
                 "Identify gaps",
-                "Suggest combinations"
+                "Suggest combinations",
             ],
             "ultra": [
                 "Integrate all perspectives",
                 "Highlight key insights",
                 "Identify optimal combinations",
                 "Address gaps",
-                "Provide balanced recommendations"
-            ]
-        }
+                "Provide balanced recommendations",
+            ],
+        },
     )
 
     SCENARIO_ANALYSIS = AnalysisPattern(
@@ -423,7 +415,6 @@ Please analyze the responses through scenarios:
 3. Most likely case
 4. Edge cases
 5. Alternative scenarios""",
-
             "hyper": """Original prompt: $original_prompt
 
 Your meta analysis:
@@ -438,7 +429,6 @@ Please provide a scenario-based analysis that:
 3. Highlights scenario dependencies
 4. Notes scenario limitations
 5. Suggests scenario combinations""",
-
             "ultra": """Original prompt: $original_prompt
 
 All hyper-level analyses:
@@ -449,7 +439,7 @@ Please create a final synthesis that:
 2. Highlights robust solutions
 3. Identifies scenario dependencies
 4. Addresses limitations
-5. Provides scenario-based recommendations"""
+5. Provides scenario-based recommendations""",
         },
         instructions={
             "meta": [
@@ -457,23 +447,23 @@ Please create a final synthesis that:
                 "Consider worst case",
                 "Evaluate most likely case",
                 "Assess edge cases",
-                "Explore alternatives"
+                "Explore alternatives",
             ],
             "hyper": [
                 "Evaluate robustness",
                 "Identify scenario insights",
                 "Highlight dependencies",
                 "Note limitations",
-                "Suggest combinations"
+                "Suggest combinations",
             ],
             "ultra": [
                 "Integrate scenario insights",
                 "Highlight robust solutions",
                 "Identify dependencies",
                 "Address limitations",
-                "Provide scenario recommendations"
-            ]
-        }
+                "Provide scenario recommendations",
+            ],
+        },
     )
 
     # New Intelligence Multiplication Methods
@@ -492,7 +482,6 @@ Then re-analyze from the distinct perspectives of all key stakeholders:
    b) Constraints and limitations
    c) Risks and concerns
    d) Likely reactions to various approaches""",
-
             "meta": """Original prompt: $original_prompt
 
 Your initial stakeholder analysis:
@@ -506,7 +495,6 @@ Please map the stakeholder analyses by:
 2. Noting consistent vs. contradictory stakeholder motivations
 3. Analyzing potential coalition patterns and power dynamics
 4. Creating a holistic ecosystem view of interconnected stakeholder relationships""",
-
             "hyper": """Original prompt: $original_prompt
 
 Your meta stakeholder mapping:
@@ -521,7 +509,6 @@ Please provide a refined stakeholder-based analysis that:
 3. Suggests coalition-building opportunities
 4. Reveals hidden stakeholder dependencies
 5. Maps the full stakeholder ecosystem""",
-
             "ultra": """Original prompt: $original_prompt
 
 All hyper-level stakeholder analyses:
@@ -532,7 +519,7 @@ Please create a stakeholder-integrated synthesis:
 2. Suggest multi-win strategies addressing core stakeholder needs
 3. Outline an implementation approach accounting for stakeholder dynamics
 4. Provide a communication strategy tailored to each stakeholder group
-5. Identify success metrics from multiple stakeholder perspectives"""
+5. Identify success metrics from multiple stakeholder perspectives""",
         },
         instructions={
             "initial": [
@@ -540,29 +527,29 @@ Please create a stakeholder-integrated synthesis:
                 "Map stakeholder goals",
                 "Assess constraints and limitations",
                 "Evaluate risks and concerns",
-                "Predict likely reactions"
+                "Predict likely reactions",
             ],
             "meta": [
                 "Compare stakeholder identification",
                 "Analyze motivation consistency",
                 "Map coalition patterns",
-                "Create ecosystem view"
+                "Create ecosystem view",
             ],
             "hyper": [
                 "Identify alignments/conflicts",
                 "Create power/interest matrix",
                 "Suggest coalition opportunities",
                 "Reveal hidden dependencies",
-                "Map stakeholder ecosystem"
+                "Map stakeholder ecosystem",
             ],
             "ultra": [
                 "Create comprehensive stakeholder map",
                 "Suggest multi-win strategies",
                 "Design implementation approach",
                 "Tailor communication strategy",
-                "Identify multi-stakeholder metrics"
-            ]
-        }
+                "Identify multi-stakeholder metrics",
+            ],
+        },
     )
 
     SYSTEMS_MAPPER = AnalysisPattern(
@@ -577,7 +564,6 @@ Using systems thinking methodology:
 2. Identify key feedback loops (reinforcing and balancing)
 3. Locate potential leverage points where small changes yield large effects
 4. Anticipate emergent properties and second-order consequences""",
-
             "meta": """Original prompt: $original_prompt
 
 Your initial systems analysis:
@@ -591,7 +577,6 @@ Please integrate the system models by:
 2. Analyzing feedback dynamics identified by multiple models
 3. Comparing consensus vs. disputed leverage points
 4. Developing a comprehensive view of potential unintended consequences""",
-
             "hyper": """Original prompt: $original_prompt
 
 Your meta systems integration:
@@ -606,7 +591,6 @@ Please provide a refined systems analysis that:
 3. Models system behavior under different intervention scenarios
 4. Anticipates emergent properties and non-linear effects
 5. Identifies critical thresholds and tipping points""",
-
             "ultra": """Original prompt: $original_prompt
 
 All hyper-level systems analyses:
@@ -617,36 +601,36 @@ Please create a systems-based synthesis:
 2. Identify high-leverage intervention points with expected system effects
 3. Outline an implementation strategy accounting for feedback dynamics
 4. Develop a monitoring framework for system behavior and emergent properties
-5. Provide a timeline of expected system changes with key indicators"""
+5. Provide a timeline of expected system changes with key indicators""",
         },
         instructions={
             "initial": [
                 "Map system components",
                 "Identify feedback loops",
                 "Locate leverage points",
-                "Anticipate emergent properties"
+                "Anticipate emergent properties",
             ],
             "meta": [
                 "Create composite system map",
                 "Analyze feedback dynamics",
                 "Compare leverage points",
-                "Assess unintended consequences"
+                "Assess unintended consequences",
             ],
             "hyper": [
                 "Create causal loop diagram",
                 "Quantify leverage impacts",
                 "Model intervention scenarios",
                 "Anticipate non-linear effects",
-                "Identify critical thresholds"
+                "Identify critical thresholds",
             ],
             "ultra": [
                 "Present integrated system model",
                 "Identify high-leverage points",
                 "Design feedback-aware strategy",
                 "Develop monitoring framework",
-                "Map system change timeline"
-            ]
-        }
+                "Map system change timeline",
+            ],
+        },
     )
 
     TIME_HORIZON = AnalysisPattern(
@@ -662,7 +646,6 @@ Then reframe your analysis across three time horizons:
 3. HORIZON (5-20+ years): Long-term transformational possibilities
 
 For each timeframe, consider what differs in your analysis and recommendations.""",
-
             "meta": """Original prompt: $original_prompt
 
 Your initial temporal analysis:
@@ -676,7 +659,6 @@ Please compare the temporal analyses by:
 2. Analyzing short-term vs. long-term tradeoffs identified
 3. Mapping critical transition points where futures diverge
 4. Evaluating time-horizon biases in different models' thinking""",
-
             "hyper": """Original prompt: $original_prompt
 
 Your meta temporal comparison:
@@ -691,7 +673,6 @@ Please provide a refined temporal analysis that:
 3. Analyzes dependencies between short and long-term actions
 4. Evaluates opportunity costs across different time horizons
 5. Outlines a temporal decision framework""",
-
             "ultra": """Original prompt: $original_prompt
 
 All hyper-level temporal analyses:
@@ -702,36 +683,36 @@ Please create a temporally-integrated synthesis:
 2. Design an adaptive strategy with explicit time-based decision points
 3. Balance present vs. future capability investments with optimal sequencing
 4. Stratify recommendations by time-criticality and time-horizon
-5. Identify temporal flexibility areas vs. time-sensitive commitments"""
+5. Identify temporal flexibility areas vs. time-sensitive commitments""",
         },
         instructions={
             "initial": [
                 "Analyze immediate impacts",
                 "Explore transitional developments",
                 "Project long-term possibilities",
-                "Compare across timeframes"
+                "Compare across timeframes",
             ],
             "meta": [
                 "Identify temporal consistency",
                 "Analyze time-based tradeoffs",
                 "Map transition points",
-                "Evaluate time biases"
+                "Evaluate time biases",
             ],
             "hyper": [
                 "Create coherent timeline",
                 "Identify key decision points",
                 "Analyze temporal dependencies",
                 "Evaluate opportunity costs",
-                "Design decision framework"
+                "Design decision framework",
             ],
             "ultra": [
                 "Present time-coherent roadmap",
                 "Design adaptive strategy",
                 "Balance capability investments",
                 "Stratify by time-criticality",
-                "Identify temporal flexibility"
-            ]
-        }
+                "Identify temporal flexibility",
+            ],
+        },
     )
 
     INNOVATION_BRIDGE = AnalysisPattern(
@@ -745,7 +726,6 @@ Then identify at least 3 analogies from different domains (e.g., biology, physic
 1. The pattern similarity
 2. Insights derived from the analogy
 3. Limitations of the analogy""",
-
             "meta": """Original prompt: $original_prompt
 
 Your initial analogical analysis:
@@ -759,7 +739,6 @@ Please analyze the analogies across all models by:
 2. Highlighting novel cross-domain insights unique to specific models
 3. Exploring potential new analogies by combining elements
 4. Evaluating which insights are revealed only through analogical thinking""",
-
             "hyper": """Original prompt: $original_prompt
 
 Your meta analogical mapping:
@@ -774,7 +753,6 @@ Please provide a refined analogical analysis that:
 3. Extracts key principles that transcend specific analogies
 4. Maps novel solution approaches directly from analogical insights
 5. Evaluates limitations of the analogical approach""",
-
             "ultra": """Original prompt: $original_prompt
 
 All hyper-level analogical analyses:
@@ -785,36 +763,36 @@ Please create an analogical synthesis:
 2. Develop a composite analogical model drawing best elements from each analogy
 3. Outline novel solution approaches inspired by analogical reasoning
 4. Translate analogical insights into practical applications
-5. Create an innovation framework based on cross-domain knowledge transfer"""
+5. Create an innovation framework based on cross-domain knowledge transfer""",
         },
         instructions={
             "initial": [
                 "Identify domain analogies",
                 "Extract pattern similarities",
                 "Derive analogical insights",
-                "Acknowledge limitations"
+                "Acknowledge limitations",
             ],
             "meta": [
                 "Map recurring patterns",
                 "Highlight unique insights",
                 "Explore combined analogies",
-                "Evaluate analogical discoveries"
+                "Evaluate analogical discoveries",
             ],
             "hyper": [
                 "Develop composite analogies",
                 "Create unified framework",
                 "Extract transcendent principles",
                 "Map novel solutions",
-                "Evaluate approach limitations"
+                "Evaluate approach limitations",
             ],
             "ultra": [
                 "Present illuminating patterns",
                 "Develop composite model",
                 "Outline novel approaches",
                 "Translate to applications",
-                "Create innovation framework"
-            ]
-        }
+                "Create innovation framework",
+            ],
+        },
     )
 
     @classmethod
@@ -830,6 +808,6 @@ Please create an analogical synthesis:
             "stakeholder": cls.STAKEHOLDER_VISION,
             "systems": cls.SYSTEMS_MAPPER,
             "time": cls.TIME_HORIZON,
-            "innovation": cls.INNOVATION_BRIDGE
+            "innovation": cls.INNOVATION_BRIDGE,
         }
-        return patterns.get(pattern_name.lower()) 
+        return patterns.get(pattern_name.lower())

@@ -6,17 +6,19 @@ This module provides middleware for:
 - Content-type checking
 - Request size limiting
 - Performance monitoring
+- Rate limiting
 """
 
 import time
 from typing import List, Optional, Set
 
-from fastapi import Request
+from fastapi import Request, FastAPI
 from fastapi.responses import JSONResponse
 from starlette.datastructures import MutableHeaders
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
 from backend.utils.logging import CorrelationContext, log_performance, log_request
+from backend.utils.rate_limit_middleware import setup_rate_limit_middleware
 
 
 class RequestValidationMiddleware:
@@ -309,34 +311,12 @@ class PerformanceMiddleware:
         await self.app(scope, receive, send_interceptor)
 
 
-def setup_middleware(app: ASGIApp) -> None:
-    """Set up all middleware for the application
+def setup_middleware(app: FastAPI) -> None:
+    """
+    Set up all middleware for the FastAPI application
 
     Args:
         app: The FastAPI application
     """
-    # Add request validation middleware
-    app.add_middleware(
-        RequestValidationMiddleware,
-        allowed_content_types={
-            "application/json",
-            "multipart/form-data",
-            "application/x-www-form-urlencoded",
-            "text/plain",
-        },
-        max_content_length=100 * 1024 * 1024,  # 100MB
-    )
-
-    # Add request logging middleware (consider excluding sensitive paths)
-    app.add_middleware(
-        RequestLoggingMiddleware,
-        exclude_paths=["/health", "/api/health", "/metrics", "/api/metrics"],
-        include_request_body=False,  # Set to True for detailed debugging only
-        include_response_body=False,  # Set to True for detailed debugging only
-    )
-
-    # Add performance middleware
-    app.add_middleware(
-        PerformanceMiddleware,
-        exclude_paths=["/health", "/api/health", "/metrics", "/api/metrics"],
-    )
+    # Add rate limiting middleware
+    setup_rate_limit_middleware(app)

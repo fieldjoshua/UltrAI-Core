@@ -1,17 +1,18 @@
-import os
-import json
 import asyncio
+import json
 import logging
-import requests
-from typing import Dict, Any, Optional
-from datetime import datetime
-from tenacity import retry, stop_after_attempt, wait_exponential
-import google.generativeai as genai
-from openai import AsyncOpenAI
-from dataclasses import dataclass
-from dotenv import load_dotenv
-import torch
+import os
 import platform
+from dataclasses import dataclass
+from datetime import datetime
+from typing import Any, Dict, Optional
+
+import google.generativeai as genai
+import requests
+import torch
+from dotenv import load_dotenv
+from openai import AsyncOpenAI
+from tenacity import retry, stop_after_attempt, wait_exponential
 
 load_dotenv()  # This needs to be called before accessing any env vars
 
@@ -20,6 +21,7 @@ openai_api_key = os.getenv("OPENAI_API_KEY")
 
 # Initialize the OpenAI client with the API key
 aclient = AsyncOpenAI(api_key=openai_api_key)
+
 
 @dataclass
 class PromptTemplate:
@@ -40,56 +42,64 @@ class PromptTemplate:
         "Provide your advice on how the user should apply these analyses based on the original prompt."
     )
 
+
 @dataclass
 class RateLimits:
     llama: int = 5
     chatgpt: int = 3
     gemini: int = 10
 
+
 class TriLLMOrchestrator:
     def __init__(
-        self, 
+        self,
         api_keys: Dict[str, str],
         prompt_templates: Optional[PromptTemplate] = None,
         rate_limits: Optional[RateLimits] = None,
         output_format: str = "plain",
-        ultra_engine: str = "llama"
+        ultra_engine: str = "llama",
     ):
         print("Initializing TriLLMOrchestrator...")
 
         # Setup logging
         self.logger = logging.getLogger(__name__)
         logging.basicConfig(
-            filename='ultra_hyper.log',
-            filemode='a',
-            format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-            level=logging.INFO
+            filename="ultra_hyper.log",
+            filemode="a",
+            format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+            level=logging.INFO,
         )
 
         # Store the prompt first so we can use it for the directory name
         self.prompt = None
-        self.base_dir = os.path.join(os.getcwd(), 'responses')
+        self.base_dir = os.path.join(os.getcwd(), "responses")
         os.makedirs(self.base_dir, exist_ok=True)
 
         print("\nChecking API keys...")
         self.api_keys = api_keys
-        if not self.api_keys.get('llama'):
+        if not self.api_keys.get("llama"):
             self.logger.error("Llama API key not found.")
             print("Llama API key not found.")
         else:
-            print(f"Llama: {self.api_keys.get('llama', '')[:5]}...{self.api_keys.get('llama', '')[-4:]}")
+            print(
+                f"Llama: {self.api_keys.get('llama', '')[:5]}...{self.api_keys.get('llama', '')[-4:]}"
+            )
 
-        if not self.api_keys.get('openai'):
+        if not self.api_keys.get("openai"):
             self.logger.error("OpenAI API key not found.")
             print("OpenAI API key not found.")
         else:
-            print(f"OpenAI: {self.api_keys.get('openai', '')[:5]}...{self.api_keys.get('openai', '')[-4:]}")
+            print(
+                f"OpenAI: {self.api_keys.get('openai', '')[:5]}...{self.api_keys.get('openai', '')[-4:]}"
+            )
 
-        if not self.api_keys.get('google'):
+        if not self.api_keys.get("google"):
             self.logger.error("Google API key not found.")
             print("Google API key not found.")
         else:
-            print(f"Google: {self.api_keys.get('google', '')[:5]}...{self.api_keys.get('google', '')[-4:]}")
+            print(
+                f"Google: {self.api_keys.get('google', '')[:5]}...{self.api_keys.get('google', '')[-4:]}"
+            )
 
         print("\nSetting up formatter...")
         self.output_format = output_format
@@ -113,7 +123,9 @@ class TriLLMOrchestrator:
             # Enable Metal optimizations
             torch.backends.mps.enable_fallback_to_cpu = True
 
-        self.run_dir = os.path.join(self.base_dir, datetime.now().strftime("%Y%m%d_%H%M%S"))
+        self.run_dir = os.path.join(
+            self.base_dir, datetime.now().strftime("%Y%m%d_%H%M%S")
+        )
         os.makedirs(self.run_dir, exist_ok=True)
 
     def _initialize_clients(self):
@@ -165,19 +177,23 @@ class TriLLMOrchestrator:
 
         # Hyper Round
         self.logger.info("Starting Hyper Round")
-        hyper_analysis = await self.hyper_round(user_prompt, initial_responses, refined_responses, synthesized_response)
+        hyper_analysis = await self.hyper_round(
+            user_prompt, initial_responses, refined_responses, synthesized_response
+        )
         self.logger.info("Completed Hyper Round")
 
         # Save responses
         self.logger.info("Saving Responses")
-        self.save_responses(initial_responses, refined_responses, synthesized_response, hyper_analysis)
+        self.save_responses(
+            initial_responses, refined_responses, synthesized_response, hyper_analysis
+        )
         self.logger.info("Responses Saved Successfully")
 
         return {
             "initial_responses": initial_responses,
             "refined_responses": refined_responses,
             "synthesized_response": synthesized_response,
-            "hyper_analysis": hyper_analysis
+            "hyper_analysis": hyper_analysis,
         }
 
     def save_responses(self, initial, refined, synthesized, hyper):
@@ -196,7 +212,9 @@ class TriLLMOrchestrator:
         with open(os.path.join(run_dir, "hyper_analysis.json"), "w") as f:
             json.dump(hyper, f, indent=4)
 
-    @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=4, max=10))
+    @retry(
+        stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=4, max=10)
+    )
     async def initial_round(self, prompt: str) -> Dict[str, str]:
         initial_prompt = self.prompt_templates.initial.format(prompt=prompt)
         self.logger.info(f"Initial Prompt: {initial_prompt}")
@@ -204,19 +222,35 @@ class TriLLMOrchestrator:
             self.call_chatgpt(initial_prompt),
             self.call_gemini(initial_prompt),
             self.call_llama(initial_prompt),
-            return_exceptions=True
+            return_exceptions=True,
         )
         result = {
-            "chatgpt": responses[0] if not isinstance(responses[0], Exception) else f"Error: {responses[0]}",
-            "gemini": responses[1] if not isinstance(responses[1], Exception) else f"Error: {responses[1]}",
-            "llama": responses[2] if not isinstance(responses[2], Exception) else f"Error: {responses[2]}"
+            "chatgpt": (
+                responses[0]
+                if not isinstance(responses[0], Exception)
+                else f"Error: {responses[0]}"
+            ),
+            "gemini": (
+                responses[1]
+                if not isinstance(responses[1], Exception)
+                else f"Error: {responses[1]}"
+            ),
+            "llama": (
+                responses[2]
+                if not isinstance(responses[2], Exception)
+                else f"Error: {responses[2]}"
+            ),
         }
         self.logger.info(f"Initial Responses: {result}")
         return result
 
-    @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=4, max=10))
+    @retry(
+        stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=4, max=10)
+    )
     async def meta_round(self, initial_responses: Dict[str, str]) -> Dict[str, str]:
-        aggregated_responses = "\n\n".join([resp for resp in initial_responses.values()])
+        aggregated_responses = "\n\n".join(
+            [resp for resp in initial_responses.values()]
+        )
         meta_prompt = self.prompt_templates.meta
         refined_prompt = meta_prompt.format(prompt=aggregated_responses)
         self.logger.info(f"Meta Prompt: {refined_prompt}")
@@ -224,17 +258,31 @@ class TriLLMOrchestrator:
             self.call_chatgpt(refined_prompt),
             self.call_gemini(refined_prompt),
             self.call_llama(refined_prompt),
-            return_exceptions=True
+            return_exceptions=True,
         )
         result = {
-            "chatgpt": responses[0] if not isinstance(responses[0], Exception) else f"Error: {responses[0]}",
-            "gemini": responses[1] if not isinstance(responses[1], Exception) else f"Error: {responses[1]}",
-            "llama": responses[2] if not isinstance(responses[2], Exception) else f"Error: {responses[2]}"
+            "chatgpt": (
+                responses[0]
+                if not isinstance(responses[0], Exception)
+                else f"Error: {responses[0]}"
+            ),
+            "gemini": (
+                responses[1]
+                if not isinstance(responses[1], Exception)
+                else f"Error: {responses[1]}"
+            ),
+            "llama": (
+                responses[2]
+                if not isinstance(responses[2], Exception)
+                else f"Error: {responses[2]}"
+            ),
         }
         self.logger.info(f"Refined Responses: {result}")
         return result
 
-    @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=4, max=10))
+    @retry(
+        stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=4, max=10)
+    )
     async def ultra_round(self, refined_responses: Dict[str, str]) -> Dict[str, str]:
         aggregated_refined = "\n\n".join([resp for resp in refined_responses.values()])
         ultra_prompt = self.prompt_templates.ultra.format(prompt=aggregated_refined)
@@ -243,30 +291,46 @@ class TriLLMOrchestrator:
             self.call_chatgpt(ultra_prompt),
             self.call_gemini(ultra_prompt),
             self.call_llama(ultra_prompt),
-            return_exceptions=True
+            return_exceptions=True,
         )
         result = {
-            "chatgpt": responses[0] if not isinstance(responses[0], Exception) else f"Error: {responses[0]}",
-            "gemini": responses[1] if not isinstance(responses[1], Exception) else f"Error: {responses[1]}",
-            "llama": responses[2] if not isinstance(responses[2], Exception) else f"Error: {responses[2]}"
+            "chatgpt": (
+                responses[0]
+                if not isinstance(responses[0], Exception)
+                else f"Error: {responses[0]}"
+            ),
+            "gemini": (
+                responses[1]
+                if not isinstance(responses[1], Exception)
+                else f"Error: {responses[1]}"
+            ),
+            "llama": (
+                responses[2]
+                if not isinstance(responses[2], Exception)
+                else f"Error: {responses[2]}"
+            ),
         }
         self.logger.info(f"Synthesized Responses: {result}")
         return result
 
-    @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=4, max=10))
+    @retry(
+        stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=4, max=10)
+    )
     async def hyper_round(
-        self, 
-        user_prompt: str, 
+        self,
+        user_prompt: str,
         initial_responses: Dict[str, str],
-        refined_responses: Dict[str, str], 
-        synthesized_response: Dict[str, str]
+        refined_responses: Dict[str, str],
+        synthesized_response: Dict[str, str],
     ) -> str:
-        hyper_input = "\n\n".join([
-            user_prompt,
-            "\n\n".join(initial_responses.values()),
-            "\n\n".join(refined_responses.values()),
-            "\n\n".join(synthesized_response.values())
-        ])
+        hyper_input = "\n\n".join(
+            [
+                user_prompt,
+                "\n\n".join(initial_responses.values()),
+                "\n\n".join(refined_responses.values()),
+                "\n\n".join(synthesized_response.values()),
+            ]
+        )
         hyper_prompt = self.prompt_templates.hyper.format(responses=hyper_input)
         self.logger.info(f"Hyper Prompt: {hyper_prompt}")
         hyper_response = await self.call_chatgpt(hyper_prompt)
@@ -282,10 +346,10 @@ class TriLLMOrchestrator:
                 model="gpt-4",
                 messages=[
                     {"role": "system", "content": "You are an intelligent assistant."},
-                    {"role": "user", "content": prompt}
+                    {"role": "user", "content": prompt},
                 ],
                 max_tokens=1500,
-                temperature=0.7
+                temperature=0.7,
             )
             # Log the raw response for debugging
             self.logger.info(f"Raw ChatGPT response: {response}")
@@ -299,9 +363,14 @@ class TriLLMOrchestrator:
     async def call_gemini(self, prompt: str) -> str:
         try:
             # Ensure the correct method is used for generating content
-            response = await asyncio.to_thread(genai.generate_content, prompt=prompt, model="gemini-model", max_tokens=1500)
+            response = await asyncio.to_thread(
+                genai.generate_content,
+                prompt=prompt,
+                model="gemini-model",
+                max_tokens=1500,
+            )
             self.logger.info(f"Raw Gemini response: {response}")
-            return response['text'].strip()
+            return response["text"].strip()
         except AttributeError as e:
             self.logger.error(f"Gemini API call failed: {e}")
             return "Error: Incorrect method or module usage"
@@ -311,10 +380,14 @@ class TriLLMOrchestrator:
 
     async def call_llama(self, prompt: str) -> str:
         try:
-            api_url = "http://localhost:5000/generate"  # Ensure this endpoint is correct
+            api_url = (
+                "http://localhost:5000/generate"  # Ensure this endpoint is correct
+            )
             headers = {"Authorization": f"Bearer {self.api_keys.get('llama')}"}
             payload = {"prompt": prompt, "max_tokens": 1500}
-            response = await asyncio.to_thread(requests.post, api_url, headers=headers, json=payload)
+            response = await asyncio.to_thread(
+                requests.post, api_url, headers=headers, json=payload
+            )
             response.raise_for_status()
             self.logger.info(f"Raw Llama response: {response.json()}")
             return response.json().get("text", "").strip()
@@ -361,12 +434,13 @@ class TriLLMOrchestrator:
         except Exception as e:
             print(f"Gemini test failed with error: {e}\n")
 
+
 async def main():
     # Load API keys from environment variables
     api_keys = {
-        'openai': os.getenv("OPENAI_API_KEY"),
-        'google': os.getenv("GOOGLE_API_KEY"),
-        'llama': os.getenv("LLAMA_API_KEY"),
+        "openai": os.getenv("OPENAI_API_KEY"),
+        "google": os.getenv("GOOGLE_API_KEY"),
+        "llama": os.getenv("LLAMA_API_KEY"),
     }
 
     orchestrator = TriLLMOrchestrator(api_keys=api_keys)
@@ -389,6 +463,7 @@ async def main():
 
     print("\nFinal Hyper-Level Analysis:")
     print(results["hyper_analysis"])
+
 
 if __name__ == "__main__":
     asyncio.run(main())

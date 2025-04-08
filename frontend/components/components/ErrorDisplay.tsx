@@ -11,7 +11,10 @@ interface ErrorDisplayProps {
   onDismiss?: (id: string) => void;
 }
 
-export const ErrorDisplay: React.FC<ErrorDisplayProps> = ({ errors, onDismiss }) => {
+export const ErrorDisplay: React.FC<ErrorDisplayProps> = ({
+  errors,
+  onDismiss,
+}) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
 
   // If there are no errors, don't render anything
@@ -20,11 +23,11 @@ export const ErrorDisplay: React.FC<ErrorDisplayProps> = ({ errors, onDismiss })
   }
 
   return (
-    <div 
+    <div
       className="fixed bottom-0 left-0 right-0 bg-red-950/90 border-t border-red-800 text-white p-2 z-50 transition-all duration-300 shadow-lg"
-      style={{ 
+      style={{
         maxHeight: isCollapsed ? '42px' : '300px',
-        overflow: 'hidden'
+        overflow: 'hidden',
       }}
     >
       <div className="flex items-center justify-between py-1 px-2">
@@ -48,7 +51,7 @@ export const ErrorDisplay: React.FC<ErrorDisplayProps> = ({ errors, onDismiss })
       {!isCollapsed && (
         <div className="mt-2 max-h-[240px] overflow-y-auto">
           {errors.map((error) => (
-            <div 
+            <div
               key={error.id}
               className="bg-red-900/50 mb-2 p-3 rounded border border-red-800 flex items-start justify-between"
             >
@@ -64,7 +67,7 @@ export const ErrorDisplay: React.FC<ErrorDisplayProps> = ({ errors, onDismiss })
                 <p className="mt-1 text-sm">{error.message}</p>
               </div>
               {onDismiss && (
-                <button 
+                <button
                   onClick={() => onDismiss(error.id)}
                   className="text-red-400 hover:text-red-200 focus:outline-none"
                 >
@@ -79,4 +82,4 @@ export const ErrorDisplay: React.FC<ErrorDisplayProps> = ({ errors, onDismiss })
   );
 };
 
-export default ErrorDisplay; 
+export default ErrorDisplay;

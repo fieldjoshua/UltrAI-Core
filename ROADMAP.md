@@ -18,7 +18,24 @@ We've successfully completed Phase 1 of the roadmap:
 - ✅ Created a comprehensive example .env file
 - ✅ Consolidated environment variables and removed redundant env files
 
-Next, we'll begin Phase 2 which includes modularizing the large backend files according to our MODULARIZATION_PLAN.md.
+### Phase 2 In Progress 🔄
+
+We're now implementing Phase 2, focused on modularizing the backend:
+
+- ✅ Created directory structure for models, routes, and utilities
+- ✅ Extracted document-related models into `backend/models/document.py`
+- ✅ Extracted pricing-related models into `backend/models/pricing.py`
+- ✅ Extracted metrics, server, and caching utilities into dedicated modules
+- ✅ Moved document processor and mock LLM service to services directory
+- ✅ Created health and metrics routes in their own modules
+- ✅ Created new app.py as the primary entry point with backward compatibility maintained
+- ✅ Extracted document-related routes to `backend/routes/document_routes.py`
+- ✅ Extracted analysis-related routes to `backend/routes/analyze_routes.py`
+- 🔄 Extracting remaining routes from main.py to their respective route files
+- 🔄 Creating additional service modules for remaining functionality
+- 🔄 Updating documentation to reflect new structure
+
+Next steps will be to continue extracting more functionality from main.py into dedicated modules, focusing on remaining endpoints like pricing and user management.
 
 --------------------------------------------------------------------------------
 
@@ -122,13 +139,13 @@ Next, we'll begin Phase 2 which includes modularizing the large backend files ac
 PHASED IMPLEMENTATION SUGGESTION
 --------------------------------------------------------------------------------
 
-• Phase 1 (Weeks 1–2):
+• Phase 1 (Weeks 1–2): ✅ COMPLETED
   – Environment variable cleanup (consolidate `.env`s).
   – Remove or archive redundant scripts/files.
   – Fix immediate linting issues.
   – Set up (or finalize) the CI environment.
 
-• Phase 2 (Weeks 3–4):
+• Phase 2 (Weeks 3–4): 🔄 IN PROGRESS
   – Begin modularizing big backend files.
   – Introduce a Makefile or single CLI for tasks.
   – Update references in test files.

@@ -1,8 +1,11 @@
-from abc import ABC, abstractmethod
-import aiohttp
 import asyncio
-from typing import Dict, Any
+from abc import ABC, abstractmethod
+from typing import Any, Dict
+
+import aiohttp
+
 from .config import ModelConfig
+
 
 class BaseModelClient(ABC):
     def __init__(self, config: ModelConfig):
@@ -21,6 +24,7 @@ class BaseModelClient(ABC):
     async def generate(self, prompt: str) -> str:
         pass
 
+
 class ChatGPTClient(BaseModelClient):
     async def generate(self, prompt: str) -> str:
         async with self.session.post(
@@ -30,12 +34,13 @@ class ChatGPTClient(BaseModelClient):
                 "model": "gpt-3.5-turbo",
                 "messages": [{"role": "user", "content": prompt}],
                 "max_tokens": self.config.max_tokens,
-                "temperature": self.config.temperature
+                "temperature": self.config.temperature,
             },
-            timeout=self.config.timeout
+            timeout=self.config.timeout,
         ) as response:
             data = await response.json()
-            return data['choices'][0]['message']['content']
+            return data["choices"][0]["message"]["content"]
+
 
 class GeminiClient(BaseModelClient):
     async def generate(self, prompt: str) -> str:
@@ -46,13 +51,14 @@ class GeminiClient(BaseModelClient):
                 "contents": [{"parts": [{"text": prompt}]}],
                 "generationConfig": {
                     "maxTokens": self.config.max_tokens,
-                    "temperature": self.config.temperature
-                }
+                    "temperature": self.config.temperature,
+                },
             },
-            timeout=self.config.timeout
+            timeout=self.config.timeout,
         ) as response:
             data = await response.json()
-            return data['candidates'][0]['content']['parts'][0]['text']
+            return data["candidates"][0]["content"]["parts"][0]["text"]
+
 
 class LlamaClient(BaseModelClient):
     async def generate(self, prompt: str) -> str:
@@ -62,9 +68,9 @@ class LlamaClient(BaseModelClient):
             json={
                 "prompt": prompt,
                 "max_tokens": self.config.max_tokens,
-                "temperature": self.config.temperature
+                "temperature": self.config.temperature,
             },
-            timeout=self.config.timeout
+            timeout=self.config.timeout,
         ) as response:
             data = await response.json()
-            return data['generated_text'] 
+            return data["generated_text"]

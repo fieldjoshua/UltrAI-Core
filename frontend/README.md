@@ -5,6 +5,7 @@ This directory contains the frontend code for the Ultra AI Framework.
 ## Directory Structure
 
 - **components/**: React components
+
   - `ui/`: UI components and primitives
   - `AnimatedLogo.tsx`: Logo animations and branding elements
   - `DocumentUpload.tsx`: Document handling interface
@@ -14,14 +15,17 @@ This directory contains the frontend code for the Ultra AI Framework.
   - `PricingDisplay.tsx`: Token pricing and usage visualization
 
 - **pages/**: Page definitions and layouts
+
   - `App.tsx`: Main application component
   - `main.jsx`: Application entry point
 
 - **api/**: Frontend API clients
+
   - `config.js`: API configuration
   - `index.js`: API client implementations
 
 - **styles/**: CSS and styling files
+
   - `index.css`: Global styles
 
 - **public/**: Static assets and resources

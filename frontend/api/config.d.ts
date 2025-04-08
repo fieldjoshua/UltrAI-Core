@@ -27,7 +27,9 @@ export function addApiErrorListener(callback: (errorDetail: any) => void): void;
 /**
  * Remove a listener for API errors
  */
-export function removeApiErrorListener(callback: (errorDetail: any) => void): void;
+export function removeApiErrorListener(
+  callback: (errorDetail: any) => void
+): void;
 
 /**
  * Default export configuration
@@ -41,4 +43,4 @@ declare const _default: {
   API_ERROR_EVENT: string;
 };
 
-export default _default; 
+export default _default;

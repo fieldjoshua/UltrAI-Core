@@ -20,14 +20,14 @@ class ErrorBoundary extends React.Component {
   componentDidCatch(error, errorInfo) {
     // Capture error details for logging and debugging
     this.setState({ errorInfo });
-    
+
     // Report to Sentry
     Sentry.withScope((scope) => {
       scope.setExtras(errorInfo);
       const eventId = Sentry.captureException(error);
       this.setState({ eventId });
     });
-    
+
     // You could also log to an error reporting service here
     console.error('Error caught by ErrorBoundary:', error, errorInfo);
   }
@@ -48,24 +48,22 @@ class ErrorBoundary extends React.Component {
         <div className="error-boundary-content" style={styles.content}>
           <h2 style={styles.heading}>Something went wrong</h2>
           <p style={styles.message}>
-            We're sorry, but an unexpected error occurred. Our team has been notified.
+            We're sorry, but an unexpected error occurred. Our team has been
+            notified.
           </p>
-          
+
           {this.state.error && (
             <div className="error-details" style={styles.details}>
               <p style={styles.detailsHeading}>Error details:</p>
               <pre style={styles.code}>{this.state.error.toString()}</pre>
             </div>
           )}
-          
+
           <div className="error-actions" style={styles.actions}>
-            <button 
-              onClick={this.handleRetry}
-              style={styles.retryButton}
-            >
+            <button onClick={this.handleRetry} style={styles.retryButton}>
               Try Again
             </button>
-            <button 
+            <button
               onClick={this.handleReportFeedback}
               style={styles.reportButton}
             >
@@ -94,7 +92,8 @@ const styles = {
     border: '1px solid #e3e3e3',
     borderRadius: '4px',
     margin: '20px 0',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    fontFamily:
+      '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
   },
   content: {
     maxWidth: '600px',
@@ -164,4 +163,4 @@ const SentryErrorBoundary = Sentry.withErrorBoundary(ErrorBoundary, {
   showDialog: false, // We'll control this manually with the "Report Feedback" button
 });
 
-export default SentryErrorBoundary; 
+export default SentryErrorBoundary;

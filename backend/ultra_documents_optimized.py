@@ -1,23 +1,25 @@
-import os
-import re
+import hashlib
+import json
 import logging
+import mimetypes
+import os
+import random
+import re
 import tempfile
 import time
-import json
-import random
-import hashlib
-from typing import Dict, List, Any, Optional, Tuple
 import traceback
 from concurrent.futures import ThreadPoolExecutor
-import mimetypes
 from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple
 
 # Set up logging
 logger = logging.getLogger(__name__)
 
+
 # Cache implementation with both memory and disk options
 class DocumentCache:
     """Document cache with both memory and disk options"""
+
     def __init__(self, cache_dir: str = ".cache", memory_size: int = 100):
         self.memory_cache = {}
         self.memory_size = memory_size
@@ -42,7 +44,7 @@ class DocumentCache:
         disk_path = self._get_disk_path(key)
         if os.path.exists(disk_path):
             try:
-                with open(disk_path, 'r', encoding='utf-8') as f:
+                with open(disk_path, "r", encoding="utf-8") as f:
                     data = json.load(f)
 
                 # Also store in memory for faster access next time
@@ -71,7 +73,7 @@ class DocumentCache:
         # Disk cache
         disk_path = self._get_disk_path(key)
         try:
-            with open(disk_path, 'w', encoding='utf-8') as f:
+            with open(disk_path, "w", encoding="utf-8") as f:
                 json.dump(value, f)
         except Exception as e:
             logging.warning(f"Error writing to disk cache: {e}")
@@ -89,15 +91,23 @@ class DocumentCache:
                 except Exception as e:
                     logging.warning(f"Error removing cache file {file}: {e}")
 
+
 class UltraDocumentsOptimized:
     """
     Optimized document processing class for Ultra.
     This version is a simplified implementation that can process documents
     and extract content from them.
     """
-    def __init__(self, cache_enabled: bool = True, chunk_size: int = 1000,
-                 chunk_overlap: int = 100, embedding_model: str = "default",
-                 max_workers: int = 4, memory_cache_size: int = 100):
+
+    def __init__(
+        self,
+        cache_enabled: bool = True,
+        chunk_size: int = 1000,
+        chunk_overlap: int = 100,
+        embedding_model: str = "default",
+        max_workers: int = 4,
+        memory_cache_size: int = 100,
+    ):
         """
         Initialize the document processor.
 
@@ -117,19 +127,21 @@ class UltraDocumentsOptimized:
         self.memory_cache_size = memory_cache_size
 
         self.logger = logging.getLogger(__name__)
-        self.logger.info(f"Initialized UltraDocumentsOptimized with chunk_size={chunk_size}")
+        self.logger.info(
+            f"Initialized UltraDocumentsOptimized with chunk_size={chunk_size}"
+        )
 
         # Initialize cache if enabled
         if cache_enabled:
             self.cache = DocumentCache(
-                cache_dir=".cache",
-                memory_size=memory_cache_size
+                cache_dir=".cache", memory_size=memory_cache_size
             )
             self.logger.info("Document cache initialized")
 
         # Initialize the embedding engine if available
         try:
             from sentence_transformers import SentenceTransformer
+
             # Use a smaller, faster model for embedding
             self.embedding_engine = SentenceTransformer(embedding_model)
             self.logger.info(f"Document embedding model initialized: {embedding_model}")
@@ -159,25 +171,27 @@ class UltraDocumentsOptimized:
         mime_type, _ = mimetypes.guess_type(file_path)
 
         if mime_type:
-            if mime_type.startswith('text/'):
-                return 'text'
-            elif mime_type == 'application/pdf':
-                return 'pdf'
-            elif mime_type.startswith('application/vnd.openxmlformats-officedocument.wordprocessingml'):
-                return 'docx'
-            elif mime_type.startswith('application/msword'):
-                return 'doc'
+            if mime_type.startswith("text/"):
+                return "text"
+            elif mime_type == "application/pdf":
+                return "pdf"
+            elif mime_type.startswith(
+                "application/vnd.openxmlformats-officedocument.wordprocessingml"
+            ):
+                return "docx"
+            elif mime_type.startswith("application/msword"):
+                return "doc"
 
         # Fallback to extension-based detection
         ext_map = {
-            '.txt': 'text',
-            '.md': 'text',
-            '.pdf': 'pdf',
-            '.docx': 'docx',
-            '.doc': 'doc'
+            ".txt": "text",
+            ".md": "text",
+            ".pdf": "pdf",
+            ".docx": "docx",
+            ".doc": "doc",
         }
 
-        return ext_map.get(ext, 'unknown')
+        return ext_map.get(ext, "unknown")
 
     def _chunk_text(self, text: str) -> List[Dict[str, Any]]:
         """Split text into overlapping chunks with smart splitting"""
@@ -185,10 +199,10 @@ class UltraDocumentsOptimized:
             return []
 
         # Clean the text
-        text = re.sub(r'\s+', ' ', text).strip()
+        text = re.sub(r"\s+", " ", text).strip()
 
         # Split by proper paragraph boundaries first
-        paragraphs = re.split(r'\n\s*\n', text)
+        paragraphs = re.split(r"\n\s*\n", text)
 
         chunks = []
         current_chunk = ""
@@ -210,7 +224,7 @@ class UltraDocumentsOptimized:
                     current_length = 0
 
                 # Split the long paragraph by sentences
-                sentences = re.split(r'(?<=[.!?])\s+', paragraph)
+                sentences = re.split(r"(?<=[.!?])\s+", paragraph)
                 sentence_chunk = ""
                 sentence_length = 0
 
@@ -225,7 +239,9 @@ class UltraDocumentsOptimized:
                     if sentence_length + sentence_len + 1 > self.chunk_size:
                         # Add the current sentence chunk if it's not empty
                         if sentence_chunk:
-                            chunks.append({"text": sentence_chunk, "length": sentence_length})
+                            chunks.append(
+                                {"text": sentence_chunk, "length": sentence_length}
+                            )
 
                         # If this single sentence is longer than chunk_size, we need to forcibly split it
                         if sentence_len > self.chunk_size:
@@ -236,7 +252,9 @@ class UltraDocumentsOptimized:
                             for word in words:
                                 word_len = len(word)
                                 if word_length + word_len + 1 > self.chunk_size:
-                                    chunks.append({"text": word_chunk, "length": word_length})
+                                    chunks.append(
+                                        {"text": word_chunk, "length": word_length}
+                                    )
                                     word_chunk = word
                                     word_length = word_len
                                 else:
@@ -248,7 +266,9 @@ class UltraDocumentsOptimized:
                                         word_length = word_len
 
                             if word_chunk:
-                                chunks.append({"text": word_chunk, "length": word_length})
+                                chunks.append(
+                                    {"text": word_chunk, "length": word_length}
+                                )
 
                             sentence_chunk = ""
                             sentence_length = 0
@@ -292,16 +312,16 @@ class UltraDocumentsOptimized:
         final_chunks = []
         for i, chunk in enumerate(chunks):
             if i > 0 and self.chunk_overlap > 0:
-                prev_chunk = chunks[i-1]
+                prev_chunk = chunks[i - 1]
                 # Add overlap from previous chunk if possible
                 overlap_text = prev_chunk["text"]
                 if len(overlap_text) > self.chunk_overlap:
-                    overlap_text = overlap_text[-self.chunk_overlap:]
+                    overlap_text = overlap_text[-self.chunk_overlap :]
                     # Try to find sentence boundary
-                    sentence_boundary = re.search(r'(?<=[.!?])\s+', overlap_text)
+                    sentence_boundary = re.search(r"(?<=[.!?])\s+", overlap_text)
                     if sentence_boundary:
                         # Start from the beginning of the first sentence after the boundary
-                        overlap_text = overlap_text[sentence_boundary.end():]
+                        overlap_text = overlap_text[sentence_boundary.end() :]
 
                 # Prepend the overlap to the current chunk
                 if overlap_text:
@@ -327,14 +347,16 @@ class UltraDocumentsOptimized:
         # Calculate relevance scores (placeholder - will be replaced by actual relevance to query)
         for i, chunk in enumerate(final_chunks):
             # Just use a placeholder relevance score
-            chunk["relevance"] = 0.9 - (i * 0.05)  # Slightly decreasing relevance for simplicity
+            chunk["relevance"] = 0.9 - (
+                i * 0.05
+            )  # Slightly decreasing relevance for simplicity
 
         return final_chunks
 
     def _read_text_file(self, file_path: str) -> str:
         """Read a text file and return its content"""
         try:
-            with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
+            with open(file_path, "r", encoding="utf-8", errors="ignore") as f:
                 return f.read()
         except Exception as e:
             self.logger.error(f"Error reading text file {file_path}: {e}")
@@ -356,11 +378,9 @@ class UltraDocumentsOptimized:
                     if content:
                         content += "\n\n"
                     content += page_text
-                    pages_info.append({
-                        "page": i + 1,
-                        "text": page_text,
-                        "offset": len(content)
-                    })
+                    pages_info.append(
+                        {"page": i + 1, "text": page_text, "offset": len(content)}
+                    )
 
         except Exception as e:
             self.logger.warning(f"Error with PyPDF2 for {file_path}: {e}")
@@ -376,11 +396,9 @@ class UltraDocumentsOptimized:
                         if content:
                             content += "\n\n"
                         content += page_text
-                        pages_info.append({
-                            "page": i + 1,
-                            "text": page_text,
-                            "offset": len(content)
-                        })
+                        pages_info.append(
+                            {"page": i + 1, "text": page_text, "offset": len(content)}
+                        )
                 doc.close()
 
             except Exception as e2:
@@ -395,8 +413,11 @@ class UltraDocumentsOptimized:
         """Read a DOCX file and return its content"""
         try:
             from docx import Document
+
             doc = Document(file_path)
-            return "\n\n".join([paragraph.text for paragraph in doc.paragraphs if paragraph.text])
+            return "\n\n".join(
+                [paragraph.text for paragraph in doc.paragraphs if paragraph.text]
+            )
         except Exception as e:
             self.logger.error(f"Error reading DOCX file {file_path}: {e}")
             return ""
@@ -405,7 +426,8 @@ class UltraDocumentsOptimized:
         """Read a DOC file and return its content using textract"""
         try:
             import textract
-            return textract.process(file_path).decode('utf-8')
+
+            return textract.process(file_path).decode("utf-8")
         except Exception as e:
             self.logger.error(f"Error reading DOC file {file_path}: {e}")
             return ""
@@ -429,13 +451,13 @@ class UltraDocumentsOptimized:
         pages_info = []
 
         # Extract content based on file type
-        if file_type == 'text':
+        if file_type == "text":
             content = self._read_text_file(file_path)
-        elif file_type == 'pdf':
+        elif file_type == "pdf":
             content, pages_info = self._read_pdf_file(file_path)
-        elif file_type == 'docx':
+        elif file_type == "docx":
             content = self._read_docx_file(file_path)
-        elif file_type == 'doc':
+        elif file_type == "doc":
             content = self._read_doc_file(file_path)
         else:
             self.logger.warning(f"Unsupported file type: {file_type} for {file_path}")
@@ -464,7 +486,7 @@ class UltraDocumentsOptimized:
             "chunks": chunks,
             "total_chunks": len(chunks),
             "processed_at": time.time(),
-            "processing_time": time.time() - start_time
+            "processing_time": time.time() - start_time,
         }
 
         # Cache the result if enabled
@@ -478,7 +500,9 @@ class UltraDocumentsOptimized:
         """Process a document (wrapper around process_file for backward compatibility)"""
         return self.process_file(file_path, **kwargs)
 
-    def get_relevant_chunks(self, query: str, document_chunks: List[Dict[str, Any]], top_k: int = 5) -> List[Dict[str, Any]]:
+    def get_relevant_chunks(
+        self, query: str, document_chunks: List[Dict[str, Any]], top_k: int = 5
+    ) -> List[Dict[str, Any]]:
         """Get the most relevant chunks for a query using embeddings if available"""
         if not document_chunks:
             return []
@@ -497,9 +521,11 @@ class UltraDocumentsOptimized:
                         continue
 
                     # Calculate cosine similarity
-                    dot_product = sum(a * b for a, b in zip(query_embedding, chunk["embedding"]))
-                    magnitude1 = sum(a ** 2 for a in query_embedding) ** 0.5
-                    magnitude2 = sum(b ** 2 for b in chunk["embedding"]) ** 0.5
+                    dot_product = sum(
+                        a * b for a, b in zip(query_embedding, chunk["embedding"])
+                    )
+                    magnitude1 = sum(a**2 for a in query_embedding) ** 0.5
+                    magnitude2 = sum(b**2 for b in chunk["embedding"]) ** 0.5
 
                     if magnitude1 * magnitude2 == 0:
                         chunk["relevance"] = 0
@@ -507,7 +533,9 @@ class UltraDocumentsOptimized:
                         chunk["relevance"] = dot_product / (magnitude1 * magnitude2)
 
                 # Sort by relevance and return top_k
-                sorted_chunks = sorted(document_chunks, key=lambda x: x.get("relevance", 0), reverse=True)
+                sorted_chunks = sorted(
+                    document_chunks, key=lambda x: x.get("relevance", 0), reverse=True
+                )
                 return sorted_chunks[:top_k]
 
             except Exception as e:
@@ -515,21 +543,25 @@ class UltraDocumentsOptimized:
                 # Fall back to keyword search
 
         # Simple keyword-based relevance as fallback
-        query_keywords = set(re.findall(r'\w+', query.lower()))
+        query_keywords = set(re.findall(r"\w+", query.lower()))
 
         for chunk in document_chunks:
             text = chunk.get("text", "").lower()
-            text_keywords = set(re.findall(r'\w+', text))
+            text_keywords = set(re.findall(r"\w+", text))
 
             # Calculate simple keyword overlap score
             overlap = len(query_keywords.intersection(text_keywords))
             chunk["relevance"] = overlap / max(1, len(query_keywords))
 
         # Sort by relevance and return top_k
-        sorted_chunks = sorted(document_chunks, key=lambda x: x.get("relevance", 0), reverse=True)
+        sorted_chunks = sorted(
+            document_chunks, key=lambda x: x.get("relevance", 0), reverse=True
+        )
         return sorted_chunks[:top_k]
 
-    def process_query(self, query: str, document_chunks: List[Dict[str, Any]], **kwargs) -> Dict[str, Any]:
+    def process_query(
+        self, query: str, document_chunks: List[Dict[str, Any]], **kwargs
+    ) -> Dict[str, Any]:
         """Process a query against document chunks and return relevant context"""
         top_k = kwargs.get("top_k", 5)
 
@@ -539,11 +571,7 @@ class UltraDocumentsOptimized:
         # Extract the text from relevant chunks
         context = "\n\n".join([chunk.get("text", "") for chunk in relevant_chunks])
 
-        return {
-            "query": query,
-            "relevant_chunks": relevant_chunks,
-            "context": context
-        }
+        return {"query": query, "relevant_chunks": relevant_chunks, "context": context}
 
     def cleanup(self):
         """Clean up resources"""

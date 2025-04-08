@@ -1,8 +1,9 @@
+from typing import Any, Dict, List, Optional
+
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
-from typing import Dict, Any, List, Optional
 
 # Create FastAPI app
 app = FastAPI(title="Ultra AI API", version="1.0.0")
@@ -15,6 +16,7 @@ app.add_middleware(
     allow_methods=["*"],  # Allow all methods
     allow_headers=["*"],  # Allow all headers
 )
+
 
 class AnalysisRequest(BaseModel):
     prompt: str
@@ -36,7 +38,7 @@ async def status():
     return {
         "status": "operational",
         "api_version": "1.0.0",
-        "environment": "production"
+        "environment": "production",
     }
 
 
@@ -49,11 +51,13 @@ async def analyze(request: AnalysisRequest):
             "results": {
                 "message": f"Analyzed '{request.prompt}' using {len(request.models) or 'default'} models",
                 "analysis": "This is a sample response from the Ultra AI backend.",
-                "models_used": request.models or ["default-model"]
-            }
+                "models_used": request.models or ["default-model"],
+            },
         }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error processing request: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Error processing request: {str(e)}"
+        )
 
 
 # Add an options route to handle preflight requests
@@ -64,11 +68,12 @@ async def options_route(request: Request, full_path: str):
         headers={
             "Access-Control-Allow-Origin": "*",
             "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-            "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Requested-With"
-        }
+            "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Requested-With",
+        },
     )
 
 
 if __name__ == "__main__":
     import uvicorn
+
     uvicorn.run(app, host="0.0.0.0", port=8000)

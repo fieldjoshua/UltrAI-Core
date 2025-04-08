@@ -7,40 +7,40 @@
   :root {
     --background: 224 71% 4%;
     --foreground: 213 31% 91%;
-    
+
     --muted: 223 47% 11%;
     --muted-foreground: 215.4 16.3% 56.9%;
-    
+
     --card: 0 0% 100%;
     --card-foreground: 222.2 84% 4.9%;
-    
+
     --popover: 224 71% 4%;
     --popover-foreground: 215 20.2% 65.1%;
-    
+
     --border: 216 34% 17%;
     --input: 216 34% 17%;
-    
+
     --primary: 210 40% 98%;
     --primary-foreground: 222.2 47.4% 1.2%;
-    
+
     --secondary: 222.2 47.4% 11.2%;
     --secondary-foreground: 210 40% 98%;
-    
+
     --accent: 216 34% 17%;
     --accent-foreground: 210 40% 98%;
-    
+
     --destructive: 0 63% 31%;
     --destructive-foreground: 210 40% 98%;
-    
+
     --ring: 216 34% 17%;
-    
+
     --radius: 0.5rem;
-    
+
     --chart-1: 210 80% 56%;
     --chart-2: 260 80% 56%;
     --chart-3: 300 80% 56%;
     --chart-4: 360 80% 56%;
-    --chart-5: 340 75% 55%
+    --chart-5: 340 75% 55%;
   }
   .dark {
     --background: 222.2 84% 4.9%;
@@ -66,7 +66,7 @@
     --chart-2: 160 60% 45%;
     --chart-3: 30 80% 55%;
     --chart-4: 280 65% 60%;
-    --chart-5: 340 75% 55%
+    --chart-5: 340 75% 55%;
   }
   * {
     @apply border-border;
@@ -76,6 +76,6 @@
 @layer base {
   body {
     @apply bg-background text-foreground;
-    font-feature-settings: "rlig" 1, "calt" 1;
+    font-feature-settings: 'rlig' 1, 'calt' 1;
   }
-} 
+}

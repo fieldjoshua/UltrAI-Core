@@ -1,45 +1,59 @@
-"use client"
+'use client';
 
-import * as React from "react"
-import { cva, type VariantProps } from "class-variance-authority"
-import { cn } from "@/lib/utils"
-import { motion } from "framer-motion"
+import * as React from 'react';
+import { cva, type VariantProps } from 'class-variance-authority';
+import { cn } from '@/lib/utils';
+import { motion } from 'framer-motion';
 
 const progressVariants = cva(
-  "relative w-full overflow-hidden rounded-full bg-secondary",
+  'relative w-full overflow-hidden rounded-full bg-secondary',
   {
     variants: {
       size: {
-        default: "h-4",
-        sm: "h-2",
-        lg: "h-6"
+        default: 'h-4',
+        sm: 'h-2',
+        lg: 'h-6',
       },
       variant: {
-        default: "",
-        interactive: "cursor-pointer hover:opacity-90",
-        animated: "transition-all duration-300"
-      }
+        default: '',
+        interactive: 'cursor-pointer hover:opacity-90',
+        animated: 'transition-all duration-300',
+      },
     },
     defaultVariants: {
-      size: "default",
-      variant: "default"
+      size: 'default',
+      variant: 'default',
     },
   }
-)
+);
 
 export interface ProgressProps
   extends React.HTMLAttributes<HTMLDivElement>,
-  VariantProps<typeof progressVariants> {
-  value?: number
-  max?: number
-  animated?: boolean
-  showLabels?: boolean
-  labels?: string[]
-  activeStep?: number
+    VariantProps<typeof progressVariants> {
+  value?: number;
+  max?: number;
+  animated?: boolean;
+  showLabels?: boolean;
+  labels?: string[];
+  activeStep?: number;
 }
 
 const Progress = React.forwardRef<HTMLDivElement, ProgressProps>(
-  ({ className, value = 0, max = 100, size, variant, animated = false, showLabels = false, labels = [], activeStep = 0, ...props }, ref) => {
+  (
+    {
+      className,
+      value = 0,
+      max = 100,
+      size,
+      variant,
+      animated = false,
+      showLabels = false,
+      labels = [],
+      activeStep = 0,
+      ...props
+    },
+    ref
+  ) => {
     return (
       <div className="w-full space-y-2">
         <div
@@ -50,9 +64,9 @@ const Progress = React.forwardRef<HTMLDivElement, ProgressProps>(
           {animated ? (
             <motion.div
               className="h-full bg-primary"
-              style={{ width: "0%" }}
+              style={{ width: '0%' }}
               animate={{ width: `${value}%` }}
-              transition={{ duration: 0.5, ease: "easeInOut" }}
+              transition={{ duration: 0.5, ease: 'easeInOut' }}
             />
           ) : (
             <div
@@ -71,8 +85,10 @@ const Progress = React.forwardRef<HTMLDivElement, ProgressProps>(
                   <div
                     key={index}
                     className={cn(
-                      "w-3 h-3 rounded-full -mt-0.5 relative z-10",
-                      isActive ? "bg-white border border-primary" : "bg-secondary border border-muted-foreground"
+                      'w-3 h-3 rounded-full -mt-0.5 relative z-10',
+                      isActive
+                        ? 'bg-white border border-primary'
+                        : 'bg-secondary border border-muted-foreground'
                     )}
                     style={{ marginLeft: `${index === 0 ? 0 : stepPosition}%` }}
                   />
@@ -91,8 +107,10 @@ const Progress = React.forwardRef<HTMLDivElement, ProgressProps>(
                 <div
                   key={index}
                   className={cn(
-                    "transition-colors duration-300",
-                    isActive ? "text-primary font-medium" : "text-muted-foreground"
+                    'transition-colors duration-300',
+                    isActive
+                      ? 'text-primary font-medium'
+                      : 'text-muted-foreground'
                   )}
                 >
                   {label}
@@ -102,10 +120,10 @@ const Progress = React.forwardRef<HTMLDivElement, ProgressProps>(
           </div>
         )}
       </div>
-    )
+    );
   }
-)
+);
 
-Progress.displayName = "Progress"
+Progress.displayName = 'Progress';
 
-export { Progress }
+export { Progress };

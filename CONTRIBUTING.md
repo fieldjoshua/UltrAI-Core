@@ -33,6 +33,41 @@ For frontend code:
    - Configuration in `.prettierrc`
    - Integrated with ESLint via eslint-config-prettier
 
+## Code Organization Guidelines
+
+When creating or modifying code structure:
+
+1. **Avoid superfluous code files and directories** - Before creating new files or directories:
+   - Check if the functionality can fit within existing files or modules
+   - Ensure new files serve a unique purpose that can't be accomplished with existing ones
+   - Follow the established project structure and organization patterns
+
+2. **Keep related code together** - Group related functionality in the same modules or directories
+   - Place code that changes together in the same file/module when appropriate
+   - Break down large files into logical modules when they exceed 300-400 lines
+
+3. **Use clear, consistent naming** - Name files and directories to clearly reflect their purpose
+   - Follow existing naming conventions in the project
+   - Prefer specific names over generic ones (e.g., `user_authentication.py` over `utils2.py`)
+
+4. **Minimize module dependencies** - Design code to minimize tight coupling between modules
+   - Consider interface boundaries and what truly needs to be exposed
+
+## Documentation Guidelines
+
+When creating or updating documentation:
+
+1. **Avoid superfluous documents** - Before creating a new document, check if:
+   - The information can be added to an existing document
+   - The document serves a unique purpose not already covered
+   - The creation follows project conventions
+
+2. **Keep documentation updated** - When making code changes, update related documentation
+   - The ROADMAP.md file should be updated when completing tasks
+   - README files should reflect the current state of the codebase
+
+3. **Use consistent formatting** - Follow Markdown standards for all documentation
+
 ## Setting Up Your Environment
 
 ### Pre-commit Hooks

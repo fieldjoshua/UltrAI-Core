@@ -1,18 +1,19 @@
-import { type ClassValue, clsx } from "clsx"
-import { twMerge } from "tailwind-merge"
+import { type ClassValue, clsx } from 'clsx';
+import { twMerge } from 'tailwind-merge';
 
 /**
  * Merges class names with tailwind-merge
  */
 export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs))
+  return twMerge(clsx(inputs));
 }
 
 /**
  * Generates a unique ID for document tracking
  */
 export function generateId(length: number = 10): string {
-  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  const characters =
+    'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
   let result = '';
   const charactersLength = characters.length;
   for (let i = 0; i < length; i++) {
@@ -58,5 +59,5 @@ export function truncateText(text: string, maxLength: number): string {
 
 // Add any other utility functions the UI components might need
 export const formatPrice = (price: number) => {
-  return price < 0.01 ? price.toFixed(5) : price.toFixed(2)
-}
+  return price < 0.01 ? price.toFixed(5) : price.toFixed(2);
+};

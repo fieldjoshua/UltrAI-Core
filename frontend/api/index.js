@@ -1,10 +1,7 @@
 /**
  * API client for UltrAI backend
  */
-import {
-  getApiBaseUrl,
-  reportApiError
-} from './config';
+import { getApiBaseUrl, reportApiError } from './config';
 
 // Default API base URL with API_PORT
 let API_BASE_URL = 'http://localhost:8088';
@@ -15,18 +12,20 @@ const API_URL = import.meta.env?.VITE_API_URL || 'https://api.example.com';
 // Mock data for testing
 const mockResponses = {
   status: {
-    status: "operational",
-    api_version: "1.0.0",
-    environment: "production"
+    status: 'operational',
+    api_version: '1.0.0',
+    environment: 'production',
   },
   analyze: (prompt, models = []) => ({
-    status: "success",
+    status: 'success',
     results: {
-      message: `Analyzed '${prompt}' using ${models.length || 'default'} models`,
-      analysis: "This is a sample response from the Ultra AI API.",
-      models_used: models.length ? models : ["default-model"]
-    }
-  })
+      message: `Analyzed '${prompt}' using ${
+        models.length || 'default'
+      } models`,
+      analysis: 'This is a sample response from the Ultra AI API.',
+      models_used: models.length ? models : ['default-model'],
+    },
+  }),
 };
 
 /**
@@ -63,21 +62,24 @@ const analyzePrompt = async (request) => {
       // Try to parse as JSON
       return JSON.parse(responseText);
     } catch (jsonError) {
-      const errorMessage = `Failed to parse API response as JSON: ${responseText.substring(0, 100)}...`;
+      const errorMessage = `Failed to parse API response as JSON: ${responseText.substring(
+        0,
+        100
+      )}...`;
       reportApiError(errorMessage, 'analyze-prompt-json');
       console.error(errorMessage);
 
       // If we can't parse JSON, create a fallback response
       return {
-        result: "Simulated response - backend returned invalid JSON",
+        result: 'Simulated response - backend returned invalid JSON',
         model_responses: Object.fromEntries(
-          request.selectedModels.map(model => [
+          request.selectedModels.map((model) => [
             model,
-            `This is a simulated response for ${model} since the backend returned invalid JSON.`
+            `This is a simulated response for ${model} since the backend returned invalid JSON.`,
           ])
         ),
         processing_time_ms: 500,
-        session_id: Math.random().toString(36).substring(2, 15)
+        session_id: Math.random().toString(36).substring(2, 15),
       };
     }
   } catch (error) {
@@ -87,9 +89,9 @@ const analyzePrompt = async (request) => {
 
     // Create a fallback response in case of error
     return {
-      result: "Simulated response - backend connection failed",
+      result: 'Simulated response - backend connection failed',
       model_responses: {},
-      error: error.message
+      error: error.message,
     };
   }
 };
@@ -131,23 +133,26 @@ const uploadDocuments = async (files) => {
       // Try to parse as JSON
       return JSON.parse(responseText);
     } catch (jsonError) {
-      const errorMessage = `Failed to parse API response as JSON: ${responseText.substring(0, 100)}...`;
+      const errorMessage = `Failed to parse API response as JSON: ${responseText.substring(
+        0,
+        100
+      )}...`;
       reportApiError(errorMessage, 'upload-documents-json');
       console.error(errorMessage);
 
       // If we can't parse JSON, create a fallback response
       return {
-        status: "success",
+        status: 'success',
         documents: files.map((file, index) => ({
           id: `mock-id-${index}`,
           name: file.name,
           chunks: [
-            { text: "This is a mock chunk from the frontend", relevance: 0.95 }
+            { text: 'This is a mock chunk from the frontend', relevance: 0.95 },
           ],
           totalChunks: 1,
-          type: file.type
+          type: file.type,
         })),
-        processing_time: 0.1
+        processing_time: 0.1,
       };
     }
   } catch (error) {
@@ -157,9 +162,9 @@ const uploadDocuments = async (files) => {
 
     // Return a mock response in case of error
     return {
-      status: "error",
+      status: 'error',
       message: error.message,
-      documents: []
+      documents: [],
     };
   }
 };
@@ -169,7 +174,13 @@ const uploadDocuments = async (files) => {
  * @param {Object} params - Parameters including prompt, models, files
  * @returns {Promise<Object>} - Analysis results with document context
  */
-const analyzeWithDocuments = async ({ prompt, selectedModels, ultraModel, files, pattern }) => {
+const analyzeWithDocuments = async ({
+  prompt,
+  selectedModels,
+  ultraModel,
+  files,
+  pattern,
+}) => {
   try {
     // Ensure API discovery has completed
     if (!API_BASE_URL.includes('localhost')) {
@@ -183,7 +194,7 @@ const analyzeWithDocuments = async ({ prompt, selectedModels, ultraModel, files,
     formData.append('pattern', pattern || 'Confidence Analysis');
 
     // Add files to the form data
-    files.forEach(file => {
+    files.forEach((file) => {
       formData.append('files', file);
     });
 
@@ -200,21 +211,21 @@ const analyzeWithDocuments = async ({ prompt, selectedModels, ultraModel, files,
 
     // Create a fallback response in case parsing fails
     const fallbackResponse = {
-      status: "success",
+      status: 'success',
       data: {
         analysis: `Analysis of ${files.length} documents with prompt: "${prompt}" (simulated frontend response)`,
         model_responses: Object.fromEntries(
-          selectedModels.map(model => [
+          selectedModels.map((model) => [
             model,
-            `This is a simulated response for ${model} analyzing the documents.`
+            `This is a simulated response for ${model} analyzing the documents.`,
           ])
-        )
+        ),
       },
       document_metadata: {
-        documents_used: files.map(f => f.name),
+        documents_used: files.map((f) => f.name),
         chunks_used: files.length * 3,
-        timestamp: new Date().toISOString()
-      }
+        timestamp: new Date().toISOString(),
+      },
     };
 
     // Try to process the response
@@ -226,7 +237,10 @@ const analyzeWithDocuments = async ({ prompt, selectedModels, ultraModel, files,
       try {
         return JSON.parse(responseText);
       } catch (jsonError) {
-        const errorMessage = `Failed to parse document analysis response as JSON: ${responseText.substring(0, 100)}...`;
+        const errorMessage = `Failed to parse document analysis response as JSON: ${responseText.substring(
+          0,
+          100
+        )}...`;
         reportApiError(errorMessage, 'analyze-with-documents-json');
         console.error(errorMessage);
         return fallbackResponse;
@@ -242,36 +256,32 @@ const analyzeWithDocuments = async ({ prompt, selectedModels, ultraModel, files,
     reportApiError(errorMessage, 'analyze-with-documents-error');
     console.error(errorMessage);
     return {
-      status: "error",
-      message: error.message
+      status: 'error',
+      message: error.message,
     };
   }
 };
 
 // Export all API functions
-export {
-  analyzePrompt,
-  uploadDocuments,
-  analyzeWithDocuments
-};
+export { analyzePrompt, uploadDocuments, analyzeWithDocuments };
 
 // API client functions
 export async function getStatus() {
   try {
-    console.log("Using mock API status");
+    console.log('Using mock API status');
     return mockResponses.status;
   } catch (error) {
-    console.error("Failed to get API status:", error);
+    console.error('Failed to get API status:', error);
     return mockResponses.status;
   }
 }
 
 export async function analyzePrompt(prompt, models = []) {
   try {
-    console.log("Using mock API for analysis");
+    console.log('Using mock API for analysis');
     return mockResponses.analyze(prompt, models);
   } catch (error) {
-    console.error("Failed to analyze prompt:", error);
+    console.error('Failed to analyze prompt:', error);
     return mockResponses.analyze(prompt, models);
   }
 }
@@ -279,25 +289,35 @@ export async function analyzePrompt(prompt, models = []) {
 // Any other API functions can be mocked here as needed
 export async function uploadDocument(file) {
   return {
-    status: "success",
-    document_id: "mock-doc-" + Math.random().toString(36).substring(2, 9),
-    message: "Document uploaded successfully (mock)"
+    status: 'success',
+    document_id: 'mock-doc-' + Math.random().toString(36).substring(2, 9),
+    message: 'Document uploaded successfully (mock)',
   };
 }
 
 export async function getDocuments() {
   return {
-    status: "success",
+    status: 'success',
     documents: [
-      { id: "mock-doc-1", name: "Sample Document 1.pdf", size: 1024, type: "application/pdf" },
-      { id: "mock-doc-2", name: "Sample Document 2.docx", size: 2048, type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document" }
-    ]
+      {
+        id: 'mock-doc-1',
+        name: 'Sample Document 1.pdf',
+        size: 1024,
+        type: 'application/pdf',
+      },
+      {
+        id: 'mock-doc-2',
+        name: 'Sample Document 2.docx',
+        size: 2048,
+        type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      },
+    ],
   };
 }
 
 export async function deleteDocument(documentId) {
   return {
-    status: "success",
-    message: `Document ${documentId} deleted successfully (mock)`
+    status: 'success',
+    message: `Document ${documentId} deleted successfully (mock)`,
   };
 }

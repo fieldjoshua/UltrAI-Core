@@ -54,43 +54,67 @@
 /* Color variations - blue (default) */
 .ultra-logo--blue.ultra-logo--processing .ultra-logo__wireframe-line {
   border-color: rgba(104, 214, 255, calc(var(--wireframe-opacity) * 0.8));
-  box-shadow: 0 0 calc(var(--intensity) * 15px) rgba(104, 214, 255, calc(var(--intensity) * 0.5));
+  box-shadow: 0 0 calc(var(--intensity) * 15px)
+    rgba(104, 214, 255, calc(var(--intensity) * 0.5));
 }
 
 .ultra-logo--blue.ultra-logo--processing .ultra-logo__highlight {
-  background: radial-gradient(circle, rgba(104, 214, 255, 0.4) 0%, rgba(104, 214, 255, 0) 70%);
+  background: radial-gradient(
+    circle,
+    rgba(104, 214, 255, 0.4) 0%,
+    rgba(104, 214, 255, 0) 70%
+  );
 }
 
 .ultra-logo--blue.ultra-logo--processing {
-  filter: drop-shadow(0 0 calc(var(--intensity) * 10px) rgba(104, 214, 255, calc(var(--intensity) * 0.8)));
+  filter: drop-shadow(
+    0 0 calc(var(--intensity) * 10px)
+      rgba(104, 214, 255, calc(var(--intensity) * 0.8))
+  );
 }
 
 /* Color variations - purple */
 .ultra-logo--purple.ultra-logo--processing .ultra-logo__wireframe-line {
   border-color: rgba(170, 104, 255, calc(var(--wireframe-opacity) * 0.8));
-  box-shadow: 0 0 calc(var(--intensity) * 15px) rgba(170, 104, 255, calc(var(--intensity) * 0.5));
+  box-shadow: 0 0 calc(var(--intensity) * 15px)
+    rgba(170, 104, 255, calc(var(--intensity) * 0.5));
 }
 
 .ultra-logo--purple.ultra-logo--processing .ultra-logo__highlight {
-  background: radial-gradient(circle, rgba(170, 104, 255, 0.4) 0%, rgba(170, 104, 255, 0) 70%);
+  background: radial-gradient(
+    circle,
+    rgba(170, 104, 255, 0.4) 0%,
+    rgba(170, 104, 255, 0) 70%
+  );
 }
 
 .ultra-logo--purple.ultra-logo--processing {
-  filter: drop-shadow(0 0 calc(var(--intensity) * 10px) rgba(170, 104, 255, calc(var(--intensity) * 0.8)));
+  filter: drop-shadow(
+    0 0 calc(var(--intensity) * 10px)
+      rgba(170, 104, 255, calc(var(--intensity) * 0.8))
+  );
 }
 
 /* Color variations - green */
 .ultra-logo--green.ultra-logo--processing .ultra-logo__wireframe-line {
   border-color: rgba(104, 255, 170, calc(var(--wireframe-opacity) * 0.8));
-  box-shadow: 0 0 calc(var(--intensity) * 15px) rgba(104, 255, 170, calc(var(--intensity) * 0.5));
+  box-shadow: 0 0 calc(var(--intensity) * 15px)
+    rgba(104, 255, 170, calc(var(--intensity) * 0.5));
 }
 
 .ultra-logo--green.ultra-logo--processing .ultra-logo__highlight {
-  background: radial-gradient(circle, rgba(104, 255, 170, 0.4) 0%, rgba(104, 255, 170, 0) 70%);
+  background: radial-gradient(
+    circle,
+    rgba(104, 255, 170, 0.4) 0%,
+    rgba(104, 255, 170, 0) 70%
+  );
 }
 
 .ultra-logo--green.ultra-logo--processing {
-  filter: drop-shadow(0 0 calc(var(--intensity) * 10px) rgba(104, 255, 170, calc(var(--intensity) * 0.8)));
+  filter: drop-shadow(
+    0 0 calc(var(--intensity) * 10px)
+      rgba(104, 255, 170, calc(var(--intensity) * 0.8))
+  );
 }
 
 /* Color variations - rainbow */
@@ -108,15 +132,23 @@
     rgb(255, 0, 0)
   );
   border-image-slice: 1;
-  box-shadow: 0 0 calc(var(--intensity) * 15px) rgba(255, 255, 255, calc(var(--intensity) * 0.5));
+  box-shadow: 0 0 calc(var(--intensity) * 15px)
+    rgba(255, 255, 255, calc(var(--intensity) * 0.5));
 }
 
 .ultra-logo--rainbow.ultra-logo--processing .ultra-logo__highlight {
-  background: radial-gradient(circle, rgba(255, 255, 255, 0.4) 0%, rgba(255, 255, 255, 0) 70%);
+  background: radial-gradient(
+    circle,
+    rgba(255, 255, 255, 0.4) 0%,
+    rgba(255, 255, 255, 0) 70%
+  );
 }
 
 .ultra-logo--rainbow.ultra-logo--processing {
-  filter: drop-shadow(0 0 calc(var(--intensity) * 10px) rgba(255, 255, 255, calc(var(--intensity) * 0.5)));
+  filter: drop-shadow(
+    0 0 calc(var(--intensity) * 10px)
+      rgba(255, 255, 255, calc(var(--intensity) * 0.5))
+  );
 }
 
 /* Wireframe backgrounds */
@@ -195,14 +227,7 @@
 .ultra-logo__u-shape {
   width: 60%;
   height: 60%;
-  clip-path: polygon(
-    0% 0%, 
-    40% 0%, 
-    40% 60%, 
-    100% 60%,
-    100% 100%, 
-    0% 100%
-  );
+  clip-path: polygon(0% 0%, 40% 0%, 40% 60%, 100% 60%, 100% 100%, 0% 100%);
   transform: rotate(-15deg);
 }
 
@@ -218,18 +243,31 @@
 
 /* Animation keyframes */
 @keyframes pulse {
-  0%, 100% { opacity: 0.2; }
-  50% { opacity: 0.8; }
+  0%,
+  100% {
+    opacity: 0.2;
+  }
+  50% {
+    opacity: 0.8;
+  }
 }
 
 @keyframes rotateSlow {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 @keyframes colorCycle {
-  0% { filter: hue-rotate(0deg); }
-  100% { filter: hue-rotate(360deg); }
+  0% {
+    filter: hue-rotate(0deg);
+  }
+  100% {
+    filter: hue-rotate(360deg);
+  }
 }
 
 /* Rainbow animation */
@@ -240,4 +278,4 @@
 /* Apply animations for processing state */
 .ultra-logo--processing .ultra-logo__wireframe {
   animation: rotateSlow 120s linear infinite;
-} 
+}

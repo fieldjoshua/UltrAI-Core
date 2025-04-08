@@ -14,7 +14,7 @@ const SERVER_CACHE_TIME = 5000;
 // Cache for server availability
 let serverCache = {
   port: null,
-  timestamp: 0
+  timestamp: 0,
 };
 
 // Create a custom event for API errors that components can listen to
@@ -28,17 +28,17 @@ const API_ERROR_EVENT = 'ultra-api-error';
 export const reportApiError = (message, source = 'api') => {
   // Log to console
   console.error(`[API Error] ${source}: ${message}`);
-  
+
   // Create and dispatch a custom event that components can listen for
   const errorEvent = new CustomEvent(API_ERROR_EVENT, {
     detail: {
       message,
       source,
       timestamp: new Date(),
-      id: Date.now().toString()
-    }
+      id: Date.now().toString(),
+    },
   });
-  
+
   document.dispatchEvent(errorEvent);
 };
 
@@ -52,23 +52,23 @@ export const findAvailableServer = async () => {
   if (serverCache.port && now - serverCache.timestamp < SERVER_CACHE_TIME) {
     return API_BASE_URL_TEMPLATE.replace('PORT', serverCache.port);
   }
-  
+
   // Try each port in order
   for (const port of API_PORTS) {
     try {
       const url = API_BASE_URL_TEMPLATE.replace('PORT', port);
-      const response = await fetch(`${url}/api/health`, { 
+      const response = await fetch(`${url}/api/health`, {
         method: 'GET',
-        headers: { 'Accept': 'application/json' },
+        headers: { Accept: 'application/json' },
         // Short timeout to quickly move to next port if this one is unavailable
-        signal: AbortSignal.timeout(500) 
+        signal: AbortSignal.timeout(500),
       });
-      
+
       if (response.ok) {
         // Cache the working port
         serverCache = {
           port,
-          timestamp: now
+          timestamp: now,
         };
         console.log(`Found API server at ${url}`);
         return url;
@@ -78,7 +78,7 @@ export const findAvailableServer = async () => {
       console.log(`API server not available at port ${port}`);
     }
   }
-  
+
   // If no server was found, return the default port
   // This will likely fail, but at least the client will have a URL to try
   const errorMessage = 'No API server found, using default port';
@@ -113,11 +113,11 @@ export const removeApiErrorListener = (callback) => {
   document.removeEventListener(API_ERROR_EVENT, callback);
 };
 
-export default { 
-  getApiBaseUrl, 
+export default {
+  getApiBaseUrl,
   findAvailableServer,
   reportApiError,
   addApiErrorListener,
   removeApiErrorListener,
-  API_ERROR_EVENT
-}; 
+  API_ERROR_EVENT,
+};

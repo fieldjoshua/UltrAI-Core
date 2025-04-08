@@ -1,4 +1,4 @@
-'use client'
+'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
@@ -7,57 +7,93 @@ import { Textarea } from './ui/textarea';
 import { Label } from './ui/label';
 import { Checkbox } from './ui/checkbox';
 import { Progress } from './ui/progress';
-import { Zap, Award, Brain, Feather, Shield, FileText, Users, Network, Clock, Lightbulb, RefreshCw, Upload, X, File, Check, History, Save, Trash2, WifiOff, Share2, Copy, Link, ExternalLink, DollarSign } from 'lucide-react';
+import {
+  Zap,
+  Award,
+  Brain,
+  Feather,
+  Shield,
+  FileText,
+  Users,
+  Network,
+  Clock,
+  Lightbulb,
+  RefreshCw,
+  Upload,
+  X,
+  File,
+  Check,
+  History,
+  Save,
+  Trash2,
+  WifiOff,
+  Share2,
+  Copy,
+  Link,
+  ExternalLink,
+  DollarSign,
+} from 'lucide-react';
 import AnimatedLogoV3 from './AnimatedLogoV3';
 
 // Simplified API URL
 const API_URL = import.meta.env.VITE_API_URL || 'https://ultra-api.vercel.app';
 
 // Step definitions - expanded to include 7 distinct steps with clear progression
-type Step = 'INTRO' | 'PROMPT' | 'DOCUMENTS' | 'MODELS' | 'ANALYSIS_TYPE' | 'PROCESSING' | 'RESULTS';
+type Step =
+  | 'INTRO'
+  | 'PROMPT'
+  | 'DOCUMENTS'
+  | 'MODELS'
+  | 'ANALYSIS_TYPE'
+  | 'PROCESSING'
+  | 'RESULTS';
 
 // Step information with titles and descriptions
-const stepInfo: Record<Step, { title: string, description: string }> = {
-  'INTRO': {
+const stepInfo: Record<Step, { title: string; description: string }> = {
+  INTRO: {
     title: 'Welcome to Ultra AI',
-    description: 'Experience AI intelligence multiplication through our multi-model analysis system.'
+    description:
+      'Experience AI intelligence multiplication through our multi-model analysis system.',
   },
-  'PROMPT': {
+  PROMPT: {
     title: 'Enter Your Prompt',
-    description: 'What would you like Ultra to analyze? Be specific for better results.'
+    description:
+      'What would you like Ultra to analyze? Be specific for better results.',
   },
-  'DOCUMENTS': {
+  DOCUMENTS: {
     title: 'Add Context',
-    description: 'Upload documents to provide additional context for your analysis.'
+    description:
+      'Upload documents to provide additional context for your analysis.',
   },
-  'MODELS': {
+  MODELS: {
     title: 'Select AI Models',
-    description: 'Choose which AI models to use for your analysis. Each model brings unique strengths.'
+    description:
+      'Choose which AI models to use for your analysis. Each model brings unique strengths.',
   },
-  'ANALYSIS_TYPE': {
+  ANALYSIS_TYPE: {
     title: 'Analysis Method',
-    description: 'Select how Ultra should approach your query.'
+    description: 'Select how Ultra should approach your query.',
   },
-  'PROCESSING': {
+  PROCESSING: {
     title: 'Processing',
-    description: 'Ultra is analyzing your query across multiple models.'
+    description: 'Ultra is analyzing your query across multiple models.',
   },
-  'RESULTS': {
+  RESULTS: {
     title: 'Results',
-    description: 'Review your analysis from multiple AI perspectives.'
-  }
+    description: 'Review your analysis from multiple AI perspectives.',
+  },
 };
 
 // Define the model price mapping
 const prices: { [key: string]: number } = {
-  'gpt4o': 0.0125,
-  'gpt4turbo': 0.04,
-  'gpto3mini': 0.00550,
-  'gpto1': 0.075,
-  'claude37': 0.018,
-  'claude3opus': 0.09,
-  'gemini15': 0.000375,
-  'llama3': 0
+  gpt4o: 0.0125,
+  gpt4turbo: 0.04,
+  gpto3mini: 0.0055,
+  gpto1: 0.075,
+  claude37: 0.018,
+  claude3opus: 0.09,
+  gemini15: 0.000375,
+  llama3: 0,
 };
 
 // Configuration for API calls
@@ -65,7 +101,7 @@ const API_CONFIG = {
   baseURL: API_URL,
   maxRetries: 3,
   retryDelay: 1000, // 1 second initial delay
-  retryStatusCodes: [408, 429, 500, 502, 503, 504] // Status codes to retry on
+  retryStatusCodes: [408, 429, 500, 502, 503, 504], // Status codes to retry on
 };
 
 // Axios instance with retry capability
@@ -92,7 +128,7 @@ axiosWithRetry.interceptors.response.use(undefined, async (error) => {
   const delay = API_CONFIG.retryDelay * Math.pow(2, config.__retryCount - 1);
 
   // Wait for the delay
-  await new Promise(resolve => setTimeout(resolve, delay));
+  await new Promise((resolve) => setTimeout(resolve, delay));
 
   // Retry the request
   return axiosWithRetry(config);
@@ -107,7 +143,7 @@ interface HistoryItem {
   ultraModel: string;
   timestamp: string;
   usingDocuments?: boolean;
-  documents?: { id: string, name: string }[];
+  documents?: { id: string; name: string }[];
 }
 
 // Define the share interface
@@ -119,11 +155,36 @@ interface ShareItem extends HistoryItem {
 
 // Analysis pattern options
 const analysisTypes = [
-  { id: 'confidence', name: 'Confidence', description: 'Standard analysis with confidence scoring', icon: Shield },
-  { id: 'critique', name: 'Critique', description: 'Critical evaluation with pros and cons', icon: FileText },
-  { id: 'perspective', name: 'Perspective', description: 'Multiple viewpoints on the topic', icon: Users },
-  { id: 'fact_check', name: 'Fact Check', description: 'Verification of factual claims', icon: Check },
-  { id: 'scenario', name: 'Scenario', description: 'Future scenario exploration', icon: Network }
+  {
+    id: 'confidence',
+    name: 'Confidence',
+    description: 'Standard analysis with confidence scoring',
+    icon: Shield,
+  },
+  {
+    id: 'critique',
+    name: 'Critique',
+    description: 'Critical evaluation with pros and cons',
+    icon: FileText,
+  },
+  {
+    id: 'perspective',
+    name: 'Perspective',
+    description: 'Multiple viewpoints on the topic',
+    icon: Users,
+  },
+  {
+    id: 'fact_check',
+    name: 'Fact Check',
+    description: 'Verification of factual claims',
+    icon: Check,
+  },
+  {
+    id: 'scenario',
+    name: 'Scenario',
+    description: 'Future scenario exploration',
+    icon: Network,
+  },
 ];
 
 export default function UltraWithDocuments() {
@@ -142,8 +203,12 @@ export default function UltraWithDocuments() {
 
   // Document state
   const [documents, setDocuments] = useState<File[]>([]);
-  const [uploadProgress, setUploadProgress] = useState<{ [key: string]: number }>({});
-  const [uploadedDocuments, setUploadedDocuments] = useState<{ id: string, name: string }[]>([]);
+  const [uploadProgress, setUploadProgress] = useState<{
+    [key: string]: number;
+  }>({});
+  const [uploadedDocuments, setUploadedDocuments] = useState<
+    { id: string; name: string }[]
+  >([]);
   const [isUsingDocuments, setIsUsingDocuments] = useState(false);
 
   // File input ref
@@ -152,7 +217,9 @@ export default function UltraWithDocuments() {
   // Step flow state
   const [currentStep, setCurrentStep] = useState<Step>('INTRO');
   const [progress, setProgress] = useState(0);
-  const [progressMessage, setProgressMessage] = useState('Initializing analysis...');
+  const [progressMessage, setProgressMessage] = useState(
+    'Initializing analysis...'
+  );
 
   // Animation state
   const [animating, setAnimating] = useState(false);
@@ -170,14 +237,21 @@ export default function UltraWithDocuments() {
   // Sharing state
   const [shareUrl, setShareUrl] = useState<string>('');
   const [showShareDialog, setShowShareDialog] = useState(false);
-  const [shareDialogItem, setShareDialogItem] = useState<HistoryItem | null>(null);
+  const [shareDialogItem, setShareDialogItem] = useState<HistoryItem | null>(
+    null
+  );
   const [sharedItems, setSharedItems] = useState<ShareItem[]>([]);
   const [copySuccess, setCopySuccess] = useState(false);
 
   // Add state for floating price component
-  const [floatingPriceVisible, setFloatingPriceVisible] = useState<boolean>(true);
-  const [selectedAnalysisType, setSelectedAnalysisType] = useState<string>('confidence');
-  const [floatingPricePosition, setFloatingPricePosition] = useState({ top: 0, right: 20 });
+  const [floatingPriceVisible, setFloatingPriceVisible] =
+    useState<boolean>(true);
+  const [selectedAnalysisType, setSelectedAnalysisType] =
+    useState<string>('confidence');
+  const [floatingPricePosition, setFloatingPricePosition] = useState({
+    top: 0,
+    right: 20,
+  });
   const floatingPriceRef = useRef<HTMLDivElement>(null);
 
   // Add a ref for the main container
@@ -208,14 +282,25 @@ export default function UltraWithDocuments() {
     const fetchAvailableModels = async () => {
       // Skip the API call if offline
       if (isOffline) {
-        setError('You are currently offline. You can view your saved interactions, but cannot make new requests.');
+        setError(
+          'You are currently offline. You can view your saved interactions, but cannot make new requests.'
+        );
         return;
       }
 
       try {
         setError(null);
         // Use mock data instead of API call
-        const mockModels = ['gpt4o', 'gpt4turbo', 'gpto3mini', 'gpto1', 'claude37', 'claude3opus', 'gemini15', 'llama3'];
+        const mockModels = [
+          'gpt4o',
+          'gpt4turbo',
+          'gpto3mini',
+          'gpto1',
+          'claude37',
+          'claude3opus',
+          'gemini15',
+          'llama3',
+        ];
         setAvailableModels(mockModels);
 
         // Previous API call code:
@@ -279,7 +364,7 @@ export default function UltraWithDocuments() {
   // Toggle a model selection
   const toggleModelSelection = (modelId: string) => {
     if (selectedLLMs.includes(modelId)) {
-      setSelectedLLMs(selectedLLMs.filter(id => id !== modelId));
+      setSelectedLLMs(selectedLLMs.filter((id) => id !== modelId));
     } else {
       setSelectedLLMs([...selectedLLMs, modelId]);
     }
@@ -319,7 +404,7 @@ export default function UltraWithDocuments() {
       const validFiles: File[] = [];
       let hasOversize = false;
 
-      Array.from(fileList).forEach(file => {
+      Array.from(fileList).forEach((file) => {
         if (file.size > MAX_FILE_SIZE) {
           hasOversize = true;
         } else {
@@ -328,11 +413,13 @@ export default function UltraWithDocuments() {
       });
 
       if (hasOversize) {
-        setError(`Some files exceed the 4MB size limit. Only files smaller than 4MB will be uploaded.`);
+        setError(
+          `Some files exceed the 4MB size limit. Only files smaller than 4MB will be uploaded.`
+        );
       }
 
       if (validFiles.length > 0) {
-        setDocuments(prev => [...prev, ...validFiles]);
+        setDocuments((prev) => [...prev, ...validFiles]);
       }
     }
 
@@ -344,7 +431,7 @@ export default function UltraWithDocuments() {
 
   // Remove a document from the list
   const removeDocument = (indexToRemove: number) => {
-    setDocuments(docs => docs.filter((_, index) => index !== indexToRemove));
+    setDocuments((docs) => docs.filter((_, index) => index !== indexToRemove));
   };
 
   // Upload documents to server with chunking for large files
@@ -359,18 +446,20 @@ export default function UltraWithDocuments() {
 
       try {
         // Track upload progress
-        setUploadProgress(prev => ({ ...prev, [file.name]: 0 }));
+        setUploadProgress((prev) => ({ ...prev, [file.name]: 0 }));
 
         // Simulate progress updates
         for (let progress = 0; progress <= 100; progress += 10) {
-          setUploadProgress(prev => ({ ...prev, [file.name]: progress }));
-          await new Promise(r => setTimeout(r, 100)); // Delay for visual effect
+          setUploadProgress((prev) => ({ ...prev, [file.name]: progress }));
+          await new Promise((r) => setTimeout(r, 100)); // Delay for visual effect
         }
 
         // Add mock document ID
         const mockDocId = `doc-${Math.random().toString(36).substring(2, 9)}`;
-        setUploadedDocuments(prev => [...prev, { id: mockDocId, name: file.name }]);
-
+        setUploadedDocuments((prev) => [
+          ...prev,
+          { id: mockDocId, name: file.name },
+        ]);
       } catch (err: any) {
         setError(`Failed to upload ${file.name}: ${err.message}`);
         // Continue with other files even if one fails
@@ -383,7 +472,7 @@ export default function UltraWithDocuments() {
 
   // Toggle document mode
   const toggleDocumentMode = () => {
-    setIsUsingDocuments(prev => !prev);
+    setIsUsingDocuments((prev) => !prev);
   };
 
   // Handle saving current interaction to history
@@ -398,7 +487,7 @@ export default function UltraWithDocuments() {
       ultraModel: ultraLLM || '',
       timestamp: new Date().toISOString(),
       usingDocuments: isUsingDocuments,
-      documents: isUsingDocuments ? uploadedDocuments : undefined
+      documents: isUsingDocuments ? uploadedDocuments : undefined,
     };
 
     // Add to history
@@ -420,7 +509,7 @@ export default function UltraWithDocuments() {
 
     // Set models if they're available
     if (item.models && item.models.length > 0) {
-      const availableItemModels = item.models.filter(model =>
+      const availableItemModels = item.models.filter((model) =>
         availableModels.includes(model)
       );
 
@@ -451,7 +540,7 @@ export default function UltraWithDocuments() {
 
   // Delete a history item
   const deleteHistoryItem = (id: string) => {
-    const updatedHistory = history.filter(item => item.id !== id);
+    const updatedHistory = history.filter((item) => item.id !== id);
     setHistory(updatedHistory);
 
     // Save updated history to localStorage
@@ -474,7 +563,7 @@ export default function UltraWithDocuments() {
     setShareDialogItem(item);
 
     // Check if this item has already been shared
-    const existingShare = sharedItems.find(shared => shared.id === item.id);
+    const existingShare = sharedItems.find((shared) => shared.id === item.id);
 
     if (existingShare) {
       // Use the existing share URL
@@ -490,7 +579,7 @@ export default function UltraWithDocuments() {
         ...item,
         shareId,
         shareUrl: newShareUrl,
-        createdAt: new Date().toISOString()
+        createdAt: new Date().toISOString(),
       };
 
       // Add to shared items
@@ -499,7 +588,10 @@ export default function UltraWithDocuments() {
 
       // Save to localStorage
       try {
-        localStorage.setItem('ultraAiSharedItems', JSON.stringify(updatedSharedItems));
+        localStorage.setItem(
+          'ultraAiSharedItems',
+          JSON.stringify(updatedSharedItems)
+        );
       } catch (err) {
         console.error('Failed to save shared items:', err);
       }
@@ -511,18 +603,21 @@ export default function UltraWithDocuments() {
 
   // Generate a unique share ID
   const generateShareId = (): string => {
-    return Math.random().toString(36).substring(2, 15) +
-      Math.random().toString(36).substring(2, 15);
+    return (
+      Math.random().toString(36).substring(2, 15) +
+      Math.random().toString(36).substring(2, 15)
+    );
   };
 
   // Copy share URL to clipboard
   const copyToClipboard = () => {
-    navigator.clipboard.writeText(shareUrl)
+    navigator.clipboard
+      .writeText(shareUrl)
       .then(() => {
         setCopySuccess(true);
         setTimeout(() => setCopySuccess(false), 2000);
       })
-      .catch(err => {
+      .catch((err) => {
         console.error('Failed to copy:', err);
       });
   };
@@ -535,7 +630,10 @@ export default function UltraWithDocuments() {
         const scrollY = window.scrollY;
 
         // Keep price visible when container is in view
-        if (containerRect.top < window.innerHeight && containerRect.bottom > 0) {
+        if (
+          containerRect.top < window.innerHeight &&
+          containerRect.bottom > 0
+        ) {
           const newTop = Math.max(
             20, // Minimum top position
             Math.min(
@@ -546,7 +644,7 @@ export default function UltraWithDocuments() {
 
           setFloatingPricePosition({
             top: newTop,
-            right: 20
+            right: 20,
           });
           setFloatingPriceVisible(true);
         } else {
@@ -567,7 +665,15 @@ export default function UltraWithDocuments() {
 
   // Calculate current progress percentage based on steps
   const calculateProgress = () => {
-    const steps: Step[] = ['INTRO', 'PROMPT', 'DOCUMENTS', 'MODELS', 'ANALYSIS_TYPE', 'PROCESSING', 'RESULTS'];
+    const steps: Step[] = [
+      'INTRO',
+      'PROMPT',
+      'DOCUMENTS',
+      'MODELS',
+      'ANALYSIS_TYPE',
+      'PROCESSING',
+      'RESULTS',
+    ];
     const currentIndex = steps.indexOf(currentStep);
     return Math.round((currentIndex / (steps.length - 1)) * 100);
   };
@@ -579,7 +685,15 @@ export default function UltraWithDocuments() {
 
   // Handle step navigation
   const goToNextStep = () => {
-    const steps: Step[] = ['INTRO', 'PROMPT', 'DOCUMENTS', 'MODELS', 'ANALYSIS_TYPE', 'PROCESSING', 'RESULTS'];
+    const steps: Step[] = [
+      'INTRO',
+      'PROMPT',
+      'DOCUMENTS',
+      'MODELS',
+      'ANALYSIS_TYPE',
+      'PROCESSING',
+      'RESULTS',
+    ];
     const currentIndex = steps.indexOf(currentStep);
     if (currentIndex < steps.length - 1) {
       setCurrentStep(steps[currentIndex + 1]);
@@ -588,7 +702,15 @@ export default function UltraWithDocuments() {
   };
 
   const goToPreviousStep = () => {
-    const steps: Step[] = ['INTRO', 'PROMPT', 'DOCUMENTS', 'MODELS', 'ANALYSIS_TYPE', 'PROCESSING', 'RESULTS'];
+    const steps: Step[] = [
+      'INTRO',
+      'PROMPT',
+      'DOCUMENTS',
+      'MODELS',
+      'ANALYSIS_TYPE',
+      'PROCESSING',
+      'RESULTS',
+    ];
     const currentIndex = steps.indexOf(currentStep);
     if (currentIndex > 0) {
       setCurrentStep(steps[currentIndex - 1]);
@@ -632,7 +754,9 @@ export default function UltraWithDocuments() {
   const handleAnalyze = async () => {
     // Skip if offline
     if (isOffline) {
-      setError('You are offline. Please connect to the internet to use Ultra AI.');
+      setError(
+        'You are offline. Please connect to the internet to use Ultra AI.'
+      );
       return;
     }
 
@@ -656,20 +780,22 @@ export default function UltraWithDocuments() {
         models: selectedLLMs,
         ultra_model: ultraLLM || selectedLLMs[0],
         analysis_type: selectedAnalysisType,
-        documents: isUsingDocuments ? uploadedDocuments.map(doc => doc.id) : []
+        documents: isUsingDocuments
+          ? uploadedDocuments.map((doc) => doc.id)
+          : [],
       };
 
       // Simulate progress updates
       updateProgress(20, 'Analyzing prompt...');
-      await new Promise(r => setTimeout(r, 500));
+      await new Promise((r) => setTimeout(r, 500));
       updateProgress(40, 'Processing with models...');
-      await new Promise(r => setTimeout(r, 800));
+      await new Promise((r) => setTimeout(r, 800));
       updateProgress(60, 'Generating insights...');
-      await new Promise(r => setTimeout(r, 700));
+      await new Promise((r) => setTimeout(r, 700));
       updateProgress(80, 'Comparing results...');
-      await new Promise(r => setTimeout(r, 500));
+      await new Promise((r) => setTimeout(r, 500));
       updateProgress(100, 'Finalizing output...');
-      await new Promise(r => setTimeout(r, 300));
+      await new Promise((r) => setTimeout(r, 300));
 
       // Generate mock response instead of API call
       const mockResponse = {
@@ -683,7 +809,11 @@ Your prompt "${prompt}" has been analyzed by ${selectedLLMs.length} models.
 * The models used were: ${selectedLLMs.join(', ')}
 * Ultra model: ${ultraLLM || selectedLLMs[0]}
 * Analysis type: ${selectedAnalysisType}
-${isUsingDocuments ? `* Documents used: ${uploadedDocuments.map(doc => doc.name).join(', ')}` : ''}
+${
+  isUsingDocuments
+    ? `* Documents used: ${uploadedDocuments.map((doc) => doc.name).join(', ')}`
+    : ''
+}
 
 ## Detailed Analysis
 This is a mock response created when deploying to Vercel. In a production environment, this would contain the actual analysis from the selected AI models.
@@ -694,7 +824,7 @@ High: The answer is accurate based on the available information and general know
 ## Sources
 - Mock data for demonstration purposes
 - Models: ${selectedLLMs.join(', ')}`,
-        cached: false
+        cached: false,
       };
 
       // Set output and finalize
@@ -709,7 +839,6 @@ High: The answer is accurate based on the available information and general know
       // Transition to results step
       setCurrentStep('RESULTS');
       setAnimating(false);
-
     } catch (err: any) {
       setError(`Analysis failed: ${err.message}`);
       setIsProcessing(false);
@@ -734,7 +863,7 @@ High: The answer is accurate based on the available information and general know
         ultraModel: ultraLLM || '',
         timestamp: new Date().toISOString(),
         usingDocuments: isUsingDocuments,
-        documents: uploadedDocuments
+        documents: uploadedDocuments,
       };
 
       // Generate a share ID
@@ -748,7 +877,7 @@ High: The answer is accurate based on the available information and general know
       try {
         await axiosWithRetry.post('/api/share', {
           shareId,
-          content: shareItem
+          content: shareItem,
         });
       } catch (err) {
         console.error('Error saving share to API:', err);
@@ -760,12 +889,15 @@ High: The answer is accurate based on the available information and general know
         ...shareItem,
         shareId,
         shareUrl,
-        createdAt: new Date().toISOString()
+        createdAt: new Date().toISOString(),
       };
 
       const updatedSharedItems = [...sharedItems, newShareItem];
       setSharedItems(updatedSharedItems);
-      localStorage.setItem('ultraAiSharedItems', JSON.stringify(updatedSharedItems));
+      localStorage.setItem(
+        'ultraAiSharedItems',
+        JSON.stringify(updatedSharedItems)
+      );
 
       // Set share URL and dialog
       setShareUrl(shareUrl);
@@ -785,8 +917,13 @@ High: The answer is accurate based on the available information and general know
       <div className="bg-yellow-900/30 border border-yellow-700 rounded-lg p-3 mb-6 flex items-center">
         <WifiOff className="h-5 w-5 text-yellow-500 mr-2 flex-shrink-0" />
         <div>
-          <p className="text-yellow-300 font-medium">You are currently offline</p>
-          <p className="text-yellow-400/80 text-sm">You can view your saved interactions, but cannot make new requests until you reconnect.</p>
+          <p className="text-yellow-300 font-medium">
+            You are currently offline
+          </p>
+          <p className="text-yellow-400/80 text-sm">
+            You can view your saved interactions, but cannot make new requests
+            until you reconnect.
+          </p>
         </div>
       </div>
     );
@@ -800,19 +937,43 @@ High: The answer is accurate based on the available information and general know
     return (
       <div className="mb-8">
         <div className="flex justify-between w-full mb-2">
-          <div className={`text-sm font-medium ${currentStep === 'PROMPT' ? 'text-cyan-400' : 'text-gray-500'}`}>
+          <div
+            className={`text-sm font-medium ${
+              currentStep === 'PROMPT' ? 'text-cyan-400' : 'text-gray-500'
+            }`}
+          >
             1. Enter Prompt
           </div>
-          <div className={`text-sm font-medium ${currentStep === 'DOCUMENTS' ? 'text-cyan-400' : 'text-gray-500'}`}>
+          <div
+            className={`text-sm font-medium ${
+              currentStep === 'DOCUMENTS' ? 'text-cyan-400' : 'text-gray-500'
+            }`}
+          >
             2. Add Context
           </div>
-          <div className={`text-sm font-medium ${currentStep === 'MODELS' ? 'text-cyan-400' : 'text-gray-500'}`}>
+          <div
+            className={`text-sm font-medium ${
+              currentStep === 'MODELS' ? 'text-cyan-400' : 'text-gray-500'
+            }`}
+          >
             3. Select AI Models
           </div>
-          <div className={`text-sm font-medium ${currentStep === 'ANALYSIS_TYPE' ? 'text-cyan-400' : 'text-gray-500'}`}>
+          <div
+            className={`text-sm font-medium ${
+              currentStep === 'ANALYSIS_TYPE'
+                ? 'text-cyan-400'
+                : 'text-gray-500'
+            }`}
+          >
             4. Analysis Method
           </div>
-          <div className={`text-sm font-medium ${['PROCESSING', 'RESULTS'].includes(currentStep) ? 'text-cyan-400' : 'text-gray-500'}`}>
+          <div
+            className={`text-sm font-medium ${
+              ['PROCESSING', 'RESULTS'].includes(currentStep)
+                ? 'text-cyan-400'
+                : 'text-gray-500'
+            }`}
+          >
             5. Get Results
           </div>
         </div>
@@ -820,9 +981,14 @@ High: The answer is accurate based on the available information and general know
           <div
             className="absolute top-0 left-0 h-full bg-gradient-to-r from-cyan-500 to-cyan-400 transition-all duration-300"
             style={{
-              width: currentStep === 'PROMPT' ? '33%' :
-                currentStep === 'DOCUMENTS' ? '66%' :
-                  currentStep === 'MODELS' ? '100%' : '100%'
+              width:
+                currentStep === 'PROMPT'
+                  ? '33%'
+                  : currentStep === 'DOCUMENTS'
+                  ? '66%'
+                  : currentStep === 'MODELS'
+                  ? '100%'
+                  : '100%',
             }}
           />
         </div>
@@ -832,7 +998,10 @@ High: The answer is accurate based on the available information and general know
 
   // Pricing display component
   const PricingDisplay = () => {
-    const totalPrice = selectedLLMs.reduce((total, model) => total + (prices[model] || 0), 0);
+    const totalPrice = selectedLLMs.reduce(
+      (total, model) => total + (prices[model] || 0),
+      0
+    );
 
     return (
       <div className="bg-gradient-to-r from-purple-900 via-cyan-800 to-pink-900 p-3 rounded-lg border border-cyan-500 relative overflow-hidden">
@@ -844,7 +1013,9 @@ High: The answer is accurate based on the available information and general know
 
           <div className="bg-black/50 rounded-lg p-3 backdrop-blur-sm">
             <div className="flex justify-center items-center">
-              <span className="text-2xl font-bold text-cyan-300">${totalPrice.toFixed(4)}</span>
+              <span className="text-2xl font-bold text-cyan-300">
+                ${totalPrice.toFixed(4)}
+              </span>
               <span className="text-sm text-gray-400 ml-2">/ 1000 tokens</span>
             </div>
           </div>
@@ -858,7 +1029,9 @@ High: The answer is accurate based on the available information and general know
     return (
       <div className="space-y-6 py-8 px-4 md:px-8 fadeIn">
         <div className="flex flex-col items-center">
-          <h2 className="text-xl font-semibold mb-6 text-cyan-200">Processing Your Request</h2>
+          <h2 className="text-xl font-semibold mb-6 text-cyan-200">
+            Processing Your Request
+          </h2>
 
           <div className="w-full mb-8">
             <Progress value={progress} className="h-2 bg-gray-800" />
@@ -892,10 +1065,13 @@ High: The answer is accurate based on the available information and general know
           </div>
 
           <div className="text-center max-w-md">
-            <h3 className="text-lg font-medium text-white mb-2">AI Models Working Together</h3>
+            <h3 className="text-lg font-medium text-white mb-2">
+              AI Models Working Together
+            </h3>
             <p className="text-gray-400 text-sm">
-              Multiple AI models are analyzing your prompt and synthesizing results.
-              This typically takes 15-30 seconds depending on complexity.
+              Multiple AI models are analyzing your prompt and synthesizing
+              results. This typically takes 15-30 seconds depending on
+              complexity.
             </p>
           </div>
         </div>
@@ -913,7 +1089,9 @@ High: The answer is accurate based on the available information and general know
           <Checkbox
             id="useDocuments"
             checked={isUsingDocuments}
-            onCheckedChange={(checked) => setIsUsingDocuments(checked as boolean)}
+            onCheckedChange={(checked) =>
+              setIsUsingDocuments(checked as boolean)
+            }
             disabled={isProcessing}
           />
           <Label htmlFor="useDocuments" className="text-cyan-300">
@@ -959,7 +1137,9 @@ High: The answer is accurate based on the available information and general know
                       <div className="flex items-center space-x-3">
                         <File className="h-5 w-5 text-cyan-400" />
                         <div>
-                          <p className="text-sm font-medium text-cyan-100">{doc.name}</p>
+                          <p className="text-sm font-medium text-cyan-100">
+                            {doc.name}
+                          </p>
                           <p className="text-xs text-cyan-500">
                             {(doc.size / 1024).toFixed(1)} KB
                           </p>
@@ -967,9 +1147,13 @@ High: The answer is accurate based on the available information and general know
                       </div>
 
                       <div className="flex items-center">
-                        {uploadProgress[doc.name] !== undefined && uploadProgress[doc.name] < 100 ? (
+                        {uploadProgress[doc.name] !== undefined &&
+                        uploadProgress[doc.name] < 100 ? (
                           <div className="w-16">
-                            <Progress value={uploadProgress[doc.name]} size="sm" />
+                            <Progress
+                              value={uploadProgress[doc.name]}
+                              size="sm"
+                            />
                           </div>
                         ) : uploadProgress[doc.name] === 100 ? (
                           <Check className="h-5 w-5 text-green-500" />
@@ -1002,7 +1186,9 @@ High: The answer is accurate based on the available information and general know
                     >
                       <div className="flex items-center space-x-3">
                         <File className="h-5 w-5 text-green-500" />
-                        <p className="text-sm font-medium text-cyan-100">{doc.name}</p>
+                        <p className="text-sm font-medium text-cyan-100">
+                          {doc.name}
+                        </p>
                       </div>
                       <Check className="h-5 w-5 text-green-500" />
                     </div>
@@ -1045,28 +1231,39 @@ High: The answer is accurate based on the available information and general know
               <div className="absolute inset-0 bg-gradient-to-r from-cyan-900/20 to-purple-900/20"></div>
               <div className="relative z-10">
                 <div className="flex items-center mb-4">
-                  <div className="w-8 h-8 rounded-full bg-cyan-700 flex items-center justify-center mr-3 text-white font-bold">1</div>
-                  <h2 className="text-2xl font-bold text-cyan-400">Welcome to UltrAI</h2>
+                  <div className="w-8 h-8 rounded-full bg-cyan-700 flex items-center justify-center mr-3 text-white font-bold">
+                    1
+                  </div>
+                  <h2 className="text-2xl font-bold text-cyan-400">
+                    Welcome to UltrAI
+                  </h2>
                 </div>
                 <p className="text-lg text-cyan-100 mb-4">
-                  Ultra multiplies intelligence by analyzing your prompt with multiple AI models simultaneously,
-                  then synthesizing the insights into a comprehensive response.
+                  Ultra multiplies intelligence by analyzing your prompt with
+                  multiple AI models simultaneously, then synthesizing the
+                  insights into a comprehensive response.
                 </p>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
                   <div className="bg-blue-50 dark:bg-blue-900/30 p-4 rounded-lg">
                     <Brain className="w-8 h-8 text-blue-500 mb-2 mx-auto" />
-                    <h3 className="font-semibold text-gray-800 dark:text-gray-200 mb-1">Multiple Models</h3>
+                    <h3 className="font-semibold text-gray-800 dark:text-gray-200 mb-1">
+                      Multiple Models
+                    </h3>
                   </div>
 
                   <div className="bg-purple-50 dark:bg-purple-900/30 p-4 rounded-lg">
                     <Lightbulb className="w-8 h-8 text-purple-500 mb-2 mx-auto" />
-                    <h3 className="font-semibold text-gray-800 dark:text-gray-200 mb-1">Enhanced Analysis</h3>
+                    <h3 className="font-semibold text-gray-800 dark:text-gray-200 mb-1">
+                      Enhanced Analysis
+                    </h3>
                   </div>
 
                   <div className="bg-green-50 dark:bg-green-900/30 p-4 rounded-lg">
                     <FileText className="w-8 h-8 text-green-500 mb-2 mx-auto" />
-                    <h3 className="font-semibold text-gray-800 dark:text-gray-200 mb-1">Document Context</h3>
+                    <h3 className="font-semibold text-gray-800 dark:text-gray-200 mb-1">
+                      Document Context
+                    </h3>
                   </div>
                 </div>
               </div>
@@ -1081,11 +1278,17 @@ High: The answer is accurate based on the available information and general know
               <div className="absolute inset-0 bg-gradient-to-r from-cyan-900/20 to-purple-900/20"></div>
               <div className="relative z-10">
                 <div className="flex items-center mb-4">
-                  <div className="w-8 h-8 rounded-full bg-cyan-700 flex items-center justify-center mr-3 text-white font-bold">1</div>
-                  <h2 className="text-2xl font-bold text-cyan-400">What would you like Ultra to analyze?</h2>
+                  <div className="w-8 h-8 rounded-full bg-cyan-700 flex items-center justify-center mr-3 text-white font-bold">
+                    1
+                  </div>
+                  <h2 className="text-2xl font-bold text-cyan-400">
+                    What would you like Ultra to analyze?
+                  </h2>
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-lg text-cyan-200">Enter your prompt or question</Label>
+                  <Label className="text-lg text-cyan-200">
+                    Enter your prompt or question
+                  </Label>
                   <Textarea
                     placeholder="Describe what you want multiple AI models to analyze. Try things like 'Explain quantum computing', 'Is AI dangerous?', or 'What are the ethical implications of genetic engineering?'"
                     value={prompt}
@@ -1125,16 +1328,23 @@ High: The answer is accurate based on the available information and general know
               <div className="absolute inset-0 bg-gradient-to-r from-cyan-900/20 to-purple-900/20"></div>
               <div className="relative z-10">
                 <div className="flex items-center mb-4">
-                  <div className="w-8 h-8 rounded-full bg-cyan-700 flex items-center justify-center mr-3 text-white font-bold">2</div>
-                  <h2 className="text-2xl font-bold text-cyan-400">Select AI models</h2>
+                  <div className="w-8 h-8 rounded-full bg-cyan-700 flex items-center justify-center mr-3 text-white font-bold">
+                    2
+                  </div>
+                  <h2 className="text-2xl font-bold text-cyan-400">
+                    Select AI models
+                  </h2>
                 </div>
                 <p className="text-cyan-100 mb-4">
-                  Choose at least 2 AI models to analyze your prompt. Then select one model to be the "Synthesizer"
-                  that will combine all the insights.
+                  Choose at least 2 AI models to analyze your prompt. Then
+                  select one model to be the "Synthesizer" that will combine all
+                  the insights.
                 </p>
 
                 <div className="space-y-2">
-                  <Label className="text-lg text-cyan-200">Available AI Models</Label>
+                  <Label className="text-lg text-cyan-200">
+                    Available AI Models
+                  </Label>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-2">
                     {availableModels.map((model) => {
                       const isSelected = selectedLLMs.includes(model);
@@ -1145,9 +1355,11 @@ High: The answer is accurate based on the available information and general know
                           key={model}
                           className={`
                             border rounded-lg p-4 cursor-pointer transition-all
-                            ${isSelected
-                              ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
-                              : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'}
+                            ${
+                              isSelected
+                                ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
+                                : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
+                            }
                             ${isUltra ? 'ring-2 ring-purple-500' : ''}
                           `}
                           onClick={() => handleLLMChange(model)}
@@ -1175,13 +1387,21 @@ High: The answer is accurate based on the available information and general know
                                 e.stopPropagation();
                                 handleUltraChange(model);
                               }}
-                              disabled={!isSelected || isProcessing || isOffline}
+                              disabled={
+                                !isSelected || isProcessing || isOffline
+                              }
                               className={`
                                 text-xs font-medium px-3 py-1 rounded-full
-                                ${isUltra
-                                  ? 'bg-purple-600 text-white'
-                                  : 'bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300 hover:bg-purple-200'}
-                                ${!isSelected ? 'opacity-50 cursor-not-allowed' : ''}
+                                ${
+                                  isUltra
+                                    ? 'bg-purple-600 text-white'
+                                    : 'bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300 hover:bg-purple-200'
+                                }
+                                ${
+                                  !isSelected
+                                    ? 'opacity-50 cursor-not-allowed'
+                                    : ''
+                                }
                               `}
                             >
                               {isUltra ? 'Ultra Model ✓' : 'Set as Ultra Model'}
@@ -1241,15 +1461,29 @@ High: The answer is accurate based on the available information and general know
                       key={type.id}
                       className={`
                         border rounded-lg p-4 cursor-pointer transition-all
-                        ${isSelected
-                          ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/20'
-                          : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'}
+                        ${
+                          isSelected
+                            ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/20'
+                            : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
+                        }
                       `}
                       onClick={() => handleAnalysisTypeChange(type.id)}
                     >
                       <div className="flex flex-col items-center text-center">
-                        <div className={`p-3 rounded-full mb-3 ${isSelected ? 'bg-purple-100 dark:bg-purple-900/30' : 'bg-gray-100 dark:bg-gray-800'}`}>
-                          <Icon className={`h-6 w-6 ${isSelected ? 'text-purple-600' : 'text-gray-500 dark:text-gray-400'}`} />
+                        <div
+                          className={`p-3 rounded-full mb-3 ${
+                            isSelected
+                              ? 'bg-purple-100 dark:bg-purple-900/30'
+                              : 'bg-gray-100 dark:bg-gray-800'
+                          }`}
+                        >
+                          <Icon
+                            className={`h-6 w-6 ${
+                              isSelected
+                                ? 'text-purple-600'
+                                : 'text-gray-500 dark:text-gray-400'
+                            }`}
+                          />
                         </div>
                         <h4 className="font-medium text-gray-800 dark:text-gray-200 mb-1">
                           {type.name}
@@ -1298,7 +1532,9 @@ High: The answer is accurate based on the available information and general know
               </div>
 
               <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 mb-4">
-                <h4 className="font-medium text-gray-700 dark:text-gray-300 mb-2">Your Prompt</h4>
+                <h4 className="font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Your Prompt
+                </h4>
                 <p className="text-gray-800 dark:text-gray-200">{prompt}</p>
               </div>
 
@@ -1384,7 +1620,9 @@ High: The answer is accurate based on the available information and general know
             {history.length === 0 ? (
               <div className="text-center py-8 text-gray-500">
                 <p>No saved interactions yet.</p>
-                <p className="text-sm mt-2">Complete an analysis to save it here.</p>
+                <p className="text-sm mt-2">
+                  Complete an analysis to save it here.
+                </p>
               </div>
             ) : (
               <div className="space-y-3">
@@ -1395,7 +1633,8 @@ High: The answer is accurate based on the available information and general know
                   >
                     <div className="flex justify-between items-start mb-2">
                       <h3 className="font-medium text-cyan-300 truncate max-w-[70%]">
-                        {item.prompt.substring(0, 60)}{item.prompt.length > 60 ? '...' : ''}
+                        {item.prompt.substring(0, 60)}
+                        {item.prompt.length > 60 ? '...' : ''}
                       </h3>
                       <div className="flex items-center">
                         <span className="text-xs text-gray-500 mr-2">
@@ -1430,7 +1669,8 @@ High: The answer is accurate based on the available information and general know
                     </div>
 
                     <div className="text-sm text-gray-400 mb-2 truncate">
-                      {item.output.substring(0, 80)}{item.output.length > 80 ? '...' : ''}
+                      {item.output.substring(0, 80)}
+                      {item.output.length > 80 ? '...' : ''}
                     </div>
 
                     <div className="flex flex-wrap items-center mt-2 text-xs">
@@ -1443,7 +1683,7 @@ High: The answer is accurate based on the available information and general know
                         </span>
                       )}
                       {/* Show indicator if this item has been shared */}
-                      {sharedItems.some(shared => shared.id === item.id) && (
+                      {sharedItems.some((shared) => shared.id === item.id) && (
                         <span className="bg-purple-900/40 text-purple-300 px-2 py-1 rounded-full mr-2 mb-1 flex items-center">
                           <Share2 className="h-3 w-3 mr-1" /> Shared
                         </span>
@@ -1493,16 +1733,25 @@ High: The answer is accurate based on the available information and general know
               <Button
                 variant="outline"
                 size="sm"
-                className={`ml-2 ${copySuccess ? 'text-green-400 border-green-700' : 'text-cyan-400 border-cyan-700'}`}
+                className={`ml-2 ${
+                  copySuccess
+                    ? 'text-green-400 border-green-700'
+                    : 'text-cyan-400 border-cyan-700'
+                }`}
                 onClick={copyToClipboard}
               >
-                {copySuccess ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                {copySuccess ? (
+                  <Check className="h-4 w-4" />
+                ) : (
+                  <Copy className="h-4 w-4" />
+                )}
               </Button>
             </div>
 
             <div className="pt-2">
               <p className="text-sm text-gray-400">
-                Anyone with this link can view this analysis without needing an account.
+                Anyone with this link can view this analysis without needing an
+                account.
               </p>
             </div>
 
@@ -1513,11 +1762,12 @@ High: The answer is accurate based on the available information and general know
               </div>
               <p className="text-gray-400 text-sm mb-1 truncate">
                 <span className="text-gray-500">Prompt: </span>
-                {shareDialogItem.prompt.substring(0, 100)}{shareDialogItem.prompt.length > 100 ? '...' : ''}
+                {shareDialogItem.prompt.substring(0, 100)}
+                {shareDialogItem.prompt.length > 100 ? '...' : ''}
               </p>
               <p className="text-gray-400 text-xs">
                 <span className="text-gray-500">Using models: </span>
-                {shareDialogItem.models.map(model => model).join(', ')}
+                {shareDialogItem.models.map((model) => model).join(', ')}
               </p>
             </div>
           </div>
@@ -1537,21 +1787,26 @@ High: The answer is accurate based on the available information and general know
         style={{
           top: `${floatingPricePosition.top}px`,
           right: `${floatingPricePosition.right}px`,
-          opacity: isOffline ? 0.5 : 1
+          opacity: isOffline ? 0.5 : 1,
         }}
       >
         <div className="flex flex-col gap-2">
-          <h3 className="font-medium text-sm text-gray-700 dark:text-gray-300">Estimated Cost</h3>
+          <h3 className="font-medium text-sm text-gray-700 dark:text-gray-300">
+            Estimated Cost
+          </h3>
           <div className="flex items-center gap-2">
             <DollarSign className="w-4 h-4 text-cyan-500" />
             <span className="text-lg font-medium text-cyan-500">
-              {(selectedLLMs.reduce((total, model) => total + (prices[model] || 0), 0)).toFixed(4)}
+              {selectedLLMs
+                .reduce((total, model) => total + (prices[model] || 0), 0)
+                .toFixed(4)}
             </span>
           </div>
 
           {/* Step completion indicator */}
           <div className="text-xs text-gray-500 dark:text-gray-400 mt-2">
-            Step {Object.keys(stepInfo).indexOf(currentStep) + 1} of {Object.keys(stepInfo).length}
+            Step {Object.keys(stepInfo).indexOf(currentStep) + 1} of{' '}
+            {Object.keys(stepInfo).length}
           </div>
         </div>
       </div>
@@ -1566,7 +1821,7 @@ High: The answer is accurate based on the available information and general know
         <Progress
           value={progress}
           animated={true}
-          labels={Object.values(stepInfo).map(step => step.title)}
+          labels={Object.values(stepInfo).map((step) => step.title)}
           showLabels={true}
           activeStep={Object.keys(stepInfo).indexOf(currentStep)}
         />
@@ -1599,24 +1854,31 @@ High: The answer is accurate based on the available information and general know
                 Welcome to Ultra AI
               </h1>
               <p className="text-gray-700 dark:text-gray-300 mb-6">
-                Ultra multiplies intelligence by analyzing your prompt with multiple AI models simultaneously,
-                then synthesizing the insights into a comprehensive response.
+                Ultra multiplies intelligence by analyzing your prompt with
+                multiple AI models simultaneously, then synthesizing the
+                insights into a comprehensive response.
               </p>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
                 <div className="bg-blue-50 dark:bg-blue-900/30 p-4 rounded-lg">
                   <Brain className="w-8 h-8 text-blue-500 mb-2 mx-auto" />
-                  <h3 className="font-semibold text-gray-800 dark:text-gray-200 mb-1">Multiple Models</h3>
+                  <h3 className="font-semibold text-gray-800 dark:text-gray-200 mb-1">
+                    Multiple Models
+                  </h3>
                 </div>
 
                 <div className="bg-purple-50 dark:bg-purple-900/30 p-4 rounded-lg">
                   <Lightbulb className="w-8 h-8 text-purple-500 mb-2 mx-auto" />
-                  <h3 className="font-semibold text-gray-800 dark:text-gray-200 mb-1">Enhanced Analysis</h3>
+                  <h3 className="font-semibold text-gray-800 dark:text-gray-200 mb-1">
+                    Enhanced Analysis
+                  </h3>
                 </div>
 
                 <div className="bg-green-50 dark:bg-green-900/30 p-4 rounded-lg">
                   <FileText className="w-8 h-8 text-green-500 mb-2 mx-auto" />
-                  <h3 className="font-semibold text-gray-800 dark:text-gray-200 mb-1">Document Context</h3>
+                  <h3 className="font-semibold text-gray-800 dark:text-gray-200 mb-1">
+                    Document Context
+                  </h3>
                 </div>
               </div>
             </div>
@@ -1627,7 +1889,10 @@ High: The answer is accurate based on the available information and general know
         {currentStep === 'PROMPT' && (
           <div className="space-y-6">
             <div className="mb-6">
-              <Label htmlFor="prompt" className="text-lg font-medium mb-2 block">
+              <Label
+                htmlFor="prompt"
+                className="text-lg font-medium mb-2 block"
+              >
                 What would you like Ultra to analyze?
               </Label>
               <div className="relative">
@@ -1672,7 +1937,9 @@ High: The answer is accurate based on the available information and general know
                 <Checkbox
                   id="useDocuments"
                   checked={isUsingDocuments}
-                  onCheckedChange={(checked) => setIsUsingDocuments(checked as boolean)}
+                  onCheckedChange={(checked) =>
+                    setIsUsingDocuments(checked as boolean)
+                  }
                   disabled={isProcessing || isOffline}
                 />
                 <Label htmlFor="useDocuments" className="text-lg font-medium">
@@ -1680,7 +1947,8 @@ High: The answer is accurate based on the available information and general know
                 </Label>
               </div>
               <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-                Upload files that provide context or information relevant to your query.
+                Upload files that provide context or information relevant to
+                your query.
               </p>
             </div>
 
@@ -1722,14 +1990,20 @@ High: The answer is accurate based on the available information and general know
                           <div className="flex items-center space-x-3">
                             <File className="h-5 w-5 text-blue-500" />
                             <div>
-                              <p className="text-sm font-medium text-gray-800 dark:text-gray-200">{doc.name}</p>
+                              <p className="text-sm font-medium text-gray-800 dark:text-gray-200">
+                                {doc.name}
+                              </p>
                             </div>
                           </div>
 
                           <div className="flex items-center">
-                            {uploadProgress[doc.name] !== undefined && uploadProgress[doc.name] < 100 ? (
+                            {uploadProgress[doc.name] !== undefined &&
+                            uploadProgress[doc.name] < 100 ? (
                               <div className="w-16">
-                                <Progress value={uploadProgress[doc.name]} size="sm" />
+                                <Progress
+                                  value={uploadProgress[doc.name]}
+                                  size="sm"
+                                />
                               </div>
                             ) : uploadProgress[doc.name] === 100 ? (
                               <Check className="h-5 w-5 text-green-500" />
@@ -1762,7 +2036,9 @@ High: The answer is accurate based on the available information and general know
                         >
                           <div className="flex items-center space-x-3">
                             <File className="h-5 w-5 text-green-500" />
-                            <p className="text-sm font-medium text-gray-800 dark:text-gray-200">{doc.name}</p>
+                            <p className="text-sm font-medium text-gray-800 dark:text-gray-200">
+                              {doc.name}
+                            </p>
                           </div>
                         </div>
                       ))}
@@ -1774,7 +2050,9 @@ High: The answer is accurate based on the available information and general know
                   <div className="flex justify-center mt-4">
                     <Button
                       onClick={uploadDocuments}
-                      disabled={isProcessing || documents.length === 0 || isOffline}
+                      disabled={
+                        isProcessing || documents.length === 0 || isOffline
+                      }
                       className="bg-blue-600 hover:bg-blue-700 text-white"
                     >
                       Upload Selected Documents
@@ -1793,15 +2071,22 @@ High: The answer is accurate based on the available information and general know
               <div className="absolute inset-0 bg-gradient-to-r from-cyan-900/20 to-purple-900/20"></div>
               <div className="relative z-10">
                 <div className="flex items-center mb-4">
-                  <div className="w-8 h-8 rounded-full bg-cyan-700 flex items-center justify-center mr-3 text-white font-bold">2</div>
-                  <h2 className="text-2xl font-bold text-cyan-400">Select AI models</h2>
+                  <div className="w-8 h-8 rounded-full bg-cyan-700 flex items-center justify-center mr-3 text-white font-bold">
+                    2
+                  </div>
+                  <h2 className="text-2xl font-bold text-cyan-400">
+                    Select AI models
+                  </h2>
                 </div>
                 <p className="text-cyan-100 mb-4">
-                  Choose which AI models will analyze your query. Each model brings unique strengths and perspectives.
+                  Choose which AI models will analyze your query. Each model
+                  brings unique strengths and perspectives.
                 </p>
 
                 <div className="space-y-2">
-                  <Label className="text-lg text-cyan-200">Available AI Models</Label>
+                  <Label className="text-lg text-cyan-200">
+                    Available AI Models
+                  </Label>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-2">
                     {availableModels.map((model) => {
                       const isSelected = selectedLLMs.includes(model);
@@ -1812,9 +2097,11 @@ High: The answer is accurate based on the available information and general know
                           key={model}
                           className={`
                             border rounded-lg p-4 cursor-pointer transition-all
-                            ${isSelected
-                              ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
-                              : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'}
+                            ${
+                              isSelected
+                                ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
+                                : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
+                            }
                             ${isUltra ? 'ring-2 ring-purple-500' : ''}
                           `}
                           onClick={() => handleLLMChange(model)}
@@ -1842,13 +2129,21 @@ High: The answer is accurate based on the available information and general know
                                 e.stopPropagation();
                                 handleUltraChange(model);
                               }}
-                              disabled={!isSelected || isProcessing || isOffline}
+                              disabled={
+                                !isSelected || isProcessing || isOffline
+                              }
                               className={`
                                 text-xs font-medium px-3 py-1 rounded-full
-                                ${isUltra
-                                  ? 'bg-purple-600 text-white'
-                                  : 'bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300 hover:bg-purple-200'}
-                                ${!isSelected ? 'opacity-50 cursor-not-allowed' : ''}
+                                ${
+                                  isUltra
+                                    ? 'bg-purple-600 text-white'
+                                    : 'bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300 hover:bg-purple-200'
+                                }
+                                ${
+                                  !isSelected
+                                    ? 'opacity-50 cursor-not-allowed'
+                                    : ''
+                                }
                               `}
                             >
                               {isUltra ? 'Ultra Model ✓' : 'Set as Ultra Model'}
@@ -1908,15 +2203,29 @@ High: The answer is accurate based on the available information and general know
                       key={type.id}
                       className={`
                         border rounded-lg p-4 cursor-pointer transition-all
-                        ${isSelected
-                          ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/20'
-                          : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'}
+                        ${
+                          isSelected
+                            ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/20'
+                            : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
+                        }
                       `}
                       onClick={() => handleAnalysisTypeChange(type.id)}
                     >
                       <div className="flex flex-col items-center text-center">
-                        <div className={`p-3 rounded-full mb-3 ${isSelected ? 'bg-purple-100 dark:bg-purple-900/30' : 'bg-gray-100 dark:bg-gray-800'}`}>
-                          <Icon className={`h-6 w-6 ${isSelected ? 'text-purple-600' : 'text-gray-500 dark:text-gray-400'}`} />
+                        <div
+                          className={`p-3 rounded-full mb-3 ${
+                            isSelected
+                              ? 'bg-purple-100 dark:bg-purple-900/30'
+                              : 'bg-gray-100 dark:bg-gray-800'
+                          }`}
+                        >
+                          <Icon
+                            className={`h-6 w-6 ${
+                              isSelected
+                                ? 'text-purple-600'
+                                : 'text-gray-500 dark:text-gray-400'
+                            }`}
+                          />
                         </div>
                         <h4 className="font-medium text-gray-800 dark:text-gray-200 mb-1">
                           {type.name}
@@ -1947,7 +2256,10 @@ High: The answer is accurate based on the available information and general know
             </h3>
 
             <div className="max-w-md mx-auto mb-6">
-              <Progress value={isComplete ? 100 : progress} animated={!isComplete} />
+              <Progress
+                value={isComplete ? 100 : progress}
+                animated={!isComplete}
+              />
               <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
                 {progressMessage}
               </p>
@@ -1956,7 +2268,9 @@ High: The answer is accurate based on the available information and general know
             {isComplete && (
               <div className="text-center">
                 <p className="text-green-600 dark:text-green-400 font-medium mb-4">
-                  {isCached ? 'Results retrieved from cache' : 'Analysis completed successfully'}
+                  {isCached
+                    ? 'Results retrieved from cache'
+                    : 'Analysis completed successfully'}
                 </p>
               </div>
             )}
@@ -1992,7 +2306,9 @@ High: The answer is accurate based on the available information and general know
               </div>
 
               <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 mb-4">
-                <h4 className="font-medium text-gray-700 dark:text-gray-300 mb-2">Your Prompt</h4>
+                <h4 className="font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Your Prompt
+                </h4>
                 <p className="text-gray-800 dark:text-gray-200">{prompt}</p>
               </div>
 
@@ -2082,7 +2398,10 @@ High: The answer is accurate based on the available information and general know
           </div>
           <div>
             <h3 className="font-medium mb-1">Offline Mode</h3>
-            <p className="text-sm">You're currently offline. You can view saved analyses, but cannot make new requests.</p>
+            <p className="text-sm">
+              You're currently offline. You can view saved analyses, but cannot
+              make new requests.
+            </p>
           </div>
         </div>
       )}

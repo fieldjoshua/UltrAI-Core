@@ -4,35 +4,34 @@ Ultra Pattern Orchestrator Module
 This module implements the orchestration of different large language models
 for multi-level analysis of prompts using various patterns.
 """
+
 # noqa: E501
 # pylint: disable=line-too-long
 
 import asyncio
-from typing import Dict, Any, Optional, List
 import json
-from datetime import datetime, timedelta
 import logging
-from tenacity import (
-    retry, stop_after_attempt, wait_exponential, retry_if_exception_type
-)
 import os
-from dotenv import load_dotenv
-from string import Template
-import httpx
 import platform
 import re
+from datetime import datetime, timedelta
+from string import Template
+from typing import Any, Dict, List, Optional
 
-from anthropic import AsyncAnthropic
-from openai import AsyncOpenAI
-import google.generativeai as genai
-from mistralai.client import MistralClient
-from mistralai.async_client import MistralAsyncClient
 import cohere
+import google.generativeai as genai
+import httpx
+from anthropic import AsyncAnthropic
+from dotenv import load_dotenv
+from mistralai.async_client import MistralAsyncClient
+from mistralai.client import MistralClient
+from openai import AsyncOpenAI
+from tenacity import (retry, retry_if_exception_type, stop_after_attempt,
+                      wait_exponential)
 
-from ultra_error_handling import (
-    ValidationError, ConfigurationError, APIError, RateLimitError
-)
-from ultra_analysis_patterns import AnalysisPatterns, AnalysisPattern
+from ultra_analysis_patterns import AnalysisPattern, AnalysisPatterns
+from ultra_error_handling import (APIError, ConfigurationError, RateLimitError,
+                                  ValidationError)
 
 # Load environment variables
 load_dotenv()
@@ -40,11 +39,8 @@ load_dotenv()
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.FileHandler('ultra_orchestrator.log'),
-        logging.StreamHandler()
-    ]
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    handlers=[logging.FileHandler("ultra_orchestrator.log"), logging.StreamHandler()],
 )
 logger = logging.getLogger(__name__)
 
@@ -61,7 +57,7 @@ class PatternOrchestrator:
         self,
         api_keys: Dict[str, str],
         pattern: str = "gut",
-        output_format: str = "plain"
+        output_format: str = "plain",
     ):
         """Initialize the Pattern Orchestrator with API keys and pattern."""
         self.logger = logging.getLogger(__name__)
@@ -82,9 +78,7 @@ class PatternOrchestrator:
         # Load pattern
         self.pattern = AnalysisPatterns().get_pattern(pattern_str)
         if not self.pattern:
-            self.logger.warning(
-                f"Invalid pattern: {pattern_str}, defaulting to 'gut'"
-            )
+            self.logger.warning(f"Invalid pattern: {pattern_str}, defaulting to 'gut'")
             self.pattern = AnalysisPatterns().get_pattern("gut")
             if not self.pattern:
                 raise ValidationError(
@@ -123,9 +117,7 @@ class PatternOrchestrator:
 
         # Initialize Anthropic client if key is available
         if self.anthropic_key:
-            self.clients["anthropic"] = AsyncAnthropic(
-                api_key=self.anthropic_key
-            )
+            self.clients["anthropic"] = AsyncAnthropic(api_key=self.anthropic_key)
             self.available_models.append("anthropic")
             self.logger.info("Anthropic client initialized")
 
@@ -144,12 +136,8 @@ class PatternOrchestrator:
 
         # Initialize Mistral client if key is available
         if self.mistral_key:
-            self.clients["mistral"] = MistralClient(
-                api_key=self.mistral_key
-            )
-            self.clients["mistral_async"] = MistralAsyncClient(
-                api_key=self.mistral_key
-            )
+            self.clients["mistral"] = MistralClient(api_key=self.mistral_key)
+            self.clients["mistral_async"] = MistralAsyncClient(api_key=self.mistral_key)
             self.available_models.append("mistral")
             self.logger.info("Mistral client initialized")
 
@@ -181,23 +169,18 @@ class PatternOrchestrator:
         try:
             async with httpx.AsyncClient() as client:
                 response = await client.get(
-                    "http://localhost:11434/api/tags",
-                    timeout=2.0
+                    "http://localhost:11434/api/tags", timeout=2.0
                 )
 
                 if response.status_code == 200:
                     models_data = response.json()
-                    models_count = len(models_data.get('models', []))
-                    self.logger.info(
-                        f"Ollama available with {models_count} models"
-                    )
+                    models_count = len(models_data.get("models", []))
+                    self.logger.info(f"Ollama available with {models_count} models")
                     self.available_models.append("ollama")
                     self.ollama_available = True
                     return True
                 else:
-                    self.logger.warning(
-                        "Ollama responded but with non-200 status code"
-                    )
+                    self.logger.warning("Ollama responded but with non-200 status code")
                     self.ollama_available = False
                     return False
         except Exception as e:
@@ -212,7 +195,7 @@ class PatternOrchestrator:
             message = await self.clients["anthropic"].messages.create(
                 model="claude-3-opus-20240229",
                 max_tokens=1000,
-                messages=[{"role": "user", "content": prompt}]
+                messages=[{"role": "user", "content": prompt}],
             )
             return message.content[0].text
         except Exception as e:
@@ -227,7 +210,7 @@ class PatternOrchestrator:
                 model="gpt-4-turbo-preview",
                 messages=[{"role": "user", "content": prompt}],
                 temperature=0.7,
-                max_tokens=2000
+                max_tokens=2000,
             )
             return response.choices[0].message.content or ""
         except Exception as e:
@@ -238,10 +221,7 @@ class PatternOrchestrator:
         """Call Cohere's API with a prompt."""
         try:
             await self._respect_rate_limit("cohere")
-            response = self.clients["cohere"].chat(
-                message=prompt,
-                model="command"
-            )
+            response = self.clients["cohere"].chat(message=prompt, model="command")
             return response.text
         except Exception as e:
             error_msg = str(e)
@@ -252,12 +232,10 @@ class PatternOrchestrator:
         await self._respect_rate_limit("gemini")
         try:
             # Use the generative_models API
-            model = self.clients["google"].GenerativeModel(
-                model_name="gemini-pro"
-            )
+            model = self.clients["google"].GenerativeModel(model_name="gemini-pro")
 
             response = model.generate_content(prompt)
-            if hasattr(response, 'text') and response.text:
+            if hasattr(response, "text") and response.text:
                 return response.text
             else:
                 return "No response from Gemini (empty text)"
@@ -272,18 +250,18 @@ class PatternOrchestrator:
         try:
             headers = {
                 "Authorization": f"Bearer {self.perplexity_key}",
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
             }
             payload = {
                 "model": "llama-3-sonar-large-32k-online",
                 "messages": [{"role": "user", "content": prompt}],
-                "stream": False
+                "stream": False,
             }
             async with httpx.AsyncClient(timeout=30.0) as client:
                 response = await client.post(
                     "https://api.perplexity.ai/chat/completions",
                     headers=headers,
-                    json=payload
+                    json=payload,
                 )
                 if response.status_code == 200:
                     data = response.json()
@@ -302,7 +280,7 @@ class PatternOrchestrator:
     @retry(
         stop=stop_after_attempt(3),
         wait=wait_exponential(multiplier=1, min=4, max=10),
-        retry=retry_if_exception_type((APIError, RateLimitError))
+        retry=retry_if_exception_type((APIError, RateLimitError)),
     )
     async def get_claude_response(self, prompt: str) -> str:
         """Get response from Claude API"""
@@ -315,7 +293,7 @@ class PatternOrchestrator:
             message = await self.clients["anthropic"].messages.create(
                 model="claude-3-opus-20240229",
                 max_tokens=1000,
-                messages=[{"role": "user", "content": prompt}]
+                messages=[{"role": "user", "content": prompt}],
             )
             return message.content[0].text
         except Exception as e:
@@ -329,7 +307,7 @@ class PatternOrchestrator:
     @retry(
         stop=stop_after_attempt(3),
         wait=wait_exponential(multiplier=1, min=4, max=10),
-        retry=retry_if_exception_type((APIError, RateLimitError))
+        retry=retry_if_exception_type((APIError, RateLimitError)),
     )
     async def get_chatgpt_response(self, prompt: str) -> str:
         """Get response from ChatGPT"""
@@ -342,7 +320,7 @@ class PatternOrchestrator:
             response = await self.clients["openai"].chat.completions.create(
                 model="gpt-4-turbo-preview",
                 messages=[{"role": "user", "content": prompt}],
-                max_tokens=1024
+                max_tokens=1024,
             )
             # Explicitly check for None before returning
             content = response.choices[0].message.content
@@ -358,7 +336,7 @@ class PatternOrchestrator:
     @retry(
         stop=stop_after_attempt(3),
         wait=wait_exponential(multiplier=1, min=4, max=10),
-        retry=retry_if_exception_type((APIError, RateLimitError))
+        retry=retry_if_exception_type((APIError, RateLimitError)),
     )
     async def get_gemini_response(self, prompt: str) -> str:
         """Get response from Gemini API"""
@@ -376,7 +354,7 @@ class PatternOrchestrator:
                     "top_p": 0.95,
                     "top_k": 40,
                     "max_output_tokens": 2048,
-                }
+                },
             )
 
             response = model.generate_content(prompt)
@@ -392,7 +370,7 @@ class PatternOrchestrator:
     @retry(
         stop=stop_after_attempt(3),
         wait=wait_exponential(multiplier=1, min=4, max=10),
-        retry=retry_if_exception_type((APIError, RateLimitError))
+        retry=retry_if_exception_type((APIError, RateLimitError)),
     )
     async def get_perplexity_response(self, prompt: str) -> str:
         """Get response from Perplexity API"""
@@ -403,13 +381,13 @@ class PatternOrchestrator:
                     "https://api.perplexity.ai/chat/completions",
                     headers={
                         "Authorization": f"Bearer {self.perplexity_key}",
-                        "Content-Type": "application/json"
+                        "Content-Type": "application/json",
                     },
                     json={
                         "model": "llama-3-sonar-large-32k-online",  # Updated model
                         "messages": [{"role": "user", "content": prompt}],
-                        "stream": False
-                    }
+                        "stream": False,
+                    },
                 )
                 if response.status_code == 200:
                     data = response.json()
@@ -425,15 +403,14 @@ class PatternOrchestrator:
             # Safely check the error message length without using len() on the exception
             return f"Error calling Perplexity: {error_message if error_message else 'Unknown error'}"
 
-    @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=4, max=10))
+    @retry(
+        stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=4, max=10)
+    )
     async def get_cohere_response(self, prompt: str) -> str:
         """Get response from Cohere API"""
         try:
             await self._respect_rate_limit("cohere")
-            response = self.clients["cohere"].chat(
-                message=prompt,
-                model="command"
-            )
+            response = self.clients["cohere"].chat(message=prompt, model="command")
             return response.text
         except Exception as e:
             logging.error(f"Error with Cohere API: {e}")
@@ -442,7 +419,7 @@ class PatternOrchestrator:
     @retry(
         stop=stop_after_attempt(3),
         wait=wait_exponential(multiplier=1, min=4, max=10),
-        retry=retry_if_exception_type((APIError, RateLimitError))
+        retry=retry_if_exception_type((APIError, RateLimitError)),
     )
     async def get_llama_response(self, prompt: str) -> str:
         """Get response from Ollama's Llama model"""
@@ -475,7 +452,9 @@ class PatternOrchestrator:
             # Check if the selected model exists
             async with httpx.AsyncClient(timeout=30.0) as client:
                 try:
-                    model_check = await client.get(f"http://localhost:{self.ollama_port}/api/tags")
+                    model_check = await client.get(
+                        f"http://localhost:{self.ollama_port}/api/tags"
+                    )
                     model_check.raise_for_status()
                     available_models = model_check.json()
 
@@ -484,13 +463,19 @@ class PatternOrchestrator:
                     if not any(m.startswith("llama3") for m in models):
                         if not any(m.startswith("llama2") for m in models):
                             # Neither model exists
-                            self.logger.warning("Neither llama3 nor llama2 found in Ollama. Using default model.")
-                            model_to_use = "llama2"  # Default to llama2 even if not found
+                            self.logger.warning(
+                                "Neither llama3 nor llama2 found in Ollama. Using default model."
+                            )
+                            model_to_use = (
+                                "llama2"  # Default to llama2 even if not found
+                            )
                         else:
                             model_to_use = "llama2"
                 except Exception as e:
                     # If we can't check the models, default to llama2
-                    self.logger.warning(f"Could not check available models: {e}. Using llama2 as default.")
+                    self.logger.warning(
+                        f"Could not check available models: {e}. Using llama2 as default."
+                    )
                     model_to_use = "llama2"
 
             async with httpx.AsyncClient(timeout=60.0) as client:
@@ -503,9 +488,9 @@ class PatternOrchestrator:
                         "options": {
                             "temperature": 0.7,
                             "top_p": 0.9,
-                            "num_predict": 1024
-                        }
-                    }
+                            "num_predict": 1024,
+                        },
+                    },
                 )
                 response.raise_for_status()
                 return response.json()["response"]
@@ -517,7 +502,7 @@ class PatternOrchestrator:
     @retry(
         stop=stop_after_attempt(3),
         wait=wait_exponential(multiplier=1, min=4, max=10),
-        retry=retry_if_exception_type((APIError, RateLimitError))
+        retry=retry_if_exception_type((APIError, RateLimitError)),
     )
     async def get_mistral_response(self, prompt: str) -> str:
         """Get response from Mistral API"""
@@ -531,7 +516,7 @@ class PatternOrchestrator:
             response = await self.clients["mistral_async"].chat(
                 model="mistral-large-latest",
                 messages=[{"role": "user", "content": prompt}],
-                max_tokens=1024
+                max_tokens=1024,
             )
             return response.choices[0].message.content
         except Exception as e:
@@ -546,24 +531,32 @@ class PatternOrchestrator:
         """Respect rate limits between API calls"""
         try:
             current_time = datetime.now()
-            last_call = self.last_request.get(model, current_time - timedelta(seconds=10))
+            last_call = self.last_request.get(
+                model, current_time - timedelta(seconds=10)
+            )
 
             # Set different wait times based on model type
             wait_seconds = {
-                "claude": 1.0,    # 60 RPM (requests per minute)
-                "chatgpt": 3.0,   # 20 RPM
-                "gemini": 1.0,    # 60 RPM
+                "claude": 1.0,  # 60 RPM (requests per minute)
+                "chatgpt": 3.0,  # 20 RPM
+                "gemini": 1.0,  # 60 RPM
                 "perplexity": 3.0,  # 20 RPM
-                "cohere": 2.0,    # 30 RPM
-                "mistral": 2.0,   # 30 RPM
+                "cohere": 2.0,  # 30 RPM
+                "mistral": 2.0,  # 30 RPM
                 "deepseek": 1.0,  # 60 RPM
-                "llama": 0.5      # 120 RPM (local, so faster)
-            }.get(model, 2.0)     # Default 2s (30 RPM)
+                "llama": 0.5,  # 120 RPM (local, so faster)
+            }.get(
+                model, 2.0
+            )  # Default 2s (30 RPM)
 
-            wait_time = max(0, wait_seconds - (current_time - last_call).total_seconds())
+            wait_time = max(
+                0, wait_seconds - (current_time - last_call).total_seconds()
+            )
 
             if wait_time > 0:
-                self.logger.debug(f"Rate limiting: waiting {wait_time:.2f}s for {model}")
+                self.logger.debug(
+                    f"Rate limiting: waiting {wait_time:.2f}s for {model}"
+                )
                 await asyncio.sleep(wait_time)
 
             self.last_request[model] = datetime.now()
@@ -580,8 +573,10 @@ class PatternOrchestrator:
             if not self.pattern:
                 raise ValidationError(f"No pattern defined for stage: {stage}")
 
-            if not hasattr(self.pattern, 'templates'):
-                raise ValidationError(f"Pattern does not have templates attribute for stage: {stage}")
+            if not hasattr(self.pattern, "templates"):
+                raise ValidationError(
+                    f"Pattern does not have templates attribute for stage: {stage}"
+                )
 
             template = self.pattern.templates.get(stage)
             if not template:
@@ -591,7 +586,9 @@ class PatternOrchestrator:
             return Template(template).safe_substitute(context)
         except Exception as e:
             self.logger.error(f"Error creating prompt for stage '{stage}': {e}")
-            raise ValidationError(f"Failed to create prompt for stage '{stage}': {str(e)}")
+            raise ValidationError(
+                f"Failed to create prompt for stage '{stage}': {str(e)}"
+            )
 
     async def get_initial_responses(self, prompt: str) -> Dict[str, str]:
         """Get initial responses from available models"""
@@ -633,16 +630,22 @@ class PatternOrchestrator:
                     f"analysis that focuses specifically on answering the original query."
                 )
 
-            self.logger.info(f"Enhanced prompt with content from {len(self.file_attachments)} attached documents")
+            self.logger.info(
+                f"Enhanced prompt with content from {len(self.file_attachments)} attached documents"
+            )
 
             # Calculate tokens (approximate)
             words = len(enhanced_prompt.split())
             tokens = words * 1.3  # Rough approximation of tokens
-            self.logger.info(f"Enhanced prompt length: ~{words} words, ~{int(tokens)} tokens")
+            self.logger.info(
+                f"Enhanced prompt length: ~{words} words, ~{int(tokens)} tokens"
+            )
 
             # Save the enhanced prompt
             if self.current_session_dir:
-                enhanced_prompt_path = os.path.join(self.current_session_dir, "enhanced_prompt.txt")
+                enhanced_prompt_path = os.path.join(
+                    self.current_session_dir, "enhanced_prompt.txt"
+                )
                 with open(enhanced_prompt_path, "w", encoding="utf-8") as f:
                     f.write(enhanced_prompt)
                 self.logger.info(f"Saved enhanced prompt to {enhanced_prompt_path}")
@@ -680,7 +683,9 @@ class PatternOrchestrator:
             # Safely check if response is valid and has a length
             if response and not isinstance(response, Exception):
                 try:
-                    self.logger.info(f"Got response from {model} ({len(str(response))} chars)")
+                    self.logger.info(
+                        f"Got response from {model} ({len(str(response))} chars)"
+                    )
                     results[model] = str(response)
                 except Exception as e:
                     self.logger.error(f"Error processing response from {model}: {e}")
@@ -692,11 +697,14 @@ class PatternOrchestrator:
             self.logger.error(error_msg)
             raise APIError(error_msg)
 
-        self.logger.info(f"Got initial responses from {len(results)} models: {', '.join(results.keys())}")
+        self.logger.info(
+            f"Got initial responses from {len(results)} models: {', '.join(results.keys())}"
+        )
         return results
 
-    async def get_meta_responses(self, initial_responses: Dict[str, str],
-                               original_prompt: str) -> Dict[str, str]:
+    async def get_meta_responses(
+        self, initial_responses: Dict[str, str], original_prompt: str
+    ) -> Dict[str, str]:
         """Get meta-level responses from available models"""
         self.logger.info("Getting meta-level responses")
 
@@ -706,7 +714,9 @@ class PatternOrchestrator:
 
         for model, response in initial_responses.items():
             if model not in self.available_models:
-                self.logger.warning(f"Model {model} is no longer available, skipping meta analysis")
+                self.logger.warning(
+                    f"Model {model} is no longer available, skipping meta analysis"
+                )
                 continue
 
             # Create context for this model's meta analysis
@@ -714,7 +724,9 @@ class PatternOrchestrator:
             context = {
                 "original_prompt": original_prompt,
                 "own_response": response,
-                "other_responses": "\n\n".join(f"{k.upper()}:\n{v}" for k, v in other_responses.items())
+                "other_responses": "\n\n".join(
+                    f"{k.upper()}:\n{v}" for k, v in other_responses.items()
+                ),
             }
 
             # Add task for this model
@@ -738,28 +750,39 @@ class PatternOrchestrator:
         # Process results
         for model, response in zip(model_names, responses):
             if isinstance(response, Exception):
-                self.logger.error(f"Error getting meta response from {model}: {response}")
+                self.logger.error(
+                    f"Error getting meta response from {model}: {response}"
+                )
                 continue
 
             # Safe response handling
             if response and not isinstance(response, Exception):
                 try:
-                    self.logger.info(f"Got meta response from {model} ({len(str(response))} chars)")
+                    self.logger.info(
+                        f"Got meta response from {model} ({len(str(response))} chars)"
+                    )
                     meta_responses[model] = str(response)
                 except Exception as e:
-                    self.logger.error(f"Error processing meta response from {model}: {e}")
+                    self.logger.error(
+                        f"Error processing meta response from {model}: {e}"
+                    )
             else:
                 self.logger.warning(f"Empty meta response from {model}")
 
         if not meta_responses:
-            self.logger.warning("No successful meta responses received, using initial responses instead")
+            self.logger.warning(
+                "No successful meta responses received, using initial responses instead"
+            )
             return initial_responses
 
         return meta_responses
 
-    async def get_hyper_responses(self, meta_responses: Dict[str, str],
-                                initial_responses: Dict[str, str],
-                                original_prompt: str) -> Dict[str, str]:
+    async def get_hyper_responses(
+        self,
+        meta_responses: Dict[str, str],
+        initial_responses: Dict[str, str],
+        original_prompt: str,
+    ) -> Dict[str, str]:
         """Get hyper-level responses from available models"""
         self.logger.info("Getting hyper-level responses")
 
@@ -769,7 +792,9 @@ class PatternOrchestrator:
 
         for model, meta_response in meta_responses.items():
             if model not in self.available_models:
-                self.logger.warning(f"Model {model} is no longer available, skipping hyper analysis")
+                self.logger.warning(
+                    f"Model {model} is no longer available, skipping hyper analysis"
+                )
                 continue
 
             # Create context for this model's hyper analysis
@@ -777,15 +802,21 @@ class PatternOrchestrator:
                 "original_prompt": original_prompt,
                 "own_meta": meta_response,
                 "other_meta_responses": "\n\n".join(
-                    f"{k.upper()}:\n{v}" for k, v in meta_responses.items() if k != model
+                    f"{k.upper()}:\n{v}"
+                    for k, v in meta_responses.items()
+                    if k != model
                 ),
                 "own_response": initial_responses.get(model, ""),
                 "critiques": "\n\n".join(
-                    f"{k.upper()}:\n{v}" for k, v in meta_responses.items() if k != model
+                    f"{k.upper()}:\n{v}"
+                    for k, v in meta_responses.items()
+                    if k != model
                 ),
                 "fact_checks": "\n\n".join(
-                    f"{k.upper()}:\n{v}" for k, v in meta_responses.items() if k != model
-                )
+                    f"{k.upper()}:\n{v}"
+                    for k, v in meta_responses.items()
+                    if k != model
+                ),
             }
 
             # Add task for this model
@@ -809,22 +840,29 @@ class PatternOrchestrator:
         # Process results
         for model, response in zip(model_names, responses):
             if isinstance(response, Exception):
-                self.logger.error(f"Error getting hyper response from {model}: {response}")
+                self.logger.error(
+                    f"Error getting hyper response from {model}: {response}"
+                )
                 continue
             if response:
-                self.logger.info(f"Got hyper response from {model} ({len(response)} chars)")
+                self.logger.info(
+                    f"Got hyper response from {model} ({len(response)} chars)"
+                )
                 hyper_responses[model] = response
             else:
                 self.logger.warning(f"Empty hyper response from {model}")
 
         if not hyper_responses:
-            self.logger.warning("No successful hyper responses received, using meta responses instead")
+            self.logger.warning(
+                "No successful hyper responses received, using meta responses instead"
+            )
             return meta_responses
 
         return hyper_responses
 
-    async def get_ultra_response(self, hyper_responses: Dict[str, str],
-                               original_prompt: str) -> str:
+    async def get_ultra_response(
+        self, hyper_responses: Dict[str, str], original_prompt: str
+    ) -> str:
         """Get final ultra-level synthesis"""
         self.logger.info(f"Getting ultra-level synthesis using {self.ultra_model}")
 
@@ -840,7 +878,9 @@ class PatternOrchestrator:
             # Try to select an alternative model
             if hyper_responses:
                 alternative = list(hyper_responses.keys())[0]
-                self.logger.info(f"Using alternative model for ultra synthesis: {alternative}")
+                self.logger.info(
+                    f"Using alternative model for ultra synthesis: {alternative}"
+                )
                 self.ultra_model = alternative
             else:
                 raise ValidationError(error_msg)
@@ -849,7 +889,7 @@ class PatternOrchestrator:
             "original_prompt": original_prompt,
             "hyper_responses": "\n\n".join(
                 f"{k.upper()}:\n{v}" for k, v in hyper_responses.items()
-            )
+            ),
         }
 
         # Get the prompt for ultra stage
@@ -874,33 +914,49 @@ class PatternOrchestrator:
                 self.logger.warning(f"Empty ultra response from {self.ultra_model}")
                 # Try to use the best hyper response as fallback
                 if hyper_responses:
-                    self.logger.info("Using best hyper response as ultra response fallback")
+                    self.logger.info(
+                        "Using best hyper response as ultra response fallback"
+                    )
                     return list(hyper_responses.values())[0]
                 else:
-                    raise APIError(f"Empty response from {self.ultra_model} and no fallback available")
+                    raise APIError(
+                        f"Empty response from {self.ultra_model} and no fallback available"
+                    )
 
             self.logger.info(f"Got ultra response ({len(ultra_response)} chars)")
             return ultra_response
         except Exception as e:
-            self.logger.error(f"Error getting ultra response from {self.ultra_model}: {e}")
+            self.logger.error(
+                f"Error getting ultra response from {self.ultra_model}: {e}"
+            )
 
             # Try with another model if available
             if self.ultra_model in hyper_responses:
-                self.logger.warning(f"Using {self.ultra_model}'s hyper response as fallback")
+                self.logger.warning(
+                    f"Using {self.ultra_model}'s hyper response as fallback"
+                )
                 return hyper_responses[self.ultra_model]
 
             # Or use any hyper response
             if hyper_responses:
                 fallback_model = list(hyper_responses.keys())[0]
-                self.logger.warning(f"Using {fallback_model}'s hyper response as fallback")
+                self.logger.warning(
+                    f"Using {fallback_model}'s hyper response as fallback"
+                )
                 return hyper_responses[fallback_model]
 
-            raise APIError(f"Error getting ultra response and no fallback available: {str(e)}")
+            raise APIError(
+                f"Error getting ultra response and no fallback available: {str(e)}"
+            )
 
     async def orchestrate_full_process(self, prompt: str) -> Dict[str, Any]:
         """Execute the full orchestration process"""
         # Safely access pattern name
-        pattern_name = self.pattern.name if self.pattern and hasattr(self.pattern, 'name') else "unknown_pattern"
+        pattern_name = (
+            self.pattern.name
+            if self.pattern and hasattr(self.pattern, "name")
+            else "unknown_pattern"
+        )
         self.logger.info(f"Running pattern: {pattern_name}")
 
         # Create a session directory for this analysis
@@ -927,7 +983,9 @@ class PatternOrchestrator:
 
         # Get hyper-level responses
         self.logger.info("Running hyper-level synthesis...")
-        hyper_responses = await self.get_hyper_responses(meta_responses, initial_responses, prompt)
+        hyper_responses = await self.get_hyper_responses(
+            meta_responses, initial_responses, prompt
+        )
 
         # Save hyper responses
         for model, response in hyper_responses.items():
@@ -948,7 +1006,7 @@ class PatternOrchestrator:
             prompt=prompt,
             pattern=pattern_name,
             models=list(initial_responses.keys()),
-            ultra_model=ultra_model_safe
+            ultra_model=ultra_model_safe,
         )
 
         self.logger.info("Pattern execution complete")
@@ -961,7 +1019,7 @@ class PatternOrchestrator:
             "pattern": pattern_name,
             "has_attachments": len(self.file_attachments) > 0,
             "num_attachments": len(self.file_attachments),
-            "attachment_files": [os.path.basename(f) for f in self.file_attachments]
+            "attachment_files": [os.path.basename(f) for f in self.file_attachments],
         }
 
         # Save performance metrics
@@ -977,7 +1035,11 @@ class PatternOrchestrator:
             "ultra_response": ultra_response,
             "performance": performance_metrics,
             "output_dir": self.current_session_dir,
-            "attachments": [os.path.basename(f) for f in self.file_attachments] if self.file_attachments else []
+            "attachments": (
+                [os.path.basename(f) for f in self.file_attachments]
+                if self.file_attachments
+                else []
+            ),
         }
 
         print("\n=========== FINAL RESULT ===========")
@@ -1000,7 +1062,7 @@ class PatternOrchestrator:
             "critique": AnalysisPatterns().get_pattern("critique"),
             "fact_check": AnalysisPatterns().get_pattern("fact_check"),
             "perspective": AnalysisPatterns().get_pattern("perspective"),
-            "scenario": AnalysisPatterns().get_pattern("scenario")
+            "scenario": AnalysisPatterns().get_pattern("scenario"),
         }
         if pattern not in patterns:
             raise ValueError(f"Unknown pattern: {pattern}")
@@ -1011,7 +1073,7 @@ class PatternOrchestrator:
         formatters = {
             "plain": lambda x: x,
             "markdown": lambda x: f"```markdown\n{x}\n```",
-            "json": lambda x: json.dumps({"response": x}, indent=2)
+            "json": lambda x: json.dumps({"response": x}, indent=2),
         }
         if output_format not in formatters:
             raise ValueError(f"Unknown output format: {output_format}")
@@ -1021,26 +1083,38 @@ class PatternOrchestrator:
     async def execute(self, prompt: str) -> str:
         """Execute the full pattern-based orchestration for a given prompt"""
         # Safely access pattern name
-        pattern_name = self.pattern.name if self.pattern and hasattr(self.pattern, 'name') else "unknown_pattern"
+        pattern_name = (
+            self.pattern.name
+            if self.pattern and hasattr(self.pattern, "name")
+            else "unknown_pattern"
+        )
         self.logger.info(f"Running pattern: {pattern_name}")
 
         # Initial responses
         self.logger.info("Getting initial responses...")
         initial_responses = await self.get_initial_responses(prompt)
         if not initial_responses:
-            raise ValueError("No successful responses received from any models. Please check your API keys and model availability.")
+            raise ValueError(
+                "No successful responses received from any models. Please check your API keys and model availability."
+            )
 
         # Meta-level analysis
         self.logger.info("Running meta-level analysis...")
         meta_responses = await self.get_meta_responses(initial_responses, prompt)
         if not meta_responses:
-            raise ValueError("No successful meta responses received. Please check model availability.")
+            raise ValueError(
+                "No successful meta responses received. Please check model availability."
+            )
 
         # Hyper-level synthesis
         self.logger.info("Running hyper-level synthesis...")
-        hyper_responses = await self.get_hyper_responses(meta_responses, initial_responses, prompt)
+        hyper_responses = await self.get_hyper_responses(
+            meta_responses, initial_responses, prompt
+        )
         if not hyper_responses:
-            raise ValueError("No successful hyper responses received. Please check model availability.")
+            raise ValueError(
+                "No successful hyper responses received. Please check model availability."
+            )
 
         # Ultra-level synthesis
         self.logger.info("Producing final ultra-level synthesis...")
@@ -1052,7 +1126,7 @@ class PatternOrchestrator:
     def _sanitize_filename(self, text: str) -> str:
         """Create a safe filename from text"""
         # Remove any characters that aren't alphanumeric, underscore, or dash
-        sanitized = re.sub(r'[^\w\-]', '_', text)
+        sanitized = re.sub(r"[^\w\-]", "_", text)
         # Truncate to a reasonable length
         return sanitized[:50]
 
@@ -1087,7 +1161,9 @@ class PatternOrchestrator:
             self.logger.error(f"Error saving response to {filepath}: {e}")
             return None
 
-    def _save_metadata(self, prompt: str, pattern: str, models: List[str], ultra_model: str):
+    def _save_metadata(
+        self, prompt: str, pattern: str, models: List[str], ultra_model: str
+    ):
         """Save metadata about this analysis session"""
         if not self.current_session_dir:
             return None
@@ -1100,8 +1176,8 @@ class PatternOrchestrator:
             "ultra_model": ultra_model,
             "system_info": {
                 "platform": platform.platform(),
-                "python": platform.python_version()
-            }
+                "python": platform.python_version(),
+            },
         }
 
         # Add file attachment info if available
@@ -1112,10 +1188,13 @@ class PatternOrchestrator:
                     {
                         "filename": os.path.basename(path),
                         "path": path,
-                        "size_bytes": os.path.getsize(path) if os.path.exists(path) else 0,
-                        "extension": os.path.splitext(path)[1].lower()
-                    } for path in self.file_attachments
-                ]
+                        "size_bytes": (
+                            os.path.getsize(path) if os.path.exists(path) else 0
+                        ),
+                        "extension": os.path.splitext(path)[1].lower(),
+                    }
+                    for path in self.file_attachments
+                ],
             }
 
         filepath = os.path.join(self.current_session_dir, "metadata.json")
@@ -1154,7 +1233,9 @@ class PatternOrchestrator:
 
         supported_formats = self.documents_processor.supported_formats.keys()
         if ext not in supported_formats:
-            self.logger.error(f"Unsupported file format: {ext}. Supported formats: {', '.join(supported_formats)}")
+            self.logger.error(
+                f"Unsupported file format: {ext}. Supported formats: {', '.join(supported_formats)}"
+            )
             return False
 
         # Add file to attachments
@@ -1184,27 +1265,33 @@ class PatternOrchestrator:
 
         try:
             # Use the enhanced RAG-based processing if available
-            if hasattr(self.documents_processor, 'process_query_with_documents'):
+            if hasattr(self.documents_processor, "process_query_with_documents"):
                 # This method automatically handles chunking and semantic retrieval
-                prompt = "Please analyze these documents"  # Generic prompt for embedding
+                prompt = (
+                    "Please analyze these documents"  # Generic prompt for embedding
+                )
                 enhanced_prompt = self.documents_processor.process_query_with_documents(
-                    prompt,
-                    self.file_attachments,
-                    max_chunks=10
+                    prompt, self.file_attachments, max_chunks=10
                 )
 
                 # Remove the generic prompt and instructions as we'll add our own
                 if "--- RELEVANT DOCUMENT EXCERPTS ---" in enhanced_prompt:
                     try:
-                        _, content = enhanced_prompt.split("--- RELEVANT DOCUMENT EXCERPTS ---", 1)
-                        content, _ = content.split("Please provide a comprehensive response", 1)
+                        _, content = enhanced_prompt.split(
+                            "--- RELEVANT DOCUMENT EXCERPTS ---", 1
+                        )
+                        content, _ = content.split(
+                            "Please provide a comprehensive response", 1
+                        )
                         return content.strip()
                     except ValueError:
                         # If split fails, return the whole content
                         return enhanced_prompt
                 elif "--- CONTENT FROM ATTACHED DOCUMENTS ---" in enhanced_prompt:
                     try:
-                        _, content = enhanced_prompt.split("--- CONTENT FROM ATTACHED DOCUMENTS ---", 1)
+                        _, content = enhanced_prompt.split(
+                            "--- CONTENT FROM ATTACHED DOCUMENTS ---", 1
+                        )
                         content, _ = content.split("Based on the above documents", 1)
                         return content.strip()
                     except ValueError:
@@ -1229,7 +1316,10 @@ class PatternOrchestrator:
                 # Truncate very long content for better prompt management
                 max_length = 8000  # Character limit per document
                 if len(content) > max_length:
-                    content = content[:max_length] + f"... [Document truncated, {len(content)} total characters]"
+                    content = (
+                        content[:max_length]
+                        + f"... [Document truncated, {len(content)} total characters]"
+                    )
 
                 formatted_content.append(f"[DOCUMENT {i+1}: {filename}]\n{content}\n")
 
@@ -1242,14 +1332,21 @@ class PatternOrchestrator:
             # Save attachments to the session directory
             if self.current_session_dir:
                 attachment_info = {
-                    "files": [{
-                        "filename": os.path.basename(path),
-                        "path": path,
-                        "size_bytes": os.path.getsize(path) if os.path.exists(path) else 0,
-                        "extension": os.path.splitext(path)[1].lower()
-                    } for path in self.file_attachments]
+                    "files": [
+                        {
+                            "filename": os.path.basename(path),
+                            "path": path,
+                            "size_bytes": (
+                                os.path.getsize(path) if os.path.exists(path) else 0
+                            ),
+                            "extension": os.path.splitext(path)[1].lower(),
+                        }
+                        for path in self.file_attachments
+                    ]
                 }
-                attachments_file = os.path.join(self.current_session_dir, "attachments.json")
+                attachments_file = os.path.join(
+                    self.current_session_dir, "attachments.json"
+                )
                 with open(attachments_file, "w", encoding="utf-8") as f:
                     json.dump(attachment_info, f, indent=2)
                 self.logger.info(f"Saved attachments info to {attachments_file}")
@@ -1259,6 +1356,7 @@ class PatternOrchestrator:
         except Exception as e:
             self.logger.error(f"Error processing attachments: {e}")
             return None
+
 
 class ResponseFormatter:
     @staticmethod
@@ -1273,13 +1371,10 @@ class ResponseFormatter:
     def format_json(text: str) -> str:
         return json.dumps({"response": text}, indent=2)
 
+
 async def test_env() -> bool:
     """Test if all required environment variables are set"""
-    required_vars = [
-        "ANTHROPIC_API_KEY",
-        "OPENAI_API_KEY",
-        "GOOGLE_API_KEY"
-    ]
+    required_vars = ["ANTHROPIC_API_KEY", "OPENAI_API_KEY", "GOOGLE_API_KEY"]
 
     missing_vars = []
     for var in required_vars:
@@ -1294,11 +1389,7 @@ async def test_env() -> bool:
         raise ConfigurationError(error_msg)
 
     # Check for optional variables
-    optional_vars = [
-        "MISTRAL_API_KEY",
-        "PERPLEXITY_API_KEY",
-        "COHERE_API_KEY"
-    ]
+    optional_vars = ["MISTRAL_API_KEY", "PERPLEXITY_API_KEY", "COHERE_API_KEY"]
 
     missing_optional = []
     for var in optional_vars:
@@ -1315,6 +1406,7 @@ async def test_env() -> bool:
     logger.info("All required environment variables are set")
     print("\nAll required environment variables are set")
     return True
+
 
 async def main():
     # Initialize the orchestrator
@@ -1336,7 +1428,7 @@ async def main():
             analysis_patterns.get_pattern("stakeholder"),
             analysis_patterns.get_pattern("systems"),
             analysis_patterns.get_pattern("time"),
-            analysis_patterns.get_pattern("innovation")
+            analysis_patterns.get_pattern("innovation"),
         ]
 
         # Filter out None patterns
@@ -1345,7 +1437,7 @@ async def main():
         # Display available patterns
         print("\nAvailable analysis patterns:")
         for i, pattern in enumerate(patterns, 1):
-            pattern_name = pattern.name if hasattr(pattern, 'name') else f"Pattern {i}"
+            pattern_name = pattern.name if hasattr(pattern, "name") else f"Pattern {i}"
             print(f"{i}. {pattern_name}")
 
         # Get user choice
@@ -1355,7 +1447,7 @@ async def main():
             return
 
         pattern = patterns[choice]
-        pattern_name = pattern.name if hasattr(pattern, 'name') else "unknown"
+        pattern_name = pattern.name if hasattr(pattern, "name") else "unknown"
 
         # Get user choice for ultra model
         print("\nSelect the LLM for ultra synthesis:")
@@ -1384,11 +1476,15 @@ async def main():
             "Critique Analysis": "critique",
             "Fact Check Analysis": "fact_check",
             "Perspective Analysis": "perspective",
-            "Scenario Analysis": "scenario"
+            "Scenario Analysis": "scenario",
         }
 
         # Get pattern ID safely
-        pattern_id = pattern_name_map.get(pattern_name) if pattern_name in pattern_name_map else "gut"
+        pattern_id = (
+            pattern_name_map.get(pattern_name)
+            if pattern_name in pattern_name_map
+            else "gut"
+        )
 
         # Filter None values from API keys
         api_keys = {
@@ -1398,26 +1494,30 @@ async def main():
             "perplexity": os.getenv("PERPLEXITY_API_KEY", ""),
             "cohere": os.getenv("COHERE_API_KEY", ""),
             "mistral": os.getenv("MISTRAL_API_KEY", ""),
-            "deepseek": os.getenv("DEEPSEEK_API_KEY", "")
+            "deepseek": os.getenv("DEEPSEEK_API_KEY", ""),
         }
         # Remove empty keys
         api_keys = {k: v for k, v in api_keys.items() if v}
 
         orchestrator = PatternOrchestrator(
-            api_keys=api_keys,
-            pattern=pattern_id,
-            output_format="markdown"
+            api_keys=api_keys, pattern=pattern_id, output_format="markdown"
         )
         orchestrator.pattern = pattern  # Set the full pattern object
         orchestrator.ultra_model = ultra_model
 
         # File attachment option
-        attach_files = input("\nWould you like to attach files for analysis? (y/n): ").lower().strip()
-        if attach_files == 'y':
+        attach_files = (
+            input("\nWould you like to attach files for analysis? (y/n): ")
+            .lower()
+            .strip()
+        )
+        if attach_files == "y":
             print("\nSupported file formats: .pdf, .txt, .md, .docx")
 
             while True:
-                file_path = input("\nEnter the file path (or press Enter to stop adding files): ").strip()
+                file_path = input(
+                    "\nEnter the file path (or press Enter to stop adding files): "
+                ).strip()
                 if not file_path:
                     break
 
@@ -1436,16 +1536,22 @@ async def main():
                 print("\nNo files attached.")
 
         # Get user prompt
-        default_prompt = "What are the most common misconceptions about artificial intelligence?"
+        default_prompt = (
+            "What are the most common misconceptions about artificial intelligence?"
+        )
         user_prompt = input("\nEnter your prompt (press Enter to use default): ")
         if not user_prompt:
             user_prompt = default_prompt
 
         # Safe access to pattern name
-        start_pattern_name = pattern.name if hasattr(pattern, 'name') else "unknown"
-        print(f"\nStarting {start_pattern_name} process with {ultra_model.upper()} for ultra synthesis...")
+        start_pattern_name = pattern.name if hasattr(pattern, "name") else "unknown"
+        print(
+            f"\nStarting {start_pattern_name} process with {ultra_model.upper()} for ultra synthesis..."
+        )
         if orchestrator.file_attachments:
-            print(f"Including {len(orchestrator.file_attachments)} attached files in the analysis.")
+            print(
+                f"Including {len(orchestrator.file_attachments)} attached files in the analysis."
+            )
 
         # Execute the pattern
         result = await orchestrator.orchestrate_full_process(user_prompt)
@@ -1457,11 +1563,16 @@ async def main():
 
     except Exception as e:
         print(f"Error: {e}")
-        if "ANTHROPIC_API_KEY" in str(e) or "OPENAI_API_KEY" in str(e) or "GOOGLE_API_KEY" in str(e):
+        if (
+            "ANTHROPIC_API_KEY" in str(e)
+            or "OPENAI_API_KEY" in str(e)
+            or "GOOGLE_API_KEY" in str(e)
+        ):
             print("\nPlease ensure all required API keys are set in your .env file:")
             print("- ANTHROPIC_API_KEY for Claude")
             print("- OPENAI_API_KEY for ChatGPT/GPT-4")
             print("- GOOGLE_API_KEY for Gemini")
+
 
 if __name__ == "__main__":
     asyncio.run(main())

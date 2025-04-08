@@ -66,7 +66,7 @@
   position: absolute;
   width: 100%;
   height: 100%;
-  fill: #FFFFFF;
+  fill: #ffffff;
 }
 
 /* Angled part of the logo */
@@ -74,7 +74,7 @@
   position: absolute;
   width: 100%;
   height: 100%;
-  fill: #DDDDDD;
+  fill: #dddddd;
 }
 
 /* Wireframe container */
@@ -130,7 +130,11 @@
   width: 30%;
   height: 30%;
   opacity: 0.3;
-  background-image: radial-gradient(circle, rgba(255, 100, 0, 0.4) 0%, rgba(255, 100, 0, 0) 70%);
+  background-image: radial-gradient(
+    circle,
+    rgba(255, 100, 0, 0.4) 0%,
+    rgba(255, 100, 0, 0) 70%
+  );
   z-index: 1;
   pointer-events: none;
 }
@@ -162,31 +166,42 @@
   height: 200%;
   top: -50%;
   left: -50%;
-  background: radial-gradient(circle, rgba(255, 135, 0, 0.3) 0%, rgba(255, 135, 0, 0) 70%);
+  background: radial-gradient(
+    circle,
+    rgba(255, 135, 0, 0.3) 0%,
+    rgba(255, 135, 0, 0) 70%
+  );
   z-index: 0;
   opacity: 0;
   transition: opacity 0.3s ease;
 }
 
 /* Color variations for processing state */
-.ultra-logo-v3--orange.ultra-logo-v3--processing .ultra-logo-v3__wireframe-line {
+.ultra-logo-v3--orange.ultra-logo-v3--processing
+  .ultra-logo-v3__wireframe-line {
   border-color: rgba(255, 135, 0, calc(0.3 + var(--intensity) * 0.7));
-  box-shadow: 0 0 calc(var(--intensity) * 3px) rgba(255, 135, 0, calc(var(--intensity) * 0.7));
+  box-shadow: 0 0 calc(var(--intensity) * 3px)
+    rgba(255, 135, 0, calc(var(--intensity) * 0.7));
 }
 
 .ultra-logo-v3--blue.ultra-logo-v3--processing .ultra-logo-v3__wireframe-line {
   border-color: rgba(60, 170, 255, calc(0.3 + var(--intensity) * 0.7));
-  box-shadow: 0 0 calc(var(--intensity) * 3px) rgba(60, 170, 255, calc(var(--intensity) * 0.7));
+  box-shadow: 0 0 calc(var(--intensity) * 3px)
+    rgba(60, 170, 255, calc(var(--intensity) * 0.7));
 }
 
-.ultra-logo-v3--purple.ultra-logo-v3--processing .ultra-logo-v3__wireframe-line {
+.ultra-logo-v3--purple.ultra-logo-v3--processing
+  .ultra-logo-v3__wireframe-line {
   border-color: rgba(170, 60, 255, calc(0.3 + var(--intensity) * 0.7));
-  box-shadow: 0 0 calc(var(--intensity) * 3px) rgba(170, 60, 255, calc(var(--intensity) * 0.7));
+  box-shadow: 0 0 calc(var(--intensity) * 3px)
+    rgba(170, 60, 255, calc(var(--intensity) * 0.7));
 }
 
-.ultra-logo-v3--rainbow.ultra-logo-v3--processing .ultra-logo-v3__wireframe-line {
+.ultra-logo-v3--rainbow.ultra-logo-v3--processing
+  .ultra-logo-v3__wireframe-line {
   border-color: rgba(255, 255, 255, calc(0.3 + var(--intensity) * 0.7));
-  box-shadow: 0 0 calc(var(--intensity) * 3px) rgba(255, 255, 255, calc(var(--intensity) * 0.7));
+  box-shadow: 0 0 calc(var(--intensity) * 3px)
+    rgba(255, 255, 255, calc(var(--intensity) * 0.7));
   filter: hue-rotate(calc(var(--angle) * 5));
 }
 
@@ -204,29 +219,53 @@
 }
 
 .ultra-logo-v3--processing.ultra-logo-v3--orange .ultra-logo-v3__corner-glow {
-  background-image: radial-gradient(circle, rgba(255, 135, 0, 0.6) 0%, rgba(255, 135, 0, 0) 70%);
+  background-image: radial-gradient(
+    circle,
+    rgba(255, 135, 0, 0.6) 0%,
+    rgba(255, 135, 0, 0) 70%
+  );
 }
 
 .ultra-logo-v3--processing.ultra-logo-v3--blue .ultra-logo-v3__corner-glow {
-  background-image: radial-gradient(circle, rgba(60, 170, 255, 0.6) 0%, rgba(60, 170, 255, 0) 70%);
+  background-image: radial-gradient(
+    circle,
+    rgba(60, 170, 255, 0.6) 0%,
+    rgba(60, 170, 255, 0) 70%
+  );
 }
 
 .ultra-logo-v3--processing.ultra-logo-v3--purple .ultra-logo-v3__corner-glow {
-  background-image: radial-gradient(circle, rgba(170, 60, 255, 0.6) 0%, rgba(170, 60, 255, 0) 70%);
+  background-image: radial-gradient(
+    circle,
+    rgba(170, 60, 255, 0.6) 0%,
+    rgba(170, 60, 255, 0) 70%
+  );
 }
 
 .ultra-logo-v3--processing.ultra-logo-v3--rainbow .ultra-logo-v3__corner-glow {
-  background-image: radial-gradient(circle, rgba(255, 255, 255, 0.6) 0%, rgba(255, 255, 255, 0) 70%);
+  background-image: radial-gradient(
+    circle,
+    rgba(255, 255, 255, 0.6) 0%,
+    rgba(255, 255, 255, 0) 70%
+  );
   filter: hue-rotate(calc(var(--angle) * 5));
 }
 
 /* Animation keyframes */
 @keyframes rotate-slow {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 @keyframes rotate-reverse {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(-360deg); }
-} 
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(-360deg);
+  }
+}
