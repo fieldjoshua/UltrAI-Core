@@ -2,6 +2,14 @@
 
 The Ultra Framework is a powerful orchestration system for LLMs that allows for complex, multi-stage reasoning patterns. It leverages multiple models to enhance analysis quality and reliability.
 
+## IMPORTANT: Documentation First Approach
+
+**BEFORE CREATING ANY NEW FEATURES OR MAKING CHANGES:**
+
+1. **ALWAYS consult the documentation directory first**
+2. **Check if the feature or pattern already exists**
+3. **Review the consolidated documentation in `documentation/`**
+
 ## Important Updates
 
 - **Port Configuration**: Backend now runs on port 8080 (changed from 11434)
@@ -9,8 +17,7 @@ The Ultra Framework is a powerful orchestration system for LLMs that allows for 
 - **Build Optimizations**: Improved build process with code splitting and minification
 - **Document Processing**: Enhanced document handling with better chunking and relevance scoring
 - **Performance Dashboard**: New comprehensive dashboard for real-time system monitoring and metrics
-- **Project Organization**: All documentation has been moved to the `docs/` directory and tests to the `tests/` directory
-- **New Directory Structure**: Reorganized project into a more modular structure with separate directories for each concern
+- **Documentation Consolidation**: All documentation has been consolidated in the `documentation/` directory
 
 ### Quick Start with Docker
 
@@ -74,12 +81,10 @@ The project is organized into the following directories:
 
 - **monitoring/**: Performance monitoring, dashboard components
 
-- **docs/**: Project documentation
-  - `development/`: Developer guides and setup instructions
-  - See [docs/README.md](./docs/README.md) for documentation index
+- **documentation/**: Project documentation (consolidated)
+  - See [DOCUMENTATION_INDEX.md](DOCUMENTATION_INDEX.md) for documentation index
 
 - **tests/**: Test files and test utilities
-  - See [tests/README.md](./tests/README.md) for testing information
 
 ## Key Features
 
@@ -202,6 +207,8 @@ COHERE_API_KEY=your_cohere_key_here
 
 ## Analysis Patterns
 
+All analysis patterns are documented in detail in [INTELLIGENCE_MULTIPLICATION.md](logic/INTELLIGENCE_MULTIPLICATION.md). The patterns include:
+
 - **Gut Analysis**: Intuitive analysis without assuming factual correctness
 - **Confidence Analysis**: Analysis with confidence scoring and agreement tracking
 - **Critique Analysis**: Structured critique and revision process
@@ -211,13 +218,7 @@ COHERE_API_KEY=your_cohere_key_here
 
 ## Contributing
 
-To contribute to the Ultra framework:
-
-1. Fork the repository
-2. Create a feature branch: `git checkout -b feature-name`
-3. Commit your changes: `git commit -m 'Add some feature'`
-4. Push to the branch: `git push origin feature-name`
-5. Submit a pull request
+See [CONTRIBUTING.md](guidelines/CONTRIBUTING.md) for detailed contribution guidelines.
 
 ## License
 
@@ -240,32 +241,8 @@ The Ultra Framework includes a detailed performance monitoring dashboard that pr
 - Click the dashboard icon in the top-right corner of the main application
 - Auto-refreshes every 5 seconds to show real-time data
 
-For detailed information about the Performance Dashboard, see [PERFORMANCE_DASHBOARD.md](../documentation/performance/PERFORMANCE_DASHBOARD.md).
+For detailed information about the Performance Dashboard, see [PERFORMANCE_DASHBOARD.md](performance/PERFORMANCE_DASHBOARD.md).
 
 ## Documentation
 
-For a comprehensive view of all project documentation, please see [docs/README.md](./docs/README.md) which contains a categorized index of all documentation files along with their priority levels.
-
-The documentation index also includes the current development priorities based on our roadmap.
-
-## Testing
-
-All tests have been consolidated in the `tests/` directory. See [tests/README.md](./tests/README.md) for information on running tests and adding new ones.
-
-# Documentation Has Moved
-
-## IMPORTANT: Documentation First Approach
-
-**The documentation for this project has been consolidated in the `documentation/` directory.**
-
-Please refer to the following files:
-
-- [PROJECT_OVERVIEW.md](../documentation/PROJECT_OVERVIEW.md) - Complete project overview
-- [DOCUMENTATION_INDEX.md](../documentation/DOCUMENTATION_INDEX.md) - Index of all documentation
-
-## DO NOT UPDATE THIS FILE
-
-This directory is deprecated and maintained only for backwards compatibility.
-Please update and refer to the documentation in the `documentation/` directory.
-
-All future documentation updates should be made in the consolidated documentation structure.
+For a comprehensive view of all project documentation, see [DOCUMENTATION_INDEX.md](DOCUMENTATION_INDEX.md) which contains a categorized index of all documentation files.
