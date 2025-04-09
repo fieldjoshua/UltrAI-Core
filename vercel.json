@@ -1,0 +1,18 @@
+{
+    "version": 2,
+    "builds": [
+        {
+            "src": "test_backend.py",
+            "use": "@vercel/python"
+        }
+    ],
+    "routes": [
+        {
+            "src": "/(.*)",
+            "dest": "test_backend.py"
+        }
+    ],
+    "env": {
+        "PYTHON_VERSION": "3.9"
+    }
+}
