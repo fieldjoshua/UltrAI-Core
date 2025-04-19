@@ -41,6 +41,8 @@ class MockLLMService:
         llms: List[str],
         ultra_llm: str,
         pattern: str = "comprehensive_analysis",
+        ala_carte_options: Optional[List[Any]] = None,
+        output_format: str = "txt",
         options: Optional[Dict[str, Any]] = None
     ) -> Dict[str, Any]:
         """
@@ -51,6 +53,8 @@ class MockLLMService:
             llms: List of LLM models to use
             ultra_llm: The Ultra LLM to use
             pattern: The analysis pattern
+            ala_carte_options: Additional a la carte options (can be enum objects or strings)
+            output_format: Output format (txt, rtf, google_docs, word)
             options: Additional options
 
         Returns:
@@ -63,6 +67,34 @@ class MockLLMService:
         model_responses = {}
         token_counts = {}
         model_times = {}
+
+        # Process a la carte options
+        ala_carte_options = ala_carte_options or []
+        ala_carte_responses = {}
+
+        # Convert enum objects to strings if needed
+        processed_options = []
+        for option in ala_carte_options:
+            # Handle both string and enum types
+            option_value = getattr(option, 'value', option) if option else ''
+            processed_options.append(option_value)
+
+        for option in processed_options:
+            if option == "fact_check":
+                ala_carte_responses["fact_check"] = "Facts have been verified for this analysis."
+            elif option == "avoid_ai_detection":
+                ala_carte_responses["avoid_ai_detection"] = "Content optimized to avoid AI detection."
+            elif option == "sourcing":
+                ala_carte_responses["sourcing"] = "Sources have been added to support claims."
+            elif option == "encrypted":
+                ala_carte_responses["encrypted"] = "Analysis has been encrypted for security."
+            elif option == "no_data_sharing":
+                ala_carte_responses["no_data_sharing"] = "Analysis performed with no data sharing."
+            elif option == "alternate_perspective":
+                ala_carte_responses["alternate_perspective"] = "Alternative perspectives have been included."
+
+        # Apply formatting based on output_format
+        formatting_applied = f"Output formatted for {output_format.upper()}"
 
         for model in llms:
             # Create a model-specific response
@@ -103,6 +135,11 @@ The models have different strengths in analyzing this prompt:
 
 ## Conclusion
 The overall assessment indicates {random.choice(['significant potential', 'moderate value', 'careful consideration needed', 'promising directions'])} for this topic.
+
+## A La Carte Features
+{chr(10).join([f"- {k.replace('_', ' ').title()}: {v}" for k, v in ala_carte_responses.items()])}
+
+{formatting_applied}
 """
 
         # Create final result
@@ -111,6 +148,8 @@ The overall assessment indicates {random.choice(['significant potential', 'moder
             "model_responses": model_responses,
             "ultra_response": ultra_response,
             "pattern": pattern,
+            "ala_carte_options": ala_carte_options,
+            "output_format": output_format,
             "model_times": model_times,
             "token_counts": token_counts,
             "total_tokens": sum(tc["total_tokens"] for tc in token_counts.values()),
@@ -125,6 +164,8 @@ The overall assessment indicates {random.choice(['significant potential', 'moder
         llms: List[str],
         ultra_llm: str,
         pattern: str = "comprehensive_analysis",
+        ala_carte_options: Optional[List[Any]] = None,
+        output_format: str = "txt",
         options: Optional[Dict[str, Any]] = None
     ) -> Dict[str, Any]:
         """
@@ -135,13 +176,15 @@ The overall assessment indicates {random.choice(['significant potential', 'moder
             llms: List of LLM models to use
             ultra_llm: The Ultra LLM to use
             pattern: The analysis pattern
+            ala_carte_options: Additional a la carte options (can be enum objects or strings)
+            output_format: Output format (txt, rtf, google_docs, word)
             options: Additional options
 
         Returns:
             Analysis results
         """
         # This is just a wrapper around the synchronous method for testing
-        return self.analyze(prompt, llms, ultra_llm, pattern, options)
+        return self.analyze(prompt, llms, ultra_llm, pattern, ala_carte_options, output_format, options)
 
     # Add method for get_available_models
     async def get_available_models(self) -> Dict[str, Any]:
@@ -162,7 +205,16 @@ The overall assessment indicates {random.choice(['significant potential', 'moder
         }
 
     # Add analyze_prompt method that would be awaited
-    async def analyze_prompt(self, prompt: str, models: List[str], ultra_model: str, pattern: str) -> Dict[str, Any]:
+    async def analyze_prompt(
+        self,
+        prompt: str,
+        models: List[str],
+        ultra_model: str,
+        pattern: str,
+        ala_carte_options: Optional[List[Any]] = None,
+        output_format: str = "txt",
+        options: Optional[Dict[str, Any]] = None
+    ) -> Dict[str, Any]:
         """Asynchronous version of analyze method"""
-        result = self.analyze(prompt, models, ultra_model, pattern)
+        result = self.analyze(prompt, models, ultra_model, pattern, ala_carte_options, output_format, options)
         return result

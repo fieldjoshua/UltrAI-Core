@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from string import Template
 from typing import Dict, List, Optional
 
 
@@ -9,55 +10,6 @@ class AnalysisPattern:
     stages: List[str]
     templates: Dict[str, str]
     instructions: Dict[str, List[str]]
-
-
-# Add pattern metadata that can be exported
-PATTERN_METADATA = {
-    "gut": "Relies on LLM intuition while considering other responses without assuming factual correctness",
-    "confidence": "Analyzes responses with confidence scoring and agreement tracking",
-    "critique": "Implements a structured critique and revision process",
-    "fact_check": "Implements a rigorous fact-checking process",
-    "perspective": "Focuses on different analytical perspectives and their integration",
-    "scenario": "Analyzes responses through different scenarios and conditions",
-    "stakeholder": "Analyzes from multiple stakeholder perspectives to reveal diverse interests and needs",
-    "systems": "Maps complex system dynamics with feedback loops and leverage points",
-    "time": "Analyzes across multiple time frames to balance short and long-term considerations",
-    "innovation": "Uses cross-domain analogies to discover non-obvious patterns and solutions",
-}
-
-
-# Add these functions to expose pattern mapping
-def get_pattern_mapping() -> Dict[str, AnalysisPattern]:
-    """Get a mapping of pattern names to AnalysisPattern objects"""
-    patterns = AnalysisPatterns()
-    return {
-        "gut": patterns.GUT_ANALYSIS,
-        "confidence": patterns.CONFIDENCE_ANALYSIS,
-        "critique": patterns.CRITIQUE_ANALYSIS,
-        "fact_check": patterns.FACT_CHECK_ANALYSIS,
-        "perspective": patterns.PERSPECTIVE_ANALYSIS,
-        "scenario": patterns.SCENARIO_ANALYSIS,
-        "stakeholder": patterns.STAKEHOLDER_VISION,
-        "systems": patterns.SYSTEMS_MAPPER,
-        "time": patterns.TIME_HORIZON,
-        "innovation": patterns.INNOVATION_BRIDGE,
-    }
-
-
-def get_pattern_config(pattern: str) -> Optional[Dict]:
-    """Get configuration for a specific pattern"""
-    patterns = get_pattern_mapping()
-    if pattern not in patterns:
-        return None
-
-    pattern_obj = patterns[pattern]
-    return {
-        "name": pattern_obj.name,
-        "description": pattern_obj.description,
-        "stages": pattern_obj.stages,
-        "templates": pattern_obj.templates,
-        "instructions": pattern_obj.instructions,
-    }
 
 
 class AnalysisPatterns:
@@ -770,8 +722,7 @@ Please create a temporally-integrated synthesis:
         templates={
             "initial": """Please analyze the following: {prompt}
 
-Then identify at least 3 analogies from different domains (e.g., biology, physics, history, other industries)
-that offer insight into this situation. For each analogy explain:
+Then identify at least 3 analogies from different domains (e.g., biology, physics, history, other industries) that offer insight into this situation. For each analogy explain:
 1. The pattern similarity
 2. Insights derived from the analogy
 3. Limitations of the analogy""",
@@ -846,6 +797,17 @@ Please create an analogical synthesis:
 
     @classmethod
     def get_pattern(cls, pattern_name: str) -> Optional[AnalysisPattern]:
-        """Legacy method to get a pattern by name (kept for backwards compatibility)"""
-        patterns_map = get_pattern_mapping()
-        return patterns_map.get(pattern_name)
+        """Get an analysis pattern by name"""
+        patterns = {
+            "gut": cls.GUT_ANALYSIS,
+            "confidence": cls.CONFIDENCE_ANALYSIS,
+            "critique": cls.CRITIQUE_ANALYSIS,
+            "fact_check": cls.FACT_CHECK_ANALYSIS,
+            "perspective": cls.PERSPECTIVE_ANALYSIS,
+            "scenario": cls.SCENARIO_ANALYSIS,
+            "stakeholder": cls.STAKEHOLDER_VISION,
+            "systems": cls.SYSTEMS_MAPPER,
+            "time": cls.TIME_HORIZON,
+            "innovation": cls.INNOVATION_BRIDGE,
+        }
+        return patterns.get(pattern_name.lower())

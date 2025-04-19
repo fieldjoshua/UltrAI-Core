@@ -13,34 +13,53 @@ required_dirs=(
   "src/document_processing"
   "src/utils"
   "src/config"
+  "src/business"
+  "src/pricing"
   "frontend/components"
   "frontend/pages"
   "frontend/styles"
   "frontend/api"
+  "frontend/cloud"
   "backend/api"
   "backend/services"
   "backend/middleware"
+  "backend/cloud"
   "backend/db"
   "backend/db/migrations"
   "backend/db/schemas"
   "data/embeddings"
   "data/cache"
   "data/results"
-  "deployment/docker"
-  "deployment/kubernetes"
-  "deployment/ci_cd"
-  "deployment/environments"
-  "benchmarks/models"
-  "benchmarks/performance"
-  "benchmarks/load_testing"
-  "public_api/docs"
-  "public_api/spec"
-  "public_api/sdks"
-  "examples"
+  "src/deployment"
+  "src/deployment/docker"
+  "src/deployment/kubernetes"
+  "src/deployment/ci_cd"
+  "src/deployment/environments"
+  "tests/performance/benchmarks/models"
+  "tests/performance/benchmarks/performance"
+  "tests/performance/benchmarks/load_testing"
+  "tests/frontend"
+  "tests/e2e"
+  "tests/unit"
+  "src/api/mocks"
+  "src/api/mocks/uploads"
+  "src/api/public"
+  "src/api/public/docs"
+  "src/api/public/spec"
+  "src/api/public/sdks"
+  "src/monitoring"
+  "src/data"
+  "src/data/cache"
+  "src/data/embeddings"
+  "src/data/results"
   "scripts"
-  "monitoring"
-  "docs/development"
-  "tests"
+  "src/examples"
+  "src/examples/llm_clients"
+  "src/examples/pdf"
+  "Actions"
+  "Actions/DOCUMENTATION_REPOPULATION"
+  "documentation/development"
+  "documentation/guides"
 )
 
 # Array of important README files
@@ -50,15 +69,20 @@ readme_files=(
   "frontend/README.md"
   "backend/README.md"
   "data/README.md"
-  "deployment/README.md"
-  "benchmarks/README.md"
-  "public_api/README.md"
-  "examples/README.md"
-  "scripts/README.md"
-  "monitoring/README.md"
-  "docs/README.md"
-  "docs/development/README.md"
+  "src/deployment/README.md"
+  "src/monitoring/README.md"
+  "tests/performance/benchmarks/README.md"
   "tests/README.md"
+  "src/api/README.md"
+  "src/api/mocks/README.md"
+  "src/api/public/README.md"
+  "frontend/cloud/README.md"
+  "backend/cloud/README.md"
+  "src/examples/debug.py"
+  "documentation/Controlling_README.md"
+  "documentation/Controlling_GUIDELINES.md"
+  "documentation/ACTIONS_INDEX.md"
+  "documentation/Templates/PLAN_TEMPLATE.md"
 )
 
 # Check if directories exist
@@ -100,3 +124,66 @@ else
   echo -e "\n❌ Project structure has issues. Please fix the missing items."
   exit 1
 fi
+
+check_required_directories() {
+  local required_dirs=(
+    "src"
+    "frontend"
+    "backend"
+    "documentation"
+    "frontend/cloud"
+    "backend/cloud"
+    "tests"
+    "tests/performance/benchmarks/models"
+    "tests/performance/benchmarks/performance"
+    "tests/performance/benchmarks/load_testing"
+    "tests/frontend"
+    "tests/e2e"
+    "tests/unit"
+    "src/examples"
+    "src/examples/llm_clients"
+    "src/examples/pdf"
+    "src/api/mocks"
+    "src/api/public"
+    "src/deployment"
+    "src/monitoring"
+    "src/data"
+    "src/data/cache"
+    "src/data/embeddings"
+    "src/data/results"
+    "src/business"
+    "src/pricing"
+    "data/results"
+    "Actions"
+    "Actions/DOCUMENTATION_REPOPULATION"
+    "documentation/development"
+    "documentation/guides"
+  )
+
+  for dir in "${required_dirs[@]}"; do
+    if [ ! -d "$dir" ]; then
+      echo "Missing required directory: $dir"
+      exit 1
+    fi
+  done
+}
+
+check_required_files() {
+  local required_files=(
+    "documentation/Controlling_README.md"
+    "documentation/Controlling_GUIDELINES.md"
+    "documentation/ACTIONS_INDEX.md"
+    "tests/performance/benchmarks/README.md"
+    "src/examples/debug.py"
+    "documentation/Templates/PLAN_TEMPLATE.md"
+  )
+
+  for file in "${required_files[@]}"; do
+    if [ ! -f "$file" ]; then
+      echo "❌ Missing required file: $file"
+      exit 1
+    else
+      echo "✅ Found required file: $file"
+    fi
+  done
+}

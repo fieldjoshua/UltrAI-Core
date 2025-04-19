@@ -19,12 +19,19 @@ FROM base as dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     libpq-dev \
+    git \
+    cmake \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Python dependencies
 COPY requirements.txt .
+# Set CMAKE_ARGS to disable F16C optimization before installing requirements
+# This might help with llama_cpp_python build issues on some architectures
+ENV CMAKE_ARGS="-DLLAMA_F16C=OFF"
 RUN pip install --no-cache-dir -r requirements.txt
+# Unset CMAKE_ARGS after install if needed, though likely harmless to leave
+# ENV CMAKE_ARGS=""
 
 # Copy the application code
 FROM dependencies as final

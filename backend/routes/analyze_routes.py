@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 """
 Analysis routes for the Ultra backend.
 
@@ -6,17 +8,19 @@ This module provides API routes for analyzing prompts with various models.
 
 import json
 import logging
-import os
+# import os # Removed unused import
+# import sys # No longer used, assuming app structure handles path
 import time
-import traceback
-from datetime import datetime
-from typing import Dict, List, Any, Optional, Union
+# import traceback # Removed unused import
+# from datetime import datetime # Removed unused import
+from typing import List, Optional # Removed Any, Dict, Union
 
-from fastapi import APIRouter, BackgroundTasks, Body, Depends, File, Form, HTTPException, Request, UploadFile, Query
+from fastapi import APIRouter, BackgroundTasks, Body, Depends, File, Form, HTTPException, Request, UploadFile # Removed Query
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 
 from backend.config import Config
+from backend.models import analysis as models
 from backend.utils.cache import response_cache, generate_cache_key
 from backend.utils.metrics import performance_metrics, update_metrics_history, processing_times
 from backend.database.connection import get_db
@@ -113,12 +117,8 @@ async def get_current_user(request: Request, db: Session = Depends(get_db)) -> O
 @cached(prefix="analyze", ttl=60*60*24)  # Cache for 24 hours
 async def analyze_prompt(
     request: Request,
-    prompt: str = Body(..., description="Prompt to analyze"),
-    selected_models: List[str] = Body(..., description="Models to use"),
-    ultra_model: str = Body(..., description="Ultra model to use"),
-    pattern: Optional[str] = Body(None, description="Analysis pattern"),
-    options: Dict[str, Any] = Body({}, description="Additional options"),
-    user_id: Optional[str] = Body(None, description="User ID"),
+    analysis_request: models.AnalysisRequest, # Ensure this model uses selected_models, ultra_model
+    user_id: Optional[str] = Body(None, description="User ID"), # Keep user_id if needed
     db: Session = Depends(get_db)
 ):
     """
@@ -126,11 +126,7 @@ async def analyze_prompt(
 
     Args:
         request: FastAPI request
-        prompt: Prompt to analyze
-        selected_models: Models to use for analysis
-        ultra_model: Ultra model to use
-        pattern: Analysis pattern
-        options: Additional options
+        analysis_request: Analysis request data
         user_id: User ID
         db: Database session
 
@@ -145,41 +141,43 @@ async def analyze_prompt(
 
     try:
         # Validate required fields
-        if not prompt:
+        if not analysis_request.prompt:
             return JSONResponse(
                 status_code=400,
                 content={"status": "error", "message": "Prompt is required"}
             )
 
-        if not selected_models or not isinstance(selected_models, list):
+        if not analysis_request.selected_models:
             return JSONResponse(
                 status_code=400,
                 content={"status": "error", "message": "Selected models are required"}
             )
 
-        if not ultra_model:
+        if not analysis_request.ultra_model:
             return JSONResponse(
                 status_code=400,
                 content={"status": "error", "message": "Ultra model is required"}
             )
 
         # Map pattern name
-        pattern_key = pattern.lower() if pattern else "comprehensive"
-        pattern_name = PATTERN_NAME_MAPPING.get(pattern_key, "comprehensive_analysis")
+        pattern_name = analysis_request.pattern.lower() if analysis_request.pattern else "comprehensive"
+        pattern_key = PATTERN_NAME_MAPPING.get(pattern_name, "comprehensive_analysis")
 
         # Create cache key data for checking
         cache_key_data = {
-            "prompt": prompt,
-            "selected_models": sorted(selected_models),
-            "ultra_model": ultra_model,
-            "pattern": pattern_name,
-            "options": options
+            "prompt": analysis_request.prompt,
+            "selected_models": sorted(analysis_request.selected_models),
+            "ultra_model": analysis_request.ultra_model,
+            "pattern": pattern_key,
+            "ala_carte_options": sorted([opt.value for opt in analysis_request.ala_carte_options]) if analysis_request.ala_carte_options else [],
+            "output_format": analysis_request.output_format.value,
+            "options": analysis_request.options
         }
 
         # Check if we have cached results
         if await cache_service.exists("analyze", cache_key_data):
             # Update performance metrics
-            logger.info(f"Cache hit for prompt: {prompt[:30]}...")
+            logger.info(f"Cache hit for prompt: {analysis_request.prompt[:30]}...")
 
             # Get cached result
             cached_result = await cache_service.get("analyze", cache_key_data)
@@ -188,11 +186,13 @@ async def analyze_prompt(
 
         # Use mock service to process the request
         result = mock_service.analyze(
-            prompt=prompt,
-            llms=selected_models,
-            ultra_llm=ultra_model,
-            pattern=pattern_name,
-            options=options
+            prompt=analysis_request.prompt,
+            llms=analysis_request.selected_models,
+            ultra_llm=analysis_request.ultra_model,
+            pattern=pattern_key,
+            ala_carte_options=analysis_request.ala_carte_options,
+            output_format=analysis_request.output_format.value,
+            options=analysis_request.options
         )
 
         # Get processing time
@@ -207,10 +207,10 @@ async def analyze_prompt(
 
         # Add request info
         result["request"] = {
-            "prompt": prompt,
-            "selected_models": selected_models,
-            "ultra_model": ultra_model,
-            "pattern": pattern_name
+            "prompt": analysis_request.prompt,
+            "selected_models": sorted(analysis_request.selected_models),
+            "ultra_model": analysis_request.ultra_model,
+            "pattern": pattern_key
         }
 
         # Cache the result for future requests
@@ -229,8 +229,8 @@ async def analyze_prompt(
 async def analyze_with_docs(
     background_tasks: BackgroundTasks,
     prompt: str = Form(...),
-    selectedModels: str = Form(...),
-    ultraModel: str = Form(...),
+    selectedModels: str = Form(...), # NOTE: Still uses old naming convention
+    ultraModel: str = Form(...),   # NOTE: Still uses old naming convention
     files: List[UploadFile] = File([]),
     pattern: str = Form("Confidence Analysis"),
     options: str = Form("{}"),
@@ -255,8 +255,10 @@ async def analyze_with_docs(
         if files:
             # In a real implementation, you would handle file processing
             # For now, we'll just acknowledge the files
-            file_names = [file.filename for file in files]
-            logger.info(f"Processing files: {', '.join(file_names)}")
+            file_names = [file.filename for file in files] # NOTE: Type error might occur here if file.filename can be None
+            # Filter out potential None values before joining
+            valid_file_names = [name for name in file_names if name is not None]
+            logger.info(f"Processing files: {', '.join(valid_file_names)}") # Type error potentially fixed here
 
         # Create a document context
         document_context = f"Analyzing with {len(files)} documents" if files else ""
@@ -280,94 +282,3 @@ async def analyze_with_docs(
             status_code=500,
             content={"status": "error", "message": f"Error: {str(e)}"},
         )
-
-# Second implementation of analyze that differs from the first one in main.py
-@analyze_router.post("/api/analyze-legacy")
-async def analyze_legacy(request: dict = Body(...)):
-    """
-    Analyze a prompt using multiple LLMs and an Ultra LLM (legacy implementation)
-    """
-    global processing_times
-    start_processing = time.time()
-
-    try:
-        # Extract request parameters
-        prompt = request.get("prompt", "")
-        models = request.get("models", ["gpt4o", "gpt4turbo"])
-        ultra_model = request.get("ultraModel", "gpt4o")
-        pattern = request.get("pattern", "confidence")
-        user_id = request.get("userId")
-        session_id = request.get("sessionId")
-
-        # Basic validation
-        if not prompt.strip():
-            raise HTTPException(status_code=400, detail="Prompt cannot be empty")
-
-        # Use cache if available
-        cache_key = generate_cache_key(prompt, models, ultra_model, pattern)
-        cached_response = (
-            response_cache.get(cache_key) if hasattr(response_cache, "get") else None
-        )
-
-        if cached_response:
-            performance_metrics["cache_hits"] += 1
-            logger.info(f"Cache hit for prompt: {prompt[:30]}...")
-            end_processing = time.time()
-            processing_time = end_processing - start_processing
-            processing_times.append(processing_time)
-            performance_metrics["requests_processed"] += 1
-            update_metrics_history()
-
-            return cached_response
-
-        # Check if we should use mock
-        if Config.use_mock and hasattr(Config, 'mock_service') and Config.mock_service:
-            logger.info(f"Using mock service for prompt: {prompt[:30]}...")
-            # Use the async analyze_prompt for consistency
-            result = await Config.mock_service.analyze_prompt(
-                prompt, models, ultra_model, pattern
-            )
-
-            # Cache the result
-            if hasattr(response_cache, "update"):
-                response_cache[cache_key] = result
-
-            # Update metrics
-            end_processing = time.time()
-            processing_time = end_processing - start_processing
-            processing_times.append(processing_time)
-            performance_metrics["requests_processed"] += 1
-            update_metrics_history()
-
-            return result
-
-        # Use orchestrator if available
-        if ORCHESTRATOR_AVAILABLE:
-            logger.info(f"Using pattern orchestrator for prompt: {prompt[:30]}...")
-            # Get or create orchestrator
-            orchestrator = PatternOrchestrator()
-            orchestrator.ultra_model = ultra_model
-
-            # Use the full process for better results
-            result = await orchestrator.orchestrate_full_process(prompt)
-
-            # Cache the result
-            if hasattr(response_cache, "update"):
-                response_cache[cache_key] = result
-
-            # Update metrics
-            end_processing = time.time()
-            processing_time = end_processing - start_processing
-            processing_times.append(processing_time)
-            performance_metrics["requests_processed"] += 1
-            update_metrics_history()
-
-            return result
-
-        # Fallback to basic analysis
-        raise HTTPException(status_code=500, detail="No analysis service available")
-
-    except Exception as e:
-        logger.error(f"Error in analyze endpoint: {str(e)}")
-        traceback.print_exc()
-        raise HTTPException(status_code=500, detail=f"Analysis error: {str(e)}")

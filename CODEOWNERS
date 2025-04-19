@@ -1,0 +1,38 @@
+# UltraAI CODEOWNERS File
+# This file defines code ownership and review requirements for the project
+# Format: path/to/file/or/dir @username_or_team
+
+# Documentation requires review by documentation team
+/documentation/ @documentation-team
+
+# Core patterns implementation requires careful review
+/src/patterns/ @core-team
+
+# Frontend components require UI team review
+/frontend/src/components/ @ui-team
+
+# Analysis logic requires AI team review
+/src/analysis/ @ai-team
+
+# API services require backend team review
+/frontend/src/services/ @backend-team
+
+# Hooks require careful review
+/frontend/src/hooks/ @ui-team @core-team
+
+# Test files
+/tests/ @qa-team
+
+# Configuration files require DevOps review
+*.json @devops-team
+*.yml @devops-team
+*.config.js @devops-team
+
+# Critical files that require multiple approvals
+/src/patterns/ultra_analysis_patterns.py @core-team @ai-team
+/documentation/instructions/PATTERNS.md @documentation-team @core-team
+/frontend/src/components/UltraWithDocuments.tsx @ui-team @core-team
+/frontend/src/services/api.ts @backend-team @core-team
+
+# The CODEOWNERS file itself requires admin approval
+/CODEOWNERS @admin-team

@@ -22,6 +22,13 @@ class SubscriptionTier(str, enum.Enum):
     ENTERPRISE = "enterprise"
 
 
+class UserRole(str, enum.Enum):
+    """User roles for authorization"""
+    USER = "user"
+    ADMIN = "admin"
+    SUPER_ADMIN = "super_admin"
+
+
 class User(Base):
     """User model for authentication and billing"""
     __tablename__ = "users"
@@ -31,6 +38,9 @@ class User(Base):
     username = Column(String, unique=True, index=True, nullable=True)
     full_name = Column(String, nullable=True)
     hashed_password = Column(String, nullable=False)
+
+    # Role
+    role = Column(Enum(UserRole), default=UserRole.USER, nullable=False)
 
     # OAuth fields
     oauth_provider = Column(String, nullable=True)

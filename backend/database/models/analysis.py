@@ -32,6 +32,24 @@ class AnalysisType(enum.Enum):
     CUSTOM = "custom"
 
 
+class AlaCarteOption(enum.Enum):
+    """A la carte options for analysis"""
+    FACT_CHECK = "fact_check"
+    AVOID_AI_DETECTION = "avoid_ai_detection"
+    SOURCING = "sourcing"
+    ENCRYPTED = "encrypted"
+    NO_DATA_SHARING = "no_data_sharing"
+    ALTERNATE_PERSPECTIVE = "alternate_perspective"
+
+
+class OutputFormat(enum.Enum):
+    """Output format options"""
+    TEXT = "txt"
+    RTF = "rtf"
+    GOOGLE_DOCS = "google_docs"
+    WORD = "word"
+
+
 class Analysis(Base):
     """Analysis model for storing analysis results"""
 
@@ -46,6 +64,12 @@ class Analysis(Base):
     analysis_type = Column(Enum(AnalysisType), default=AnalysisType.STANDARD, nullable=False)
     pattern = Column(String, nullable=True)
     ultra_model = Column(String, nullable=False)
+
+    # A la carte options
+    ala_carte_options = Column(ARRAY(String), nullable=True)
+
+    # Output format
+    output_format = Column(Enum(OutputFormat), default=OutputFormat.TEXT, nullable=False)
 
     # Selected models
     selected_models = Column(ARRAY(String), nullable=False)
@@ -82,3 +106,34 @@ class Analysis(Base):
 
     def __repr__(self) -> str:
         return f"<Analysis {self.uuid}>"
+
+
+class AnalysisResult(Base):
+    """Model for storing detailed analysis results"""
+
+    __tablename__ = "analysis_results"
+
+    id = Column(Integer, primary_key=True, index=True)
+    analysis_id = Column(Integer, ForeignKey("analyses.id"), nullable=False)
+
+    # Model results
+    model_name = Column(String, nullable=False)
+    response = Column(Text, nullable=False)
+    response_time = Column(Float, nullable=True)
+
+    # Token usage
+    prompt_tokens = Column(Integer, nullable=True)
+    completion_tokens = Column(Integer, nullable=True)
+    total_tokens = Column(Integer, nullable=True)
+
+    # Cost calculation
+    cost = Column(Float, nullable=True)
+
+    # Timestamps
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+
+    # Relationship
+    analysis = relationship("Analysis")
+
+    def __repr__(self) -> str:
+        return f"<AnalysisResult {self.id} for Analysis {self.analysis_id}>"

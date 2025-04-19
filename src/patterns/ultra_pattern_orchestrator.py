@@ -14,6 +14,8 @@ import logging
 import os
 import platform
 import re
+import time
+import traceback
 from datetime import datetime, timedelta
 from string import Template
 from typing import Any, Dict, List, Optional
@@ -29,12 +31,14 @@ from openai import AsyncOpenAI
 from tenacity import (retry, retry_if_exception_type, stop_after_attempt,
                       wait_exponential)
 
-from ultra_analysis_patterns import AnalysisPattern, AnalysisPatterns
-from ultra_error_handling import (APIError, ConfigurationError, RateLimitError,
-                                  ValidationError)
+from src.core.ultra_error_handling import (APIError, ConfigurationError, RateLimitError,
+                                           ValidationError)
+from src.patterns.ultra_analysis_patterns import (PATTERN_METADATA, AnalysisPattern,
+                                                  get_pattern_config,
+                                                  get_pattern_mapping)
 
 # Load environment variables
-load_dotenv()
+load_dotenv(override=True)
 
 # Configure logging
 logging.basicConfig(
@@ -76,10 +80,10 @@ class PatternOrchestrator:
         pattern_str = pattern if pattern else "gut"
 
         # Load pattern
-        self.pattern = AnalysisPatterns().get_pattern(pattern_str)
+        self.pattern = get_pattern_mapping().get(pattern_str)
         if not self.pattern:
             self.logger.warning(f"Invalid pattern: {pattern_str}, defaulting to 'gut'")
-            self.pattern = AnalysisPatterns().get_pattern("gut")
+            self.pattern = get_pattern_mapping().get("gut")
             if not self.pattern:
                 raise ValidationError(
                     "Failed to load any pattern, including default 'gut'"
@@ -198,9 +202,12 @@ class PatternOrchestrator:
                 messages=[{"role": "user", "content": prompt}],
             )
             return message.content[0].text
+        except anthropic.RateLimitError as e:
+            self.logger.error("Claude rate limit exceeded: %s", str(e))
+            raise RateLimitError(f"Claude rate limit exceeded: {e}") from e
         except Exception as e:
-            error_msg = str(e)
-            return f"Error calling Claude: {error_msg or 'Unknown error'}"
+            self.logger.error("Error with Claude API: %s", str(e))
+            raise APIError(f"Error with Claude API: {e}") from e
 
     async def call_chatgpt(self, prompt: str) -> str:
         """Call OpenAI's GPT model with a prompt."""
@@ -213,9 +220,12 @@ class PatternOrchestrator:
                 max_tokens=2000,
             )
             return response.choices[0].message.content or ""
+        except openai.RateLimitError as e:
+            self.logger.error("ChatGPT rate limit exceeded: %s", str(e))
+            raise RateLimitError(f"ChatGPT rate limit exceeded: {e}") from e
         except Exception as e:
-            error_msg = str(e)
-            return f"Error calling ChatGPT: {error_msg or 'Unknown error'}"
+            self.logger.error("Error with ChatGPT API: %s", str(e))
+            raise APIError(f"Error with ChatGPT API: {e}") from e
 
     async def call_cohere(self, prompt: str) -> str:
         """Call Cohere's API with a prompt."""
@@ -1057,12 +1067,12 @@ class PatternOrchestrator:
     def _get_pattern(self, pattern: str) -> Optional[AnalysisPattern]:
         """Get the analysis pattern configuration"""
         patterns = {
-            "gut": AnalysisPatterns().get_pattern("gut"),
-            "confidence": AnalysisPatterns().get_pattern("confidence"),
-            "critique": AnalysisPatterns().get_pattern("critique"),
-            "fact_check": AnalysisPatterns().get_pattern("fact_check"),
-            "perspective": AnalysisPatterns().get_pattern("perspective"),
-            "scenario": AnalysisPatterns().get_pattern("scenario"),
+            "gut": get_pattern_mapping().get("gut"),
+            "confidence": get_pattern_mapping().get("confidence"),
+            "critique": get_pattern_mapping().get("critique"),
+            "fact_check": get_pattern_mapping().get("fact_check"),
+            "perspective": get_pattern_mapping().get("perspective"),
+            "scenario": get_pattern_mapping().get("scenario"),
         }
         if pattern not in patterns:
             raise ValueError(f"Unknown pattern: {pattern}")
@@ -1357,6 +1367,85 @@ class PatternOrchestrator:
             self.logger.error(f"Error processing attachments: {e}")
             return None
 
+    def configure_gemini(self):
+        """Configure the Gemini API client"""
+        try:
+            api_key = os.environ.get("GEMINI_API_KEY")
+            if not api_key:
+                raise ConfigurationError(
+                    "GEMINI_API_KEY is missing from environment variables"
+                )
+
+            # Use the public API for configuration
+            genai.configure(api_key=api_key)
+
+            self.gemini_model = os.environ.get("GEMINI_MODEL", "gemini-pro")
+            self.logger.info("Gemini API configured successfully")
+        except Exception as e:
+            self.logger.error("Error configuring Gemini API: %s", str(e))
+            raise ConfigurationError(f"Failed to configure Gemini API: {str(e)}")
+
+    def error_handler(self, e, attempt, max_attempts, provider, task=None):
+        """Handle API errors with exponential backoff"""
+        # Check if it's a rate limit error
+        is_rate_limit = isinstance(e, RateLimitError)
+
+        # Use str(e) instead of len(e) to check if there's an error message
+        error_str = str(e)
+        has_error_message = bool(error_str)
+
+        # ... rest of the method ...
+
+    def iterate_results(self, results):
+        """Safely iterate over results, handling various result types"""
+        if results is None:
+            return []
+        if isinstance(results, dict):
+            return [results]
+        if isinstance(results, list):
+            return results
+        return [results]  # Convert any other type to a single-item list
+
+    def create_prompt(self, stage, pattern=None):
+        """Create a prompt for the given stage and pattern"""
+        try:
+            # ... existing code ...
+            self.logger.error(
+                "Failed to create prompt for stage '%s': %s", stage, str(e)
+            )
+            raise ValidationError(
+                f"Failed to create prompt for stage '{stage}': {str(e)}"
+            ) from e
+
+        except Exception as e:
+            self.logger.error(
+                "Error getting ultra response and no fallback available: %s", str(e)
+            )
+            raise APIError(
+                f"Error getting ultra response and no fallback available: {str(e)}"
+            ) from e
+
+    def create_ultra_prompt(self, template_name, substitutions):
+        """Create a prompt from a template with substitutions"""
+        try:
+            # ... existing code ...
+            template = self.get_template(template_name)
+            if not template:
+                raise ValidationError(f"Template {template_name} not found")
+
+            return template.substitute(substitutions)
+        except Exception as e:
+            self.logger.error("Error creating ultra prompt: %s", str(e))
+            raise ValidationError(f"Error creating ultra prompt: {str(e)}") from e
+
+        except Exception as e:
+            self.logger.error(
+                "Error getting ultra response and no fallback available: %s", str(e)
+            )
+            raise APIError(
+                f"Error getting ultra response and no fallback available: {str(e)}"
+            ) from e
+
 
 class ResponseFormatter:
     @staticmethod
@@ -1417,18 +1506,18 @@ async def main():
         await test_env()
 
         # Get the analysis patterns
-        analysis_patterns = AnalysisPatterns()
+        analysis_patterns = get_pattern_mapping()
         patterns = [
-            analysis_patterns.get_pattern("gut"),
-            analysis_patterns.get_pattern("confidence"),
-            analysis_patterns.get_pattern("critique"),
-            analysis_patterns.get_pattern("fact_check"),
-            analysis_patterns.get_pattern("perspective"),
-            analysis_patterns.get_pattern("scenario"),
-            analysis_patterns.get_pattern("stakeholder"),
-            analysis_patterns.get_pattern("systems"),
-            analysis_patterns.get_pattern("time"),
-            analysis_patterns.get_pattern("innovation"),
+            analysis_patterns.get("gut"),
+            analysis_patterns.get("confidence"),
+            analysis_patterns.get("critique"),
+            analysis_patterns.get("fact_check"),
+            analysis_patterns.get("perspective"),
+            analysis_patterns.get("scenario"),
+            analysis_patterns.get("stakeholder"),
+            analysis_patterns.get("systems"),
+            analysis_patterns.get("time"),
+            analysis_patterns.get("innovation"),
         ]
 
         # Filter out None patterns

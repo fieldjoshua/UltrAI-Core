@@ -24,7 +24,7 @@ const ExportResults: React.FC<ExportResultsProps> = ({
   className = '',
 }) => {
   const [exportFormat, setExportFormat] = useState<
-    'pdf' | 'markdown' | 'json' | 'text'
+    'pdf' | 'markdown' | 'json' | 'text' | 'google_docs' | 'word' | 'rtf'
   >('pdf');
   const [isExporting, setIsExporting] = useState(false);
 
@@ -270,15 +270,9 @@ ${analysisData.result}
     saveAs(blob, `${getFilename()}.txt`);
   };
 
-  // Handle export click
+  // Handle export based on selected format
   const handleExport = async () => {
-    if (!analysisData?.result) {
-      alert('No analysis results to export.');
-      return;
-    }
-
     setIsExporting(true);
-
     try {
       switch (exportFormat) {
         case 'pdf':
@@ -293,13 +287,187 @@ ${analysisData.result}
         case 'text':
           exportToText();
           break;
+        case 'rtf':
+          exportToRtf();
+          break;
+        case 'google_docs':
+          exportToGoogleDocs();
+          break;
+        case 'word':
+          exportToWord();
+          break;
+        default:
+          throw new Error(`Unsupported export format: ${exportFormat}`);
       }
     } catch (error) {
       console.error('Export failed:', error);
-      alert('Export failed. Please try another format.');
+      // Optionally show an error notification here
     } finally {
       setIsExporting(false);
     }
+  };
+
+  // Download a file from a URL
+  const downloadFile = (url: string, filename: string) => {
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+
+    // Clean up
+    setTimeout(() => {
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }, 100);
+  };
+
+  // Export to RTF format
+  const exportToRtf = () => {
+    const filename = `${getFilename()}.rtf`;
+    const content = convertToRtf(analysisData.result || '');
+    const blob = new Blob([content], { type: 'application/rtf' });
+    const url = URL.createObjectURL(blob);
+    downloadFile(url, filename);
+  };
+
+  // Export to Google Docs optimized format
+  const exportToGoogleDocs = () => {
+    const filename = `${getFilename()}_for_google_docs.html`;
+    const content = convertToGoogleDocsHtml(analysisData.result || '');
+    const blob = new Blob([content], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    downloadFile(url, filename);
+  };
+
+  // Export to Word optimized format
+  const exportToWord = () => {
+    const filename = `${getFilename()}_for_word.html`;
+    const content = convertToWordHtml(analysisData.result || '');
+    const blob = new Blob([content], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    downloadFile(url, filename);
+  };
+
+  // Convert text to RTF format
+  const convertToRtf = (text: string) => {
+    // Simple RTF conversion - this would be more complex in a real implementation
+    let rtf = '{\\rtf1\\ansi\\ansicpg1252\\cocoartf2580\\cocoasubrtf230\n';
+    rtf += '{\\fonttbl\\f0\\fswiss\\fcharset0 Helvetica;}\n';
+    rtf += '{\\colortbl;\\red0\\green0\\blue0;}\n';
+    rtf += '\\margl1440\\margr1440\\vieww11520\\viewh8400\\viewkind0\n';
+    rtf += '\\pard\\tx720\\tx1440\\tx2160\\tx2880\\tx3600\\tx4320\\tx5040\\tx5760\\tx6480\\tx7200\\tx7920\\tx8640\\pardirnatural\\partightenfactor0\n\n';
+    rtf += '\\f0\\fs24 \\cf0 ';
+
+    // Convert markdown to RTF
+    const lines = text.split('\n');
+    for (const line of lines) {
+      // Handle headers
+      if (line.startsWith('# ')) {
+        rtf += `\\f0\\b\\fs36 ${line.substring(2)}\\b0\\fs24 \\par\n`;
+      } else if (line.startsWith('## ')) {
+        rtf += `\\f0\\b\\fs32 ${line.substring(3)}\\b0\\fs24 \\par\n`;
+      } else if (line.startsWith('### ')) {
+        rtf += `\\f0\\b\\fs28 ${line.substring(4)}\\b0\\fs24 \\par\n`;
+      } else if (line.trim() === '') {
+        rtf += '\\par\n';
+      } else {
+        // Escape \ and { and }
+        let escapedLine = line
+          .replace(/\\/g, '\\\\')
+          .replace(/\{/g, '\\{')
+          .replace(/\}/g, '\\}');
+        rtf += `${escapedLine}\\par\n`;
+      }
+    }
+
+    rtf += '}';
+    return rtf;
+  };
+
+  // Convert text to Google Docs optimized HTML
+  const convertToGoogleDocsHtml = (text: string) => {
+    const html = `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>${getFilename()}</title>
+  <style>
+    body { font-family: Arial, sans-serif; line-height: 1.6; max-width: 800px; margin: 0 auto; padding: 20px; }
+    h1 { color: #1a73e8; }
+    h2 { color: #185abc; }
+    h3 { color: #1967d2; }
+    pre { background-color: #f8f9fa; padding: 10px; border-radius: 4px; overflow-x: auto; }
+    code { font-family: "Courier New", monospace; font-size: 0.9em; }
+    blockquote { border-left: 4px solid #dadce0; padding-left: 16px; margin-left: 0; color: #5f6368; }
+  </style>
+</head>
+<body>
+  ${formatMarkdownToHtml(text)}
+</body>
+</html>`;
+
+    return html;
+  };
+
+  // Convert text to Word optimized HTML
+  const convertToWordHtml = (text: string) => {
+    const html = `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>${getFilename()}</title>
+  <style>
+    body { font-family: "Calibri", sans-serif; line-height: 1.5; max-width: 800px; margin: 0 auto; padding: 20px; }
+    h1 { color: #2b579a; }
+    h2 { color: #4472c4; }
+    h3 { color: #5b9bd5; }
+    pre { background-color: #f2f2f2; padding: 10px; border: 1px solid #d9d9d9; overflow-x: auto; }
+    code { font-family: "Consolas", monospace; font-size: 0.9em; }
+    blockquote { border-left: 4px solid #e6e6e6; padding-left: 16px; margin-left: 0; color: #666666; }
+    table { border-collapse: collapse; width: 100%; }
+    table, th, td { border: 1px solid #d9d9d9; }
+    th, td { padding: 8px; text-align: left; }
+    th { background-color: #f2f2f2; }
+  </style>
+</head>
+<body>
+  ${formatMarkdownToHtml(text)}
+</body>
+</html>`;
+
+    return html;
+  };
+
+  // Convert markdown to HTML
+  const formatMarkdownToHtml = (markdown: string) => {
+    // This is a simplified conversion - a real implementation would use a markdown parser
+    let html = '';
+    const lines = markdown.split('\n');
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+
+      if (line.startsWith('# ')) {
+        html += `<h1>${line.substring(2)}</h1>\n`;
+      } else if (line.startsWith('## ')) {
+        html += `<h2>${line.substring(3)}</h2>\n`;
+      } else if (line.startsWith('### ')) {
+        html += `<h3>${line.substring(4)}</h3>\n`;
+      } else if (line.startsWith('- ')) {
+        html += `<ul><li>${line.substring(2)}</li></ul>\n`;
+      } else if (line.match(/^\d+\. /)) {
+        html += `<ol><li>${line.replace(/^\d+\. /, '')}</li></ol>\n`;
+      } else if (line.startsWith('> ')) {
+        html += `<blockquote>${line.substring(2)}</blockquote>\n`;
+      } else if (line.trim() === '') {
+        html += '<p></p>\n';
+      } else {
+        html += `<p>${line}</p>\n`;
+      }
+    }
+
+    return html;
   };
 
   return (
@@ -315,6 +483,9 @@ ${analysisData.result}
           >
             <option value="pdf">PDF Document</option>
             <option value="markdown">Markdown (.md)</option>
+            <option value="rtf">Rich Text Format (.rtf)</option>
+            <option value="google_docs">Google Docs Optimized</option>
+            <option value="word">Microsoft Word Optimized</option>
             <option value="json">JSON Data</option>
             <option value="text">Plain Text</option>
           </select>

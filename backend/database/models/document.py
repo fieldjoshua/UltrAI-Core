@@ -65,7 +65,7 @@ class Document(Base):
     processed_at = Column(DateTime, nullable=True)
 
     # Relationships
-    user = relationship("User", back_populates="documents")
+    owner = relationship("User", back_populates="documents")
     chunks = relationship("DocumentChunk", back_populates="document", cascade="all, delete-orphan")
 
     def __repr__(self) -> str:
@@ -83,7 +83,7 @@ class DocumentChunk(Base):
     # Chunk content
     chunk_index = Column(Integer, nullable=False)
     content = Column(Text, nullable=False)
-    metadata = Column(JSONB, nullable=True)
+    chunk_metadata = Column(JSONB, nullable=True)
 
     # Embedding data
     embedding = Column(JSONB, nullable=True)  # Storing vector as JSON

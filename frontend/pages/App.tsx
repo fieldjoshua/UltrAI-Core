@@ -1,5 +1,5 @@
 import React from 'react';
-import UltraWithDocuments from './components/UltraWithDocuments';
+import UltraWithDocuments from '../src/components/UltraWithDocuments';
 import ErrorBoundary from './components/ErrorBoundary';
 
 export default function App() {

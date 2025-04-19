@@ -16,7 +16,6 @@
         "ms-python.debugpy",
         "ryanluker.vscode-coverage-gutters",
         // Security
-        "snyk-security.snyk-vulnerability-scanner",
         "sonarsource.sonarlint-vscode",
         // REST API development
         "humao.rest-client",

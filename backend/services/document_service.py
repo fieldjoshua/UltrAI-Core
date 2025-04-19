@@ -166,7 +166,7 @@ class DocumentService:
                 "document_id": chunk.document_id,
                 "chunk_index": chunk.chunk_index,
                 "content": chunk.content,
-                "metadata": chunk.metadata,
+                "metadata": chunk.chunk_metadata,
                 "page_number": chunk.page_number,
                 "embedding_model": chunk.embedding_model
             }

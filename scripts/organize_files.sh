@@ -23,7 +23,7 @@ mv ultra_*.py src/core/
 
 # Move documentation files
 echo "Moving documentation files..."
-mv *.md docs/ 2>/dev/null || true
+mv *.md documentation/ 2>/dev/null || true
 
 # Move test files
 echo "Moving test files..."

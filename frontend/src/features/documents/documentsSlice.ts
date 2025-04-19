@@ -1,4 +1,7 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
+import apiClient from '../../services/api'; // Import the configured axios instance
+import { endpoints } from '../../services/api'; // Import endpoints definition
+import axios from 'axios';
 
 // Define types
 export interface Document {
@@ -28,21 +31,25 @@ const initialState: DocumentsState = {
 };
 
 // Async thunks
-export const fetchDocuments = createAsyncThunk(
+export const fetchDocuments = createAsyncThunk<
+    Document[], // Return type when fulfilled
+    void,       // Argument type (none in this case)
+    { rejectValue: string } // Type for rejection payload
+>(
     'documents/fetchDocuments',
     async (_, { rejectWithValue }) => {
         try {
-            // This will be replaced with actual API calls
-            const response = await fetch('/api/documents');
+            // Debug message to show exact endpoint
+            console.log('Fetching documents from:', endpoints.documents.getAll);
+            console.log('API client base URL:', apiClient.defaults.baseURL);
 
-            if (!response.ok) {
-                throw new Error('Failed to fetch documents');
-            }
-
-            const data = await response.json();
-            return data;
-        } catch (error) {
-            return rejectWithValue(error instanceof Error ? error.message : 'An unknown error occurred');
+            // HARDCODED: Force the correct URL with port 8000
+            const response = await axios.get<Document[]>('http://localhost:8000/api/documents');
+            return response.data; // Return the fetched documents
+        } catch (error: any) {
+            console.error('Failed to fetch documents:', error);
+            const message = error.response?.data?.message || error.message || "Failed to fetch documents";
+            return rejectWithValue(message);
         }
     }
 );
@@ -54,20 +61,22 @@ export const uploadDocument = createAsyncThunk(
             const formData = new FormData();
             formData.append('file', file);
 
-            // This will be replaced with actual API calls
-            const response = await fetch('/api/upload-document', {
-                method: 'POST',
-                body: formData,
+            // HARDCODED: Force the correct URL with port 8000
+            const response = await axios.post('http://localhost:8000/api/upload-document', formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
+                onUploadProgress: (progressEvent) => {
+                    const percentCompleted = Math.round((progressEvent.loaded * 100) / (progressEvent.total || 100));
+                    // You could dispatch an action here to update upload progress if needed
+                },
             });
 
-            if (!response.ok) {
-                throw new Error('Failed to upload document');
-            }
-
-            const data = await response.json();
-            return data;
-        } catch (error) {
-            return rejectWithValue(error instanceof Error ? error.message : 'An unknown error occurred');
+            return response.data;
+        } catch (error: any) {
+            console.error('Failed to upload document:', error);
+            const message = error.response?.data?.message || error.message || "Failed to upload document";
+            return rejectWithValue(message);
         }
     }
 );
@@ -76,18 +85,13 @@ export const deleteDocument = createAsyncThunk(
     'documents/deleteDocument',
     async (documentId: string, { rejectWithValue }) => {
         try {
-            // This will be replaced with actual API calls
-            const response = await fetch(`/api/documents/${documentId}`, {
-                method: 'DELETE',
-            });
-
-            if (!response.ok) {
-                throw new Error('Failed to delete document');
-            }
-
+            // HARDCODED: Force the correct URL with port 8000
+            await axios.delete(`http://localhost:8000/api/documents/${documentId}`);
             return documentId;
-        } catch (error) {
-            return rejectWithValue(error instanceof Error ? error.message : 'An unknown error occurred');
+        } catch (error: any) {
+            console.error('Failed to delete document:', error);
+            const message = error.response?.data?.message || error.message || "Failed to delete document";
+            return rejectWithValue(message);
         }
     }
 );
@@ -114,6 +118,17 @@ const documentsSlice = createSlice({
         clearError: (state) => {
             state.error = null;
         },
+        addDocument: (state, action) => {
+            state.documents.push(action.payload);
+        },
+        removeDocument: (state, action) => {
+            state.documents = state.documents.filter(
+                (doc) => doc.id !== action.payload
+            );
+        },
+        clearDocuments: (state) => {
+            state.documents = [];
+        },
     },
     extraReducers: (builder) => {
         builder
@@ -122,13 +137,13 @@ const documentsSlice = createSlice({
                 state.isLoading = true;
                 state.error = null;
             })
-            .addCase(fetchDocuments.fulfilled, (state, action) => {
-                state.isLoading = false;
+            .addCase(fetchDocuments.fulfilled, (state, action: PayloadAction<Document[]>) => {
                 state.documents = action.payload;
+                state.isLoading = false;
             })
             .addCase(fetchDocuments.rejected, (state, action) => {
                 state.isLoading = false;
-                state.error = action.payload as string;
+                state.error = action.payload ?? 'Failed to fetch documents'; // Use nullish coalescing
             })
 
             // Upload document
@@ -170,7 +185,10 @@ export const {
     setSelectedDocuments,
     toggleDocumentSelection,
     setUploadProgress,
-    clearError
+    clearError,
+    addDocument,
+    removeDocument,
+    clearDocuments
 } = documentsSlice.actions;
 
 export default documentsSlice.reducer;

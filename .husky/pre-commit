@@ -1,0 +1,55 @@
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
+
+echo "Running documentation compliance checks..."
+
+# Check if there are files to test
+CHANGED_FILES=$(git diff --cached --name-only --diff-filter=ACMR | grep -E '\.(tsx|ts|js|jsx|py)$' || true)
+
+if [ -z "$CHANGED_FILES" ]; then
+  echo "No relevant files changed, skipping documentation checks."
+  exit 0
+fi
+
+# Run documentation compliance script if it exists
+if [ -f ".github/scripts/check_documentation_compliance.py" ]; then
+  python .github/scripts/check_documentation_compliance.py || {
+    echo "⛔ Documentation compliance check failed!";
+    echo "Please review our documentation to ensure your changes comply with project standards.";
+    echo "See documentation/guidelines/CODE_REVIEW.md and documentation/guidelines/CONTRIBUTING.md";
+    exit 1;
+  }
+fi
+
+# Check for documentation references in changed files
+echo "Checking for documentation references..."
+for FILE in $CHANGED_FILES; do
+  if grep -Eq '(pattern|feather|intelligence multiplication|analysis)' "$FILE"; then
+    if ! grep -Eq '(documentation|PATTERNS.md|INTELLIGENCE_MULTIPLICATION)' "$FILE"; then
+      echo "⚠️ $FILE contains pattern-related code but doesn't reference documentation"
+      DOC_REF_MISSING=1
+    fi
+  fi
+done
+
+if [ "$DOC_REF_MISSING" = "1" ]; then
+  echo "❌ Some files are missing documentation references."
+  echo "Please add appropriate references to documentation in your code."
+  echo "See documentation/guidelines/CONTRIBUTING.md for more details."
+  exit 1
+fi
+
+# Check for duplicate filenames
+echo "Checking for duplicate filenames..."
+BASENAME_COUNTS=$(git ls-files | grep -E '\.(tsx|ts|js|jsx)$' | xargs basename | sort | uniq -c | grep -v "^ *1 " || true)
+
+if [ -n "$BASENAME_COUNTS" ]; then
+  echo "⚠️ Warning: Found files with the same name in different directories:"
+  echo "$BASENAME_COUNTS"
+  echo "This could lead to import confusion and duplication issues."
+  echo "Consider reviewing these files to ensure they're not duplicates."
+fi
+
+# All checks passed
+echo "✅ Documentation compliance checks passed!"
+exit 0

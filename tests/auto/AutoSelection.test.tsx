@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import UltraWithDocuments from '../../components/UltraWithDocuments';
+import UltraWithDocuments from '../../../frontend/src/components/UltraWithDocuments';
 
 // Mock the components we don't want to test
 jest.mock('../../components/DocumentUpload', () => {
@@ -73,36 +73,36 @@ describe('AUTO Selection Feature', () => {
     const resetButton = screen.getByTestId('reset-button');
     expect(resetButton).toBeInTheDocument();
   });
-  
+
   test('Model selection checkboxes should be present', () => {
     render(<AutoSelectionTest />);
     const gpt4Checkbox = screen.getByLabelText('GPT-4o');
     const claudeCheckbox = screen.getByLabelText('Claude 3.7');
-    
+
     expect(gpt4Checkbox).toBeInTheDocument();
     expect(claudeCheckbox).toBeInTheDocument();
   });
-  
+
   test('AUTO button should be clickable', () => {
     render(<AutoSelectionTest />);
     const autoButton = screen.getByTestId('auto-button');
-    
+
     // This just tests that the click event doesn't throw an error
     expect(() => fireEvent.click(autoButton)).not.toThrow();
   });
-  
+
   test('RANDOM button should be clickable', () => {
     render(<AutoSelectionTest />);
     const randomButton = screen.getByTestId('random-button');
-    
+
     // This just tests that the click event doesn't throw an error
     expect(() => fireEvent.click(randomButton)).not.toThrow();
   });
-  
+
   test('Reset button should be clickable', () => {
     render(<AutoSelectionTest />);
     const resetButton = screen.getByTestId('reset-button');
-    
+
     // This just tests that the click event doesn't throw an error
     expect(() => fireEvent.click(resetButton)).not.toThrow();
   });
@@ -118,52 +118,52 @@ describe('AUTO Selection Feature', () => {
     const autoContainer = screen.getByText('Model Selection').closest('.auto-container');
     expect(autoContainer).toBeInTheDocument();
   });
-  
+
   test('Model checkboxes should be initially unchecked', () => {
     render(<AutoSelectionTest />);
     const gpt4Checkbox = screen.getByLabelText('GPT-4o') as HTMLInputElement;
     const claudeCheckbox = screen.getByLabelText('Claude 3.7') as HTMLInputElement;
-    
+
     expect(gpt4Checkbox.checked).toBe(false);
     expect(claudeCheckbox.checked).toBe(false);
   });
-  
+
   test('Model checkboxes should be clickable', () => {
     render(<AutoSelectionTest />);
     const gpt4Checkbox = screen.getByLabelText('GPT-4o');
     const claudeCheckbox = screen.getByLabelText('Claude 3.7');
-    
+
     fireEvent.click(gpt4Checkbox);
     fireEvent.click(claudeCheckbox);
-    
+
     expect((gpt4Checkbox as HTMLInputElement).checked).toBe(true);
     expect((claudeCheckbox as HTMLInputElement).checked).toBe(true);
   });
-  
+
   test('AUTO button should have proper text', () => {
     render(<AutoSelectionTest />);
     const autoButton = screen.getByTestId('auto-button');
     expect(autoButton).toHaveTextContent('AUTO');
   });
-  
+
   test('RANDOM button should have proper text', () => {
     render(<AutoSelectionTest />);
     const randomButton = screen.getByTestId('random-button');
     expect(randomButton).toHaveTextContent('RANDOM');
   });
-  
+
   test('Reset button should have proper text', () => {
     render(<AutoSelectionTest />);
     const resetButton = screen.getByTestId('reset-button');
     expect(resetButton).toHaveTextContent('Reset and Choose Manually');
   });
-  
+
   test('Model selection should have a heading', () => {
     render(<AutoSelectionTest />);
     const heading = screen.getByText('Model Selection');
     expect(heading).toBeInTheDocument();
   });
-  
+
   test('Components should render without errors', () => {
     expect(() => render(<AutoSelectionTest />)).not.toThrow();
   });
@@ -177,7 +177,7 @@ describe('Auto Selection Features', () => {
     mockSetSelectedLLMs.mockClear();
     mockSetUltraLLM.mockClear();
     mockSetPattern.mockClear();
-    
+
     // Mock DOM manipulation methods
     document.createElement = jest.fn(() => {
       const el = mockCreateElement.call(document, 'div');
@@ -185,11 +185,11 @@ describe('Auto Selection Features', () => {
       el.innerHTML = '';
       return el;
     });
-    
+
     document.body.appendChild = jest.fn();
     document.body.contains = jest.fn(() => true);
     document.body.removeChild = jest.fn();
-    
+
     // Mock querySelector
     document.querySelector = jest.fn(() => {
       const container = mockCreateElement.call(document, 'div');
@@ -200,49 +200,49 @@ describe('Auto Selection Features', () => {
       return container;
     });
   });
-  
+
   afterEach(() => {
     // Restore original methods
     document.createElement = mockCreateElement;
     document.body.appendChild = mockAppendChild;
     document.body.contains = mockContains;
     document.body.removeChild = mockRemoveChild;
-    
+
     jest.restoreAllMocks();
   });
-  
+
   // Skip the tests for now to avoid import errors
   test.skip('AUTO button selects recommended models', async () => {
     // Arrange
     render(<UltraWithDocuments />);
-    
+
     // Set a prompt so the AUTO selection works
     const promptTextarea = screen.getByPlaceholderText(/improve the security/i);
     fireEvent.change(promptTextarea, { target: { value: 'Test prompt' } });
-    
+
     // Act
     const autoButton = screen.getByText(/AUTO/i);
     fireEvent.click(autoButton);
-    
+
     // Assert
     await waitFor(() => {
       // Check that the models were selected
       expect(mockSetSelectedLLMs).toHaveBeenCalledWith(['gpt4o', 'claude37', 'gemini15']);
       expect(mockSetUltraLLM).toHaveBeenCalledWith('claude37');
       expect(mockSetPattern).toHaveBeenCalledWith('confidence');
-      
+
       // Check curtain effect was applied
       expect(document.querySelector).toHaveBeenCalledWith('.auto-steps-container');
       expect(document.querySelector().classList.add).toHaveBeenCalledWith('steps-auto-selected');
-      
+
       // Check success message was shown
       expect(document.createElement).toHaveBeenCalled();
       expect(document.body.appendChild).toHaveBeenCalled();
     });
   });
-  
+
   // Simple test to verify the test infrastructure works
   test('Test environment is working', () => {
     expect(1 + 1).toBe(2);
   });
-}); 
+});

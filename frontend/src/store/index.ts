@@ -1,17 +1,17 @@
 import { configureStore } from '@reduxjs/toolkit';
 import { setupListeners } from '@reduxjs/toolkit/query';
 import { combineReducers } from 'redux';
+import documentsReducer from '../features/documents/documentsSlice';
 
 // Import reducers as they are created
 // import authReducer from '../features/auth/authSlice';
-// import documentsReducer from '../features/documents/documentsSlice';
 // import analysisReducer from '../features/analysis/analysisSlice';
 // import uiReducer from '../features/ui/uiSlice';
 
 // Combine reducers
 const rootReducer = combineReducers({
     // auth: authReducer,
-    // documents: documentsReducer,
+    documents: documentsReducer,
     // analysis: analysisReducer,
     // ui: uiReducer,
 });

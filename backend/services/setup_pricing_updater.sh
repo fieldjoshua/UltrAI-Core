@@ -41,13 +41,13 @@ echo -e "\n${GREEN}Installing all dependencies from requirements file...${NC}"
 pip install -r backend/pricing_updater_requirements.txt --upgrade
 if [ $? -ne 0 ]; then
   echo -e "${RED}Failed to install dependencies from requirements file${NC}"
-  
+
   # Try fixing specific six.moves error
   echo -e "\n${YELLOW}Attempting to fix 'six.moves' dependency issue...${NC}"
   pip install six --upgrade
   pip install python-dateutil --upgrade
   pip install pandas --upgrade
-  
+
   # Try again with requirements
   echo -e "\n${GREEN}Retrying installation...${NC}"
   pip install -r backend/pricing_updater_requirements.txt --upgrade
@@ -81,4 +81,4 @@ echo -e "\n${GREEN}Setup completed successfully!${NC}"
 echo -e "You can now run the pricing updater with: ${YELLOW}python backend/pricing_updater.py${NC}"
 echo -e "For a dry run (no changes): ${YELLOW}python backend/pricing_updater.py --dry-run${NC}"
 echo ""
-echo -e "${GREEN}See backend/README_PRICING_UPDATER.md for more information.${NC}" 
+echo -e "${GREEN}See documentation/logic/backend_README_PRICING_UPDATER.md for more information.${NC}"

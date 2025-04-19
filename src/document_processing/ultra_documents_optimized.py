@@ -1,736 +1,584 @@
-import concurrent.futures
-import functools
 import hashlib
-import io
+import json
 import logging
-import multiprocessing
+import mimetypes
 import os
-import pickle
+import random
 import re
-import threading
+import tempfile
 import time
-from collections import OrderedDict
+import traceback
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
-from threading import Lock
-from typing import Any, Dict, List, Optional, Set, Tuple, Union
+from typing import Any, Dict, List, Optional, Tuple
 
-import fitz  # PyMuPDF
-import numpy as np
-from langchain.text_splitter import RecursiveCharacterTextSplitter
-
-# Only import SentenceTransformer when needed
-sentence_transformer_imported = False
-faiss_imported = False
+# Set up logging
+logger = logging.getLogger(__name__)
 
 
-# LRU Cache implementation for in-memory caching
-class LRUCache:
-    """Thread-safe LRU Cache for document chunks and embeddings"""
-
-    def __init__(self, capacity: int = 100):
-        """Initialize LRU cache with specified capacity"""
-        self.cache = OrderedDict()
-        self.capacity = capacity
-        self.lock = Lock()
-
-    def get(self, key: str) -> Optional[Any]:
-        """Get item from cache, moving it to the end (most recently used)"""
-        with self.lock:
-            if key not in self.cache:
-                return None
-
-            # Move to end (mark as recently used)
-            value = self.cache.pop(key)
-            self.cache[key] = value
-            return value
-
-    def put(self, key: str, value: Any) -> None:
-        """Add item to cache, removing oldest item if capacity is exceeded"""
-        with self.lock:
-            if key in self.cache:
-                # Remove existing item first
-                self.cache.pop(key)
-
-            # Add new item at the end
-            self.cache[key] = value
-
-            # Remove oldest if over capacity
-            if len(self.cache) > self.capacity:
-                self.cache.popitem(last=False)
-
-    def clear(self) -> None:
-        """Clear the cache"""
-        with self.lock:
-            self.cache.clear()
-
-    def size(self) -> int:
-        """Return current cache size"""
-        with self.lock:
-            return len(self.cache)
-
-
+# Cache implementation with both memory and disk options
 class DocumentCache:
-    """Enhanced cache for document processing with multi-level caching."""
+    """Document cache with both memory and disk options"""
 
-    def __init__(self, cache_dir: str = ".cache", memory_cache_size: int = 100):
-        """Initialize the document cache."""
-        self.cache_dir = Path(cache_dir)
-        self.cache_dir.mkdir(exist_ok=True)
-        self.logger = logging.getLogger(__name__)
+    def __init__(self, cache_dir: str = ".cache", memory_size: int = 100):
+        self.memory_cache = {}
+        self.memory_size = memory_size
+        self.cache_dir = cache_dir
+        self.stats = {"hits": 0, "misses": 0}
 
-        # In-memory LRU cache
-        self.memory_cache = LRUCache(capacity=memory_cache_size)
+        # Create cache directory if it doesn't exist
+        os.makedirs(cache_dir, exist_ok=True)
 
-        # Create subdirectories for different cache types
-        self.text_cache_dir = self.cache_dir / "text"
-        self.chunks_cache_dir = self.cache_dir / "chunks"
-        self.embeddings_cache_dir = self.cache_dir / "embeddings"
+    def _get_disk_path(self, key: str) -> str:
+        """Get the path to the disk cache file for a key"""
+        return os.path.join(self.cache_dir, f"{key}.json")
 
-        for directory in [
-            self.text_cache_dir,
-            self.chunks_cache_dir,
-            self.embeddings_cache_dir,
-        ]:
-            directory.mkdir(exist_ok=True)
+    def get(self, key: str) -> Optional[Dict[str, Any]]:
+        """Get an item from cache, first trying memory then disk"""
+        # Check memory cache first
+        if key in self.memory_cache:
+            self.stats["hits"] += 1
+            return self.memory_cache[key]
 
-    def _get_cache_path(self, file_path: str, operation: str) -> Path:
-        """Generate a unique cache path for a file and operation."""
-        file_hash = hashlib.md5(file_path.encode()).hexdigest()
-
-        # Include file modification time for cache invalidation
-        if os.path.exists(file_path):
-            file_timestamp = os.path.getmtime(file_path)
-            cache_key = f"{file_hash}_{int(file_timestamp)}_{operation}"
-        else:
-            cache_key = f"{file_hash}_{operation}"
-
-        # Select appropriate cache directory based on operation type
-        if operation.startswith("text_"):
-            cache_dir = self.text_cache_dir
-        elif operation.startswith("chunks_"):
-            cache_dir = self.chunks_cache_dir
-        elif operation.startswith("embeddings_"):
-            cache_dir = self.embeddings_cache_dir
-        else:
-            cache_dir = self.cache_dir
-
-        return cache_dir / f"{cache_key}.pkl"
-
-    def get(self, file_path: str, operation: str) -> Optional[Any]:
-        """Get cached result for a file and operation if available."""
-        # First check memory cache
-        memory_key = f"{file_path}_{operation}"
-        memory_result = self.memory_cache.get(memory_key)
-        if memory_result is not None:
-            self.logger.debug(f"Memory cache hit for {file_path} - {operation}")
-            return memory_result
-
-        # If not in memory, check disk cache
-        if not os.path.exists(file_path) and not operation.startswith("embeddings_"):
-            return None
-
-        cache_path = self._get_cache_path(file_path, operation)
-        if cache_path.exists():
+        # Check disk cache
+        disk_path = self._get_disk_path(key)
+        if os.path.exists(disk_path):
             try:
-                with open(cache_path, "rb") as f:
-                    result = pickle.load(f)
+                with open(disk_path, "r", encoding="utf-8") as f:
+                    data = json.load(f)
 
-                # Add to memory cache for faster future access
-                self.memory_cache.put(memory_key, result)
-                self.logger.debug(f"Disk cache hit for {file_path} - {operation}")
-                return result
+                # Also store in memory for faster access next time
+                if len(self.memory_cache) < self.memory_size:
+                    self.memory_cache[key] = data
+
+                self.stats["hits"] += 1
+                return data
             except Exception as e:
-                self.logger.warning(f"Failed to load cache for {file_path}: {e}")
-                # Remove corrupted cache file
-                try:
-                    cache_path.unlink()
-                except:
-                    pass
-                return None
+                logging.warning(f"Error reading from disk cache: {e}")
+
+        self.stats["misses"] += 1
         return None
 
-    def set(self, file_path: str, operation: str, data: Any) -> bool:
-        """Cache result for a file and operation."""
-        # First store in memory cache
-        memory_key = f"{file_path}_{operation}"
-        self.memory_cache.put(memory_key, data)
+    def set(self, key: str, value: Dict[str, Any]) -> None:
+        """Set an item in both memory and disk cache"""
+        # Memory cache (LRU-like behavior by removing oldest entries if full)
+        if len(self.memory_cache) >= self.memory_size:
+            # Remove the first (oldest) item
+            oldest_key = next(iter(self.memory_cache))
+            del self.memory_cache[oldest_key]
 
-        # Then store on disk
-        if not os.path.exists(file_path) and not operation.startswith("embeddings_"):
-            return False
+        # Add to memory cache
+        self.memory_cache[key] = value
 
-        cache_path = self._get_cache_path(file_path, operation)
+        # Disk cache
+        disk_path = self._get_disk_path(key)
         try:
-            with open(cache_path, "wb") as f:
-                pickle.dump(data, f)
-            return True
+            with open(disk_path, "w", encoding="utf-8") as f:
+                json.dump(value, f)
         except Exception as e:
-            self.logger.warning(f"Failed to save cache for {file_path}: {e}")
-            return False
+            logging.warning(f"Error writing to disk cache: {e}")
 
-    def invalidate(self, file_path: str, operation: Optional[str] = None) -> None:
-        """Invalidate cache entries for a file."""
-        # Remove from memory cache
-        if operation:
-            memory_key = f"{file_path}_{operation}"
-            # Remove specific operation
-            self.memory_cache.get(memory_key)  # This will move it to the end
-            self.memory_cache.put(memory_key, None)  # Override with None
-        else:
-            # Clear all operations for this file by creating a new cache
-            # This is easier than searching and removing specific keys
-            new_cache = LRUCache(self.memory_cache.capacity)
-            for k, v in self.memory_cache.cache.items():
-                if not k.startswith(file_path):
-                    new_cache.put(k, v)
-            self.memory_cache = new_cache
+    def clear(self) -> None:
+        """Clear both memory and disk cache"""
+        # Clear memory cache
+        self.memory_cache = {}
 
-        # Remove from disk cache
-        file_hash = hashlib.md5(file_path.encode()).hexdigest()
-        for cache_dir in [
-            self.text_cache_dir,
-            self.chunks_cache_dir,
-            self.embeddings_cache_dir,
-            self.cache_dir,
-        ]:
-            for cache_file in cache_dir.glob(f"{file_hash}_*"):
-                if operation and operation not in cache_file.name:
-                    continue
+        # Clear disk cache
+        for file in os.listdir(self.cache_dir):
+            if file.endswith(".json"):
                 try:
-                    cache_file.unlink()
-                except:
-                    pass
+                    os.remove(os.path.join(self.cache_dir, file))
+                except Exception as e:
+                    logging.warning(f"Error removing cache file {file}: {e}")
 
 
 class UltraDocumentsOptimized:
+    """
+    Optimized document processing class for Ultra.
+    This version is a simplified implementation that can process documents
+    and extract content from them.
+    """
+
     def __init__(
         self,
-        api_keys: Dict[str, str] = None,
-        prompt_templates: Optional[Any] = None,
-        rate_limits: Optional[Any] = None,
-        output_format: str = "plain",
-        enabled_features: Optional[List[str]] = None,
         cache_enabled: bool = True,
         chunk_size: int = 1000,
-        chunk_overlap: int = 200,
-        embedding_model: str = "all-MiniLM-L6-v2",
-        max_workers: int = None,
+        chunk_overlap: int = 100,
+        embedding_model: str = "default",
+        max_workers: int = 4,
         memory_cache_size: int = 100,
     ):
-        # Initialize logger
-        self.logger = logging.getLogger(__name__)
-        self.logger.info("Initializing Optimized Document Processor")
+        """
+        Initialize the document processor.
 
-        # Store configuration
-        self.api_keys = api_keys or {}
-        self.output_format = output_format
+        Args:
+            cache_enabled: Whether to cache document processing results
+            chunk_size: Size of text chunks for processing
+            chunk_overlap: Overlap between chunks
+            embedding_model: Model to use for embeddings (if available)
+            max_workers: Maximum number of worker threads
+            memory_cache_size: Maximum number of items in memory cache
+        """
+        self.cache_enabled = cache_enabled
         self.chunk_size = chunk_size
         self.chunk_overlap = chunk_overlap
-        self.cache_enabled = cache_enabled
-        self.embedding_model_name = embedding_model
+        self.embedding_model = embedding_model
+        self.max_workers = max_workers
+        self.memory_cache_size = memory_cache_size
 
-        # Set max workers based on CPU cores if not specified
-        self.max_workers = max_workers or max(1, multiprocessing.cpu_count() - 1)
+        self.logger = logging.getLogger(__name__)
+        self.logger.info(
+            f"Initialized UltraDocumentsOptimized with chunk_size={chunk_size}"
+        )
 
-        # File processing handlers
-        self.supported_formats = {
-            ".pdf": self._process_pdf,
-            ".txt": self._process_text,
-            ".md": self._process_text,
-            ".docx": self._process_docx,
-            ".doc": self._process_doc,
+        # Initialize cache if enabled
+        if cache_enabled:
+            self.cache = DocumentCache(
+                cache_dir=".cache", memory_size=memory_cache_size
+            )
+            self.logger.info("Document cache initialized")
+
+        # Initialize the embedding engine if available
+        try:
+            from sentence_transformers import SentenceTransformer
+
+            # Use a smaller, faster model for embedding
+            self.embedding_engine = SentenceTransformer(embedding_model)
+            self.logger.info(f"Document embedding model initialized: {embedding_model}")
+            self.embeddings_available = True
+        except Exception as e:
+            self.logger.warning(f"Embeddings not available: {e}")
+            self.embeddings_available = False
+
+    def _generate_cache_key(self, file_path: str) -> str:
+        """Generate a cache key for a file based on its path, size, and modification time"""
+        # Get file metadata
+        file_stats = os.stat(file_path)
+        file_size = file_stats.st_size
+        file_mtime = file_stats.st_mtime
+
+        # Combine into a unique string and hash it
+        key_data = f"{file_path}|{file_size}|{file_mtime}|{self.chunk_size}|{self.chunk_overlap}"
+        return hashlib.md5(key_data.encode()).hexdigest()
+
+    def _get_file_extension(self, file_path: str) -> str:
+        """Get the file extension from a path"""
+        return os.path.splitext(file_path)[1].lower()
+
+    def _detect_file_type(self, file_path: str) -> str:
+        """Detect file type using mime library and extension"""
+        ext = self._get_file_extension(file_path)
+        mime_type, _ = mimetypes.guess_type(file_path)
+
+        if mime_type:
+            if mime_type.startswith("text/"):
+                return "text"
+            elif mime_type == "application/pdf":
+                return "pdf"
+            elif mime_type.startswith(
+                "application/vnd.openxmlformats-officedocument.wordprocessingml"
+            ):
+                return "docx"
+            elif mime_type.startswith("application/msword"):
+                return "doc"
+
+        # Fallback to extension-based detection
+        ext_map = {
+            ".txt": "text",
+            ".md": "text",
+            ".pdf": "pdf",
+            ".docx": "docx",
+            ".doc": "doc",
         }
 
-        # Initialize cache
-        if self.cache_enabled:
-            self.cache = DocumentCache(memory_cache_size=memory_cache_size)
-            self.logger.info(
-                f"Document cache initialized with {memory_cache_size} memory slots"
-            )
+        return ext_map.get(ext, "unknown")
 
-        # Initialize text splitter for chunking with improved settings
-        self.text_splitter = RecursiveCharacterTextSplitter(
-            chunk_size=self.chunk_size,
-            chunk_overlap=self.chunk_overlap,
-            length_function=len,
-            separators=["\n\n", "\n", ".", "!", "?", ";", ":", " ", ""],
-        )
+    def _chunk_text(self, text: str) -> List[Dict[str, Any]]:
+        """Split text into overlapping chunks with smart splitting"""
+        if not text:
+            return []
 
-        # Lazy load embedding model only when needed
-        self.embedding_model = None
-        self.embedding_dimension = None
-        self.index = None
-        self.embeddings = []
-        self.chunks = []
-        self.doc_mapping = {}
+        # Clean the text
+        text = re.sub(r"\s+", " ", text).strip()
 
-        # Thread pool for parallel processing
-        self.executor = concurrent.futures.ThreadPoolExecutor(
-            max_workers=self.max_workers
-        )
-        self.logger.info(f"Thread pool initialized with {self.max_workers} workers")
+        # Split by proper paragraph boundaries first
+        paragraphs = re.split(r"\n\s*\n", text)
 
-    def _load_embedding_model(self):
-        """Lazy-load the embedding model when needed"""
-        global sentence_transformer_imported, faiss_imported
+        chunks = []
+        current_chunk = ""
+        current_length = 0
 
-        if self.embedding_model is not None:
-            return
+        for paragraph in paragraphs:
+            paragraph = paragraph.strip()
+            if not paragraph:
+                continue
 
-        try:
-            if not sentence_transformer_imported:
-                from sentence_transformers import SentenceTransformer
+            paragraph_length = len(paragraph)
 
-                sentence_transformer_imported = True
+            # If this paragraph alone exceeds chunk size, we need to split it
+            if paragraph_length > self.chunk_size:
+                # If we have content in the current chunk, add it first
+                if current_chunk:
+                    chunks.append({"text": current_chunk, "length": current_length})
+                    current_chunk = ""
+                    current_length = 0
 
-            if not faiss_imported:
-                import faiss
+                # Split the long paragraph by sentences
+                sentences = re.split(r"(?<=[.!?])\s+", paragraph)
+                sentence_chunk = ""
+                sentence_length = 0
 
-                faiss_imported = True
-
-            self.embedding_model = SentenceTransformer(self.embedding_model_name)
-            self.embedding_dimension = (
-                self.embedding_model.get_sentence_embedding_dimension()
-            )
-            self.logger.info(
-                f"Document embedding model loaded: {self.embedding_model_name}"
-            )
-        except Exception as e:
-            self.logger.error(f"Failed to initialize embedding model: {e}")
-            self.embedding_model = None
-
-    def _process_pdf(self, file_path: Union[str, Path]) -> str:
-        """Extract text from a PDF file using PyMuPDF with optimized processing."""
-        try:
-            # Check cache first
-            if self.cache_enabled:
-                cached_text = self.cache.get(str(file_path), "text_pdf")
-                if cached_text is not None:
-                    self.logger.debug(f"Retrieved PDF text from cache: {file_path}")
-                    return cached_text
-
-            # Process PDF if not in cache
-            start_time = time.time()
-            text_parts = []
-
-            with fitz.open(file_path) as doc:
-                # Process in chunks of 10 pages to avoid memory issues with large PDFs
-                chunk_size = 10
-                total_pages = len(doc)
-
-                for i in range(0, total_pages, chunk_size):
-                    end = min(i + chunk_size, total_pages)
-                    chunk_text = ""
-
-                    for page_num in range(i, end):
-                        page = doc[page_num]
-                        # Extract text with metadata
-                        page_text = page.get_text()
-                        if page_text.strip():
-                            chunk_text += f"[Page {page_num + 1}]\n{page_text}\n\n"
-
-                    if chunk_text:
-                        text_parts.append(chunk_text)
-
-            text = "".join(text_parts)
-
-            # Cache the result
-            if self.cache_enabled:
-                self.cache.set(str(file_path), "text_pdf", text)
-
-            processing_time = time.time() - start_time
-            self.logger.info(f"Processed PDF in {processing_time:.2f}s: {file_path}")
-            return text
-
-        except Exception as e:
-            self.logger.error(f"Error processing PDF file {file_path}: {str(e)}")
-            raise
-
-    def _process_text(self, file_path: Union[str, Path]) -> str:
-        """Extract text from a text file with improved encoding detection."""
-        try:
-            # Check cache first
-            if self.cache_enabled:
-                cached_text = self.cache.get(str(file_path), "text_txt")
-                if cached_text is not None:
-                    self.logger.debug(
-                        f"Retrieved text file content from cache: {file_path}"
-                    )
-                    return cached_text
-
-            # Try UTF-8 first (most common)
-            try:
-                with open(file_path, "r", encoding="utf-8") as file:
-                    text = file.read()
-            except UnicodeDecodeError:
-                # Try with different encodings if UTF-8 fails
-                text = None
-                encodings = ["latin-1", "cp1252", "iso-8859-1", "utf-16"]
-                for encoding in encodings:
-                    try:
-                        with open(file_path, "r", encoding=encoding) as file:
-                            text = file.read()
-                            break
-                    except UnicodeDecodeError:
+                for sentence in sentences:
+                    sentence = sentence.strip()
+                    if not sentence:
                         continue
 
-                if text is None:
-                    self.logger.error(
-                        f"Could not decode text file {file_path} with any encoding"
-                    )
-                    raise ValueError(
-                        f"Could not decode text file {file_path} with any supported encoding"
-                    )
+                    sentence_len = len(sentence)
 
-            # Cache the result
-            if self.cache_enabled:
-                self.cache.set(str(file_path), "text_txt", text)
+                    # If adding this sentence would exceed the chunk size
+                    if sentence_length + sentence_len + 1 > self.chunk_size:
+                        # Add the current sentence chunk if it's not empty
+                        if sentence_chunk:
+                            chunks.append(
+                                {"text": sentence_chunk, "length": sentence_length}
+                            )
 
-            return text
+                        # If this single sentence is longer than chunk_size, we need to forcibly split it
+                        if sentence_len > self.chunk_size:
+                            words = sentence.split()
+                            word_chunk = ""
+                            word_length = 0
+
+                            for word in words:
+                                word_len = len(word)
+                                if word_length + word_len + 1 > self.chunk_size:
+                                    chunks.append(
+                                        {"text": word_chunk, "length": word_length}
+                                    )
+                                    word_chunk = word
+                                    word_length = word_len
+                                else:
+                                    if word_chunk:
+                                        word_chunk += " " + word
+                                        word_length += word_len + 1
+                                    else:
+                                        word_chunk = word
+                                        word_length = word_len
+
+                            if word_chunk:
+                                chunks.append(
+                                    {"text": word_chunk, "length": word_length}
+                                )
+
+                            sentence_chunk = ""
+                            sentence_length = 0
+                        else:
+                            # Start a new sentence chunk with this sentence
+                            sentence_chunk = sentence
+                            sentence_length = sentence_len
+                    else:
+                        # Add to the current sentence chunk
+                        if sentence_chunk:
+                            sentence_chunk += " " + sentence
+                            sentence_length += sentence_len + 1
+                        else:
+                            sentence_chunk = sentence
+                            sentence_length = sentence_len
+
+                # Add any remaining sentence chunk
+                if sentence_chunk:
+                    chunks.append({"text": sentence_chunk, "length": sentence_length})
+
+            # If adding this paragraph would exceed the chunk size
+            elif current_length + paragraph_length + 1 > self.chunk_size:
+                # Add the current chunk and start a new one
+                chunks.append({"text": current_chunk, "length": current_length})
+                current_chunk = paragraph
+                current_length = paragraph_length
+            else:
+                # Add to the current chunk
+                if current_chunk:
+                    current_chunk += "\n\n" + paragraph
+                    current_length += paragraph_length + 2
+                else:
+                    current_chunk = paragraph
+                    current_length = paragraph_length
+
+        # Add the final chunk if there is one
+        if current_chunk:
+            chunks.append({"text": current_chunk, "length": current_length})
+
+        # Add overlapping from previous chunks
+        final_chunks = []
+        for i, chunk in enumerate(chunks):
+            if i > 0 and self.chunk_overlap > 0:
+                prev_chunk = chunks[i - 1]
+                # Add overlap from previous chunk if possible
+                overlap_text = prev_chunk["text"]
+                if len(overlap_text) > self.chunk_overlap:
+                    overlap_text = overlap_text[-self.chunk_overlap :]
+                    # Try to find sentence boundary
+                    sentence_boundary = re.search(r"(?<=[.!?])\s+", overlap_text)
+                    if sentence_boundary:
+                        # Start from the beginning of the first sentence after the boundary
+                        overlap_text = overlap_text[sentence_boundary.end() :]
+
+                # Prepend the overlap to the current chunk
+                if overlap_text:
+                    chunk["text"] = overlap_text + "\n\n" + chunk["text"]
+
+            # Add index and other metadata
+            chunk["index"] = i
+            chunk["page"] = None  # Add page info for PDFs if available
+
+            final_chunks.append(chunk)
+
+        # Add embeddings if available
+        if self.embeddings_available:
+            try:
+                texts = [chunk["text"] for chunk in final_chunks]
+                embeddings = self.embedding_engine.encode(texts)
+
+                for i, embedding in enumerate(embeddings):
+                    final_chunks[i]["embedding"] = embedding.tolist()
+            except Exception as e:
+                self.logger.warning(f"Error generating embeddings: {e}")
+
+        # Calculate relevance scores (placeholder - will be replaced by actual relevance to query)
+        for i, chunk in enumerate(final_chunks):
+            # Just use a placeholder relevance score
+            chunk["relevance"] = 0.9 - (
+                i * 0.05
+            )  # Slightly decreasing relevance for simplicity
+
+        return final_chunks
+
+    def _read_text_file(self, file_path: str) -> str:
+        """Read a text file and return its content"""
+        try:
+            with open(file_path, "r", encoding="utf-8", errors="ignore") as f:
+                return f.read()
+        except Exception as e:
+            self.logger.error(f"Error reading text file {file_path}: {e}")
+            return ""
+
+    def _read_pdf_file(self, file_path: str) -> Tuple[str, List[Dict[str, Any]]]:
+        """Read a PDF file and return its content with page information"""
+        content = ""
+        pages_info = []
+
+        try:
+            # Use pypdf (safer alternative to PyPDF2)
+            from pypdf import PdfReader
+
+            reader = PdfReader(file_path)
+            for i, page in enumerate(reader.pages):
+                page_text = page.extract_text()
+                if page_text:
+                    if content:
+                        content += "\n\n"
+                    content += page_text
+                    pages_info.append(
+                        {"page": i + 1, "text": page_text, "offset": len(content)}
+                    )
 
         except Exception as e:
-            self.logger.error(f"Error processing text file {file_path}: {str(e)}")
-            raise
+            self.logger.warning(f"Error with pypdf for {file_path}: {e}")
 
-    def _process_docx(self, file_path: Union[str, Path]) -> str:
-        """Extract text from a DOCX file with improved formatting and metadata."""
+            # Fallback to PyMuPDF if available
+            try:
+                import fitz  # PyMuPDF
+
+                doc = fitz.open(file_path)
+                for i, page in enumerate(doc):
+                    page_text = page.get_text()
+                    if page_text:
+                        if content:
+                            content += "\n\n"
+                        content += page_text
+                        pages_info.append(
+                            {"page": i + 1, "text": page_text, "offset": len(content)}
+                        )
+                doc.close()
+
+            except Exception as e2:
+                self.logger.error(f"Failed to read PDF with PyMuPDF: {e2}")
+
+        if not content:
+            self.logger.warning(f"Could not extract text from PDF: {file_path}")
+
+        return content, pages_info
+
+    def _read_docx_file(self, file_path: str) -> str:
+        """Read a DOCX file and return its content"""
         try:
-            # Check cache first
-            if self.cache_enabled:
-                cached_text = self.cache.get(str(file_path), "text_docx")
-                if cached_text is not None:
-                    self.logger.debug(f"Retrieved DOCX text from cache: {file_path}")
-                    return cached_text
-
             from docx import Document
 
             doc = Document(file_path)
-
-            # Extract paragraphs with better formatting preservation
-            sections = []
-            current_section = []
-
-            # Process paragraphs
-            for para in doc.paragraphs:
-                if para.text.strip():  # Skip empty paragraphs
-                    # Check if it's a heading (likely section break)
-                    if para.style.name.startswith("Heading"):
-                        if current_section:
-                            sections.append("\n".join(current_section))
-                            current_section = []
-                        current_section.append(f"## {para.text} ##")
-                    else:
-                        current_section.append(para.text)
-
-            # Add the last section
-            if current_section:
-                sections.append("\n".join(current_section))
-
-            # Extract tables
-            tables_text = []
-            for i, table in enumerate(doc.tables):
-                table_rows = []
-                table_rows.append(f"[Table {i+1}]")
-                for row in table.rows:
-                    row_text = []
-                    for cell in row.cells:
-                        if cell.text.strip():
-                            row_text.append(cell.text.strip())
-                    if row_text:
-                        table_rows.append(" | ".join(row_text))
-
-                if len(table_rows) > 1:  # Only add if table has content
-                    tables_text.append("\n".join(table_rows))
-
-            # Combine all text
-            all_text = sections + tables_text
-            result = "\n\n".join(all_text)
-
-            # Cache the result
-            if self.cache_enabled:
-                self.cache.set(str(file_path), "text_docx", result)
-
-            return result
-
+            return "\n\n".join(
+                [paragraph.text for paragraph in doc.paragraphs if paragraph.text]
+            )
         except Exception as e:
-            self.logger.error(f"Error processing DOCX file {file_path}: {str(e)}")
-            raise
+            self.logger.error(f"Error reading DOCX file {file_path}: {e}")
+            return ""
 
-    def _process_doc(self, file_path: Union[str, Path]) -> str:
-        """Extract text from a DOC file."""
+    def _read_doc_file(self, file_path: str) -> str:
+        """Read a DOC file and return its content using textract"""
         try:
-            # Check cache first
-            if self.cache_enabled:
-                cached_text = self.cache.get(str(file_path), "text_doc")
-                if cached_text is not None:
-                    self.logger.debug(f"Retrieved DOC text from cache: {file_path}")
-                    return cached_text
-
             import textract
 
-            text = textract.process(file_path).decode("utf-8")
-
-            # Cache the result
-            if self.cache_enabled:
-                self.cache.set(str(file_path), "text_doc", text)
-
-            return text
-
+            return textract.process(file_path).decode("utf-8")
         except Exception as e:
-            self.logger.error(f"Error processing DOC file {file_path}: {str(e)}")
-            raise
+            self.logger.error(f"Error reading DOC file {file_path}: {e}")
+            return ""
 
-    def process_document(self, file_path: Union[str, Path]) -> str:
-        """Process a document and extract its text content."""
-        file_path = Path(file_path)
-        if not file_path.exists():
-            raise FileNotFoundError(f"File not found: {file_path}")
+    def process_file(self, file_path: str) -> Dict[str, Any]:
+        """Process a file and convert to chunks"""
+        self.logger.info(f"Processing file: {file_path}")
 
-        file_extension = file_path.suffix.lower()
-        if file_extension not in self.supported_formats:
-            raise ValueError(f"Unsupported file format: {file_extension}")
+        start_time = time.time()
 
-        return self.supported_formats[file_extension](file_path)
-
-    def process_documents(self, file_paths: List[Union[str, Path]]) -> Dict[str, str]:
-        """Process multiple documents in parallel and return their text content."""
-        results = {}
-
-        # Process documents in parallel using thread pool
-        future_to_path = {
-            self.executor.submit(self.process_document, file_path): file_path
-            for file_path in file_paths
-        }
-
-        for future in concurrent.futures.as_completed(future_to_path):
-            file_path = future_to_path[future]
-            try:
-                text = future.result()
-                results[str(file_path)] = text
-            except Exception as e:
-                self.logger.error(f"Error processing {file_path}: {str(e)}")
-                results[str(file_path)] = f"Error: {str(e)}"
-
-        return results
-
-    def chunk_text(
-        self, text: str, metadata: Dict[str, Any] = None
-    ) -> List[Dict[str, Any]]:
-        """Split text into semantic chunks with metadata."""
-        raw_chunks = self.text_splitter.split_text(text)
-
-        # Add metadata to each chunk
-        chunks_with_metadata = []
-        for i, chunk in enumerate(raw_chunks):
-            chunk_data = {"text": chunk, "chunk_id": i, "total_chunks": len(raw_chunks)}
-
-            # Add any additional metadata
-            if metadata:
-                chunk_data.update(metadata)
-
-            chunks_with_metadata.append(chunk_data)
-
-        return chunks_with_metadata
-
-    def chunk_document(self, file_path: Union[str, Path]) -> List[Dict[str, Any]]:
-        """Process a document, chunk it, and add metadata."""
-        try:
-            # Extract basic file info
-            file_path = Path(file_path)
-            file_name = file_path.name
-            file_extension = file_path.suffix.lower()
-            file_size = file_path.stat().st_size if file_path.exists() else 0
-
-            # Check cache first
-            if self.cache_enabled:
-                cached_chunks = self.cache.get(
-                    str(file_path), f"chunks_{self.chunk_size}_{self.chunk_overlap}"
-                )
-                if cached_chunks is not None:
-                    self.logger.debug(f"Retrieved chunks from cache: {file_path}")
-                    return cached_chunks
-
-            # Process document to extract text
-            text = self.process_document(file_path)
-
-            # Create metadata
-            metadata = {
-                "source": str(file_path),
-                "filename": file_name,
-                "extension": file_extension,
-                "file_size": file_size,
-                "processed_at": time.time(),
-            }
-
-            # Chunk text with metadata
-            chunks = self.chunk_text(text, metadata)
-
-            # Cache chunks
-            if self.cache_enabled:
-                self.cache.set(
-                    str(file_path),
-                    f"chunks_{self.chunk_size}_{self.chunk_overlap}",
-                    chunks,
-                )
-
-            return chunks
-
-        except Exception as e:
-            self.logger.error(f"Error chunking document {file_path}: {str(e)}")
-            raise
-
-    def chunk_documents(
-        self, file_paths: List[Union[str, Path]]
-    ) -> List[Dict[str, Any]]:
-        """Process and chunk multiple documents in parallel."""
-        chunked_docs = []
-
-        # Process documents in parallel using thread pool
-        future_to_path = {
-            self.executor.submit(self.chunk_document, file_path): file_path
-            for file_path in file_paths
-        }
-
-        for future in concurrent.futures.as_completed(future_to_path):
-            file_path = future_to_path[future]
-            try:
-                chunks = future.result()
-                chunked_docs.extend(chunks)
-            except Exception as e:
-                self.logger.error(f"Error chunking {file_path}: {str(e)}")
-                # Continue with other documents
-
-        return chunked_docs
-
-    def embed_text(self, text: str) -> np.ndarray:
-        """Generate embedding for a text string."""
-        # Lazy load the embedding model if not already loaded
-        if self.embedding_model is None:
-            self._load_embedding_model()
-
-        if self.embedding_model is None:
-            raise ValueError("Embedding model could not be initialized")
-
-        return self.embedding_model.encode(text)
-
-    async def get_relevant_chunks(
-        self, query: str, chunks: List[Dict[str, Any]], top_k: int = 5
-    ) -> List[Dict[str, Any]]:
-        """Get semantically relevant chunks for a query."""
-        # Lazy load the embedding model if not already loaded
-        if self.embedding_model is None:
-            self._load_embedding_model()
-
-        if self.embedding_model is None:
-            # Fallback to basic keyword matching if embedding model couldn't be loaded
-            self.logger.warning(
-                "Embedding model not available, falling back to keyword matching"
-            )
-            return self._keyword_match_chunks(query, chunks, top_k)
-
-        # Check cache for query embeddings
-        query_cache_key = f"query_{hashlib.md5(query.encode()).hexdigest()}"
+        # Check if result is in cache
         if self.cache_enabled:
-            cached_embedding = self.cache.get(query_cache_key, "embeddings_query")
-            if cached_embedding is not None:
-                query_embedding = cached_embedding
-            else:
-                query_embedding = self.embedding_model.encode(query)
-                self.cache.set(query_cache_key, "embeddings_query", query_embedding)
+            cache_key = self._generate_cache_key(file_path)
+            cached_result = self.cache.get(cache_key)
+            if cached_result:
+                self.logger.info(f"Using cached result for {file_path}")
+                return cached_result
+
+        file_type = self._detect_file_type(file_path)
+        content = ""
+        pages_info = []
+
+        # Extract content based on file type
+        if file_type == "text":
+            content = self._read_text_file(file_path)
+        elif file_type == "pdf":
+            content, pages_info = self._read_pdf_file(file_path)
+        elif file_type == "docx":
+            content = self._read_docx_file(file_path)
+        elif file_type == "doc":
+            content = self._read_doc_file(file_path)
         else:
-            query_embedding = self.embedding_model.encode(query)
+            self.logger.warning(f"Unsupported file type: {file_type} for {file_path}")
+            content = f"Unsupported file type: {file_type}"
 
-        # Embed chunks or retrieve from cache
-        chunk_embeddings = []
-        valid_chunks = []
+        # Process the content into chunks
+        chunks = self._chunk_text(content)
 
-        import faiss
+        # Add page information if available
+        if pages_info:
+            for chunk in chunks:
+                # Find the page this chunk belongs to based on offset
+                chunk_start = content.find(chunk["text"])
+                if chunk_start >= 0:
+                    for page_info in pages_info:
+                        if chunk_start >= page_info["offset"]:
+                            chunk["page"] = page_info["page"]
+                        else:
+                            break
 
-        for i, chunk in enumerate(chunks):
-            chunk_text = chunk["text"]
-            chunk_cache_key = f"chunk_{hashlib.md5(chunk_text.encode()).hexdigest()}"
+        # Create the result
+        result = {
+            "file_path": file_path,
+            "file_name": os.path.basename(file_path),
+            "file_type": file_type,
+            "chunks": chunks,
+            "total_chunks": len(chunks),
+            "processed_at": time.time(),
+            "processing_time": time.time() - start_time,
+        }
 
-            # Get embedding from cache or compute it
-            if self.cache_enabled:
-                cached_embedding = self.cache.get(chunk_cache_key, "embeddings_chunk")
-                if cached_embedding is not None:
-                    chunk_embedding = cached_embedding
-                else:
-                    chunk_embedding = self.embedding_model.encode(chunk_text)
-                    self.cache.set(chunk_cache_key, "embeddings_chunk", chunk_embedding)
-            else:
-                chunk_embedding = self.embedding_model.encode(chunk_text)
-
-            chunk_embeddings.append(chunk_embedding)
-            valid_chunks.append(chunk)
-
-        # Convert to numpy arrays
-        chunk_embeddings_array = np.array(chunk_embeddings)
-
-        # Normalize embeddings
-        faiss.normalize_L2(query_embedding.reshape(1, -1))
-        faiss.normalize_L2(chunk_embeddings_array)
-
-        # Compute similarities and get top_k matches
-        similarities = chunk_embeddings_array @ query_embedding.T
-        indices = np.argsort(similarities.flatten())[::-1][:top_k]
-
-        # Return top_k relevant chunks with similarity scores
-        result = []
-        for idx in indices:
-            if idx < len(valid_chunks):
-                chunk = valid_chunks[idx].copy()
-                # Add relevance score (1.0 is best match)
-                chunk["relevance"] = float(similarities[idx][0])
-                result.append(chunk)
+        # Cache the result if enabled
+        if self.cache_enabled:
+            cache_key = self._generate_cache_key(file_path)
+            self.cache.set(cache_key, result)
 
         return result
 
-    def _keyword_match_chunks(
-        self, query: str, chunks: List[Dict[str, Any]], top_k: int = 5
+    def process_document(self, file_path: str, **kwargs) -> Dict[str, Any]:
+        """Process a document (wrapper around process_file for backward compatibility)"""
+        return self.process_file(file_path, **kwargs)
+
+    def get_relevant_chunks(
+        self, query: str, document_chunks: List[Dict[str, Any]], top_k: int = 5
     ) -> List[Dict[str, Any]]:
-        """Fallback method for finding relevant chunks using keyword matching."""
-        # Simple keyword matching algorithm
-        query_terms = query.lower().split()
-        chunk_scores = []
+        """Get the most relevant chunks for a query using embeddings if available"""
+        if not document_chunks:
+            return []
 
-        for chunk in chunks:
-            text = chunk["text"].lower()
-            score = 0
-            for term in query_terms:
-                if term in text:
-                    term_count = text.count(term)
-                    term_score = term_count / len(text.split())
-                    score += term_score
+        # If we have embeddings available, use semantic search
+        if self.embeddings_available:
+            try:
+                # Generate query embedding
+                query_embedding = self.embedding_engine.encode(query).tolist()
 
-            # Normalize by number of terms
-            if query_terms:
-                score /= len(query_terms)
+                # Calculate similarity for each chunk
+                for chunk in document_chunks:
+                    # Skip chunks without embeddings
+                    if "embedding" not in chunk:
+                        chunk["relevance"] = 0
+                        continue
 
-            chunk_scores.append((chunk, score))
+                    # Calculate cosine similarity
+                    dot_product = sum(
+                        a * b for a, b in zip(query_embedding, chunk["embedding"])
+                    )
+                    magnitude1 = sum(a**2 for a in query_embedding) ** 0.5
+                    magnitude2 = sum(b**2 for b in chunk["embedding"]) ** 0.5
 
-        # Sort by score (descending)
-        chunk_scores.sort(key=lambda x: x[1], reverse=True)
+                    if magnitude1 * magnitude2 == 0:
+                        chunk["relevance"] = 0
+                    else:
+                        chunk["relevance"] = dot_product / (magnitude1 * magnitude2)
 
-        # Get top_k chunks
-        results = []
-        for chunk, score in chunk_scores[:top_k]:
-            chunk_copy = chunk.copy()
-            chunk_copy["relevance"] = score
-            results.append(chunk_copy)
+                # Sort by relevance and return top_k
+                sorted_chunks = sorted(
+                    document_chunks, key=lambda x: x.get("relevance", 0), reverse=True
+                )
+                return sorted_chunks[:top_k]
 
-        return results
+            except Exception as e:
+                self.logger.warning(f"Error in semantic search: {e}")
+                # Fall back to keyword search
+
+        # Simple keyword-based relevance as fallback
+        query_keywords = set(re.findall(r"\w+", query.lower()))
+
+        for chunk in document_chunks:
+            text = chunk.get("text", "").lower()
+            text_keywords = set(re.findall(r"\w+", text))
+
+            # Calculate simple keyword overlap score
+            overlap = len(query_keywords.intersection(text_keywords))
+            chunk["relevance"] = overlap / max(1, len(query_keywords))
+
+        # Sort by relevance and return top_k
+        sorted_chunks = sorted(
+            document_chunks, key=lambda x: x.get("relevance", 0), reverse=True
+        )
+        return sorted_chunks[:top_k]
+
+    def process_query(
+        self, query: str, document_chunks: List[Dict[str, Any]], **kwargs
+    ) -> Dict[str, Any]:
+        """Process a query against document chunks and return relevant context"""
+        top_k = kwargs.get("top_k", 5)
+
+        # Get the most relevant chunks
+        relevant_chunks = self.get_relevant_chunks(query, document_chunks, top_k)
+
+        # Extract the text from relevant chunks
+        context = "\n\n".join([chunk.get("text", "") for chunk in relevant_chunks])
+
+        return {"query": query, "relevant_chunks": relevant_chunks, "context": context}
 
     def cleanup(self):
-        """Cleanup resources when done."""
-        if hasattr(self, "executor") and self.executor:
-            self.executor.shutdown()
+        """Clean up resources"""
+        # Clear the cache if enabled
+        if self.cache_enabled:
+            self.cache.clear()
 
-        # Clear memory-intensive objects
-        self.embedding_model = None
-        self.index = None
-        self.embeddings = []
-        self.chunks = []
-        self.doc_mapping = {}
-
-        self.logger.info("Document processor resources cleaned up")
+        # Free up memory used by embedding model
+        if self.embeddings_available:
+            del self.embedding_engine

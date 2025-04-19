@@ -1,0 +1,27 @@
+{
+  "ai": {
+    "defaultInstructions": "Before suggesting changes or implementing features, first review the relevant documentation. This project follows a strict documentation-first approach.",
+    "documentationPaths": [
+      "documentation/CORE_README.md",
+      "documentation/guidelines/CONTRIBUTING.md",
+      "documentation/guidelines/CODE_REVIEW.md",
+      "documentation/guidelines/DOCUMENTATION_FIRST.md",
+      "documentation/instructions/PATTERNS.md",
+      "documentation/logic/INTELLIGENCE_MULTIPLICATION.md"
+    ],
+    "projectRules": [
+      "The documentation is the single source of truth for all functionality",
+      "Check for existing implementations before creating new ones",
+      "Do not duplicate component, hook, or utility functionality",
+      "Follow established patterns for all implementations",
+      "Analysis patterns must comply with documentation/instructions/PATTERNS.md",
+      "Components should use hooks from hooks/ directory instead of reimplementing state logic",
+      "Every file containing pattern-related code must reference documentation",
+      "Files with the same name in different directories are not allowed"
+    ]
+  },
+  "editor": {
+    "formatOnSave": true,
+    "documentationFirstWarning": true
+  }
+}
