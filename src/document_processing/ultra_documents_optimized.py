@@ -364,50 +364,27 @@ class UltraDocumentsOptimized:
 
     def _read_pdf_file(self, file_path: str) -> Tuple[str, List[Dict[str, Any]]]:
         """Read a PDF file and return its content with page information"""
-        content = ""
-        pages_info = []
-
         try:
-            # Use pypdf (safer alternative to PyPDF2)
-            from pypdf import PdfReader
+            import fitz  # PyMuPDF
 
-            reader = PdfReader(file_path)
-            for i, page in enumerate(reader.pages):
-                page_text = page.extract_text()
-                if page_text:
-                    if content:
-                        content += "\n\n"
-                    content += page_text
-                    pages_info.append(
-                        {"page": i + 1, "text": page_text, "offset": len(content)}
-                    )
+            doc = fitz.open(file_path)
+            text_content = []
+            pages_info = []
 
+            for page_num in range(len(doc)):
+                page = doc[page_num]
+                text = page.get_text("text")  # Specify text extraction mode
+                text_content.append(text)
+                pages_info.append(
+                    {"page": page_num + 1, "content": text, "length": len(text)}
+                )
+
+            doc.close()
+            return "\n".join(text_content), pages_info
         except Exception as e:
-            self.logger.warning(f"Error with pypdf for {file_path}: {e}")
-
-            # Fallback to PyMuPDF if available
-            try:
-                import fitz  # PyMuPDF
-
-                doc = fitz.open(file_path)
-                for i, page in enumerate(doc):
-                    page_text = page.get_text()
-                    if page_text:
-                        if content:
-                            content += "\n\n"
-                        content += page_text
-                        pages_info.append(
-                            {"page": i + 1, "text": page_text, "offset": len(content)}
-                        )
-                doc.close()
-
-            except Exception as e2:
-                self.logger.error(f"Failed to read PDF with PyMuPDF: {e2}")
-
-        if not content:
+            self.logger.error(f"Failed to read PDF with PyMuPDF: {e}")
             self.logger.warning(f"Could not extract text from PDF: {file_path}")
-
-        return content, pages_info
+            return "", []
 
     def _read_docx_file(self, file_path: str) -> str:
         """Read a DOCX file and return its content"""
