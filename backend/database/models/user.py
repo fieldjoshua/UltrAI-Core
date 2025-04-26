@@ -6,7 +6,6 @@ This module provides the SQLAlchemy ORM model for User entities.
 
 import enum
 from datetime import datetime
-from typing import Optional
 
 from sqlalchemy import (
     Boolean,
@@ -50,6 +49,8 @@ class User(Base):
     username = Column(String, unique=True, index=True, nullable=True)
     full_name = Column(String, nullable=True)
     hashed_password = Column(String, nullable=False)
+    is_active = Column(Boolean, default=True)
+    is_superuser = Column(Boolean, default=False)
 
     # Role
     role = Column(Enum(UserRole), default=UserRole.USER, nullable=False)
@@ -74,7 +75,9 @@ class User(Base):
     analyses = relationship("Analysis", back_populates="user")
 
     def __repr__(self) -> str:
-        return f"<User {self.username or self.email}>"
+        """Return string representation of User."""
+        identifier = str(self.username) if self.username else str(self.email)
+        return f"<User {identifier}>"
 
 
 class ApiKey(Base):

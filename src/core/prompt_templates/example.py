@@ -2,8 +2,8 @@
 Example usage of the prompt templates system with UltrAI improvement actions.
 """
 
-from .session_manager import SessionManager
 from .actions import create_action
+from .session_manager import SessionManager
 
 
 def main():
@@ -314,8 +314,8 @@ def main():
         metadata={
             "current_docs": [
                 "README.md",
-                "documentation/cloud_deployment.md",
-                "documentation/archive/NEWArchive/README.md",
+                ".aicheck/actions/CORE_SYSTEM_ARCHITECTURE/supporting_docs/cloud_deployment.md",
+                ".aicheck/actions/CORE_SYSTEM_ARCHITECTURE/supporting_docs/archive/README.md",
             ],
             "needed_docs": [
                 "API Documentation",

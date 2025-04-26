@@ -19,13 +19,11 @@ from backend.database.repositories import (
     UserRepository,
 )
 
-# Create database engine
-engine = create_engine(
-    Config.DATABASE_URL,
-    echo=Config.DEBUG,
-    pool_pre_ping=True,
-    pool_recycle=3600,
-)
+# Database URL
+DATABASE_URL = "sqlite:///./app.db"
+
+# Create engine
+engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
 
 # Create session factory
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)

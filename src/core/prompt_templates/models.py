@@ -4,7 +4,7 @@ Models for the prompt template system.
 
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import List, Dict, Any
+from typing import Any, Dict, List
 
 from .actions import Action
 

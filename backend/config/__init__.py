@@ -1,30 +1,64 @@
-"""
-Configuration initialization module.
-"""
+"""Configuration module for the application."""
 
-from typing import Dict
+from pathlib import Path
+from pydantic_settings import BaseSettings
+from typing import List
+import os
 
 from .loader import load_environment_settings
-from .settings import Settings
+
+# Load settings
+settings = load_environment_settings()
+
+# Export commonly used settings
+DATABASE_URL = settings.DATABASE_URL
+DOCUMENT_STORAGE_PATH = settings.DOCUMENT_STORAGE_PATH
+ALLOWED_EXTENSIONS = settings.ALLOWED_EXTENSIONS
+JWT_SECRET_KEY = settings.JWT_SECRET_KEY
+JWT_ALGORITHM = settings.JWT_ALGORITHM
+API_V1_PREFIX = settings.API_V1_PREFIX
 
 
-def init_config() -> Dict:
-    """Initialize configuration."""
-    # Load base settings
-    base_settings = Settings()
+class Config(BaseSettings):
+    """Application configuration."""
 
-    # Load environment-specific settings
-    env_settings = load_environment_settings()
+    PROJECT_NAME: str = "Ultra"
+    API_V1_STR: str = "/api/v1"
+    BACKEND_CORS_ORIGINS: List[str] = ["*"]
 
-    # Merge settings
-    config = base_settings.dict()
-    config.update(env_settings)
+    # Database
+    DATABASE_URL: str = os.getenv("DATABASE_URL", "sqlite:///./app.db")
 
-    return config
+    # Security
+    SECRET_KEY: str = os.getenv("SECRET_KEY", "your-secret-key")
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 8  # 8 days
+
+    # Storage
+    DOCUMENT_STORAGE_PATH: str = os.getenv(
+        "DOCUMENT_STORAGE_PATH",
+        str(Path(__file__).parent.parent / "storage" / "documents"),
+    )
+
+    # Redis
+    REDIS_URL: str = os.getenv("REDIS_URL", "redis://localhost:6379")
+
+    # Logging
+    LOG_LEVEL: str = os.getenv("LOG_LEVEL", "INFO")
+
+    class Config:
+        case_sensitive = True
+        env_file = ".env"
 
 
-# Initialize configuration
-config = init_config()
+# Create config instance
+config = Config()
 
-# Export configuration
-__all__ = ["config", "init_config"]
+__all__ = [
+    "settings",
+    "DATABASE_URL",
+    "DOCUMENT_STORAGE_PATH",
+    "ALLOWED_EXTENSIONS",
+    "JWT_SECRET_KEY",
+    "JWT_ALGORITHM",
+    "API_V1_PREFIX",
+]

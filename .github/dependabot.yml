@@ -21,29 +21,34 @@ updates:
     open-pull-requests-limit: 10
     labels:
       - "dependencies"
-      - "security"
-    reviewers:
-      - "fieldjoshua"
+      - "python"
+    commit-message:
+      prefix: "pip"
+      include: "scope"
 
   # Check for updates to GitHub Actions
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
-      interval: "monthly"
-    open-pull-requests-limit: 5
+      interval: "weekly"
+    open-pull-requests-limit: 10
     labels:
       - "dependencies"
       - "github-actions"
+    commit-message:
+      prefix: "github-actions"
+      include: "scope"
 
   # Maintain dependencies for npm (JavaScript/TypeScript)
   - package-ecosystem: "npm"
-    directory: "/"
+    directory: "/frontend"
     schedule:
       interval: "weekly"
     open-pull-requests-limit: 10
     target-branch: "main"
     labels:
       - "dependencies"
+      - "javascript"
     versioning-strategy: auto
     groups:
       dev-dependencies:

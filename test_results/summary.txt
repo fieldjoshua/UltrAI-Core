@@ -1,0 +1,12 @@
+Test Results Summary
+===================
+
+Backend Tests:
+
+Frontend Tests:
+
+Integration Tests:
+<?xml version="1.0" encoding="utf-8"?><testsuites><testsuite name="pytest" errors="1" failures="0" skipped="0" tests="1" time="0.594" timestamp="2025-04-26T01:44:09.098983-07:00" hostname="Joshuas-MacBook-Pro.local"><testcase classname="" name="tests.test_integration" time="0.000"><error message="collection failure">tests/test_integration.py:24: in &lt;module&gt;
+    import fixtures
+--
+E       For further information visit https://errors.pydantic.dev/2.11/v/extra_forbidden</error></testcase></testsuite></testsuites>

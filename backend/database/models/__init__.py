@@ -4,15 +4,12 @@ Database models for the Ultra backend.
 This package contains the SQLAlchemy ORM models for database entities.
 """
 
-from backend.database.models.analysis import Analysis, AnalysisResult
-from backend.database.models.document import Document, DocumentChunk
-from backend.database.models.user import SubscriptionTier, User
+from sqlalchemy.orm import declarative_base
 
-__all__ = [
-    "User",
-    "SubscriptionTier",
-    "Document",
-    "DocumentChunk",
-    "Analysis",
-    "AnalysisResult",
-]
+Base = declarative_base()
+
+from .user import User  # noqa
+from .document import Document  # noqa
+from .analysis import Analysis  # noqa
+
+__all__ = ["Base", "User", "Document", "Analysis"]

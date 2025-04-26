@@ -1,12 +1,13 @@
 """
-Database connection module for PostgreSQL integration with SQLAlchemy.
+Database connection module for SQLite integration with SQLAlchemy.
 
-This module manages the database connection pool and provides session management
-for interacting with the PostgreSQL database.
+This module manages the database connection and provides session management
+for interacting with the SQLite database.
 """
 
 import os
 from contextlib import contextmanager
+from pathlib import Path
 from typing import Generator, Optional
 
 from sqlalchemy import create_engine, text
@@ -14,6 +15,7 @@ from sqlalchemy.engine import Engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import Session, sessionmaker
 
+from backend.config import DATABASE_URL
 from backend.utils.logging import get_logger
 
 # Set up logger
@@ -22,15 +24,9 @@ logger = get_logger("database", "logs/database.log")
 # Create declarative base for models
 Base = declarative_base()
 
-# Database connection configuration
-DB_HOST = os.environ.get("DB_HOST", "localhost")
-DB_PORT = os.environ.get("DB_PORT", "5432")
-DB_NAME = os.environ.get("DB_NAME", "ultra")
-DB_USER = os.environ.get("DB_USER", "ultrauser")
-DB_PASSWORD = os.environ.get("DB_PASSWORD", "ultrapassword")
-
-# Create database URL
-DATABASE_URL = f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
+# Ensure database directory exists
+db_dir = Path("backend/database")
+db_dir.mkdir(parents=True, exist_ok=True)
 
 # Global engine instance
 _engine: Optional[Engine] = None
@@ -49,15 +45,12 @@ def get_engine() -> Engine:
     global _engine
 
     if _engine is None:
-        logger.info(f"Creating database engine for {DB_HOST}:{DB_PORT}/{DB_NAME}")
+        logger.info("Creating SQLite database engine")
 
-        # Create engine with connection pooling
+        # Create engine
         _engine = create_engine(
             DATABASE_URL,
-            pool_size=5,
-            max_overflow=10,
-            pool_timeout=30,  # seconds
-            pool_recycle=1800,  # 30 minutes
+            connect_args={"check_same_thread": False},  # Needed for SQLite
             echo=False,  # Set to True for SQL logging (development only)
         )
 

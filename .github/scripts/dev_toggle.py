@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
-import os, sys, subprocess, shlex
+import os
+import shlex
+import subprocess
+import sys
 
 cmd = " ".join(shlex.quote(a) for a in sys.argv[1:])
 exit_code = subprocess.call(cmd, shell=True)

@@ -9,10 +9,7 @@
     "paths": {
       "@/*": ["./src/*"]
     },
-    "types": [
-      "vite/client",
-      "node"
-    ],
+    "types": ["vite/client", "node", "jest", "@testing-library/jest-dom"],
     "moduleResolution": "bundler",
     "allowImportingTsExtensions": true,
     "resolveJsonModule": true,
@@ -22,7 +19,8 @@
     "strict": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
-    "noFallthroughCasesInSwitch": true
+    "noFallthroughCasesInSwitch": true,
+    "esModuleInterop": true
   },
   "include": ["src"],
   "references": [{ "path": "./tsconfig.node.json" }]

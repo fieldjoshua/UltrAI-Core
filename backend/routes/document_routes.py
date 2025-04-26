@@ -26,7 +26,7 @@ from backend.services.document_processor import document_processor
 from backend.utils.error_handler import handle_error
 
 # Create a document router
-document_router = APIRouter(tags=["Documents"])
+document_router = APIRouter(prefix="/api", tags=["Documents"])
 
 # Configure logging
 logger = logging.getLogger("document_routes")
@@ -34,15 +34,23 @@ logger = logging.getLogger("document_routes")
 # Set document storage path from config
 DOCUMENT_STORAGE_PATH = Config.DOCUMENT_STORAGE_PATH
 
+# Define dependencies
+db_dependency = Depends(get_db)
+file_dependency = File(...)
+form_dependency = Form(...)
 
-@document_router.post("/api/upload-document", response_model=DocumentUploadResponse)
+
+@document_router.post("/documents/upload")
 async def upload_document(
-    file: UploadFile = File(...),
-    db: Session = Depends(get_db),
+    file: UploadFile = file_dependency,
+    db: Session = db_dependency,
 ):
     """Upload a document for processing."""
     try:
         # Validate file extension
+        if file.filename is None:
+            raise HTTPException(status_code=400, detail="No filename provided")
+
         file_ext = os.path.splitext(file.filename)[1].lower()
         if file_ext not in Config.ALLOWED_EXTENSIONS:
             raise HTTPException(
@@ -52,7 +60,10 @@ async def upload_document(
 
         # Generate unique filename
         file_id = str(uuid.uuid4())
-        file_path = Config.UPLOAD_DIR / f"{file_id}{file_ext}"
+        file_path = os.path.join(DOCUMENT_STORAGE_PATH, f"{file_id}{file_ext}")
+
+        # Ensure storage directory exists
+        os.makedirs(DOCUMENT_STORAGE_PATH, exist_ok=True)
 
         # Save file
         with open(file_path, "wb") as f:
@@ -66,6 +77,7 @@ async def upload_document(
             status="uploaded",
             user_id="test_user",  # TODO: Get from auth
             file_path=str(file_path),
+            uploaded_at=datetime.utcnow(),
         )
         db.add(document)
         db.commit()
@@ -82,12 +94,12 @@ async def upload_document(
         handle_error(e)
 
 
-@document_router.get("/api/documents/{document_id}", response_model=Dict[str, Any])
-async def get_document(
+@document_router.get("/documents/{document_id}/status")
+async def get_document_status(
     document_id: str,
-    db: Session = Depends(get_db),
+    db: Session = db_dependency,
 ):
-    """Get document details by ID"""
+    """Get document processing status."""
     try:
         document = db.query(Document).filter(Document.id == document_id).first()
         if not document:
@@ -95,9 +107,8 @@ async def get_document(
 
         return {
             "document_id": document.id,
-            "filename": document.filename,
             "status": document.status,
-            "uploaded_at": document.uploaded_at,
+            "processing_progress": document.processing_progress,
         }
 
     except Exception as e:
@@ -106,7 +117,7 @@ async def get_document(
 
 @document_router.get("/api/documents", response_model=List[Dict[str, Any]])
 async def list_documents(
-    db: Session = Depends(get_db),
+    db: Session = db_dependency,
 ):
     """List all documents."""
     try:
@@ -181,9 +192,9 @@ async def create_document_session(request: Request):
 
 @document_router.post("/api/upload-document-chunk")
 async def upload_document_chunk(
-    sessionId: str = Form(...),
-    chunkIndex: str = Form(...),
-    chunk: UploadFile = File(...),
+    sessionId: str = form_dependency("sessionId"),
+    chunkIndex: str = form_dependency("chunkIndex"),
+    chunk: UploadFile = file_dependency,
 ):
     """Upload a chunk of a document in a chunked upload session"""
     try:

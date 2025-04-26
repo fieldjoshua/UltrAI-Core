@@ -5,7 +5,7 @@ This directory contains API-related code for the Ultra AI Framework, including p
 ## Directory Structure
 
 - **public/**: Public API documentation, specifications, and SDKs
-  - `docs/`: API documentation and guides
+  - `.aicheck/actions/API_SPECIFICATION/supporting_docs/`: API documentation and guides
   - `spec/`: OpenAPI specifications
   - `sdks/`: Client libraries for different languages
 
@@ -34,6 +34,7 @@ The production API implementation is available in the backend directory. The spe
 
 ## Related Documentation
 
+- [API Specification](../../.aicheck/actions/API_SPECIFICATION/API_SPECIFICATION-PLAN.md)
 - [Backend Documentation](../../backend/README.md)
 - [Frontend API Integration](../../frontend/api/README.md)
 

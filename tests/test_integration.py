@@ -25,6 +25,11 @@ import fixtures
 import pkg_resources
 import testtools
 from pbr.tests import base, test_packaging
+import pytest
+import asyncio
+from datetime import datetime
+from src.orchestrator import TriLLMOrchestrator
+from src.models import ModelResponse, QualityMetrics, ResponseCache
 
 PIPFLAGS = shlex.split(os.environ.get("PIPFLAGS", ""))
 PIPVERSION = os.environ.get("PIPVERSION", "pip")
@@ -351,3 +356,135 @@ class TestLTSSupport(base.BaseTestCase):
                 "lts-support", [bin_python, "-m", "pip", "install", pbr], cwd=venv.path
             )
         )
+
+
+class MockIntegrationLLMClient:
+    def __init__(self, name, response_time=0.1):
+        self.name = name
+        self.response_time = response_time
+        self.calls = 0
+
+    async def generate(self, prompt):
+        self.calls += 1
+        await asyncio.sleep(self.response_time)
+        return f"Response from {self.name} for: {prompt}"
+
+
+@pytest.fixture
+def integration_orchestrator():
+    return TriLLMOrchestrator(
+        llama_client=MockIntegrationLLMClient("Llama", 0.1),
+        chatgpt_client=MockIntegrationLLMClient("ChatGPT", 0.2),
+        gemini_client=MockIntegrationLLMClient("Gemini", 0.3),
+        cache_enabled=True,
+    )
+
+
+@pytest.mark.asyncio
+async def test_full_pipeline(integration_orchestrator):
+    prompt = "Test full pipeline"
+    result = await integration_orchestrator.process_responses(prompt)
+
+    # Verify result structure
+    assert result["status"] == "success"
+    assert "initial_responses" in result
+    assert "meta_responses" in result
+    assert "final_synthesis" in result
+    assert "metrics" in result
+    assert "timestamp" in result
+
+    # Verify all models were called
+    assert integration_orchestrator.llama.calls > 0
+    assert integration_orchestrator.chatgpt.calls > 0
+    assert integration_orchestrator.gemini.calls > 0
+
+    # Verify metrics
+    metrics = result["metrics"]
+    assert "response_times" in metrics
+    assert "success_rates" in metrics
+    assert "token_usage" in metrics
+    assert "quality_scores" in metrics
+
+
+@pytest.mark.asyncio
+async def test_caching_integration(integration_orchestrator):
+    prompt = "Test caching integration"
+
+    # First call
+    result1 = await integration_orchestrator.process_responses(prompt)
+
+    # Second call should use cache
+    result2 = await integration_orchestrator.process_responses(prompt)
+
+    # Verify results are identical
+    assert result1["initial_responses"] == result2["initial_responses"]
+    assert result1["meta_responses"] == result2["meta_responses"]
+    assert result1["final_synthesis"] == result2["final_synthesis"]
+
+    # Verify cache was used
+    assert integration_orchestrator.llama.calls == 1
+    assert integration_orchestrator.chatgpt.calls == 1
+    assert integration_orchestrator.gemini.calls == 1
+
+
+@pytest.mark.asyncio
+async def test_quality_evaluation_integration(integration_orchestrator):
+    prompt = "Test quality evaluation integration"
+    result = await integration_orchestrator.process_responses(prompt)
+
+    # Verify quality scores in responses
+    for response in result["initial_responses"]:
+        assert "quality_scores" in response
+        scores = response["quality_scores"]
+        assert "coherence" in scores
+        assert "technical_depth" in scores
+        assert "strategic_value" in scores
+        assert "uniqueness" in scores
+        assert "average" in scores
+
+
+@pytest.mark.asyncio
+async def test_error_handling_integration(integration_orchestrator):
+    # Test with invalid prompt
+    with pytest.raises(ValueError):
+        await integration_orchestrator.process_responses("")
+
+    # Test with None prompt
+    with pytest.raises(ValueError):
+        await integration_orchestrator.process_responses(None)
+
+    # Test with whitespace prompt
+    with pytest.raises(ValueError):
+        await integration_orchestrator.process_responses("   ")
+
+
+@pytest.mark.asyncio
+async def test_metrics_integration(integration_orchestrator):
+    prompt = "Test metrics integration"
+    result = await integration_orchestrator.process_responses(prompt)
+
+    metrics = result["metrics"]
+
+    # Verify response times
+    assert len(metrics["response_times"]) > 0
+    for time in metrics["response_times"]:
+        assert isinstance(time, float)
+        assert time >= 0.0
+
+    # Verify success rates
+    for model in ["Llama", "ChatGPT", "Gemini"]:
+        assert model in metrics["success_rates"]
+        assert metrics["success_rates"][model]["success"] > 0
+        assert metrics["success_rates"][model]["total"] > 0
+
+    # Verify token usage
+    for model in ["Llama", "ChatGPT", "Gemini"]:
+        assert model in metrics["token_usage"]
+        assert metrics["token_usage"][model] > 0
+
+    # Verify quality scores
+    for model in ["Llama", "ChatGPT", "Gemini"]:
+        assert model in metrics["quality_scores"]
+        assert len(metrics["quality_scores"][model]) > 0
+        for score in metrics["quality_scores"][model]:
+            assert 0 <= score <= 1

@@ -2,8 +2,8 @@
 Standard actions for the prompt templates system.
 """
 
-from typing import Dict, Any, Optional
 from datetime import datetime
+from typing import Any, Dict, Optional
 
 
 class Action:

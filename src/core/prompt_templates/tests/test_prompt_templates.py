@@ -9,8 +9,8 @@ import tempfile
 import pytest
 
 from ..models import PromptTemplate, Session
-from ..template_manager import PromptTemplateManager
 from ..session_manager import SessionManager
+from ..template_manager import PromptTemplateManager
 
 
 @pytest.fixture

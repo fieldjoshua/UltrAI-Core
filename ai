@@ -1,0 +1,765 @@
+#!/bin/bash
+
+# UltraAICheck command interface
+# Provides a unified interface for all UltraAICheck functionality
+# Adapted for UltraAI directory structure with action directories
+
+# Include common functions
+source .aicheck/common.sh
+
+command=$1
+shift
+
+case "$command" in
+    start)
+        # Start a new AI session with context
+        session_id=$(date +%Y%m%d%H%M%S)
+        mkdir -p .aicheck/sessions/$session_id
+        
+        # Generate context from current repository state
+        git_branch=$(git branch --show-current)
+        recent_commits=$(git log -n 5 --oneline)
+        current_action=$(cat .aicheck/current_action 2>/dev/null || echo "None")
+        
+        # Add Rules reference
+        echo "=== UltraAICheck Session Start ==="
+        echo "Reference: RULES.md is the controlling document for this project"
+        echo "Current Action: $current_action"
+        echo "Actions Index: .aicheck/docs/actions_index.md"
+        echo "Check/Update Status: ./ai status"
+        echo "IMPORTANT: AI editors DO NOT need to ask for approval for any work that complies with RULES.md and is within the current Action scope"
+        
+        # Create session file with initial context
+        cat > .aicheck/sessions/$session_id/context.md << EOC
+# Session Context: $session_id
+- Branch: $git_branch
+- Current Action: $current_action
+- Recent Commits:
+$(echo "$recent_commits" | sed 's/^/  - /')
+
+## RULES Reference
+This development follows the rules defined in RULES.md, which is the controlling document.
+NOTE: AI editors should assume that approval is given for any work that complies with RULES.md and falls within the scope of the current Action.
+NO APPROVAL IS NEEDED for such work - proceed directly to implementation.
+
+## Action Status
+Current Action: $current_action
+Actions Index: .aicheck/docs/actions_index.md (source of truth for statuses)
+Update Status: Run './ai status'
+
+## Active Files
+$(find . -type f -name "*.py" -o -name "*.js" -o -name "*.html" -o -name "*.css" -o -name "*.md" -o -name "*.json" | grep -v "node_modules" | grep -v ".git" | head -n 10 | sed 's/^/- /')
+
+## Action Details
+$(if [ "$current_action" != "None" ] && [ -f ".aicheck/actions/$current_action/$current_action-PLAN.md" ]; then
+    cat ".aicheck/actions/$current_action/$current_action-PLAN.md" | head -n 20
+    echo "..."
+  else
+    echo "No current action selected or plan file not found."
+  fi)
+EOC
+
+        # Record session start
+        echo "$(date +"%Y-%m-%d %H:%M:%S") - Session started: $session_id" >> .aicheck/sessions/session_log.txt
+        echo $session_id > .aicheck/current_session
+        
+        echo "AI session started with ID: $session_id"
+        echo "Context file created at .aicheck/sessions/$session_id/context.md"
+        ;;
+        
+    prompt)
+        # Generate a prompt template
+        current_session=$(cat .aicheck/current_session 2>/dev/null || echo "")
+        current_action=$(cat .aicheck/current_action 2>/dev/null || echo "None")
+        
+        if [ -z "$current_session" ]; then
+            echo "No active session. Start a session first with './ai start'"
+            exit 1
+        fi
+        
+        prompt_file=".aicheck/sessions/$current_session/prompt_$(date +%H%M%S).md"
+        
+        cat > $prompt_file << EOT
+# AI Prompt - $(date +"%Y-%m-%d %H:%M:%S")
+
+## RULES Reference
+This development follows the rules defined in RULES.md, which is the controlling document.
+IMPORTANT: AI editors DO NOT need to ask for approval for any work that complies with RULES.md and is within the current Action scope.
+You can proceed directly with implementation for:
+- Code that implements the current Action plan
+- Documentation updates
+- Bug fixes related to the current Action
+- Tests for current Action functionality
+- Refactoring within the current Action scope
+
+## Current Action: $current_action
+Action Details: .aicheck/actions/$current_action/$current_action-PLAN.md
+Actions Index: .aicheck/docs/actions_index.md (source of truth for statuses)
+
+## Context
+<!-- Add any relevant context here -->
+
+## Task
+<!-- Describe what you want the AI to do -->
+
+## Requirements
+<!-- List specific requirements -->
+- 
+- 
+- 
+
+## Expected Output
+<!-- Describe what output you expect -->
+
+EOT
+
+        echo "Prompt template created at $prompt_file"
+        if command -v code &> /dev/null; then
+            code $prompt_file
+        else
+            echo "Open this file in your editor to complete the prompt"
+        fi
+        ;;
+        
+    status)
+        # Check current action status
+        current_action=$(cat .aicheck/current_action 2>/dev/null || echo "None")
+        current_session=$(cat .aicheck/current_session 2>/dev/null || echo "None")
+        
+        echo "=== UltraAICheck Status ==="
+        echo "RULES Reference: RULES.md is the controlling document"
+        echo "Current Action: $current_action"
+        echo "Current Session: $current_session"
+        echo "Actions Index: .aicheck/docs/actions_index.md (source of truth)"
+        
+        # Get status from actions_index.md (the source of truth)
+        if [ "$current_action" != "None" ] && [ -f ".aicheck/docs/actions_index.md" ]; then
+            action_line=$(grep -E "^\| $current_action \|" .aicheck/docs/actions_index.md)
+            if [ -n "$action_line" ]; then
+                action_status=$(echo "$action_line" | awk -F'|' '{print $3}' | xargs)
+                action_progress=$(echo "$action_line" | awk -F'|' '{print $4}' | xargs)
+                action_owner=$(echo "$action_line" | awk -F'|' '{print $5}' | xargs)
+                
+                echo ""
+                echo "=== Action Status (from index) ==="
+                echo "Status: $action_status"
+                echo "Progress: $action_progress"
+                echo "Owner: $action_owner"
+            fi
+        fi
+        
+        # Show action details
+        if [ "$current_action" != "None" ] && [ -f ".aicheck/actions/$current_action/$current_action-PLAN.md" ]; then
+            echo ""
+            echo "=== Action Details ==="
+            head -n 10 ".aicheck/actions/$current_action/$current_action-PLAN.md"
+            echo "..."
+            
+            # Check if action entry exists in index
+            if [ -f ".aicheck/docs/actions_index.md" ]; then
+                if ! grep -q "| $current_action |" ".aicheck/docs/actions_index.md"; then
+                    # Action exists but not in index - add it
+                    echo ""
+                    echo "Warning: Action $current_action exists but is not in the index."
+                    echo "Would you like to add it to the index? (y/n)"
+                    read -r add_to_index
+                    
+                    if [ "$add_to_index" == "y" ]; then
+                        # Extract status from file
+                        action_file_status=$(grep -A 5 "## Status" ".aicheck/actions/$current_action/$current_action-PLAN.md" | grep "Status:" | sed 's/Status: //')
+                        created_date=$(grep -Eo "Created: [0-9]{4}-[0-9]{2}-[0-9]{2}" ".aicheck/actions/$current_action/$current_action-PLAN.md" | sed 's/Created: //')
+                        last_updated=$(date +"%Y-%m-%d")
+                        
+                        # If still empty, set defaults
+                        if [ -z "$action_file_status" ]; then action_file_status="In Progress"; fi
+                        if [ -z "$created_date" ]; then created_date=$(date +"%Y-%m-%d"); fi
+                        
+                        # Add action to index
+                        sed -i.bak '/^| Action | Status/a\
+| '"$current_action"' | '"$action_file_status"' | 0% | UltraAI Team | '"$created_date"' | '"$last_updated"' | Standard Action | 3 |' .aicheck/docs/actions_index.md
+                        rm -f .aicheck/docs/actions_index.md.bak
+                        echo "Added $current_action to actions index with status: $action_file_status"
+                    fi
+                fi
+            fi
+        fi
+        
+        # List supporting documents
+        if [ "$current_action" != "None" ] && [ -d ".aicheck/actions/$current_action/supporting_docs" ]; then
+            echo ""
+            echo "=== Supporting Documents ==="
+            find ".aicheck/actions/$current_action/supporting_docs" -type f | sed 's/^/- /'
+        fi
+        ;;
+    
+    update-status)
+        # Update action status
+        action_name=$1
+        new_status=$2
+        
+        if [ -z "$action_name" ] || [ -z "$new_status" ]; then
+            echo "Error: Both action name and new status required"
+            echo "Usage: ./ai update-status ActionName \"New Status\""
+            exit 1
+        fi
+        
+        # Update status in the index (source of truth)
+        if [ -f ".aicheck/docs/actions_index.md" ]; then
+            if grep -q "| $action_name |" ".aicheck/docs/actions_index.md"; then
+                # Action exists in index, update it
+                last_updated=$(date +"%Y-%m-%d")
+                sed -i.bak "s/| $action_name |[^|]*|/| $action_name | $new_status |/" .aicheck/docs/actions_index.md
+                rm -f .aicheck/docs/actions_index.md.bak
+                echo "Updated status for $action_name to '$new_status' in actions index"
+            else
+                echo "Error: Action '$action_name' not found in actions index"
+                exit 1
+            fi
+        else
+            echo "Error: actions_index.md not found"
+            exit 1
+        fi
+        
+        # Also update status in the action file
+        if [ -f ".aicheck/actions/$action_name/$action_name-PLAN.md" ]; then
+            sed -i.bak "s/Status: .*/Status: $new_status/" ".aicheck/actions/$action_name/$action_name-PLAN.md"
+            rm -f ".aicheck/actions/$action_name/$action_name-PLAN.md.bak"
+            echo "Updated status in action plan to '$new_status'"
+        else
+            echo "Warning: Action plan .aicheck/actions/$action_name/$action_name-PLAN.md not found"
+        fi
+        ;;
+        
+    update-progress)
+        # Update action progress percentage
+        action_name=$1
+        new_progress=$2
+        
+        if [ -z "$action_name" ] || [ -z "$new_progress" ]; then
+            echo "Error: Both action name and progress percentage required"
+            echo "Usage: ./ai update-progress ActionName \"50%\""
+            exit 1
+        fi
+        
+        # Update progress in the index
+        if [ -f ".aicheck/docs/actions_index.md" ]; then
+            if grep -q "| $action_name |" ".aicheck/docs/actions_index.md"; then
+                # Action exists in index, update it
+                last_updated=$(date +"%Y-%m-%d")
+                
+                # Extract the line
+                action_line=$(grep -E "^\| $action_name \|" .aicheck/docs/actions_index.md)
+                status=$(echo "$action_line" | awk -F'|' '{print $3}' | xargs)
+                
+                # Replace the progress field (field 4)
+                sed -i.bak "s/| $action_name | $status |[^|]*|/| $action_name | $status | $new_progress |/" .aicheck/docs/actions_index.md
+                rm -f .aicheck/docs/actions_index.md.bak
+                echo "Updated progress for $action_name to '$new_progress' in actions index"
+            else
+                echo "Error: Action '$action_name' not found in actions index"
+                exit 1
+            fi
+        else
+            echo "Error: actions_index.md not found"
+            exit 1
+        fi
+        ;;
+        
+    end)
+        # End session with summary
+        current_session=$(cat .aicheck/current_session 2>/dev/null || echo "")
+        summary=$1
+        
+        if [ -z "$current_session" ]; then
+            echo "No active session to end"
+            exit 1
+        fi
+        
+        # Record session end with summary
+        end_time=$(date +"%Y-%m-%d %H:%M:%S")
+        echo "$end_time - Session ended: $current_session" >> .aicheck/sessions/session_log.txt
+        echo "Summary: $summary" >> .aicheck/sessions/session_log.txt
+        echo "" >> .aicheck/sessions/session_log.txt
+        
+        # Get current action
+        current_action=$(cat .aicheck/current_action 2>/dev/null || echo "None")
+        
+        # Create session summary file
+        cat > .aicheck/sessions/$current_session/summary.md << EOS
+# Session Summary: $current_session
+- End Time: $end_time
+- Summary: $summary
+
+## Actions Worked On
+$current_action
+
+## Files Modified
+$(git diff --name-only | sed 's/^/- /')
+EOS
+
+        # Ask if progress should be updated
+        if [ "$current_action" != "None" ]; then
+            echo "Would you like to update the progress for $current_action? (y/n)"
+            read -r update_progress
+            
+            if [ "$update_progress" == "y" ]; then
+                echo "Enter new progress percentage (e.g., 75%):"
+                read -r new_progress
+                
+                # Update progress in index
+                if [ -f ".aicheck/docs/actions_index.md" ] && grep -q "| $current_action |" ".aicheck/docs/actions_index.md"; then
+                    action_line=$(grep -E "^\| $current_action \|" .aicheck/docs/actions_index.md)
+                    status=$(echo "$action_line" | awk -F'|' '{print $3}' | xargs)
+                    
+                    sed -i.bak "s/| $current_action | $status |[^|]*|/| $current_action | $status | $new_progress |/" .aicheck/docs/actions_index.md
+                    rm -f .aicheck/docs/actions_index.md.bak
+                    echo "Updated progress for $current_action to $new_progress"
+                fi
+            fi
+        fi
+        
+        # Clear current session
+        rm .aicheck/current_session
+        
+        echo "Session $current_session ended"
+        echo "Summary saved to .aicheck/sessions/$current_session/summary.md"
+        ;;
+        
+    focus)
+        # Show focus rules and Action list
+        echo "=== UltraAICheck Focus Protocol ==="
+        echo "The Focus Protocol helps maintain concentration on the current Action"
+        echo "and prevents context-switching that reduces productivity."
+        
+        echo "Current Action: $(cat .aicheck/current_action 2>/dev/null || echo "None")"
+        
+        echo ""
+        echo "=== Available Actions ==="
+        
+        if [ -f ".aicheck/docs/actions_index.md" ]; then
+            grep -E "^\| [^|]+ \|" .aicheck/docs/actions_index.md | grep -v "Action | Status" | while read -r line; do
+                action_name=$(echo "$line" | awk -F'|' '{print $2}' | xargs)
+                action_status=$(echo "$line" | awk -F'|' '{print $3}' | xargs)
+                action_progress=$(echo "$line" | awk -F'|' '{print $4}' | xargs)
+                echo "$action_name: $action_status ($action_progress)"
+            done
+        else
+            # Fallback if index doesn't exist
+            find .aicheck/actions -type d -maxdepth 1 -mindepth 1 | sort | while read action_dir; do
+                action_name=$(basename "$action_dir")
+                if [ -f "$action_dir/$action_name-PLAN.md" ]; then
+                    action_status=$(grep -A 5 "## Status" "$action_dir/$action_name-PLAN.md" | grep "Status:" | sed 's/Status: //')
+                    if [ -z "$action_status" ]; then action_status="Unknown"; fi
+                    echo "$action_name: $action_status"
+                fi
+            done
+        fi
+        
+        echo ""
+        echo "=== Focus Rules ==="
+        echo "1. Stay focused on one Action at a time"
+        echo "2. Document context-switching with explicit Action identification"
+        echo "3. Create a new Action when starting a new task area"
+        echo "4. Complete or pause an Action before switching"
+        echo "5. AI editors have pre-approval for work within the current Action scope"
+        ;;
+        
+    insights)
+        # Generate productivity insights
+        echo "=== UltraAICheck Productivity Insights ==="
+        
+        # Count sessions
+        session_count=$(find .aicheck/sessions -maxdepth 1 -type d | wc -l)
+        session_count=$((session_count - 1)) # Subtract parent directory
+        
+        # Count actions
+        action_count=$(find .aicheck/actions -maxdepth 1 -type d | wc -l)
+        action_count=$((action_count - 1)) # Subtract parent directory
+        
+        # Count supporting docs
+        supporting_doc_count=$(find .aicheck/actions -path "*/supporting_docs/*" -type f | wc -l)
+        
+        # Calculate activity
+        echo "Sessions: $session_count"
+        echo "Actions: $action_count"
+        echo "Supporting Documents: $supporting_doc_count"
+        
+        # Most active day analysis
+        if [ -f ".aicheck/sessions/session_log.txt" ]; then
+            echo ""
+            echo "=== Activity Patterns ==="
+            echo "Most active days (last 2 weeks):"
+            grep "Session started" .aicheck/sessions/session_log.txt | cut -d' ' -f1 | sort | uniq -c | sort -nr | head -n 5 | 
+            while read count date; do
+                echo "$date: $count sessions"
+            done
+        fi
+        
+        # Action status breakdown
+        if [ -f ".aicheck/docs/actions_index.md" ]; then
+            echo ""
+            echo "=== Action Status Breakdown ==="
+            grep -E "^\| [^|]+ \|" .aicheck/docs/actions_index.md | grep -v "Action | Status" | awk -F'|' '{print $3}' | sort | uniq -c | 
+            while read count status; do
+                echo "$status: $count actions"
+            done
+        fi
+        
+        # Generate insights file
+        mkdir -p .aicheck/insights
+        insight_file=".aicheck/insights/insight_$(date +%Y%m%d).md"
+        cat > "$insight_file" << EOI
+# UltraAICheck Insights - $(date +"%Y-%m-%d")
+
+## Summary
+- Total Sessions: $session_count
+- Total Actions: $action_count
+- Supporting Documents: $supporting_doc_count
+
+## Action Status Summary
+$(if [ -f ".aicheck/docs/actions_index.md" ]; then
+    echo "| Status | Count |"
+    echo "|--------|-------|"
+    grep -E "^\| [^|]+ \|" .aicheck/docs/actions_index.md | grep -v "Action | Status" | awk -F'|' '{print $3}' | sort | uniq -c | while read count status; do
+        echo "| $status | $count |"
+    done
+fi)
+
+## Most Active Actions
+$(if [ -f ".aicheck/sessions/session_log.txt" ]; then
+    echo "| Action | Sessions |"
+    echo "|--------|----------|"
+    grep "Current Action:" .aicheck/sessions/session_log.txt | cut -d':' -f2 | sort | uniq -c | sort -nr | head -n 5 | 
+    while read count action; do
+        echo "| $action | $count |"
+    done
+fi)
+
+## Recommendations
+- Review documentation for most active Actions
+- Consider refactoring Actions with multiple sessions
+- Schedule focused time for the most complex Actions
+EOI
+
+        echo ""
+        echo "Detailed insights saved to $insight_file"
+        ;;
+        
+    new)
+        # Create a new Action with UltraAI directory structure
+        action_name=$1
+        
+        if [ -z "$action_name" ]; then
+            echo "Error: Action name required"
+            echo "Usage: ./ai new ActionName"
+            exit 1
+        fi
+        
+        # Check if action already exists
+        if [ -d ".aicheck/actions/$action_name" ]; then
+            echo "Error: Action '$action_name' already exists"
+            exit 1
+        fi
+        
+        # Create action directory and structure
+        mkdir -p ".aicheck/actions/$action_name/supporting_docs"
+        
+        # Create action plan file
+        cat > ".aicheck/actions/$action_name/$action_name-PLAN.md" << EOA
+# Action: $action_name
+Created: $(date +"%Y-%m-%d %H:%M:%S")
+
+## Objective
+<!-- What is the goal of this Action? -->
+
+## Context
+<!-- What is the background and why is this Action needed? -->
+
+## Requirements
+<!-- What are the specific requirements for this Action? -->
+
+## Implementation Plan
+<!-- How will this Action be implemented? -->
+
+## Status
+Status: In Progress
+EOA
+
+        # Update current action
+        echo "$action_name" > .aicheck/current_action
+        
+        # Add to actions_index.md
+        if [ -f ".aicheck/docs/actions_index.md" ]; then
+            created_date=$(date +"%Y-%m-%d")
+            
+            # Check if the table has "Progress" and "Owner" columns (UltraAI format)
+            if grep -q "Progress" ".aicheck/docs/actions_index.md"; then
+                # UltraAI format with more columns
+                sed -i.bak '/^| Action | Status/a\
+| '"$action_name"' | 🟡 WORKING | 0% | UltraAI Team | '"$created_date"' | '"$created_date"' | Standard Action | 3 |' .aicheck/docs/actions_index.md
+            else
+                # Standard format
+                sed -i.bak '/^| Action | Status/a\
+| '"$action_name"' | In Progress | '"$created_date"' | '"$created_date"' |' .aicheck/docs/actions_index.md
+            fi
+            rm -f .aicheck/docs/actions_index.md.bak
+            echo "Added $action_name to actions index"
+        else
+            # Create a new index if it doesn't exist
+            mkdir -p .aicheck/docs
+            cat > .aicheck/docs/actions_index.md << EOI
+# AICheck Actions Index
+
+This document serves as a central reference for all Actions in the project.
+This is the source of truth for action statuses.
+
+## Active Actions
+
+| Action | Status | Progress | Owner | Started | Last Updated | Authority | Priority |
+|--------|--------|----------|-------|---------|-------------|-----------|----------|
+| $action_name | 🟡 WORKING | 0% | UltraAI Team | $created_date | $created_date | Standard Action | 3 |
+
+## Action States
+
+The following status indicators are used throughout the system:
+- 🔴 **QUEUED**: Action is scheduled but waiting to start
+- 🟡 **WORKING**: Action is currently in progress
+- 🟡 **REVIEW**: Action is complete and awaiting review
+- ✅ **ACCEPTED**: Action has been completed and accepted
+- ⏸️ **PAUSED**: Action is temporarily on hold
+- ❌ **ABANDONED**: Action has been discontinued
+
+## How to Update This Index
+
+This index can be updated using the AICheck commands:
+\`\`\`bash
+./ai update-status ActionName "Status"
+./ai status
+\`\`\`
+
+You can also manually update it by editing this file directly.
+
+## Action Paths
+
+All action documents are stored in \`.aicheck/actions/[ACTION_NAME]/[ACTION_NAME]-PLAN.md\` where each action has its own directory containing the plan and all supporting documents.
+
+## Last Updated: $created_date
+EOI
+            echo "Created new actions index with $action_name"
+        fi
+        
+        echo "Created new Action: $action_name"
+        echo "Action directory: .aicheck/actions/$action_name/"
+        echo "Action plan: .aicheck/actions/$action_name/$action_name-PLAN.md"
+        echo "Supporting docs: .aicheck/actions/$action_name/supporting_docs/"
+        echo "Current action set to: $action_name"
+        
+        # Open in editor if available
+        if command -v code &> /dev/null; then
+            code ".aicheck/actions/$action_name/$action_name-PLAN.md"
+        else
+            echo "Open this file in your editor to complete the Action details"
+        fi
+        ;;
+        
+    list)
+        # List all actions and their status
+        echo "=== UltraAICheck Actions ==="
+        
+        if [ -f ".aicheck/docs/actions_index.md" ]; then
+            echo "Listing actions from actions_index.md (source of truth):"
+            echo ""
+            
+            # Check if the table has UltraAI format with progress and owner
+            if grep -q "Progress" ".aicheck/docs/actions_index.md"; then
+                # UltraAI format
+                grep -E "^\| [^|]+ \|" .aicheck/docs/actions_index.md | grep -v "Action | Status" | 
+                while read -r line; do
+                    action_name=$(echo "$line" | awk -F'|' '{print $2}' | xargs)
+                    action_status=$(echo "$line" | awk -F'|' '{print $3}' | xargs)
+                    action_progress=$(echo "$line" | awk -F'|' '{print $4}' | xargs)
+                    action_owner=$(echo "$line" | awk -F'|' '{print $5}' | xargs)
+                    started_date=$(echo "$line" | awk -F'|' '{print $6}' | xargs)
+                    updated_date=$(echo "$line" | awk -F'|' '{print $7}' | xargs)
+                    priority=$(echo "$line" | awk -F'|' '{print $9}' | xargs)
+                    echo "- $action_name: $action_status ($action_progress) - Owner: $action_owner, Priority: $priority"
+                done
+            else
+                # Standard format
+                grep -E "^\| [^|]+ \|" .aicheck/docs/actions_index.md | grep -v "Action | Status" | 
+                while read -r line; do
+                    action_name=$(echo "$line" | awk -F'|' '{print $2}' | xargs)
+                    action_status=$(echo "$line" | awk -F'|' '{print $3}' | xargs)
+                    created_date=$(echo "$line" | awk -F'|' '{print $4}' | xargs)
+                    updated_date=$(echo "$line" | awk -F'|' '{print $5}' | xargs)
+                    echo "- $action_name: $action_status (Created: $created_date, Updated: $updated_date)"
+                done
+            fi
+        else
+            echo "Error: actions_index.md not found"
+            echo "Falling back to action directories:"
+            echo ""
+            find .aicheck/actions -type d -maxdepth 1 -mindepth 1 | sort | while read action_dir; do
+                action_name=$(basename "$action_dir")
+                if [ -f "$action_dir/$action_name-PLAN.md" ]; then
+                    action_status=$(grep -A 5 "## Status" "$action_dir/$action_name-PLAN.md" | grep "Status:" | sed 's/Status: //')
+                    created_date=$(grep -Eo "Created: [0-9]{4}-[0-9]{2}-[0-9]{2}" "$action_dir/$action_name-PLAN.md" | sed 's/Created: //')
+                    if [ -z "$action_status" ]; then action_status="Unknown"; fi
+                    if [ -z "$created_date" ]; then created_date="Unknown"; fi
+                    echo "- $action_name: $action_status (Created: $created_date)"
+                fi
+            done
+        fi
+        ;;
+        
+    docs)
+        # Create or manage supporting documents for an action
+        action_name=$1
+        doc_name=$2
+        
+        if [ -z "$action_name" ]; then
+            # If no action specified, use current action
+            action_name=$(cat .aicheck/current_action 2>/dev/null || echo "")
+            if [ -z "$action_name" ]; then
+                echo "Error: No current action set and no action specified"
+                echo "Usage: ./ai docs ActionName [DocumentName]"
+                exit 1
+            fi
+        fi
+        
+        # Check if action exists
+        if [ ! -d ".aicheck/actions/$action_name" ]; then
+            echo "Error: Action '$action_name' not found"
+            exit 1
+        fi
+        
+        # If no doc name provided, list existing docs
+        if [ -z "$doc_name" ]; then
+            echo "=== Supporting Documents for $action_name ==="
+            if [ -d ".aicheck/actions/$action_name/supporting_docs" ]; then
+                find ".aicheck/actions/$action_name/supporting_docs" -type f | sed 's/^/- /'
+                
+                # Offer to create a new document
+                echo ""
+                echo "Would you like to create a new supporting document? (y/n)"
+                read -r create_new
+                
+                if [ "$create_new" == "y" ]; then
+                    echo "Enter document name (e.g., architecture_diagram.md):"
+                    read -r new_doc_name
+                    
+                    # Create the document
+                    mkdir -p ".aicheck/actions/$action_name/supporting_docs"
+                    supporting_doc=".aicheck/actions/$action_name/supporting_docs/$new_doc_name"
+                    
+                    cat > "$supporting_doc" << EOD
+# $action_name: ${new_doc_name%.*}
+Created: $(date +"%Y-%m-%d %H:%M:%S")
+
+## Overview
+
+<!-- Document content here -->
+
+## Related Documents
+- $action_name-PLAN.md (Main plan)
+
+## Last Updated: $(date +"%Y-%m-%d")
+EOD
+                    
+                    echo "Created new supporting document: $supporting_doc"
+                    if command -v code &> /dev/null; then
+                        code "$supporting_doc"
+                    else
+                        echo "Open this file in your editor to add content"
+                    fi
+                fi
+            else
+                echo "No supporting documents found. Use './ai docs $action_name document_name.md' to create one."
+            fi
+        else
+            # Create a new supporting document
+            mkdir -p ".aicheck/actions/$action_name/supporting_docs"
+            supporting_doc=".aicheck/actions/$action_name/supporting_docs/$doc_name"
+            
+            # Check if it already exists
+            if [ -f "$supporting_doc" ]; then
+                echo "Supporting document already exists: $supporting_doc"
+                if command -v code &> /dev/null; then
+                    code "$supporting_doc"
+                else
+                    echo "Open this file in your editor to edit it"
+                fi
+                exit 0
+            fi
+            
+            # Create the document
+            cat > "$supporting_doc" << EOD
+# $action_name: ${doc_name%.*}
+Created: $(date +"%Y-%m-%d %H:%M:%S")
+
+## Overview
+
+<!-- Document content here -->
+
+## Related Documents
+- $action_name-PLAN.md (Main plan)
+
+## Last Updated: $(date +"%Y-%m-%d")
+EOD
+            
+            echo "Created new supporting document: $supporting_doc"
+            if command -v code &> /dev/null; then
+                code "$supporting_doc"
+            else
+                echo "Open this file in your editor to add content"
+            fi
+        fi
+        ;;
+        
+    switch)
+        # Switch to a different action
+        action_name=$1
+        
+        if [ -z "$action_name" ]; then
+            echo "Error: Action name required"
+            echo "Usage: ./ai switch ActionName"
+            exit 1
+        fi
+        
+        # Check if action exists
+        if [ ! -d ".aicheck/actions/$action_name" ]; then
+            echo "Error: Action '$action_name' not found"
+            echo "Available actions:"
+            find .aicheck/actions -type d -maxdepth 1 -mindepth 1 | sort | while read action_dir; do
+                basename "$action_dir"
+            done
+            exit 1
+        fi
+        
+        # Update current action
+        previous_action=$(cat .aicheck/current_action 2>/dev/null || echo "None")
+        echo "$action_name" > .aicheck/current_action
+        
+        echo "Switched from '$previous_action' to '$action_name'"
+        echo "Run './ai start' to begin a new session with this action"
+        ;;
+        
+    *)
+        echo "UltraAICheck Command Interface"
+        echo "Usage: ./ai <command> [options]"
+        echo ""
+        echo "Available commands:"
+        echo "  start                Start a new AI session with context"
+        echo "  prompt               Generate a prompt template"
+        echo "  status               Check current action status"
+        echo "  update-status        Update action status in the index and file"
+        echo "  update-progress      Update action progress percentage"
+        echo "  end \"summary\"        End session with summary"
+        echo "  focus                Show focus rules and Action list"
+        echo "  insights             Generate productivity insights"
+        echo "  new ActionName       Create a new Action"
+        echo "  list                 List all actions and their status"
+        echo "  docs ActionName [Doc] Create or list supporting documents"
+        echo "  switch ActionName    Switch to a different action"
+        ;;
+esac

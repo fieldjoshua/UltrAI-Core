@@ -1,0 +1,235 @@
+#!/bin/bash
+
+# UltraAICheck Cursor Integration
+# Provides special commands for Cursor editor integration
+
+# Include common functions
+source .aicheck/common.sh
+
+command=$1
+shift
+
+case "$command" in
+    context)
+        # Generate AI context for Cursor
+        current_action=$(cat .aicheck/current_action 2>/dev/null || echo "None")
+        current_session=$(cat .aicheck/current_session 2>/dev/null || echo "None")
+        
+        # Get action status and progress from index (source of truth)
+        action_status="Unknown"
+        action_progress="Unknown"
+        if [ -f ".aicheck/docs/actions_index.md" ]; then
+            action_line=$(grep -E "^\| $current_action \|" .aicheck/docs/actions_index.md)
+            if [ -n "$action_line" ]; then
+                action_status=$(echo "$action_line" | awk -F'|' '{print $3}' | xargs)
+                # Check if we have progress column (UltraAI format)
+                if grep -q "Progress" ".aicheck/docs/actions_index.md"; then
+                    action_progress=$(echo "$action_line" | awk -F'|' '{print $4}' | xargs)
+                fi
+            fi
+        fi
+        
+        # Create a temporary context file
+        mkdir -p .aicheck/cursor
+        context_file=".aicheck/cursor/context_$(date +%H%M%S).md"
+        
+        # Generate rich context including:
+        # - Current action details
+        # - Recently modified files
+        # - Related documentation
+        cat > "$context_file" << EOC
+# Cursor AI Context - $(date +"%Y-%m-%d %H:%M:%S")
+
+## RULES Reference
+This development follows the rules defined in RULES.md, which is the controlling document.
+IMPORTANT: AI editors DO NOT need to ask for approval for any work that complies with RULES.md and falls within the scope of the current Action.
+You can proceed directly with implementation for:
+- Code that implements the current Action plan
+- Documentation updates related to the Action
+- Bug fixes within the Action scope
+- Tests for current Action functionality
+- Refactoring within the current Action scope
+
+## Current State
+- Action: $current_action
+- Action Status: $action_status
+- Action Progress: $action_progress
+- Session: $current_session
+- Actions Index: .aicheck/docs/actions_index.md (source of truth for statuses)
+- Update Status: Run './ai status'
+
+## Current Action Details
+$(if [ "$current_action" != "None" ] && [ -f ".aicheck/actions/$current_action/$current_action-PLAN.md" ]; then
+    cat ".aicheck/actions/$current_action/$current_action-PLAN.md"
+  else
+    echo "No current action selected or plan file not found."
+  fi)
+
+## Supporting Documents
+$(if [ "$current_action" != "None" ] && [ -d ".aicheck/actions/$current_action/supporting_docs" ]; then
+    echo "Available supporting documents:"
+    find ".aicheck/actions/$current_action/supporting_docs" -type f | while read -r doc; do
+        echo "- $(basename "$doc"): $doc"
+        echo "  $(head -n 1 "$doc" | sed 's/^# //')"
+    done
+  else
+    echo "No supporting documents found for this action."
+  fi)
+
+## Recently Modified Files
+$(git diff --name-only | head -n 10 | sed 's/^/- /')
+
+## Project Structure
+$(find . -type f -name "*.py" -o -name "*.js" -o -name "*.html" -o -name "*.css" -o -name "*.md" -o -name "*.json" | grep -v "node_modules" | grep -v ".git" | head -n 20 | sed 's/^/- /')
+EOC
+
+        # Copy to clipboard if xclip/pbcopy is available
+        if command -v xclip &> /dev/null; then
+            cat "$context_file" | xclip -selection clipboard
+            echo "Context copied to clipboard"
+        elif command -v pbcopy &> /dev/null; then
+            cat "$context_file" | pbcopy
+            echo "Context copied to clipboard"
+        fi
+        
+        echo "Context file created at $context_file"
+        echo "Use this context in your Cursor AI prompts"
+        ;;
+        
+    log)
+        # Log a Cursor AI session
+        summary=$1
+        current_session=$(cat .aicheck/current_session 2>/dev/null || echo "")
+        
+        if [ -z "$current_session" ]; then
+            echo "No active session, creating temporary session"
+            session_id=$(date +%Y%m%d%H%M%S)
+            mkdir -p .aicheck/sessions/$session_id
+            echo "$session_id" > .aicheck/current_session
+            current_session=$session_id
+        fi
+        
+        # Get current action
+        current_action=$(cat .aicheck/current_action 2>/dev/null || echo "None")
+        
+        # Create cursor log file
+        mkdir -p .aicheck/sessions/$current_session
+        cursor_log=".aicheck/sessions/$current_session/cursor_log_$(date +%H%M%S).md"
+        
+        cat > "$cursor_log" << EOL
+# Cursor AI Session Log - $(date +"%Y-%m-%d %H:%M:%S")
+
+## Summary
+$summary
+
+## Current Action
+$current_action
+
+## Files Affected
+$(git diff --name-only | sed 's/^/- /')
+
+## Knowledge Gained
+<!-- Add any important insights or learning points -->
+
+## Work Completed
+- Work was completed under pre-approval per RULES.md
+- Current Action: $current_action
+
+## Supporting Documents Created
+<!-- List any supporting documents created during this session -->
+
+EOL
+
+        echo "Cursor session logged to $cursor_log"
+        echo "Edit the file to add additional details"
+        
+        # Ask if progress should be updated
+        if [ "$current_action" != "None" ]; then
+            echo "Would you like to update the progress for $current_action? (y/n)"
+            read -r update_progress
+            
+            if [ "$update_progress" == "y" ]; then
+                echo "Enter new progress percentage (e.g., 75%):"
+                read -r new_progress
+                
+                # Update progress in index
+                if [ -f ".aicheck/docs/actions_index.md" ] && grep -q "| $current_action |" ".aicheck/docs/actions_index.md"; then
+                    # Check format - UltraAI or standard
+                    if grep -q "Progress" ".aicheck/docs/actions_index.md"; then
+                        # UltraAI format
+                        action_line=$(grep -E "^\| $current_action \|" .aicheck/docs/actions_index.md)
+                        status=$(echo "$action_line" | awk -F'|' '{print $3}' | xargs)
+                        
+                        sed -i.bak "s/| $current_action | $status |[^|]*|/| $current_action | $status | $new_progress |/" .aicheck/docs/actions_index.md
+                        rm -f .aicheck/docs/actions_index.md.bak
+                        echo "Updated progress for $current_action to $new_progress"
+                    fi
+                fi
+            fi
+        fi
+        ;;
+        
+    docs)
+        # Create supporting document for the current action
+        current_action=$(cat .aicheck/current_action 2>/dev/null || echo "None")
+        doc_name=$1
+        
+        if [ "$current_action" == "None" ]; then
+            echo "Error: No current action set"
+            exit 1
+        fi
+        
+        if [ -z "$doc_name" ]; then
+            echo "Error: Document name required"
+            echo "Usage: ./cursor-ai docs document_name.md"
+            exit 1
+        fi
+        
+        # Create supporting document
+        mkdir -p ".aicheck/actions/$current_action/supporting_docs"
+        supporting_doc=".aicheck/actions/$current_action/supporting_docs/$doc_name"
+        
+        # Check if it already exists
+        if [ -f "$supporting_doc" ]; then
+            echo "Supporting document already exists: $supporting_doc"
+            if command -v code &> /dev/null; then
+                code "$supporting_doc"
+            else
+                echo "Open this file in your editor to edit it"
+            fi
+            exit 0
+        fi
+        
+        # Create the document
+        cat > "$supporting_doc" << EOD
+# $current_action: ${doc_name%.*}
+Created: $(date +"%Y-%m-%d %H:%M:%S")
+
+## Overview
+
+<!-- Document content here -->
+
+## Related Documents
+- $current_action-PLAN.md (Main plan)
+
+## Last Updated: $(date +"%Y-%m-%d")
+EOD
+        
+        echo "Created new supporting document: $supporting_doc"
+        if command -v code &> /dev/null; then
+            code "$supporting_doc"
+        else
+            echo "Open this file in your editor to add content"
+        fi
+        ;;
+        
+    *)
+        echo "UltraAICheck Cursor Integration"
+        echo "Usage: ./cursor-ai <command> [options]"
+        echo ""
+        echo "Available commands:"
+        echo "  context             Generate AI context for Cursor"
+        echo "  log \"summary\"       Log a Cursor AI session"
+        echo "  docs document.md    Create a supporting document for current action"
+        ;;
+esac

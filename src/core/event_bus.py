@@ -2,12 +2,12 @@
 Event Bus - Core component responsible for event handling and communication between components.
 """
 
-from typing import Dict, List, Any, Optional, Callable
 import asyncio
 import logging
+import time
 from dataclasses import dataclass
 from enum import Enum
-import time
+from typing import Any, Callable, Dict, List, Optional
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)

@@ -74,6 +74,7 @@ class Document(Base):
     chunks = relationship(
         "DocumentChunk", back_populates="document", cascade="all, delete-orphan"
     )
+    analyses = relationship("Analysis", back_populates="document")
 
     def __repr__(self) -> str:
         return f"<Document {self.filename} ({self.uuid})>"

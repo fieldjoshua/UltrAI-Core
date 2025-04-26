@@ -4,7 +4,7 @@ This directory contains API documentation, specifications, and SDKs for the Ultr
 
 ## Directory Structure
 
-- **docs/**: API documentation
+- **.aicheck/actions/API_SPECIFICATION/supporting_docs/**: API documentation
   - Detailed endpoint descriptions
   - Authentication guidelines
   - Usage examples
@@ -79,6 +79,11 @@ The API is fully documented using OpenAPI 3.0. You can view the interactive docu
 
 1. Importing the `spec/openapi.yaml` file into tools like Swagger UI, Postman, or Insomnia
 2. Visiting the hosted API documentation at `https://api.ultra.ai/docs`
+
+## Related Documentation
+
+- [API Specification Plan](../../.aicheck/actions/API_SPECIFICATION/API_SPECIFICATION-PLAN.md)
+- [API Documentation Index](../../.aicheck/actions/API_SPECIFICATION/supporting_docs/)
 
 ## Changelog
 

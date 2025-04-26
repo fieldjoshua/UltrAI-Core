@@ -14,6 +14,9 @@
 """
 import sys
 from unittest import mock
+import pytest
+from datetime import datetime, timedelta
+from src.models import ResponseCache, ModelResponse, QualityMetrics
 
 from stevedore import _cache
 from stevedore.tests import utils
@@ -60,3 +63,97 @@ class TestCache(utils.TestCase):
         # of this test (we want to test those underlying API calls)
         ret = _cache._build_cacheable_data()
         self.assertIsInstance(ret["groups"], dict)
+
+
+@pytest.fixture
+def cache():
+    return ResponseCache(max_age_hours=1)
+
+
+@pytest.fixture
+def sample_response():
+    return ModelResponse(
+        model_name="TestModel",
+        content="Test content",
+        stage="test",
+        timestamp=datetime.now().timestamp(),
+        tokens_used=100,
+        quality=QualityMetrics(
+            coherence_score=0.8,
+            technical_depth=0.9,
+            strategic_value=0.85,
+            uniqueness=0.75,
+        ),
+    )
+
+
+def test_cache_initialization(cache):
+    assert cache.max_age_hours == 1
+    assert isinstance(cache.cache, dict)
+    assert len(cache.cache) == 0
+
+
+def test_cache_set_get(cache, sample_response):
+    key = "test_key"
+    cache.set(key, sample_response)
+    retrieved = cache.get(key)
+
+    assert retrieved is not None
+    assert retrieved.model_name == sample_response.model_name
+    assert retrieved.content == sample_response.content
+    assert retrieved.stage == sample_response.stage
+    assert retrieved.tokens_used == sample_response.tokens_used
+    assert retrieved.quality.coherence_score == sample_response.quality.coherence_score
+
+
+def test_cache_expiration(cache, sample_response):
+    key = "test_key"
+    cache.set(key, sample_response)
+
+    # Simulate time passing
+    cache.cache[key]["timestamp"] = datetime.now() - timedelta(hours=2)
+
+    # Should return None as entry is expired
+    assert cache.get(key) is None
+    assert key not in cache.cache
+
+
+def test_cache_clear_expired(cache, sample_response):
+    # Add some entries
+    cache.set("key1", sample_response)
+    cache.set("key2", sample_response)
+
+    # Make one entry expired
+    cache.cache["key1"]["timestamp"] = datetime.now() - timedelta(hours=2)
+
+    # Clear expired entries
+    cache.clear_expired()
+
+    assert "key1" not in cache.cache
+    assert "key2" in cache.cache
+
+
+def test_cache_nonexistent_key(cache):
+    assert cache.get("nonexistent_key") is None
+
+
+def test_cache_update_existing(cache, sample_response):
+    key = "test_key"
+
+    # First set
+    cache.set(key, sample_response)
+
+    # Update with new response
+    new_response = ModelResponse(
+        model_name="UpdatedModel",
+        content="Updated content",
+        stage="test",
+        timestamp=datetime.now().timestamp(),
+        tokens_used=200,
+    )
+    cache.set(key, new_response)
+
+    retrieved = cache.get(key)
+    assert retrieved.model_name == "UpdatedModel"
+    assert retrieved.content == "Updated content"
+    assert retrieved.tokens_used == 200

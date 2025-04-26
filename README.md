@@ -1,122 +1,109 @@
-# UltraAI Framework
+# UltraAI Prototype
 
-## IMPORTANT: Documentation First
+A powerful document analysis platform leveraging multiple LLM integrations.
 
-**BEFORE CREATING ANY NEW FEATURES OR MAKING CHANGES, CONSULT THE DOCUMENTATION:**
+## Features
 
-All official documentation is in the `documentation/` directory:
+- Document upload and processing
+- Multiple LLM integrations (GPT-4, Claude 3, Llama 2, Mistral, Mixtral)
+- Custom prompt input
+- Multiple analysis types:
+  - Text summarization
+  - Sentiment analysis
+  - Key points extraction
+  - Topic modeling
+  - Entity recognition
+- Modern React frontend with Material-UI
+- FastAPI backend with async processing
 
-- [RULES.md](documentation/RULES.md) - The controlling document for all project rules and standards
-- [ACTIONS_INDEX.md](documentation/ACTIONS_INDEX.md) - Index of all active actions
-- [CONFIG_DEFINITIONS.md](documentation/CONFIG_DEFINITIONS.md) - Program architecture and dependencies
+## Setup
 
-## Core Principles
+### Backend Setup
 
-1. **Documentation First**: If it isn't written down first, we don't build it
-2. **Single Action**: Only one Action may be in WORKING state at any time
-3. **Plan-Based Development**: Every Action must have a PLAN.md in its directory
-4. **Style Standards**: All code must follow established style guidelines
+1. Create a Python virtual environment:
 
-## About UltraAI
+```bash
+python -m venv .venv
+source .venv/bin/activate  # On Unix/macOS
+# or
+.venv\Scripts\activate  # On Windows
+```
 
-UltraAI is a powerful orchestration system for LLMs that leverages multiple models to enhance analysis quality and reliability through specialized analysis patterns ("feathers"). The framework enables different collaboration patterns between models, creating a system that can generate more insightful, nuanced, and reliable outputs than any single model operating independently.
+2. Install dependencies:
+
+```bash
+cd backend
+pip install -r requirements.txt
+```
+
+3. Set up environment variables:
+
+```bash
+cp .env.example .env
+# Edit .env with your API keys and configuration
+```
+
+4. Run the backend server:
+
+```bash
+uvicorn app.main:app --reload --port 8085
+```
+
+### Frontend Setup
+
+1. Install Node.js dependencies:
+
+```bash
+cd frontend
+npm install
+```
+
+2. Set up environment variables:
+
+```bash
+cp .env.example .env
+# Edit .env with your configuration
+```
+
+3. Run the development server:
+
+```bash
+npm run dev
+```
 
 ## Project Structure
 
 ```
 ultraai/
-├── Actions/             # Implementation plans for all actions
-│   ├── ACTION_NAME/     # Each action has its own directory
-│   │   ├── PLAN.md      # The action's implementation plan
-│   │   ├── Research/    # Research materials
-│   │   ├── Prototypes/  # Proof-of-concept code
-│   │   └── Design/      # Design resources
-├── documentation/       # Project documentation
-│   ├── RULES.md         # Controlling document for rules
-│   ├── ACTIONS_INDEX.md # Index of all actions
-│   ├── CONFIG_DEFINITIONS.md # Architecture definitions
-│   └── Templates/       # Documentation templates
-├── frontend/            # Frontend application
-├── backend/             # Backend API and services
-├── src/                 # Core application code
-└── tests/               # Test suite
+├── backend/
+│   ├── app/
+│   │   ├── routes/      # API endpoints
+│   │   ├── services/    # Business logic
+│   │   ├── utils/       # Utility functions
+│   │   └── database/    # Database models
+│   └── requirements.txt
+├── frontend/
+│   ├── src/
+│   │   ├── components/  # React components
+│   │   ├── services/    # API services
+│   │   ├── hooks/       # Custom hooks
+│   │   └── utils/       # Utility functions
+│   └── package.json
+└── README.md
 ```
 
-## Development Rules
+## API Documentation
 
-1. **Code Changes**:
-   - Only edit code when a matching PLAN.md exists and is in WORKING state
-   - Update PLAN.md after completing checklist items or ending work sessions
-   - Follow all style requirements (line length, formatting, etc.)
+The API documentation is available at `http://localhost:8085/docs` when the backend server is running.
 
-2. **Action Status**:
-   - QUEUED → WORKING: Start coding after committing PLAN.md
-   - WORKING → REVIEW: Implementation checklist finished
-   - REVIEW → ACCEPTED: PR approved and merged
-   - ACCEPTED → RELEASED: Feature deployed
-   - WORKING → BLOCKED: External issue stops progress
+## Contributing
 
-3. **Commit Checklist**:
-   - [ ] A PLAN.md exists and is in state WORKING
-   - [ ] This commit relates to a step listed in the plan
-   - [ ] PLAN.md updated (checkbox ticked or status changed)
-   - [ ] Only this one Action is in state WORKING
-
-## Installation Instructions
-
-To set up UltraAI locally, follow these steps:
-
-1. **Clone the repository:**
-
-   ```bash
-   git clone https://github.com/your-repo/UltraAI.git
-   cd UltraAI
-   ```
-
-2. **Install dependencies:**
-
-   ```bash
-   pip install -r requirements.txt
-   npm install
-   ```
-
-3. **Set up environment variables:**
-   Copy `.env.example` to `.env` and configure the necessary environment variables.
-
-4. **Run the application:**
-
-   ```bash
-   docker-compose up
-   ```
-
-## Usage Guidelines
-
-UltraAI can be used to orchestrate LLMs for various data analysis tasks. Here are some examples:
-
-- **Running a basic analysis:**
-
-  ```bash
-  python src/main.py --config config/basic_analysis.yaml
-  ```
-
-- **Visualizing results:**
-  Access the frontend at `http://localhost:3000` to view interactive visualizations.
-
-## Contribution Guidelines
-
-We welcome contributions from the community! Please follow these guidelines:
-
-1. Review [RULES.md](documentation/RULES.md) for project rules and standards
-2. Check [ACTIONS_INDEX.md](documentation/ACTIONS_INDEX.md) for current priorities
-3. Create or update plans following the established templates
-4. Fork the repository and create a new branch for your feature or bug fix
-5. Ensure your code adheres to the project's coding standards
-6. Submit a pull request with a clear description of your changes
-
-## Contact Information
-
-For questions or support, please contact us at [support@ultraai.com](mailto:support@ultraai.com) or join our community forum at [forum.ultraai.com](http://forum.ultraai.com).
+1. Fork the repository
+2. Create a feature branch
+3. Commit your changes
+4. Push to the branch
+5. Create a Pull Request
 
 ## License
 
-[MIT License](LICENSE)
+MIT License - see LICENSE file for details

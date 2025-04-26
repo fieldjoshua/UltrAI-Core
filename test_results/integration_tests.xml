@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites><testsuite name="pytest" errors="1" failures="0" skipped="0" tests="1" time="0.594" timestamp="2025-04-26T01:44:09.098983-07:00" hostname="Joshuas-MacBook-Pro.local"><testcase classname="" name="tests.test_integration" time="0.000"><error message="collection failure">tests/test_integration.py:24: in &lt;module&gt;
+    import fixtures
+tests/fixtures/__init__.py:8: in &lt;module&gt;
+    from backend.app.main import app
+backend/__init__.py:3: in &lt;module&gt;
+    from backend.config import settings
+backend/config/__init__.py:54: in &lt;module&gt;
+    config = Config()
+.venv/lib/python3.12/site-packages/pydantic_settings/main.py:176: in __init__
+    super().__init__(
+E   pydantic_core._pydantic_core.ValidationError: 17 validation errors for Config
+E   OPENAI_API_KEY
+E     Extra inputs are not permitted [type=extra_forbidden, input_value='sk-proj-dxz-7kPP4cCEmPTA...VXwKIlWp5bNTFGoD7YOjkUA', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.11/v/extra_forbidden
+E   ANTHROPIC_API_KEY
+E     Extra inputs are not permitted [type=extra_forbidden, input_value='sk-ant-api03-3iGqm2Pc2Gl...y8MMZH2BeXUiQ-y-66dgAAe', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.11/v/extra_forbidden
+E   GOOGLE_API_KEY
+E     Extra inputs are not permitted [type=extra_forbidden, input_value='21672155922-dlk3c4c1ag6n...s.googleusercontent.com', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.11/v/extra_forbidden
+E   PORT
+E     Extra inputs are not permitted [type=extra_forbidden, input_value='8081', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.11/v/extra_forbidden
+E   ENVIRONMENT
+E     Extra inputs are not permitted [type=extra_forbidden, input_value='development', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.11/v/extra_forbidden
+E   CORS_ORIGIN
+E     Extra inputs are not permitted [type=extra_forbidden, input_value='*', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.11/v/extra_forbidden
+E   REACT_APP_SENTRY_DSN
+E     Extra inputs are not permitted [type=extra_forbidden, input_value='your-sentry-dsn-here', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.11/v/extra_forbidden
+E   SENTRY_DSN
+E     Extra inputs are not permitted [type=extra_forbidden, input_value='your-sentry-dsn-here', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.11/v/extra_forbidden
+E   SENTRY_ENVIRONMENT
+E     Extra inputs are not permitted [type=extra_forbidden, input_value='development', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.11/v/extra_forbidden
+E   SENTRY_TRACES_SAMPLE_RATE
+E     Extra inputs are not permitted [type=extra_forbidden, input_value='1.0', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.11/v/extra_forbidden
+E   VITE_API_URL
+E     Extra inputs are not permitted [type=extra_forbidden, input_value='http://localhost:8081', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.11/v/extra_forbidden
+E   BACKEND_URL
+E     Extra inputs are not permitted [type=extra_forbidden, input_value='https://backend-jifmlyhg...ies-projects.vercel.app', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.11/v/extra_forbidden
+E   MISTRAL_API_KEY
+E     Extra inputs are not permitted [type=extra_forbidden, input_value='your-mistral-key-here', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.11/v/extra_forbidden
+E   DEEPSEEK_API_KEY
+E     Extra inputs are not permitted [type=extra_forbidden, input_value='your-deepseek-key-here', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.11/v/extra_forbidden
+E   POSTGRES_USER
+E     Extra inputs are not permitted [type=extra_forbidden, input_value='ultrauser', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.11/v/extra_forbidden
+E   POSTGRES_PASSWORD
+E     Extra inputs are not permitted [type=extra_forbidden, input_value='Cofffee014man!', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.11/v/extra_forbidden
+E   POSTGRES_DB
+E     Extra inputs are not permitted [type=extra_forbidden, input_value='ultra', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.11/v/extra_forbidden</error></testcase></testsuite></testsuites>

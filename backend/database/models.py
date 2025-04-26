@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import Column, DateTime, ForeignKey, String, Text
+from sqlalchemy import Column, DateTime, ForeignKey, String, Text, Float
 from sqlalchemy.orm import declarative_base, relationship
 
 Base = declarative_base()
@@ -15,6 +15,7 @@ class Document(Base):
     uploaded_at = Column(DateTime, nullable=False, default=datetime.utcnow)
     user_id = Column(String, nullable=False)
     file_path = Column(String, nullable=False)
+    processing_progress = Column(Float, nullable=False, default=0.0)
 
     # Relationships
     analyses = relationship("Analysis", back_populates="document")

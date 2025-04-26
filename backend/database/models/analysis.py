@@ -71,6 +71,9 @@ class Analysis(Base):
     id = Column(Integer, primary_key=True, index=True)
     uuid = Column(String, unique=True, index=True, nullable=False)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    title = Column(String, index=True)
+    content = Column(Text)
+    document_id = Column(Integer, ForeignKey("documents.id"))
 
     # Analysis metadata
     prompt = Column(Text, nullable=False)
@@ -124,6 +127,7 @@ class Analysis(Base):
 
     # Relationships
     user = relationship("User", back_populates="analyses")
+    document = relationship("Document", back_populates="analyses")
 
     def __repr__(self) -> str:
         return f"<Analysis {self.uuid}>"

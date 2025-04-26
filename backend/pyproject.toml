@@ -4,4 +4,54 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "trillm_orchestrator"
-version = "0.1" 
+version = "0.1"
+
+[tool.pylint]
+init-hook = 'import sys; sys.path.extend([".", ".venv/lib/python3.12/site-packages"])'
+disable = [
+    "C0111",  # missing-docstring
+    "C0103",  # invalid-name
+    "W0621",  # redefined-outer-name
+    "R0903",  # too-few-public-methods
+    "R0913",  # too-many-arguments
+    "W0511",  # fixme
+    "C0301",  # line-too-long
+    "C0114",  # missing-module-docstring
+    "C0115",  # missing-class-docstring
+    "C0116",  # missing-function-docstring
+    "R0901",  # too-many-ancestors
+    "W0622",  # redefined-builtin
+    "W0212",  # protected-access
+    "E1101",  # no-member
+    "R0902",  # too-many-instance-attributes
+    "W0707",  # raise-missing-from
+    "C0412",  # ungrouped-imports
+    "W0221",  # arguments-differ
+    "R0201",  # no-self-use
+    "W0613",  # unused-argument
+    "E0213",  # no-self-argument
+]
+good-names = ["i", "j", "k", "ex", "Run", "_", "id", "db", "v", "cls"]
+max-line-length = 120
+max-module-lines = 2000
+indent-string = "    "
+function-rgx = "[a-z_][a-z0-9_]{2,50}$"
+variable-rgx = "[a-z_][a-z0-9_]{2,50}$"
+class-attribute-rgx = "([A-Za-z_][A-Za-z0-9_]{2,50}|(__.*__))$"
+argument-rgx = "[a-z_][a-z0-9_]{2,50}$"
+min-similarity-lines = 7
+ignore-imports = true
+ignored-modules = ["numpy", "tensorflow", "torch", "cv2", "pygame", "PIL", "pydantic_settings", "pydantic"]
+ignored-classes = ["SQLObject", "SQLAlchemy", "scoped_session", "BaseSettings", "Settings"]
+generated-members = ["numpy.*", "torch.*", "cv2.*", "pygame.*"]
+dummy-variables-rgx = "_$|dummy"
+notes = ["FIXME", "XXX", "TODO"]
+allow-wildcard-with-all = false
+max-args = 10
+max-locals = 20
+max-returns = 10
+max-statements = 50
+max-parents = 10
+max-attributes = 15
+min-public-methods = 0
+max-public-methods = 50
