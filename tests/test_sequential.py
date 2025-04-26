@@ -1,7 +1,6 @@
 import numpy as np
 import pytest
 from numpy.testing import assert_array_equal
-
 from sklearn.cluster import KMeans
 from sklearn.datasets import make_blobs, make_classification, make_regression
 from sklearn.ensemble import HistGradientBoostingRegressor

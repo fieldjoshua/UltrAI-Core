@@ -6,7 +6,6 @@ import pytest
 from scipy import linalg, sparse
 from scipy.linalg import eigh
 from scipy.sparse.linalg import eigsh
-
 from sklearn.datasets import make_low_rank_matrix, make_sparse_spd_matrix
 from sklearn.utils import gen_batches
 from sklearn.utils._arpack import _init_arpack_v0
@@ -683,7 +682,9 @@ def test_incremental_weighted_mean_and_variance_simple(rng, dtype):
     mean, var, _ = _incremental_mean_and_var(X, 0, 0, 0, sample_weight=sample_weight)
 
     expected_mean = np.average(X, weights=sample_weight, axis=0)
-    expected_var = np.average(X**2, weights=sample_weight, axis=0) - expected_mean**2
+    expected_var = (
+        np.average(X**2, weights=sample_weight, axis=0) - expected_mean**2
+    )
     assert_almost_equal(mean, expected_mean)
     assert_almost_equal(var, expected_var)
 

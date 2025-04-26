@@ -7,15 +7,11 @@ import scipy.sparse as sp
 from numpy.testing import assert_allclose
 from scipy.optimize import check_grad
 from scipy.spatial.distance import pdist, squareform
-
 from sklearn import config_context
 from sklearn.datasets import make_blobs
 
 # mypy error: Module 'sklearn.manifold' has no attribute '_barnes_hut_tsne'
-from sklearn.manifold import (  # type: ignore
-    TSNE,
-    _barnes_hut_tsne,
-)
+from sklearn.manifold import TSNE, _barnes_hut_tsne  # type: ignore
 from sklearn.manifold._t_sne import (
     _gradient_descent,
     _joint_probabilities,

@@ -7,7 +7,6 @@ from io import StringIO
 import numpy as np
 import pytest
 from scipy import sparse as sp
-
 from sklearn.base import clone
 from sklearn.cluster import KMeans, MiniBatchKMeans, k_means, kmeans_plusplus
 from sklearn.cluster._k_means_common import (

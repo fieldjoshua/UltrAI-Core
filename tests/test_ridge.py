@@ -4,7 +4,6 @@ from itertools import product
 import numpy as np
 import pytest
 from scipy import linalg
-
 from sklearn import config_context, datasets
 from sklearn.base import clone
 from sklearn.datasets import (

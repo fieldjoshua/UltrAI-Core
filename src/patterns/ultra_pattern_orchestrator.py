@@ -28,14 +28,25 @@ from dotenv import load_dotenv
 from mistralai.async_client import MistralAsyncClient
 from mistralai.client import MistralClient
 from openai import AsyncOpenAI
-from tenacity import (retry, retry_if_exception_type, stop_after_attempt,
-                      wait_exponential)
+from tenacity import (
+    retry,
+    retry_if_exception_type,
+    stop_after_attempt,
+    wait_exponential,
+)
 
-from src.core.ultra_error_handling import (APIError, ConfigurationError, RateLimitError,
-                                           ValidationError)
-from src.patterns.ultra_analysis_patterns import (PATTERN_METADATA, AnalysisPattern,
-                                                  get_pattern_config,
-                                                  get_pattern_mapping)
+from src.core.ultra_error_handling import (
+    APIError,
+    ConfigurationError,
+    RateLimitError,
+    ValidationError,
+)
+from src.patterns.ultra_analysis_patterns import (
+    PATTERN_METADATA,
+    AnalysisPattern,
+    get_pattern_config,
+    get_pattern_mapping,
+)
 
 # Load environment variables
 load_dotenv(override=True)

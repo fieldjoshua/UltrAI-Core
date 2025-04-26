@@ -1,7 +1,6 @@
 import numpy as np
 import pytest
 from scipy.sparse import issparse
-
 from sklearn import config_context, datasets
 from sklearn.preprocessing._label import (
     LabelBinarizer,
@@ -16,10 +15,7 @@ from sklearn.utils._array_api import (
     get_namespace,
     yield_namespace_device_dtype_combinations,
 )
-from sklearn.utils._testing import (
-    _array_api_for_tests,
-    assert_array_equal,
-)
+from sklearn.utils._testing import _array_api_for_tests, assert_array_equal
 from sklearn.utils.fixes import (
     COO_CONTAINERS,
     CSC_CONTAINERS,

@@ -10,7 +10,6 @@ from itertools import cycle, product
 import joblib
 import numpy as np
 import pytest
-
 import sklearn
 from sklearn.base import BaseEstimator
 from sklearn.datasets import load_diabetes, load_iris, make_hastie_10_2

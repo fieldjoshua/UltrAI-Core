@@ -1,14 +1,8 @@
 from datetime import datetime
 
-import pytest
-from pytz import utc
-
-from pandas import (
-    DatetimeIndex,
-    Series,
-)
 import pandas._testing as tm
-
+import pytest
+from pandas import DatetimeIndex, Series
 from pandas.tseries.holiday import (
     MO,
     SA,
@@ -29,6 +23,7 @@ from pandas.tseries.holiday import (
     get_calendar,
     next_monday,
 )
+from pytz import utc
 
 
 @pytest.mark.parametrize(

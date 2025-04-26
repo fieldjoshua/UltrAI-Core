@@ -11,9 +11,8 @@ from unittest.mock import Mock
 
 import numpy as np
 import pytest
-from scipy import linalg, stats
-
 import sklearn
+from scipy import linalg, stats
 from sklearn.cluster import KMeans
 from sklearn.covariance import EmpiricalCovariance
 from sklearn.datasets import make_spd_matrix

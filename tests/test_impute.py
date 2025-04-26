@@ -7,7 +7,6 @@ import numpy as np
 import pytest
 from scipy import sparse
 from scipy.stats import kstest
-
 from sklearn import tree
 from sklearn.datasets import load_diabetes
 from sklearn.dummy import DummyRegressor

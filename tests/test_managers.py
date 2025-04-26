@@ -5,12 +5,10 @@ import os
 import subprocess
 import sys
 
-import pytest
-
-from pandas.core.dtypes.missing import array_equivalent
-
 import pandas as pd
 import pandas._testing as tm
+import pytest
+from pandas.core.dtypes.missing import array_equivalent
 from pandas.core.internals import (
     ArrayManager,
     BlockManager,

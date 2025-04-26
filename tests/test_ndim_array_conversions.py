@@ -1,6 +1,10 @@
-from sympy.tensor.array import (ImmutableDenseNDimArray,
-        ImmutableSparseNDimArray, MutableDenseNDimArray, MutableSparseNDimArray)
 from sympy.abc import x, y, z
+from sympy.tensor.array import (
+    ImmutableDenseNDimArray,
+    ImmutableSparseNDimArray,
+    MutableDenseNDimArray,
+    MutableSparseNDimArray,
+)
 
 
 def test_NDim_array_conv():

@@ -6,7 +6,6 @@ from itertools import product
 import numpy as np
 import pytest
 from numpy.testing import assert_array_equal
-
 from sklearn.datasets import load_iris
 from sklearn.utils._seq_dataset import (
     ArrayDataset32,

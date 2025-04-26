@@ -1,7 +1,7 @@
 import numpy as np
-import pytest
-
 import pandas as pd
+import pandas._testing as tm
+import pytest
 from pandas import (
     CategoricalDtype,
     CategoricalIndex,
@@ -12,7 +12,6 @@ from pandas import (
     Series,
     Timestamp,
 )
-import pandas._testing as tm
 
 
 class TestDataFrameSortIndex:

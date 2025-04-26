@@ -141,7 +141,9 @@ class ResourceAlreadyExistsException(UltraBaseException):
         code: str = "resource_already_exists",
         details: Optional[Union[List[Dict[str, Any]], Dict[str, Any]]] = None,
     ):
-        message = message or f"{resource_type} with identifier {identifier} already exists"
+        message = (
+            message or f"{resource_type} with identifier {identifier} already exists"
+        )
         resource_details = {
             "resource_type": resource_type,
             "identifier": identifier,

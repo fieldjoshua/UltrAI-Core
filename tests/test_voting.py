@@ -4,7 +4,6 @@ import re
 
 import numpy as np
 import pytest
-
 from sklearn import config_context, datasets
 from sklearn.base import BaseEstimator, ClassifierMixin, clone
 from sklearn.datasets import make_multilabel_classification

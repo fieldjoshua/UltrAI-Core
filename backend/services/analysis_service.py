@@ -5,8 +5,9 @@ creation, retrieval, and management of analysis records.
 """
 
 import logging
-from typing import List, Optional, Dict, Any
 from datetime import datetime
+from typing import Any, Dict, List, Optional
+
 from sqlalchemy.orm import Session
 
 from backend.database.repositories import AnalysisRepository
@@ -23,7 +24,9 @@ class AnalysisService:
         self.analysis_repo = AnalysisRepository()
         self.document_service = DocumentService()
 
-    def get_user_analyses(self, db: Session, user_id: str, skip: int = 0, limit: int = 100) -> List[Dict[str, Any]]:
+    def get_user_analyses(
+        self, db: Session, user_id: str, skip: int = 0, limit: int = 100
+    ) -> List[Dict[str, Any]]:
         """Get analyses for a specific user.
 
         Args:
@@ -45,7 +48,9 @@ class AnalysisService:
 
         return result
 
-    def get_document_analyses(self, db: Session, document_id: str, user_id: Optional[str] = None) -> List[Dict[str, Any]]:
+    def get_document_analyses(
+        self, db: Session, document_id: str, user_id: Optional[str] = None
+    ) -> List[Dict[str, Any]]:
         """Get analyses for a specific document.
 
         Args:
@@ -81,7 +86,7 @@ class AnalysisService:
         pattern: str,
         prompt: str,
         models: List[str],
-        options: Dict[str, Any]
+        options: Dict[str, Any],
     ) -> Dict[str, Any]:
         """Create a new analysis.
 
@@ -117,7 +122,7 @@ class AnalysisService:
         status: str,
         result: Optional[Dict[str, Any]] = None,
         error: Optional[str] = None,
-        user_id: Optional[str] = None
+        user_id: Optional[str] = None,
     ) -> Dict[str, Any]:
         """Update the status of an analysis.
 
@@ -136,9 +141,13 @@ class AnalysisService:
             PermissionError: If the user doesn't have access to the analysis
         """
         # Get the analysis and check ownership if user_id is provided
-        analysis = self.analysis_repo.get_by_id(db, analysis_id, raise_if_not_found=True)
+        analysis = self.analysis_repo.get_by_id(
+            db, analysis_id, raise_if_not_found=True
+        )
         if user_id and analysis.user_id != user_id:
-            logger.warning(f"User {user_id} attempted to update analysis {analysis_id} owned by {analysis.user_id}")
+            logger.warning(
+                f"User {user_id} attempted to update analysis {analysis_id} owned by {analysis.user_id}"
+            )
             raise PermissionError("User does not have access to this analysis")
 
         updated_analysis = self.analysis_repo.update_analysis_status(
@@ -147,7 +156,9 @@ class AnalysisService:
 
         return self._format_analysis(updated_analysis)
 
-    def get_analysis_by_id(self, db: Session, analysis_id: int, user_id: Optional[str] = None) -> Dict[str, Any]:
+    def get_analysis_by_id(
+        self, db: Session, analysis_id: int, user_id: Optional[str] = None
+    ) -> Dict[str, Any]:
         """Get an analysis by its ID.
 
         Args:
@@ -161,11 +172,15 @@ class AnalysisService:
         Raises:
             PermissionError: If the user doesn't have access to the analysis
         """
-        analysis = self.analysis_repo.get_by_id(db, analysis_id, raise_if_not_found=True)
+        analysis = self.analysis_repo.get_by_id(
+            db, analysis_id, raise_if_not_found=True
+        )
 
         # Check if the user has access to this analysis
         if user_id and analysis.user_id != user_id:
-            logger.warning(f"User {user_id} attempted to access analysis {analysis_id} owned by {analysis.user_id}")
+            logger.warning(
+                f"User {user_id} attempted to access analysis {analysis_id} owned by {analysis.user_id}"
+            )
             raise PermissionError("User does not have access to this analysis")
 
         return self._format_analysis(analysis)
@@ -187,7 +202,7 @@ class AnalysisService:
         stats = {
             "total_analyses": total,
             "pattern_counts": pattern_counts,
-            "pattern_percentages": {}
+            "pattern_percentages": {},
         }
 
         if total > 0:
@@ -213,9 +228,13 @@ class AnalysisService:
             "prompt": analysis.prompt,
             "models": analysis.models,
             "status": analysis.status,
-            "created_at": analysis.created_at.isoformat() if analysis.created_at else None,
-            "completed_at": analysis.completed_at.isoformat() if analysis.completed_at else None,
+            "created_at": analysis.created_at.isoformat()
+            if analysis.created_at
+            else None,
+            "completed_at": analysis.completed_at.isoformat()
+            if analysis.completed_at
+            else None,
             "result": analysis.result,
             "error": analysis.error,
-            "options": analysis.options
+            "options": analysis.options,
         }

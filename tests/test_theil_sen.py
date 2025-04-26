@@ -19,7 +19,6 @@ from numpy.testing import (
 )
 from scipy.linalg import norm
 from scipy.optimize import fmin_bfgs
-
 from sklearn.exceptions import ConvergenceWarning
 from sklearn.linear_model import LinearRegression, TheilSenRegressor
 from sklearn.linear_model._theil_sen import (

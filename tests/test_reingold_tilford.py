@@ -1,6 +1,5 @@
 import numpy as np
 import pytest
-
 from sklearn.tree._reingold_tilford import Tree, buchheim
 
 simple_tree = Tree("", 0, Tree("", 1), Tree("", 2))

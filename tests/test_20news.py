@@ -8,7 +8,6 @@ from unittest.mock import patch
 import numpy as np
 import pytest
 import scipy.sparse as sp
-
 from sklearn.datasets.tests.test_common import (
     check_as_frame,
     check_pandas_dependency_message,

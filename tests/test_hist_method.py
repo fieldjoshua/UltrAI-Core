@@ -2,16 +2,9 @@
 import re
 
 import numpy as np
-import pytest
-
-from pandas import (
-    DataFrame,
-    Index,
-    Series,
-    date_range,
-    to_datetime,
-)
 import pandas._testing as tm
+import pytest
+from pandas import DataFrame, Index, Series, date_range, to_datetime
 from pandas.tests.plotting.common import (
     _check_ax_scales,
     _check_axes_shape,
@@ -118,10 +111,7 @@ class TestSeriesPlots:
         _check_axes_shape(axes, axes_num=4, layout=(4, 2), figsize=(12, 7))
 
     def test_hist_no_overlap(self):
-        from matplotlib.pyplot import (
-            gcf,
-            subplot,
-        )
+        from matplotlib.pyplot import gcf, subplot
 
         x = Series(np.random.default_rng(2).standard_normal(2))
         y = Series(np.random.default_rng(2).standard_normal(2))
@@ -716,7 +706,6 @@ class TestDataFrameGroupByPlots:
 
     def test_grouped_hist_legacy_grouped_hist_kwargs(self):
         from matplotlib.patches import Rectangle
-
         from pandas.plotting._matplotlib.hist import _grouped_hist
 
         rs = np.random.default_rng(2)

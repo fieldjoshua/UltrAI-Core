@@ -1,32 +1,20 @@
 from __future__ import annotations
 
 import contextlib
-from contextlib import closing
 import csv
-from datetime import (
-    date,
-    datetime,
-    time,
-    timedelta,
-)
+import sqlite3
+import uuid
+from contextlib import closing
+from datetime import date, datetime, time, timedelta
 from io import StringIO
 from pathlib import Path
-import sqlite3
 from typing import TYPE_CHECKING
-import uuid
 
 import numpy as np
-import pytest
-
-from pandas._libs import lib
-from pandas.compat import (
-    pa_version_under13p0,
-    pa_version_under14p1,
-)
-from pandas.compat._optional import import_optional_dependency
-import pandas.util._test_decorators as td
-
 import pandas as pd
+import pandas._testing as tm
+import pandas.util._test_decorators as td
+import pytest
 from pandas import (
     DataFrame,
     Index,
@@ -39,13 +27,10 @@ from pandas import (
     to_datetime,
     to_timedelta,
 )
-import pandas._testing as tm
-from pandas.core.arrays import (
-    ArrowStringArray,
-    StringArray,
-)
-from pandas.util.version import Version
-
+from pandas._libs import lib
+from pandas.compat import pa_version_under13p0, pa_version_under14p1
+from pandas.compat._optional import import_optional_dependency
+from pandas.core.arrays import ArrowStringArray, StringArray
 from pandas.io import sql
 from pandas.io.sql import (
     SQLAlchemyEngine,
@@ -56,6 +41,7 @@ from pandas.io.sql import (
     read_sql_query,
     read_sql_table,
 )
+from pandas.util.version import Version
 
 if TYPE_CHECKING:
     import sqlalchemy
@@ -97,14 +83,7 @@ def sql_strings():
 
 def iris_table_metadata():
     import sqlalchemy
-    from sqlalchemy import (
-        Column,
-        Double,
-        Float,
-        MetaData,
-        String,
-        Table,
-    )
+    from sqlalchemy import Column, Double, Float, MetaData, String, Table
 
     dtype = Double if Version(sqlalchemy.__version__) >= Version("2.0.0") else Float
     metadata = MetaData()
@@ -327,13 +306,7 @@ def create_and_load_types(conn, types_data: list[dict], dialect: str):
 
 
 def create_and_load_postgres_datetz(conn):
-    from sqlalchemy import (
-        Column,
-        DateTime,
-        MetaData,
-        Table,
-        insert,
-    )
+    from sqlalchemy import Column, DateTime, MetaData, Table, insert
     from sqlalchemy.engine import Engine
 
     metadata = MetaData()
@@ -1128,12 +1101,7 @@ def test_read_iris_query_expression_with_parameter(conn, request):
             )
         )
     conn = request.getfixturevalue(conn)
-    from sqlalchemy import (
-        MetaData,
-        Table,
-        create_engine,
-        select,
-    )
+    from sqlalchemy import MetaData, Table, create_engine, select
 
     metadata = MetaData()
     autoload_con = create_engine(conn) if isinstance(conn, str) else conn
@@ -2566,10 +2534,7 @@ def test_query_by_text_obj(conn, request):
 def test_query_by_select_obj(conn, request):
     conn = request.getfixturevalue(conn)
     # WIP : GH10846
-    from sqlalchemy import (
-        bindparam,
-        select,
-    )
+    from sqlalchemy import bindparam, select
 
     iris = iris_table_metadata()
     name_select = select(iris).where(iris.c.Name == bindparam("name"))
@@ -3237,10 +3202,7 @@ def test_dtype(conn, request):
 
     conn = request.getfixturevalue(conn)
 
-    from sqlalchemy import (
-        TEXT,
-        String,
-    )
+    from sqlalchemy import TEXT, String
     from sqlalchemy.schema import MetaData
 
     cols = ["A", "B"]
@@ -3280,12 +3242,7 @@ def test_notna_dtype(conn, request):
     conn_name = conn
     conn = request.getfixturevalue(conn)
 
-    from sqlalchemy import (
-        Boolean,
-        DateTime,
-        Float,
-        Integer,
-    )
+    from sqlalchemy import Boolean, DateTime, Float, Integer
     from sqlalchemy.schema import MetaData
 
     cols = {
@@ -3316,11 +3273,7 @@ def test_double_precision(conn, request):
 
     conn = request.getfixturevalue(conn)
 
-    from sqlalchemy import (
-        BigInteger,
-        Float,
-        Integer,
-    )
+    from sqlalchemy import BigInteger, Float, Integer
     from sqlalchemy.schema import MetaData
 
     V = 1.23456789101112131415
@@ -3436,16 +3389,8 @@ def test_temporary_table(conn, request):
 
     conn = request.getfixturevalue(conn)
 
-    from sqlalchemy import (
-        Column,
-        Integer,
-        Unicode,
-        select,
-    )
-    from sqlalchemy.orm import (
-        Session,
-        declarative_base,
-    )
+    from sqlalchemy import Column, Integer, Unicode, select
+    from sqlalchemy.orm import Session, declarative_base
 
     test_data = "Hello, World!"
     expected = DataFrame({"spam": [test_data]})
@@ -3814,15 +3759,8 @@ def test_row_object_is_named_tuple(sqlite_engine):
     # Test for the is_named_tuple() function
     # Placed here due to its usage of sqlalchemy
 
-    from sqlalchemy import (
-        Column,
-        Integer,
-        String,
-    )
-    from sqlalchemy.orm import (
-        declarative_base,
-        sessionmaker,
-    )
+    from sqlalchemy import Column, Integer, String
+    from sqlalchemy.orm import declarative_base, sessionmaker
 
     BaseModel = declarative_base()
 

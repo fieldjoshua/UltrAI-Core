@@ -3,7 +3,6 @@ import re
 import numpy as np
 import pytest
 from numpy.testing import assert_allclose, assert_array_equal
-
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.linear_model import Ridge
 from sklearn.model_selection import (

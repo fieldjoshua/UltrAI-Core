@@ -6,18 +6,10 @@ import joblib
 import numpy as np
 import pytest
 from scipy.sparse import issparse
-
-from sklearn import (
-    config_context,
-    datasets,
-    metrics,
-    neighbors,
-)
+from sklearn import config_context, datasets, metrics, neighbors
 from sklearn.base import clone
 from sklearn.exceptions import EfficiencyWarning, NotFittedError
-from sklearn.metrics._dist_metrics import (
-    DistanceMetric,
-)
+from sklearn.metrics._dist_metrics import DistanceMetric
 from sklearn.metrics.pairwise import PAIRWISE_BOOLEAN_FUNCTIONS, pairwise_distances
 from sklearn.metrics.tests.test_dist_metrics import BOOL_METRICS
 from sklearn.metrics.tests.test_pairwise_distances_reduction import (
@@ -30,10 +22,7 @@ from sklearn.model_selection import (
     cross_val_score,
     train_test_split,
 )
-from sklearn.neighbors import (
-    VALID_METRICS_SPARSE,
-    KNeighborsRegressor,
-)
+from sklearn.neighbors import VALID_METRICS_SPARSE, KNeighborsRegressor
 from sklearn.neighbors._base import (
     KNeighborsMixin,
     _check_precomputed,
@@ -41,11 +30,7 @@ from sklearn.neighbors._base import (
     sort_graph_by_row_values,
 )
 from sklearn.pipeline import make_pipeline
-from sklearn.utils._testing import (
-    assert_allclose,
-    assert_array_equal,
-    ignore_warnings,
-)
+from sklearn.utils._testing import assert_allclose, assert_array_equal, ignore_warnings
 from sklearn.utils.fixes import (
     BSR_CONTAINERS,
     COO_CONTAINERS,

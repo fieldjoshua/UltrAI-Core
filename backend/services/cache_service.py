@@ -5,10 +5,10 @@ This module provides a Redis-based caching system for storing and retrieving
 analysis results, reducing duplicate LLM calls and improving performance.
 """
 
+import hashlib
 import json
 import os
-import hashlib
-from typing import Any, Dict, Optional, List
+from typing import Any, Dict, List, Optional
 
 import redis
 
@@ -121,7 +121,7 @@ class CacheService:
         prefix: str,
         data: Dict[str, Any],
         value: Dict[str, Any],
-        ttl: int = DEFAULT_CACHE_TTL
+        ttl: int = DEFAULT_CACHE_TTL,
     ) -> bool:
         """
         Store data in cache
@@ -224,12 +224,7 @@ class CacheService:
             Dictionary with cache stats
         """
         if not self.is_enabled():
-            return {
-                "enabled": False,
-                "keys_count": 0,
-                "memory_used": 0,
-                "hit_rate": 0
-            }
+            return {"enabled": False, "keys_count": 0, "memory_used": 0, "hit_rate": 0}
 
         try:
             # Get all cache keys
@@ -244,7 +239,7 @@ class CacheService:
                 "enabled": True,
                 "keys_count": keys_count,
                 "memory_used": memory_used,
-                "namespaces": self._count_namespaces(keys)
+                "namespaces": self._count_namespaces(keys),
             }
         except redis.RedisError as e:
             logger.error(f"Redis error during cache stats collection: {str(e)}")
@@ -252,7 +247,7 @@ class CacheService:
                 "enabled": True,
                 "error": str(e),
                 "keys_count": 0,
-                "memory_used": "0"
+                "memory_used": "0",
             }
 
     def _count_namespaces(self, keys: List[str]) -> Dict[str, int]:

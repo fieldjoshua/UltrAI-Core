@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 
+import json
 import os
 import re
+import shlex
 import subprocess
 import sys
-import json
-import shlex
 
 # Configuration
 documentation_dir = "documentation"

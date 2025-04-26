@@ -12,7 +12,6 @@ from time import sleep
 import numpy as np
 import pytest
 from scipy.sparse import issparse
-
 from sklearn import config_context
 from sklearn.base import BaseEstimator, ClassifierMixin, clone
 from sklearn.cluster import KMeans

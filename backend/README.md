@@ -1,56 +1,150 @@
-# Ultra Backend
+# UltraAI Backend
 
-This directory contains the backend server code for the Ultra AI Framework.
+## Overview
 
-## Directory Structure
+The UltraAI backend is a FastAPI-based system designed for LLM orchestration and analysis. It provides a robust API for managing LLM interactions, pattern selection, and result aggregation.
 
-- **api/**: API endpoints and routing
-  - `main.py`: FastAPI application and route definitions
-  - `error_handler.py`: Error handling middleware
+## System Architecture
 
-- **services/**: Business logic and services
-  - `pricing_*.py`: Token usage calculation and pricing services
-  - `interactive_pricing.py`: Interactive pricing models
-  - `manage_parameters.py`: Parameter management system
-  - `parameter_editor.py`: Parameter editing interface
-  - `parameter_glossary_generator.py`: Documentation generation for parameters
+### Core Components
 
-- **middleware/**: Request processing middleware
-  - Authentication, logging, etc.
+1. **LLM Integration**
+   - Handles connections to various LLM providers
+   - Manages prompt processing and response handling
+   - Supports multiple LLM models and providers
 
-- **db/**: Database models and connections
-  - Data persistence and storage
+2. **Orchestration Engine**
+   - Manages pattern selection and execution
+   - Coordinates LLM interactions
+   - Aggregates and processes results
 
-## Configuration
+3. **API Layer**
+   - RESTful API endpoints
+   - Authentication and authorization
+   - Request/response handling
 
-Backend configuration is managed through environment variables. Create a `.env` file in the backend directory with the following variables:
+4. **Data Management**
+   - Database integration
+   - Caching system
+   - Data persistence
+
+### Directory Structure
 
 ```
-PORT=8080
-ENV=development
-LOG_LEVEL=info
+backend/
+├── api/            # API endpoints and routes
+├── core/           # Core business logic
+├── config/         # Configuration management
+├── models/         # Data models
+├── services/       # Business services
+├── utils/          # Utility functions
+└── tests/          # Test suite
 ```
 
-## Running the Backend
+## Setup and Installation
 
-To run the backend server:
+### Prerequisites
+
+- Python 3.8+
+- Redis
+- SQLite (or other supported database)
+
+### Installation
+
+1. Clone the repository
+2. Create a virtual environment:
+
+   ```bash
+   python -m venv venv
+   source venv/bin/activate  # On Windows: venv\Scripts\activate
+   ```
+
+3. Install dependencies:
+
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+4. Copy `.env.example` to `.env` and configure your environment variables
+5. Initialize the database:
+
+   ```bash
+   python scripts/init_db.py
+   ```
+
+### Configuration
+
+The system uses a hierarchical configuration system:
+
+1. Base settings in `config/settings.py`
+2. Environment-specific settings in `.env`
+3. Runtime configuration through environment variables
+
+Key configuration areas:
+
+- Database connection
+- Redis settings
+- LLM provider configuration
+- Security settings
+- Logging configuration
+
+## Development
+
+### Running the Server
 
 ```bash
-cd backend
-pip install -r requirements.txt
-python -m api.main
+uvicorn app:app --reload
 ```
+
+### Running Tests
+
+```bash
+pytest
+```
+
+### Code Style
+
+The project follows strict code style guidelines:
+
+- Black for code formatting
+- isort for import sorting
+- flake8 for linting
+- mypy for type checking
 
 ## API Documentation
 
-Once running, API documentation is available at:
+Once the server is running, API documentation is available at:
 
-- Swagger UI: <http://localhost:8080/docs>
-- ReDoc: <http://localhost:8080/redoc>
+- Swagger UI: `/docs`
+- ReDoc: `/redoc`
 
-## Technologies
+## Security
 
-- FastAPI
-- Pydantic
-- SQLAlchemy (for database operations)
-- Uvicorn (ASGI server)
+The system implements several security measures:
+
+- JWT-based authentication
+- Rate limiting
+- Input validation
+- Secure password handling
+- CORS protection
+
+## Error Handling
+
+The system uses a standardized error handling approach:
+
+- Custom exception classes
+- Consistent error responses
+- Detailed error logging
+- Error recovery procedures
+
+## Contributing
+
+1. Follow the development guidelines in `documentation/DEVELOPMENT_GUIDELINES.md`
+2. Create a feature branch
+3. Make your changes
+4. Run tests and linting
+5. Submit a pull request
+
+## License
+
+[License information to be added]

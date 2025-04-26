@@ -4,7 +4,7 @@ Mock pricing service for testing.
 This module provides a mock implementation of the pricing service for testing and development.
 """
 
-from typing import Dict, Any, Optional
+from typing import Any, Dict, Optional
 
 
 class MockPricingService:
@@ -17,25 +17,38 @@ class MockPricingService:
             "free": {"analyze_limit": 10, "tokens_limit": 5000},
             "basic": {"analyze_limit": 100, "tokens_limit": 100000},
             "premium": {"analyze_limit": 1000, "tokens_limit": 1000000},
-            "enterprise": {"analyze_limit": -1, "tokens_limit": -1}
+            "enterprise": {"analyze_limit": -1, "tokens_limit": -1},
         }
         self.mock_users = {
-            "user_123": {"tier": "free", "balance": 10.0, "usage": {"requests": 5, "tokens": 2500}},
-            "user_456": {"tier": "basic", "balance": 25.0, "usage": {"requests": 50, "tokens": 50000}},
-            "user_789": {"tier": "premium", "balance": 100.0, "usage": {"requests": 500, "tokens": 500000}},
-            "admin_123": {"tier": "enterprise", "balance": 1000.0, "usage": {"requests": 0, "tokens": 0}}
+            "user_123": {
+                "tier": "free",
+                "balance": 10.0,
+                "usage": {"requests": 5, "tokens": 2500},
+            },
+            "user_456": {
+                "tier": "basic",
+                "balance": 25.0,
+                "usage": {"requests": 50, "tokens": 50000},
+            },
+            "user_789": {
+                "tier": "premium",
+                "balance": 100.0,
+                "usage": {"requests": 500, "tokens": 500000},
+            },
+            "admin_123": {
+                "tier": "enterprise",
+                "balance": 1000.0,
+                "usage": {"requests": 0, "tokens": 0},
+            },
         }
         self.pricing_rates = {
             "analyze": 0.01,  # $0.01 per analyze request
             "token": 0.00002,  # $0.00002 per token
-            "document": 0.02   # $0.02 per document operation
+            "document": 0.02,  # $0.02 per document operation
         }
 
     def authorize_request(
-        self,
-        user_id: str,
-        request_type: str,
-        details: Optional[Dict[str, Any]] = None
+        self, user_id: str, request_type: str, details: Optional[Dict[str, Any]] = None
     ) -> Dict[str, Any]:
         """
         Authorize a request based on user balance and limits
@@ -53,7 +66,7 @@ class MockPricingService:
             "authorized": True,
             "message": "Request authorized",
             "user_id": user_id,
-            "request_type": request_type
+            "request_type": request_type,
         }
 
         # If pricing is disabled, always authorize
@@ -66,7 +79,7 @@ class MockPricingService:
                 "authorized": False,
                 "message": "User not found",
                 "user_id": user_id,
-                "request_type": request_type
+                "request_type": request_type,
             }
 
         user = self.mock_users[user_id]
@@ -82,7 +95,7 @@ class MockPricingService:
                 "message": "Insufficient balance",
                 "user_id": user_id,
                 "request_type": request_type,
-                "balance": user["balance"]
+                "balance": user["balance"],
             }
 
         # Check request limits based on tier
@@ -100,7 +113,7 @@ class MockPricingService:
                     "user_id": user_id,
                     "request_type": request_type,
                     "limit": analyze_limit,
-                    "usage": current_usage
+                    "usage": current_usage,
                 }
 
         # Check token limits for certain operations
@@ -110,7 +123,10 @@ class MockPricingService:
             estimated_tokens = details["estimated_tokens"]
 
             # Check if user has reached token limit
-            if tokens_limit > 0 and current_token_usage + estimated_tokens > tokens_limit:
+            if (
+                tokens_limit > 0
+                and current_token_usage + estimated_tokens > tokens_limit
+            ):
                 return {
                     "authorized": False,
                     "message": f"Monthly token limit reached ({tokens_limit})",
@@ -118,17 +134,14 @@ class MockPricingService:
                     "request_type": request_type,
                     "limit": tokens_limit,
                     "usage": current_token_usage,
-                    "estimated": estimated_tokens
+                    "estimated": estimated_tokens,
                 }
 
         # If everything passes, authorize the request
         return result
 
     def record_usage(
-        self,
-        user_id: str,
-        request_type: str,
-        details: Optional[Dict[str, Any]] = None
+        self, user_id: str, request_type: str, details: Optional[Dict[str, Any]] = None
     ) -> Dict[str, Any]:
         """
         Record usage and charge the user for a request
@@ -147,7 +160,7 @@ class MockPricingService:
             "message": "Usage recorded",
             "user_id": user_id,
             "request_type": request_type,
-            "amount_charged": 0.0
+            "amount_charged": 0.0,
         }
 
         # If pricing is disabled, don't charge
@@ -156,11 +169,7 @@ class MockPricingService:
 
         # If user doesn't exist, return error
         if user_id not in self.mock_users:
-            return {
-                "status": "error",
-                "message": "User not found",
-                "user_id": user_id
-            }
+            return {"status": "error", "message": "User not found", "user_id": user_id}
 
         user = self.mock_users[user_id]
 
@@ -182,7 +191,9 @@ class MockPricingService:
             user["usage"]["tokens"] += token_count
 
         # Apply the charge to the user's balance
-        if charge > 0 and user["tier"] != "enterprise":  # Enterprise tier is not charged
+        if (
+            charge > 0 and user["tier"] != "enterprise"
+        ):  # Enterprise tier is not charged
             user["balance"] -= charge
 
         # Update the result with charge information
@@ -201,5 +212,5 @@ class MockPricingService:
         return {
             "pricing_enabled": self.pricing_enabled,
             "tiers": self.pricing_tiers,
-            "rates": self.pricing_rates
+            "rates": self.pricing_rates,
         }

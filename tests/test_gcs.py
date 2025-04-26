@@ -1,14 +1,12 @@
-from io import BytesIO
 import os
 import pathlib
 import tarfile
 import zipfile
+from io import BytesIO
 
 import numpy as np
+import pandas._testing as tm
 import pytest
-
-from pandas.compat.pyarrow import pa_version_under17p0
-
 from pandas import (
     DataFrame,
     Index,
@@ -18,7 +16,7 @@ from pandas import (
     read_json,
     read_parquet,
 )
-import pandas._testing as tm
+from pandas.compat.pyarrow import pa_version_under17p0
 from pandas.util import _test_decorators as td
 
 pytestmark = pytest.mark.filterwarnings(

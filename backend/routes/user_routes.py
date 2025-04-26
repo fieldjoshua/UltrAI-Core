@@ -5,15 +5,21 @@ This module provides API routes for user management and authentication.
 """
 
 import logging
-from typing import Optional, Annotated
+from typing import Annotated, Optional
 from uuid import uuid4
 
-from fastapi import APIRouter, Depends, HTTPException, Header
+from fastapi import APIRouter, Depends, Header, HTTPException
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 
 from backend.database.connection import get_db
-from backend.models.user import UserCreate, UserLogin, UserUpdate, UserResponse, TokenResponse
+from backend.models.user import (
+    TokenResponse,
+    UserCreate,
+    UserLogin,
+    UserResponse,
+    UserUpdate,
+)
 from backend.services.auth_service import auth_service
 
 # Create a router
@@ -23,7 +29,9 @@ user_router = APIRouter(tags=["Users"])
 logger = logging.getLogger("user_routes")
 
 
-async def get_current_user(authorization: Optional[str] = Header(default=None)) -> Optional[str]:
+async def get_current_user(
+    authorization: Optional[str] = Header(default=None),
+) -> Optional[str]:
     """
     Dependency to get the current user ID from the authorization header
     Returns None if no valid token is provided
@@ -49,10 +57,7 @@ CurrentUser = Annotated[Optional[str], Depends(get_current_user)]
 
 
 @user_router.post("/api/register", response_model=UserResponse)
-async def register_user(
-    user: UserCreate,
-    db: Session = Depends(get_db)
-):
+async def register_user(user: UserCreate, db: Session = Depends(get_db)):
     """Register a new user"""
     try:
         # If no user_id provided, generate one
@@ -65,13 +70,12 @@ async def register_user(
             password=user.password,
             username=user.username,
             name=user.name,
-            tier=user.tier
+            tier=user.tier,
         )
 
         if "error" in result:
             return JSONResponse(
-                status_code=400,
-                content={"status": "error", "message": result["error"]}
+                status_code=400, content={"status": "error", "message": result["error"]}
             )
 
         return result
@@ -81,10 +85,7 @@ async def register_user(
 
 
 @user_router.post("/api/login", response_model=TokenResponse)
-async def login_user(
-    login: UserLogin,
-    db: Session = Depends(get_db)
-):
+async def login_user(login: UserLogin, db: Session = Depends(get_db)):
     """Authenticate a user and return an access token"""
     try:
         # Authenticate user
@@ -93,7 +94,7 @@ async def login_user(
         if not user:
             return JSONResponse(
                 status_code=401,
-                content={"status": "error", "message": "Invalid email or password"}
+                content={"status": "error", "message": "Invalid email or password"},
             )
 
         # Create access token
@@ -101,8 +102,7 @@ async def login_user(
 
         if "error" in token:
             return JSONResponse(
-                status_code=500,
-                content={"status": "error", "message": token["error"]}
+                status_code=500, content={"status": "error", "message": token["error"]}
             )
 
         return token
@@ -113,14 +113,13 @@ async def login_user(
 
 @user_router.get("/api/user/me", response_model=UserResponse)
 async def get_current_user_profile(
-    current_user: CurrentUser,
-    db: Session = Depends(get_db)
+    current_user: CurrentUser, db: Session = Depends(get_db)
 ):
     """Get the profile of the currently authenticated user"""
     if not current_user:
         return JSONResponse(
             status_code=401,
-            content={"status": "error", "message": "Authentication required"}
+            content={"status": "error", "message": "Authentication required"},
         )
 
     try:
@@ -128,16 +127,14 @@ async def get_current_user_profile(
         user_id = int(current_user)
     except ValueError:
         return JSONResponse(
-            status_code=400,
-            content={"status": "error", "message": "Invalid user ID"}
+            status_code=400, content={"status": "error", "message": "Invalid user ID"}
         )
 
     user = auth_service.get_user(db, user_id)
 
     if not user:
         return JSONResponse(
-            status_code=404,
-            content={"status": "error", "message": "User not found"}
+            status_code=404, content={"status": "error", "message": "User not found"}
         )
 
     # Convert SQLAlchemy model to Pydantic response
@@ -152,21 +149,19 @@ async def get_current_user_profile(
         "balance": user.account_balance,
         "settings": {},  # This would come from a settings table
         "is_verified": user.is_verified,
-        "oauth_provider": user.oauth_provider
+        "oauth_provider": user.oauth_provider,
     }
 
 
 @user_router.get("/api/user/{user_id}", response_model=UserResponse)
 async def get_user_profile(
-    user_id: str,
-    current_user: CurrentUser,
-    db: Session = Depends(get_db)
+    user_id: str, current_user: CurrentUser, db: Session = Depends(get_db)
 ):
     """Get a user profile by ID (requires authentication)"""
     if not current_user:
         return JSONResponse(
             status_code=401,
-            content={"status": "error", "message": "Authentication required"}
+            content={"status": "error", "message": "Authentication required"},
         )
 
     # In a real app, you might check permissions here
@@ -177,16 +172,14 @@ async def get_user_profile(
         user_id_int = int(user_id)
     except ValueError:
         return JSONResponse(
-            status_code=400,
-            content={"status": "error", "message": "Invalid user ID"}
+            status_code=400, content={"status": "error", "message": "Invalid user ID"}
         )
 
     user = auth_service.get_user(db, user_id_int)
 
     if not user:
         return JSONResponse(
-            status_code=404,
-            content={"status": "error", "message": "User not found"}
+            status_code=404, content={"status": "error", "message": "User not found"}
         )
 
     # Convert SQLAlchemy model to Pydantic response
@@ -201,31 +194,26 @@ async def get_user_profile(
         "balance": user.account_balance,
         "settings": {},  # This would come from a settings table
         "is_verified": user.is_verified,
-        "oauth_provider": user.oauth_provider
+        "oauth_provider": user.oauth_provider,
     }
 
 
 @user_router.put("/api/user/me", response_model=UserResponse)
-async def update_user_profile(
-    user_update: UserUpdate,
-    current_user: CurrentUser
-):
+async def update_user_profile(user_update: UserUpdate, current_user: CurrentUser):
     """Update the current user's profile"""
     if not current_user:
         return JSONResponse(
             status_code=401,
-            content={"status": "error", "message": "Authentication required"}
+            content={"status": "error", "message": "Authentication required"},
         )
 
     result = auth_service.update_user(
-        user_id=current_user,
-        **user_update.dict(exclude_unset=True)
+        user_id=current_user, **user_update.dict(exclude_unset=True)
     )
 
     if "error" in result:
         return JSONResponse(
-            status_code=400,
-            content={"status": "error", "message": result["error"]}
+            status_code=400, content={"status": "error", "message": result["error"]}
         )
 
     return result

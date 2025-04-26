@@ -2,14 +2,9 @@ from datetime import datetime
 from itertools import product
 
 import numpy as np
-import pytest
-
-from pandas.core.dtypes.common import (
-    is_float_dtype,
-    is_integer_dtype,
-)
-
 import pandas as pd
+import pandas._testing as tm
+import pytest
 from pandas import (
     Categorical,
     CategoricalIndex,
@@ -24,7 +19,7 @@ from pandas import (
     cut,
     date_range,
 )
-import pandas._testing as tm
+from pandas.core.dtypes.common import is_float_dtype, is_integer_dtype
 
 
 @pytest.fixture()

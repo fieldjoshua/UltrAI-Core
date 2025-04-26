@@ -14,8 +14,7 @@ from sqlalchemy.orm import Session
 
 from backend.database.connection import get_db
 from backend.database.repositories.user import UserRepository
-from backend.models.oauth import (OAuthCodeRequest, OAuthError,
-                                  OAuthURLResponse)
+from backend.models.oauth import OAuthCodeRequest, OAuthError, OAuthURLResponse
 from backend.models.user import TokenResponse
 from backend.services.auth_service import auth_service
 from backend.services.oauth_service import oauth_service
@@ -30,8 +29,9 @@ logger = logging.getLogger("oauth_routes")
 user_repository = UserRepository()
 
 
-@oauth_router.get("/api/auth/{provider}/login",
-                   response_model=Union[OAuthURLResponse, OAuthError])
+@oauth_router.get(
+    "/api/auth/{provider}/login", response_model=Union[OAuthURLResponse, OAuthError]
+)
 async def oauth_login(provider: str):
     """
     Generate OAuth login URL for the specified provider
@@ -46,18 +46,14 @@ async def oauth_login(provider: str):
         result = await oauth_service.generate_oauth_url(provider)
 
         if "error" in result:
-            return JSONResponse(
-                status_code=400,
-                content={"error": result["error"]}
-            )
+            return JSONResponse(status_code=400, content={"error": result["error"]})
 
         return {"url": result["url"], "state": result["state"]}
 
     except Exception as e:
         logger.error(f"Error generating OAuth URL: {str(e)}")
         return JSONResponse(
-            status_code=500,
-            content={"error": f"Error generating OAuth URL: {str(e)}"}
+            status_code=500, content={"error": f"Error generating OAuth URL: {str(e)}"}
         )
 
 
@@ -67,7 +63,7 @@ async def oauth_callback(
     provider: str,
     code: str = Query(None),
     state: str = Query(None),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     """
     Handle OAuth callback from provider
@@ -100,7 +96,9 @@ async def oauth_callback(
         user_info = result["user_info"]
 
         # Check if user exists by OAuth ID
-        db_user = user_repository.get_by_oauth(db, provider, user_info.get("sub") or str(user_info.get("id")))
+        db_user = user_repository.get_by_oauth(
+            db, provider, user_info.get("sub") or str(user_info.get("id"))
+        )
 
         if not db_user:
             # Check if user exists by email
@@ -110,7 +108,9 @@ async def oauth_callback(
 
             if not db_user:
                 # Create new user
-                user_data = await oauth_service.map_provider_user_to_db_user(provider, user_info)
+                user_data = await oauth_service.map_provider_user_to_db_user(
+                    provider, user_info
+                )
 
                 # Generate random username if email exists
                 if user_data.get("email"):
@@ -126,14 +126,16 @@ async def oauth_callback(
                 db_user = user_repository.create(db, user_data)
             else:
                 # Update existing user with OAuth info
-                user_data = await oauth_service.map_provider_user_to_db_user(provider, user_info)
+                user_data = await oauth_service.map_provider_user_to_db_user(
+                    provider, user_info
+                )
                 user_repository.update(
                     db,
                     db_obj=db_user,
                     obj_in={
                         "oauth_provider": user_data["oauth_provider"],
                         "oauth_id": user_data["oauth_id"],
-                    }
+                    },
                 )
 
         # Create access token
@@ -149,11 +151,11 @@ async def oauth_callback(
         return RedirectResponse(url="/auth/error?error=Internal+server+error")
 
 
-@oauth_router.post("/api/auth/{provider}/token", response_model=Union[TokenResponse, OAuthError])
+@oauth_router.post(
+    "/api/auth/{provider}/token", response_model=Union[TokenResponse, OAuthError]
+)
 async def oauth_token(
-    provider: str,
-    request: OAuthCodeRequest,
-    db: Session = Depends(get_db)
+    provider: str, request: OAuthCodeRequest, db: Session = Depends(get_db)
 ):
     """
     Exchange OAuth code for access token (for native/mobile apps)
@@ -168,19 +170,20 @@ async def oauth_token(
     """
     try:
         # Exchange code for token and user info
-        result = await oauth_service.exchange_code_for_token(provider, request.code, request.state)
+        result = await oauth_service.exchange_code_for_token(
+            provider, request.code, request.state
+        )
 
         if "error" in result:
-            return JSONResponse(
-                status_code=400,
-                content={"error": result["error"]}
-            )
+            return JSONResponse(status_code=400, content={"error": result["error"]})
 
         # Map provider user to our user format
         user_info = result["user_info"]
 
         # Check if user exists by OAuth ID
-        db_user = user_repository.get_by_oauth(db, provider, user_info.get("sub") or str(user_info.get("id")))
+        db_user = user_repository.get_by_oauth(
+            db, provider, user_info.get("sub") or str(user_info.get("id"))
+        )
 
         if not db_user:
             # Check if user exists by email
@@ -190,7 +193,9 @@ async def oauth_token(
 
             if not db_user:
                 # Create new user
-                user_data = await oauth_service.map_provider_user_to_db_user(provider, user_info)
+                user_data = await oauth_service.map_provider_user_to_db_user(
+                    provider, user_info
+                )
 
                 # Generate random username if email exists
                 if user_data.get("email"):
@@ -206,14 +211,16 @@ async def oauth_token(
                 db_user = user_repository.create(db, user_data)
             else:
                 # Update existing user with OAuth info
-                user_data = await oauth_service.map_provider_user_to_db_user(provider, user_info)
+                user_data = await oauth_service.map_provider_user_to_db_user(
+                    provider, user_info
+                )
                 user_repository.update(
                     db,
                     db_obj=db_user,
                     obj_in={
                         "oauth_provider": user_data["oauth_provider"],
                         "oauth_id": user_data["oauth_id"],
-                    }
+                    },
                 )
 
         # Create access token
@@ -226,5 +233,5 @@ async def oauth_token(
         logger.error(f"Error in OAuth token exchange: {str(e)}")
         return JSONResponse(
             status_code=500,
-            content={"error": f"Error in OAuth token exchange: {str(e)}"}
+            content={"error": f"Error in OAuth token exchange: {str(e)}"},
         )

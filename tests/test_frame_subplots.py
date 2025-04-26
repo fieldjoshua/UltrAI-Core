@@ -3,18 +3,13 @@
 import string
 
 import numpy as np
+import pandas as pd
+import pandas._testing as tm
 import pytest
-
+from pandas import DataFrame, Series, date_range
 from pandas.compat import is_platform_linux
 from pandas.compat.numpy import np_version_gte1p24
-
-import pandas as pd
-from pandas import (
-    DataFrame,
-    Series,
-    date_range,
-)
-import pandas._testing as tm
+from pandas.io.formats.printing import pprint_thing
 from pandas.tests.plotting.common import (
     _check_axes_shape,
     _check_box_return_type,
@@ -23,8 +18,6 @@ from pandas.tests.plotting.common import (
     _check_visible,
     _flatten_visible,
 )
-
-from pandas.io.formats.printing import pprint_thing
 
 mpl = pytest.importorskip("matplotlib")
 plt = pytest.importorskip("matplotlib.pyplot")

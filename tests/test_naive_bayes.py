@@ -4,7 +4,6 @@ import warnings
 import numpy as np
 import pytest
 from scipy.special import logsumexp
-
 from sklearn.datasets import load_digits, load_iris
 from sklearn.model_selection import cross_val_score, train_test_split
 from sklearn.naive_bayes import (

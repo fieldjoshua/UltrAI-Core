@@ -4,9 +4,8 @@ import warnings
 
 import numpy as np
 import pytest
-from scipy.special import expit
-
 import sklearn
+from scipy.special import expit
 from sklearn.datasets import make_regression
 from sklearn.isotonic import (
     IsotonicRegression,

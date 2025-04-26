@@ -47,9 +47,4 @@ async def get_history():
     """Get historical metrics data"""
     history = get_metrics_history()
 
-    return JSONResponse(
-        content={
-            "status": "success",
-            "history": history
-        }
-    )
+    return JSONResponse(content={"status": "success", "history": history})

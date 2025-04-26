@@ -2,7 +2,6 @@ import re
 
 import numpy as np
 import pytest
-
 from sklearn.ensemble import (
     HistGradientBoostingClassifier,
     HistGradientBoostingRegressor,

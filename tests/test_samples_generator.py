@@ -5,7 +5,6 @@ from functools import partial
 import numpy as np
 import pytest
 import scipy.sparse as sp
-
 from sklearn.datasets import (
     make_biclusters,
     make_blobs,

@@ -6,7 +6,6 @@ import pytest
 from numpy.testing import assert_array_equal
 from scipy.linalg import block_diag
 from scipy.special import psi
-
 from sklearn.decomposition import LatentDirichletAllocation
 from sklearn.decomposition._online_lda_fast import (
     _dirichlet_expectation_1d,

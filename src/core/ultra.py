@@ -156,7 +156,6 @@ class TriLLMOrchestrator:
         output_format: str = "plain",
         ultra_engine: str = "llama",
     ):
-
         print("Initializing TriLLMOrchestrator...")
 
         self.logger = logging.getLogger(__name__)

@@ -6,7 +6,6 @@ neighbors.
 """
 
 import numpy as np
-
 from sklearn.base import clone
 from sklearn.cluster import DBSCAN, SpectralClustering
 from sklearn.cluster.tests.common import generate_clustered_data

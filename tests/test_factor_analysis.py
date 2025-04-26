@@ -5,7 +5,6 @@ from itertools import combinations
 
 import numpy as np
 import pytest
-
 from sklearn.decomposition import FactorAnalysis
 from sklearn.decomposition._factor_analysis import _ortho_rotation
 from sklearn.exceptions import ConvergenceWarning

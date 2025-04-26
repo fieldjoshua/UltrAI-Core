@@ -8,7 +8,16 @@ import enum
 from datetime import datetime
 from typing import Optional
 
-from sqlalchemy import Column, Integer, String, Float, DateTime, Enum, Boolean, ForeignKey
+from sqlalchemy import (
+    Boolean,
+    Column,
+    DateTime,
+    Enum,
+    Float,
+    ForeignKey,
+    Integer,
+    String,
+)
 from sqlalchemy.orm import relationship
 
 from backend.database.base import Base
@@ -16,6 +25,7 @@ from backend.database.base import Base
 
 class SubscriptionTier(str, enum.Enum):
     """Subscription tiers for users"""
+
     FREE = "free"
     BASIC = "basic"
     PREMIUM = "premium"
@@ -24,6 +34,7 @@ class SubscriptionTier(str, enum.Enum):
 
 class UserRole(str, enum.Enum):
     """User roles for authorization"""
+
     USER = "user"
     ADMIN = "admin"
     SUPER_ADMIN = "super_admin"
@@ -31,6 +42,7 @@ class UserRole(str, enum.Enum):
 
 class User(Base):
     """User model for authentication and billing"""
+
     __tablename__ = "users"
 
     id = Column(Integer, primary_key=True, index=True)

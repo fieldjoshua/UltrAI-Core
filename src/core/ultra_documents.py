@@ -13,7 +13,6 @@ import fitz  # PyMuPDF
 import numpy as np
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from sentence_transformers import SentenceTransformer
-
 from ultra_base import UltraBase
 
 

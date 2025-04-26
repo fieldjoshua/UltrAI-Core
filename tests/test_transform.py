@@ -1,12 +1,8 @@
 """ test with the .transform """
 import numpy as np
-import pytest
-
-from pandas._libs import lib
-
-from pandas.core.dtypes.common import ensure_platform_int
-
 import pandas as pd
+import pandas._testing as tm
+import pytest
 from pandas import (
     Categorical,
     DataFrame,
@@ -17,7 +13,8 @@ from pandas import (
     concat,
     date_range,
 )
-import pandas._testing as tm
+from pandas._libs import lib
+from pandas.core.dtypes.common import ensure_platform_int
 from pandas.tests.groupby import get_groupby_method_args
 
 

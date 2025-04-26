@@ -5,9 +5,8 @@ import google.generativeai as genai
 import requests
 from openai import AsyncOpenAI
 from tenacity import retry, stop_after_attempt, wait_exponential
-from ultra_documents import UltraDocuments
-
 from ultra_base import PromptTemplate, RateLimits, UltraBase
+from ultra_documents import UltraDocuments
 
 
 class UltraLLM(UltraBase):

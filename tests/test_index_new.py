@@ -1,18 +1,12 @@
 """
 Tests for the Index constructor conducting inference.
 """
-from datetime import (
-    datetime,
-    timedelta,
-    timezone,
-)
+from datetime import datetime, timedelta, timezone
 from decimal import Decimal
 
 import numpy as np
+import pandas._testing as tm
 import pytest
-
-from pandas._libs.tslibs.timezones import maybe_get_tz
-
 from pandas import (
     NA,
     Categorical,
@@ -31,7 +25,7 @@ from pandas import (
     period_range,
     timedelta_range,
 )
-import pandas._testing as tm
+from pandas._libs.tslibs.timezones import maybe_get_tz
 
 
 class TestIndexConstructorInference:

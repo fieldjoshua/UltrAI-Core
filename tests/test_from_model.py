@@ -4,7 +4,6 @@ from unittest.mock import Mock
 
 import numpy as np
 import pytest
-
 from sklearn import datasets
 from sklearn.base import BaseEstimator
 from sklearn.cross_decomposition import CCA, PLSCanonical, PLSRegression

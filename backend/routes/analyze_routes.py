@@ -8,26 +8,44 @@ This module provides API routes for analyzing prompts with various models.
 
 import json
 import logging
+
 # import os # Removed unused import
 # import sys # No longer used, assuming app structure handles path
 import time
+
 # import traceback # Removed unused import
 # from datetime import datetime # Removed unused import
-from typing import List, Optional # Removed Any, Dict, Union
+from typing import List, Optional, Dict, Any
 
-from fastapi import APIRouter, BackgroundTasks, Body, Depends, File, Form, HTTPException, Request, UploadFile # Removed Query
+from fastapi import (
+    File,
+    APIRouter,
+    BackgroundTasks,
+    Body,
+    Depends,
+    Form,
+    HTTPException,
+    Request,
+    UploadFile,
+)
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 
 from backend.config import Config
-from backend.models import analysis as models
-from backend.utils.cache import response_cache, generate_cache_key
-from backend.utils.metrics import performance_metrics, update_metrics_history, processing_times
 from backend.database.connection import get_db
+from backend.database.models import User, Analysis, Document
 from backend.decorators.cache_decorator import cached
-from backend.database.models import User
+from backend.models import analysis as models
 from backend.services.auth_service import auth_service
 from backend.services.cache_service import cache_service
+from backend.services.llm_service import LLMService, MockLLMService
+from backend.utils.cache import generate_cache_key, response_cache
+from backend.utils.metrics import (
+    performance_metrics,
+    processing_times,
+    update_metrics_history,
+)
+from backend.utils.error_handler import handle_error
 
 # Import the mock service for development
 from backend.services.mock_llm_service import MockLLMService
@@ -35,19 +53,23 @@ from backend.services.mock_llm_service import MockLLMService
 # Check if PatternOrchestrator is available, use mock if not
 try:
     from backend.integrations.pattern_orchestrator import PatternOrchestrator
+
     ORCHESTRATOR_AVAILABLE = True
 except ImportError:
     ORCHESTRATOR_AVAILABLE = False
     from backend.services.mock_llm_service import MockLLMService
+
     mock_service = MockLLMService()
 
 # Check if PricingIntegration is available, use mock if not
 try:
     from backend.integrations.pricing import PricingIntegration
+
     PRICING_INTEGRATION_AVAILABLE = True
 except ImportError:
     PRICING_INTEGRATION_AVAILABLE = False
     from backend.services.mock_pricing_service import MockPricingService
+
     mock_pricing = MockPricingService()
 
 # Configure logging
@@ -77,7 +99,10 @@ PATTERN_NAME_MAPPING = {
     "custom": "custom_pattern",
 }
 
-async def get_current_user(request: Request, db: Session = Depends(get_db)) -> Optional[User]:
+
+async def get_current_user(
+    request: Request, db: Session = Depends(get_db)
+) -> Optional[User]:
     """
     Get the current user from the request
 
@@ -114,12 +139,14 @@ async def get_current_user(request: Request, db: Session = Depends(get_db)) -> O
 
 
 @analyze_router.post("/api/analyze")
-@cached(prefix="analyze", ttl=60*60*24)  # Cache for 24 hours
+@cached(prefix="analyze", ttl=60 * 60 * 24)  # Cache for 24 hours
 async def analyze_prompt(
     request: Request,
-    analysis_request: models.AnalysisRequest, # Ensure this model uses selected_models, ultra_model
-    user_id: Optional[str] = Body(None, description="User ID"), # Keep user_id if needed
-    db: Session = Depends(get_db)
+    analysis_request: models.AnalysisRequest,  # Ensure this model uses selected_models, ultra_model
+    user_id: Optional[str] = Body(
+        None, description="User ID"
+    ),  # Keep user_id if needed
+    db: Session = Depends(get_db),
 ):
     """
     Analyze a prompt using multiple LLMs and an Ultra LLM
@@ -144,23 +171,27 @@ async def analyze_prompt(
         if not analysis_request.prompt:
             return JSONResponse(
                 status_code=400,
-                content={"status": "error", "message": "Prompt is required"}
+                content={"status": "error", "message": "Prompt is required"},
             )
 
         if not analysis_request.selected_models:
             return JSONResponse(
                 status_code=400,
-                content={"status": "error", "message": "Selected models are required"}
+                content={"status": "error", "message": "Selected models are required"},
             )
 
         if not analysis_request.ultra_model:
             return JSONResponse(
                 status_code=400,
-                content={"status": "error", "message": "Ultra model is required"}
+                content={"status": "error", "message": "Ultra model is required"},
             )
 
         # Map pattern name
-        pattern_name = analysis_request.pattern.lower() if analysis_request.pattern else "comprehensive"
+        pattern_name = (
+            analysis_request.pattern.lower()
+            if analysis_request.pattern
+            else "comprehensive"
+        )
         pattern_key = PATTERN_NAME_MAPPING.get(pattern_name, "comprehensive_analysis")
 
         # Create cache key data for checking
@@ -169,9 +200,13 @@ async def analyze_prompt(
             "selected_models": sorted(analysis_request.selected_models),
             "ultra_model": analysis_request.ultra_model,
             "pattern": pattern_key,
-            "ala_carte_options": sorted([opt.value for opt in analysis_request.ala_carte_options]) if analysis_request.ala_carte_options else [],
+            "ala_carte_options": sorted(
+                [opt.value for opt in analysis_request.ala_carte_options]
+            )
+            if analysis_request.ala_carte_options
+            else [],
             "output_format": analysis_request.output_format.value,
-            "options": analysis_request.options
+            "options": analysis_request.options,
         }
 
         # Check if we have cached results
@@ -192,7 +227,7 @@ async def analyze_prompt(
             pattern=pattern_key,
             ala_carte_options=analysis_request.ala_carte_options,
             output_format=analysis_request.output_format.value,
-            options=analysis_request.options
+            options=analysis_request.options,
         )
 
         # Get processing time
@@ -202,7 +237,7 @@ async def analyze_prompt(
         result["performance"] = {
             "total_time_seconds": processing_time,
             "model_times": result.get("model_times", {}),
-            "token_counts": result.get("token_counts", {})
+            "token_counts": result.get("token_counts", {}),
         }
 
         # Add request info
@@ -210,7 +245,7 @@ async def analyze_prompt(
             "prompt": analysis_request.prompt,
             "selected_models": sorted(analysis_request.selected_models),
             "ultra_model": analysis_request.ultra_model,
-            "pattern": pattern_key
+            "pattern": pattern_key,
         }
 
         # Cache the result for future requests
@@ -222,15 +257,16 @@ async def analyze_prompt(
         logger.error(f"Error analyzing prompt: {str(e)}")
         return JSONResponse(
             status_code=500,
-            content={"status": "error", "message": f"Error analyzing prompt: {str(e)}"}
+            content={"status": "error", "message": f"Error analyzing prompt: {str(e)}"},
         )
+
 
 @analyze_router.post("/api/analyze-with-docs")
 async def analyze_with_docs(
     background_tasks: BackgroundTasks,
     prompt: str = Form(...),
-    selectedModels: str = Form(...), # NOTE: Still uses old naming convention
-    ultraModel: str = Form(...),   # NOTE: Still uses old naming convention
+    selectedModels: str = Form(...),  # NOTE: Still uses old naming convention
+    ultraModel: str = Form(...),  # NOTE: Still uses old naming convention
     files: List[UploadFile] = File([]),
     pattern: str = Form("Confidence Analysis"),
     options: str = Form("{}"),
@@ -255,16 +291,22 @@ async def analyze_with_docs(
         if files:
             # In a real implementation, you would handle file processing
             # For now, we'll just acknowledge the files
-            file_names = [file.filename for file in files] # NOTE: Type error might occur here if file.filename can be None
+            file_names = [
+                file.filename for file in files
+            ]  # NOTE: Type error might occur here if file.filename can be None
             # Filter out potential None values before joining
             valid_file_names = [name for name in file_names if name is not None]
-            logger.info(f"Processing files: {', '.join(valid_file_names)}") # Type error potentially fixed here
+            logger.info(
+                f"Processing files: {', '.join(valid_file_names)}"
+            )  # Type error potentially fixed here
 
         # Create a document context
         document_context = f"Analyzing with {len(files)} documents" if files else ""
 
         # Combine with prompt
-        combined_prompt = f"{prompt}\n\n{document_context}" if document_context else prompt
+        combined_prompt = (
+            f"{prompt}\n\n{document_context}" if document_context else prompt
+        )
 
         # Use the analyze endpoint to process the prompt
         # In a real implementation, you would properly process the documents
@@ -282,3 +324,122 @@ async def analyze_with_docs(
             status_code=500,
             content={"status": "error", "message": f"Error: {str(e)}"},
         )
+
+
+@analyze_router.post("/analyze")
+async def analyze_document(
+    document_id: str,
+    llm_id: str,
+    analysis_type: str,
+    prompt: str,
+    db: Session = Depends(get_db),
+):
+    """Analyze a document using the specified LLM."""
+    try:
+        # Check if document exists
+        document = db.query(Document).filter(Document.id == document_id).first()
+        if not document:
+            raise HTTPException(status_code=404, detail="Document not found")
+
+        # Create analysis record
+        analysis = Analysis(
+            document_id=document_id,
+            llm_id=llm_id,
+            analysis_type=analysis_type,
+            prompt=prompt,
+            status="processing",
+        )
+        db.add(analysis)
+        db.commit()
+        db.refresh(analysis)
+
+        # Get LLM service
+        llm_service = MockLLMService()  # TODO: Get from factory
+
+        # Process document
+        result = await llm_service.process_document(
+            document_id=document_id,
+            llm_id=llm_id,
+            analysis_type=analysis_type,
+            prompt=prompt,
+        )
+
+        # Update analysis record
+        analysis.status = "completed"
+        analysis.result = result["result"]
+        db.commit()
+        db.refresh(analysis)
+
+        return {
+            "analysis_id": analysis.id,
+            "status": analysis.status,
+            "result": analysis.result,
+            "created_at": analysis.created_at,
+        }
+
+    except Exception as e:
+        handle_error(e)
+
+
+@analyze_router.get("/types")
+async def get_analysis_types():
+    """Get available analysis types."""
+    return {
+        "types": [
+            {
+                "id": "summarize",
+                "name": "Text Summarization",
+                "description": "Generate a concise summary of the document",
+                "supported_llms": ["gpt-4", "claude-3", "llama-2"],
+            },
+            {
+                "id": "sentiment",
+                "name": "Sentiment Analysis",
+                "description": "Analyze the emotional tone of the document",
+                "supported_llms": ["gpt-4", "claude-3", "mistral"],
+            },
+            {
+                "id": "key_points",
+                "name": "Key Points Extraction",
+                "description": "Extract main points and arguments from the document",
+                "supported_llms": ["gpt-4", "claude-3", "mixtral"],
+            },
+            {
+                "id": "topics",
+                "name": "Topic Modeling",
+                "description": "Identify main topics and themes in the document",
+                "supported_llms": ["gpt-4", "claude-3", "llama-2"],
+            },
+            {
+                "id": "entities",
+                "name": "Entity Recognition",
+                "description": "Identify and extract named entities from the document",
+                "supported_llms": ["gpt-4", "claude-3", "mistral"],
+            },
+        ]
+    }
+
+
+@analyze_router.get("/{analysis_id}")
+async def get_analysis(
+    analysis_id: str,
+    db: Session = Depends(get_db),
+):
+    """Get analysis results by ID."""
+    try:
+        analysis = db.query(Analysis).filter(Analysis.id == analysis_id).first()
+        if not analysis:
+            raise HTTPException(status_code=404, detail="Analysis not found")
+
+        return {
+            "analysis_id": analysis.id,
+            "document_id": analysis.document_id,
+            "llm_id": analysis.llm_id,
+            "analysis_type": analysis.analysis_type,
+            "status": analysis.status,
+            "result": analysis.result,
+            "created_at": analysis.created_at,
+        }
+
+    except Exception as e:
+        handle_error(e)

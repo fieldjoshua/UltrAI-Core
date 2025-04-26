@@ -10,18 +10,11 @@ import warnings
 import numpy as np
 import pytest
 from scipy.optimize import approx_fprime
-
 from sklearn.exceptions import ConvergenceWarning
 from sklearn.gaussian_process import GaussianProcessRegressor
-from sklearn.gaussian_process.kernels import (
-    RBF,
-    DotProduct,
-    ExpSineSquared,
-    WhiteKernel,
-)
-from sklearn.gaussian_process.kernels import (
-    ConstantKernel as C,
-)
+from sklearn.gaussian_process.kernels import RBF
+from sklearn.gaussian_process.kernels import ConstantKernel as C
+from sklearn.gaussian_process.kernels import DotProduct, ExpSineSquared, WhiteKernel
 from sklearn.gaussian_process.tests._mini_sequence_kernel import MiniSeqKernel
 from sklearn.utils._testing import (
     assert_allclose,

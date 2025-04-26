@@ -1,22 +1,17 @@
-from collections.abc import Iterator
-from functools import partial
-from io import (
-    BytesIO,
-    StringIO,
-)
 import os
-from pathlib import Path
 import re
 import threading
+from collections.abc import Iterator
+from functools import partial
+from io import BytesIO, StringIO
+from pathlib import Path
 from urllib.error import URLError
 
 import numpy as np
-import pytest
-
-from pandas.compat import is_platform_windows
-import pandas.util._test_decorators as td
-
 import pandas as pd
+import pandas._testing as tm
+import pandas.util._test_decorators as td
+import pytest
 from pandas import (
     NA,
     DataFrame,
@@ -28,12 +23,8 @@ from pandas import (
     read_html,
     to_datetime,
 )
-import pandas._testing as tm
-from pandas.core.arrays import (
-    ArrowStringArray,
-    StringArray,
-)
-
+from pandas.compat import is_platform_windows
+from pandas.core.arrays import ArrowStringArray, StringArray
 from pandas.io.common import file_path_to_url
 
 
@@ -213,7 +204,6 @@ class TestReadHtml:
 
         if dtype_backend == "pyarrow":
             import pyarrow as pa
-
             from pandas.arrays import ArrowExtensionArray
 
             expected = DataFrame(

@@ -1,9 +1,8 @@
 import numpy as np
-import pytest
-
-import pandas.util._test_decorators as td
-
 import pandas as pd
+import pandas._testing as tm
+import pandas.util._test_decorators as td
+import pytest
 from pandas import (
     DataFrame,
     Index,
@@ -13,7 +12,6 @@ from pandas import (
     Timestamp,
     option_context,
 )
-import pandas._testing as tm
 from pandas.core.reshape.concat import concat
 from pandas.core.reshape.merge import merge
 

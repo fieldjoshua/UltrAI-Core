@@ -6,7 +6,6 @@ from numpy.testing import assert_allclose, assert_array_equal
 from scipy import sparse
 from scipy.interpolate import BSpline
 from scipy.sparse import random as sparse_random
-
 from sklearn.linear_model import LinearRegression
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import (

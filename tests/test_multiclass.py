@@ -3,7 +3,6 @@ from itertools import product
 import numpy as np
 import pytest
 from scipy.sparse import issparse
-
 from sklearn import config_context, datasets
 from sklearn.model_selection import ShuffleSplit
 from sklearn.svm import SVC

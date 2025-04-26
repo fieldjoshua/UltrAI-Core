@@ -5,7 +5,6 @@ import joblib
 import numpy as np
 import pytest
 import scipy.sparse as sp
-
 from sklearn import datasets, linear_model, metrics
 from sklearn.base import clone, is_classifier
 from sklearn.exceptions import ConvergenceWarning

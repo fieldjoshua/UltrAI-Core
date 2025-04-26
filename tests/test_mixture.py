@@ -3,7 +3,6 @@
 
 import numpy as np
 import pytest
-
 from sklearn.mixture import BayesianGaussianMixture, GaussianMixture
 
 

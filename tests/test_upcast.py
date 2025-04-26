@@ -1,14 +1,9 @@
 import numpy as np
-import pytest
-
-from pandas._libs.parsers import (
-    _maybe_upcast,
-    na_values,
-)
-
 import pandas as pd
-from pandas import NA
 import pandas._testing as tm
+import pytest
+from pandas import NA
+from pandas._libs.parsers import _maybe_upcast, na_values
 from pandas.core.arrays import (
     ArrowStringArray,
     BooleanArray,

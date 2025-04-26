@@ -26,16 +26,14 @@
 #   POSSIBILITY OF SUCH DAMAGE.
 #  ******************************************************************************
 
-import scipy.linalg.interpolative as pymatrixid
 import numpy as np
-from scipy.linalg import hilbert, svdvals, norm
-from scipy.sparse.linalg import aslinearoperator
-from scipy.linalg.interpolative import interp_decomp
-
-from numpy.testing import (assert_, assert_allclose, assert_equal,
-                           assert_array_equal)
 import pytest
+import scipy.linalg.interpolative as pymatrixid
+from numpy.testing import assert_, assert_allclose, assert_array_equal, assert_equal
 from pytest import raises as assert_raises
+from scipy.linalg import hilbert, norm, svdvals
+from scipy.linalg.interpolative import interp_decomp
+from scipy.sparse.linalg import aslinearoperator
 
 
 @pytest.fixture()
@@ -73,10 +71,9 @@ def rank(A, eps):
 
 
 class TestInterpolativeDecomposition:
-
     @pytest.mark.parametrize(
-        "rand,lin_op",
-        [(False, False), (True, False), (True, True)])
+        "rand,lin_op", [(False, False), (True, False), (True, True)]
+    )
     def test_real_id_fixed_precision(self, A, L, eps, rand, lin_op, rng):
         # Test ID routines on a Hilbert matrix.
         A_or_L = A if not lin_op else L
@@ -86,8 +83,8 @@ class TestInterpolativeDecomposition:
         assert_allclose(A, B, rtol=eps, atol=1e-08)
 
     @pytest.mark.parametrize(
-        "rand,lin_op",
-        [(False, False), (True, False), (True, True)])
+        "rand,lin_op", [(False, False), (True, False), (True, True)]
+    )
     def test_real_id_fixed_rank(self, A, L, eps, rank, rand, lin_op, rng):
         k = rank
         A_or_L = A if not lin_op else L
@@ -97,8 +94,7 @@ class TestInterpolativeDecomposition:
         assert_allclose(A, B, rtol=eps, atol=1e-08)
 
     @pytest.mark.parametrize("rand,lin_op", [(False, False)])
-    def test_real_id_skel_and_interp_matrices(
-            self, A, L, eps, rank, rand, lin_op, rng):
+    def test_real_id_skel_and_interp_matrices(self, A, L, eps, rank, rand, lin_op, rng):
         k = rank
         A_or_L = A if not lin_op else L
 
@@ -109,8 +105,8 @@ class TestInterpolativeDecomposition:
         assert_allclose(B @ P, A, rtol=eps, atol=1e-08)
 
     @pytest.mark.parametrize(
-        "rand,lin_op",
-        [(False, False), (True, False), (True, True)])
+        "rand,lin_op", [(False, False), (True, False), (True, True)]
+    )
     def test_svd_fixed_precision(self, A, L, eps, rand, lin_op, rng):
         A_or_L = A if not lin_op else L
 
@@ -119,8 +115,8 @@ class TestInterpolativeDecomposition:
         assert_allclose(A, B, rtol=eps, atol=1e-08)
 
     @pytest.mark.parametrize(
-        "rand,lin_op",
-        [(False, False), (True, False), (True, True)])
+        "rand,lin_op", [(False, False), (True, False), (True, True)]
+    )
     def test_svd_fixed_rank(self, A, L, eps, rank, rand, lin_op, rng):
         k = rank
         A_or_L = A if not lin_op else L
@@ -204,12 +200,17 @@ class TestInterpolativeDecomposition:
     @pytest.mark.parametrize("rand", [True, False])
     @pytest.mark.parametrize("eps", [1, 0.1])
     def test_bug_9793(self, dtype, rand, eps):
-        A = np.array([[-1, -1, -1, 0, 0, 0],
-                      [0, 0, 0, 1, 1, 1],
-                      [1, 0, 0, 1, 0, 0],
-                      [0, 1, 0, 0, 1, 0],
-                      [0, 0, 1, 0, 0, 1]],
-                     dtype=dtype, order="C")
+        A = np.array(
+            [
+                [-1, -1, -1, 0, 0, 0],
+                [0, 0, 0, 1, 1, 1],
+                [1, 0, 0, 1, 0, 0],
+                [0, 1, 0, 0, 1, 0],
+                [0, 0, 1, 0, 0, 1],
+            ],
+            dtype=dtype,
+            order="C",
+        )
         B = A.copy()
         interp_decomp(A.T, eps, rand=rand)
         assert_array_equal(A, B)

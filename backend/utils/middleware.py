@@ -12,7 +12,7 @@ This module provides middleware for:
 import time
 from typing import List, Optional, Set
 
-from fastapi import Request, FastAPI
+from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from starlette.datastructures import MutableHeaders
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
@@ -46,7 +46,9 @@ class RequestValidationMiddleware:
             "multipart/form-data",
             "application/x-www-form-urlencoded",
         }
-        self.max_content_length = max_content_length or 100 * 1024 * 1024  # 100MB default
+        self.max_content_length = (
+            max_content_length or 100 * 1024 * 1024
+        )  # 100MB default
         self.required_headers = required_headers or []
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send):
@@ -64,7 +66,10 @@ class RequestValidationMiddleware:
             content_type = request.headers.get("content-type", "").split(";")[0].lower()
 
             # Check if content type is allowed
-            if self.allowed_content_types and content_type not in self.allowed_content_types:
+            if (
+                self.allowed_content_types
+                and content_type not in self.allowed_content_types
+            ):
                 return await self._send_error_response(
                     send,
                     f"Unsupported content type: {content_type}. Allowed types: {', '.join(self.allowed_content_types)}",
@@ -120,7 +125,9 @@ class RequestValidationMiddleware:
         ]
 
         # Send response
-        await send({"type": "http.response.start", "status": status_code, "headers": headers})
+        await send(
+            {"type": "http.response.start", "status": status_code, "headers": headers}
+        )
         await send({"type": "http.response.body", "body": body})
 
 
@@ -184,7 +191,11 @@ class RequestLoggingMiddleware:
 
                 # Create a new receive channel that will return the body
                 async def receive_with_body():
-                    return {"type": "http.request", "body": body.encode(), "more_body": False}
+                    return {
+                        "type": "http.request",
+                        "body": body.encode(),
+                        "more_body": False,
+                    }
 
                 receive = receive_with_body
             except Exception as e:
@@ -200,12 +211,16 @@ class RequestLoggingMiddleware:
                 response_data["headers"] = dict(MutableHeaders(scope=message))
 
             elif message["type"] == "http.response.body" and self.include_response_body:
-                response_data["body"] = message["body"].decode("utf-8", errors="replace")
+                response_data["body"] = message["body"].decode(
+                    "utf-8", errors="replace"
+                )
 
             await send(message)
 
             # Log the request-response after the response is fully sent
-            if message["type"] == "http.response.body" and not message.get("more_body", False):
+            if message["type"] == "http.response.body" and not message.get(
+                "more_body", False
+            ):
                 # Calculate duration
                 duration_ms = (time.time() - start_time) * 1000
 
@@ -292,7 +307,9 @@ class PerformanceMiddleware:
             await send(message)
 
             # Log performance after the response is fully sent
-            if message["type"] == "http.response.body" and not message.get("more_body", False):
+            if message["type"] == "http.response.body" and not message.get(
+                "more_body", False
+            ):
                 # Calculate duration
                 duration_ms = (time.time() - start_time) * 1000
 

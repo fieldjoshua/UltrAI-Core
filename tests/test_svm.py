@@ -12,27 +12,17 @@ from numpy.testing import (
     assert_array_almost_equal,
     assert_array_equal,
 )
-
 from sklearn import base, datasets, linear_model, metrics, svm
 from sklearn.datasets import make_blobs, make_classification, make_regression
-from sklearn.exceptions import (
-    ConvergenceWarning,
-    NotFittedError,
-)
+from sklearn.exceptions import ConvergenceWarning, NotFittedError
 from sklearn.metrics import f1_score
 from sklearn.metrics.pairwise import rbf_kernel
 from sklearn.model_selection import train_test_split
 from sklearn.multiclass import OneVsRestClassifier
 
 # mypy error: Module 'sklearn.svm' has no attribute '_libsvm'
-from sklearn.svm import (  # type: ignore
-    SVR,
-    LinearSVC,
-    LinearSVR,
-    NuSVR,
-    OneClassSVM,
-    _libsvm,
-)
+from sklearn.svm import OneClassSVM  # type: ignore
+from sklearn.svm import SVR, LinearSVC, LinearSVR, NuSVR, _libsvm
 from sklearn.svm._classes import _validate_dual_parameter
 from sklearn.utils import check_random_state, shuffle
 from sklearn.utils.fixes import _IS_32BIT, CSR_CONTAINERS, LIL_CONTAINERS

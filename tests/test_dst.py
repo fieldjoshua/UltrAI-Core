@@ -3,9 +3,10 @@ Tests for DateOffset additions over Daylight Savings Time
 """
 from datetime import timedelta
 
+import pandas._testing as tm
 import pytest
 import pytz
-
+from pandas import DatetimeIndex
 from pandas._libs.tslibs import Timestamp
 from pandas._libs.tslibs.offsets import (
     BMonthBegin,
@@ -30,9 +31,6 @@ from pandas._libs.tslibs.offsets import (
     YearEnd,
 )
 from pandas.errors import PerformanceWarning
-
-from pandas import DatetimeIndex
-import pandas._testing as tm
 from pandas.util.version import Version
 
 # error: Module has no attribute "__version__"

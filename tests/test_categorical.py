@@ -1,11 +1,10 @@
 import re
 
 import numpy as np
-import pytest
-
-import pandas.util._test_decorators as td
-
 import pandas as pd
+import pandas._testing as tm
+import pandas.util._test_decorators as td
+import pytest
 from pandas import (
     Categorical,
     CategoricalDtype,
@@ -18,7 +17,6 @@ from pandas import (
     Timestamp,
     option_context,
 )
-import pandas._testing as tm
 
 
 @pytest.fixture

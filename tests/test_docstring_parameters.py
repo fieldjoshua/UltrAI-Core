@@ -10,17 +10,14 @@ from pkgutil import walk_packages
 
 import numpy as np
 import pytest
-
 import sklearn
 from sklearn import metrics
 from sklearn.datasets import make_classification
 from sklearn.ensemble import StackingClassifier, StackingRegressor
 
 # make it possible to discover experimental estimators when calling `all_estimators`
-from sklearn.experimental import (
-    enable_halving_search_cv,  # noqa
-    enable_iterative_imputer,  # noqa
-)
+from sklearn.experimental import enable_halving_search_cv  # noqa
+from sklearn.experimental import enable_iterative_imputer  # noqa
 from sklearn.linear_model import LogisticRegression
 from sklearn.preprocessing import FunctionTransformer
 from sklearn.utils import all_estimators

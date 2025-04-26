@@ -2,11 +2,10 @@
 import re
 
 import numpy as np
-import pytest
-
 import pandas as pd
-from pandas import DataFrame
 import pandas._testing as tm
+import pytest
+from pandas import DataFrame
 from pandas.tests.plotting.common import (
     _check_colors,
     _check_plot_works,

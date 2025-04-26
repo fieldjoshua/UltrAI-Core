@@ -112,7 +112,9 @@ def get_db_session() -> Generator[Session, None, None]:
         ```
     """
     if SessionLocal is None:
-        raise RuntimeError("Database session factory not initialized. Call init_db() first.")
+        raise RuntimeError(
+            "Database session factory not initialized. Call init_db() first."
+        )
 
     session = SessionLocal()
     try:
@@ -141,7 +143,9 @@ def get_db() -> Generator[Session, None, None]:
         ```
     """
     if SessionLocal is None:
-        raise RuntimeError("Database session factory not initialized. Call init_db() first.")
+        raise RuntimeError(
+            "Database session factory not initialized. Call init_db() first."
+        )
 
     session = SessionLocal()
     try:

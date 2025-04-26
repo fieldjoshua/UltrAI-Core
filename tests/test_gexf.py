@@ -1,9 +1,8 @@
 import io
 import time
 
-import pytest
-
 import networkx as nx
+import pytest
 
 
 class TestGEXF:

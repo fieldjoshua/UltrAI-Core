@@ -1,5 +1,6 @@
-import sys
 import os
+import sys
+
 
 def test_print():
     # Test different print methods
@@ -10,17 +11,20 @@ def test_print():
     sys.stderr.write("4. sys.stderr.write\n")
     os.write(2, b"5. os.write to stderr\n")
 
+
 def test_imports():
     print("Testing imports:", flush=True)
     try:
         import anthropic
+
         print("✓ anthropic imported", flush=True)
         print(f"anthropic version: {anthropic.__version__}", flush=True)
     except Exception as e:
         print(f"✗ anthropic import failed: {str(e)}", flush=True)
 
+
 if __name__ == "__main__":
     print("Script starting...", flush=True)
     test_print()
     test_imports()
-    print("Script completed", flush=True) 
+    print("Script completed", flush=True)

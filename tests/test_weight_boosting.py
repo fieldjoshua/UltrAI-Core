@@ -4,7 +4,6 @@ import re
 
 import numpy as np
 import pytest
-
 from sklearn import datasets
 from sklearn.base import BaseEstimator, clone
 from sklearn.dummy import DummyClassifier, DummyRegressor

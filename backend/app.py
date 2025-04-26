@@ -10,24 +10,27 @@ from fastapi.middleware.cors import CORSMiddleware
 # Import configuration
 from backend.config import Config
 
-# Import utility functions
-from backend.utils.server import is_port_available, find_available_port
-from backend.utils.logging import get_logger
-from backend.utils.error_handler import error_handling_middleware, register_exception_handlers
-from backend.utils.middleware import setup_middleware
-from backend.utils.rate_limit_middleware import setup_rate_limit_middleware
-
 # Import database
-from backend.database import init_db, check_database_connection
+from backend.database import check_database_connection, init_db
+from backend.routes.analyze_routes import analyze_router
+from backend.routes.document_routes import document_router
 
 # Import routes
 from backend.routes.health import health_router
 from backend.routes.metrics import metrics_router
-from backend.routes.document_routes import document_router
-from backend.routes.analyze_routes import analyze_router
+from backend.routes.oauth_routes import oauth_router
 from backend.routes.pricing_routes import pricing_router
 from backend.routes.user_routes import user_router
-from backend.routes.oauth_routes import oauth_router
+from backend.utils.error_handler import (
+    error_handling_middleware,
+    register_exception_handlers,
+)
+from backend.utils.logging import get_logger
+from backend.utils.middleware import setup_middleware
+from backend.utils.rate_limit_middleware import setup_rate_limit_middleware
+
+# Import utility functions
+from backend.utils.server import find_available_port, is_port_available
 
 # Get logger
 logger = get_logger("ultra_api", "logs/api.log")
@@ -35,6 +38,7 @@ logger = get_logger("ultra_api", "logs/api.log")
 # Check if Sentry is available
 try:
     import sentry_sdk
+
     SENTRY_AVAILABLE = True
 except ImportError:
     SENTRY_AVAILABLE = False
@@ -59,10 +63,14 @@ async def lifespan(app: FastAPI):
         if check_database_connection():
             logger.info("Database connection established successfully")
         else:
-            logger.warning("Database connection failed - some features may not work correctly")
+            logger.warning(
+                "Database connection failed - some features may not work correctly"
+            )
     except Exception as e:
         logger.error(f"Database initialization error: {str(e)}")
-        logger.warning("Continuing without database connection - some features may not work correctly")
+        logger.warning(
+            "Continuing without database connection - some features may not work correctly"
+        )
 
     # Initialize Sentry if available
     if SENTRY_AVAILABLE:
@@ -79,10 +87,13 @@ async def lifespan(app: FastAPI):
     if Config.use_mock:
         try:
             from backend.services.mock_llm_service import MockLLMService
+
             mock_service = MockLLMService()
             logger.info("🧪 Running in MOCK MODE - all responses will be simulated")
         except ImportError:
-            logger.error("⚠️ Mock service module not found. Please create mock_llm_service.py first.")
+            logger.error(
+                "⚠️ Mock service module not found. Please create mock_llm_service.py first."
+            )
             sys.exit(1)
 
     yield
@@ -127,7 +138,9 @@ def run_server():
     """Run the server with command line arguments"""
     # Parse command line arguments
     parser = argparse.ArgumentParser(description="Run the UltraAI backend server")
-    parser.add_argument("--host", default="127.0.0.1", help="Host to bind the server to")
+    parser.add_argument(
+        "--host", default="127.0.0.1", help="Host to bind the server to"
+    )
     parser.add_argument(
         "--port", type=int, default=8085, help="Port to bind the server to"
     )

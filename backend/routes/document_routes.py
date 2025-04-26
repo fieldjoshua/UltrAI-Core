@@ -4,14 +4,26 @@ import os
 import shutil
 import uuid
 from datetime import datetime
-from typing import Dict, List, Any, Optional
+from typing import Any, Dict, List, Optional
 
-from fastapi import APIRouter, BackgroundTasks, Depends, File, Form, HTTPException, Request, UploadFile
+from fastapi import (
+    APIRouter,
+    BackgroundTasks,
+    Depends,
+    File,
+    Form,
+    HTTPException,
+    Request,
+    UploadFile,
+)
 from fastapi.responses import JSONResponse
+from sqlalchemy.orm import Session
 
-from backend.models.document import DocumentUploadResponse
-from backend.services.document_processor import document_processor
 from backend.config import Config
+from backend.database import get_db
+from backend.database.models import Document
+from backend.services.document_processor import document_processor
+from backend.utils.error_handler import handle_error
 
 # Create a document router
 document_router = APIRouter(tags=["Documents"])
@@ -24,146 +36,93 @@ DOCUMENT_STORAGE_PATH = Config.DOCUMENT_STORAGE_PATH
 
 
 @document_router.post("/api/upload-document", response_model=DocumentUploadResponse)
-async def upload_document(file: UploadFile = File(...)):
-    """Upload a document"""
+async def upload_document(
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db),
+):
+    """Upload a document for processing."""
     try:
-        # Create a unique ID for the document
-        document_id = str(uuid.uuid4())
+        # Validate file extension
+        file_ext = os.path.splitext(file.filename)[1].lower()
+        if file_ext not in Config.ALLOWED_EXTENSIONS:
+            raise HTTPException(
+                status_code=400,
+                detail=f"File type not allowed. Allowed types: {Config.ALLOWED_EXTENSIONS}",
+            )
 
-        # Create a directory for the document
-        document_dir = os.path.join(DOCUMENT_STORAGE_PATH, document_id)
-        os.makedirs(document_dir, exist_ok=True)
+        # Generate unique filename
+        file_id = str(uuid.uuid4())
+        file_path = Config.UPLOAD_DIR / f"{file_id}{file_ext}"
 
-        # Get file name and sanitize it
-        file_name = file.filename
-        if not file_name:
-            file_name = f"document_{document_id}"
-
-        # Full path to save the file
-        file_path = os.path.join(document_dir, file_name)
-
-        # Save the file
+        # Save file
         with open(file_path, "wb") as f:
-            # Read chunks to handle large files
-            chunk_size = 1024 * 1024  # 1MB chunks
-            while True:
-                chunk = await file.read(chunk_size)
-                if not chunk:
-                    break
-                f.write(chunk)
+            content = await file.read()
+            f.write(content)
 
-        # Get file size
-        file_size = os.path.getsize(file_path)
+        # Create document record
+        document = Document(
+            id=file_id,
+            filename=file.filename,
+            status="uploaded",
+            user_id="test_user",  # TODO: Get from auth
+            file_path=str(file_path),
+        )
+        db.add(document)
+        db.commit()
+        db.refresh(document)
 
-        # Get file extension
-        file_extension = os.path.splitext(file_name)[1].lower() if file_name else ""
-
-        # Create metadata for the document
-        metadata = {
-            "id": document_id,
-            "original_filename": file_name,
-            "file_path": file_path,
-            "file_size": file_size,
-            "file_type": file_extension,
-            "upload_timestamp": datetime.now().isoformat(),
-            "processing_status": "ready",
+        return {
+            "document_id": document.id,
+            "filename": document.filename,
+            "status": document.status,
+            "uploaded_at": document.uploaded_at,
         }
 
-        # Save metadata
-        with open(os.path.join(document_dir, "metadata.json"), "w") as f:
-            json.dump(metadata, f, indent=2)
-
-        return DocumentUploadResponse(
-            id=document_id,
-            name=file_name,
-            size=file_size,
-            type=file_extension,
-            status="uploaded",
-            message="Document uploaded successfully",
-        )
     except Exception as e:
-        logger.error(f"Error uploading document: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Error uploading document: {str(e)}")
-    finally:
-        await file.close()
+        handle_error(e)
 
 
 @document_router.get("/api/documents/{document_id}", response_model=Dict[str, Any])
-async def get_document(document_id: str):
+async def get_document(
+    document_id: str,
+    db: Session = Depends(get_db),
+):
     """Get document details by ID"""
     try:
-        # Check if document directory exists
-        document_dir = os.path.join(DOCUMENT_STORAGE_PATH, document_id)
-        if not os.path.exists(document_dir):
+        document = db.query(Document).filter(Document.id == document_id).first()
+        if not document:
             raise HTTPException(status_code=404, detail="Document not found")
 
-        # Check if metadata file exists
-        metadata_path = os.path.join(document_dir, "metadata.json")
-        if not os.path.exists(metadata_path):
-            raise HTTPException(status_code=500, detail="Document metadata not found")
-
-        # Read metadata
-        with open(metadata_path, "r") as f:
-            metadata = json.load(f)
-
         return {
-            "id": metadata["id"],
-            "name": metadata.get("original_filename", "Unknown"),
-            "size": metadata.get("file_size", 0),
-            "type": metadata.get("file_type", ""),
-            "status": metadata.get("processing_status", "unknown"),
-            "uploadDate": metadata.get("upload_timestamp", ""),
+            "document_id": document.id,
+            "filename": document.filename,
+            "status": document.status,
+            "uploaded_at": document.uploaded_at,
         }
-    except HTTPException:
-        raise
+
     except Exception as e:
-        logger.error(f"Error getting document: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Error getting document: {str(e)}")
+        handle_error(e)
 
 
 @document_router.get("/api/documents", response_model=List[Dict[str, Any]])
-async def list_documents():
-    """List all uploaded documents"""
+async def list_documents(
+    db: Session = Depends(get_db),
+):
+    """List all documents."""
     try:
-        documents = []
+        documents = db.query(Document).all()
+        return [
+            {
+                "document_id": doc.id,
+                "filename": doc.filename,
+                "status": doc.status,
+                "uploaded_at": doc.uploaded_at,
+            }
+            for doc in documents
+        ]
 
-        # Check if document storage directory exists
-        if not os.path.exists(DOCUMENT_STORAGE_PATH):
-            return []
-
-        # Iterate through document directories
-        for document_id in os.listdir(DOCUMENT_STORAGE_PATH):
-            document_dir = os.path.join(DOCUMENT_STORAGE_PATH, document_id)
-
-            # Skip if not a directory
-            if not os.path.isdir(document_dir):
-                continue
-
-            # Check for metadata file
-            metadata_path = os.path.join(document_dir, "metadata.json")
-            if not os.path.exists(metadata_path):
-                continue
-
-            # Read metadata
-            try:
-                with open(metadata_path, "r") as f:
-                    metadata = json.load(f)
-
-                documents.append({
-                    "id": metadata["id"],
-                    "name": metadata.get("original_filename", "Unknown"),
-                    "size": metadata.get("file_size", 0),
-                    "type": metadata.get("file_type", ""),
-                    "status": metadata.get("processing_status", "unknown"),
-                    "uploadDate": metadata.get("upload_timestamp", ""),
-                })
-            except Exception as e:
-                logger.error(f"Error reading document metadata: {str(e)}")
-
-        return documents
     except Exception as e:
-        logger.error(f"Error listing documents: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Error listing documents: {str(e)}")
+        handle_error(e)
 
 
 @document_router.post("/api/create-document-session")
@@ -376,7 +335,9 @@ async def finalize_document_upload(request: Request):
         )
     except Exception as e:
         logger.error(f"Error finalizing document upload: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Error finalizing document upload: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Error finalizing document upload: {str(e)}"
+        )
 
 
 # Use a dependency for processing document request
@@ -412,7 +373,9 @@ async def process_documents_with_pricing(
         raise
     except Exception as e:
         logger.error(f"Error processing documents: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Error processing documents: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Error processing documents: {str(e)}"
+        )
 
 
 async def process_document_context(document_ids: List[str], query: str) -> str:
@@ -436,17 +399,21 @@ async def process_document_context(document_ids: List[str], query: str) -> str:
             with open(metadata_path, "r") as f:
                 metadata = json.load(f)
 
-            document_data.append({
-                "id": doc_id,
-                "path": metadata.get("file_path"),
-                "name": metadata.get("original_filename"),
-                "type": metadata.get("file_type"),
-            })
+            document_data.append(
+                {
+                    "id": doc_id,
+                    "path": metadata.get("file_path"),
+                    "name": metadata.get("original_filename"),
+                    "type": metadata.get("file_type"),
+                }
+            )
 
         # Process documents with the document processor
         if document_data:
             result = document_processor.process_documents(document_data)
-            logger.info(f"Processed {result.get('chunks_processed', 0)} chunks from {len(document_data)} documents")
+            logger.info(
+                f"Processed {result.get('chunks_processed', 0)} chunks from {len(document_data)} documents"
+            )
             return f"Processed {result.get('chunks_processed', 0)} chunks"
         else:
             logger.warning("No valid documents found for processing")

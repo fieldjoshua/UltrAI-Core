@@ -3,7 +3,6 @@
 
 import numpy as np
 import pytest
-
 from sklearn.utils._testing import assert_array_equal
 from sklearn.utils.fixes import _object_dtype_isnan, _smallest_admissible_index_dtype
 

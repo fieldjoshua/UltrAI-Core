@@ -1,5 +1,5 @@
 import numpy as np
-
+import pandas._testing as tm
 from pandas import (
     DatetimeIndex,
     NaT,
@@ -10,7 +10,6 @@ from pandas import (
     period_range,
     timedelta_range,
 )
-import pandas._testing as tm
 
 
 class TestValueCounts:

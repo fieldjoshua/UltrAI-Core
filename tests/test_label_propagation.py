@@ -5,7 +5,6 @@ import warnings
 import numpy as np
 import pytest
 from scipy.sparse import issparse
-
 from sklearn.datasets import make_classification
 from sklearn.exceptions import ConvergenceWarning
 from sklearn.metrics.pairwise import rbf_kernel

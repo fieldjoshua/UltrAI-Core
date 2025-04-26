@@ -8,7 +8,6 @@ import joblib
 import numpy as np
 import pytest
 from scipy import interpolate, sparse
-
 from sklearn.base import clone, config_context, is_classifier
 from sklearn.datasets import load_diabetes, make_regression
 from sklearn.exceptions import ConvergenceWarning
@@ -33,11 +32,7 @@ from sklearn.linear_model import (
     lasso_path,
 )
 from sklearn.linear_model._coordinate_descent import _set_order
-from sklearn.model_selection import (
-    BaseCrossValidator,
-    GridSearchCV,
-    LeaveOneGroupOut,
-)
+from sklearn.model_selection import BaseCrossValidator, GridSearchCV, LeaveOneGroupOut
 from sklearn.model_selection._split import GroupsConsumerMixin
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler

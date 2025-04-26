@@ -1,15 +1,13 @@
-from pytest import raises
-
 import sympy
-from sympy.physics.quantum import Dagger, AntiCommutator, qapply
-from sympy.physics.quantum.fermion import FermionOp
-from sympy.physics.quantum.fermion import FermionFockKet, FermionFockBra
+from pytest import raises
 from sympy import Symbol
+from sympy.physics.quantum import AntiCommutator, Dagger, qapply
+from sympy.physics.quantum.fermion import FermionFockBra, FermionFockKet, FermionOp
 
 
 def test_fermionoperator():
-    c = FermionOp('c')
-    d = FermionOp('d')
+    c = FermionOp("c")
+    d = FermionOp("d")
 
     assert isinstance(c, FermionOp)
     assert isinstance(Dagger(c), FermionOp)
@@ -46,11 +44,11 @@ def test_power():
     assert c**1 == c
     assert c**2 == 0
     assert c**3 == 0
-    assert Dagger(c)**1 == Dagger(c)
-    assert Dagger(c)**2 == 0
+    assert Dagger(c) ** 1 == Dagger(c)
+    assert Dagger(c) ** 2 == 0
 
-    assert (c**Symbol('a')).func == sympy.core.power.Pow
-    assert (c**Symbol('a')).args == (c, Symbol('a'))
+    assert (c ** Symbol("a")).func == sympy.core.power.Pow
+    assert (c ** Symbol("a")).args == (c, Symbol("a"))
 
     with raises(ValueError):
         c**-1

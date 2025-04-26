@@ -1,12 +1,8 @@
 import dateutil.tz
-from dateutil.tz import tzlocal
+import pandas._testing as tm
 import pytest
 import pytz
-
-from pandas._libs.tslibs.ccalendar import MONTHS
-from pandas._libs.tslibs.offsets import MonthEnd
-from pandas._libs.tslibs.period import INVALID_FREQ_ERR_MSG
-
+from dateutil.tz import tzlocal
 from pandas import (
     DatetimeIndex,
     Period,
@@ -15,7 +11,9 @@ from pandas import (
     date_range,
     period_range,
 )
-import pandas._testing as tm
+from pandas._libs.tslibs.ccalendar import MONTHS
+from pandas._libs.tslibs.offsets import MonthEnd
+from pandas._libs.tslibs.period import INVALID_FREQ_ERR_MSG
 
 
 class TestToPeriod:

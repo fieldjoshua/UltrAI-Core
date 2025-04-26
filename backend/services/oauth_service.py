@@ -7,7 +7,7 @@ such as Google and GitHub.
 
 import os
 import secrets
-from typing import Dict, Any
+from typing import Any, Dict
 from urllib.parse import urlencode
 
 import httpx
@@ -20,11 +20,15 @@ logger = get_logger("oauth_service", "logs/oauth.log")
 # OAuth provider configuration
 GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID", "")
 GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET", "")
-GOOGLE_REDIRECT_URI = os.getenv("GOOGLE_REDIRECT_URI", "http://localhost:8000/api/auth/google/callback")
+GOOGLE_REDIRECT_URI = os.getenv(
+    "GOOGLE_REDIRECT_URI", "http://localhost:8000/api/auth/google/callback"
+)
 
 GITHUB_CLIENT_ID = os.getenv("GITHUB_CLIENT_ID", "")
 GITHUB_CLIENT_SECRET = os.getenv("GITHUB_CLIENT_SECRET", "")
-GITHUB_REDIRECT_URI = os.getenv("GITHUB_REDIRECT_URI", "http://localhost:8000/api/auth/github/callback")
+GITHUB_REDIRECT_URI = os.getenv(
+    "GITHUB_REDIRECT_URI", "http://localhost:8000/api/auth/github/callback"
+)
 
 # OAuth state token storage
 # In production, this should be stored in Redis or another distributed cache
@@ -62,7 +66,7 @@ class OAuthService:
                 "scope": "openid email profile",
                 "state": state,
                 "access_type": "offline",
-                "prompt": "consent"
+                "prompt": "consent",
             }
             auth_url = f"https://accounts.google.com/o/oauth2/auth?{urlencode(params)}"
             return {"url": auth_url, "state": state}
@@ -79,7 +83,7 @@ class OAuthService:
                 "client_id": GITHUB_CLIENT_ID,
                 "redirect_uri": GITHUB_REDIRECT_URI,
                 "scope": "user:email",
-                "state": state
+                "state": state,
             }
             auth_url = f"https://github.com/login/oauth/authorize?{urlencode(params)}"
             return {"url": auth_url, "state": state}
@@ -99,7 +103,9 @@ class OAuthService:
         """
         return state in oauth_states
 
-    async def exchange_code_for_token(self, provider: str, code: str, state: str) -> Dict[str, Any]:
+    async def exchange_code_for_token(
+        self, provider: str, code: str, state: str
+    ) -> Dict[str, Any]:
         """
         Exchange the authorization code for an access token
 
@@ -132,7 +138,7 @@ class OAuthService:
                 return {
                     "token": token_data,
                     "user_info": user_info,
-                    "provider": "google"
+                    "provider": "google",
                 }
 
             elif provider == "github":
@@ -145,7 +151,7 @@ class OAuthService:
                 return {
                     "token": token_data,
                     "user_info": user_info,
-                    "provider": "github"
+                    "provider": "github",
                 }
 
             else:
@@ -174,9 +180,9 @@ class OAuthService:
                         "client_secret": GOOGLE_CLIENT_SECRET,
                         "code": code,
                         "redirect_uri": GOOGLE_REDIRECT_URI,
-                        "grant_type": "authorization_code"
+                        "grant_type": "authorization_code",
                     },
-                    headers={"Accept": "application/json"}
+                    headers={"Accept": "application/json"},
                 )
 
                 if response.status_code != 200:
@@ -203,7 +209,7 @@ class OAuthService:
             try:
                 response = await client.get(
                     "https://www.googleapis.com/oauth2/v3/userinfo",
-                    headers={"Authorization": f"Bearer {access_token}"}
+                    headers={"Authorization": f"Bearer {access_token}"},
                 )
 
                 if response.status_code != 200:
@@ -234,9 +240,9 @@ class OAuthService:
                         "client_id": GITHUB_CLIENT_ID,
                         "client_secret": GITHUB_CLIENT_SECRET,
                         "code": code,
-                        "redirect_uri": GITHUB_REDIRECT_URI
+                        "redirect_uri": GITHUB_REDIRECT_URI,
                     },
-                    headers={"Accept": "application/json"}
+                    headers={"Accept": "application/json"},
                 )
 
                 if response.status_code != 200:
@@ -266,13 +272,15 @@ class OAuthService:
                     "https://api.github.com/user",
                     headers={
                         "Authorization": f"Bearer {access_token}",
-                        "Accept": "application/vnd.github.v3+json"
-                    }
+                        "Accept": "application/vnd.github.v3+json",
+                    },
                 )
 
                 if profile_response.status_code != 200:
                     logger.error(f"GitHub user info error: {profile_response.text}")
-                    return {"error": f"GitHub user info error: {profile_response.status_code}"}
+                    return {
+                        "error": f"GitHub user info error: {profile_response.status_code}"
+                    }
 
                 profile = profile_response.json()
 
@@ -281,8 +289,8 @@ class OAuthService:
                     "https://api.github.com/user/emails",
                     headers={
                         "Authorization": f"Bearer {access_token}",
-                        "Accept": "application/vnd.github.v3+json"
-                    }
+                        "Accept": "application/vnd.github.v3+json",
+                    },
                 )
 
                 if email_response.status_code == 200:
@@ -297,7 +305,9 @@ class OAuthService:
                 logger.error(f"Error getting GitHub user info: {str(e)}")
                 return {"error": f"Error getting GitHub user info: {str(e)}"}
 
-    async def map_provider_user_to_db_user(self, provider: str, user_info: Dict[str, Any]) -> Dict[str, Any]:
+    async def map_provider_user_to_db_user(
+        self, provider: str, user_info: Dict[str, Any]
+    ) -> Dict[str, Any]:
         """
         Map OAuth provider user information to database user format
 
@@ -314,7 +324,7 @@ class OAuthService:
                 "name": user_info.get("name"),
                 "oauth_provider": "google",
                 "oauth_id": user_info.get("sub"),
-                "picture": user_info.get("picture")
+                "picture": user_info.get("picture"),
             }
 
         elif provider == "github":
@@ -323,7 +333,7 @@ class OAuthService:
                 "name": user_info.get("name") or user_info.get("login"),
                 "oauth_provider": "github",
                 "oauth_id": str(user_info.get("id")),
-                "picture": user_info.get("avatar_url")
+                "picture": user_info.get("avatar_url"),
             }
 
         else:

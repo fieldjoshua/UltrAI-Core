@@ -1,6 +1,6 @@
 import numpy as np
+import pandas._testing as tm
 import pytest
-
 from pandas import (
     Index,
     NaT,
@@ -11,7 +11,6 @@ from pandas import (
     offsets,
     period_range,
 )
-import pandas._testing as tm
 
 
 class TestPeriodIndex:

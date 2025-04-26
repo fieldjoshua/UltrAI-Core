@@ -1,10 +1,10 @@
-from collections import abc
 import email
+from collections import abc
 from email.parser import Parser
 
 import numpy as np
+import pandas._testing as tm
 import pytest
-
 from pandas import (
     CategoricalDtype,
     DataFrame,
@@ -13,7 +13,6 @@ from pandas import (
     Timestamp,
     date_range,
 )
-import pandas._testing as tm
 
 
 class TestDataFrameToRecords:

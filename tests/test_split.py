@@ -9,7 +9,6 @@ import pytest
 from scipy import stats
 from scipy.sparse import issparse
 from scipy.special import comb
-
 from sklearn import config_context
 from sklearn.datasets import load_digits, make_classification
 from sklearn.dummy import DummyClassifier
@@ -41,13 +40,11 @@ from sklearn.model_selection._split import (
 )
 from sklearn.svm import SVC
 from sklearn.tests.metadata_routing_common import assert_request_is_empty
+from sklearn.utils._array_api import _convert_to_numpy
+from sklearn.utils._array_api import device as array_api_device
 from sklearn.utils._array_api import (
-    _convert_to_numpy,
     get_namespace,
     yield_namespace_device_dtype_combinations,
-)
-from sklearn.utils._array_api import (
-    device as array_api_device,
 )
 from sklearn.utils._mocking import MockDataFrame
 from sklearn.utils._testing import (
@@ -56,9 +53,7 @@ from sklearn.utils._testing import (
     assert_array_equal,
     ignore_warnings,
 )
-from sklearn.utils.estimator_checks import (
-    _array_api_for_tests,
-)
+from sklearn.utils.estimator_checks import _array_api_for_tests
 from sklearn.utils.fixes import COO_CONTAINERS, CSC_CONTAINERS, CSR_CONTAINERS
 from sklearn.utils.validation import _num_samples
 

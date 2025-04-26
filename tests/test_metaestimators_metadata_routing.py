@@ -3,7 +3,6 @@ import re
 
 import numpy as np
 import pytest
-
 from sklearn import config_context
 from sklearn.base import BaseEstimator, is_classifier
 from sklearn.calibration import CalibratedClassifierCV
@@ -16,10 +15,8 @@ from sklearn.ensemble import (
     BaggingRegressor,
 )
 from sklearn.exceptions import UnsetMetadataPassedError
-from sklearn.experimental import (
-    enable_halving_search_cv,  # noqa
-    enable_iterative_imputer,  # noqa
-)
+from sklearn.experimental import enable_halving_search_cv  # noqa
+from sklearn.experimental import enable_iterative_imputer  # noqa
 from sklearn.feature_selection import (
     RFE,
     RFECV,

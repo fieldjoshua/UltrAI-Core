@@ -1,13 +1,12 @@
 import unittest
 
 import pytest
-
-from nltk.corpus import (  # mwa_ppdb
+from nltk.corpus import indian  # mwa_ppdb
+from nltk.corpus import (
     cess_cat,
     cess_esp,
     conll2007,
     floresta,
-    indian,
     ptb,
     sinica_treebank,
     udhr,

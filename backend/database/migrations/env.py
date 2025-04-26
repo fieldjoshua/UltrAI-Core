@@ -6,10 +6,15 @@ from alembic import context
 from sqlalchemy import engine_from_config, pool
 
 # Add the parent directory to the path so we can import models
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))))
+sys.path.insert(
+    0,
+    os.path.dirname(
+        os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    ),
+)
 
 # Import the SQLAlchemy metadata and database URL
-from backend.database.connection import Base, DATABASE_URL
+from backend.database.connection import DATABASE_URL, Base
 
 # Alembic Config object, which provides access to values in the .ini file
 config = context.config
@@ -22,11 +27,12 @@ config.set_main_option("sqlalchemy.url", DATABASE_URL)
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
+from backend.database.models.analysis import Analysis
+from backend.database.models.document import Document, DocumentChunk
+
 # Add your model's MetaData object here for 'autogenerate' support
 # Import all models to ensure they're included in the migration
-from backend.database.models.user import User, ApiKey
-from backend.database.models.document import Document, DocumentChunk
-from backend.database.models.analysis import Analysis
+from backend.database.models.user import ApiKey, User
 
 target_metadata = Base.metadata
 
@@ -69,9 +75,7 @@ def run_migrations_online() -> None:
     )
 
     with connectable.connect() as connection:
-        context.configure(
-            connection=connection, target_metadata=target_metadata
-        )
+        context.configure(connection=connection, target_metadata=target_metadata)
 
         with context.begin_transaction():
             context.run_migrations()

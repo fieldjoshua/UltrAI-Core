@@ -1,6 +1,5 @@
 import numpy as np
 import pytest
-
 from sklearn import config_context
 from sklearn.base import clone
 from sklearn.datasets import (
@@ -13,12 +12,7 @@ from sklearn.dummy import DummyClassifier
 from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.exceptions import NotFittedError
 from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import (
-    balanced_accuracy_score,
-    f1_score,
-    fbeta_score,
-    make_scorer,
-)
+from sklearn.metrics import balanced_accuracy_score, f1_score, fbeta_score, make_scorer
 from sklearn.metrics._scorer import _CurveScorer
 from sklearn.model_selection import (
     FixedThresholdClassifier,

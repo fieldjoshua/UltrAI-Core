@@ -2,7 +2,6 @@ import re
 
 import numpy as np
 import pytest
-
 from sklearn.datasets import make_classification
 from sklearn.kernel_approximation import (
     AdditiveChi2Sampler,

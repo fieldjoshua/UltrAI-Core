@@ -1,8 +1,8 @@
 import io
 
 import numpy as np
+import pandas._testing as tm
 import pytest
-
 from pandas import (
     DataFrame,
     date_range,
@@ -15,7 +15,6 @@ from pandas import (
     read_stata,
     read_table,
 )
-import pandas._testing as tm
 from pandas.util import _test_decorators as td
 
 pytestmark = pytest.mark.filterwarnings(

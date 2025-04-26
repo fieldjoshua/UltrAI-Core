@@ -1,16 +1,13 @@
 """
 test with the TimeGrouper / grouping with datetimes
 """
-from datetime import (
-    datetime,
-    timedelta,
-)
+from datetime import datetime, timedelta
 
 import numpy as np
+import pandas as pd
+import pandas._testing as tm
 import pytest
 import pytz
-
-import pandas as pd
 from pandas import (
     DataFrame,
     DatetimeIndex,
@@ -21,7 +18,6 @@ from pandas import (
     date_range,
     offsets,
 )
-import pandas._testing as tm
 from pandas.core.groupby.grouper import Grouper
 from pandas.core.groupby.ops import BinGrouper
 

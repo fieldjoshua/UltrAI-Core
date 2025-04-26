@@ -6,22 +6,12 @@ Tests for the following offsets:
 """
 from __future__ import annotations
 
-from datetime import (
-    datetime,
-    timedelta,
-)
-
-import pytest
-
-from pandas._libs.tslibs import Timestamp
-from pandas._libs.tslibs.offsets import (
-    Day,
-    LastWeekOfMonth,
-    Week,
-    WeekOfMonth,
-)
+from datetime import datetime, timedelta
 
 import pandas._testing as tm
+import pytest
+from pandas._libs.tslibs import Timestamp
+from pandas._libs.tslibs.offsets import Day, LastWeekOfMonth, Week, WeekOfMonth
 from pandas.tests.tseries.offsets.common import (
     WeekDay,
     assert_is_on_offset,

@@ -5,7 +5,6 @@ import warnings
 import numpy as np
 import pytest
 from numpy.testing import assert_allclose, assert_array_equal
-
 from sklearn import datasets
 from sklearn.decomposition import PCA, IncrementalPCA
 from sklearn.utils._testing import (

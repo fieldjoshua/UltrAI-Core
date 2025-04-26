@@ -5,23 +5,17 @@ import numpy as np
 import pytest
 import scipy as sp
 from numpy.testing import assert_array_equal
-
 from sklearn import config_context, datasets
 from sklearn.base import clone
 from sklearn.datasets import load_iris, make_classification, make_low_rank_matrix
 from sklearn.decomposition import PCA
 from sklearn.decomposition._pca import _assess_dimension, _infer_dimension
-from sklearn.utils._array_api import (
-    _atol_for_type,
-    _convert_to_numpy,
-    yield_namespace_device_dtype_combinations,
-)
+from sklearn.utils._array_api import _atol_for_type, _convert_to_numpy
 from sklearn.utils._array_api import device as array_device
+from sklearn.utils._array_api import yield_namespace_device_dtype_combinations
 from sklearn.utils._test_common.instance_generator import _get_check_estimator_ids
 from sklearn.utils._testing import _array_api_for_tests, assert_allclose
-from sklearn.utils.estimator_checks import (
-    check_array_api_input_and_values,
-)
+from sklearn.utils.estimator_checks import check_array_api_input_and_values
 from sklearn.utils.fixes import CSC_CONTAINERS, CSR_CONTAINERS
 
 iris = datasets.load_iris()

@@ -56,8 +56,9 @@ required_dirs=(
   "src/examples"
   "src/examples/llm_clients"
   "src/examples/pdf"
-  "Actions"
-  "Actions/DOCUMENTATION_REPOPULATION"
+  ".aicheck/actions"
+  ".aicheck/docs"
+  ".aicheck/sessions"
   "documentation/development"
   "documentation/guides"
 )
@@ -79,10 +80,9 @@ readme_files=(
   "frontend/cloud/README.md"
   "backend/cloud/README.md"
   "src/examples/debug.py"
-  "documentation/Controlling_README.md"
-  "documentation/Controlling_GUIDELINES.md"
-  "documentation/ACTIONS_INDEX.md"
-  "documentation/Templates/PLAN_TEMPLATE.md"
+  ".aicheck/docs/README.md"
+  ".aicheck/docs/actions_index.md"
+  ".aicheck/docs/RULES.md"
 )
 
 # Check if directories exist
@@ -154,8 +154,9 @@ check_required_directories() {
     "src/business"
     "src/pricing"
     "data/results"
-    "Actions"
-    "Actions/DOCUMENTATION_REPOPULATION"
+    ".aicheck/actions"
+    ".aicheck/docs"
+    ".aicheck/sessions"
     "documentation/development"
     "documentation/guides"
   )
@@ -170,12 +171,11 @@ check_required_directories() {
 
 check_required_files() {
   local required_files=(
-    "documentation/Controlling_README.md"
-    "documentation/Controlling_GUIDELINES.md"
-    "documentation/ACTIONS_INDEX.md"
+    ".aicheck/docs/README.md"
+    ".aicheck/docs/actions_index.md"
+    ".aicheck/docs/RULES.md"
     "tests/performance/benchmarks/README.md"
     "src/examples/debug.py"
-    "documentation/Templates/PLAN_TEMPLATE.md"
   )
 
   for file in "${required_files[@]}"; do

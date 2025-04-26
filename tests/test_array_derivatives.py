@@ -1,9 +1,9 @@
 from sympy.core.symbol import symbols
 from sympy.matrices.dense import Matrix
 from sympy.matrices.expressions.matexpr import MatrixSymbol
-from sympy.tensor.array.ndim_array import NDimArray
 from sympy.matrices.matrixbase import MatrixBase
 from sympy.tensor.array.array_derivatives import ArrayDerivative
+from sympy.tensor.array.ndim_array import NDimArray
 
 x, y, z, t = symbols("x y z t")
 
@@ -14,7 +14,6 @@ N = MatrixSymbol("N", 4, 3)
 
 
 def test_array_derivative_construction():
-
     d = ArrayDerivative(x, m, evaluate=False)
     assert d.shape == (2, 2)
     expr = d.doit()

@@ -1,12 +1,11 @@
 import os
 from textwrap import dedent
+
 from sympy.external import import_module
 from sympy.testing.pytest import skip
 from sympy.utilities.mathml import apply_xsl
 
-
-
-lxml = import_module('lxml')
+lxml = import_module("lxml")
 
 path = os.path.abspath(os.path.join(os.path.dirname(__file__), "test_xxe.py"))
 
@@ -26,8 +25,10 @@ def test_xxe():
         </userInfo>
         """
     )
-    xsl = 'mathml/data/simple_mmlctop.xsl'
+    xsl = "mathml/data/simple_mmlctop.xsl"
 
     res = apply_xsl(mml, xsl)
-    assert res == \
-        '<?xml version="1.0"?>\n<userInfo>\n<firstName>John</firstName>\n<lastName/>\n</userInfo>\n'
+    assert (
+        res
+        == '<?xml version="1.0"?>\n<userInfo>\n<firstName>John</firstName>\n<lastName/>\n</userInfo>\n'
+    )

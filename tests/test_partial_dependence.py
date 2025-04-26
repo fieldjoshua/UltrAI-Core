@@ -4,7 +4,6 @@ Testing for the partial dependence module.
 
 import numpy as np
 import pytest
-
 import sklearn
 from sklearn.base import BaseEstimator, ClassifierMixin, clone, is_regressor
 from sklearn.cluster import KMeans

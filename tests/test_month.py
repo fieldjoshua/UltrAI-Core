@@ -10,7 +10,8 @@ from __future__ import annotations
 from datetime import datetime
 
 import pytest
-
+from pandas import DatetimeIndex, Series
+from pandas import _testing as tm
 from pandas._libs.tslibs import Timestamp
 from pandas._libs.tslibs.offsets import (
     MonthBegin,
@@ -18,16 +19,7 @@ from pandas._libs.tslibs.offsets import (
     SemiMonthBegin,
     SemiMonthEnd,
 )
-
-from pandas import (
-    DatetimeIndex,
-    Series,
-    _testing as tm,
-)
-from pandas.tests.tseries.offsets.common import (
-    assert_is_on_offset,
-    assert_offset_equal,
-)
+from pandas.tests.tseries.offsets.common import assert_is_on_offset, assert_offset_equal
 
 
 class TestSemiMonthEnd:

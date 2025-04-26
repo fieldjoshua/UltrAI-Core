@@ -34,7 +34,6 @@ def write_config(path: Path, content: str | None = None) -> None:
 
 
 class FindConfigFileSuite(unittest.TestCase):
-
     def test_no_config(self) -> None:
         with tempfile.TemporaryDirectory() as _tmpdir:
             tmpdir = Path(_tmpdir)

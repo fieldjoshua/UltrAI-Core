@@ -1,15 +1,18 @@
+from typing import Any, Dict, Optional
+
 from pydantic import BaseModel, EmailStr
-from typing import Optional, Dict, Any
 
 
 class UserBase(BaseModel):
     """Base model for user information"""
+
     email: EmailStr
     name: Optional[str] = None
 
 
 class UserCreate(UserBase):
     """Request model for creating a new user"""
+
     user_id: Optional[str] = None
     username: Optional[str] = None
     password: str
@@ -19,17 +22,20 @@ class UserCreate(UserBase):
 
 class UserLogin(BaseModel):
     """Request model for user login"""
+
     email: EmailStr
     password: str
 
 
 class OAuthUserLogin(BaseModel):
     """Request model for OAuth login"""
+
     provider: str
 
 
 class UserUpdate(BaseModel):
     """Request model for updating user information"""
+
     name: Optional[str] = None
     email: Optional[EmailStr] = None
     password: Optional[str] = None
@@ -38,6 +44,7 @@ class UserUpdate(BaseModel):
 
 class UserResponse(BaseModel):
     """Response model for user information"""
+
     user_id: str
     email: EmailStr
     username: Optional[str] = None
@@ -53,6 +60,7 @@ class UserResponse(BaseModel):
 
 class TokenResponse(BaseModel):
     """Response model for authentication token"""
+
     access_token: str
     token_type: str = "bearer"
     expires_in: int

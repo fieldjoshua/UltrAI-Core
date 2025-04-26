@@ -1,9 +1,8 @@
 import random
 import time
 
-import pytest
-
 import networkx as nx
+import pytest
 from networkx.algorithms.isomorphism.tree_isomorphism import (
     rooted_tree_isomorphism,
     tree_isomorphism,

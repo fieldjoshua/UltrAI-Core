@@ -12,14 +12,15 @@ import traceback
 from typing import Any, Dict, List, Optional, Union
 
 import sentry_sdk
-from fastapi import FastAPI, Request, Response, status
+from fastapi import FastAPI, Request, Response, status, HTTPException
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from starlette.exceptions import HTTPException as StarletteHTTPException
+from sqlalchemy.exc import SQLAlchemyError
 
 from backend.utils.exceptions import UltraBaseException
-from backend.utils.logging import CorrelationContext, log_error
+from backend.utils.logging import CorrelationContext, log_error, get_logger
 
 
 # Define standard error response models
@@ -51,12 +52,15 @@ def register_exception_handlers(app: FastAPI) -> None:
     async def handle_ultra_exception(request: Request, exc: UltraBaseException):
         """Handle custom Ultra exceptions"""
         # Log the error
-        log_error(f"Ultra API error: {exc.code} - {exc.message}", extra={
-            "status_code": exc.status_code,
-            "error_code": exc.code,
-            "endpoint": request.url.path,
-            "method": request.method,
-        })
+        log_error(
+            f"Ultra API error: {exc.code} - {exc.message}",
+            extra={
+                "status_code": exc.status_code,
+                "error_code": exc.code,
+                "endpoint": request.url.path,
+                "method": request.method,
+            },
+        )
 
         # Capture in Sentry if it's a server error (5xx)
         if exc.status_code >= 500:
@@ -72,20 +76,24 @@ def register_exception_handlers(app: FastAPI) -> None:
         )
 
         return JSONResponse(
-            status_code=exc.status_code,
-            content=error_response.dict(exclude_none=True)
+            status_code=exc.status_code, content=error_response.dict(exclude_none=True)
         )
 
     @app.exception_handler(RequestValidationError)
-    async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    async def validation_exception_handler(
+        request: Request, exc: RequestValidationError
+    ):
         """Handle FastAPI validation errors"""
         # Log the error
         error_details = str(exc.errors())
-        log_error(f"Validation error: {error_details}", extra={
-            "endpoint": request.url.path,
-            "method": request.method,
-            "validation_errors": exc.errors(),
-        })
+        log_error(
+            f"Validation error: {error_details}",
+            extra={
+                "endpoint": request.url.path,
+                "method": request.method,
+                "validation_errors": exc.errors(),
+            },
+        )
 
         # Format validation errors
         details = []
@@ -117,11 +125,14 @@ def register_exception_handlers(app: FastAPI) -> None:
     async def http_exception_handler(request: Request, exc: StarletteHTTPException):
         """Handle Starlette HTTP exceptions"""
         # Log the error
-        log_error(f"HTTP error {exc.status_code}: {exc.detail}", extra={
-            "status_code": exc.status_code,
-            "endpoint": request.url.path,
-            "method": request.method,
-        })
+        log_error(
+            f"HTTP error {exc.status_code}: {exc.detail}",
+            extra={
+                "status_code": exc.status_code,
+                "endpoint": request.url.path,
+                "method": request.method,
+            },
+        )
 
         # Create standardized error response
         error_response = ErrorResponse(
@@ -132,8 +143,7 @@ def register_exception_handlers(app: FastAPI) -> None:
         )
 
         return JSONResponse(
-            status_code=exc.status_code,
-            content=error_response.dict(exclude_none=True)
+            status_code=exc.status_code, content=error_response.dict(exclude_none=True)
         )
 
     @app.exception_handler(Exception)
@@ -143,11 +153,15 @@ def register_exception_handlers(app: FastAPI) -> None:
         tb = traceback.format_exc()
 
         # Log the error with traceback
-        log_error(f"Unhandled exception: {str(exc)}", error=exc, extra={
-            "traceback": tb,
-            "endpoint": request.url.path,
-            "method": request.method,
-        })
+        log_error(
+            f"Unhandled exception: {str(exc)}",
+            error=exc,
+            extra={
+                "traceback": tb,
+                "endpoint": request.url.path,
+                "method": request.method,
+            },
+        )
 
         # Capture in Sentry
         sentry_sdk.capture_exception(exc)
@@ -187,10 +201,14 @@ async def error_handling_middleware(request: Request, call_next):
 
     except Exception as exc:
         # This handles any errors not caught by the exception handlers
-        log_error(f"Unhandled error in middleware: {str(exc)}", error=exc, extra={
-            "endpoint": request.url.path,
-            "method": request.method,
-        })
+        log_error(
+            f"Unhandled error in middleware: {str(exc)}",
+            error=exc,
+            extra={
+                "endpoint": request.url.path,
+                "method": request.method,
+            },
+        )
 
         sentry_sdk.capture_exception(exc)
 
@@ -207,3 +225,25 @@ async def error_handling_middleware(request: Request, call_next):
             content=error_response.dict(exclude_none=True),
             headers={"X-Correlation-ID": correlation_id},
         )
+
+
+logger = get_logger("error_handler", "logs/error.log")
+
+
+def handle_error(error: Exception) -> None:
+    """Handle errors consistently across the application."""
+    if isinstance(error, HTTPException):
+        raise error
+
+    if isinstance(error, SQLAlchemyError):
+        logger.error(f"Database error: {str(error)}")
+        raise HTTPException(
+            status_code=500,
+            detail="Database error occurred. Please try again later.",
+        )
+
+    logger.error(f"Unexpected error: {str(error)}")
+    raise HTTPException(
+        status_code=500,
+        detail="An unexpected error occurred. Please try again later.",
+    )

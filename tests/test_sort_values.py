@@ -1,6 +1,6 @@
 import numpy as np
+import pandas._testing as tm
 import pytest
-
 from pandas import (
     DatetimeIndex,
     Index,
@@ -9,7 +9,6 @@ from pandas import (
     TimedeltaIndex,
     timedelta_range,
 )
-import pandas._testing as tm
 
 
 def check_freq_ascending(ordered, orig, ascending):

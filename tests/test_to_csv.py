@@ -1,13 +1,12 @@
 import csv
-from io import StringIO
 import os
+from io import StringIO
 
 import numpy as np
-import pytest
-
-from pandas.errors import ParserError
-
 import pandas as pd
+import pandas._testing as tm
+import pandas.core.common as com
+import pytest
 from pandas import (
     DataFrame,
     Index,
@@ -20,9 +19,7 @@ from pandas import (
     read_csv,
     to_datetime,
 )
-import pandas._testing as tm
-import pandas.core.common as com
-
+from pandas.errors import ParserError
 from pandas.io.common import get_handle
 
 

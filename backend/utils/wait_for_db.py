@@ -5,13 +5,13 @@ This module provides a utility to wait for the database to be ready
 before starting the application.
 """
 
+import logging
 import os
 import sys
 import time
-import logging
+
 from sqlalchemy import create_engine
 from sqlalchemy.exc import OperationalError
-
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -50,7 +50,9 @@ def main():
             return 0
         except OperationalError as e:
             retries += 1
-            logger.warning(f"Database connection failed ({retries}/{MAX_RETRIES}): {str(e)}")
+            logger.warning(
+                f"Database connection failed ({retries}/{MAX_RETRIES}): {str(e)}"
+            )
             if retries >= MAX_RETRIES:
                 logger.error("Max retries exceeded, giving up")
                 sys.exit(1)

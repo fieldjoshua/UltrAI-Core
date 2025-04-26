@@ -1,5 +1,5 @@
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
 
 
 def test_stem_remove():
@@ -9,7 +9,6 @@ def test_stem_remove():
 
 
 def test_errorbar_remove():
-
     # Regression test for a bug that caused remove to fail when using
     # fmt='none'
 
@@ -27,7 +26,7 @@ def test_errorbar_remove():
     eb = ax.errorbar([1], [1], xerr=[2], yerr=2)
     eb.remove()
 
-    eb = ax.errorbar([1], [1], fmt='none')
+    eb = ax.errorbar([1], [1], fmt="none")
     eb.remove()
 
 

@@ -4,13 +4,15 @@ Analysis models for the backend API.
 This module defines the Pydantic models for the analysis API endpoints.
 """
 
-from typing import Dict, List, Any, Optional
 from enum import Enum
+from typing import Any, Dict, List, Optional
+
 from pydantic import BaseModel, Field
 
 
 class AlaCarteOption(str, Enum):
     """A la carte options for analysis"""
+
     FACT_CHECK = "fact_check"
     AVOID_AI_DETECTION = "avoid_ai_detection"
     SOURCING = "sourcing"
@@ -21,6 +23,7 @@ class AlaCarteOption(str, Enum):
 
 class OutputFormat(str, Enum):
     """Output format options"""
+
     TEXT = "txt"
     RTF = "rtf"
     GOOGLE_DOCS = "google_docs"
@@ -29,6 +32,7 @@ class OutputFormat(str, Enum):
 
 class AnalysisRequest(BaseModel):
     """Analysis request model."""
+
     prompt: str = Field(..., description="The prompt to analyze")
     selected_models: List[str] = Field(..., description="List of LLM models to use")
     ultra_model: str = Field(..., description="Ultra model to use")
@@ -49,6 +53,7 @@ class AnalysisRequest(BaseModel):
 
 class DocumentUploadResponse(BaseModel):
     """Document upload response."""
+
     id: str
     name: str
     size: int

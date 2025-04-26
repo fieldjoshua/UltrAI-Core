@@ -4,10 +4,10 @@ Authentication service for the Ultra backend.
 This module provides the service for user authentication and token generation.
 """
 
-import os
 import logging
+import os
 from datetime import datetime, timedelta
-from typing import Dict, Any, Optional, Union
+from typing import Any, Dict, Optional, Union
 
 import jwt
 from fastapi import Depends
@@ -28,7 +28,9 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 # Load environment variables
 JWT_SECRET = os.getenv("JWT_SECRET", "super_secret_key_change_in_production")
 JWT_ALGORITHM = os.getenv("JWT_ALGORITHM", "HS256")
-JWT_EXPIRATION_MINUTES = int(os.getenv("JWT_EXPIRATION_MINUTES", "60"))  # 1 hour by default
+JWT_EXPIRATION_MINUTES = int(
+    os.getenv("JWT_EXPIRATION_MINUTES", "60")
+)  # 1 hour by default
 
 
 class AuthService:
@@ -39,8 +41,13 @@ class AuthService:
         self.user_repository = UserRepository()
 
     def create_user(
-        self, db: Session, email: str, password: str,
-        username: Optional[str] = None, name: Optional[str] = None, tier: str = "basic"
+        self,
+        db: Session,
+        email: str,
+        password: str,
+        username: Optional[str] = None,
+        name: Optional[str] = None,
+        tier: str = "basic",
     ) -> Dict[str, Any]:
         """
         Create a new user
@@ -92,13 +99,15 @@ class AuthService:
                 "name": user.full_name,
                 "tier": user.subscription_tier.value,
                 "created_at": user.created_at.isoformat(),
-                "is_verified": user.is_verified
+                "is_verified": user.is_verified,
             }
         except Exception as e:
             logger.error(f"Error creating user: {str(e)}")
             return {"error": f"Error creating user: {str(e)}"}
 
-    def authenticate_user(self, db: Session, email: str, password: str) -> Optional[User]:
+    def authenticate_user(
+        self, db: Session, email: str, password: str
+    ) -> Optional[User]:
         """
         Authenticate a user by email and password
 
@@ -126,9 +135,7 @@ class AuthService:
 
         # Update last login time
         self.user_repository.update(
-            db,
-            db_obj=user,
-            obj_in={"last_login": datetime.utcnow()}
+            db, db_obj=user, obj_in={"last_login": datetime.utcnow()}
         )
 
         return user
@@ -176,7 +183,7 @@ class AuthService:
             "access_token": token,
             "token_type": "bearer",
             "expires_in": JWT_EXPIRATION_MINUTES * 60,  # seconds
-            "user_id": user_id
+            "user_id": user_id,
         }
 
     def verify_token(self, token: str) -> Optional[str]:
@@ -198,9 +205,7 @@ class AuthService:
             return None
 
     async def get_current_user(
-        self,
-        token: str,
-        db: Session = Depends(get_db)
+        self, token: str, db: Session = Depends(get_db)
     ) -> Optional[User]:
         """
         Get the current user from a token

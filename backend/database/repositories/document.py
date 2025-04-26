@@ -5,11 +5,12 @@ This module provides data access operations for document-related models.
 
 import logging
 from typing import List, Optional
+
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
-from backend.database.repositories.base import BaseRepository
 from backend.database.models.document import Document, DocumentChunk
+from backend.database.repositories.base import BaseRepository
 from backend.utils.exceptions import DatabaseException
 
 logger = logging.getLogger(__name__)
@@ -22,7 +23,9 @@ class DocumentRepository(BaseRepository[Document]):
         """Initialize the document repository."""
         super().__init__(Document)
 
-    def get_by_filename(self, db: Session, filename: str, user_id: str) -> Optional[Document]:
+    def get_by_filename(
+        self, db: Session, filename: str, user_id: str
+    ) -> Optional[Document]:
         """Get a document by its filename and user ID.
 
         Args:
@@ -34,15 +37,18 @@ class DocumentRepository(BaseRepository[Document]):
             The document if found, None otherwise
         """
         try:
-            return db.query(Document).filter(
-                Document.filename == filename,
-                Document.user_id == user_id
-            ).first()
+            return (
+                db.query(Document)
+                .filter(Document.filename == filename, Document.user_id == user_id)
+                .first()
+            )
         except SQLAlchemyError as e:
             logger.error(f"Error retrieving document by filename: {e}")
             raise DatabaseException(f"Failed to retrieve document: {str(e)}")
 
-    def get_user_documents(self, db: Session, user_id: str, skip: int = 0, limit: int = 100) -> List[Document]:
+    def get_user_documents(
+        self, db: Session, user_id: str, skip: int = 0, limit: int = 100
+    ) -> List[Document]:
         """Get all documents for a specific user.
 
         Args:
@@ -55,9 +61,13 @@ class DocumentRepository(BaseRepository[Document]):
             List of documents owned by the user
         """
         try:
-            return db.query(Document).filter(
-                Document.user_id == user_id
-            ).offset(skip).limit(limit).all()
+            return (
+                db.query(Document)
+                .filter(Document.user_id == user_id)
+                .offset(skip)
+                .limit(limit)
+                .all()
+            )
         except SQLAlchemyError as e:
             logger.error(f"Error retrieving user documents: {e}")
             raise DatabaseException(f"Failed to retrieve user documents: {str(e)}")
@@ -110,7 +120,9 @@ class DocumentChunkRepository(BaseRepository[DocumentChunk]):
         """Initialize the document chunk repository."""
         super().__init__(DocumentChunk)
 
-    def get_chunks_by_document_id(self, db: Session, document_id: str, skip: int = 0, limit: int = 100) -> List[DocumentChunk]:
+    def get_chunks_by_document_id(
+        self, db: Session, document_id: str, skip: int = 0, limit: int = 100
+    ) -> List[DocumentChunk]:
         """Get all chunks for a specific document.
 
         Args:
@@ -123,9 +135,13 @@ class DocumentChunkRepository(BaseRepository[DocumentChunk]):
             List of document chunks
         """
         try:
-            return db.query(DocumentChunk).filter(
-                DocumentChunk.document_id == document_id
-            ).offset(skip).limit(limit).all()
+            return (
+                db.query(DocumentChunk)
+                .filter(DocumentChunk.document_id == document_id)
+                .offset(skip)
+                .limit(limit)
+                .all()
+            )
         except SQLAlchemyError as e:
             logger.error(f"Error retrieving document chunks: {e}")
             raise DatabaseException(f"Failed to retrieve document chunks: {str(e)}")
@@ -141,7 +157,11 @@ class DocumentChunkRepository(BaseRepository[DocumentChunk]):
             The count of document chunks
         """
         try:
-            return db.query(DocumentChunk).filter(DocumentChunk.document_id == document_id).count()
+            return (
+                db.query(DocumentChunk)
+                .filter(DocumentChunk.document_id == document_id)
+                .count()
+            )
         except SQLAlchemyError as e:
             logger.error(f"Error counting document chunks: {e}")
             raise DatabaseException(f"Failed to count document chunks: {str(e)}")
@@ -157,7 +177,11 @@ class DocumentChunkRepository(BaseRepository[DocumentChunk]):
             The number of chunks deleted
         """
         try:
-            chunks = db.query(DocumentChunk).filter(DocumentChunk.document_id == document_id).all()
+            chunks = (
+                db.query(DocumentChunk)
+                .filter(DocumentChunk.document_id == document_id)
+                .all()
+            )
             count = len(chunks)
 
             for chunk in chunks:

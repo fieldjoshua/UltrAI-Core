@@ -11,7 +11,6 @@ from unittest.mock import Mock, patch
 import numpy as np
 import pytest
 from joblib import parallel_backend
-
 from sklearn.datasets import load_diabetes, load_iris, make_classification
 from sklearn.ensemble import IsolationForest
 from sklearn.ensemble._iforest import _average_path_length

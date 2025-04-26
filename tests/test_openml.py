@@ -12,7 +12,6 @@ from urllib.error import HTTPError
 import numpy as np
 import pytest
 import scipy.sparse
-
 import sklearn
 from sklearn import config_context
 from sklearn.datasets import fetch_openml as fetch_openml_orig
@@ -24,11 +23,7 @@ from sklearn.datasets._openml import (
 )
 from sklearn.utils import Bunch
 from sklearn.utils._optional_dependencies import check_pandas_support
-from sklearn.utils._testing import (
-    SkipTest,
-    assert_allclose,
-    assert_array_equal,
-)
+from sklearn.utils._testing import SkipTest, assert_allclose, assert_array_equal
 
 OPENML_TEST_DATA_MODULE = "sklearn.datasets.tests.data.openml"
 # if True, urlopen will be monkey patched to only use local files

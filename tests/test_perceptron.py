@@ -1,6 +1,5 @@
 import numpy as np
 import pytest
-
 from sklearn.datasets import load_iris
 from sklearn.linear_model import Perceptron
 from sklearn.utils import check_random_state

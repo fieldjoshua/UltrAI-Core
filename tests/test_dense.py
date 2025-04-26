@@ -1,19 +1,27 @@
-from sympy.testing.pytest import raises
-
-from sympy.polys import ZZ, QQ
-
+from sympy.polys import QQ, ZZ
 from sympy.polys.matrices.ddm import DDM
 from sympy.polys.matrices.dense import (
-        ddm_transpose,
-        ddm_iadd, ddm_isub, ddm_ineg, ddm_imatmul, ddm_imul, ddm_irref,
-        ddm_idet, ddm_iinv, ddm_ilu, ddm_ilu_split, ddm_ilu_solve, ddm_berk)
-
+    ddm_berk,
+    ddm_iadd,
+    ddm_idet,
+    ddm_iinv,
+    ddm_ilu,
+    ddm_ilu_solve,
+    ddm_ilu_split,
+    ddm_imatmul,
+    ddm_imul,
+    ddm_ineg,
+    ddm_irref,
+    ddm_isub,
+    ddm_transpose,
+)
 from sympy.polys.matrices.exceptions import (
     DMDomainError,
     DMNonInvertibleMatrixError,
     DMNonSquareMatrixError,
     DMShapeError,
 )
+from sympy.testing.pytest import raises
 
 
 def test_ddm_transpose():

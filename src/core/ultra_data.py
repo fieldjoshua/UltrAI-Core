@@ -7,9 +7,8 @@ from typing import Any, Dict, List, Optional, Union
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from ultra_llm import PromptTemplate, RateLimits
-
 from ultra_base import UltraBase
+from ultra_llm import PromptTemplate, RateLimits
 
 
 @dataclass

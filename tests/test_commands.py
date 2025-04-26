@@ -38,9 +38,8 @@
 # INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
 # BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
 
-from testtools import content
-
 from pbr.tests import base
+from testtools import content
 
 
 class TestCommands(base.BaseTestCase):
@@ -51,34 +50,34 @@ class TestCommands(base.BaseTestCase):
         the commands [global] option, rather than the normal build command.
         """
 
-        stdout, stderr, return_code = self.run_setup('build_py')
-        self.addDetail('stdout', content.text_content(stdout))
-        self.addDetail('stderr', content.text_content(stderr))
-        self.assertIn('Running custom build_py command.', stdout)
+        stdout, stderr, return_code = self.run_setup("build_py")
+        self.addDetail("stdout", content.text_content(stdout))
+        self.addDetail("stderr", content.text_content(stderr))
+        self.assertIn("Running custom build_py command.", stdout)
         self.assertEqual(0, return_code)
 
     def test_custom_deb_version_py_command(self):
         """Test custom deb_version command."""
-        stdout, stderr, return_code = self.run_setup('deb_version')
-        self.addDetail('stdout', content.text_content(stdout))
-        self.addDetail('stderr', content.text_content(stderr))
-        self.assertIn('Extracting deb version', stdout)
+        stdout, stderr, return_code = self.run_setup("deb_version")
+        self.addDetail("stdout", content.text_content(stdout))
+        self.addDetail("stderr", content.text_content(stderr))
+        self.assertIn("Extracting deb version", stdout)
         self.assertEqual(0, return_code)
 
     def test_custom_rpm_version_py_command(self):
         """Test custom rpm_version command."""
-        stdout, stderr, return_code = self.run_setup('rpm_version')
-        self.addDetail('stdout', content.text_content(stdout))
-        self.addDetail('stderr', content.text_content(stderr))
-        self.assertIn('Extracting rpm version', stdout)
+        stdout, stderr, return_code = self.run_setup("rpm_version")
+        self.addDetail("stdout", content.text_content(stdout))
+        self.addDetail("stderr", content.text_content(stderr))
+        self.assertIn("Extracting rpm version", stdout)
         self.assertEqual(0, return_code)
 
     def test_freeze_command(self):
         """Test that freeze output is sorted in a case-insensitive manner."""
-        stdout, stderr, return_code = self.run_pbr('freeze')
+        stdout, stderr, return_code = self.run_pbr("freeze")
         self.assertEqual(0, return_code)
         pkgs = []
-        for line in stdout.split('\n'):
-            pkgs.append(line.split('==')[0].lower())
+        for line in stdout.split("\n"):
+            pkgs.append(line.split("==")[0].lower())
         pkgs_sort = sorted(pkgs[:])
         self.assertEqual(pkgs_sort, pkgs)

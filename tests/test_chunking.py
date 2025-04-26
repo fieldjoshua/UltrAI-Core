@@ -2,7 +2,6 @@ import warnings
 from itertools import chain
 
 import pytest
-
 from sklearn import config_context
 from sklearn.utils._chunking import gen_even_slices, get_chunk_n_rows
 from sklearn.utils._testing import assert_array_equal

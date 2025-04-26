@@ -10,12 +10,14 @@ on one version of Python.
 """
 
 
-from pathlib import Path
 import re
 import tokenize
+from pathlib import Path
+
 import pytest
-from numpy.testing import assert_
 import scipy
+from numpy.testing import assert_
+
 
 class TestFFTPackImport:
     @pytest.mark.slow
@@ -28,6 +30,7 @@ class TestFFTPackImport:
             # use tokenize to auto-detect encoding on systems where no
             # default encoding is defined (e.g., LANG='C')
             with tokenize.open(str(path)) as file:
-                assert_(all(not re.fullmatch(regexp, line)
-                            for line in file),
-                        f"{path} contains an import from fftpack")
+                assert_(
+                    all(not re.fullmatch(regexp, line) for line in file),
+                    f"{path} contains an import from fftpack",
+                )

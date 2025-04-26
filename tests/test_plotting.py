@@ -1,6 +1,5 @@
 import numpy as np
 import pytest
-
 from sklearn.utils._plotting import (
     _despine,
     _interval_max_min_ratio,

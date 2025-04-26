@@ -1,7 +1,6 @@
-from sympy.physics.units import DimensionSystem, joule, second, ampere
-
 from sympy.core.numbers import Rational
 from sympy.core.singleton import S
+from sympy.physics.units import DimensionSystem, ampere, joule, second
 from sympy.physics.units.definitions import c, kg, m, s
 from sympy.physics.units.definitions.dimension_definitions import length, time
 from sympy.physics.units.quantities import Quantity
@@ -37,16 +36,16 @@ def test_convert_to():
     A.set_global_relative_scale_factor(S.One, ampere)
 
     Js = Quantity("Js")
-    Js.set_global_relative_scale_factor(S.One, joule*second)
+    Js.set_global_relative_scale_factor(S.One, joule * second)
 
     mksa = UnitSystem((m, kg, s, A), (Js,))
-    assert convert_to(Js, mksa._base_units) == m**2*kg*s**-1/1000
+    assert convert_to(Js, mksa._base_units) == m**2 * kg * s**-1 / 1000
 
 
 def test_extend():
     ms = UnitSystem((m, s), (c,))
     Js = Quantity("Js")
-    Js.set_global_relative_scale_factor(1, joule*second)
+    Js.set_global_relative_scale_factor(1, joule * second)
     mks = ms.extend((kg,), (Js,))
 
     res = UnitSystem((m, s, kg), (c, Js))
@@ -66,21 +65,51 @@ def test_is_consistent():
 
 
 def test_get_units_non_prefixed():
-    from sympy.physics.units import volt, ohm
+    from sympy.physics.units import ohm, volt
+
     unit_system = UnitSystem.get_unit_system("SI")
     units = unit_system.get_units_non_prefixed()
-    for prefix in ["giga", "tera", "peta", "exa", "zetta", "yotta", "kilo", "hecto", "deca", "deci", "centi", "milli", "micro", "nano", "pico", "femto", "atto", "zepto", "yocto"]:
+    for prefix in [
+        "giga",
+        "tera",
+        "peta",
+        "exa",
+        "zetta",
+        "yotta",
+        "kilo",
+        "hecto",
+        "deca",
+        "deci",
+        "centi",
+        "milli",
+        "micro",
+        "nano",
+        "pico",
+        "femto",
+        "atto",
+        "zepto",
+        "yocto",
+    ]:
         for unit in units:
-            assert isinstance(unit, Quantity), f"{unit} must be a Quantity, not {type(unit)}"
+            assert isinstance(
+                unit, Quantity
+            ), f"{unit} must be a Quantity, not {type(unit)}"
             assert not unit.is_prefixed, f"{unit} is marked as prefixed"
-            assert not unit.is_physical_constant, f"{unit} is marked as physics constant"
-            assert not unit.name.name.startswith(prefix), f"Unit {unit.name} has prefix {prefix}"
+            assert (
+                not unit.is_physical_constant
+            ), f"{unit} is marked as physics constant"
+            assert not unit.name.name.startswith(
+                prefix
+            ), f"Unit {unit.name} has prefix {prefix}"
     assert volt in units
     assert ohm in units
+
 
 def test_derived_units_must_exist_in_unit_system():
     for unit_system in UnitSystem._unit_systems.values():
         for preferred_unit in unit_system.derived_units.values():
             units = preferred_unit.atoms(Quantity)
             for unit in units:
-                assert unit in unit_system._units, f"Unit {unit} is not in unit system {unit_system}"
+                assert (
+                    unit in unit_system._units
+                ), f"Unit {unit} is not in unit system {unit_system}"

@@ -2,7 +2,6 @@ import string
 import timeit
 
 import pytest
-
 from sklearn.utils._user_interface import _message_with_time, _print_elapsed_time
 
 

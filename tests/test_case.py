@@ -6,15 +6,16 @@ from typing import Tuple, Union
 import torch
 import torch.testing
 from torch._logging._internal import trace_log
-from torch.testing._internal.common_utils import (  # type: ignore[attr-defined]
+from torch.testing._internal.common_utils import (
     IS_WINDOWS,
     TEST_WITH_CROSSREF,
     TEST_WITH_TORCHDYNAMO,
-    TestCase as TorchTestCase,
 )
+from torch.testing._internal.common_utils import (
+    TestCase as TorchTestCase,
+)  # type: ignore[attr-defined]
 
 from . import config, reset, utils
-
 
 log = logging.getLogger(__name__)
 

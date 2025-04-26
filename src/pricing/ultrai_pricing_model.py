@@ -282,7 +282,6 @@ class UltrAIPricingModel:
                             and reserve
                             in results["models"][model][tokens][markup]["with_reserve"]
                         ):
-
                             base_cost = results["models"][model][tokens][markup][
                                 "base"
                             ]["final_cost"]

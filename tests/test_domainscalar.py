@@ -1,9 +1,8 @@
-from sympy.testing.pytest import raises
-
 from sympy.core.symbol import S
-from sympy.polys import ZZ, QQ
-from sympy.polys.matrices.domainscalar import DomainScalar
+from sympy.polys import QQ, ZZ
 from sympy.polys.matrices.domainmatrix import DomainMatrix
+from sympy.polys.matrices.domainscalar import DomainScalar
+from sympy.testing.pytest import raises
 
 
 def test_DomainScalar___new__():
@@ -19,7 +18,7 @@ def test_DomainScalar_new():
 
 def test_DomainScalar_repr():
     A = DomainScalar(ZZ(1), ZZ)
-    assert repr(A) in {'1', 'mpz(1)'}
+    assert repr(A) in {"1", "mpz(1)"}
 
 
 def test_DomainScalar_from_sympy():
@@ -60,12 +59,14 @@ def test_DomainScalar_add():
 
     raises(TypeError, lambda: A + 1.5)
 
+
 def test_DomainScalar_sub():
     A = DomainScalar(ZZ(1), ZZ)
     B = DomainScalar(QQ(2), QQ)
     assert A - B == DomainScalar(QQ(-1), QQ)
 
     raises(TypeError, lambda: A - 1.5)
+
 
 def test_DomainScalar_mul():
     A = DomainScalar(ZZ(1), ZZ)
@@ -110,22 +111,22 @@ def test_DomainScalar_divmod():
 
 def test_DomainScalar_pow():
     A = DomainScalar(ZZ(-5), ZZ)
-    B = A**(2)
+    B = A ** (2)
     assert B == DomainScalar(ZZ(25), ZZ)
 
-    raises(TypeError, lambda: A**(1.5))
+    raises(TypeError, lambda: A ** (1.5))
 
 
 def test_DomainScalar_pos():
     A = DomainScalar(QQ(2), QQ)
     B = DomainScalar(QQ(2), QQ)
-    assert  +A == B
+    assert +A == B
 
 
 def test_DomainScalar_neg():
     A = DomainScalar(QQ(2), QQ)
     B = DomainScalar(QQ(-2), QQ)
-    assert  -A == B
+    assert -A == B
 
 
 def test_DomainScalar_eq():

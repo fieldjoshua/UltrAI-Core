@@ -15,11 +15,13 @@ from backend.utils.logging import get_logger
 logger = get_logger("cache_decorator", "logs/cache.log")
 
 # Type variables for better type hinting
-T = TypeVar('T')
-R = TypeVar('R')
+T = TypeVar("T")
+R = TypeVar("R")
 
 
-def cached(prefix: str, ttl: Optional[int] = None) -> Callable[[Callable[..., R]], Callable[..., R]]:
+def cached(
+    prefix: str, ttl: Optional[int] = None
+) -> Callable[[Callable[..., R]], Callable[..., R]]:
     """
     Decorator for caching function results
 
@@ -30,15 +32,17 @@ def cached(prefix: str, ttl: Optional[int] = None) -> Callable[[Callable[..., R]
     Returns:
         Decorated function that uses cache
     """
+
     def decorator(func: Callable[..., R]) -> Callable[..., R]:
         # Check if function is async
         is_async = inspect.iscoroutinefunction(func)
 
         if is_async:
+
             @functools.wraps(func)
             async def async_wrapper(*args: Any, **kwargs: Any) -> R:
                 # Skip cache on debug parameter
-                skip_cache = kwargs.pop('skip_cache', False)
+                skip_cache = kwargs.pop("skip_cache", False)
 
                 if not cache_service.is_enabled() or skip_cache:
                     return await func(*args, **kwargs)
@@ -57,21 +61,17 @@ def cached(prefix: str, ttl: Optional[int] = None) -> Callable[[Callable[..., R]
                 result = await func(*args, **kwargs)
 
                 # Store in cache
-                await cache_service.set(
-                    prefix,
-                    cache_data,
-                    {"result": result},
-                    ttl=ttl
-                )
+                await cache_service.set(prefix, cache_data, {"result": result}, ttl=ttl)
 
                 return result
 
             return async_wrapper
         else:
+
             @functools.wraps(func)
             def sync_wrapper(*args: Any, **kwargs: Any) -> R:
                 # Skip cache on debug parameter
-                skip_cache = kwargs.pop('skip_cache', False)
+                skip_cache = kwargs.pop("skip_cache", False)
 
                 if not cache_service.is_enabled() or skip_cache:
                     return func(*args, **kwargs)
@@ -87,12 +87,17 @@ def cached(prefix: str, ttl: Optional[int] = None) -> Callable[[Callable[..., R]
 
                         if cached_data:
                             import json
+
                             try:
                                 cached_result = json.loads(cached_data)
-                                logger.debug(f"Cache hit for {func.__name__}: {cache_data}")
+                                logger.debug(
+                                    f"Cache hit for {func.__name__}: {cache_data}"
+                                )
                                 return cast(R, cached_result.get("result"))
                             except json.JSONDecodeError:
-                                logger.error(f"Error decoding cache data for key: {key}")
+                                logger.error(
+                                    f"Error decoding cache data for key: {key}"
+                                )
                 except Exception as e:
                     logger.error(f"Error reading from cache: {str(e)}")
 
@@ -104,6 +109,7 @@ def cached(prefix: str, ttl: Optional[int] = None) -> Callable[[Callable[..., R]
                     if cache_service.redis:
                         key = cache_service._generate_key(prefix, cache_data)
                         import json
+
                         serialized_value = json.dumps({"result": result})
                         cache_ttl = ttl or cache_service.DEFAULT_CACHE_TTL
                         cache_service.redis.setex(key, cache_ttl, serialized_value)
@@ -127,11 +133,13 @@ def invalidate_cache(prefix: str) -> Callable[[Callable[..., R]], Callable[..., 
     Returns:
         Decorated function that invalidates cache
     """
+
     def decorator(func: Callable[..., R]) -> Callable[..., R]:
         # Check if function is async
         is_async = inspect.iscoroutinefunction(func)
 
         if is_async:
+
             @functools.wraps(func)
             async def async_wrapper(*args: Any, **kwargs: Any) -> R:
                 # Execute function first
@@ -145,6 +153,7 @@ def invalidate_cache(prefix: str) -> Callable[[Callable[..., R]], Callable[..., 
 
             return async_wrapper
         else:
+
             @functools.wraps(func)
             def sync_wrapper(*args: Any, **kwargs: Any) -> R:
                 # Execute function first
@@ -152,7 +161,9 @@ def invalidate_cache(prefix: str) -> Callable[[Callable[..., R]], Callable[..., 
 
                 # Invalidate cache after execution
                 if cache_service.is_enabled() and cache_service.redis:
-                    keys = cache_service.redis.keys(f"{cache_service.CACHE_PREFIX}{prefix}:*")
+                    keys = cache_service.redis.keys(
+                        f"{cache_service.CACHE_PREFIX}{prefix}:*"
+                    )
                     if keys:
                         cache_service.redis.delete(*keys)
 
@@ -187,7 +198,7 @@ def _create_cache_key_data(func: Callable, args: Any, kwargs: Any) -> Dict[str, 
         if i < len(params):
             # Skip 'self' and 'cls' parameters
             param_name = params[i]
-            if param_name not in ('self', 'cls'):
+            if param_name not in ("self", "cls"):
                 args_dict[param_name] = arg
         else:
             # Handle excess positional args (rare)
@@ -198,8 +209,4 @@ def _create_cache_key_data(func: Callable, args: Any, kwargs: Any) -> Dict[str, 
         args_dict[key] = value
 
     # Add function module and name for uniqueness
-    return {
-        "module": func.__module__,
-        "function": func.__qualname__,
-        "args": args_dict
-    }
+    return {"module": func.__module__, "function": func.__qualname__, "args": args_dict}

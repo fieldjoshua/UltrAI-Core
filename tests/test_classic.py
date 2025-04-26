@@ -9,9 +9,8 @@ Unit tests for various classic graph generators in generators/classic.py
 import itertools
 import typing
 
-import pytest
-
 import networkx as nx
+import pytest
 from networkx.algorithms.isomorphism.isomorph import graph_could_be_isomorphic
 from networkx.utils import edges_equal, nodes_equal
 

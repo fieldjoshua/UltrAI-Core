@@ -1,8 +1,8 @@
 import time
-import psutil
 from datetime import datetime
-from typing import Dict, List, Any
+from typing import Any, Dict, List
 
+import psutil
 
 # Initialize performance metrics
 performance_metrics = {

@@ -4,7 +4,6 @@ import warnings
 import numpy as np
 import pytest
 from scipy import sparse
-
 from sklearn.exceptions import NotFittedError
 from sklearn.preprocessing import OneHotEncoder, OrdinalEncoder
 from sklearn.utils._missing import is_scalar_nan

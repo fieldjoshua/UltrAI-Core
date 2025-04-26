@@ -4,7 +4,6 @@
 import numpy as np
 import pytest
 from numpy.testing import assert_allclose
-
 from sklearn.base import BaseEstimator, ClassifierMixin, clone
 from sklearn.calibration import (
     CalibratedClassifierCV,
@@ -16,10 +15,7 @@ from sklearn.calibration import (
 )
 from sklearn.datasets import load_iris, make_blobs, make_classification
 from sklearn.dummy import DummyClassifier
-from sklearn.ensemble import (
-    RandomForestClassifier,
-    VotingClassifier,
-)
+from sklearn.ensemble import RandomForestClassifier, VotingClassifier
 from sklearn.exceptions import NotFittedError
 from sklearn.feature_extraction import DictVectorizer
 from sklearn.frozen import FrozenEstimator

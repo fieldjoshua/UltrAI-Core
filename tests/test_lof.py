@@ -6,7 +6,6 @@ from math import sqrt
 
 import numpy as np
 import pytest
-
 from sklearn import metrics, neighbors
 from sklearn.datasets import load_iris
 from sklearn.metrics import roc_auc_score

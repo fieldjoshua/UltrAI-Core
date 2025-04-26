@@ -15,7 +15,6 @@ import numpy as np
 import pytest
 from joblib.numpy_pickle import NumpyPickler
 from numpy.testing import assert_allclose
-
 from sklearn import clone, datasets, tree
 from sklearn.dummy import DummyRegressor
 from sklearn.exceptions import NotFittedError
@@ -37,16 +36,14 @@ from sklearn.tree._classes import (
     SPARSE_SPLITTERS,
 )
 from sklearn.tree._partitioner import _py_sort
+from sklearn.tree._tree import NODE_DTYPE, TREE_LEAF, TREE_UNDEFINED
+from sklearn.tree._tree import Tree as CythonTree
 from sklearn.tree._tree import (
-    NODE_DTYPE,
-    TREE_LEAF,
-    TREE_UNDEFINED,
     _build_pruned_tree_py,
     _check_n_classes,
     _check_node_ndarray,
     _check_value_ndarray,
 )
-from sklearn.tree._tree import Tree as CythonTree
 from sklearn.utils import compute_sample_weight
 from sklearn.utils._testing import (
     assert_almost_equal,

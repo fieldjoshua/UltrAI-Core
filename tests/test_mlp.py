@@ -13,7 +13,6 @@ from io import StringIO
 import joblib
 import numpy as np
 import pytest
-
 from sklearn.datasets import (
     load_digits,
     load_iris,

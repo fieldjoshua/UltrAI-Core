@@ -8,8 +8,7 @@ import enum
 from datetime import datetime
 from typing import Optional
 
-from sqlalchemy import (Column, DateTime, Enum, Float, ForeignKey, Integer,
-                        String, Text)
+from sqlalchemy import Column, DateTime, Enum, Float, ForeignKey, Integer, String, Text
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import relationship
 
@@ -18,6 +17,7 @@ from backend.database.connection import Base
 
 class DocumentStatus(enum.Enum):
     """Document processing status enumeration"""
+
     PENDING = "pending"
     PROCESSING = "processing"
     PROCESSED = "processed"
@@ -26,6 +26,7 @@ class DocumentStatus(enum.Enum):
 
 class DocumentType(enum.Enum):
     """Document type enumeration"""
+
     PDF = "pdf"
     TXT = "txt"
     MD = "md"
@@ -51,7 +52,9 @@ class Document(Base):
     mime_type = Column(String, nullable=True)
 
     # Processing status
-    status = Column(Enum(DocumentStatus), default=DocumentStatus.PENDING, nullable=False)
+    status = Column(
+        Enum(DocumentStatus), default=DocumentStatus.PENDING, nullable=False
+    )
     error_message = Column(Text, nullable=True)
 
     # Processing metadata
@@ -61,12 +64,16 @@ class Document(Base):
 
     # Timestamps
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+    updated_at = Column(
+        DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False
+    )
     processed_at = Column(DateTime, nullable=True)
 
     # Relationships
     owner = relationship("User", back_populates="documents")
-    chunks = relationship("DocumentChunk", back_populates="document", cascade="all, delete-orphan")
+    chunks = relationship(
+        "DocumentChunk", back_populates="document", cascade="all, delete-orphan"
+    )
 
     def __repr__(self) -> str:
         return f"<Document {self.filename} ({self.uuid})>"
@@ -94,7 +101,9 @@ class DocumentChunk(Base):
 
     # Timestamps
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+    updated_at = Column(
+        DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False
+    )
 
     # Relationships
     document = relationship("Document", back_populates="chunks")

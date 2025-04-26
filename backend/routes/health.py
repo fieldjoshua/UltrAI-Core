@@ -1,9 +1,10 @@
-import psutil
 import time
+
+import psutil
 from fastapi import APIRouter
 from fastapi.responses import JSONResponse
 
-from backend.utils.metrics import start_time, get_current_metrics
+from backend.utils.metrics import get_current_metrics, start_time
 
 # Create a health router
 health_router = APIRouter(tags=["Health"])
@@ -26,7 +27,7 @@ async def get_health():
     """Detailed system health information"""
     # Get system information
     memory_info = psutil.virtual_memory()
-    disk_info = psutil.disk_usage('/')
+    disk_info = psutil.disk_usage("/")
 
     # Get metrics from metrics module
     metrics = get_current_metrics()

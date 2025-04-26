@@ -4,14 +4,8 @@ import numpy as np
 import pytest
 from numpy.testing import assert_allclose, assert_array_equal
 from pytest import approx
-from scipy.optimize import (
-    LinearConstraint,
-    minimize,
-    minimize_scalar,
-    newton,
-)
+from scipy.optimize import LinearConstraint, minimize, minimize_scalar, newton
 from scipy.special import logsumexp
-
 from sklearn._loss.link import IdentityLink, _inclusive_low_high
 from sklearn._loss.loss import (
     _LOSSES,

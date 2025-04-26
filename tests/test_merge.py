@@ -1,20 +1,10 @@
-from datetime import (
-    date,
-    datetime,
-    timedelta,
-)
 import re
+from datetime import date, datetime, timedelta
 
 import numpy as np
-import pytest
-
-from pandas.core.dtypes.common import (
-    is_object_dtype,
-    is_string_dtype,
-)
-from pandas.core.dtypes.dtypes import CategoricalDtype
-
 import pandas as pd
+import pandas._testing as tm
+import pytest
 from pandas import (
     Categorical,
     CategoricalIndex,
@@ -28,12 +18,10 @@ from pandas import (
     Series,
     TimedeltaIndex,
 )
-import pandas._testing as tm
+from pandas.core.dtypes.common import is_object_dtype, is_string_dtype
+from pandas.core.dtypes.dtypes import CategoricalDtype
 from pandas.core.reshape.concat import concat
-from pandas.core.reshape.merge import (
-    MergeError,
-    merge,
-)
+from pandas.core.reshape.merge import MergeError, merge
 
 
 def get_test_data(ngroups=8, n=50):

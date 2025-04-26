@@ -13,7 +13,6 @@ from numpy.testing import (
 )
 from scipy import sparse
 from scipy.linalg import LinAlgWarning, svd
-
 from sklearn import config_context
 from sklearn._loss import HalfMultinomialLoss
 from sklearn.base import clone

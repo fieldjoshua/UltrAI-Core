@@ -3,7 +3,6 @@ from collections import Counter
 import numpy as np
 import pytest
 from scipy.integrate import trapezoid
-
 from sklearn.compose import make_column_transformer
 from sklearn.datasets import load_breast_cancer, make_classification
 from sklearn.exceptions import NotFittedError

@@ -8,7 +8,6 @@ import warnings
 import numpy as np
 import pytest
 from scipy.spatial import distance
-
 from sklearn.cluster import DBSCAN, dbscan
 from sklearn.cluster.tests.common import generate_clustered_data
 from sklearn.metrics.pairwise import pairwise_distances

@@ -1,0 +1,52 @@
+name: Monitoring
+
+on:
+  schedule:
+    - cron: '*/5 * * * *'  # Every 5 minutes
+  workflow_dispatch:  # Manual trigger
+
+jobs:
+  health-check:
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+    - name: Check API health
+      run: |
+        curl -f https://api.ultraai.com/health || exit 1
+
+    - name: Check database connection
+      run: |
+        curl -f https://api.ultraai.com/health/db || exit 1
+
+    - name: Check Redis connection
+      run: |
+        curl -f https://api.ultraai.com/health/redis || exit 1
+
+    - name: Check disk space
+      run: |
+        ssh ${{ secrets.PROD_USERNAME }}@${{ secrets.PROD_HOST }} 'df -h / | grep -v Filesystem' | awk '{print $5}' | sed 's/%//' | awk '{ if ($1 > 90) exit 1 }'
+
+    - name: Check memory usage
+      run: |
+        ssh ${{ secrets.PROD_USERNAME }}@${{ secrets.PROD_HOST }} 'free -m | grep Mem' | awk '{print $3/$2 * 100.0}' | awk '{ if ($1 > 90) exit 1 }'
+
+    - name: Check CPU usage
+      run: |
+        ssh ${{ secrets.PROD_USERNAME }}@${{ secrets.PROD_HOST }} 'top -bn1 | grep "Cpu(s)" | sed "s/.*, *\([0-9.]*\)%* id.*/\1/" | awk "{print 100 - \$1}"' | awk '{ if ($1 > 90) exit 1 }'
+
+    - name: Check Docker containers
+      run: |
+        ssh ${{ secrets.PROD_USERNAME }}@${{ secrets.PROD_HOST }} 'docker ps --format "{{.Status}}" | grep -v "Up" && exit 1 || exit 0'
+
+    - name: Send alert on failure
+      if: failure()
+      uses: actions/github-script@v6
+      with:
+        script: |
+          github.rest.issues.create({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            title: '🚨 Production Health Check Failed',
+            body: 'Health check failed at ' + new Date().toISOString() + '\n\nPlease check the [workflow run](' + context.serverUrl + '/' + context.repo.owner + '/' + context.repo.repo + '/actions/runs/' + context.runId + ') for details.'
+          })

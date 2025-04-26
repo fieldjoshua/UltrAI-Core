@@ -1,9 +1,8 @@
 import numpy as np
 from numpy.linalg import norm
-from numpy.testing import assert_equal, assert_allclose, assert_
-from scipy.sparse.linalg._isolve import minres
-
+from numpy.testing import assert_, assert_allclose, assert_equal
 from pytest import raises as assert_raises
+from scipy.sparse.linalg._isolve import minres
 
 
 def get_sample_problem():
@@ -18,7 +17,7 @@ def get_sample_problem():
 
 def test_singular():
     A, b = get_sample_problem()
-    A[0, ] = 0
+    A[0,] = 0
     b[0] = 0
     xp, info = minres(A, b)
     assert_equal(info, 0)
@@ -34,6 +33,7 @@ def test_x0_is_used_by():
 
     def trace_iterates(xk):
         trace.append(xk)
+
     minres(A, b, x0=x0, callback=trace_iterates)
     trace_with_x0 = trace
 

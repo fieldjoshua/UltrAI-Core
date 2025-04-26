@@ -3,17 +3,25 @@ repos:
     rev: v4.4.0
     hooks:
       - id: trailing-whitespace
+        entry: python scripts/dev_toggle.py pre-commit-hooks trailing-whitespace
       - id: end-of-file-fixer
+        entry: python scripts/dev_toggle.py pre-commit-hooks end-of-file-fixer
       - id: check-yaml
+        entry: python scripts/dev_toggle.py pre-commit-hooks check-yaml
       - id: check-json
+        entry: python scripts/dev_toggle.py pre-commit-hooks check-json
       - id: check-added-large-files
+        entry: python scripts/dev_toggle.py pre-commit-hooks check-added-large-files
       - id: check-merge-conflict
+        entry: python scripts/dev_toggle.py pre-commit-hooks check-merge-conflict
       - id: detect-private-key
+        entry: python scripts/dev_toggle.py pre-commit-hooks detect-private-key
 
   - repo: https://github.com/pycqa/flake8
     rev: 6.0.0
     hooks:
       - id: flake8
+        entry: python scripts/dev_toggle.py flake8
         additional_dependencies:
           - flake8-bandit
           - flake8-bugbear
@@ -25,11 +33,13 @@ repos:
     rev: 5.12.0
     hooks:
       - id: isort
+        entry: python scripts/dev_toggle.py isort
 
   - repo: https://github.com/psf/black
     rev: 23.3.0
     hooks:
       - id: black
+        entry: python scripts/dev_toggle.py black
         args:
           - --line-length=88
 
@@ -37,6 +47,7 @@ repos:
     rev: v9.0.0-beta.2
     hooks:
       - id: eslint
+        entry: python scripts/dev_toggle.py eslint
         files: \.(js|ts|jsx|tsx)$
         types: [file]
         additional_dependencies:
@@ -46,18 +57,21 @@ repos:
           - eslint-config-prettier
 
   - repo: https://github.com/pre-commit/mirrors-prettier
-    rev: v3.2.5
+    rev: v3.1.0
     hooks:
       - id: prettier
+        entry: python scripts/dev_toggle.py prettier
         types_or: [javascript, jsx, ts, tsx, json, css, markdown]
 
   - repo: https://github.com/zricethezav/gitleaks
     rev: v8.18.2
     hooks:
       - id: gitleaks
+        entry: python scripts/dev_toggle.py gitleaks
 
   - repo: https://github.com/gitleaks/gitleaks
     rev: v8.18.2
     hooks:
       - id: gitleaks-docker
+        entry: python scripts/dev_toggle.py gitleaks-docker
         name: Detect hardcoded secrets

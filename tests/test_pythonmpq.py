@@ -4,14 +4,13 @@ test_pythonmpq.py
 Test the PythonMPQ class for consistency with gmpy2's mpq type. If gmpy2 is
 installed run the same tests for both.
 """
-from fractions import Fraction
-from decimal import Decimal
 import pickle
+from decimal import Decimal
+from fractions import Fraction
 from typing import Callable, List, Tuple, Type
 
-from sympy.testing.pytest import raises
-
 from sympy.external.pythonmpq import PythonMPQ
+from sympy.testing.pytest import raises
 
 #
 # If gmpy2 is installed then run the tests for both mpq and PythonMPQ.
@@ -21,6 +20,7 @@ rational_types: List[Tuple[Callable, Type, Callable, Type]]
 rational_types = [(PythonMPQ, PythonMPQ, int, int)]
 try:
     from gmpy2 import mpq, mpz
+
     rational_types.append((mpq, type(mpq(1)), mpz, type(mpz(1))))
 except ImportError:
     pass
@@ -43,12 +43,12 @@ def test_PythonMPQ():
         assert check_Q(Q(3, 5)) == (3, 5)
         assert check_Q(Q(Q(3, 5))) == (3, 5)
         assert check_Q(Q(0.5)) == (1, 2)
-        assert check_Q(Q('0.5')) == (1, 2)
+        assert check_Q(Q("0.5")) == (1, 2)
         assert check_Q(Q(Fraction(3, 5))) == (3, 5)
 
         # https://github.com/aleaxit/gmpy/issues/327
         if Q is PythonMPQ:
-            assert check_Q(Q(Decimal('0.6'))) == (3, 5)
+            assert check_Q(Q(Decimal("0.6"))) == (3, 5)
 
         # Invalid types
         raises(TypeError, lambda: Q([]))

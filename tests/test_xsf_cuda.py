@@ -1,18 +1,16 @@
 import os
-import pytest
-import scipy.special as sc
 import shutil
 import tempfile
-
 from uuid import uuid4
 
-from scipy.special._testutils import check_version
-from scipy.special._testutils import MissingModule
+import pytest
+import scipy.special as sc
+from scipy.special._testutils import MissingModule, check_version
 
 try:
     import cupy  # type: ignore
 except (ImportError, AttributeError):
-    cupy = MissingModule('cupy')
+    cupy = MissingModule("cupy")
 
 
 def get_test_cases():
@@ -83,15 +81,15 @@ def manage_cupy_cache():
     # Temporarily change cupy kernel cache location so kernel cache will not be polluted
     # by these tests. Remove temporary cache in teardown.
     temp_cache_dir = tempfile.mkdtemp()
-    original_cache_dir = os.environ.get('CUPY_CACHE_DIR', None)
-    os.environ['CUPY_CACHE_DIR'] = temp_cache_dir
+    original_cache_dir = os.environ.get("CUPY_CACHE_DIR", None)
+    os.environ["CUPY_CACHE_DIR"] = temp_cache_dir
 
     yield
 
     if original_cache_dir is not None:
-        os.environ['CUPY_CACHE_DIR'] = original_cache_dir
+        os.environ["CUPY_CACHE_DIR"] = original_cache_dir
     else:
-        del os.environ['CUPY_CACHE_DIR']
+        del os.environ["CUPY_CACHE_DIR"]
     shutil.rmtree(temp_cache_dir)
 
 
@@ -108,7 +106,7 @@ def test_compiles_in_cupy(signature, preamble, routine, manage_cupy_cache):
         routine,
         name,
         preamble=preamble,
-        options=(f"--include-path={sc._get_include()}", "-std=c++17")
+        options=(f"--include-path={sc._get_include()}", "-std=c++17"),
     )
 
     _ = func(*get_sample_input(signature, cupy))

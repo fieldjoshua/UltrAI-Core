@@ -1,8 +1,7 @@
 import numpy as np
-import pytest
-
+import pandas._testing as tm
 import pandas.util._test_decorators as td
-
+import pytest
 from pandas import (
     DataFrame,
     DatetimeIndex,
@@ -13,8 +12,6 @@ from pandas import (
     Timestamp,
     date_range,
 )
-import pandas._testing as tm
-
 from pandas.tseries import offsets
 
 

@@ -2,7 +2,6 @@ import warnings
 
 import numpy as np
 import pytest
-
 from sklearn import config_context, datasets
 from sklearn.base import BaseEstimator, TransformerMixin, clone
 from sklearn.compose import TransformedTargetRegressor

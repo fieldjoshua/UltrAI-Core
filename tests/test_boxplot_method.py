@@ -4,17 +4,10 @@ import itertools
 import string
 
 import numpy as np
-import pytest
-
-from pandas import (
-    DataFrame,
-    MultiIndex,
-    Series,
-    date_range,
-    plotting,
-    timedelta_range,
-)
 import pandas._testing as tm
+import pytest
+from pandas import DataFrame, MultiIndex, Series, date_range, plotting, timedelta_range
+from pandas.io.formats.printing import pprint_thing
 from pandas.tests.plotting.common import (
     _check_axes_shape,
     _check_box_return_type,
@@ -22,8 +15,6 @@ from pandas.tests.plotting.common import (
     _check_ticks_props,
     _check_visible,
 )
-
-from pandas.io.formats.printing import pprint_thing
 
 mpl = pytest.importorskip("matplotlib")
 plt = pytest.importorskip("matplotlib.pyplot")

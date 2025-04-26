@@ -104,7 +104,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         response_headers = {
             "X-RateLimit-Limit": str(result.limit),
             "X-RateLimit-Remaining": str(result.remaining),
-            "X-RateLimit-Reset": str(result.reset_at)
+            "X-RateLimit-Reset": str(result.reset_at),
         }
 
         # If rate limited, return 429 Too Many Requests
@@ -117,9 +117,9 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
                 content={
                     "detail": "Rate limit exceeded",
                     "limit": result.limit,
-                    "reset_at": result.reset_at
+                    "reset_at": result.reset_at,
                 },
-                headers=response_headers
+                headers=response_headers,
             )
 
         # If allowed, proceed with the request

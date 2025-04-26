@@ -2,18 +2,16 @@
 Tests for the file pandas.io.formats.format, *not* tests for general formatting
 of pandas objects.
 """
+import re
 from datetime import datetime
 from io import StringIO
 from pathlib import Path
-import re
 from shutil import get_terminal_size
 
 import numpy as np
-import pytest
-
-from pandas._config import using_pyarrow_string_dtype
-
 import pandas as pd
+import pandas.io.formats.format as fmt
+import pytest
 from pandas import (
     DataFrame,
     Index,
@@ -27,9 +25,8 @@ from pandas import (
     read_csv,
     reset_option,
 )
-
+from pandas._config import using_pyarrow_string_dtype
 from pandas.io.formats import printing
-import pandas.io.formats.format as fmt
 
 
 @pytest.fixture(params=["string", "pathlike", "buffer"])

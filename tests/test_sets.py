@@ -1,19 +1,19 @@
+from sympy.core.kind import NumberKind
 from sympy.core.singleton import S
 from sympy.core.symbol import symbols
 from sympy.matrices import Matrix
 from sympy.matrices.expressions.matexpr import MatrixSymbol
 from sympy.matrices.expressions.sets import MatrixSet
 from sympy.matrices.expressions.special import ZeroMatrix
-from sympy.testing.pytest import raises
-from sympy.sets.sets import SetKind
 from sympy.matrices.kind import MatrixKind
-from sympy.core.kind import NumberKind
+from sympy.sets.sets import SetKind
+from sympy.testing.pytest import raises
 
 
 def test_MatrixSet():
-    n, m = symbols('n m', integer=True)
-    A = MatrixSymbol('A', n, m)
-    C = MatrixSymbol('C', n, n)
+    n, m = symbols("n m", integer=True)
+    A = MatrixSymbol("A", n, m)
+    C = MatrixSymbol("C", n, n)
 
     M = MatrixSet(2, 2, set=S.Reals)
     assert M.shape == (2, 2)

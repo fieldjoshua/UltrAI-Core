@@ -14,22 +14,20 @@
 
 import os
 import platform
-import pytest
+import random
+import shutil
 import sys
 import tempfile
 import textwrap
-import shutil
-import random
 import time
-from io import StringIO
 from dataclasses import dataclass
-
-import IPython.testing.tools as tt
-
+from io import StringIO
 from unittest import TestCase
 
-from IPython.extensions.autoreload import AutoreloadMagics
+import IPython.testing.tools as tt
+import pytest
 from IPython.core.events import EventManager, pre_run_cell
+from IPython.extensions.autoreload import AutoreloadMagics
 from IPython.testing.decorators import skipif_not_numpy
 
 if platform.python_implementation() == "PyPy":

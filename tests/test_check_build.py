@@ -6,7 +6,6 @@ Smoke Test the check_build module
 # SPDX-License-Identifier: BSD-3-Clause
 
 import pytest
-
 from sklearn.__check_build import raise_build_error
 
 

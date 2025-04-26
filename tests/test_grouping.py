@@ -1,15 +1,12 @@
 """
 test where we are determining what we are grouping, or getting groups
 """
-from datetime import (
-    date,
-    timedelta,
-)
+from datetime import date, timedelta
 
 import numpy as np
-import pytest
-
 import pandas as pd
+import pandas._testing as tm
+import pytest
 from pandas import (
     CategoricalIndex,
     DataFrame,
@@ -21,7 +18,6 @@ from pandas import (
     date_range,
     period_range,
 )
-import pandas._testing as tm
 from pandas.core.groupby.grouper import Grouping
 
 # selection
