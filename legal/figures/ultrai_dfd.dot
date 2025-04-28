@@ -1,0 +1,29 @@
+digraph UltraLLMOrchestratorDFD {
+    rankdir=TB;
+    node [shape=box, style=filled, fillcolor="#f0f4ff", fontname="Helvetica"];
+    edge [fontname="Helvetica"];
+
+    UI [label="User Interface\n(React SPA)", shape=box3d, fillcolor="#dbeafe"];
+    Backend [label="UltrAI Backend API\n(FastAPI)", fillcolor="#dbeafe"];
+    ModelRegistry [label="Model Registry\n(Dynamic, Extensible)", fillcolor="#fef9c3"];
+    Orchestration [label="Orchestration Pipeline\n(Configurable Stages, Plugin Points)", fillcolor="#fef9c3"];
+    DocProc [label="Document Processing\n(Text Extraction, Chunking, Context)", fillcolor="#f1f5f9"];
+    LLMExec [label="LLM Execution Layer\n(N Registered LLMs, Parallel/Sequential)", fillcolor="#f1f5f9"];
+    Quality [label="Quality Evaluation\n& Metrics", fillcolor="#f1f5f9"];
+    UltraSynth [label="Ultra LLM Synthesis\n(Final Output)", fillcolor="#f1f5f9"];
+    ResultStore [label="Result Storage\n& Caching Layer", fillcolor="#f1f5f9"];
+    ResultDisplay [label="Result Display/Share\n(Frontend)", fillcolor="#dbeafe"];
+
+    UI -> Backend [label="User Input\n(Prompts, Docs, Model/Pattern)"];
+    Backend -> ModelRegistry [label="Model Selection/Registration"];
+    ModelRegistry -> Orchestration [label="Registered Models"];
+    Backend -> Orchestration [label="Request Processing\n(Auth, Pricing, Caching)"];
+    Orchestration -> DocProc [label="Context Prep"];
+    Orchestration -> LLMExec [label="Orchestration Stages"];
+    DocProc -> LLMExec [label="Context"];
+    LLMExec -> Quality [label="LLM Outputs"];
+    Quality -> UltraSynth [label="Scored Outputs"];
+    UltraSynth -> ResultStore [label="Synthesized Output"];
+    ResultStore -> ResultDisplay [label="Results"];
+    ResultDisplay -> UI [label="Display/Share"];
+}

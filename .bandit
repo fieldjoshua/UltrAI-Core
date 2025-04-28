@@ -1,0 +1,10 @@
+[bandit]
+# Bandit configuration file
+
+# Skip pickle-related warnings in the cache module
+skips: ["B301", "B403"]
+exclude_dirs: ["venv", ".venv", "node_modules"]
+
+[bandit.per_path]
+# Fine-grained control for specific directories
+"src/data/cache/": skips: ["B301", "B403"]

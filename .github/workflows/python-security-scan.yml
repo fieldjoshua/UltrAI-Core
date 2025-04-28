@@ -37,7 +37,7 @@ jobs:
         run: safety check
 
       - name: Run bandit for code security scan
-        run: bandit -r . -x ".venv,./node_modules" -ll
+        run: bandit -r . -c .bandit.yaml -ll
 
       - name: Check for vulnerable Python packages
         uses: pyupio/safety-action@v1

@@ -1,7 +1,9 @@
 import json
+import logging
 from dataclasses import dataclass, field
-from datetime import datetime
 from typing import Any, Dict, Optional
+
+from src.core.cache_adapter import ResponseCacheAdapter
 
 
 @dataclass
@@ -62,32 +64,23 @@ class ResponseCache:
     """Cache system for model responses"""
 
     def __init__(self, max_age_hours: int = 24):
-        self.cache: Dict[str, Dict] = {}
-        self.max_age_hours = max_age_hours
+        self.logger = logging.getLogger(__name__)
+        # Use the adapter to connect to UnifiedCache
+        self.adapter = ResponseCacheAdapter(max_age_hours=max_age_hours)
+        self.logger.info(f"ResponseCache initialized with TTL: {max_age_hours} hours")
 
     def get(self, key: str) -> Optional[ModelResponse]:
-        if key not in self.cache:
-            return None
-
-        entry = self.cache[key]
-        age = datetime.now() - entry["timestamp"]
-
-        if age.total_seconds() > (self.max_age_hours * 3600):
-            del self.cache[key]
-            return None
-
-        return entry["response"]
+        """Get a cached response."""
+        return self.adapter.get(key)
 
     def set(self, key: str, response: ModelResponse):
-        self.cache[key] = {"response": response, "timestamp": datetime.now()}
+        """Cache a response."""
+        self.adapter.set(key, response)
 
     def clear_expired(self):
-        current_time = datetime.now()
-        expired_keys = [
-            key
-            for key, entry in self.cache.items()
-            if (current_time - entry["timestamp"]).total_seconds()
-            > (self.max_age_hours * 3600)
-        ]
-        for key in expired_keys:
-            del self.cache[key]
+        """Clear expired cache entries."""
+        self.adapter.clear_expired()
+
+    def get_metrics(self) -> Dict[str, Any]:
+        """Get cache performance metrics."""
+        return self.adapter.get_metrics()

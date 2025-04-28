@@ -811,3 +811,26 @@ Please create an analogical synthesis:
             "innovation": cls.INNOVATION_BRIDGE,
         }
         return patterns.get(pattern_name.lower())
+
+
+def get_pattern_mapping() -> Dict[str, AnalysisPattern]:
+    """
+    Get a mapping of analysis pattern names to pattern objects.
+
+    Returns:
+        Dictionary mapping pattern names to AnalysisPattern objects
+    """
+    patterns = AnalysisPatterns()
+
+    return {
+        "gut": patterns.GUT_ANALYSIS,
+        "confidence": patterns.CONFIDENCE_ANALYSIS,
+        "critique": patterns.CRITIQUE_ANALYSIS,
+        "fact_check": patterns.FACT_CHECK_ANALYSIS,
+        "perspective": patterns.PERSPECTIVE_ANALYSIS,
+        "scenario": patterns.SCENARIO_ANALYSIS,
+        "stakeholder": patterns.STAKEHOLDER_VISION,
+        "systems": patterns.SYSTEMS_MAPPER,
+        "time": patterns.TIME_HORIZON,
+        "innovation": patterns.INNOVATION_BRIDGE,
+    }

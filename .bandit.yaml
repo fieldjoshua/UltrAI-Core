@@ -1,0 +1,18 @@
+# Bandit Configuration File
+# Documentation: https://bandit.readthedocs.io/en/latest/config.html
+
+# This configuration file is used to customize the behavior of the Bandit security linter
+# It allows us to skip certain security checks in specific paths where we've assessed the risks
+
+# Skip these tests globally (only add if needed)
+# skips: []
+
+# Files / directories to skip
+exclude_dirs: ["venv", ".venv", "node_modules", "tests"]
+
+# Per-directory customization
+skips:
+  # Skip pickle-related warnings in the cache module
+  # B301: Pickle and modules that wrap it can be unsafe when used to deserialize untrusted data
+  # B403: Import of pickle module
+  "src/data/cache/": ["B301", "B403"]

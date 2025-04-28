@@ -1,0 +1,74 @@
+digraph UltraLLMOrchestratorCodebase {
+    rankdir=TB;
+    node [shape=folder, style=filled, fillcolor="#f0f4ff", fontname="Helvetica"];
+    edge [fontname="Helvetica"];
+
+    root [label="UltraLLMOrchestrator (UltrAI)", shape=box3d, fillcolor="#dbeafe"];
+    frontend [label="frontend/\n(React SPA)"];
+    backend [label="backend/\n(FastAPI backend)"];
+    docker [label="docker-compose.yml\nREADME.md", shape=note, fillcolor="#fef9c3"];
+
+    root -> frontend;
+    root -> backend;
+    root -> docker;
+
+    // Frontend structure
+    f_src [label="src/"];
+    f_components [label="components/\n(UI Components)"];
+    f_services [label="services/\n(API, storage, sharing)"];
+    f_utils [label="utils/\n(Formatting, validation)"];
+    f_hooks [label="hooks/\n(React hooks)"];
+    f_styles [label="styles/\n(Tailwind config)"];
+    f_index [label="index.tsx\n(Entry point)", shape=note, fillcolor="#fef9c3"];
+    f_public [label="public/\n(Static assets)"];
+
+    frontend -> f_src;
+    f_src -> f_components;
+    f_src -> f_services;
+    f_src -> f_utils;
+    f_src -> f_hooks;
+    f_src -> f_styles;
+    f_src -> f_index;
+    frontend -> f_public;
+
+    // Backend structure
+    b_app [label="app/"];
+    b_api [label="api/\n(routers, api.py)"];
+    b_core [label="core/"];
+    b_models [label="models/\n(Data models)"];
+    b_db [label="db/\n(Database interactions)"];
+    b_services [label="services/\n(LLM provider integrations)"];
+    b_main [label="main.py\n(App entry point)", shape=note, fillcolor="#fef9c3"];
+    b_tests [label="tests/\n(Test suite)"];
+    b_config [label="config/\n(Settings)"];
+    b_requirements [label="requirements.txt", shape=note, fillcolor="#fef9c3"];
+    b_dockerfile [label="Dockerfile", shape=note, fillcolor="#fef9c3"];
+
+    backend -> b_app;
+    backend -> b_tests;
+    backend -> b_config;
+    backend -> b_requirements;
+    backend -> b_dockerfile;
+    b_app -> b_api;
+    b_app -> b_core;
+    b_app -> b_models;
+    b_app -> b_db;
+    b_app -> b_services;
+    b_app -> b_main;
+
+    // Core extensibility
+    b_core_orch [label="orchestration/\n(MultiLLMOrchestrator, patterns, templates)", fillcolor="#fef9c3"];
+    b_core_registry [label="model_registry/\n(Dynamic model registration/plugins)", fillcolor="#fef9c3"];
+    b_core_docs [label="documents/\n(Document processing)"];
+    b_core_pricing [label="pricing/\n(Pricing/business logic)"];
+    b_core_utils [label="utils/\n(Caching, security, monitoring)"];
+
+    b_core -> b_core_orch;
+    b_core -> b_core_registry;
+    b_core -> b_core_docs;
+    b_core -> b_core_pricing;
+    b_core -> b_core_utils;
+
+    // Highlight plugin/extensible points
+    b_core_orch -> b_core_registry [style=dashed, label="Plugin/extensible points"];
+}

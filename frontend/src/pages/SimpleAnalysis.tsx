@@ -36,53 +36,61 @@ const SimpleAnalysis: React.FC = () => {
     {
       key: 'gut',
       name: 'Gut Check Analysis',
-      description: 'Rapid evaluation of different perspectives to identify the most likely correct answer'
+      description:
+        'Rapid evaluation of different perspectives to identify the most likely correct answer',
     },
     {
       key: 'confidence',
       name: 'Confidence Analysis',
-      description: 'Evaluates the strength of each model response with confidence scoring'
+      description:
+        'Evaluates the strength of each model response with confidence scoring',
     },
     {
       key: 'critique',
       name: 'Critique Analysis',
-      description: 'Models critically evaluate each other\'s reasoning and answers'
+      description:
+        "Models critically evaluate each other's reasoning and answers",
     },
     {
       key: 'fact_check',
       name: 'Fact Check Analysis',
-      description: 'Verifies factual accuracy and cites sources for claims'
+      description: 'Verifies factual accuracy and cites sources for claims',
     },
     {
       key: 'perspective',
       name: 'Perspective Analysis',
-      description: 'Examines a question from multiple analytical perspectives'
+      description: 'Examines a question from multiple analytical perspectives',
     },
     {
       key: 'scenario',
       name: 'Scenario Analysis',
-      description: 'Explores potential future outcomes and alternative possibilities'
+      description:
+        'Explores potential future outcomes and alternative possibilities',
     },
     {
       key: 'stakeholder',
       name: 'Stakeholder Vision',
-      description: 'Analyzes from multiple stakeholder perspectives to reveal diverse interests and needs'
+      description:
+        'Analyzes from multiple stakeholder perspectives to reveal diverse interests and needs',
     },
     {
       key: 'systems',
       name: 'Systems Mapper',
-      description: 'Maps complex system dynamics with feedback loops and leverage points'
+      description:
+        'Maps complex system dynamics with feedback loops and leverage points',
     },
     {
       key: 'time',
       name: 'Time Horizon',
-      description: 'Analyzes across multiple time frames to balance short and long-term considerations'
+      description:
+        'Analyzes across multiple time frames to balance short and long-term considerations',
     },
     {
       key: 'innovation',
       name: 'Innovation Bridge',
-      description: 'Uses cross-domain analogies to discover non-obvious patterns and solutions'
-    }
+      description:
+        'Uses cross-domain analogies to discover non-obvious patterns and solutions',
+    },
   ]);
 
   const [selectedPattern, setSelectedPattern] = useState<string>('gut');
@@ -189,7 +197,7 @@ const SimpleAnalysis: React.FC = () => {
         for (const model in result.model_responses) {
           individualResponses.push({
             model,
-            response: result.model_responses[model]
+            response: result.model_responses[model],
           });
         }
       } else {
@@ -199,7 +207,7 @@ const SimpleAnalysis: React.FC = () => {
             model,
             response: result.ultra_response
               ? `${model}'s response (simulated): ${result.ultra_response.substring(0, 100)}...`
-              : `No response from ${model}`
+              : `No response from ${model}`,
           });
         }
       }
@@ -245,10 +253,12 @@ const SimpleAnalysis: React.FC = () => {
       case 'intro':
         return (
           <div className="text-center p-6">
-            <h2 className="text-2xl font-bold mb-4">Welcome to UltrAI Analysis</h2>
+            <h2 className="text-2xl font-bold mb-4">
+              Welcome to UltrAI Analysis
+            </h2>
             <p className="mb-6 text-gray-600">
-              This tool helps you analyze text using multiple AI models working together.
-              Follow the steps to create your analysis.
+              This tool helps you analyze text using multiple AI models working
+              together. Follow the steps to create your analysis.
             </p>
             <div className="flex justify-center">
               <button
@@ -265,14 +275,17 @@ const SimpleAnalysis: React.FC = () => {
       case 'prompt':
         return (
           <div className="p-4">
-            <h2 className="text-xl font-semibold mb-4">Step 1: Enter Your Prompt</h2>
+            <h2 className="text-xl font-semibold mb-4">
+              Step 1: Enter Your Prompt
+            </h2>
             <p className="mb-4 text-gray-600">
-              Write what you'd like to analyze. Be as specific as possible for best results.
+              Write what you'd like to analyze. Be as specific as possible for
+              best results.
             </p>
             <div className="mb-4">
               <textarea
                 value={prompt}
-                onChange={(e) => setPrompt(e.target.value)}
+                onChange={e => setPrompt(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                 rows={5}
                 placeholder="What would you like to analyze?"
@@ -284,9 +297,12 @@ const SimpleAnalysis: React.FC = () => {
       case 'models':
         return (
           <div className="p-4">
-            <h2 className="text-xl font-semibold mb-4">Step 2: Select AI Models</h2>
+            <h2 className="text-xl font-semibold mb-4">
+              Step 2: Select AI Models
+            </h2>
             <p className="mb-4 text-gray-600">
-              Choose which AI models to use for your analysis. Each model brings unique strengths.
+              Choose which AI models to use for your analysis. Each model brings
+              unique strengths.
             </p>
 
             {modelsLoading ? (
@@ -301,7 +317,9 @@ const SimpleAnalysis: React.FC = () => {
                     <div
                       key={model}
                       className={`border p-3 rounded-md cursor-pointer ${
-                        selectedModels.includes(model) ? 'border-blue-500 bg-blue-50' : 'border-gray-200'
+                        selectedModels.includes(model)
+                          ? 'border-blue-500 bg-blue-50'
+                          : 'border-gray-200'
                       }`}
                       onClick={() => toggleModel(model)}
                     >
@@ -328,7 +346,9 @@ const SimpleAnalysis: React.FC = () => {
                               aria-label={`Set ${model} as primary`}
                               title={`Set ${model} as primary`}
                             />
-                            <label className="text-sm text-gray-600">Primary</label>
+                            <label className="text-sm text-gray-600">
+                              Primary
+                            </label>
                           </div>
                         )}
                       </div>
@@ -337,7 +357,8 @@ const SimpleAnalysis: React.FC = () => {
                 </div>
                 <div className="bg-yellow-50 border border-yellow-200 p-3 rounded-md">
                   <p className="text-sm text-yellow-800">
-                    <strong>Selected Models:</strong> {selectedModels.join(', ')}
+                    <strong>Selected Models:</strong>{' '}
+                    {selectedModels.join(', ')}
                   </p>
                   <p className="text-sm text-yellow-800">
                     <strong>Primary Model:</strong> {primaryModel}
@@ -351,9 +372,13 @@ const SimpleAnalysis: React.FC = () => {
       case 'pattern':
         return (
           <div className="p-4">
-            <h2 className="text-xl font-semibold mb-4">Step 3: Select Analysis Pattern</h2>
+            <h2 className="text-xl font-semibold mb-4">
+              Step 3: Select Analysis Pattern
+            </h2>
             <p className="mb-4 text-gray-600">
-              Choose how the models should collaborate on your analysis. Each pattern represents a different approach to intelligence multiplication.
+              Choose how the models should collaborate on your analysis. Each
+              pattern represents a different approach to intelligence
+              multiplication.
             </p>
 
             <div className="space-y-3">
@@ -361,7 +386,9 @@ const SimpleAnalysis: React.FC = () => {
                 <div
                   key={pattern.key}
                   className={`border p-3 rounded-md cursor-pointer ${
-                    selectedPattern === pattern.key ? 'border-blue-500 bg-blue-50' : 'border-gray-200'
+                    selectedPattern === pattern.key
+                      ? 'border-blue-500 bg-blue-50'
+                      : 'border-gray-200'
                   }`}
                   onClick={() => handlePatternChange(pattern.key)}
                 >
@@ -393,13 +420,17 @@ const SimpleAnalysis: React.FC = () => {
           <div className="p-4">
             <h2 className="text-xl font-semibold mb-4">Analysis Results</h2>
             <div className="flex items-center mb-4">
-              <span className="text-sm bg-gray-200 rounded px-2 py-1 mr-2">Prompt</span>
+              <span className="text-sm bg-gray-200 rounded px-2 py-1 mr-2">
+                Prompt
+              </span>
               <p className="text-gray-700">{prompt}</p>
             </div>
 
             {/* Combined response */}
             <div className="mb-6">
-              <h3 className="text-lg font-medium mb-2">Ultra Combined Response</h3>
+              <h3 className="text-lg font-medium mb-2">
+                Ultra Combined Response
+              </h3>
               <div className="bg-gray-50 p-4 rounded border border-gray-200 whitespace-pre-wrap">
                 {output}
               </div>
@@ -407,14 +438,21 @@ const SimpleAnalysis: React.FC = () => {
 
             {/* Individual model responses */}
             <div className="mb-6">
-              <h3 className="text-lg font-medium mb-2">Individual Model Responses</h3>
+              <h3 className="text-lg font-medium mb-2">
+                Individual Model Responses
+              </h3>
               <div className="space-y-4">
                 {modelResponses.map((response, index) => (
-                  <div key={index} className="border rounded-md overflow-hidden">
+                  <div
+                    key={index}
+                    className="border rounded-md overflow-hidden"
+                  >
                     <div className="bg-gray-100 px-4 py-2 font-medium flex justify-between items-center">
                       <span>{response.model}</span>
                       {response.model === primaryModel && (
-                        <span className="text-xs bg-blue-100 text-blue-700 rounded px-2 py-1">Primary</span>
+                        <span className="text-xs bg-blue-100 text-blue-700 rounded px-2 py-1">
+                          Primary
+                        </span>
                       )}
                     </div>
                     <div className="p-4 whitespace-pre-wrap">
@@ -445,27 +483,54 @@ const SimpleAnalysis: React.FC = () => {
       {/* Step progress */}
       <div className="mb-6">
         <div className="flex items-center justify-between mb-2">
-          {['intro', 'prompt', 'models', 'pattern', 'results'].map((step, index) => (
-            <div key={step} className="flex items-center">
-              <div className={`
+          {['intro', 'prompt', 'models', 'pattern', 'results'].map(
+            (step, index) => (
+              <div key={step} className="flex items-center">
+                <div
+                  className={`
                 flex items-center justify-center w-8 h-8 rounded-full
-                ${currentStep === step ? 'bg-blue-600 text-white' :
-                  (currentStep === 'results' ||
-                   (index < ['intro', 'prompt', 'models', 'pattern', 'results'].indexOf(currentStep))
-                  ) ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-600'}
-              `}>
-                {(currentStep === 'results' ||
-                  (index < ['intro', 'prompt', 'models', 'pattern', 'results'].indexOf(currentStep))
-                ) ? <CheckCircle size={16} /> : index + 1}
+                ${
+                  currentStep === step
+                    ? 'bg-blue-600 text-white'
+                    : currentStep === 'results' ||
+                        index <
+                          [
+                            'intro',
+                            'prompt',
+                            'models',
+                            'pattern',
+                            'results',
+                          ].indexOf(currentStep)
+                      ? 'bg-green-500 text-white'
+                      : 'bg-gray-200 text-gray-600'
+                }
+              `}
+                >
+                  {currentStep === 'results' ||
+                  index <
+                    ['intro', 'prompt', 'models', 'pattern', 'results'].indexOf(
+                      currentStep
+                    ) ? (
+                    <CheckCircle size={16} />
+                  ) : (
+                    index + 1
+                  )}
+                </div>
+                {index < 4 && (
+                  <div
+                    className={`h-1 w-10 ${
+                      index <
+                      ['intro', 'prompt', 'models', 'pattern'].indexOf(
+                        currentStep
+                      )
+                        ? 'bg-green-500'
+                        : 'bg-gray-200'
+                    }`}
+                  />
+                )}
               </div>
-              {index < 4 && (
-                <div className={`h-1 w-10 ${
-                  index < ['intro', 'prompt', 'models', 'pattern'].indexOf(currentStep)
-                    ? 'bg-green-500' : 'bg-gray-200'
-                }`} />
-              )}
-            </div>
-          ))}
+            )
+          )}
         </div>
         <div className="flex justify-between text-xs text-gray-600">
           <span>Start</span>
@@ -525,8 +590,12 @@ const SimpleAnalysis: React.FC = () => {
 
       {currentStep === 'intro' && (
         <div className="mt-8 text-center text-gray-600">
-          <p>For document management, visit the{' '}
-            <Link to="/documents" className="text-blue-600 underline">Documents page</Link>.
+          <p>
+            For document management, visit the{' '}
+            <Link to="/documents" className="text-blue-600 underline">
+              Documents page
+            </Link>
+            .
           </p>
         </div>
       )}

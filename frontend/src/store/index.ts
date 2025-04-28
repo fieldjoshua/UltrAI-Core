@@ -10,27 +10,27 @@ import documentsReducer from '../features/documents/documentsSlice';
 
 // Combine reducers
 const rootReducer = combineReducers({
-    // auth: authReducer,
-    documents: documentsReducer,
-    // analysis: analysisReducer,
-    // ui: uiReducer,
+  // auth: authReducer,
+  documents: documentsReducer,
+  // analysis: analysisReducer,
+  // ui: uiReducer,
 });
 
 // Create and configure the store
 export const store = configureStore({
-    reducer: rootReducer,
-    middleware: (getDefaultMiddleware) =>
-        getDefaultMiddleware({
-            serializableCheck: {
-                // Ignore these action types
-                ignoredActions: ['persist/PERSIST'],
-                // Ignore these field paths in all actions
-                ignoredActionPaths: ['meta.arg', 'payload.timestamp'],
-                // Ignore these paths in the state
-                ignoredPaths: [],
-            },
-        }),
-    devTools: process.env.NODE_ENV !== 'production',
+  reducer: rootReducer,
+  middleware: getDefaultMiddleware =>
+    getDefaultMiddleware({
+      serializableCheck: {
+        // Ignore these action types
+        ignoredActions: ['persist/PERSIST'],
+        // Ignore these field paths in all actions
+        ignoredActionPaths: ['meta.arg', 'payload.timestamp'],
+        // Ignore these paths in the state
+        ignoredPaths: [],
+      },
+    }),
+  devTools: process.env.NODE_ENV !== 'production',
 });
 
 // Enable listener behavior for the store

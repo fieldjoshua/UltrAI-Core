@@ -1,17 +1,14 @@
 import logging
-import os
 import platform
-import sys
-import time
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 
 import psutil
 import torch
 from ultra_config import UltraConfig
 
-from ultra_base import UltraBase
+from src.core.cache_adapter import CacheManagerAdapter
 
 
 @dataclass
@@ -50,9 +47,11 @@ class ResourceManager:
 
     def _detect_device(self) -> str:
         """Detect and configure compute device."""
-        if torch.backends.mps.is_available():
+        if hasattr(torch.backends, "mps") and torch.backends.mps.is_available():
             device = "mps"
-            torch.backends.mps.enable_fallback_to_cpu = True
+            # Only set attribute if it exists
+            if hasattr(torch.backends.mps, "enable_fallback_to_cpu"):
+                torch.backends.mps.enable_fallback_to_cpu = True
         elif torch.cuda.is_available():
             device = "cuda"
             torch.backends.cudnn.benchmark = True
@@ -71,10 +70,9 @@ class ResourceManager:
     def check_resource_availability(self) -> bool:
         """Check if resources are available."""
         usage = self.get_resource_usage()
-        return (
-            usage["cpu_percent"] < self.config.performance.max_cpu_percent
-            and usage["memory_percent"] < self.config.performance.max_memory_percent
-        )
+        max_cpu = getattr(self.config.performance, "max_cpu_percent", 90.0)
+        max_memory = getattr(self.config.performance, "max_memory_percent", 85.0)
+        return usage["cpu_percent"] < max_cpu and usage["memory_percent"] < max_memory
 
     def optimize_batch_size(self, initial_batch_size: int) -> int:
         """Dynamically optimize batch size based on available resources."""
@@ -90,35 +88,25 @@ class CacheManager:
     def __init__(self, config: UltraConfig):
         self.config = config
         self.logger = logging.getLogger(__name__)
-        self.cache = {}
-        self.cache_size = 0
+        # Use the adapter to connect to UnifiedCache
+        self.adapter = CacheManagerAdapter(config)
+        self.logger.info("CacheManager initialized with UnifiedCache adapter")
 
     def add_to_cache(self, key: str, value: Any):
         """Add item to cache with size tracking."""
-        try:
-            item_size = sys.getsizeof(value) / (1024 * 1024)  # Size in MB
-
-            if self.cache_size + item_size > self.config.performance.cache_size_mb:
-                self._evict_cache_items()
-
-            self.cache[key] = value
-            self.cache_size += item_size
-        except Exception as e:
-            self.logger.error(f"Failed to add item to cache: {e}")
+        self.adapter.add_to_cache(key, value)
 
     def get_from_cache(self, key: str) -> Optional[Any]:
         """Retrieve item from cache."""
-        return self.cache.get(key)
+        return self.adapter.get_from_cache(key)
 
-    def _evict_cache_items(self):
-        """Evict items from cache when full."""
-        while (
-            self.cache and self.cache_size > self.config.performance.cache_size_mb * 0.8
-        ):
-            key = next(iter(self.cache))
-            item_size = sys.getsizeof(self.cache[key]) / (1024 * 1024)
-            del self.cache[key]
-            self.cache_size -= item_size
+    def clear_cache(self):
+        """Clear all cache items."""
+        self.adapter.clear_cache()
+
+    def get_metrics(self) -> Dict[str, Any]:
+        """Get cache performance metrics."""
+        return self.adapter.get_metrics()
 
 
 class HardwareOptimizer:
@@ -136,16 +124,23 @@ class HardwareOptimizer:
             "platform": platform.system(),
             "processor": platform.processor(),
             "machine": platform.machine(),
-            "gpu_available": torch.backends.mps.is_available()
+            "gpu_available": (
+                hasattr(torch.backends, "mps") and torch.backends.mps.is_available()
+            )
             or torch.cuda.is_available(),
             "cpu_cores": psutil.cpu_count(logical=False),
         }
 
     def _configure_hardware(self):
         """Configure hardware-specific optimizations."""
-        if self.device["platform"] == "Darwin" and self.device["gpu_available"]:
+        if (
+            self.device["platform"] == "Darwin"
+            and self.device["gpu_available"]
+            and hasattr(torch.backends, "mps")
+        ):
             # Configure for Apple Silicon
-            torch.backends.mps.enable_fallback_to_cpu = True
+            if hasattr(torch.backends.mps, "enable_fallback_to_cpu"):
+                torch.backends.mps.enable_fallback_to_cpu = True
         elif torch.cuda.is_available():
             # Configure for NVIDIA GPU
             torch.backends.cudnn.benchmark = True
@@ -153,8 +148,9 @@ class HardwareOptimizer:
 
     def get_optimal_settings(self) -> Dict[str, Any]:
         """Get optimal settings for current hardware."""
+        batch_size = getattr(self.config.performance, "batch_size", 32)
         settings = {
-            "batch_size": self.config.performance.batch_size,
+            "batch_size": batch_size,
             "num_workers": self.device["cpu_cores"],
             "pin_memory": self.device["gpu_available"],
         }

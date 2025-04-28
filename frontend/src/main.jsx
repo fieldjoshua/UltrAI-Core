@@ -10,9 +10,9 @@ window.OVERRIDE_API_URL = 'http://localhost:8000/api';
 console.log('API URL forced to:', window.OVERRIDE_API_URL);
 
 ReactDOM.createRoot(document.getElementById('root')).render(
-    <React.StrictMode>
-        <Provider store={store}>
-            <App />
-        </Provider>
-    </React.StrictMode>
+  <React.StrictMode>
+    <Provider store={store}>
+      <App />
+    </Provider>
+  </React.StrictMode>
 );

@@ -9,10 +9,7 @@
     "paths": {
       "@/*": ["./src/*"]
     },
-    "types": [
-      "vite/client",
-      "node"
-    ],
+    "types": ["vite/client", "node", "jest"],
     "moduleResolution": "bundler",
     "allowImportingTsExtensions": true,
     "resolveJsonModule": true,
@@ -22,8 +19,13 @@
     "strict": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
-    "noFallthroughCasesInSwitch": true
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    "strictFunctionTypes": true,
+    "strictBindCallApply": true,
+    "plugins": [{ "name": "typescript-plugin-css-modules" }]
   },
-  "include": ["src"],
+  "include": ["src", "**/*.d.ts"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }

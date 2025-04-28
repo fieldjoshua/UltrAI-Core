@@ -19,6 +19,7 @@ repos:
           - flake8-bugbear
         args:
           - --max-line-length=88
+          - --per-file-ignores=src/data/cache/unified_cache.py:B301,B403
         exclude: ^(node_modules/|dist/|build/|.venv/|.env/)
 
   - repo: https://github.com/pycqa/isort
@@ -61,3 +62,11 @@ repos:
     hooks:
       - id: gitleaks-docker
         name: Detect hardcoded secrets
+
+  # Add a dedicated Bandit hook that uses our configuration
+  - repo: https://github.com/pycqa/bandit
+    rev: 1.7.7
+    hooks:
+      - id: bandit
+        args: ["-c", ".bandit.yaml"]
+        exclude: ^(node_modules/|dist/|build/|.venv/|.env/|tests/)

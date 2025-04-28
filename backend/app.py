@@ -15,7 +15,7 @@ from backend.utils.server import is_port_available, find_available_port
 from backend.utils.logging import get_logger
 from backend.utils.error_handler import error_handling_middleware, register_exception_handlers
 from backend.utils.middleware import setup_middleware
-from backend.utils.rate_limit_middleware import setup_rate_limit_middleware
+from backend.utils.rate_limit_middleware import rate_limit_middleware
 
 # Import database
 from backend.database import init_db, check_database_connection
@@ -28,6 +28,7 @@ from backend.routes.analyze_routes import analyze_router
 from backend.routes.pricing_routes import pricing_router
 from backend.routes.user_routes import user_router
 from backend.routes.oauth_routes import oauth_router
+from backend.routes.llm_routes import llm_router
 
 # Get logger
 logger = get_logger("ultra_api", "logs/api.log")
@@ -108,7 +109,7 @@ app.middleware("http")(error_handling_middleware)
 setup_middleware(app)
 
 # Set up rate limiting
-setup_rate_limit_middleware(app)
+app.middleware("http")(rate_limit_middleware)
 
 # Include routers
 app.include_router(health_router)
@@ -118,6 +119,7 @@ app.include_router(analyze_router)
 app.include_router(pricing_router)
 app.include_router(user_router)
 app.include_router(oauth_router)
+app.include_router(llm_router)
 
 # Register exception handlers
 register_exception_handlers(app)

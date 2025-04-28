@@ -6,10 +6,10 @@ import { Document } from '../features/documents/documentsSlice';
  * @returns Array of documents
  */
 export const getAllDocuments = async (): Promise<Document[]> => {
-    return request<Document[]>({
-        url: endpoints.documents.getAll,
-        method: 'GET',
-    });
+  return request<Document[]>({
+    url: endpoints.documents.getAll,
+    method: 'GET',
+  });
 };
 
 /**
@@ -18,10 +18,10 @@ export const getAllDocuments = async (): Promise<Document[]> => {
  * @returns Document details
  */
 export const getDocumentById = async (id: string): Promise<Document> => {
-    return request<Document>({
-        url: endpoints.documents.getById(id),
-        method: 'GET',
-    });
+  return request<Document>({
+    url: endpoints.documents.getById(id),
+    method: 'GET',
+  });
 };
 
 /**
@@ -30,17 +30,17 @@ export const getDocumentById = async (id: string): Promise<Document> => {
  * @returns Uploaded document details
  */
 export const uploadDocument = async (file: File): Promise<Document> => {
-    const formData = new FormData();
-    formData.append('file', file);
+  const formData = new FormData();
+  formData.append('file', file);
 
-    return request<Document>({
-        url: endpoints.documents.upload,
-        method: 'POST',
-        data: formData,
-        headers: {
-            'Content-Type': 'multipart/form-data',
-        },
-    });
+  return request<Document>({
+    url: endpoints.documents.upload,
+    method: 'POST',
+    data: formData,
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
 };
 
 /**
@@ -50,24 +50,24 @@ export const uploadDocument = async (file: File): Promise<Document> => {
  * @returns Array of uploaded document details
  */
 export const uploadMultipleDocuments = async (
-    files: File[],
-    onUploadProgress?: (progressEvent: any) => void
+  files: File[],
+  onUploadProgress?: (progressEvent: any) => void
 ): Promise<Document[]> => {
-    const formData = new FormData();
+  const formData = new FormData();
 
-    files.forEach((file) => {
-        formData.append('files', file);
-    });
+  files.forEach(file => {
+    formData.append('files', file);
+  });
 
-    return request<Document[]>({
-        url: endpoints.documents.upload,
-        method: 'POST',
-        data: formData,
-        headers: {
-            'Content-Type': 'multipart/form-data',
-        },
-        onUploadProgress,
-    });
+  return request<Document[]>({
+    url: endpoints.documents.upload,
+    method: 'POST',
+    data: formData,
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+    onUploadProgress,
+  });
 };
 
 /**
@@ -75,11 +75,13 @@ export const uploadMultipleDocuments = async (
  * @param id Document ID to delete
  * @returns Success message
  */
-export const deleteDocument = async (id: string): Promise<{ success: boolean; message: string }> => {
-    return request<{ success: boolean; message: string }>({
-        url: endpoints.documents.delete(id),
-        method: 'DELETE',
-    });
+export const deleteDocument = async (
+  id: string
+): Promise<{ success: boolean; message: string }> => {
+  return request<{ success: boolean; message: string }>({
+    url: endpoints.documents.delete(id),
+    method: 'DELETE',
+  });
 };
 
 /**
@@ -88,24 +90,24 @@ export const deleteDocument = async (id: string): Promise<{ success: boolean; me
  * @returns Session ID and upload details
  */
 export const createUploadSession = async (fileInfo: {
-    fileName: string;
-    fileSize: number;
-    chunkSize: number;
-    totalChunks: number;
+  fileName: string;
+  fileSize: number;
+  chunkSize: number;
+  totalChunks: number;
 }): Promise<{
+  sessionId: string;
+  chunkSize: number;
+  totalChunks: number;
+}> => {
+  return request<{
     sessionId: string;
     chunkSize: number;
     totalChunks: number;
-}> => {
-    return request<{
-        sessionId: string;
-        chunkSize: number;
-        totalChunks: number;
-    }>({
-        url: '/create-document-session',
-        method: 'POST',
-        data: fileInfo,
-    });
+  }>({
+    url: '/create-document-session',
+    method: 'POST',
+    data: fileInfo,
+  });
 };
 
 /**
@@ -117,33 +119,33 @@ export const createUploadSession = async (fileInfo: {
  * @returns Upload status
  */
 export const uploadChunk = async (
-    sessionId: string,
-    chunkIndex: number,
-    chunk: Blob,
-    onUploadProgress?: (progressEvent: any) => void
+  sessionId: string,
+  chunkIndex: number,
+  chunk: Blob,
+  onUploadProgress?: (progressEvent: any) => void
 ): Promise<{
+  success: boolean;
+  received: number;
+  total: number;
+}> => {
+  const formData = new FormData();
+  formData.append('sessionId', sessionId);
+  formData.append('chunkIndex', chunkIndex.toString());
+  formData.append('chunk', chunk);
+
+  return request<{
     success: boolean;
     received: number;
     total: number;
-}> => {
-    const formData = new FormData();
-    formData.append('sessionId', sessionId);
-    formData.append('chunkIndex', chunkIndex.toString());
-    formData.append('chunk', chunk);
-
-    return request<{
-        success: boolean;
-        received: number;
-        total: number;
-    }>({
-        url: '/upload-document-chunk',
-        method: 'POST',
-        data: formData,
-        headers: {
-            'Content-Type': 'multipart/form-data',
-        },
-        onUploadProgress,
-    });
+  }>({
+    url: '/upload-document-chunk',
+    method: 'POST',
+    data: formData,
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+    onUploadProgress,
+  });
 };
 
 /**
@@ -153,15 +155,15 @@ export const uploadChunk = async (
  * @returns Uploaded document details
  */
 export const finalizeUpload = async (
-    sessionId: string,
-    fileName: string
+  sessionId: string,
+  fileName: string
 ): Promise<Document> => {
-    return request<Document>({
-        url: '/finalize-document-upload',
-        method: 'POST',
-        data: {
-            sessionId,
-            fileName,
-        },
-    });
+  return request<Document>({
+    url: '/finalize-document-upload',
+    method: 'POST',
+    data: {
+      sessionId,
+      fileName,
+    },
+  });
 };

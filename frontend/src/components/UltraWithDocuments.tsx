@@ -48,7 +48,11 @@ import ProcessingStep from './steps/ProcessingStep';
 import ResultsStep from './steps/ResultsStep';
 
 // Import the API service functions
-import { fetchAvailableModels, analyzePrompt, AnalysisPayload } from '../services/api';
+import {
+  fetchAvailableModels,
+  analyzePrompt,
+  AnalysisPayload,
+} from '../services/api';
 
 // Import the layout components
 import OfflineBanner from './layout/OfflineBanner';
@@ -204,7 +208,7 @@ const alaCarteOptions = [
   {
     id: 'no_data_sharing',
     name: 'No Data Sharing',
-    description: 'Ensure data isn\'t shared or stored',
+    description: "Ensure data isn't shared or stored",
     icon: Shield,
   },
   {
@@ -247,14 +251,21 @@ export default function UltraWithDocuments() {
   // Basic state
   const [prompt, setPrompt] = useState('');
   const [error, setError] = useState<string | null>(null);
-  const [selectedAlaCarteOptions, setSelectedAlaCarteOptions] = useState<string[]>([]);
-  const [selectedOutputFormat, setSelectedOutputFormat] = useState<string>('txt');
+  const [selectedAlaCarteOptions, setSelectedAlaCarteOptions] = useState<
+    string[]
+  >([]);
+  const [selectedOutputFormat, setSelectedOutputFormat] =
+    useState<string>('txt');
   const [currentStep, setCurrentStep] = useState<Step>('INTRO');
   const [animating, setAnimating] = useState(false);
   const outputRef = React.useRef<HTMLDivElement>(null);
   const [isOffline, setIsOffline] = useState<boolean>(false);
-  const [floatingPriceVisible, setFloatingPriceVisible] = useState<boolean>(true);
-  const [floatingPricePosition, setFloatingPricePosition] = useState({ top: 0, right: 20 });
+  const [floatingPriceVisible, setFloatingPriceVisible] =
+    useState<boolean>(true);
+  const [floatingPricePosition, setFloatingPricePosition] = useState({
+    top: 0,
+    right: 20,
+  });
   const floatingPriceRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -270,7 +281,7 @@ export default function UltraWithDocuments() {
     removeDocument,
     uploadDocuments,
     toggleDocumentMode,
-    resetDocumentState
+    resetDocumentState,
   } = useDocumentState();
 
   const {
@@ -282,7 +293,7 @@ export default function UltraWithDocuments() {
     handleLLMChange,
     handleUltraChange,
     handleAnalysisTypeChange,
-    resetAnalysisConfig
+    resetAnalysisConfig,
   } = useAnalysisConfig(isOffline);
 
   const {
@@ -295,7 +306,7 @@ export default function UltraWithDocuments() {
     executeAnalysis,
     updateProgress,
     resetExecutionState,
-    error: executionError
+    error: executionError,
   } = useAnalysisExecution();
 
   const {
@@ -313,7 +324,7 @@ export default function UltraWithDocuments() {
     deleteHistoryItem,
     clearHistory,
     shareHistoryItem,
-    copyToClipboard
+    copyToClipboard,
   } = useHistorySharing();
 
   // Combine errors from different hooks
@@ -471,7 +482,10 @@ export default function UltraWithDocuments() {
         ultra_model: ultraLLM,
         pattern: selectedAnalysisType,
         options: {
-          ...selectedAlaCarteOptions.reduce((acc, opt) => ({ ...acc, [opt]: true }), {})
+          ...selectedAlaCarteOptions.reduce(
+            (acc, opt) => ({ ...acc, [opt]: true }),
+            {}
+          ),
         },
         output_format: selectedOutputFormat,
         userId: 'user-placeholder',
@@ -482,7 +496,7 @@ export default function UltraWithDocuments() {
         saveAnalysisToHistory();
         setCurrentStep('RESULTS');
       } catch (analysisError: any) {
-        console.error("Analysis execution caught in component:", analysisError);
+        console.error('Analysis execution caught in component:', analysisError);
         saveAnalysisToHistory();
         setCurrentStep('RESULTS');
       } finally {
@@ -531,7 +545,7 @@ export default function UltraWithDocuments() {
     setCurrentStep('RESULTS');
 
     if (historyItem.models && historyItem.models.length > 0) {
-      const availableItemModels = historyItem.models.filter((model) =>
+      const availableItemModels = historyItem.models.filter(model =>
         availableModels.includes(model)
       );
 
@@ -543,9 +557,9 @@ export default function UltraWithDocuments() {
 
   // Handle a la carte option toggle
   const handleAlaCarteOptionToggle = (optionId: string) => {
-    setSelectedAlaCarteOptions((prev) => {
+    setSelectedAlaCarteOptions(prev => {
       if (prev.includes(optionId)) {
-        return prev.filter((id) => id !== optionId);
+        return prev.filter(id => id !== optionId);
       } else {
         return [...prev, optionId];
       }
@@ -577,21 +591,33 @@ export default function UltraWithDocuments() {
 
   // Render the floating price component
   const renderFloatingPrice = () => {
-    if (!floatingPriceVisible || currentStep === 'INTRO' || currentStep === 'RESULTS') {
+    if (
+      !floatingPriceVisible ||
+      currentStep === 'INTRO' ||
+      currentStep === 'RESULTS'
+    ) {
       return null;
     }
 
     // Calculate total price based on selected models
-    const totalPrice = selectedLLMs.reduce((sum, model) => sum + (prices[model] || 0), 0);
+    const totalPrice = selectedLLMs.reduce(
+      (sum, model) => sum + (prices[model] || 0),
+      0
+    );
 
     return (
       <div
         ref={floatingPriceRef}
         className="fixed bg-white dark:bg-gray-800 shadow-lg rounded-lg p-3 z-50 border border-gray-200 dark:border-gray-700 transition-all duration-300"
-        style={{ top: `${floatingPricePosition.top}px`, right: `${floatingPricePosition.right}px` }}
+        style={{
+          top: `${floatingPricePosition.top}px`,
+          right: `${floatingPricePosition.right}px`,
+        }}
       >
         <div className="flex items-center justify-between mb-2">
-          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Estimated Cost</span>
+          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+            Estimated Cost
+          </span>
           <Button
             variant="ghost"
             size="sm"

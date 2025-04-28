@@ -68,3 +68,57 @@ We welcome contributions from the community! Please follow these guidelines:
 ## Contact Information
 
 For questions or support, please contact us at [support@ultraai.com](mailto:support@ultraai.com) or join our community forum at [forum.ultraai.com](http://forum.ultraai.com).
+
+# AICheck System - Contributor Guide
+
+## Purpose
+
+AICheck is a modular, RULES.md-compliant action management and automation system. This project enables contributors to define, track, and execute project actions in a transparent, auditable, and collaborative way.
+
+## Quickstart
+
+1. **Clone the repository:**
+
+   ```sh
+   git clone <your-repo-url>
+   cd <repo-directory>
+   ```
+
+2. **Install dependencies:**
+
+   ```sh
+   # If using Python, Node, or other tools, add setup steps here
+   # Example for Python:
+   pip install -r requirements.txt
+   ```
+
+3. **Run the AICheck CLI:**
+
+   ```sh
+   cd AICheck
+   ./ai new MyActionName  # Create a new action (PascalCase)
+   ./ai switch MyActionName  # Switch to an action
+   ./ai status MyActionName  # Check action status
+   ```
+
+## Adding New Actions
+
+- Use PascalCase for action names (e.g., `MyNewAction`).
+- Each action gets its own directory and plan file in `.aicheck/actions/`.
+- Follow the action plan template for structure and compliance.
+- Use the CLI to manage actions: create, switch, update, delete.
+
+## Contributing
+
+- All contributions must comply with `RULES.md`.
+- Use pre-commit hooks and run tests before pushing changes.
+- Document new actions and scripts clearly.
+- Open issues or pull requests for major changes.
+
+## Support
+
+- See `RULES.md` for project governance and contribution rules.
+- For help, open an issue or contact a maintainer.
+
+---
+Happy contributing!

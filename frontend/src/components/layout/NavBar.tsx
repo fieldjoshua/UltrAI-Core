@@ -21,7 +21,9 @@ export default function NavBar() {
               <span className="text-blue-600 dark:text-blue-400 mr-2">
                 <Zap size={24} />
               </span>
-              <span className="text-xl font-bold text-gray-900 dark:text-white">UltrAI</span>
+              <span className="text-xl font-bold text-gray-900 dark:text-white">
+                UltrAI
+              </span>
             </Link>
           </div>
 

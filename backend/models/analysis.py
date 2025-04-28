@@ -55,3 +55,43 @@ class DocumentUploadResponse(BaseModel):
     type: str
     status: str
     message: str
+
+
+class AnalysisStageStatus(str, Enum):
+    """Status of an analysis stage"""
+
+    PENDING = "pending"
+    IN_PROGRESS = "in_progress"
+    COMPLETED = "completed"
+    FAILED = "failed"
+
+
+class AnalysisStage(BaseModel):
+    """Model for an analysis stage"""
+
+    status: AnalysisStageStatus = Field(..., description="Current status of the stage")
+    progress: int = Field(..., ge=0, le=100, description="Progress percentage (0-100)")
+
+
+class AnalysisProgress(BaseModel):
+    """Model for analysis progress tracking"""
+
+    status: AnalysisStageStatus = Field(..., description="Overall analysis status")
+    current_stage: str = Field(..., description="Current stage being processed")
+    stages: Dict[str, AnalysisStage] = Field(..., description="Progress of each stage")
+
+
+class AnalysisProgressResponse(BaseModel):
+    """Response model for analysis progress"""
+
+    status: str = Field(..., description="API response status")
+    analysis_id: str = Field(..., description="Unique identifier for the analysis")
+    progress: AnalysisProgress = Field(..., description="Current progress information")
+
+
+class AnalysisResultsResponse(BaseModel):
+    """Response model for analysis results"""
+
+    status: str = Field(..., description="API response status")
+    analysis_id: str = Field(..., description="Unique identifier for the analysis")
+    results: Dict[str, Any] = Field(..., description="Analysis results")
