@@ -1,0 +1,485 @@
+#!/bin/bash
+# ai - Unified AICheck interface (RULES.md-compliant)
+
+# AICheck command interface
+# Provides a unified interface for all AICheck functionality
+# Adapted for directory structure with action directories
+
+# Get the script directory with absolute path
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+# Source component scripts
+source "$SCRIPT_DIR/common.sh"
+source "$SCRIPT_DIR/session.sh"
+source "$SCRIPT_DIR/action.sh"
+source "$SCRIPT_DIR/security_utils.sh"
+
+usage() {
+    echo "Usage: ./ai {start|end|create|switch|status|delete|update-status|update-progress|catchup|update|list|view|summary|version|help} [action_name] [value]"
+    exit 1
+}
+
+command=$1
+shift
+
+case "$command" in
+    start)
+        start_session
+        ;;
+    end)
+        end_session
+        ;;
+    create)
+        action_name="$1"
+        if ! is_pascal_case "$action_name"; then
+            log_error "ACTION001" "Action name must be PascalCase (e.g., MyAction)." "Use a valid name."
+            exit 1
+        fi
+        action_create "$action_name"
+        ;;
+    switch)
+        action_name="$1"
+        action_switch "$action_name"
+        ;;
+    status)
+        action_name="$1"
+        action_status "$action_name"
+        ;;
+    delete)
+        action_name="$1"
+        action_delete "$action_name"
+        ;;
+    update-status)
+        action_name="$1"
+        status="$2"
+        action_update_status "$action_name" "$status"
+        ;;
+    update-progress)
+        action_name="$1"
+        progress="$2"
+        action_update_progress "$action_name" "$progress"
+        ;;
+    prompt)
+        generate_prompt
+        ;;
+    commit)
+        if [ -z "$1" ]; then
+            echo "Error: Commit message required"
+            echo "Usage: ./ai commit <message>"
+            exit 1
+        fi
+        commit_changes "$1"
+        ;;
+    new)
+        if [ -z "$1" ]; then
+            echo "Error: Action name required"
+            echo "Usage: ./ai new <action_name>"
+            exit 1
+        fi
+        create_new_action "$1"
+        ;;
+    audit)
+        # Switch to or create AdminAudit action
+        echo "=== Switching to Administrative Audit ==="
+        echo "This will use the AdminAudit action to:"
+        echo "1. Review system state"
+        echo "2. Create new actions"
+        echo "3. Update existing actions"
+        echo "4. Ensure compliance with RULES.md"
+        echo ""
+
+        # Check if AdminAudit exists
+        if [ ! -d ".aicheck/actions/AdminAudit" ]; then
+            echo "Creating new AdminAudit action..."
+            create_new_action "AdminAudit"
+        else
+            echo "Switching to existing AdminAudit..."
+            switch_to_action "AdminAudit"
+        fi
+        ;;
+    admin)
+        # Switch to or create AdminAudit action
+        echo "=== Switching to Administrative Audit ==="
+        echo "This will use the AdminAudit action to:"
+        echo "1. Review system state"
+        echo "2. Create new actions"
+        echo "3. Update existing actions"
+        echo "4. Ensure compliance with RULES.md"
+        echo ""
+
+        # Check if AdminAudit exists
+        if [ ! -d ".aicheck/actions/AdminAudit" ]; then
+            echo "Creating new AdminAudit action..."
+            create_new_action "AdminAudit"
+        else
+            echo "Switching to existing AdminAudit..."
+            switch_to_action "AdminAudit"
+        fi
+        ;;
+    cursor)
+        # Prepare for Cursor chat
+        echo "=== Preparing for Cursor Chat ==="
+
+        # Get current action and session
+        current_action=$(cat .aicheck/current_action 2>/dev/null || echo "None")
+        current_session=$(cat .aicheck/current_session 2>/dev/null || echo "None")
+
+        # Create context file
+        context_file=".aicheck/cursor/chat_context_$(date +%Y%m%d%H%M%S).md"
+        mkdir -p .aicheck/cursor
+
+        # Generate context
+        cat > "$context_file" << EOC
+# Cursor Chat Context - $(date +"%Y-%m-%d %H:%M:%S")
+
+## ⚠️ CRITICAL: RULES.md COMPLIANCE ⚠️
+This development MUST follow the rules defined in RULES.md, which is the controlling document.
+IMPORTANT: AI editors DO NOT need to ask for approval for any work that complies with RULES.md and falls within the scope of the ActiveAction.
+
+## Current State
+- ActiveAction: $current_action
+- Current Session: $current_session
+- Actions Index: .aicheck/docs/actions_index.md
+
+## Action Details
+$(if [ "$current_action" != "None" ] && [ -f ".aicheck/actions/$current_action/$current_action-PLAN.md" ]; then
+    cat ".aicheck/actions/$current_action/$current_action-PLAN.md" | head -n 20
+    echo "..."
+  else
+    echo "No ActiveAction selected or plan file not found."
+  fi)
+
+## Recent Changes
+$(git diff --name-only | head -n 10 | sed 's/^/- /')
+
+## Project Structure
+$(find . -type f -name "*.py" -o -name "*.js" -o -name "*.html" -o -name "*.css" -o -name "*.md" -o -name "*.json" | grep -v "node_modules" | grep -v ".git" | head -n 20 | sed 's/^/- /')
+
+## Reference Paths
+- RULES.md: Project rules and guidelines (MUST READ)
+- .aicheck/actions/: Action-specific directories
+- .aicheck/docs/actions_index.md: Action tracking and status
+- .aicheck/templates/: Template files
+- .aicheck/sessions/: Session data
+- .aicheck/current_action: ActiveAction tracking
+- .aicheck/current_session: Current active session
+EOC
+
+        echo "Context file created: $context_file"
+        echo "Use this context in your Cursor chat"
+
+        # Copy to clipboard if available
+        if command -v pbcopy &> /dev/null; then
+            cat "$context_file" | pbcopy
+            echo "Context copied to clipboard"
+        elif command -v xclip &> /dev/null; then
+            cat "$context_file" | xclip -selection clipboard
+            echo "Context copied to clipboard"
+        fi
+        ;;
+    "check!")
+        # Generate a quick check prompt for AI editors
+        echo "=== Generating AI Editor Check Prompt ==="
+
+        # Get current action and session
+        current_action=$(cat .aicheck/current_action 2>/dev/null || echo "None")
+        current_session=$(cat .aicheck/current_session 2>/dev/null || echo "None")
+
+        # Create check prompt
+        check_prompt="⚠️ AI Editor Check ⚠️
+
+What action are you working on? Please reference:
+- Action Plan: .aicheck/actions/$current_action/$current_action-PLAN.md
+- Actions Index: .aicheck/docs/actions_index.md
+- RULES.md: Project rules and guidelines
+
+Current Action: $current_action
+Current Session: $current_session
+
+Please confirm you have reviewed:
+1. The action plan
+2. RULES.md compliance
+3. 3. ActiveAction scope
+4. Supporting documentation
+
+You can proceed with implementation if your work complies with RULES.md and falls within the ActiveAction scope."
+
+        # Copy to clipboard
+        if command -v pbcopy &> /dev/null; then
+            echo "$check_prompt" | pbcopy
+            echo "Check prompt copied to clipboard"
+        elif command -v xclip &> /dev/null; then
+            echo "$check_prompt" | xclip -selection clipboard
+            echo "Check prompt copied to clipboard"
+        else
+            echo "$check_prompt"
+            echo "Please copy the above prompt manually"
+        fi
+        ;;
+    catchup)
+        # Generate comprehensive project overview for new editors
+        echo "=== AICheck Project Overview ==="
+        echo "This overview is designed for editors who are new to the project."
+
+        # Get current action and session
+        current_action=$(cat .aicheck/current_action 2>/dev/null || echo "None")
+        current_session=$(cat .aicheck/current_session 2>/dev/null || echo "None")
+
+        # Create catchup overview
+        catchup_overview="# AICheck Project Overview
+
+## System Structure
+AICheck is a system for managing AI-assisted development that ensures compliance with project rules.
+The system works through a structured approach to actions, documentation, and workflows.
+
+## Key Concepts
+- **RULES.md**: The controlling document that defines all project rules and requirements
+- **Actions**: Individual sub-objectives that contribute to program functionality
+- **ActiveAction**: The single action currently being worked on (currently: $current_action)
+- **Action Index**: List of all actions and their status (.aicheck/docs/actions_index.md)
+
+## Directory Structure
+- **.aicheck/actions/**: Contains all action directories with their plans and supporting docs
+- **.aicheck/docs/**: Project documentation including the actions index
+- **.aicheck/current_action**: Tracks which action is currently active
+- **.aicheck/current_session**: Tracks the current development session
+
+## Workflow Overview
+1. Start a session with \`./ai start\`
+2. Create or switch to an action with \`./ai new ActionName\` or \`./ai switch ActionName\`
+3. Update status (\`./ai update-status\`) and progress (\`./ai update-progress\`) regularly
+4. End session with \`./ai end\` to generate context
+
+## AI Editor Permissions
+AI editors may implement without approval:
+- Code implementing the ActiveAction plan
+- Documentation updates for ActiveAction
+- Bug fixes and tests within ActiveAction scope
+- Refactoring within ActiveAction scope
+
+The following ALWAYS require human manager approval:
+- Changing the ActiveAction
+- Creating a new Action
+- Making substantive changes to any Action
+- Modifying any Action Plan
+- Creating or modifying Templates
+
+## Current State
+- ActiveAction: $current_action
+- Current Session: $current_session"
+
+        # Output the overview
+        echo "$catchup_overview"
+
+        # Copy to clipboard if available
+        if command -v pbcopy &> /dev/null; then
+            echo "$catchup_overview" | pbcopy
+            echo "Overview copied to clipboard"
+        elif command -v xclip &> /dev/null; then
+            echo "$catchup_overview" | xclip -selection clipboard
+            echo "Overview copied to clipboard"
+        fi
+        ;;
+    update)
+        # Update AICheck to the latest version
+        echo "=== Updating AICheck to the latest version ==="
+
+        # Check if we're in a git repository
+        if [ ! -d ".git" ]; then
+            echo "Error: Not in a git repository. Update requires a git repository."
+            echo "If you installed AICheck using the installer, please reinstall using:"
+            echo "curl -s https://raw.githubusercontent.com/fieldjoshua/AICheck/main/aicheck.sh | bash"
+            exit 1
+        fi
+
+        # Store current branch
+        current_branch=$(git rev-parse --abbrev-ref HEAD)
+
+        # Stash any changes
+        echo "Stashing any local changes..."
+        git stash
+
+        # Pull the latest version
+        echo "Pulling the latest version..."
+        git pull origin $current_branch
+
+        # Apply stashed changes if any
+        echo "Applying stashed changes if any..."
+        git stash pop 2>/dev/null || true
+
+        # Make scripts executable
+        echo "Making scripts executable..."
+        chmod +x .aicheck/scripts/*.sh .aicheck/hooks/* ai
+
+        echo "Update complete. AICheck has been updated to the latest version."
+        echo "New features:"
+        echo "- catchup: Generate project overview for new editors (./ai catchup)"
+        ;;
+    list)
+        # List all actions with their statuses
+        echo "=== AICheck Actions ==="
+
+        # Create actions directory if it doesn't exist
+        mkdir -p ".aicheck/actions"
+
+        # Get current action
+        current_action=$(cat .aicheck/current_action 2>/dev/null || echo "None")
+
+        # List all actions
+        echo "Current ActiveAction: $current_action"
+        echo ""
+        echo "All Actions:"
+        echo "-------------"
+
+        # Check if there are any actions
+        action_count=$(find .aicheck/actions -mindepth 1 -maxdepth 1 -type d | wc -l)
+        if [ "$action_count" -eq 0 ]; then
+            echo "No actions found. Create one with './ai new ActionName'"
+            exit 0
+        fi
+
+        # Print a formatted list of actions with their status and progress
+        printf "%-20s %-15s %-10s\n" "Action Name" "Status" "Progress"
+        printf "%-20s %-15s %-10s\n" "------------" "------" "--------"
+
+        for action_dir in .aicheck/actions/*; do
+            if [ -d "$action_dir" ]; then
+                action_name=$(basename "$action_dir")
+                status_file="$action_dir/status.md"
+                progress_file="$action_dir/progress.md"
+
+                status="Unknown"
+                progress="Unknown"
+
+                [ -f "$status_file" ] && status=$(cat "$status_file")
+                [ -f "$progress_file" ] && progress=$(cat "$progress_file")
+
+                # Add an indicator for current action
+                if [ "$action_name" = "$current_action" ]; then
+                    printf "%-20s %-15s %-10s %s\n" "$action_name" "$status" "$progress" "← ActiveAction"
+                else
+                    printf "%-20s %-15s %-10s\n" "$action_name" "$status" "$progress"
+                fi
+            fi
+        done
+        ;;
+    view)
+        # View project objective scope
+        project_objective_file=".aicheck/docs/project_objective.md"
+        if [ ! -f "$project_objective_file" ]; then
+            echo "No project objective scope defined. Use './ai start' to set one."
+        else
+            echo "=== Project Objective ==="
+            cat "$project_objective_file"
+        fi
+        ;;
+    summary)
+        # Generate a summary of the project state
+        echo "=== AICheck Project Summary ==="
+
+        # Get current action and session
+        current_action=$(cat .aicheck/current_action 2>/dev/null || echo "None")
+        current_session=$(cat .aicheck/current_session 2>/dev/null || echo "None")
+
+        # Count actions by status
+        echo "Current Active Action: $current_action"
+        echo "Current Session: $current_session"
+        echo ""
+
+        # Count actions by status
+        echo "Action Status Summary:"
+        echo "----------------------"
+        total_actions=0
+        not_started=0
+        in_progress=0
+        completed=0
+        blocked=0
+        on_hold=0
+
+        for status_file in .aicheck/actions/*/status.md; do
+            if [ -f "$status_file" ]; then
+                total_actions=$((total_actions + 1))
+                status=$(cat "$status_file")
+                case "$status" in
+                    "Not Started") not_started=$((not_started + 1)) ;;
+                    "ActiveAction"|"In Progress") in_progress=$((in_progress + 1)) ;;
+                    "Completed") completed=$((completed + 1)) ;;
+                    "Blocked") blocked=$((blocked + 1)) ;;
+                    "On Hold") on_hold=$((on_hold + 1)) ;;
+                esac
+            fi
+        done
+
+        echo "Total Actions: $total_actions"
+        echo "Not Started: $not_started"
+        echo "In Progress: $in_progress"
+        echo "Completed: $completed"
+        echo "Blocked: $blocked"
+        echo "On Hold: $on_hold"
+
+        # Show project objective if available
+        project_objective_file=".aicheck/docs/project_objective.md"
+        if [ -f "$project_objective_file" ]; then
+            echo ""
+            echo "Project Objective:"
+            echo "------------------"
+            cat "$project_objective_file" | head -n 5
+            echo "..."
+        fi
+
+        # Show recent activity
+        echo ""
+        echo "Recent Activity:"
+        echo "---------------"
+        git log --pretty=format:"%h %s" -5 2>/dev/null || echo "No git history found."
+        ;;
+    version)
+        # Display AICheck version information
+        echo "AICheck v1.0.0"
+        echo "Copyright (c) 2023-2024"
+        echo "https://github.com/fieldjoshua/AICheck"
+        ;;
+    help)
+        # Show detailed help for all commands
+        echo "AICheck Command Reference"
+        echo "========================="
+        echo ""
+        echo "Session Management:"
+        echo "------------------"
+        echo "  start                - Start a new session"
+        echo "  end                  - End the current session"
+        echo ""
+        echo "Action Management:"
+        echo "------------------"
+        echo "  new <ActionName>     - Create a new action"
+        echo "  create <ActionName>  - Create a new action (alias for new)"
+        echo "  switch <ActionName>  - Switch to an action"
+        echo "  status [ActionName]  - Show status of current or specified action"
+        echo "  delete <ActionName>  - Delete an action"
+        echo "  list                 - List all actions with their status and progress"
+        echo ""
+        echo "Updates and Progress:"
+        echo "--------------------"
+        echo "  update-status <Action> <Status>    - Update action status"
+        echo "  update-progress <Action> <Progress> - Update action progress"
+        echo "  commit \"Message\"     - Commit changes with a message"
+        echo ""
+        echo "Information and Context:"
+        echo "------------------------"
+        echo "  prompt               - Generate a context prompt (purpose, value, steps)"
+        echo "  cursor               - Prepare context for Cursor chat"
+        echo "  catchup              - Generate project overview for new editors"
+        echo "  view                 - View project objective"
+        echo "  summary              - Show project summary and statistics"
+        echo ""
+        echo "System:"
+        echo "-------"
+        echo "  update               - Update AICheck to the latest version"
+        echo "  audit                - Run compliance and audit checks"
+        echo "  version              - Show AICheck version information"
+        echo "  help                 - Show this help message"
+        ;;
+    *)
+        usage
+        ;;
+esac
