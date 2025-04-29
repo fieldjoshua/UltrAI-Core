@@ -1,0 +1,1 @@
+# Project Objective Scope\n\nTo create a low barirrer to entry, powerful multi LLM portal to AI funcationality for the masses. Use combinations of premium LLMs to multiply intelligence and create robust outputs, all without monthly commitments and presented in aer friendly UX/UI that will introduce a new generation of users to the power of AI
