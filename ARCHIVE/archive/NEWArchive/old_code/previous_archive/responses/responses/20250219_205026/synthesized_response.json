@@ -1,0 +1,3 @@
+{
+    "synthesis": "object ChatCompletion can't be used in 'await' expression"
+}

@@ -1,124 +1,83 @@
-# UltraAI Framework
+# UltrAI
 
-## IMPORTANT: Documentation First
+UltrAI is an intelligence multiplication platform designed to enhance human cognitive abilities through AI-assisted analysis, reasoning, and knowledge management.
 
-**BEFORE CREATING ANY NEW FEATURES OR MAKING CHANGES, CONSULT THE DOCUMENTATION:**
+## Project Structure
 
-All official documentation is in the `documentation/` directory:
+The project is organized as follows:
 
-- [DOCUMENTATION_INDEX.md](documentation/DOCUMENTATION_INDEX.md) - Complete index of all documentation
-- [CORE_README.md](documentation/CORE_README.md) - Critical information about this project
+### Core Directories
 
-## About UltraAI
+- `documentation/` - Centralized documentation organized by category
+  - `technical/` - Technical implementation details
+  - `public/` - User-facing documentation
+  - `vision/` - Vision and objectives
+  - _[Full documentation structure in `documentation/README.md`]_
+- `src/` - Core source code for UltrAI
+- `frontend/` - Frontend components and interfaces
+  - `demos/` - Interactive demonstrations
+- `backend/` - Backend services and APIs
+- `data/` - Data resources for the system
+  - `images/` - Image resources
+- `scripts/` - Utility scripts and tools
+- `tests/` - Test suites and test resources
+- `.aicheck/` - AICheck management system for development
 
-UltraAI is a powerful orchestration system for LLMs that leverages multiple models to enhance analysis quality and reliability through specialized analysis patterns ("feathers").
+### Key Files
 
-## Project Overview
+- `RULES.md` - Controlling document for development rules and standards
+- `documentation/README.md` - Documentation structure and guidelines
+- `documentation/configuration/README.md` - Configuration file documentation
 
-UltraAI is designed to orchestrate multiple large language models (LLMs) to enhance data analysis and visualization. It leverages specialized analysis patterns, known as "feathers," to improve the quality and reliability of insights. The framework is suitable for various applications, including real-time data processing, interactive visualization, and machine learning integration.
+## Getting Started
 
-## Installation Instructions
+### Prerequisites
 
-To set up UltraAI locally, follow these steps:
+- Node.js 14+ for frontend components
+- Python 3.9+ for backend services
+- Docker for containerized deployment
 
-1. **Clone the repository:**
+### Installation
 
+1. Clone the repository
    ```bash
-   git clone https://github.com/your-repo/UltraAI.git
-   cd UltraAI
+   git clone https://github.com/yourusername/ultra.git
+   cd ultra
    ```
 
-2. **Install dependencies:**
-
+2. Install dependencies
    ```bash
    pip install -r requirements.txt
    npm install
    ```
 
-3. **Set up environment variables:**
-   Copy `.env.example` to `.env` and configure the necessary environment variables.
+3. Set up environment variables
+   ```bash
+   cp .env.example .env
+   # Edit .env with your configuration
+   ```
 
-4. **Run the application:**
+4. Run development server
 
    ```bash
-   docker-compose up
+   npm run dev
    ```
 
-## Usage Guidelines
+## Development Process
 
-UltraAI can be used to orchestrate LLMs for various data analysis tasks. Here are some examples:
+UltrAI development follows the AICheck system, documented in `RULES.md`. This structured approach ensures consistent, high-quality contributions and clear tracking of development objectives.
 
-- **Running a basic analysis:**
+Key principles:
 
-  ```bash
-  python src/main.py --config config/basic_analysis.yaml
-  ```
+- Documentation First
+- One ActiveAction at a time
+- Consistent style and organization
+- Regular progress updates
 
-- **Visualizing results:**
-  Access the frontend at `http://localhost:3000` to view interactive visualizations.
+## License
 
-## Contribution Guidelines
-
-We welcome contributions from the community! Please follow these guidelines:
-
-- Fork the repository and create a new branch for your feature or bug fix.
-- Ensure your code adheres to the project's coding standards.
-- Submit a pull request with a clear description of your changes.
-
-## Contact Information
-
-For questions or support, please contact us at [support@ultraai.com](mailto:support@ultraai.com) or join our community forum at [forum.ultraai.com](http://forum.ultraai.com).
-
-# AICheck System - Contributor Guide
-
-## Purpose
-
-AICheck is a modular, RULES.md-compliant action management and automation system. This project enables contributors to define, track, and execute project actions in a transparent, auditable, and collaborative way.
-
-## Quickstart
-
-1. **Clone the repository:**
-
-   ```sh
-   git clone <your-repo-url>
-   cd <repo-directory>
-   ```
-
-2. **Install dependencies:**
-
-   ```sh
-   # If using Python, Node, or other tools, add setup steps here
-   # Example for Python:
-   pip install -r requirements.txt
-   ```
-
-3. **Run the AICheck CLI:**
-
-   ```sh
-   cd AICheck
-   ./ai new MyActionName  # Create a new action (PascalCase)
-   ./ai switch MyActionName  # Switch to an action
-   ./ai status MyActionName  # Check action status
-   ```
-
-## Adding New Actions
-
-- Use PascalCase for action names (e.g., `MyNewAction`).
-- Each action gets its own directory and plan file in `.aicheck/actions/`.
-- Follow the action plan template for structure and compliance.
-- Use the CLI to manage actions: create, switch, update, delete.
+[License information]
 
 ## Contributing
 
-- All contributions must comply with `RULES.md`.
-- Use pre-commit hooks and run tests before pushing changes.
-- Document new actions and scripts clearly.
-- Open issues or pull requests for major changes.
-
-## Support
-
-- See `RULES.md` for project governance and contribution rules.
-- For help, open an issue or contact a maintainer.
-
----
-Happy contributing!
+Please read `RULES.md` for details on our code of conduct and the process for submitting pull requests.

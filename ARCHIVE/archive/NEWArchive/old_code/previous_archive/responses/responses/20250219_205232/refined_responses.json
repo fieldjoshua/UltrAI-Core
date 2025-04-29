@@ -1,0 +1,5 @@
+{
+    "chatgpt": "Of course! Could you please provide me with the original prompt or draft that you would like me to revise? Thank you.",
+    "gemini": "module 'google.generativeai' has no attribute 'Completion'",
+    "llama": "403 Client Error: Forbidden for url: http://localhost:5000/generate"
+}
