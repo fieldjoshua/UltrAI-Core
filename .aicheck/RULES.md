@@ -60,18 +60,43 @@ The following ALWAYS require human manager approval:
 
 ## Directory Structure
 
+### Core Project Structure
+
 ```
-.aicheck/
-├── actions/           # Action-specific directories
-│   └── [ACTION_NAME]/
-│       ├── [ACTION_NAME]-PLAN.md
-│       └── supporting_docs/
-├── cursor/           # Cursor-specific configurations
-├── docs/             # Documentation files
-├── hooks/            # Git hooks
-├── insights/         # AI-generated insights
-├── sessions/         # AI session data
-└── templates/        # Template files
+/
+├── documentation/     # Centralized documentation
+│   ├── technical/     # Technical implementation details
+│   ├── public/        # User-facing documentation
+│   ├── planning/      # Strategic planning documents
+│   ├── vision/        # High-level vision documents
+│   ├── architecture/  # System design documents
+│   ├── research/      # Background research
+│   ├── operations/    # Deployment & operations
+│   ├── implementation/# Implementation details
+│   ├── deliverables/  # Completion records
+│   ├── status_updates/# Periodic status reports
+│   ├── legal/         # Legal documents
+│   └── configuration/ # Configuration documentation
+├── src/               # Source code
+├── frontend/          # Frontend code
+│   └── demos/         # Frontend demos
+├── backend/           # Backend services
+├── data/              # Data resources
+│   └── images/        # Image resources
+├── scripts/           # Utility scripts
+├── tests/             # Test suites
+└── .aicheck/          # AICheck system
+    ├── actions/       # Action-specific directories
+    │   └── [ACTION_NAME]/
+    │       ├── [ACTION_NAME]-PLAN.md
+    │       └── supporting_docs/
+    ├── cursor/        # Cursor-specific configurations
+    ├── docs/          # AICheck documentation
+    ├── hooks/         # Git hooks
+    ├── insights/      # AI-generated insights
+    ├── sessions/      # AI session data
+    ├── scripts/       # AICheck scripts
+    └── templates/     # Template files
 ```
 
 ## Critical Files
@@ -80,6 +105,7 @@ The following ALWAYS require human manager approval:
 - .aicheck/docs/actions_index.md: Action tracking
 - .aicheck/current_action: ActiveAction tracking
 - .aicheck/current_session: Current session tracking
+- documentation/README.md: Documentation organization reference
 
 ## Workflow Requirements
 
@@ -96,6 +122,10 @@ The following ALWAYS require human manager approval:
 - Use PascalCase for Action names, kebab-case for file names, .md extension for documentation, and -PLAN.md suffix for action plans
 - Follow language-specific style guides with consistent indentation (4 spaces)
 - Use lowercase for directory names, maintain descriptive names and consistent organization
+- Documentation should be organized according to the structure defined in documentation/README.md
+- Technical implementation details should be separate from user-facing documentation
+- Configuration files should be documented in documentation/configuration/
+- Each project component should have appropriate documentation in its respective documentation category
 
 ### Commit and Status Practices
 
@@ -103,10 +133,19 @@ The following ALWAYS require human manager approval:
 - Use predefined status values with progress percentage, document blockers clearly, and update timestamps
 - Create clear error messages with error codes, resolution steps, and appropriate logging
 
+## Script Usage
+
+- Project scripts are located in:
+  - Root directory for critical system scripts
+  - scripts/ for utility scripts
+  - .aicheck/scripts/ for AICheck-specific scripts
+- Scripts should use relative paths when possible to maintain portability
+- Scripts should be tested after any relocation or path changes
+
 ## Last Updated
 
-Date: $(date +"%Y-%m-%d")
-Version: 1.0.0
+Date: 2025-04-29
+Version: 1.1.0
 
 ## Test Rule
 
