@@ -1,6 +1,0 @@
-{
-  "start_time": "2024-11-15T11:38:30.032401",
-  "end_time": "2024-11-15T11:41:11.214989",
-  "prompt": "I need to patent a program I created. Please suggest the steps, along with links when appropriate, to help me in my journey. Be sure to include a step by step p  timeline and what things I should prepare for this effort",
-  "success": true
-}

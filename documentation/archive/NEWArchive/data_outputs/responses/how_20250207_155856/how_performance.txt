@@ -1,5 +1,0 @@
-{
-  "cpu_usage": 14.3,
-  "memory_used": "57.3%",
-  "memory_available": "13.65 GB"
-}

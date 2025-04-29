@@ -1,5 +1,0 @@
-{
-    "chatgpt": "'ChatCompletionMessage' object is not subscriptable",
-    "gemini": "module 'google.generativeai' has no attribute 'Completion'",
-    "llama": "403 Client Error: Forbidden for url: http://localhost:5000/generate"
-}

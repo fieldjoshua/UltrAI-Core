@@ -1,1 +1,0 @@
-Evaluate the functionality of the following code and prepare a description of what the code does that is appropriate for a provisional patent application, then include the code

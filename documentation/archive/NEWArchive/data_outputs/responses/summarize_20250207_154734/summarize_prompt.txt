@@ -1,1 +1,0 @@
-Summarize the status of existing research and attempts to create a system that orchestrates  several AI LLMs AI models to enhance data processing, analysis, and synthesis. and create one unified output leveraging the best qualities of each AI model

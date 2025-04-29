@@ -1,7 +1,0 @@
-{
-  "start_time": "2025-02-07T16:35:01.546793",
-  "end_time": "2025-02-07T16:37:04.792198",
-  "prompt": "I am a healthy 44 year old male who wants to increase circulation and energy levels. Suggest some over-the-counter supplements I should add to my regimen to maintain good health and improve. ",
-  "keyword": "healthy",
-  "success": true
-}

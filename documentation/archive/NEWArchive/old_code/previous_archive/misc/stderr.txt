@@ -1,7 +1,0 @@
-Traceback (most recent call last):
-  File "/Users/joshuafield/Documents/Ultra/test_claude.py", line 20, in <module>
-    message = client.messages.create(
-              ^^^^^^^^^^^^^^^^^^^^^^^
-  File "/Users/joshuafield/Documents/Ultra/.venv/lib/python3.12/site-packages/anthropic/_utils/_utils.py", line 274, in wrapper
-    raise TypeError(msg)
-TypeError: Missing required arguments; Expected either ('max_tokens', 'messages' and 'model') or ('max_tokens', 'messages', 'model' and 'stream') arguments to be given
