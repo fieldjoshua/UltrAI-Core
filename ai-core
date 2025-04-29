@@ -1,0 +1,229 @@
+#!/bin/bash
+# ai-core - Streamlined AICheck interface with reduced command set
+
+# Get the absolute path to the script directory
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+ROOT_DIR="$SCRIPT_DIR"
+
+# Determine .aicheck location relative to script location
+if [[ "$SCRIPT_DIR" == *".aicheck/scripts" ]]; then
+    # Script is already in .aicheck/scripts
+    AICHECK_DIR="$( cd "$SCRIPT_DIR/.." && pwd )"
+else
+    # Script is likely in root, assume .aicheck is there
+    AICHECK_DIR="$ROOT_DIR/.aicheck"
+fi
+
+# Source component scripts using determined paths
+if [ -f "$AICHECK_DIR/scripts/common.sh" ]; then
+    source "$AICHECK_DIR/scripts/common.sh"
+else
+    echo "Error: Could not find common.sh in $AICHECK_DIR/scripts/"
+    echo "Current directory: $PWD"
+    echo "Script directory: $SCRIPT_DIR"
+    echo "Root directory: $ROOT_DIR"
+    echo "AICheck directory: $AICHECK_DIR"
+fi
+
+if [ -f "$AICHECK_DIR/scripts/session.sh" ]; then
+    source "$AICHECK_DIR/scripts/session.sh"
+else
+    echo "Error: Could not find session.sh in $AICHECK_DIR/scripts/"
+fi
+
+if [ -f "$AICHECK_DIR/scripts/action.sh" ]; then
+    source "$AICHECK_DIR/scripts/action.sh"
+else
+    echo "Error: Could not find action.sh in $AICHECK_DIR/scripts/"
+fi
+
+if [ -f "$AICHECK_DIR/scripts/security_utils.sh" ]; then
+    source "$AICHECK_DIR/scripts/security_utils.sh"
+else
+    echo "Error: Could not find security_utils.sh in $AICHECK_DIR/scripts/"
+fi
+
+usage() {
+    echo "Usage: ./ai-core {start|end|new|switch|list|status|update|help} [options]"
+    exit 1
+}
+
+command=$1
+shift
+
+case "$command" in
+    start)
+        # Start a new session
+        start_session
+        ;;
+    end)
+        # End the current session
+        end_session
+        ;;
+    new)
+        # Create a new action
+        action_name="$1"
+        if [ -z "$action_name" ]; then
+            echo "Error: Action name required"
+            echo "Usage: ./ai-core new <ActionName>"
+            exit 1
+        fi
+        
+        if ! is_pascal_case "$action_name"; then
+            log_error "ACTION001" "Action name must be PascalCase (e.g., MyAction)." "Use a valid name."
+            exit 1
+        fi
+        
+        action_create "$action_name"
+        ;;
+    switch)
+        # Switch to an existing action
+        action_name="$1"
+        if [ -z "$action_name" ]; then
+            echo "Error: Action name required"
+            echo "Usage: ./ai-core switch <ActionName>"
+            exit 1
+        fi
+        
+        action_switch "$action_name"
+        ;;
+    list)
+        # List all actions
+        echo "=== AICheck Actions ==="
+        
+        # Create actions directory if it doesn't exist
+        mkdir -p "$AICHECK_DIR/actions"
+        
+        # Get current action
+        current_action=$(cat "$AICHECK_DIR/current_action" 2>/dev/null || echo "None")
+        
+        # List all actions
+        echo "Current ActiveAction: $current_action"
+        echo ""
+        echo "All Actions:"
+        echo "-------------"
+        
+        # Check if there are any actions
+        action_count=$(find "$AICHECK_DIR/actions" -mindepth 1 -maxdepth 1 -type d | wc -l)
+        if [ "$action_count" -eq 0 ]; then
+            echo "No actions found. Create one with './ai-core new ActionName'"
+            exit 0
+        fi
+        
+        # Print a formatted list of actions with their status and progress
+        printf "%-20s %-15s %-10s\n" "Action Name" "Status" "Progress"
+        printf "%-20s %-15s %-10s\n" "------------" "------" "--------"
+        
+        for action_dir in "$AICHECK_DIR/actions"/*; do
+            if [ -d "$action_dir" ]; then
+                action_name=$(basename "$action_dir")
+                status_file="$action_dir/status.md"
+                progress_file="$action_dir/progress.md"
+                
+                status="Unknown"
+                progress="Unknown"
+                
+                [ -f "$status_file" ] && status=$(cat "$status_file")
+                [ -f "$progress_file" ] && progress=$(cat "$progress_file")
+                
+                # Add an indicator for current action
+                if [ "$action_name" = "$current_action" ]; then
+                    printf "%-20s %-15s %-10s %s\n" "$action_name" "$status" "$progress" "← ActiveAction"
+                else
+                    printf "%-20s %-15s %-10s\n" "$action_name" "$status" "$progress"
+                fi
+            fi
+        done
+        ;;
+    status)
+        # Show current action status
+        action_name="$1"
+        action_status "$action_name"
+        ;;
+    update)
+        # Combined update command
+        if [ "$1" = "progress" ]; then
+            action_name="$2"
+            progress="$3"
+            action_update_progress "$action_name" "$progress"
+        elif [ "$1" = "status" ]; then
+            action_name="$2"
+            status="$3"
+            action_update_status "$action_name" "$status"
+        else
+            echo "Usage: ./ai-core update {progress|status} <ActionName> <Value>"
+            exit 1
+        fi
+        ;;
+    context)
+        # Prepare for Cursor chat
+        echo "=== Preparing for Cursor Chat ==="
+        
+        # Get current action and session
+        current_action=$(cat "$AICHECK_DIR/current_action" 2>/dev/null || echo "None")
+        current_session=$(cat "$AICHECK_DIR/current_session" 2>/dev/null || echo "None")
+        
+        # Create context file
+        context_file="$AICHECK_DIR/cursor/chat_context_$(date +%Y%m%d%H%M%S).md"
+        mkdir -p "$AICHECK_DIR/cursor"
+        
+        # Generate context
+        cat > "$context_file" << EOC
+# Cursor Chat Context - $(date +"%Y-%m-%d %H:%M:%S")
+
+## ⚠️ CRITICAL: RULES.md COMPLIANCE ⚠️
+This development MUST follow the rules defined in RULES.md.
+
+## Current State
+- ActiveAction: $current_action
+- Current Session: $current_session
+
+## Action Details
+$(if [ "$current_action" != "None" ] && [ -f "$AICHECK_DIR/actions/$current_action/$current_action-PLAN.md" ]; then
+    cat "$AICHECK_DIR/actions/$current_action/$current_action-PLAN.md" | head -n 20
+    echo "..."
+  else
+    echo "No ActiveAction selected or plan file not found."
+  fi)
+
+## Reference Paths
+- RULES.md: Project rules and guidelines
+- $AICHECK_DIR/actions/: Action-specific directories
+- $AICHECK_DIR/docs/: Documentation
+EOC
+
+        # Copy to clipboard if available
+        if command -v pbcopy &> /dev/null; then
+            cat "$context_file" | pbcopy
+            echo "Context copied to clipboard"
+        elif command -v xclip &> /dev/null; then
+            cat "$context_file" | xclip -selection clipboard
+            echo "Context copied to clipboard"
+        fi
+        ;;
+    help)
+        # Show focused help for streamlined commands
+        echo "AICheck Core Commands"
+        echo "===================="
+        echo ""
+        echo "Session Management:"
+        echo "  start                - Start a new session"
+        echo "  end                  - End the current session"
+        echo ""
+        echo "Action Management:"
+        echo "  new <ActionName>     - Create a new action"
+        echo "  switch <ActionName>  - Switch to an action"
+        echo "  list                 - List all actions with status"
+        echo "  status [ActionName]  - Show status of current or specified action"
+        echo ""
+        echo "Updates:"
+        echo "  update status <Action> <Status>     - Update action status (e.g. 'Planning', 'In Progress', 'Completed')"
+        echo "  update progress <Action> <Progress> - Update action progress (e.g. '0%', '50%', '100%')"
+        echo ""
+        echo "Context:"
+        echo "  context              - Generate context for Cursor chat"
+        ;;
+    *)
+        usage
+        ;;
+esac 

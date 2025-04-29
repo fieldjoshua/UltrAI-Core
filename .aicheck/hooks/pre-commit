@@ -1,0 +1,75 @@
+#!/bin/bash
+
+# AICheck pre-commit hook
+# This hook runs before each commit to ensure code quality
+
+# Exit on error
+set -e
+
+# Colors for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+NC='\033[0m' # No Color
+
+# Security functions
+validate_path() {
+    local path="$1"
+    if [[ "$path" != .aicheck/* ]]; then
+        echo -e "${RED}Error: Invalid path access attempt${NC}"
+        exit 1
+    fi
+}
+
+check_permissions() {
+    local file="$1"
+    if [[ ! -O "$file" ]]; then
+        echo -e "${RED}Error: Insufficient permissions for $file${NC}"
+        exit 1
+    fi
+}
+
+# Validate script paths
+SCRIPT_DIR=".aicheck/scripts"
+HOOK_DIR=".aicheck/hooks"
+
+validate_path "$SCRIPT_DIR"
+validate_path "$HOOK_DIR"
+
+echo "Running AICheck pre-commit checks..."
+
+# Run style check
+if [ -f "$SCRIPT_DIR/aicheck_style.sh" ]; then
+    check_permissions "$SCRIPT_DIR/aicheck_style.sh"
+    echo "Checking AICheck style..."
+    source "$SCRIPT_DIR/aicheck_style.sh"
+else
+    echo -e "${RED}Error: Style check script not found${NC}"
+    exit 1
+fi
+
+# Run test script
+if [ -f "$SCRIPT_DIR/test_pre_commit.sh" ]; then
+    check_permissions "$SCRIPT_DIR/test_pre_commit.sh"
+    echo "Running pre-commit tests..."
+    "$SCRIPT_DIR/test_pre_commit.sh"
+else
+    echo -e "${RED}Error: Test script not found${NC}"
+    exit 1
+fi
+
+# Run code location check
+if [ -f "$SCRIPT_DIR/code_location_check.sh" ]; then
+    check_permissions "$SCRIPT_DIR/code_location_check.sh"
+    echo "Checking code file locations..."
+    bash "$SCRIPT_DIR/code_location_check.sh"
+fi
+
+# Run documentation detection hook
+if [ -f "$SCRIPT_DIR/doc_detection_hook.sh" ]; then
+    check_permissions "$SCRIPT_DIR/doc_detection_hook.sh"
+    echo "Checking for new documentation files..."
+    bash "$SCRIPT_DIR/doc_detection_hook.sh"
+fi
+
+echo -e "${GREEN}All pre-commit checks passed${NC}"
+exit 0 

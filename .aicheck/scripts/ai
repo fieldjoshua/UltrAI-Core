@@ -1,0 +1,1160 @@
+#!/bin/bash
+# ai - Unified AICheck interface (RULES.md-compliant)
+
+# AICheck command interface
+# Provides a unified interface for all AICheck functionality
+# Adapted for directory structure with action directories
+
+# Get the absolute path to the script directory
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+ROOT_DIR="$SCRIPT_DIR"
+
+# Determine .aicheck location relative to script location
+if [[ "$SCRIPT_DIR" == *".aicheck/scripts" ]]; then
+    # Script is already in .aicheck/scripts
+    AICHECK_DIR="$( cd "$SCRIPT_DIR/.." && pwd )"
+else
+    # Script is likely in root, assume .aicheck is there
+    AICHECK_DIR="$ROOT_DIR/.aicheck"
+fi
+
+# Source component scripts using determined paths
+if [ -f "$AICHECK_DIR/scripts/common.sh" ]; then
+    source "$AICHECK_DIR/scripts/common.sh"
+else
+    echo "Error: Could not find common.sh in $AICHECK_DIR/scripts/"
+    echo "Current directory: $PWD"
+    echo "Script directory: $SCRIPT_DIR"
+    echo "Root directory: $ROOT_DIR"
+    echo "AICheck directory: $AICHECK_DIR"
+fi
+
+if [ -f "$AICHECK_DIR/scripts/session.sh" ]; then
+    source "$AICHECK_DIR/scripts/session.sh"
+else
+    echo "Error: Could not find session.sh in $AICHECK_DIR/scripts/"
+fi
+
+if [ -f "$AICHECK_DIR/scripts/action.sh" ]; then
+    source "$AICHECK_DIR/scripts/action.sh"
+else
+    echo "Error: Could not find action.sh in $AICHECK_DIR/scripts/"
+fi
+
+if [ -f "$AICHECK_DIR/scripts/security_utils.sh" ]; then
+    source "$AICHECK_DIR/scripts/security_utils.sh"
+else
+    echo "Error: Could not find security_utils.sh in $AICHECK_DIR/scripts/"
+fi
+
+usage() {
+    echo "Usage: ./ai {start|end|create|switch|status|delete|update-status|update-progress|catchup|update|list|view|summary|version|help|docs|add-doc|create-doc|create-code} [action_name] [value]"
+    exit 1
+}
+
+command=$1
+shift
+
+case "$command" in
+    start)
+        start_session
+        ;;
+    end)
+        end_session
+        ;;
+    create)
+        action_name="$1"
+        if ! is_pascal_case "$action_name"; then
+            log_error "ACTION001" "Action name must be PascalCase (e.g., MyAction)." "Use a valid name."
+            exit 1
+        fi
+        action_create "$action_name"
+        ;;
+    switch)
+        action_name="$1"
+        action_switch "$action_name"
+        ;;
+    status)
+        action_name="$1"
+        action_status "$action_name"
+        ;;
+    delete)
+        action_name="$1"
+        action_delete "$action_name"
+        ;;
+    update-status)
+        action_name="$1"
+        status="$2"
+        action_update_status "$action_name" "$status"
+        ;;
+    update-progress)
+        action_name="$1"
+        progress="$2"
+        action_update_progress "$action_name" "$progress"
+        ;;
+    prompt)
+        generate_prompt
+        ;;
+    commit)
+        if [ -z "$1" ]; then
+            echo "Error: Commit message required"
+            echo "Usage: ./ai commit <message>"
+            exit 1
+        fi
+        commit_changes "$1"
+        ;;
+    new)
+        if [ -z "$1" ]; then
+            echo "Error: Action name required"
+            echo "Usage: ./ai new <action_name>"
+            exit 1
+        fi
+        create_new_action "$1"
+        ;;
+    audit)
+        # Switch to or create AdminAudit action
+        echo "=== Switching to Administrative Audit ==="
+        echo "This will use the AdminAudit action to:"
+        echo "1. Review system state"
+        echo "2. Create new actions"
+        echo "3. Update existing actions"
+        echo "4. Ensure compliance with RULES.md"
+        echo ""
+        
+        # Check if AdminAudit exists
+        if [ ! -d "$AICHECK_DIR/actions/AdminAudit" ]; then
+            echo "Creating new AdminAudit action..."
+            create_new_action "AdminAudit"
+        else
+            echo "Switching to existing AdminAudit..."
+            switch_to_action "AdminAudit"
+        fi
+        ;;
+    admin)
+        # Switch to or create AdminAudit action
+        echo "=== Switching to Administrative Audit ==="
+        echo "This will use the AdminAudit action to:"
+        echo "1. Review system state"
+        echo "2. Create new actions"
+        echo "3. Update existing actions"
+        echo "4. Ensure compliance with RULES.md"
+        echo ""
+        
+        # Check if AdminAudit exists
+        if [ ! -d "$AICHECK_DIR/actions/AdminAudit" ]; then
+            echo "Creating new AdminAudit action..."
+            create_new_action "AdminAudit"
+        else
+            echo "Switching to existing AdminAudit..."
+            switch_to_action "AdminAudit"
+        fi
+        ;;
+    cursor)
+        # Prepare for Cursor chat
+        echo "=== Preparing for Cursor Chat ==="
+        
+        # Get current action and session
+        current_action=$(cat "$AICHECK_DIR/current_action" 2>/dev/null || echo "None")
+        current_session=$(cat "$AICHECK_DIR/current_session" 2>/dev/null || echo "None")
+        
+        # Create context file
+        context_file="$AICHECK_DIR/cursor/chat_context_$(date +%Y%m%d%H%M%S).md"
+        mkdir -p "$AICHECK_DIR/cursor"
+        
+        # Generate context
+        cat > "$context_file" << EOC
+# Cursor Chat Context - $(date +"%Y-%m-%d %H:%M:%S")
+
+## ⚠️ CRITICAL: RULES.md COMPLIANCE ⚠️
+This development MUST follow the rules defined in RULES.md, which is the controlling document.
+IMPORTANT: AI editors DO NOT need to ask for approval for any work that complies with RULES.md and falls within the scope of the ActiveAction.
+
+## Current State
+- ActiveAction: $current_action
+- Current Session: $current_session
+- Actions Index: $AICHECK_DIR/docs/actions_index.md
+
+## Action Details
+$(if [ "$current_action" != "None" ] && [ -f "$AICHECK_DIR/actions/$current_action/$current_action-PLAN.md" ]; then
+    cat "$AICHECK_DIR/actions/$current_action/$current_action-PLAN.md" | head -n 20
+    echo "..."
+  else
+    echo "No ActiveAction selected or plan file not found."
+  fi)
+
+## Recent Changes
+$(git diff --name-only | head -n 10 | sed 's/^/- /')
+
+## Project Structure
+$(find . -type f -name "*.py" -o -name "*.js" -o -name "*.html" -o -name "*.css" -o -name "*.md" -o -name "*.json" | grep -v "node_modules" | grep -v ".git" | head -n 20 | sed 's/^/- /')
+
+## Reference Paths
+- RULES.md: Project rules and guidelines (MUST READ)
+- $AICHECK_DIR/actions/: Action-specific directories
+- $AICHECK_DIR/docs/actions_index.md: Action tracking and status
+- $AICHECK_DIR/templates/: Template files
+- $AICHECK_DIR/sessions/: Session data
+- $AICHECK_DIR/current_action: ActiveAction tracking
+- $AICHECK_DIR/current_session: Current active session
+EOC
+
+        echo "Context file created: $context_file"
+        echo "Use this context in your Cursor chat"
+        
+        # Copy to clipboard if available
+        if command -v pbcopy &> /dev/null; then
+            cat "$context_file" | pbcopy
+            echo "Context copied to clipboard"
+        elif command -v xclip &> /dev/null; then
+            cat "$context_file" | xclip -selection clipboard
+            echo "Context copied to clipboard"
+        fi
+        ;;
+    "check!")
+        # Generate a quick check prompt for AI editors
+        echo "=== Generating AI Editor Check Prompt ==="
+        
+        # Get current action and session
+        current_action=$(cat "$AICHECK_DIR/current_action" 2>/dev/null || echo "None")
+        current_session=$(cat "$AICHECK_DIR/current_session" 2>/dev/null || echo "None")
+        
+        # Create check prompt
+        check_prompt="⚠️ AI Editor Check ⚠️
+
+What action are you working on? Please reference:
+- Action Plan: $AICHECK_DIR/actions/$current_action/$current_action-PLAN.md
+- Actions Index: $AICHECK_DIR/docs/actions_index.md
+- RULES.md: Project rules and guidelines
+
+Current Action: $current_action
+Current Session: $current_session
+
+Please confirm you have reviewed:
+1. The action plan
+2. RULES.md compliance
+3. 3. ActiveAction scope
+4. Supporting documentation
+
+You can proceed with implementation if your work complies with RULES.md and falls within the ActiveAction scope."
+        
+        # Copy to clipboard
+        if command -v pbcopy &> /dev/null; then
+            echo "$check_prompt" | pbcopy
+            echo "Check prompt copied to clipboard"
+        elif command -v xclip &> /dev/null; then
+            echo "$check_prompt" | xclip -selection clipboard
+            echo "Check prompt copied to clipboard"
+        else
+            echo "$check_prompt"
+            echo "Please copy the above prompt manually"
+        fi
+        ;;
+    catchup)
+        # Generate comprehensive project overview for new editors
+        echo "=== AICheck Project Overview ==="
+        echo "This overview is designed for editors who are new to the project."
+        
+        # Get current action and session
+        current_action=$(cat "$AICHECK_DIR/current_action" 2>/dev/null || echo "None")
+        current_session=$(cat "$AICHECK_DIR/current_session" 2>/dev/null || echo "None")
+        
+        # Create catchup overview
+        catchup_overview="# AICheck Project Overview
+
+## System Structure
+AICheck is a system for managing AI-assisted development that ensures compliance with project rules.
+The system works through a structured approach to actions, documentation, and workflows.
+
+## Key Concepts
+- **RULES.md**: The controlling document that defines all project rules and requirements
+- **Actions**: Individual sub-objectives that contribute to program functionality
+- **ActiveAction**: The single action currently being worked on (currently: $current_action)
+- **Action Index**: List of all actions and their status ($AICHECK_DIR/docs/actions_index.md)
+
+## Directory Structure
+- **$AICHECK_DIR/actions/**: Contains all action directories with their plans and supporting docs
+- **$AICHECK_DIR/docs/**: Project documentation including the actions index
+- **$AICHECK_DIR/current_action**: Tracks which action is currently active
+- **$AICHECK_DIR/current_session**: Tracks the current development session
+
+## Workflow Overview
+1. Start a session with \`./ai start\`
+2. Create or switch to an action with \`./ai new ActionName\` or \`./ai switch ActionName\`
+3. Update status (\`./ai update-status\`) and progress (\`./ai update-progress\`) regularly
+4. End session with \`./ai end\` to generate context
+
+## AI Editor Permissions
+AI editors may implement without approval:
+- Code implementing the ActiveAction plan
+- Documentation updates for ActiveAction
+- Bug fixes and tests within ActiveAction scope
+- Refactoring within ActiveAction scope
+
+The following ALWAYS require human manager approval:
+- Changing the ActiveAction
+- Creating a new Action
+- Making substantive changes to any Action
+- Modifying any Action Plan
+- Creating or modifying Templates
+
+## Current State
+- ActiveAction: $current_action
+- Current Session: $current_session"
+        
+        # Output the overview
+        echo "$catchup_overview"
+        
+        # Copy to clipboard if available
+        if command -v pbcopy &> /dev/null; then
+            echo "$catchup_overview" | pbcopy
+            echo "Overview copied to clipboard"
+        elif command -v xclip &> /dev/null; then
+            echo "$catchup_overview" | xclip -selection clipboard
+            echo "Overview copied to clipboard"
+        fi
+        ;;
+    update)
+        # Update AICheck to the latest version
+        echo "=== Updating AICheck to the latest version ==="
+        
+        # Check if we're in a git repository
+        if [ ! -d ".git" ]; then
+            echo "Error: Not in a git repository. Update requires a git repository."
+            echo "If you installed AICheck using the installer, please reinstall using:"
+            echo "curl -s https://raw.githubusercontent.com/fieldjoshua/AICheck/main/aicheck.sh | bash"
+            exit 1
+        fi
+        
+        # Store current branch
+        current_branch=$(git rev-parse --abbrev-ref HEAD)
+        
+        # Stash any changes
+        echo "Stashing any local changes..."
+        git stash
+        
+        # Pull the latest version
+        echo "Pulling the latest version..."
+        git pull origin $current_branch
+        
+        # Apply stashed changes if any
+        echo "Applying stashed changes if any..."
+        git stash pop 2>/dev/null || true
+        
+        # Make scripts executable
+        echo "Making scripts executable..."
+        chmod +x "$AICHECK_DIR/scripts/*.sh" "$AICHECK_DIR/hooks/*" ai
+        
+        echo "Update complete. AICheck has been updated to the latest version."
+        echo "New features:"
+        echo "- catchup: Generate project overview for new editors (./ai catchup)"
+        echo "- 100% progress alert: Improved completion check with sound and visual alerts"
+        ;;
+    list)
+        # List all actions with their statuses
+        echo "=== AICheck Actions ==="
+        
+        # Create actions directory if it doesn't exist
+        mkdir -p "$AICHECK_DIR/actions"
+        
+        # Get current action
+        current_action=$(cat "$AICHECK_DIR/current_action" 2>/dev/null || echo "None")
+        
+        # List all actions
+        echo "Current ActiveAction: $current_action"
+        echo ""
+        echo "All Actions:"
+        echo "-------------"
+        
+        # Check if there are any actions
+        action_count=$(find "$AICHECK_DIR/actions" -mindepth 1 -maxdepth 1 -type d | wc -l)
+        if [ "$action_count" -eq 0 ]; then
+            echo "No actions found. Create one with './ai new ActionName'"
+            exit 0
+        fi
+        
+        # Print a formatted list of actions with their status and progress
+        printf "%-20s %-15s %-10s\n" "Action Name" "Status" "Progress"
+        printf "%-20s %-15s %-10s\n" "------------" "------" "--------"
+        
+        for action_dir in "$AICHECK_DIR/actions"/*; do
+            if [ -d "$action_dir" ]; then
+                action_name=$(basename "$action_dir")
+                status_file="$action_dir/status.md"
+                progress_file="$action_dir/progress.md"
+                
+                status="Unknown"
+                progress="Unknown"
+                
+                [ -f "$status_file" ] && status=$(cat "$status_file")
+                [ -f "$progress_file" ] && progress=$(cat "$progress_file")
+                
+                # Add an indicator for current action
+                if [ "$action_name" = "$current_action" ]; then
+                    printf "%-20s %-15s %-10s %s\n" "$action_name" "$status" "$progress" "← ActiveAction"
+                else
+                    printf "%-20s %-15s %-10s\n" "$action_name" "$status" "$progress"
+                fi
+            fi
+        done
+        ;;
+    view)
+        # View project objective scope
+        project_objective_file="$AICHECK_DIR/docs/project_objective.md"
+        if [ ! -f "$project_objective_file" ]; then
+            echo "No project objective scope defined. Use './ai start' to set one."
+        else
+            echo "=== Project Objective ==="
+            cat "$project_objective_file"
+        fi
+        ;;
+    summary)
+        # Generate a summary of the project state
+        echo "=== AICheck Project Summary ==="
+        
+        # Get current action and session
+        current_action=$(cat "$AICHECK_DIR/current_action" 2>/dev/null || echo "None")
+        current_session=$(cat "$AICHECK_DIR/current_session" 2>/dev/null || echo "None")
+        
+        # Count actions by status
+        echo "Current Active Action: $current_action"
+        echo "Current Session: $current_session"
+        echo ""
+        
+        # Count actions by status
+        echo "Action Status Summary:"
+        echo "----------------------"
+        total_actions=0
+        not_started=0
+        in_progress=0
+        completed=0
+        blocked=0
+        on_hold=0
+        
+        for status_file in "$AICHECK_DIR/actions/*/status.md"; do
+            if [ -f "$status_file" ]; then
+                total_actions=$((total_actions + 1))
+                status=$(cat "$status_file")
+                case "$status" in
+                    "Not Started") not_started=$((not_started + 1)) ;;
+                    "ActiveAction"|"In Progress") in_progress=$((in_progress + 1)) ;;
+                    "Completed") completed=$((completed + 1)) ;;
+                    "Blocked") blocked=$((blocked + 1)) ;;
+                    "On Hold") on_hold=$((on_hold + 1)) ;;
+                esac
+            fi
+        done
+        
+        echo "Total Actions: $total_actions"
+        echo "Not Started: $not_started"
+        echo "In Progress: $in_progress"
+        echo "Completed: $completed"
+        echo "Blocked: $blocked"
+        echo "On Hold: $on_hold"
+        
+        # Show project objective if available
+        project_objective_file="$AICHECK_DIR/docs/project_objective.md"
+        if [ -f "$project_objective_file" ]; then
+            echo ""
+            echo "Project Objective:"
+            echo "------------------"
+            cat "$project_objective_file" | head -n 5
+            echo "..."
+        fi
+        
+        # Show recent activity
+        echo ""
+        echo "Recent Activity:"
+        echo "---------------"
+        git log --pretty=format:"%h %s" -5 2>/dev/null || echo "No git history found."
+        ;;
+    version)
+        # Display AICheck version information
+        echo "AICheck v1.1.0"
+        echo "Copyright (c) 2023-2024"
+        echo "https://github.com/fieldjoshua/AICheck"
+        ;;
+    help)
+        # Show detailed help for all commands
+        echo "AICheck Command Reference"
+        echo "========================="
+        echo ""
+        echo "Session Management:"
+        echo "------------------"
+        echo "  start                - Start a new session"
+        echo "  end                  - End the current session"
+        echo ""
+        echo "Action Management:"
+        echo "------------------"
+        echo "  new <ActionName>     - Create a new action"
+        echo "  create <ActionName>  - Create a new action (alias for new)"
+        echo "  switch <ActionName>  - Switch to an action"
+        echo "  status [ActionName]  - Show status of current or specified action"
+        echo "  delete <ActionName>  - Delete an action"
+        echo "  list                 - List all actions with their status and progress"
+        echo ""
+        echo "Updates and Progress:"
+        echo "--------------------"
+        echo "  update-status <Action> <Status>    - Update action status"
+        echo "  update-progress <Action> <Progress> - Update action progress"
+        echo "  commit \"Message\"     - Commit changes with a message"
+        echo ""
+        echo "Information and Context:"
+        echo "------------------------"
+        echo "  prompt               - Generate a context prompt (purpose, value, steps)"
+        echo "  cursor               - Prepare context for Cursor chat"
+        echo "  catchup              - Generate project overview for new editors"
+        echo "  view                 - View project objective"
+        echo "  summary              - Show project summary and statistics"
+        echo ""
+        echo "System:"
+        echo "-------"
+        echo "  update               - Update AICheck to the latest version"
+        echo "  audit                - Run compliance and audit checks"
+        echo "  version              - Show AICheck version information"
+        echo "  help                 - Show this help message"
+        echo "  docs                 - Manage and view documentation index"
+        echo "  docs scan            - Scan and index all documentation files"
+        echo "  add-doc              - Add supporting documentation to an action"
+        echo "  create-doc           - Create a new documentation file"
+        echo "  create-code          - Create a new code file in the correct location"
+        ;;
+    docs)
+        # Documentation management and viewing
+        echo "=== AICheck Documentation Index ==="
+        
+        docs_index="$AICHECK_DIR/docs/documentation_index.md"
+        
+        if [ ! -f "$docs_index" ]; then
+            echo "Documentation index not found. Creating it now..."
+            mkdir -p "$AICHECK_DIR/docs"
+            cat > "$docs_index" << EOC
+# Documentation Index
+
+This file provides a centralized index of all documentation across AICheck actions to improve discoverability.
+
+## Action Documentation
+
+| Action | Document | Description | Path |
+|--------|----------|-------------|------|
+| *Example* | Example Doc | Example description | [Path to document](path/to/document) |
+
+## How to Use This Index
+
+1. **When creating new documentation**: 
+   - Save the document in the appropriate action directory (\`/actions/[ACTION]/supporting_docs/\`)
+   - Add an entry to this index with a relative link
+   
+2. **Finding documentation**:
+   - Search this index for keywords
+   - Follow the provided links to the actual documentation
+EOC
+        fi
+        
+        subcommand="$1"
+        action_name="$2"
+        doc_name="$3"
+        doc_path="$4"
+        doc_desc="$5"
+        
+        case "$subcommand" in
+            "add")
+                if [ -z "$action_name" ] || [ -z "$doc_name" ] || [ -z "$doc_path" ] || [ -z "$doc_desc" ]; then
+                    echo "Usage: ./ai docs add <ActionName> \"Document Name\" \"path/to/document\" \"Brief description\""
+                    exit 1
+                fi
+                
+                # Check if the document is in the correct location
+                if [[ "$doc_path" == "$AICHECK_DIR/docs/"* && "$doc_path" != "$AICHECK_DIR/docs/actions_index.md" && "$doc_path" != "$AICHECK_DIR/docs/documentation_index.md" ]]; then
+                    echo "⚠️ DOCUMENTATION LOCATION WARNING ⚠️"
+                    echo "According to RULES.md, supporting documentation should be in the action directory."
+                    echo "The correct location would be: $AICHECK_DIR/actions/$action_name/supporting_docs/"
+                    echo ""
+                    echo "Would you like to:"
+                    echo "1) Move the document to the correct location"
+                    echo "2) Continue adding it to the index in its current location"
+                    echo "3) Cancel"
+                    read -r choice
+                    
+                    case "$choice" in
+                        1)
+                            # Make sure the action exists
+                            if [ ! -d "$AICHECK_DIR/actions/$action_name" ]; then
+                                echo "Error: Action '$action_name' does not exist."
+                                echo "Create it first with: ./ai new $action_name"
+                                exit 1
+                            fi
+                            
+                            # Create supporting_docs directory if it doesn't exist
+                            mkdir -p "$AICHECK_DIR/actions/$action_name/supporting_docs"
+                            
+                            # Get the filename
+                            filename=$(basename "$doc_path")
+                            new_path="$AICHECK_DIR/actions/$action_name/supporting_docs/$filename"
+                            
+                            # Move the file
+                            mv "$doc_path" "$new_path"
+                            echo "Moved document to: $new_path"
+                            
+                            # Update the doc_path variable
+                            doc_path="$new_path"
+                            ;;
+                        2)
+                            echo "Continuing with current location..."
+                            ;;
+                        3)
+                            echo "Operation cancelled."
+                            exit 0
+                            ;;
+                        *)
+                            echo "Invalid choice. Operation cancelled."
+                            exit 1
+                            ;;
+                    esac
+                fi
+                
+                # Check if the document exists
+                if [ ! -f "$doc_path" ]; then
+                    echo "Warning: Document at '$doc_path' does not exist."
+                    echo "Do you want to continue anyway? (y/n)"
+                    read -r response
+                    if [ "$response" != "y" ]; then
+                        echo "Aborted adding document to index."
+                        exit 1
+                    fi
+                fi
+                
+                # Add entry to the index file
+                new_line="| *$action_name* | $doc_name | $doc_desc | [$doc_path]($doc_path) |"
+                if grep -q "| Action | Document |" "$docs_index"; then
+                    # Find where to insert the line (after the header row and separator)
+                    line_num=$(grep -n "| Action | Document |" "$docs_index" | cut -d: -f1)
+                    line_num=$((line_num + 2))
+                    sed -i '' "${line_num}i\\
+$new_line" "$docs_index"
+                else
+                    echo "Error: Documentation index file is malformed."
+                    exit 1
+                fi
+                
+                echo "Added document '$doc_name' to documentation index."
+                ;;
+            "list")
+                # View the documentation index
+                if [ -f "$docs_index" ]; then
+                    cat "$docs_index"
+                else
+                    echo "Documentation index not found."
+                    exit 1
+                fi
+                ;;
+            "find")
+                if [ -z "$action_name" ]; then
+                    echo "Usage: ./ai docs find <search_term>"
+                    exit 1
+                fi
+                
+                echo "Searching for '$action_name' in documentation index..."
+                grep -i "$action_name" "$docs_index" || echo "No matches found."
+                ;;
+            "scan")
+                echo "Scanning for documentation files not in the index..."
+                "$AICHECK_DIR/scripts/doc_detection_hook.sh" --scan-all
+            ;;
+            *)
+                echo "Documentation Index: $docs_index"
+                echo ""
+                echo "Usage:"
+                echo "  ./ai docs list               - View all documentation"
+                echo "  ./ai docs add <ActionName> \"Doc Name\" \"path/to/doc\" \"Description\" - Add a document to the index"
+                echo "  ./ai docs find <search_term> - Search the documentation index"
+                echo "  ./ai docs scan               - Scan for all documentation files and add them to the index"
+                ;;
+        esac
+        ;;
+    add-doc)
+        # Add supporting documentation to an action
+        action_name="$1"
+        doc_title="$2"
+        doc_file="$3"
+        
+        # Verify required parameters
+        if [ -z "$action_name" ] || [ -z "$doc_title" ]; then
+            echo "Usage: ./ai add-doc <ActionName> \"Document Title\" [file_path]"
+            echo ""
+            echo "If file_path is not provided, a new Markdown file will be created."
+            exit 1
+        fi
+        
+        # Check if action exists
+        action_dir="$AICHECK_DIR/actions/$action_name"
+        if [ ! -d "$action_dir" ]; then
+            echo "Error: Action '$action_name' does not exist."
+            echo "Create it first with: ./ai new $action_name"
+            exit 1
+        fi
+        
+        # Create supporting_docs directory if it doesn't exist
+        docs_dir="$action_dir/supporting_docs"
+        mkdir -p "$docs_dir"
+        
+        # Generate file name from title if not provided
+        if [ -z "$doc_file" ]; then
+            # Convert title to kebab-case for filename
+            doc_filename=$(echo "$doc_title" | tr '[:upper:]' '[:lower:]' | tr ' ' '-')
+            doc_file="$docs_dir/$doc_filename.md"
+        else
+            # Check if file exists outside the supporting_docs directory
+            if [ -f "$doc_file" ] && [[ "$doc_file" != "$docs_dir"* ]]; then
+                # Copy file to supporting_docs directory
+                filename=$(basename "$doc_file")
+                cp "$doc_file" "$docs_dir/$filename"
+                doc_file="$docs_dir/$filename"
+                echo "Copied file to: $doc_file"
+            elif [[ "$doc_file" != "$docs_dir"* ]]; then
+                # Ensure file is in supporting_docs directory
+                filename=$(basename "$doc_file")
+                doc_file="$docs_dir/$filename"
+            fi
+        fi
+        
+        # Create the document if it doesn't exist
+        if [ ! -f "$doc_file" ]; then
+            echo "Creating new document: $doc_file"
+            cat > "$doc_file" << EOC
+# $doc_title
+
+## Overview
+[Add document overview here]
+
+## Details
+[Add details here]
+
+## References
+- [Reference 1](link-to-reference)
+EOC
+            echo "Created document template at: $doc_file"
+        else
+            echo "Using existing document: $doc_file"
+        fi
+        
+        # Ask if the editor wants to add it to the documentation index
+        echo ""
+        echo "Do you want to add this document to the documentation index for future reference? (y/n)"
+        read -r add_to_index
+        
+        if [ "$add_to_index" = "y" ]; then
+            # Ask for document description
+            echo "Enter a brief description of this document:"
+            read -r doc_desc
+            
+            # Format the relative path from docs directory to the document
+            rel_path=$(realpath --relative-to="$AICHECK_DIR/docs" "$doc_file")
+            
+            # Add to documentation index
+            ./ai docs add "$action_name" "$doc_title" "$doc_file" "${doc_desc:-"Supporting documentation for $action_name"}"
+            echo "Document added to documentation index."
+        else
+            echo "Document not added to documentation index."
+        fi
+        
+        # Suggest opening the document in an editor
+        echo ""
+        echo "Document ready at: $doc_file"
+        echo "You can open it with your text editor."
+        
+        # Try to open the document with the default editor if available
+        if command -v open &> /dev/null; then
+            echo "Opening document..."
+            open "$doc_file"
+        elif command -v xdg-open &> /dev/null; then
+            echo "Opening document..."
+            xdg-open "$doc_file"
+        fi
+        ;;
+    create-doc)
+        # Create a new documentation file
+        doc_path="$1"
+        doc_title="$2"
+        
+        if [ -z "$doc_path" ]; then
+            echo "Usage: ./ai create-doc <file_path> [\"Document Title\"]"
+            echo ""
+            echo "Example: ./ai create-doc $AICHECK_DIR/docs/guide.md \"User Guide\""
+            exit 1
+        fi
+        
+        # Set default title if not provided
+        if [ -z "$doc_title" ]; then
+            # Extract filename without extension
+            doc_title=$(basename "$doc_path" | sed 's/\.[^.]*$//')
+            # Convert kebab-case to Title Case
+            doc_title=$(echo "$doc_title" | sed -E 's/(^|-)([a-z])/\U\2/g' | sed 's/-/ /g')
+        fi
+        
+        # Check if the file is being created in the docs directory (not in an action directory)
+        if [[ "$doc_path" == "$AICHECK_DIR/docs/"* && "$doc_path" != "$AICHECK_DIR/docs/actions_index.md" && "$doc_path" != "$AICHECK_DIR/docs/documentation_index.md" ]]; then
+            # This is a potential misplacement - suggest putting it in an action directory
+            echo "⚠️ DOCUMENTATION LOCATION WARNING ⚠️"
+            echo "According to RULES.md, supporting documentation should be in an action directory."
+            echo ""
+            
+            # Get current action
+            current_action=$(cat "$AICHECK_DIR/current_action" 2>/dev/null || echo "None")
+            if [ "$current_action" != "None" ]; then
+                echo "Current action is: $current_action"
+            fi
+            
+            # List available actions
+            echo "Available actions:"
+            ls -1 "$AICHECK_DIR/actions" 2>/dev/null || echo "No actions found."
+            echo ""
+            
+            echo "Would you like to:"
+            echo "1) Move this document to an action directory"
+            echo "2) Continue creating it in the current location"
+            echo "3) Cancel"
+            read -r choice
+            
+            if [ "$choice" = "1" ]; then
+                echo "Which action should this document belong to?"
+                if [ "$current_action" != "None" ]; then
+                    echo "(Press Enter to use current action: $current_action)"
+                fi
+                read -r action_name
+                
+                # Use current action if none specified
+                if [ -z "$action_name" ] && [ "$current_action" != "None" ]; then
+                    action_name="$current_action"
+                fi
+                
+                if [ -z "$action_name" ]; then
+                    echo "Error: No action specified."
+                    exit 1
+                fi
+                
+                # Check if action exists
+                if [ ! -d "$AICHECK_DIR/actions/$action_name" ]; then
+                    echo "Error: Action '$action_name' does not exist."
+                    echo "Create it first with: ./ai new $action_name"
+                    exit 1
+                fi
+                
+                # Get filename from original path
+                filename=$(basename "$doc_path")
+                
+                # Create supporting_docs directory if it doesn't exist
+                mkdir -p "$AICHECK_DIR/actions/$action_name/supporting_docs"
+                
+                # Set new path
+                doc_path="$AICHECK_DIR/actions/$action_name/supporting_docs/$filename"
+                echo "Document will be created at: $doc_path"
+            elif [ "$choice" = "3" ]; then
+                echo "Operation cancelled."
+                exit 0
+            else
+                echo "Continuing with current location..."
+            fi
+        fi
+        
+        # Create directory if it doesn't exist
+        dir_path=$(dirname "$doc_path")
+        mkdir -p "$dir_path"
+        
+        # Check if the file already exists
+        if [ -f "$doc_path" ]; then
+            echo "Warning: File already exists. Overwrite? (y/n)"
+            read -r overwrite
+            if [ "$overwrite" != "y" ]; then
+                echo "Operation cancelled."
+                exit 0
+            fi
+        fi
+        
+        # Create the document
+        echo "Creating document: $doc_path"
+        cat > "$doc_path" << EOC
+# $doc_title
+
+## Overview
+[Add document overview here]
+
+## Details
+[Add details here]
+
+## References
+- [Reference 1](link-to-reference)
+EOC
+        
+        echo "Document created at: $doc_path"
+        
+        # Ask if the editor wants to add it to the documentation index
+        echo ""
+        echo "Do you want to add this document to the documentation index for future reference? (y/n)"
+        read -r add_to_index
+        
+        if [ "$add_to_index" = "y" ]; then
+            # Try to determine which action this belongs to
+            action_name="Unknown"
+            
+            # Check if the document is in an action directory
+            if [[ "$doc_path" == "$AICHECK_DIR/actions/"* ]]; then
+                # Extract action name from path
+                action_name=$(echo "$doc_path" | sed -n 's|.aicheck/actions/\([^/]*\)/.*|\1|p')
+            else
+                # Ask for action name
+                echo "Which action does this document belong to?"
+                read -r action_name
+                if [ -z "$action_name" ]; then
+                    action_name="General"
+                fi
+            fi
+            
+            # Ask for document description
+            echo "Enter a brief description of this document:"
+            read -r doc_desc
+            
+            # Add to documentation index
+            ./ai docs add "$action_name" "$doc_title" "$doc_path" "${doc_desc:-"Documentation for $action_name"}"
+        fi
+        
+        # Try to open the document with the default editor if available
+        if command -v open &> /dev/null; then
+            echo "Opening document..."
+            open "$doc_path"
+        elif command -v xdg-open &> /dev/null; then
+            echo "Opening document..."
+            xdg-open "$doc_path"
+        fi
+        ;;
+    create-code)
+        # Create a new code file in the correct location (action directory)
+        action_name="$1"
+        code_file="$2"
+        file_type="$3"
+        
+        if [ -z "$action_name" ] || [ -z "$code_file" ]; then
+            echo "Usage: ./ai create-code <ActionName> <file_path> [file_type]"
+            echo ""
+            echo "Examples:"
+            echo "  ./ai create-code MyAction src/main.py python"
+            echo "  ./ai create-code MyAction code/utils.js javascript"
+            echo ""
+            echo "Supported file types: python, javascript, typescript, java, go, ruby, php, bash, c, cpp"
+            exit 1
+        fi
+        
+        # Check if action exists
+        action_dir="$AICHECK_DIR/actions/$action_name"
+        if [ ! -d "$action_dir" ]; then
+            echo "Error: Action '$action_name' does not exist."
+            echo "Create it first with: ./ai new $action_name"
+            exit 1
+        fi
+        
+        # Detect file type if not specified
+        if [ -z "$file_type" ]; then
+            # Get extension
+            ext="${code_file##*.}"
+            case "$ext" in
+                py) file_type="python" ;;
+                js) file_type="javascript" ;;
+                ts) file_type="typescript" ;;
+                java) file_type="java" ;;
+                go) file_type="go" ;;
+                rb) file_type="ruby" ;;
+                php) file_type="php" ;;
+                sh) file_type="bash" ;;
+                c|h) file_type="c" ;;
+                cpp|hpp|cc) file_type="cpp" ;;
+                *) file_type="generic" ;;
+            esac
+        fi
+        
+        # Check if the file path includes a directory structure
+        if [[ "$code_file" == */* ]]; then
+            # Path includes directory - get the directory part
+            dir_part=$(dirname "$code_file")
+            file_part=$(basename "$code_file")
+            
+            # Create a proper path in the action directory
+            if [[ "$dir_part" == "src" || "$dir_part" == "code" ]]; then
+                # User specified src/ or code/ - use that
+                code_dir="$action_dir/$dir_part"
+            else
+                # User specified a subdirectory - put it under /src
+                code_dir="$action_dir/src/$dir_part"
+            fi
+            
+            full_path="$code_dir/$file_part"
+        else
+            # No directory structure - default to src/
+            code_dir="$action_dir/src"
+            full_path="$code_dir/$code_file"
+        fi
+        
+        # Ensure the directory exists
+        mkdir -p "$code_dir"
+        
+        # Check if the file already exists
+        if [ -f "$full_path" ]; then
+            echo "Warning: File already exists. Overwrite? (y/n)"
+            read -r overwrite
+            if [ "$overwrite" != "y" ]; then
+                echo "Operation cancelled."
+                exit 0
+            fi
+        fi
+        
+        # Create the file with appropriate template based on type
+        echo "Creating code file: $full_path"
+        
+        case "$file_type" in
+            python)
+                cat > "$full_path" << EOC
+#!/usr/bin/env python3
+"""
+${action_name} - ${code_file}
+
+Description: 
+    [Add description here]
+"""
+
+def main():
+    """Main function."""
+    print("Hello from ${action_name}!")
+
+if __name__ == "__main__":
+    main()
+EOC
+                ;;
+            javascript)
+                cat > "$full_path" << EOC
+/**
+ * ${action_name} - ${code_file}
+ * 
+ * Description:
+ *   [Add description here]
+ */
+
+// Main code
+function main() {
+  console.log("Hello from ${action_name}!");
+}
+
+main();
+EOC
+                ;;
+            typescript)
+                cat > "$full_path" << EOC
+/**
+ * ${action_name} - ${code_file}
+ * 
+ * Description:
+ *   [Add description here]
+ */
+
+// Main function
+function main(): void {
+  console.log("Hello from ${action_name}!");
+}
+
+main();
+EOC
+                ;;
+            java)
+                # Convert action name to proper Java class name
+                class_name=$(basename "$code_file" .java)
+                cat > "$full_path" << EOC
+/**
+ * ${action_name} - ${class_name}
+ * 
+ * Description:
+ *   [Add description here]
+ */
+
+public class ${class_name} {
+    public static void main(String[] args) {
+        System.out.println("Hello from ${action_name}!");
+    }
+}
+EOC
+                ;;
+            go)
+                cat > "$full_path" << EOC
+/*
+ * ${action_name} - ${code_file}
+ * 
+ * Description:
+ *   [Add description here]
+ */
+
+package main
+
+import "fmt"
+
+func main() {
+    fmt.Println("Hello from ${action_name}!")
+}
+EOC
+                ;;
+            bash)
+                cat > "$full_path" << EOC
+#!/bin/bash
+# ${action_name} - ${code_file}
+#
+# Description:
+#   [Add description here]
+
+# Main code
+echo "Hello from ${action_name}!"
+EOC
+                # Make bash scripts executable
+                chmod +x "$full_path"
+                ;;
+            c|cpp)
+                cat > "$full_path" << EOC
+/**
+ * ${action_name} - ${code_file}
+ * 
+ * Description:
+ *   [Add description here]
+ */
+
+#include <stdio.h>
+
+int main() {
+    printf("Hello from ${action_name}!\n");
+    return 0;
+}
+EOC
+                ;;
+            *)
+                # Generic template for unsupported file types
+                cat > "$full_path" << EOC
+/*
+ * ${action_name} - ${code_file}
+ * 
+ * Description:
+ *   [Add description here]
+ */
+
+// Code goes here
+EOC
+                ;;
+        esac
+        
+        echo "Code file created at: $full_path"
+        
+        # Try to open the file with the default editor if available
+        if command -v open &> /dev/null; then
+            echo "Opening file..."
+            open "$full_path"
+        elif command -v xdg-open &> /dev/null; then
+            echo "Opening file..."
+            xdg-open "$full_path"
+        fi
+        ;;
+    *)
+        usage
+        ;;
+esac
