@@ -10,15 +10,17 @@ import asyncio
 import json
 import logging
 import time
+import hashlib
 from dataclasses import dataclass, field
 from string import Template
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Callable, Dict, List, Optional, AsyncGenerator
 
 from src.models.circuit_breaker import CircuitBreakerRegistry
 from src.models.llm_adapter import LLMAdapter, create_adapter
 from src.models.progress_tracker import ProgressStatus, ProgressTracker, ProgressUpdate
 from src.patterns.ultra_analysis_patterns import get_pattern_mapping
 from src.models import ModelResponse, QualityMetrics, ResponseCache
+from src.models.resource_optimizer import ResourceOptimizer, OptimizationAction
 
 
 @dataclass
@@ -155,6 +157,8 @@ class EnhancedOrchestrator:
     - Progress tracking and reporting
     - Circuit breaker for fault tolerance
     - Efficient parallel processing
+    - Streaming response support
+    - Resource optimization and monitoring
     """
 
     def __init__(self, config: Optional[OrchestratorConfig] = None):
@@ -187,8 +191,46 @@ class EnhancedOrchestrator:
             "quality_scores": {},
         }
 
+        # Initialize resource optimizer
+        self.resource_optimizer = ResourceOptimizer(
+            enable_adaptive_concurrency=True,
+            enable_gc_optimization=True,
+            monitoring_interval_seconds=30.0,
+        )
+
+        # Register action callbacks for resource optimization
+        self._register_optimization_callbacks()
+
         self.logger.info(
             f"Initialized EnhancedOrchestrator with config: {self.config.__dict__}"
+        )
+
+    def _register_optimization_callbacks(self) -> None:
+        """Register callbacks for optimization actions."""
+        # When CLEAR_CACHE action is triggered, clear the response cache
+        self.resource_optimizer.add_action_callback(
+            OptimizationAction.CLEAR_CACHE,
+            lambda: self.clear_cache() if self.cache else None,
+        )
+
+        # When REDUCE_CONCURRENCY action is triggered, adjust max_workers
+        self.resource_optimizer.add_action_callback(
+            OptimizationAction.REDUCE_CONCURRENCY,
+            lambda: setattr(
+                self.config,
+                "max_workers",
+                max(1, self.config.max_workers - 1) if self.config.max_workers else 2,
+            ),
+        )
+
+        # When INCREASE_CONCURRENCY action is triggered, adjust max_workers
+        self.resource_optimizer.add_action_callback(
+            OptimizationAction.INCREASE_CONCURRENCY,
+            lambda: setattr(
+                self.config,
+                "max_workers",
+                (self.config.max_workers + 1) if self.config.max_workers else 4,
+            ),
         )
 
     def register_model(
@@ -734,6 +776,20 @@ class EnhancedOrchestrator:
         Returns:
             List of model responses
         """
+        # Check and optimize resources before processing
+        resource_status = self.resource_optimizer.get_resource_status()
+
+        # Adjust batch size and concurrency based on resource availability
+        if (
+            resource_status.get("memory") == "critical"
+            or resource_status.get("cpu") == "critical"
+        ):
+            self.logger.warning(
+                "Resource constraints detected, reducing batch size and concurrency"
+            )
+            batch_size = max(1, batch_size - 1)
+            max_concurrent_batches = max(1, max_concurrent_batches - 1)
+
         if model_names is None:
             model_names = list(self.model_registry.keys())
 
@@ -752,6 +808,16 @@ class EnhancedOrchestrator:
             all_tasks[i:i + batch_size] for i in range(0, len(all_tasks), batch_size)
         ]
         results = []
+
+        # Use resource optimizer's adaptive concurrency
+        actual_concurrent_batches = (
+            self.resource_optimizer.concurrency_config.current_concurrency
+        )
+        if actual_concurrent_batches != max_concurrent_batches:
+            self.logger.info(
+                f"Using resource optimizer's concurrency: {actual_concurrent_batches}"
+            )
+            max_concurrent_batches = actual_concurrent_batches
 
         # Process batches with concurrency control
         for i in range(0, len(batches), max_concurrent_batches):
@@ -799,6 +865,9 @@ class EnhancedOrchestrator:
                 self.logger.warning(
                     f"Timeout occurred while processing batches (timeout={timeout}s)"
                 )
+
+            # Check resource usage after each batch
+            self.resource_optimizer.optimize()
 
         return results
 
@@ -1141,8 +1210,10 @@ class EnhancedOrchestrator:
         Returns:
             Dictionary with orchestrator metrics
         """
+        metrics = {}
+
         if not self.config.collect_metrics:
-            return {}
+            return metrics
 
         # Calculate average response time
         avg_response_time = (
@@ -1181,6 +1252,15 @@ class EnhancedOrchestrator:
         # Add circuit breaker metrics if enabled
         if self.config.circuit_breaker_enabled:
             metrics["circuit_breakers"] = self.circuit_breakers.get_all_status()
+
+        # Add resource metrics
+        metrics["resources"] = {
+            "cpu_percent": self.resource_optimizer.current_metrics.cpu_percent,
+            "memory_percent": self.resource_optimizer.current_metrics.memory_percent,
+            "memory_used_mb": self.resource_optimizer.current_metrics.memory_used_mb,
+            "memory_avail_mb": self.resource_optimizer.current_metrics.memory_available_mb,
+            "concurrency": self.resource_optimizer.concurrency_config.current_concurrency,
+        }
 
         return metrics
 
@@ -1490,3 +1570,446 @@ class EnhancedOrchestrator:
             circuit.record_failure()
             self.logger.error(f"Processing failed: {str(e)}")
             return None
+
+    async def stream_model_response(
+        self,
+        model_name: str,
+        prompt: str,
+        stage: str,
+        progress_callback: Optional[Callable[[ProgressUpdate], None]] = None,
+    ) -> AsyncGenerator[Dict[str, Any], None]:
+        """
+        Get a streaming response from a model.
+
+        Args:
+            model_name: Name of the registered model
+            prompt: The prompt to send
+            stage: The processing stage
+            progress_callback: Optional callback for progress updates
+
+        Yields:
+            Dictionary with streaming update information
+
+        Raises:
+            ValueError: If the model doesn't exist
+            RuntimeError: If the request fails
+        """
+        # Check resource status before streaming
+        resource_metrics = self.resource_optimizer.get_current_metrics()
+        if resource_metrics.memory_percent > 90:
+            self.logger.warning(
+                "High memory usage detected before streaming. Optimizing resources."
+            )
+            self.resource_optimizer.optimize()
+
+        # Check if model exists
+        if model_name not in self.model_registry:
+            raise ValueError(f"Model not found: {model_name}")
+
+        # Get model registration
+        registration = self.model_registry[model_name]
+        adapter = registration.adapter
+
+        # Check if the response is in the cache and cache supports streaming
+        supports_streaming = False
+        cached_stream = None
+
+        # Try to use streaming cache if available
+        if self.config.cache_enabled and self.cache:
+            # Check if the cache supports streaming methods safely
+            try:
+                # Generate cache key for streaming
+                prompt_hash = hashlib.md5(
+                    prompt.encode(), usedforsecurity=False
+                ).hexdigest()
+
+                # Try to access the stream methods safely
+                if hasattr(self.cache, "generate_stream_cache_key"):
+                    cache_key = self.cache.generate_stream_cache_key(
+                        model_name, stage, prompt_hash
+                    )
+
+                    # Try to get from stream cache
+                    if hasattr(self.cache, "get_stream"):
+                        cached_stream = await self.cache.get_stream(cache_key)
+                        supports_streaming = True
+            except Exception as e:
+                self.logger.warning(f"Stream cache access failed: {e}")
+
+        # Use cached stream if available
+        if cached_stream:
+            self.logger.info(f"Stream cache hit for {model_name}")
+
+            if progress_callback:
+                progress_callback(
+                    ProgressUpdate(
+                        model=model_name,
+                        stage=stage,
+                        status=ProgressStatus.STARTED,
+                        message="Retrieved from cache",
+                    )
+                )
+
+            # Return cached chunks
+            full_content = ""
+            progress = 0.0
+
+            async for chunk in cached_stream:
+                full_content += chunk
+
+                # Estimate progress (approximate)
+                progress += 5.0  # Faster progress for cached content
+                progress = min(progress, 99.0)  # Cap at 99% until done
+
+                if progress_callback:
+                    progress_callback(
+                        ProgressUpdate(
+                            model=model_name,
+                            stage=stage,
+                            status=ProgressStatus.IN_PROGRESS,
+                            message="Receiving from cache",
+                        )
+                    )
+
+                yield {
+                    "model": model_name,
+                    "content": chunk,
+                    "done": False,
+                    "stage": stage,
+                    "progress": progress,
+                    "cached": True,
+                }
+
+            # Final update with complete content
+            if progress_callback:
+                progress_callback(
+                    ProgressUpdate(
+                        model=model_name,
+                        stage=stage,
+                        status=ProgressStatus.COMPLETED,
+                        message="Cache retrieval complete",
+                    )
+                )
+
+            yield {
+                "model": model_name,
+                "content": full_content,
+                "done": True,
+                "stage": stage,
+                "progress": 100.0,
+                "cached": True,
+            }
+
+            return
+
+        # Check if the model supports streaming
+        capabilities = adapter.get_capabilities()
+        supports_streaming = capabilities.get("supports_streaming", False)
+
+        if not supports_streaming:
+            # For models that don't support streaming, get the full response
+            # and yield it as a single chunk
+            if progress_callback:
+                progress_callback(
+                    ProgressUpdate(
+                        model=model_name,
+                        stage=stage,
+                        status=ProgressStatus.STARTED,
+                        message="Starting request",
+                    )
+                )
+
+            try:
+                response = await adapter.generate(prompt)
+
+                if progress_callback:
+                    progress_callback(
+                        ProgressUpdate(
+                            model=model_name,
+                            stage=stage,
+                            status=ProgressStatus.COMPLETED,
+                            message="Request completed",
+                        )
+                    )
+
+                yield {
+                    "model": model_name,
+                    "content": response,
+                    "done": True,
+                    "stage": stage,
+                    "progress": 100.0,
+                    "cached": False,
+                }
+
+            except Exception as e:
+                self.logger.error(f"Error getting response from {model_name}: {e}")
+
+                if progress_callback:
+                    progress_callback(
+                        ProgressUpdate(
+                            model=model_name,
+                            stage=stage,
+                            status=ProgressStatus.FAILED,
+                            message=f"Request failed: {e}",
+                        )
+                    )
+
+                raise RuntimeError(f"Failed to get response from {model_name}: {e}")
+
+        else:
+            # Stream the response for models that support it
+            if progress_callback:
+                progress_callback(
+                    ProgressUpdate(
+                        model=model_name,
+                        stage=stage,
+                        status=ProgressStatus.STARTED,
+                        message="Starting streaming request",
+                    )
+                )
+
+            full_content = ""
+            progress = 0.0
+            all_chunks = []
+
+            try:
+                # Use the stream_generate method
+                async for chunk in adapter.stream_generate(prompt):
+                    full_content += chunk
+                    all_chunks.append(chunk)
+
+                    # Estimate progress (approximate)
+                    progress += 2.0  # Increment by small amount
+                    progress = min(progress, 99.0)  # Cap at 99% until done
+
+                    if progress_callback:
+                        progress_callback(
+                            ProgressUpdate(
+                                model=model_name,
+                                stage=stage,
+                                status=ProgressStatus.IN_PROGRESS,
+                                message="Receiving stream",
+                            )
+                        )
+
+                    yield {
+                        "model": model_name,
+                        "content": chunk,
+                        "done": False,
+                        "stage": stage,
+                        "progress": progress,
+                        "cached": False,
+                    }
+
+                # Final update with the full content
+                if progress_callback:
+                    progress_callback(
+                        ProgressUpdate(
+                            model=model_name,
+                            stage=stage,
+                            status=ProgressStatus.COMPLETED,
+                            message="Stream completed",
+                        )
+                    )
+
+                yield {
+                    "model": model_name,
+                    "content": full_content,
+                    "done": True,
+                    "stage": stage,
+                    "progress": 100.0,
+                    "cached": False,
+                }
+
+                # Cache the streaming response if cache supports it
+                if (
+                    self.config.cache_enabled
+                    and self.cache
+                    and supports_streaming
+                    and hasattr(self.cache, "set_stream")
+                ):
+                    try:
+                        # Generate cache key
+                        prompt_hash = hashlib.md5(
+                            prompt.encode(), usedforsecurity=False
+                        ).hexdigest()
+
+                        # Get the cache key and prepare response info
+                        cache_key = self.cache.generate_stream_cache_key(
+                            model_name, stage, prompt_hash
+                        )
+
+                        # Prepare response info for TTL calculation
+                        response_info = {
+                            "model": model_name,
+                            "stage": stage,
+                            "prompt": prompt,
+                            "tokens_used": len(full_content.split())
+                            * 1.33,  # Rough estimate
+                        }
+
+                        # Cache the stream
+                        await self.cache.set_stream(
+                            cache_key, all_chunks, response_info
+                        )
+                        self.logger.info(f"Cached streaming response for {model_name}")
+                    except Exception as e:
+                        self.logger.warning(f"Failed to cache stream response: {e}")
+
+            except Exception as e:
+                self.logger.error(f"Error streaming response from {model_name}: {e}")
+
+                if progress_callback:
+                    progress_callback(
+                        ProgressUpdate(
+                            model=model_name,
+                            stage=stage,
+                            status=ProgressStatus.FAILED,
+                            message=f"Stream failed: {e}",
+                        )
+                    )
+
+                raise RuntimeError(f"Failed to stream response from {model_name}: {e}")
+
+    async def stream_process(
+        self,
+        prompt: str,
+        pattern: Optional[str] = None,
+        max_tokens: Optional[int] = None,
+        models: Optional[List[str]] = None,
+    ) -> AsyncGenerator[Dict[str, Any], None]:
+        """
+        Process a prompt with streaming responses.
+
+        Args:
+            prompt: The prompt to process
+            pattern: The pattern to use (default: config.default_pattern)
+            max_tokens: Maximum tokens to generate (optional)
+            models: Specific models to use (default: all registered models)
+
+        Yields:
+            Dictionary updates with streaming content
+
+        Raises:
+            ValueError: If no models are available or pattern doesn't exist
+        """
+        # Use default pattern if none specified
+        pattern_name = pattern or self.config.default_pattern
+
+        # Get the pattern
+        pattern_config = self.patterns.get(pattern_name)
+        if not pattern_config:
+            available_patterns = list(self.patterns.keys())
+            error_msg = (
+                f"Unknown pattern: {pattern_name}. "
+                f"Available patterns: {available_patterns}"
+            )
+            raise ValueError(error_msg)
+
+        # If models is specified, validate that they exist
+        if models:
+            invalid_models = [m for m in models if m not in self.model_registry]
+            if invalid_models:
+                raise ValueError(f"Invalid model(s) specified: {invalid_models}")
+
+        # Get prioritized list of models
+        prioritized_models = self.get_prioritized_models(models)
+        if not prioritized_models:
+            raise ValueError("No models available for processing")
+
+        # For streaming, we'll use only the first stage of the pattern
+        # and only one model (the highest priority one)
+        stage = pattern_config.stages[0]
+        selected_model = prioritized_models[0]
+
+        # Prepare context for this stage (simplified for streaming)
+        context = {"original_prompt": prompt}
+
+        # Create stage-specific prompt from template
+        stage_prompt = self._create_stage_prompt(stage, context, pattern_name)
+
+        # Placeholder for processed prompt (normally would go through more processing)
+        processed_prompt = stage_prompt
+
+        # Stream the response
+        self.logger.info(
+            f"Starting stream_process using pattern '{pattern_name}', "
+            f"stage: {stage}, model: {selected_model}"
+        )
+
+        progress = 0.0
+
+        async for update in self.stream_model_response(
+            model_name=selected_model,
+            prompt=processed_prompt,
+            stage=stage,
+        ):
+            # Update progress based on the update
+            done = update.get("done", False)
+            progress = update.get("progress", progress)
+
+            # Add additional context to the update
+            enriched_update = {
+                **update,
+                "pattern": pattern_name,
+                "total_progress": progress,
+            }
+
+            yield enriched_update
+
+            # Stop if done
+            if done:
+                break
+
+        # If we have a multi-stage pattern, provide a final summary update
+        if len(pattern_config.stages) > 1:
+            message = (
+                f"Streaming complete. Full analysis would include "
+                f"{len(pattern_config.stages)} stages."
+            )
+            yield {
+                "model": selected_model,
+                "content": "",
+                "done": True,
+                "stage": "summary",
+                "progress": 100.0,
+                "pattern": pattern_name,
+                "total_progress": 100.0,
+                "message": message,
+            }
+
+    async def process_with_resource_awareness(
+        self,
+        prompt: str,
+        pattern_name: Optional[str] = None,
+        models: Optional[List[str]] = None,
+        memory_requirement_mb: Optional[float] = None,
+        progress_callback: Optional[Callable[[Dict[str, Any]], None]] = None,
+    ) -> Dict[str, Any]:
+        """
+        Process a prompt with resource awareness.
+
+        Args:
+            prompt: The prompt to process
+            pattern_name: Name of the analysis pattern (default: config.default_pattern)
+            models: Specific models to use (default: all registered models)
+            memory_requirement_mb: Estimated memory requirement in MB
+            progress_callback: Optional callback for progress updates
+
+        Returns:
+            Dictionary with results from processing
+        """
+
+        # Use resource-aware scheduling
+        async def process_task():
+            return await self.process_with_pattern(
+                prompt=prompt,
+                pattern_name=pattern_name,
+                models=models,
+                progress_callback=progress_callback,
+            )
+
+        return await self.resource_optimizer.schedule_resource_aware(
+            process_task,
+            memory_requirement_mb=memory_requirement_mb,
+        )

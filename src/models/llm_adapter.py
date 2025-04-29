@@ -9,7 +9,7 @@ import asyncio
 import logging
 import time
 from abc import ABC, abstractmethod
-from typing import Any, Dict, Optional
+from typing import Any, AsyncGenerator, Dict, Optional
 
 import cohere
 import google.generativeai as genai
@@ -49,6 +49,27 @@ class LLMAdapter(ABC):
             The generated text response
         """
         pass
+
+    async def stream_generate(
+        self, prompt: str, **options
+    ) -> AsyncGenerator[str, None]:
+        """
+        Generate a streaming response from the LLM.
+
+        Args:
+            prompt: The input prompt
+            **options: Additional provider-specific options
+
+        Yields:
+            Chunks of the generated text response
+
+        Note:
+            Default implementation returns the full response as a single chunk.
+            Providers that support streaming should override this method.
+        """
+        # Default implementation for providers that don't support streaming
+        full_response = await self.generate(prompt, **options)
+        yield full_response
 
     async def check_availability(self) -> bool:
         """
@@ -141,6 +162,50 @@ class OpenAIAdapter(LLMAdapter):
             self.logger.error(f"OpenAI API call failed: {e}")
             raise
 
+    async def stream_generate(
+        self, prompt: str, **options
+    ) -> AsyncGenerator[str, None]:
+        """
+        Generate a streaming response from OpenAI.
+
+        Args:
+            prompt: The input prompt
+            **options: Additional options including:
+                model: Model to use (default: self.model)
+                max_tokens: Maximum tokens (default: 1500)
+                temperature: Temperature (default: 0.7)
+                system_message: System message (default: "You are a helpful assistant.")
+
+        Yields:
+            Chunks of the generated text response
+        """
+        await self._respect_rate_limit()
+
+        try:
+            model = options.get("model", self.model)
+            max_tokens = options.get("max_tokens", 1500)
+            temperature = options.get("temperature", 0.7)
+            system_msg = options.get("system_message", "You are a helpful assistant.")
+
+            stream = await self.client.chat.completions.create(
+                model=model,
+                messages=[
+                    {"role": "system", "content": system_msg},
+                    {"role": "user", "content": prompt},
+                ],
+                max_tokens=max_tokens,
+                temperature=temperature,
+                stream=True,
+            )
+
+            async for chunk in stream:
+                if chunk.choices and chunk.choices[0].delta.content:
+                    yield chunk.choices[0].delta.content
+
+        except Exception as e:
+            self.logger.error(f"OpenAI streaming API call failed: {e}")
+            raise
+
     def get_capabilities(self) -> Dict[str, Any]:
         """Get OpenAI capabilities."""
         capabilities = super().get_capabilities()
@@ -198,6 +263,45 @@ class AnthropicAdapter(LLMAdapter):
             return response.content[0].text
         except Exception as e:
             self.logger.error(f"Anthropic API call failed: {e}")
+            raise
+
+    async def stream_generate(
+        self, prompt: str, **options
+    ) -> AsyncGenerator[str, None]:
+        """
+        Generate a streaming response from Anthropic Claude.
+
+        Args:
+            prompt: The input prompt
+            **options: Additional options including:
+                model: Model to use (default: self.model)
+                max_tokens: Maximum tokens (default: 4000)
+                temperature: Temperature (default: 0.7)
+
+        Yields:
+            Chunks of the generated text response
+        """
+        await self._respect_rate_limit()
+
+        try:
+            model = options.get("model", self.model)
+            max_tokens = options.get("max_tokens", 4000)
+            temperature = options.get("temperature", 0.7)
+
+            stream = await self.client.messages.create(
+                model=model,
+                messages=[{"role": "user", "content": prompt}],
+                max_tokens=max_tokens,
+                temperature=temperature,
+                stream=True,
+            )
+
+            async for chunk in stream:
+                if chunk.delta.text:
+                    yield chunk.delta.text
+
+        except Exception as e:
+            self.logger.error(f"Anthropic streaming API call failed: {e}")
             raise
 
     def get_capabilities(self) -> Dict[str, Any]:
@@ -312,6 +416,44 @@ class MistralAdapter(LLMAdapter):
             return chat_response.choices[0].message.content
         except Exception as e:
             self.logger.error(f"Mistral API call failed: {e}")
+            raise
+
+    async def stream_generate(
+        self, prompt: str, **options
+    ) -> AsyncGenerator[str, None]:
+        """
+        Generate a streaming response from Mistral AI.
+
+        Args:
+            prompt: The input prompt
+            **options: Additional options including:
+                model: Model to use (default: self.model)
+                max_tokens: Maximum tokens (default: 1000)
+                temperature: Temperature (default: 0.7)
+
+        Yields:
+            Chunks of the generated text response
+        """
+        await self._respect_rate_limit()
+
+        try:
+            model = options.get("model", self.model)
+            max_tokens = options.get("max_tokens", 1000)
+            temperature = options.get("temperature", 0.7)
+
+            stream = await self.client.chat_stream(
+                model=model,
+                messages=[{"role": "user", "content": prompt}],
+                max_tokens=max_tokens,
+                temperature=temperature,
+            )
+
+            async for chunk in stream:
+                if chunk.choices and chunk.choices[0].delta.content:
+                    yield chunk.choices[0].delta.content
+
+        except Exception as e:
+            self.logger.error(f"Mistral streaming API call failed: {e}")
             raise
 
     def get_capabilities(self) -> Dict[str, Any]:
