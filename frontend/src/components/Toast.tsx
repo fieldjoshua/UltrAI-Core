@@ -1,68 +1,74 @@
 import React, { useEffect } from 'react';
-import { screenReader } from '../utils/accessibility';
-import { ARIA_ROLES } from '../utils/accessibility';
+import { useDispatch, useSelector } from 'react-redux';
+import { RootState } from '../app/store';
+import { clearToast } from '../features/errors/errorsSlice';
+import { AlertCircle, CheckCircle, Info, X } from 'lucide-react';
 
-interface ToastProps {
-  message: string;
-  type?: 'success' | 'error' | 'warning' | 'info';
-  duration?: number;
-  onClose?: () => void;
-}
-
-export const Toast: React.FC<ToastProps> = ({
-  message,
-  type = 'info',
-  duration = 5000,
-  onClose,
-}) => {
-  const typeClasses = {
-    success: 'bg-green-100 text-green-800 border-green-200',
-    error: 'bg-red-100 text-red-800 border-red-200',
-    warning: 'bg-yellow-100 text-yellow-800 border-yellow-200',
-    info: 'bg-blue-100 text-blue-800 border-blue-200',
-  };
-
-  const typeIcons = {
-    success: '✓',
-    error: '✕',
-    warning: '⚠',
-    info: 'ℹ',
-  };
+export const Toast: React.FC = () => {
+  const dispatch = useDispatch();
+  const { id, message, type } = useSelector(
+    (state: RootState) => state.errors.toast
+  );
 
   useEffect(() => {
-    screenReader.announce(message, 'assertive');
-  }, [message]);
-
-  useEffect(() => {
-    if (duration > 0) {
+    if (message) {
       const timer = setTimeout(() => {
-        onClose?.();
-      }, duration);
+        dispatch(clearToast());
+      }, 5000); // Auto-dismiss after 5 seconds
+
       return () => clearTimeout(timer);
     }
-  }, [duration, onClose]);
+  }, [id, dispatch]);
+
+  const handleClose = () => {
+    dispatch(clearToast());
+  };
+
+  if (!message) return null;
+
+  const getIcon = () => {
+    switch (type) {
+      case 'error':
+        return <AlertCircle className="h-5 w-5" />;
+      case 'success':
+        return <CheckCircle className="h-5 w-5" />;
+      case 'info':
+      default:
+        return <Info className="h-5 w-5" />;
+    }
+  };
+
+  const getBackgroundColor = () => {
+    switch (type) {
+      case 'error':
+        return 'bg-red-100 border-red-400 text-red-700';
+      case 'success':
+        return 'bg-green-100 border-green-400 text-green-700';
+      case 'info':
+      default:
+        return 'bg-blue-100 border-blue-400 text-blue-700';
+    }
+  };
 
   return (
-    <div
-      role="alert"
-      aria-live="assertive"
-      className={`fixed bottom-4 right-4 p-4 rounded-lg shadow-lg border ${typeClasses[type]} max-w-md`}
-    >
-      <div className="flex items-start">
-        <span className="mr-2 text-lg" aria-hidden="true">
-          {typeIcons[type]}
-        </span>
-        <p className="flex-1">{message}</p>
-        {onClose && (
+    <div className="fixed bottom-4 right-4 z-50 animate-fade-in-up">
+      <div
+        className={`rounded-md border px-4 py-3 shadow-md ${getBackgroundColor()}`}
+      >
+        <div className="flex items-center">
+          <div className="mr-3">{getIcon()}</div>
+          <div className="mr-2 max-w-[300px] break-words">{message}</div>
           <button
-            onClick={onClose}
-            className="ml-4 text-current hover:opacity-75 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-current rounded"
+            onClick={handleClose}
+            className="ml-auto rounded-full p-1 transition-colors hover:bg-opacity-20 hover:bg-gray-500"
             aria-label="Close notification"
           >
-            <span aria-hidden="true">×</span>
+            <X className="h-4 w-4" />
           </button>
-        )}
+        </div>
       </div>
     </div>
   );
 };
+
+export default Toast;

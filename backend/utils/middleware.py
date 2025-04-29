@@ -7,6 +7,8 @@ This module provides middleware for:
 - Request size limiting
 - Performance monitoring
 - Rate limiting
+- Security headers
+- Cookie security
 """
 
 import time
@@ -18,7 +20,11 @@ from starlette.datastructures import MutableHeaders
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
 from backend.utils.logging import CorrelationContext, log_performance, log_request
-from backend.utils.rate_limit_middleware import setup_rate_limit_middleware
+
+# Lazy loading setup variables
+_rate_limit_middleware_setup = None
+_security_headers_middleware_setup = None
+_cookie_security_middleware_setup = None
 
 
 class RequestValidationMiddleware:
@@ -318,5 +324,59 @@ def setup_middleware(app: FastAPI) -> None:
     Args:
         app: The FastAPI application
     """
+    # Lazy import middleware setup functions to avoid circular imports
+    global _rate_limit_middleware_setup
+    global _security_headers_middleware_setup
+    global _cookie_security_middleware_setup
+
+    if _rate_limit_middleware_setup is None:
+        from backend.utils.rate_limit_middleware import setup_rate_limit_middleware
+
+        _rate_limit_middleware_setup = setup_rate_limit_middleware
+
+    if _security_headers_middleware_setup is None:
+        from backend.utils.security_headers_middleware import (
+            setup_security_headers_middleware,
+        )
+
+        _security_headers_middleware_setup = setup_security_headers_middleware
+
+    if _cookie_security_middleware_setup is None:
+        from backend.utils.cookie_security_middleware import (
+            setup_cookie_security_middleware,
+        )
+
+        _cookie_security_middleware_setup = setup_cookie_security_middleware
+
     # Add rate limiting middleware
-    setup_rate_limit_middleware(app)
+    _rate_limit_middleware_setup(app)
+
+    # Add security headers middleware
+    _security_headers_middleware_setup(app)
+
+    # Add cookie security middleware
+    _cookie_security_middleware_setup(app)
+
+    # Add request validation middleware
+    app.add_middleware(
+        RequestValidationMiddleware,
+        allowed_content_types={
+            "application/json",
+            "multipart/form-data",
+            "application/x-www-form-urlencoded",
+        },
+        max_content_length=100 * 1024 * 1024,  # 100MB
+        required_headers=[],  # No required headers for now
+    )
+
+    # Add performance monitoring middleware
+    app.add_middleware(
+        PerformanceMiddleware,
+        exclude_paths=["/health", "/metrics", "/api/docs", "/api/redoc"],
+    )
+
+    # Add request logging middleware
+    app.add_middleware(
+        RequestLoggingMiddleware,
+        exclude_paths=["/health", "/metrics", "/api/docs", "/api/redoc"],
+    )

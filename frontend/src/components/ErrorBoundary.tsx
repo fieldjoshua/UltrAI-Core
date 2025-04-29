@@ -1,41 +1,37 @@
-import React from 'react';
+import React, { Component, ErrorInfo, ReactNode } from 'react';
+import { connect } from 'react-redux';
+import { setGlobalError } from '../features/errors/errorsSlice';
 import { Card } from './ui/card';
 import { Button } from './ui/button';
 import { screenReader } from '../utils/accessibility';
 import { ARIA_ROLES } from '../utils/accessibility';
 
-interface ErrorBoundaryProps {
-  children: React.ReactNode;
+interface Props {
+  children: ReactNode;
+  setGlobalError: (error: string | null) => void;
+  fallback?: ReactNode;
 }
 
-interface ErrorBoundaryState {
+interface State {
   hasError: boolean;
   error: Error | null;
   errorInfo: React.ErrorInfo | null;
 }
 
-export class ErrorBoundary extends React.Component<
-  ErrorBoundaryProps,
-  ErrorBoundaryState
-> {
-  constructor(props: ErrorBoundaryProps) {
-    super(props);
-    this.state = {
-      hasError: false,
-      error: null,
-      errorInfo: null,
-    };
+class ErrorBoundary extends Component<Props, State> {
+  public state: State = {
+    hasError: false,
+    error: null,
+    errorInfo: null,
+  };
+
+  public static getDerivedStateFromError(error: Error): State {
+    return { hasError: true, error };
   }
 
-  static getDerivedStateFromError(error: Error): ErrorBoundaryState {
-    return {
-      hasError: true,
-      error,
-      errorInfo: null,
-    };
-  }
-
-  componentDidCatch(error: Error, errorInfo: React.ErrorInfo): void {
+  public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+    console.error('Uncaught error:', error, errorInfo);
+    this.props.setGlobalError(error.message);
     this.setState({
       error,
       errorInfo,
@@ -52,11 +48,16 @@ export class ErrorBoundary extends React.Component<
       error: null,
       errorInfo: null,
     });
+    this.props.setGlobalError(null);
     screenReader.announce('Retrying...', 'polite');
   };
 
-  render(): React.ReactNode {
+  public render() {
     if (this.state.hasError) {
+      if (this.props.fallback) {
+        return this.props.fallback;
+      }
+
       return (
         <Card className="w-full p-4">
           <div role="alert" aria-live="assertive" className="space-y-4">
@@ -106,3 +107,5 @@ export class ErrorBoundary extends React.Component<
     return this.props.children;
   }
 }
+
+export default connect(null, { setGlobalError })(ErrorBoundary);

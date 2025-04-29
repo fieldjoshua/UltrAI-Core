@@ -1,205 +1,267 @@
 """
 Rate limiting middleware for the Ultra backend.
 
-This module provides rate limiting functionality for API endpoints.
+This module provides a FastAPI middleware that applies rate limits to API requests
+based on user subscription tier, path, and method.
 """
 
+from typing import Callable, Optional, Dict, Any, List
 import time
-from typing import Dict, Optional, Tuple
-from fastapi import Request
+import uuid
+
+from fastapi import FastAPI, Request, Response, status
 from fastapi.responses import JSONResponse
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.types import ASGIApp
 
-from backend.utils.logging_config import rate_limit_logger
+from backend.database.models.user import User
+from backend.services.auth_service import auth_service
+from backend.utils.rate_limit_service import rate_limit_service
+from backend.utils.logging import get_logger
+from backend.models.base_models import ErrorResponse
 
-# Rate limit configuration
-RATE_LIMIT_WINDOW = 60  # 1 minute window
-RATE_LIMIT_MAX_REQUESTS = 100  # Maximum requests per window
-RATE_LIMIT_BY_IP = True  # Whether to rate limit by IP
-RATE_LIMIT_BY_USER = True  # Whether to rate limit by user
+# Set up logger
+logger = get_logger("rate_limit_middleware", "logs/rate_limit.log")
 
-# Rate limit headers
-RATE_LIMIT_HEADERS = {
-    "X-RateLimit-Limit": "Maximum requests allowed",
-    "X-RateLimit-Remaining": "Remaining requests",
-    "X-RateLimit-Reset": "Time when the limit resets",
-    "Retry-After": "Seconds to wait before retrying",
-}
-
-# Error messages
-ERROR_MESSAGES = {
-    "rate_limit_exceeded": "Rate limit exceeded. Please try again later.",
-    "invalid_client": "Invalid client identifier",
-    "invalid_user": "Invalid user identifier",
-    "internal_error": "An internal error occurred",
-}
-
-# Store rate limit data
-rate_limit_data: Dict[str, Dict[str, int]] = {
-    "ip": {},  # IP-based rate limiting
-    "user": {},  # User-based rate limiting
-}
+# Internal service token header
+INTERNAL_SERVICE_HEADER = "X-Internal-Service-Token"
+# Header for bypass keys
+BYPASS_KEY_HEADER = "X-Rate-Limit-Bypass"
 
 
-def get_client_identifier(request: Request) -> str:
+class RateLimitMiddleware(BaseHTTPMiddleware):
+    """Middleware for enforcing rate limits on API requests"""
+
+    def __init__(
+        self,
+        app: ASGIApp,
+        exclude_paths: Optional[List[str]] = None,
+        quota_paths: Optional[Dict[str, Dict[str, int]]] = None,
+    ):
+        """
+        Initialize rate limit middleware
+
+        Args:
+            app: ASGI application
+            exclude_paths: Paths to exclude from rate limiting
+            quota_paths: Path-specific quota configurations by subscription tier
+        """
+        super().__init__(app)
+        self.exclude_paths = exclude_paths or [
+            "/health",
+            "/metrics",
+            "/api/docs",
+            "/api/redoc",
+            "/api/openapi.json",
+        ]
+        self.quota_paths = quota_paths or {}
+        logger.info(
+            f"Initialized RateLimitMiddleware with {len(self.exclude_paths)} excluded paths and {len(self.quota_paths)} path-specific quotas"
+        )
+
+    async def dispatch(self, request: Request, call_next: Callable) -> Response:
+        """
+        Process the request and apply rate limiting
+
+        Args:
+            request: FastAPI request object
+            call_next: Next middleware/route handler
+
+        Returns:
+            Response with rate limit headers added
+        """
+        start_time = time.time()
+
+        # Skip rate limiting for excluded paths
+        if any(request.url.path.startswith(path) for path in self.exclude_paths):
+            return await call_next(request)
+
+        # Generate a unique request ID for tracking
+        request_id = str(uuid.uuid4())
+        request.state.request_id = request_id
+
+        # Get client IP address
+        client_host = request.client.host if request.client else "unknown"
+
+        # Get user ID from authentication if available
+        user_id = None
+        user = None
+        subscription_tier = "anonymous"
+
+        try:
+            token = request.headers.get("Authorization", "").replace("Bearer ", "")
+            if token:
+                user = await auth_service.get_user_from_token(token)
+                if user:
+                    user_id = str(user.id)
+                    subscription_tier = getattr(user, "subscription_tier", "free")
+        except Exception as e:
+            logger.warning(f"Error getting user from token: {str(e)}")
+
+        # Get request method and path
+        method = request.method
+        path = request.url.path
+
+        # Check for internal service token
+        internal_token = request.headers.get(INTERNAL_SERVICE_HEADER)
+
+        # Check for bypass key
+        bypass_key = request.headers.get(BYPASS_KEY_HEADER)
+        if bypass_key:
+            # Validate bypass key (you might want to implement a proper validation mechanism)
+            is_valid_bypass = (
+                bypass_key.startswith("ultra_bypass_") and len(bypass_key) > 20
+            )
+            if is_valid_bypass:
+                logger.info(f"Rate limit bypass key used for request to {path}")
+                response = await call_next(request)
+                response.headers["X-Rate-Limit-Bypassed"] = "true"
+                return response
+
+        # Check rate limit
+        try:
+            # Check if there are path-specific quotas
+            path_quota = None
+            for pattern, quotas in self.quota_paths.items():
+                if path.startswith(pattern):
+                    path_quota = quotas.get(subscription_tier)
+                    break
+
+            is_limited, rate_limit_info = rate_limit_service.check_rate_limit(
+                ip_address=client_host,
+                user_id=user_id,
+                path=path,
+                method=method,
+                internal_token=internal_token,
+                path_quota=path_quota,
+            )
+
+            # Add request tracking
+            rate_limit_service.track_request(
+                user_id=user_id,
+                ip_address=client_host,
+                path=path,
+                method=method,
+                subscription_tier=subscription_tier,
+            )
+
+            if is_limited:
+                # Calculate retry after seconds
+                retry_after = max(
+                    1, int(rate_limit_info.get("reset", time.time() + 60) - time.time())
+                )
+
+                logger.warning(
+                    f"Rate limit exceeded for {client_host} (user: {user_id}, tier: {subscription_tier}) "
+                    f"path: {request.url.path}, method: {method}, count: {rate_limit_info.get('count', 0)}/{rate_limit_info.get('limit', 0)}"
+                )
+
+                error_response = ErrorResponse(
+                    status="error",
+                    message="Rate limit exceeded. Please try again later.",
+                    code="rate_limit_exceeded",
+                    details={
+                        "limit": rate_limit_info.get("limit", 0),
+                        "reset": rate_limit_info.get("reset", 0),
+                        "retry_after": retry_after,
+                        "tier": subscription_tier,
+                        "request_id": request_id,
+                    },
+                )
+
+                response = JSONResponse(
+                    status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                    content=error_response.dict(exclude_none=True),
+                )
+
+                # Add rate limit headers
+                response.headers["X-RateLimit-Limit"] = str(
+                    rate_limit_info.get("limit", 0)
+                )
+                response.headers["X-RateLimit-Remaining"] = "0"
+                response.headers["X-RateLimit-Reset"] = str(
+                    rate_limit_info.get("reset", 0)
+                )
+                response.headers["Retry-After"] = str(retry_after)
+                response.headers["X-Request-ID"] = request_id
+
+                # Log response time for monitoring
+                duration = time.time() - start_time
+                logger.info(f"Rate limit response time: {duration:.4f}s for {path}")
+
+                return response
+
+            # Process the request
+            response = await call_next(request)
+
+            # Add rate limit headers to the response
+            response.headers["X-RateLimit-Limit"] = str(rate_limit_info.get("limit", 0))
+            response.headers["X-RateLimit-Remaining"] = str(
+                rate_limit_info.get("remaining", 0)
+            )
+            response.headers["X-RateLimit-Reset"] = str(rate_limit_info.get("reset", 0))
+            response.headers["X-Request-ID"] = request_id
+
+            return response
+
+        except Exception as e:
+            logger.error(f"Error applying rate limiting: {str(e)}")
+
+            # Continue processing even if rate limiting fails
+            return await call_next(request)
+
+
+def setup_rate_limit_middleware(
+    app: FastAPI,
+    exclude_paths: Optional[List[str]] = None,
+    quota_paths: Optional[Dict[str, Dict[str, int]]] = None,
+) -> None:
     """
-    Get a unique identifier for the client
+    Set up rate limiting middleware for the FastAPI application
 
     Args:
-        request: FastAPI request
-
-    Returns:
-        Client identifier
-
-    Raises:
-        ValueError: If client identifier cannot be determined
+        app: FastAPI application
+        exclude_paths: Paths to exclude from rate limiting
+        quota_paths: Path-specific quota configurations by subscription tier
     """
-    if not RATE_LIMIT_BY_IP:
-        return "default"
+    # Default path-specific quotas if not provided
+    if quota_paths is None:
+        quota_paths = {
+            "/api/llm/": {
+                "anonymous": 10,
+                "free": 30,
+                "basic": 100,
+                "premium": 300,
+                "enterprise": 1000,
+            },
+            "/api/document/": {
+                "anonymous": 5,
+                "free": 20,
+                "basic": 50,
+                "premium": 200,
+                "enterprise": 500,
+            },
+            "/api/analyze/": {
+                "anonymous": 5,
+                "free": 15,
+                "basic": 80,
+                "premium": 250,
+                "enterprise": 800,
+            },
+        }
 
-    if not request.client:
-        rate_limit_logger.warning("No client information available")
-        return "default"
-
-    try:
-        return request.client.host
-    except Exception as e:
-        rate_limit_logger.error(f"Error getting client identifier: {str(e)}")
-        raise ValueError(ERROR_MESSAGES["invalid_client"])
-
-
-def get_user_identifier(request: Request) -> Optional[str]:
-    """
-    Get a unique identifier for the user
-
-    Args:
-        request: FastAPI request
-
-    Returns:
-        User identifier if available
-
-    Raises:
-        ValueError: If user identifier is invalid
-    """
-    if not RATE_LIMIT_BY_USER:
-        return None
-
-    auth_header = request.headers.get("Authorization")
-    if not auth_header:
-        return None
-
-    try:
-        scheme, token = auth_header.split()
-        if scheme.lower() != "bearer":
-            return None
-        return token
-    except Exception as e:
-        rate_limit_logger.error(f"Error getting user identifier: {str(e)}")
-        raise ValueError(ERROR_MESSAGES["invalid_user"])
+    app.add_middleware(
+        RateLimitMiddleware,
+        exclude_paths=exclude_paths,
+        quota_paths=quota_paths,
+    )
+    logger.info("Rate limiting middleware added to application")
 
 
-def check_rate_limit(request: Request) -> Tuple[bool, Dict[str, int]]:
-    """
-    Check if the request exceeds rate limits
-
-    Args:
-        request: FastAPI request
-
-    Returns:
-        Tuple of (is_rate_limited, rate_limit_info)
-
-    Raises:
-        ValueError: If client or user identifier is invalid
-    """
-    current_time = int(time.time())
-    window_start = current_time - RATE_LIMIT_WINDOW
-    rate_limit_info = {
-        "limit": RATE_LIMIT_MAX_REQUESTS,
-        "remaining": RATE_LIMIT_MAX_REQUESTS,
-        "reset": current_time + RATE_LIMIT_WINDOW,
-    }
-
-    try:
-        # Check IP-based rate limit
-        if RATE_LIMIT_BY_IP:
-            client_id = get_client_identifier(request)
-            if client_id not in rate_limit_data["ip"]:
-                rate_limit_data["ip"][client_id] = 1
-                rate_limit_info["remaining"] -= 1
-                rate_limit_logger.debug(
-                    f"New IP rate limit entry: {client_id}, "
-                    f"remaining: {rate_limit_info['remaining']}"
-                )
-            else:
-                # Clean up old entries
-                rate_limit_data["ip"] = {
-                    k: v for k, v in rate_limit_data["ip"].items() if v > window_start
-                }
-                rate_limit_data["ip"][client_id] = current_time
-                rate_limit_info["remaining"] = RATE_LIMIT_MAX_REQUESTS - len(
-                    rate_limit_data["ip"]
-                )
-                rate_limit_logger.debug(
-                    f"Updated IP rate limit: {client_id}, "
-                    f"remaining: {rate_limit_info['remaining']}"
-                )
-
-                # Check if limit is exceeded
-                if len(rate_limit_data["ip"]) > RATE_LIMIT_MAX_REQUESTS:
-                    rate_limit_logger.warning(
-                        f"IP rate limit exceeded: {client_id}, "
-                        f"limit: {RATE_LIMIT_MAX_REQUESTS}"
-                    )
-                    return True, rate_limit_info
-
-        # Check user-based rate limit
-        if RATE_LIMIT_BY_USER:
-            user_id = get_user_identifier(request)
-            if user_id:
-                if user_id not in rate_limit_data["user"]:
-                    rate_limit_data["user"][user_id] = 1
-                    rate_limit_info["remaining"] -= 1
-                    rate_limit_logger.debug(
-                        f"New user rate limit entry: {user_id}, "
-                        f"remaining: {rate_limit_info['remaining']}"
-                    )
-                else:
-                    # Clean up old entries
-                    rate_limit_data["user"] = {
-                        k: v
-                        for k, v in rate_limit_data["user"].items()
-                        if v > window_start
-                    }
-                    rate_limit_data["user"][user_id] = current_time
-                    rate_limit_info["remaining"] = min(
-                        rate_limit_info["remaining"],
-                        RATE_LIMIT_MAX_REQUESTS - len(rate_limit_data["user"]),
-                    )
-                    rate_limit_logger.debug(
-                        f"Updated user rate limit: {user_id}, "
-                        f"remaining: {rate_limit_info['remaining']}"
-                    )
-
-                    # Check if limit is exceeded
-                    if len(rate_limit_data["user"]) > RATE_LIMIT_MAX_REQUESTS:
-                        rate_limit_logger.warning(
-                            f"User rate limit exceeded: {user_id}, "
-                            f"limit: {RATE_LIMIT_MAX_REQUESTS}"
-                        )
-                        return True, rate_limit_info
-
-        return False, rate_limit_info
-
-    except ValueError as e:
-        rate_limit_logger.error(f"Rate limit check failed: {str(e)}")
-        raise
-    except Exception as e:
-        rate_limit_logger.error(f"Unexpected error in rate limit check: {str(e)}")
-        raise ValueError(ERROR_MESSAGES["internal_error"])
-
-
+# Standalone middleware function for backward compatibility
 async def rate_limit_middleware(request: Request, call_next):
     """
-    Rate limiting middleware
+    Rate limiting middleware function (backward compatibility)
 
     Args:
         request: FastAPI request
@@ -208,45 +270,8 @@ async def rate_limit_middleware(request: Request, call_next):
     Returns:
         Response from next middleware or route handler
     """
-    try:
-        is_rate_limited, rate_limit_info = check_rate_limit(request)
+    # Use the same middleware implementation with default settings
+    middleware = RateLimitMiddleware(app=None)
 
-        if is_rate_limited:
-            rate_limit_logger.info(
-                f"Rate limit exceeded for request: {request.url.path}, "
-                f"client: {get_client_identifier(request)}, "
-                f"user: {get_user_identifier(request)}"
-            )
-            response = JSONResponse(
-                status_code=429,
-                content={
-                    "status": "error",
-                    "message": ERROR_MESSAGES["rate_limit_exceeded"],
-                    "limit": rate_limit_info["limit"],
-                    "reset": rate_limit_info["reset"],
-                },
-            )
-        else:
-            response = await call_next(request)
-
-        # Add rate limit headers
-        response.headers["X-RateLimit-Limit"] = str(rate_limit_info["limit"])
-        response.headers["X-RateLimit-Remaining"] = str(rate_limit_info["remaining"])
-        response.headers["X-RateLimit-Reset"] = str(rate_limit_info["reset"])
-
-        if is_rate_limited:
-            response.headers["Retry-After"] = str(RATE_LIMIT_WINDOW)
-
-        return response
-
-    except ValueError as e:
-        rate_limit_logger.error(f"Rate limit middleware error: {str(e)}")
-        return JSONResponse(
-            status_code=500, content={"status": "error", "message": str(e)}
-        )
-    except Exception as e:
-        rate_limit_logger.error(f"Unexpected error in rate limit middleware: {str(e)}")
-        return JSONResponse(
-            status_code=500,
-            content={"status": "error", "message": ERROR_MESSAGES["internal_error"]},
-        )
+    # Call the dispatch method directly
+    return await middleware.dispatch(request, call_next)

@@ -16,6 +16,9 @@ from backend.utils.logging import get_logger
 from backend.utils.error_handler import error_handling_middleware, register_exception_handlers
 from backend.utils.middleware import setup_middleware
 from backend.utils.rate_limit_middleware import rate_limit_middleware
+from backend.utils.security_headers_middleware import setup_security_headers_middleware
+from backend.utils.cookie_security_middleware import setup_cookie_security_middleware
+from backend.utils.enhanced_validation import setup_enhanced_validation
 
 # Import database
 from backend.database import init_db, check_database_connection
@@ -102,10 +105,32 @@ app = FastAPI(
     redoc_url="/api/redoc",
 )
 
+# Configure CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:3000",
+        *[f"http://localhost:{i}" for i in range(3000, 3020)],
+        "https://ultrai.app",
+        "https://api.ultrai.app",
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Set up enhanced validation
+setup_enhanced_validation(app)
+
+# Register exception handlers
+register_exception_handlers(app)
+
 # Add error handling middleware
 app.middleware("http")(error_handling_middleware)
 
-# Set up additional middleware (request validation, logging, performance)
+# Set up security headers and additional middleware
+setup_security_headers_middleware(app)
+setup_cookie_security_middleware(app)
 setup_middleware(app)
 
 # Set up rate limiting
@@ -120,9 +145,6 @@ app.include_router(pricing_router)
 app.include_router(user_router)
 app.include_router(oauth_router)
 app.include_router(llm_router)
-
-# Register exception handlers
-register_exception_handlers(app)
 
 
 def run_server():
@@ -156,20 +178,6 @@ def run_server():
         original_port = port
         port = find_available_port(original_port)
         logger.info(f"Port {original_port} is in use, using port {port} instead")
-
-    # Add CORS middleware
-    app.add_middleware(
-        CORSMiddleware,
-        allow_origins=[
-            f"http://localhost:{port}",
-            *[f"http://localhost:{i}" for i in range(3000, 3020)],
-            "https://ultrai.app",
-            "https://api.ultrai.app",
-        ],
-        allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"],
-    )
 
     # Start the server
     env = os.getenv("ENVIRONMENT", "development")
