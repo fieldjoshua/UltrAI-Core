@@ -14,6 +14,7 @@ import json
 import re
 
 from ..patterns.ultra_analysis_patterns import AnalysisPatterns
+from .pattern_optimizer import PatternOptimizer
 
 
 class SuggestionType(Enum):
@@ -156,6 +157,7 @@ class SuggestionEngine:
         self.patterns_by_category = self._categorize_patterns()
         self.storage_path = storage_path
         self.suggestion_history: List[Suggestion] = []
+        self.pattern_optimizer = PatternOptimizer()
 
         # Pattern selection heuristics
         self.pattern_keywords = {
@@ -276,31 +278,11 @@ class SuggestionEngine:
 
     def _match_pattern_to_prompt(self, prompt: str) -> List[Tuple[str, float]]:
         """
-        Match prompt to appropriate patterns based on keyword analysis
-        Returns list of (pattern_name, score) tuples
+        Match prompt to appropriate patterns based on content analysis.
+        Returns list of (pattern_name, score) tuples.
         """
-        if not prompt:
-            return []
-
-        prompt_lower = prompt.lower()
-        matches = []
-
-        # Calculate match scores for each pattern
-        for pattern_name, keywords in self.pattern_keywords.items():
-            score = 0
-            for keyword in keywords:
-                if keyword.lower() in prompt_lower:
-                    score += 1
-
-            # Normalize score
-            if keywords:
-                normalized_score = score / len(keywords)
-                if normalized_score > 0:
-                    matches.append((pattern_name, normalized_score))
-
-        # Sort by score descending
-        matches.sort(key=lambda x: x[1], reverse=True)
-        return matches
+        # Use the pattern optimizer for enhanced matching
+        return self.pattern_optimizer.match_pattern_to_prompt(prompt)
 
     def _generate_prompt_refinements(self, prompt: str) -> List[Suggestion]:
         """Generate suggestions for prompt refinements"""
@@ -441,6 +423,7 @@ class SuggestionEngine:
 
         # 1. Generate feather pattern suggestions based on prompt
         if self.user_context.current_prompt and not self.user_context.selected_pattern:
+            # Use the enhanced pattern matcher
             pattern_matches = self._match_pattern_to_prompt(
                 self.user_context.current_prompt
             )
@@ -499,11 +482,26 @@ class SuggestionEngine:
         if 0 <= suggestion_id < len(self.suggestion_history):
             self.suggestion_history[suggestion_id].dismissed = True
 
+            # If it was a pattern suggestion, record this for the optimizer
+            suggestion = self.suggestion_history[suggestion_id]
+            if suggestion.type == SuggestionType.FEATHER_PATTERN:
+                # Negative feedback for optimizer - pattern was dismissed
+                pattern_name = suggestion.content
+                if pattern_name and self.user_context.current_prompt:
+                    # We don't call record_pattern_success as this wasn't successful
+                    pass
+
     def track_feature_usage(self, feature_name: str) -> None:
         """Track usage of features to improve suggestions"""
         if feature_name not in self.user_context.feature_usage_count:
             self.user_context.feature_usage_count[feature_name] = 0
         self.user_context.feature_usage_count[feature_name] += 1
+
+        # If it's a pattern being used, record the success for the optimizer
+        if feature_name in self.all_patterns and self.user_context.current_prompt:
+            self.pattern_optimizer.record_pattern_success(
+                feature_name, self.user_context.current_prompt
+            )
 
     def _save_state(self) -> None:
         """Save engine state to persistent storage"""

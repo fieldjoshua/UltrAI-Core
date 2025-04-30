@@ -1,0 +1,171 @@
+PROVISIONAL PATENT APPLICATION
+COVER SHEET
+Title of Invention: AICheck - Systematic Project Organization and Management Framework
+Inventor(s): Joshua Field 1625 SW Alder St. #510 Portland, OR 97205 Citizenship: United States of America
+Correspondence Address: Joshua Field 1625 SW Alder St. #510 Portland, OR 97205
+Application Filed By: Inventor
+________________
+
+
+SPECIFICATION
+Title: AICheck - Systematic Project Organization and Management Framework
+Cross-Reference to Related Applications
+[Not Applicable]
+Field of the Invention
+This invention relates to software development project management systems, specifically to the organization, documentation, and systematic management of complex AI-driven software development projects. The invention addresses the need for consistent documentation practices, structured project organization, standardized workflows, and systematic action tracking in AI-enhanced software development environments.
+Background of the Invention
+Modern software development, particularly for AI-enhanced applications, faces significant challenges in maintaining consistent documentation, organizing complex project structures, and ensuring systematic development workflows. Traditional project management tools often fail to address the unique challenges of AI-driven development, including the need for strict documentation practices, clear action organization, and robust workflow automation.
+
+Existing project management approaches for AI development typically suffer from inconsistent organization, scattered or incomplete documentation, inadequate action tracking, and inefficient workflow processes. They lack unified frameworks for documentation-first development, standardized directory structures, and automated session management for AI-assisted development. As a result, organizations face challenges in maintaining development quality, tracking progress, and efficiently integrating AI capabilities into their development workflows.
+
+There is a critical need for a system that:
+* Implements strict documentation-first principles for all development activities.
+* Provides structured, standardized project organization with clear separation of concerns.
+* Enables systematic action-based development with robust tracking and status management.
+* Automates workflow processes for AI-assisted development sessions.
+* Enforces consistent development practices and style requirements.
+* Facilitates rapid onboarding of new developers through comprehensive documentation and organization.
+Summary of the Invention
+The present invention, AICheck, is a comprehensive project organization and management framework designed specifically for complex AI-driven software development projects. AICheck enables developers, teams, and organizations to:
+* Implement documentation-first principles by enforcing comprehensive documentation before any implementation work.
+* Organize projects using a standardized, hierarchical directory structure with clear separation of concerns.
+* Manage development through discrete, well-defined actions with systematic tracking and status management.
+* Automate development workflows through scripted session management tools and standardized processes.
+* Enforce consistent style requirements and development practices across all project components.
+* Onboard new developers quickly through comprehensive documentation and clear project organization.
+
+Key innovations and advantages include:
+* Documentation-first architecture: The system enforces comprehensive documentation before implementation, with specialized directories for different documentation types and clear relationships to implementation components.
+* Standardized project structure: A comprehensive, hierarchical directory structure organizes all project components by function and purpose, improving navigability and maintainability.
+* Action-based development management: Development tasks are organized as discrete actions with detailed plans, clear objectives, and systematic status tracking.
+* Session-based workflow automation: Scripted tools automate the starting, managing, and documenting of development sessions, ensuring consistent practices.
+* Integrated rules enforcement: The system maintains a central rules document that serves as the controlling reference for all development activities, ensuring adherence to project standards.
+* Developer-centric design: Comprehensive documentation, clear organization, and automated workflows support rapid developer onboarding and consistent practices.
+* Flexible extension system: The framework is designed to be adaptable to different project types and development environments while maintaining core principles.
+
+AICheck's architecture is illustrated in Figure 1 (System Architecture) and Figure 2 (Directory Structure), which highlight the framework's organization, workflow, and integration capabilities.
+Brief Description of the Drawings
+Figure 1: System Architecture Diagram illustrating the overall structure and workflow of the AICheck framework, including the relationships between documentation, actions, sessions, and implementation components.
+Figure 2: Directory Structure Diagram showing the standard organization of project components, with emphasis on the hierarchical structure and relationships between documentation and implementation.
+Figure 3: Action Management Workflow Diagram illustrating the lifecycle of actions, from creation through planning, implementation, and completion, with status tracking and dependency management.
+Detailed Description of the Invention
+1. System Overview
+AICheck is a comprehensive project organization and management framework designed for complex AI-driven software development. The system is built around:
+* Documentation-first principles that prioritize comprehensive planning and documentation.
+* Standardized project organization with clear separation of concerns.
+* Action-based development management with systematic tracking.
+* Session-based workflow automation for consistent practices.
+* Rules-driven development with clear standards and guidelines.
+
+2. System Architecture
+The AICheck framework implements a structured approach to project organization and management:
+2.1 Documentation Architecture
+* Centralizes all documentation in a structured hierarchy of specialized directories.
+* Categorizes documentation by type and purpose (technical, public, planning, architecture, etc.).
+* Enforces relationships between documentation and implementation components.
+* Maintains comprehensive references and indexes for improved discoverability.
+2.2 Action Management System
+* Organizes development through discrete, well-defined actions.
+* Requires detailed action plans with objectives, value propositions, and implementation strategies.
+* Tracks action status using standardized states (Not Started, ActiveAction, Completed, Blocked, On Hold).
+* Maintains dependencies and relationships between actions.
+* Enforces single active action workflow to ensure focused development.
+2.3 Session Management Framework
+* Provides scripted tools for starting, managing, and documenting development sessions.
+* Automates context capturing and session record maintenance.
+* Implements command-line utilities for checking status, generating prompts, and managing actions.
+* Ensures consistent session workflows and documentation.
+2.4 Rules and Standards System
+* Maintains a central RULES.md document as the controlling reference for all development.
+* Defines project structure, documentation requirements, and development practices.
+* Provides guidelines for style, commits, and process workflows.
+* Serves as the authoritative reference for resolving questions and conflicts.
+2.5 Directory Structure System
+* Implements a standardized, hierarchical directory structure organized by function and concern.
+* Maintains clear separation between documentation, source code, and supporting resources.
+* Organizes AICheck components in a dedicated directory with specialized subdirectories.
+* Provides navigation aids and reference documents for improved discoverability.
+
+3. Detailed Features
+3.1 Documentation-First Principles
+3.1.1 Documentation Requirements
+* Enforces comprehensive documentation before implementation begins.
+* Requires detailed planning documents with clear objectives, value propositions, and implementation strategies.
+* Centralizes documentation in a structured hierarchy of specialized directories.
+* Maintains relationships between documentation and implementation components.
+3.1.2 Documentation Organization
+* Categorizes documentation by type and purpose (technical, public, planning, architecture, etc.).
+* Implements standardized naming conventions and file formats.
+* Provides cross-referencing and indexing for improved discoverability.
+* Ensures documentation is kept up-to-date with implementation changes.
+3.2 Action-Based Development Management
+3.2.1 Action Structure
+* Defines actions as discrete, well-defined development tasks with clear boundaries.
+* Requires detailed action plans with objectives, value propositions, and implementation strategies.
+* Organizes supporting documentation within action directories.
+* Maintains clear relationships between actions and their implementation components.
+3.2.2 Action Tracking
+* Implements standardized status tracking with defined states (Not Started, ActiveAction, Completed, Blocked, On Hold).
+* Maintains an actions index with status information and dependencies.
+* Enforces single active action workflow to ensure focused development.
+* Provides utilities for checking status, updating progress, and managing transitions.
+3.3 Session-Based Workflow Automation
+3.3.1 Session Management
+* Provides scripted tools for starting, managing, and documenting development sessions.
+* Automates context capturing and session record maintenance.
+* Implements standardized workflows for session activities.
+* Ensures consistent session documentation and tracking.
+3.3.2 Workflow Automation
+* Implements command-line utilities for checking status, generating prompts, and managing actions.
+* Automates routine tasks and enforces consistent practices.
+* Provides integrated tools for development, documentation, and management.
+* Reduces cognitive load through standardized workflows and automation.
+3.4 Rules and Standards Enforcement
+3.4.1 Rules System
+* Maintains RULES.md as the controlling reference for all development.
+* Defines project structure, documentation requirements, and development practices.
+* Provides authoritative guidelines for resolving questions and conflicts.
+* Ensures consistent understanding of project standards and requirements.
+3.4.2 Style and Process Standards
+* Implements consistent style requirements for documentation, code, and commit messages.
+* Enforces language-specific best practices and quality standards.
+* Provides templates and examples for common documentation types.
+* Ensures consistency across all project components.
+3.5 Developer Onboarding and Integration
+* Provides comprehensive documentation and clear project organization for rapid onboarding.
+* Implements standardized workflows and automation to reduce learning curve.
+* Ensures clear understanding of project structure, conventions, and practices.
+* Facilitates collaborative development through consistent practices and organization.
+
+4. Novel Technical Aspects
+The AICheck framework introduces several novel technical aspects, including:
+* Documentation-first architecture that enforces comprehensive planning and documentation before implementation.
+* Standardized, hierarchical directory structure that organizes project components by function and purpose.
+* Action-based development management with systematic tracking and status enforcement.
+* Session-based workflow automation with scripted tools for consistent practices.
+* Rules-driven development with clear standards and guidelines as controlling references.
+* Integrated organization of AI-assisted development processes.
+* Systematic project structure that maintains clear relationships between documentation and implementation.
+* Structured action management with status tracking and dependency handling.
+* Automated session management for consistent practices and documentation.
+
+These innovations are illustrated in Figures 1, 2, and 3, which show the framework's architecture, directory structure, and action management workflow.
+
+5. Figures/Diagrams
+Figure 1: System Architecture Diagram of the AICheck Framework
+Figure 1: System Architecture Diagram of the AICheck Framework
+	Figure 1: System Architecture Diagram of the AICheck Framework
+Figure 1. The AICheck System Architecture Diagram illustrates the relationships between the documentation architecture, action management system, session management framework, rules and standards system, and directory structure system. The architecture highlights the documentation-first principles, structured workflow, and integrated organization of the framework.
+
+Figure 2: Directory Structure Diagram of the AICheck Framework
+Figure 2: Directory Structure Diagram of the AICheck Framework
+	Figure 2: Directory Structure Diagram of the AICheck Framework
+Figure 2. The Directory Structure Diagram shows the standardized, hierarchical organization of project components in the AICheck framework, with clear separation between documentation, source code, and supporting resources. The structure highlights the relationships between documentation and implementation components and the organization of specialized directories.
+
+Figure 3: Action Management Workflow Diagram of the AICheck Framework
+Figure 3: Action Management Workflow Diagram of the AICheck Framework
+	Figure 3: Action Management Workflow Diagram of the AICheck Framework
+Figure 3. The Action Management Workflow Diagram illustrates the lifecycle of actions in the AICheck framework, from creation through planning, implementation, and completion. The workflow highlights the status tracking, dependency management, and documentation requirements at each stage.
+
+Abstract
+The AICheck framework is a comprehensive project organization and management system designed specifically for complex AI-driven software development projects. AICheck implements documentation-first principles, standardized project structures, action-based development management, and session-based workflow automation to address the unique challenges of AI-enhanced development. The framework enforces consistent documentation practices, structured project organization, and systematic workflows through a rules-driven approach with clear standards and guidelines. AICheck's architecture, illustrated in the included diagrams, supports rapid developer onboarding, consistent development practices, and improved project maintainability through its integrated organization of documentation, actions, sessions, and implementation components. The system delivers enhanced development quality, systematic project management, and seamless integration of AI capabilities, setting a new standard for organized, documentationfocused software development.

@@ -533,305 +533,159 @@ async def options_analyze_with_docs():
 
 
 @app.post("/api/analyze")
-async def analyze_prompt(request: Request):
-    start_time = time.time()
+async def analyze(request: dict = Body(...)):
+    """
+    Analyze a prompt using multiple LLMs and an Ultra LLM
+    """
+    global processing_times
+    start_processing = time.time()
 
     try:
-        data = await request.json()
-        prompt = data.get("prompt")
-        selected_models = data.get("llms", data.get("selectedModels", []))
-        ultra_model = data.get("ultraLLM", data.get("ultraModel"))
-        pattern_name = data.get("pattern", "Confidence Analysis")
-        options = data.get("options", {})
-        user_id = data.get("userId")
+        # Extract request parameters
+        prompt = request.get("prompt", "")
+        models = request.get("models", ["gpt4o", "gpt4turbo"])
+        ultra_model = request.get("ultraModel", "gpt4o")
+        pattern = request.get("pattern", "confidence")
+        user_id = request.get("userId")
+        session_id = request.get("sessionId")
+        timeout = request.get("timeout", 60)  # Default timeout of 60 seconds
 
-        # Validate required fields
-        if not prompt:
-            raise ValidationError("Prompt is required")
-        if not selected_models:
-            raise ValidationError("At least one model must be selected")
+        # Enhanced validation
+        if not prompt.strip():
+            raise HTTPException(status_code=400, detail="Prompt cannot be empty")
+
+        if not isinstance(models, list) or len(models) == 0:
+            logger.warning("Invalid or empty models list, using defaults")
+            models = ["gpt4o", "gpt4turbo"]
+
         if not ultra_model:
-            raise ValidationError("Ultra model is required")
+            logger.warning("Ultra model not specified, using default")
+            ultra_model = models[0] if models else "gpt4o"
 
-        # Update metrics
-        performance_metrics["requests_processed"] += 1
-
-        # Check cache for identical request
-        cache_key = generate_cache_key(
-            prompt, selected_models, ultra_model, pattern_name
+        # Use cache if available
+        cache_key = generate_cache_key(prompt, models, ultra_model, pattern)
+        cached_response = (
+            response_cache.get(cache_key) if hasattr(response_cache, "get") else None
         )
-        cached_response = response_cache.get(cache_key)
 
-        if cached_response and not options.get("bypass_cache", False):
-            logger.info(f"Cache hit for prompt: {prompt[:30]}...")
+        if cached_response:
             performance_metrics["cache_hits"] += 1
-
-            # Add cache indicator to response
-            cached_response["cached"] = True
-            cached_response["cache_time"] = datetime.now().isoformat()
-
-            # Track cost (even for cached responses)
-            if user_id and pricing_integration.pricing_enabled:
-                await track_request_cost(
-                    user_id=user_id,
-                    request_type="cached_analyze",
-                    model=ultra_model,
-                    tokens_used=0,  # No tokens used for cached response
-                )
+            logger.info(f"Cache hit for prompt: {prompt[:30]}...")
+            end_processing = time.time()
+            processing_time = end_processing - start_processing
+            processing_times.append(processing_time)
+            performance_metrics["requests_processed"] += 1
+            update_metrics_history()
 
             return cached_response
 
-        logger.info(f"Received analyze request with pattern: {pattern_name}")
-
-        # Use mock service if in mock mode
+        # Check if we should use mock
         if Config.use_mock and Config.mock_service:
-            try:
-                result = await Config.mock_service.analyze_prompt(
-                    prompt=prompt,
-                    models=selected_models,
-                    ultra_model=ultra_model,
-                    pattern=pattern_name,
-                )
-
-                # Format the result to match expected response structure
-                response = {
-                    "status": "success",
-                    "results": result.get("results", {}),
-                    "ultra_response": result.get("ultra_response", ""),
-                    "pattern": result.get("pattern", pattern_name),
-                }
-
-                # Cache the response
-                response_cache[cache_key] = response
-
-                return response
-            except Exception as e:
-                logger.error(f"Error in mock analyze: {str(e)}")
-                raise HTTPException(
-                    status_code=500, detail=f"Mock service error: {str(e)}"
-                )
-
-        # Map frontend pattern names to backend pattern keys
-        pattern_map = {
-            "Confidence Analysis": "confidence",
-            "Critique": "critique",
-            "Gut Check": "gut",
-            "Fact Check": "fact_check",
-            "Perspective Analysis": "perspective",
-            "Scenario Analysis": "scenario",
-        }
-
-        pattern_key = pattern_map.get(pattern_name, "confidence")
-
-        # Check authorization if pricing is enabled
-        if user_id and pricing_integration.pricing_enabled:
-            auth_result = await check_request_authorization(
-                user_id=user_id,
-                request_type="analyze",
-                model=ultra_model,
-                estimated_tokens=len(prompt.split()) * 8,  # Rough estimate
+            logger.info(f"Using mock service for prompt: {prompt[:30]}...")
+            # Use the async analyze_prompt for consistency
+            result = await Config.mock_service.analyze_prompt(
+                prompt, models, ultra_model, pattern
             )
 
-            if not auth_result["authorized"]:
-                return JSONResponse(
-                    status_code=402,  # Payment Required
-                    content={
-                        "status": "error",
-                        "code": "insufficient_balance",
-                        "message": "Your account balance is insufficient for this request",
-                        "details": auth_result.get("details", {}),
-                    },
-                )
+            # Cache the result
+            if hasattr(response_cache, "update"):
+                response_cache[cache_key] = result
 
-        try:
-            # Initialize the orchestrator with the selected models and pattern
+            # Update metrics
+            end_processing = time.time()
+            processing_time = end_processing - start_processing
+            processing_times.append(processing_time)
+            performance_metrics["requests_processed"] += 1
+            update_metrics_history()
+
+            return result
+
+        # Use orchestrator if available
+        if ORCHESTRATOR_AVAILABLE:
+            logger.info(f"Using pattern orchestrator for prompt: {prompt[:30]}...")
             try:
-                # Note: ultra_model is set as a separate attribute after initialization
-                orchestrator = PatternOrchestrator(
-                    api_keys={
-                        "anthropic": os.getenv("ANTHROPIC_API_KEY"),
-                        "openai": os.getenv("OPENAI_API_KEY"),
-                        "google": os.getenv("GOOGLE_API_KEY"),
-                        "mistral": os.getenv("MISTRAL_API_KEY"),
-                        "deepseek": os.getenv("DEEPSEEK_API_KEY"),
-                        "cohere": os.getenv("COHERE_API_KEY"),
-                    },
-                    pattern=pattern_key,
-                    output_format="plain",
-                )
-
-                # Set the ultra model after initialization
+                # Get or create orchestrator
+                orchestrator = PatternOrchestrator()
                 orchestrator.ultra_model = ultra_model
 
-                # Process the prompt with the orchestrator
-                result = await orchestrator.orchestrate_full_process(prompt)
+                # Set timeout for orchestration
+                orchestrator.timeout = timeout
 
-                # Format the result
-                response = {
-                    "status": "success",
-                    "ultra_response": result.get("ultra_response", ""),
-                    "results": {
-                        model: content
-                        for model, content in result.get(
-                            "initial_responses", {}
-                        ).items()
-                    },
-                    "pattern": pattern_name,
-                    "processing_time": time.time() - start_time,
-                }
-
-                # Cache the response
-                response_cache[cache_key] = response
-
-                # Track the request cost if pricing is enabled
-                if user_id and pricing_integration.pricing_enabled:
-                    # Estimate token usage
-                    token_count = sum(
-                        len(text.split()) * 4
-                        for text in result.get("initial_responses", {}).values()
-                    )
-                    token_count += len(result.get("ultra_response", "").split()) * 4
-
-                    await track_request_cost(
-                        user_id=user_id,
-                        request_type="analyze",
-                        model=ultra_model,
-                        tokens_used=token_count,
-                    )
-
-                return response
-
-            except TypeError as e:
-                # Handle specific initialization errors for different API clients
-                logger.warning(f"API client initialization error: {str(e)}")
-
-                # Filter selected_models to only include models we can initialize
-                working_models = []
-
-                # Check which models we can use based on the error
-                if (
-                    "AsyncClient.__init__() got an unexpected keyword argument 'proxies'"
-                    in str(e)
-                ):
-                    logger.warning(
-                        "Anthropic/Claude client incompatible - removing from available models"
-                    )
-                    working_models = [
-                        model
-                        for model in selected_models
-                        if model != "claude37" and model != "claude3opus"
-                    ]
-                else:
-                    # For other errors, assume we can use OpenAI and Gemini (but not Claude)
-                    working_models = [
-                        model
-                        for model in selected_models
-                        if not model.startswith("claude")
-                    ]
-
-                if not working_models:
-                    # If no selected models can work, add a default that usually works
-                    if "gpt4turbo" not in selected_models:
-                        working_models.append("gpt4turbo")
-                    if "gemini15" not in selected_models:
-                        working_models.append("gemini15")
-
-                # Create custom safe response with working models only
-                result = {
-                    "initial_responses": {
-                        model: f"Response from {model} model. Some models were unavailable due to API initialization errors."
-                        for model in working_models
-                    },
-                    "meta_responses": {
-                        model: f"Meta analysis from {model}."
-                        for model in working_models
-                    },
-                    "hyper_responses": {
-                        model: f"Hyper analysis from {model}."
-                        for model in working_models
-                    },
-                    "ultra_response": f'This analysis was limited to working models only. The following API client had initialization errors: Claude/Anthropic.\n\nTo fix this issue, you need to update the anthropic library to a compatible version (0.22.0 is not compatible with the current code).\n\nBased on your query: "{prompt[:100]}..."\n\nAnalysis: This is a synthesized response from the working models. For a more complete analysis, please fix the API client compatibility issues.',
-                }
-
-                # Add a note about the error to the response metadata
-                response = {
-                    "status": "partial_success",
-                    "data": {
-                        "initial_responses": {
-                            model: content
-                            for model, content in result.get(
-                                "initial_responses", {}
-                            ).items()
-                        },
-                        "meta_responses": {
-                            model: content
-                            for model, content in result.get(
-                                "meta_responses", {}
-                            ).items()
-                        },
-                        "hyper_responses": {
-                            model: content
-                            for model, content in result.get(
-                                "hyper_responses", {}
-                            ).items()
-                        },
-                        "ultra": result.get("ultra_response", ""),
-                    },
-                    "available_models": working_models,
-                    "error_info": {
-                        "message": "Some API clients failed to initialize",
-                        "detail": str(e),
-                        "unavailable_models": [
-                            model
-                            for model in selected_models
-                            if model not in working_models
-                        ],
-                    },
-                }
-
-                return JSONResponse(content=response)
-            except Exception as e:
-                # Re-raise if it's not a specific error we're handling
-                raise
-        except TypeError as e:
-            # Handle missing parameter error specifically
-            if "got an unexpected keyword argument" in str(e):
-                # Return a simulated response for development/testing
-                logger.warning(f"Using simulated response due to error: {str(e)}")
-
-                # Create a mock response with the input data
-                mock_responses = {
-                    model: f"Simulated response from {model}"
-                    for model in selected_models
-                }
-
-                return JSONResponse(
-                    content={
-                        "status": "success",
-                        "data": {
-                            "initial_responses": mock_responses,
-                            "meta_responses": {},
-                            "hyper_responses": {},
-                            "ultra": f"Simulated Ultra response for prompt: {prompt[:30]}...",
-                        },
-                        "note": "This is a simulated response due to API configuration issue",
-                    }
+                # Use the full process for better results
+                result = await orchestrator.orchestrate_full_process(
+                    prompt, models=models
                 )
-            else:
-                # Re-raise any other TypeError
-                raise
-    except ValidationError as e:
-        logger.warning(f"Validation error: {str(e)}")
-        return JSONResponse(
-            status_code=400, content={"status": "error", "message": str(e)}
-        )
+
+                # Cache the result
+                if hasattr(response_cache, "update"):
+                    response_cache[cache_key] = result
+
+                # Update metrics
+                end_processing = time.time()
+                processing_time = end_processing - start_processing
+                processing_times.append(processing_time)
+                performance_metrics["requests_processed"] += 1
+                update_metrics_history()
+
+                return result
+            except asyncio.TimeoutError:
+                logger.error(
+                    f"Timeout error orchestrating analysis for prompt: {prompt[:30]}..."
+                )
+                return {
+                    "status": "error",
+                    "error": "timeout",
+                    "message": "The analysis took too long to complete. Please try again with a simpler prompt or fewer models.",
+                }
+            except Exception as e:
+                logger.error(f"Error using pattern orchestrator: {str(e)}")
+                # Try fallback method
+                if hasattr(orchestrator, "basic_analysis"):
+                    logger.info("Attempting fallback to basic analysis")
+                    try:
+                        basic_result = await orchestrator.basic_analysis(prompt, models)
+                        return basic_result
+                    except Exception as e2:
+                        logger.error(f"Fallback analysis also failed: {str(e2)}")
+                        # Continue to next fallback
+
+        # Fallback to minimal response with error
+        logger.error("All analysis methods failed, returning minimal response")
+        model_responses = {}
+
+        # Provide explanation for each model
+        for model in models:
+            model_responses[model] = (
+                f"Failed to get response from {model}. The service may be temporarily unavailable."
+            )
+
+        return {
+            "status": "partial_success",
+            "message": "Could not complete full analysis, but returning partial results",
+            "results": {
+                "model_responses": model_responses,
+                "ultra_response": {
+                    "content": "Analysis could not be completed due to service limitations. Please try again later."
+                },
+                "performance": {
+                    "total_time_seconds": time.time() - start_processing,
+                    "model_times": {},
+                    "token_counts": {},
+                },
+            },
+        }
+
     except Exception as e:
-        logger.error(f"Error in analyze_prompt: {str(e)}")
-        logger.error(f"Traceback: {traceback.format_exc()}")
-        return JSONResponse(
-            status_code=500,
-            content={"status": "error", "message": f"An error occurred: {str(e)}"},
-        )
+        logger.error(f"Error in analyze endpoint: {str(e)}")
+        traceback.print_exc()
+
+        # Return a user-friendly error message
+        return {
+            "status": "error",
+            "error": "analysis_failed",
+            "message": "An error occurred during analysis. Please try again later.",
+            "debug_info": str(e) if Config.DEBUG else None,
+        }
 
 
 @app.post("/api/upload-files")
@@ -1606,10 +1460,19 @@ async def analyze(request: dict = Body(...)):
         pattern = request.get("pattern", "confidence")
         user_id = request.get("userId")
         session_id = request.get("sessionId")
+        timeout = request.get("timeout", 60)  # Default timeout of 60 seconds
 
-        # Basic validation
+        # Enhanced validation
         if not prompt.strip():
             raise HTTPException(status_code=400, detail="Prompt cannot be empty")
+
+        if not isinstance(models, list) or len(models) == 0:
+            logger.warning("Invalid or empty models list, using defaults")
+            models = ["gpt4o", "gpt4turbo"]
+
+        if not ultra_model:
+            logger.warning("Ultra model not specified, using default")
+            ultra_model = models[0] if models else "gpt4o"
 
         # Use cache if available
         cache_key = generate_cache_key(prompt, models, ultra_model, pattern)
@@ -1652,33 +1515,89 @@ async def analyze(request: dict = Body(...)):
         # Use orchestrator if available
         if ORCHESTRATOR_AVAILABLE:
             logger.info(f"Using pattern orchestrator for prompt: {prompt[:30]}...")
-            # Get or create orchestrator
-            orchestrator = PatternOrchestrator()
-            orchestrator.ultra_model = ultra_model
+            try:
+                # Get or create orchestrator
+                orchestrator = PatternOrchestrator()
+                orchestrator.ultra_model = ultra_model
 
-            # Use the full process for better results
-            result = await orchestrator.orchestrate_full_process(prompt)
+                # Set timeout for orchestration
+                orchestrator.timeout = timeout
 
-            # Cache the result
-            if hasattr(response_cache, "update"):
-                response_cache[cache_key] = result
+                # Use the full process for better results
+                result = await orchestrator.orchestrate_full_process(
+                    prompt, models=models
+                )
 
-            # Update metrics
-            end_processing = time.time()
-            processing_time = end_processing - start_processing
-            processing_times.append(processing_time)
-            performance_metrics["requests_processed"] += 1
-            update_metrics_history()
+                # Cache the result
+                if hasattr(response_cache, "update"):
+                    response_cache[cache_key] = result
 
-            return result
+                # Update metrics
+                end_processing = time.time()
+                processing_time = end_processing - start_processing
+                processing_times.append(processing_time)
+                performance_metrics["requests_processed"] += 1
+                update_metrics_history()
 
-        # Fallback to basic analysis
-        raise HTTPException(status_code=500, detail="No analysis service available")
+                return result
+            except asyncio.TimeoutError:
+                logger.error(
+                    f"Timeout error orchestrating analysis for prompt: {prompt[:30]}..."
+                )
+                return {
+                    "status": "error",
+                    "error": "timeout",
+                    "message": "The analysis took too long to complete. Please try again with a simpler prompt or fewer models.",
+                }
+            except Exception as e:
+                logger.error(f"Error using pattern orchestrator: {str(e)}")
+                # Try fallback method
+                if hasattr(orchestrator, "basic_analysis"):
+                    logger.info("Attempting fallback to basic analysis")
+                    try:
+                        basic_result = await orchestrator.basic_analysis(prompt, models)
+                        return basic_result
+                    except Exception as e2:
+                        logger.error(f"Fallback analysis also failed: {str(e2)}")
+                        # Continue to next fallback
+
+        # Fallback to minimal response with error
+        logger.error("All analysis methods failed, returning minimal response")
+        model_responses = {}
+
+        # Provide explanation for each model
+        for model in models:
+            model_responses[model] = (
+                f"Failed to get response from {model}. The service may be temporarily unavailable."
+            )
+
+        return {
+            "status": "partial_success",
+            "message": "Could not complete full analysis, but returning partial results",
+            "results": {
+                "model_responses": model_responses,
+                "ultra_response": {
+                    "content": "Analysis could not be completed due to service limitations. Please try again later."
+                },
+                "performance": {
+                    "total_time_seconds": time.time() - start_processing,
+                    "model_times": {},
+                    "token_counts": {},
+                },
+            },
+        }
 
     except Exception as e:
         logger.error(f"Error in analyze endpoint: {str(e)}")
         traceback.print_exc()
-        raise HTTPException(status_code=500, detail=f"Analysis error: {str(e)}")
+
+        # Return a user-friendly error message
+        return {
+            "status": "error",
+            "error": "analysis_failed",
+            "message": "An error occurred during analysis. Please try again later.",
+            "debug_info": str(e) if Config.DEBUG else None,
+        }
 
 
 async def process_document_context(document_ids: List[str], query: str) -> str:

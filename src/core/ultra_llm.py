@@ -1,356 +1,638 @@
+"""
+Ultra LLM Core Module
+
+This module implements the UltraLLM class, which provides a unified interface
+for interacting with multiple LLM providers.
+"""
+
+import os
+import time
+import logging
+from typing import Dict, List, Optional, Union, Any
 import asyncio
-from typing import Any, Dict, List, Optional, Union
 
-import google.generativeai as genai
-import requests
-from openai import AsyncOpenAI
-from tenacity import retry, stop_after_attempt, wait_exponential
-from ultra_documents import UltraDocuments
+try:
+    # Optional imports for different LLM providers
+    import openai
+    import anthropic
+    import google.generativeai as genai
+    import httpx
+except ImportError as e:
+    logging.warning(f"Some LLM provider libraries not installed: {e}")
 
-from ultra_base import PromptTemplate, RateLimits, UltraBase
+from src.models.model_response import ModelResponse
+from src.utils.cache import SimpleCache, cached
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger("ultra-llm")
 
 
-class UltraLLM(UltraBase):
+class UltraLLM:
+    """
+    Unified interface for multiple LLM providers.
+
+    This class handles the initialization and communication with various
+    LLM providers, providing a standardized way to interact with them.
+    """
+
     def __init__(
         self,
-        api_keys: Dict[str, str],
-        prompt_templates: Optional[PromptTemplate] = None,
-        rate_limits: Optional[RateLimits] = None,
-        output_format: str = "plain",
+        api_keys: Optional[Dict[str, str]] = None,
         enabled_features: Optional[List[str]] = None,
-        ultra_engine: str = "chatgpt",
+        cache_ttl: int = 3600,
     ):
-        super().__init__(
-            api_keys=api_keys,
-            prompt_templates=prompt_templates,
-            rate_limits=rate_limits,
-            output_format=output_format,
-            enabled_features=enabled_features,
-        )
-        self.ultra_engine = ultra_engine
+        """
+        Initialize the UltraLLM instance.
+
+        Args:
+            api_keys: Dictionary with API keys for different providers
+            enabled_features: List of enabled LLM features/providers
+            cache_ttl: Cache time-to-live in seconds
+        """
+        self.api_keys = api_keys or {}
+        self.enabled_features = enabled_features or [
+            "openai",
+            "anthropic",
+            "gemini",
+            "mistral",
+        ]
         self.available_models = []
-        self.documents = UltraDocuments(
-            api_keys=api_keys,
-            prompt_templates=prompt_templates,
-            rate_limits=rate_limits,
-            output_format=output_format,
-            enabled_features=enabled_features,
-        )
+        self.clients = {}
+        self.cache = SimpleCache(ttl=cache_ttl)
 
-    def _initialize_clients(self):
-        """Initialize API clients based on enabled features."""
+        # Load API keys from environment if not provided
+        if not self.api_keys:
+            self._load_api_keys_from_env()
+
+    def _load_api_keys_from_env(self) -> None:
+        """Load API keys from environment variables."""
+        self.api_keys = {
+            "openai": os.getenv("OPENAI_API_KEY"),
+            "anthropic": os.getenv("ANTHROPIC_API_KEY"),
+            "google": os.getenv("GOOGLE_API_KEY"),
+            "mistral": os.getenv("MISTRAL_API_KEY"),
+            "llama": os.getenv("LLAMA_API_KEY"),
+        }
+
+    def _initialize_clients(self) -> None:
+        """Initialize clients for all enabled LLM providers."""
         # Initialize OpenAI client
-        if "openai" in self.enabled_features:
-            openai_api_key = self.api_keys.get("openai")
-            if openai_api_key:
-                self.openai_client = AsyncOpenAI(api_key=openai_api_key)
+        if "openai" in self.enabled_features and self.api_keys.get("openai"):
+            try:
+                self.clients["openai"] = openai.OpenAI(api_key=self.api_keys["openai"])
                 self.available_models.append("openai")
-                print("OpenAI client initialized.")
-                self.logger.info("OpenAI client initialized.")
-            else:
-                print("OpenAI API key not found.")
-                self.logger.error("OpenAI API key not found.")
+                logger.info("OpenAI client initialized")
+            except (ImportError, Exception) as e:
+                logger.error(f"Failed to initialize OpenAI client: {e}")
 
-        # Initialize Google Gemini client
-        if "gemini" in self.enabled_features:
-            google_api_key = self.api_keys.get("google")
-            if google_api_key:
-                genai.configure(api_key=google_api_key)
-                self.available_models.append("gemini")
-                print("Google Gemini client initialized.")
-                self.logger.info("Google Gemini client initialized.")
-            else:
-                print("Google API key not found.")
-                self.logger.error("Google API key not found.")
-
-        # Initialize Anthropic Claude client
-        if "anthropic" in self.enabled_features:
-            anthropic_api_key = self.api_keys.get("anthropic")
-            if anthropic_api_key:
-                self.anthropic_client = AsyncOpenAI(
-                    api_key=anthropic_api_key, base_url="https://api.anthropic.com/v1"
+        # Initialize Anthropic client
+        if "anthropic" in self.enabled_features and self.api_keys.get("anthropic"):
+            try:
+                self.clients["anthropic"] = anthropic.Anthropic(
+                    api_key=self.api_keys["anthropic"]
                 )
                 self.available_models.append("anthropic")
-                print("Anthropic Claude client initialized.")
-                self.logger.info("Anthropic Claude client initialized.")
-            else:
-                print("Anthropic API key not found.")
-                self.logger.error("Anthropic API key not found.")
+                logger.info("Anthropic client initialized")
+            except (ImportError, Exception) as e:
+                logger.error(f"Failed to initialize Anthropic client: {e}")
 
-        # Initialize DeepSeek client
-        if "deepseek" in self.enabled_features:
-            deepseek_api_key = self.api_keys.get("deepseek")
-            if deepseek_api_key:
-                self.deepseek_client = AsyncOpenAI(
-                    api_key=deepseek_api_key, base_url="https://api.deepseek.com/v1"
-                )
-                self.available_models.append("deepseek")
-                print("DeepSeek client initialized.")
-                self.logger.info("DeepSeek client initialized.")
-            else:
-                print("DeepSeek API key not found.")
-                self.logger.error("DeepSeek API key not found.")
+        # Initialize Google client
+        if "gemini" in self.enabled_features and self.api_keys.get("google"):
+            try:
+                genai.configure(api_key=self.api_keys["google"])
+                self.clients["gemini"] = genai
+                self.available_models.append("gemini")
+                logger.info("Google Gemini client initialized")
+            except (ImportError, Exception) as e:
+                logger.error(f"Failed to initialize Google client: {e}")
 
         # Initialize Mistral client
-        if "mistral" in self.enabled_features:
-            mistral_api_key = self.api_keys.get("mistral")
-            if mistral_api_key:
-                self.mistral_client = AsyncOpenAI(
-                    api_key=mistral_api_key, base_url="https://api.mistral.ai/v1"
+        if "mistral" in self.enabled_features and self.api_keys.get("mistral"):
+            try:
+                # Using httpx for Mistral API (simplified for MVP)
+                self.clients["mistral"] = httpx.AsyncClient(
+                    base_url="https://api.mistral.ai/v1",
+                    headers={"Authorization": f"Bearer {self.api_keys['mistral']}"},
                 )
                 self.available_models.append("mistral")
-                print("Mistral client initialized.")
-                self.logger.info("Mistral client initialized.")
-            else:
-                print("Mistral API key not found.")
-                self.logger.error("Mistral API key not found.")
+                logger.info("Mistral client initialized")
+            except (ImportError, Exception) as e:
+                logger.error(f"Failed to initialize Mistral client: {e}")
 
-        # Initialize Ollama client (for local models)
+        # Initialize Ollama client if enabled
         if "ollama" in self.enabled_features:
-            self.available_models.append("ollama")
-            print("Ollama client initialized.")
-            self.logger.info("Ollama client initialized.")
+            try:
+                ollama_url = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
+                self.clients["ollama"] = httpx.AsyncClient(base_url=ollama_url)
+                self.available_models.append("ollama")
+                logger.info("Ollama client initialized")
+            except (ImportError, Exception) as e:
+                logger.error(f"Failed to initialize Ollama client: {e}")
 
-        # Initialize Llama client
-        if "llama" in self.enabled_features:
-            llama_api_key = self.api_keys.get("llama")
-            if llama_api_key:
+        # Initialize LLaMA API client if enabled
+        if "llama" in self.enabled_features and self.api_keys.get("llama"):
+            try:
+                # Using httpx for LLaMA API (simplified for MVP)
+                self.clients["llama"] = httpx.AsyncClient(
+                    headers={"Authorization": f"Bearer {self.api_keys['llama']}"}
+                )
                 self.available_models.append("llama")
-                print("Llama client initialized.")
-                self.logger.info("Llama client initialized.")
+                logger.info("LLaMA client initialized")
+            except (ImportError, Exception) as e:
+                logger.error(f"Failed to initialize LLaMA client: {e}")
+
+    async def analyze_prompt(
+        self,
+        prompt: str,
+        models: Optional[List[str]] = None,
+        ultra_model: Optional[str] = None,
+        temperature: float = 0.7,
+        max_tokens: int = 1024,
+    ) -> Dict[str, Any]:
+        """
+        Analyze a prompt using multiple LLMs.
+
+        Args:
+            prompt: The prompt to analyze
+            models: List of models to use (default: all available)
+            ultra_model: Model to use for synthesis (optional)
+            temperature: Temperature parameter for LLM generation
+            max_tokens: Maximum tokens to generate
+
+        Returns:
+            Dictionary with responses from all models and optional synthesis
+        """
+        # Initialize clients if not already done
+        if not self.clients:
+            self._initialize_clients()
+
+        # Use all available models if none specified
+        models = models or self.available_models
+
+        # Filter to only available models
+        models = [model for model in models if model in self.available_models]
+
+        if not models:
+            return {
+                "status": "error",
+                "message": "No valid models available",
+                "results": {},
+            }
+
+        # Start timer
+        start_time = time.time()
+
+        # Prepare tasks for each model
+        tasks = []
+        for model in models:
+            if model == "openai":
+                tasks.append(self.get_chatgpt_response(prompt, temperature, max_tokens))
+            elif model == "anthropic":
+                tasks.append(self.get_claude_response(prompt, temperature, max_tokens))
+            elif model == "gemini":
+                tasks.append(self.get_gemini_response(prompt, temperature, max_tokens))
+            elif model == "mistral":
+                tasks.append(self.get_mistral_response(prompt, temperature, max_tokens))
+            elif model == "ollama":
+                tasks.append(self.call_ollama(prompt, temperature, max_tokens))
+            elif model == "llama":
+                tasks.append(self.call_llama(prompt, temperature, max_tokens))
+
+        # Run all tasks concurrently
+        responses = await asyncio.gather(*tasks, return_exceptions=True)
+
+        # Process responses
+        model_responses = {}
+        for i, model in enumerate(models):
+            response = responses[i]
+            if isinstance(response, Exception):
+                model_responses[model] = ModelResponse(
+                    model_name=model,
+                    error=str(response),
+                ).to_dict()
             else:
-                print("Llama API key not found.")
-                self.logger.error("Llama API key not found.")
+                model_responses[model] = response.to_dict()
 
-    @retry(
-        stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=4, max=10)
-    )
-    async def call_chatgpt(self, prompt: str) -> str:
-        """Call OpenAI's ChatGPT API."""
-        if not self.is_feature_enabled("openai"):
-            return "Error: OpenAI feature not enabled"
+        # Create Ultra synthesis if requested
+        ultra_response = None
+        if ultra_model and ultra_model in self.available_models:
+            synthesis_prompt = f"""
+            I have received the following responses from different language models to this prompt:
 
-        try:
-            response = await self.openai_client.chat.completions.create(
-                model="gpt-4",
-                messages=[
-                    {"role": "system", "content": "You are an intelligent assistant."},
-                    {"role": "user", "content": prompt},
-                ],
-                max_tokens=1500,
-                temperature=0.7,
+            PROMPT: {prompt}
+
+            RESPONSES:
+            {chr(10).join([f"{model}: {resp.get('content', 'Error: ' + resp.get('error', 'No response'))}"
+                           for model, resp in model_responses.items()])}
+
+            Please synthesize these responses into a comprehensive answer that captures
+            the best insights from each model while addressing any contradictions.
+            """
+
+            if ultra_model == "openai":
+                synthesis = await self.get_chatgpt_response(
+                    synthesis_prompt, 0.3, max_tokens
+                )
+            elif ultra_model == "anthropic":
+                synthesis = await self.get_claude_response(
+                    synthesis_prompt, 0.3, max_tokens
+                )
+            elif ultra_model == "gemini":
+                synthesis = await self.get_gemini_response(
+                    synthesis_prompt, 0.3, max_tokens
+                )
+            else:
+                # Default to first available model if ultra_model is not directly supported
+                if "openai" in self.available_models:
+                    synthesis = await self.get_chatgpt_response(
+                        synthesis_prompt, 0.3, max_tokens
+                    )
+                elif "anthropic" in self.available_models:
+                    synthesis = await self.get_claude_response(
+                        synthesis_prompt, 0.3, max_tokens
+                    )
+                else:
+                    synthesis = ModelResponse(
+                        model_name="ultra",
+                        error="No suitable model available for synthesis",
+                    )
+
+            ultra_response = synthesis.to_dict()
+
+        # Calculate total processing time
+        total_time = time.time() - start_time
+
+        return {
+            "status": "success",
+            "results": {
+                "model_responses": model_responses,
+                "ultra_response": ultra_response,
+                "total_time": total_time,
+            },
+        }
+
+    @cached(ttl=3600)
+    async def get_chatgpt_response(
+        self,
+        prompt: str,
+        temperature: float = 0.7,
+        max_tokens: int = 1024,
+    ) -> ModelResponse:
+        """
+        Get response from OpenAI's ChatGPT.
+
+        Args:
+            prompt: The prompt to send
+            temperature: Temperature parameter (0.0 to 1.0)
+            max_tokens: Maximum tokens to generate
+
+        Returns:
+            ModelResponse object with the response
+        """
+        if "openai" not in self.clients:
+            return ModelResponse(
+                model_name="openai",
+                error="OpenAI client not initialized",
             )
-            self.logger.info(f"Raw ChatGPT response: {response}")
-            return response.choices[0].message.content.strip()
-        except Exception as e:
-            self.logger.error(f"ChatGPT API call failed: {e}")
-            return str(e)
 
-    @retry(
-        stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=4, max=10)
-    )
-    async def call_gemini(self, prompt: str) -> str:
-        """Call Google's Gemini API."""
-        if not self.is_feature_enabled("gemini"):
-            return "Error: Gemini feature not enabled"
+        start_time = time.time()
 
         try:
-            response = await asyncio.to_thread(
-                genai.generate_content,
-                prompt=prompt,
-                model="gemini-model",
-                max_tokens=1500,
-            )
-            self.logger.info(f"Raw Gemini response: {response}")
-            return response["text"].strip()
-        except Exception as e:
-            self.logger.error(f"Gemini API call failed: {e}")
-            return str(e)
-
-    @retry(
-        stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=4, max=10)
-    )
-    async def call_claude(self, prompt: str) -> str:
-        """Call Anthropic's Claude model."""
-        try:
-            response = await self.anthropic_client.chat.completions.create(
-                model="claude-3-opus-20240229",
+            client = self.clients["openai"]
+            response = client.chat.completions.create(
+                model="gpt-4o",  # Use latest model
                 messages=[{"role": "user", "content": prompt}],
-                max_tokens=4000,
+                temperature=temperature,
+                max_tokens=max_tokens,
             )
-            return response.choices[0].message.content
-        except Exception as e:
-            self.logger.error(f"Error calling Claude: {str(e)}")
-            raise
 
-    @retry(
-        stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=4, max=10)
-    )
-    async def call_deepseek(self, prompt: str, model_type: str = "chat") -> str:
-        """Call DeepSeek API with support for both chat and code models."""
-        if not self.is_feature_enabled("deepseek"):
-            return "Error: DeepSeek feature not enabled"
+            content = response.choices[0].message.content
+            tokens = response.usage.total_tokens
+
+            model_response = ModelResponse(
+                model_name="openai",
+                content=content,
+                tokens_used=tokens,
+            )
+
+            # Set processing time
+            model_response.set_processing_time(time.time() - start_time)
+
+            return model_response
+
+        except Exception as e:
+            logger.error(f"Error getting ChatGPT response: {e}")
+            return ModelResponse(
+                model_name="openai",
+                error=str(e),
+            )
+
+    @cached(ttl=3600)
+    async def get_claude_response(
+        self,
+        prompt: str,
+        temperature: float = 0.7,
+        max_tokens: int = 1024,
+    ) -> ModelResponse:
+        """
+        Get response from Anthropic's Claude.
+
+        Args:
+            prompt: The prompt to send
+            temperature: Temperature parameter (0.0 to 1.0)
+            max_tokens: Maximum tokens to generate
+
+        Returns:
+            ModelResponse object with the response
+        """
+        if "anthropic" not in self.clients:
+            return ModelResponse(
+                model_name="anthropic",
+                error="Anthropic client not initialized",
+            )
+
+        start_time = time.time()
 
         try:
-            # Select model based on type
-            model = "deepseek-chat" if model_type == "chat" else "deepseek-coder"
-
-            response = await self.deepseek_client.chat.completions.create(
-                model=model,
-                messages=[
-                    {"role": "system", "content": "You are an intelligent assistant."},
-                    {"role": "user", "content": prompt},
-                ],
-                max_tokens=2000,
-                temperature=0.7,
+            client = self.clients["anthropic"]
+            response = client.messages.create(
+                model="claude-3-opus-20240229",
+                max_tokens=max_tokens,
+                temperature=temperature,
+                messages=[{"role": "user", "content": prompt}],
             )
-            self.logger.info(f"Raw DeepSeek response: {response}")
-            return response.choices[0].message.content.strip()
-        except Exception as e:
-            self.logger.error(f"DeepSeek API call failed: {e}")
-            return str(e)
 
-    @retry(
-        stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=4, max=10)
-    )
-    async def call_mistral(self, prompt: str, model: str = "mistral-tiny") -> str:
-        """Call Mistral API with support for different models."""
-        if not self.is_feature_enabled("mistral"):
-            return "Error: Mistral feature not enabled"
+            content = response.content[0].text
+
+            model_response = ModelResponse(
+                model_name="anthropic",
+                content=content,
+                tokens_used=None,  # Anthropic doesn't return token count directly
+            )
+
+            # Set processing time
+            model_response.set_processing_time(time.time() - start_time)
+
+            return model_response
+
+        except Exception as e:
+            logger.error(f"Error getting Claude response: {e}")
+            return ModelResponse(
+                model_name="anthropic",
+                error=str(e),
+            )
+
+    @cached(ttl=3600)
+    async def get_gemini_response(
+        self,
+        prompt: str,
+        temperature: float = 0.7,
+        max_tokens: int = 1024,
+    ) -> ModelResponse:
+        """
+        Get response from Google's Gemini.
+
+        Args:
+            prompt: The prompt to send
+            temperature: Temperature parameter (0.0 to 1.0)
+            max_tokens: Maximum tokens to generate
+
+        Returns:
+            ModelResponse object with the response
+        """
+        if "gemini" not in self.clients:
+            return ModelResponse(
+                model_name="gemini",
+                error="Google Gemini client not initialized",
+            )
+
+        start_time = time.time()
 
         try:
-            response = await self.mistral_client.chat.completions.create(
-                model=model,
-                messages=[
-                    {"role": "system", "content": "You are an intelligent assistant."},
-                    {"role": "user", "content": prompt},
-                ],
-                max_tokens=2000,
-                temperature=0.7,
-            )
-            self.logger.info(f"Raw Mistral response: {response}")
-            return response.choices[0].message.content.strip()
-        except Exception as e:
-            self.logger.error(f"Mistral API call failed: {e}")
-            return str(e)
+            genai = self.clients["gemini"]
+            model = genai.GenerativeModel("gemini-1.5-pro")
 
-    @retry(
-        stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=4, max=10)
-    )
-    async def call_ollama(self, prompt: str, model: str = "mixtral") -> str:
-        """Call Ollama API for local model inference."""
-        if not self.is_feature_enabled("ollama"):
-            return "Error: Ollama feature not enabled"
+            response = model.generate_content(
+                prompt,
+                generation_config=genai.GenerationConfig(
+                    temperature=temperature,
+                    max_output_tokens=max_tokens,
+                ),
+            )
+
+            content = response.text
+
+            model_response = ModelResponse(
+                model_name="gemini",
+                content=content,
+            )
+
+            # Set processing time
+            model_response.set_processing_time(time.time() - start_time)
+
+            return model_response
+
+        except Exception as e:
+            logger.error(f"Error getting Gemini response: {e}")
+            return ModelResponse(
+                model_name="gemini",
+                error=str(e),
+            )
+
+    @cached(ttl=3600)
+    async def get_mistral_response(
+        self,
+        prompt: str,
+        temperature: float = 0.7,
+        max_tokens: int = 1024,
+    ) -> ModelResponse:
+        """
+        Get response from Mistral AI.
+
+        Args:
+            prompt: The prompt to send
+            temperature: Temperature parameter (0.0 to 1.0)
+            max_tokens: Maximum tokens to generate
+
+        Returns:
+            ModelResponse object with the response
+        """
+        if "mistral" not in self.clients:
+            return ModelResponse(
+                model_name="mistral",
+                error="Mistral client not initialized",
+            )
+
+        start_time = time.time()
 
         try:
-            response = await asyncio.to_thread(
-                requests.post,
-                "http://localhost:11434/api/generate",
+            client = self.clients["mistral"]
+
+            response = await client.post(
+                "/chat/completions",
                 json={
-                    "model": model,
-                    "prompt": prompt,
-                    "stream": False,
-                    "options": {"num_predict": 2000, "temperature": 0.7},
+                    "model": "mistral-large-latest",
+                    "messages": [{"role": "user", "content": prompt}],
+                    "temperature": temperature,
+                    "max_tokens": max_tokens,
                 },
             )
-            response.raise_for_status()
-            self.logger.info(f"Raw Ollama response: {response.json()}")
-            return response.json().get("response", "").strip()
-        except Exception as e:
-            self.logger.error(f"Ollama API call failed: {e}")
-            return str(e)
 
-    @retry(
-        stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=4, max=10)
-    )
-    async def call_llama(self, prompt: str) -> str:
-        """Call Llama API."""
-        if not self.is_feature_enabled("llama"):
-            return "Error: Llama feature not enabled"
+            if response.status_code != 200:
+                return ModelResponse(
+                    model_name="mistral",
+                    error=f"API error: {response.status_code} - {response.text}",
+                )
+
+            data = response.json()
+            content = data["choices"][0]["message"]["content"]
+
+            model_response = ModelResponse(
+                model_name="mistral",
+                content=content,
+            )
+
+            # Set processing time
+            model_response.set_processing_time(time.time() - start_time)
+
+            return model_response
+
+        except Exception as e:
+            logger.error(f"Error getting Mistral response: {e}")
+            return ModelResponse(
+                model_name="mistral",
+                error=str(e),
+            )
+
+    @cached(ttl=3600)
+    async def call_ollama(
+        self,
+        prompt: str,
+        temperature: float = 0.7,
+        max_tokens: int = 1024,
+    ) -> ModelResponse:
+        """
+        Get response from local Ollama model.
+
+        Args:
+            prompt: The prompt to send
+            temperature: Temperature parameter (0.0 to 1.0)
+            max_tokens: Maximum tokens to generate
+
+        Returns:
+            ModelResponse object with the response
+        """
+        if "ollama" not in self.clients:
+            return ModelResponse(
+                model_name="ollama",
+                error="Ollama client not initialized",
+            )
+
+        start_time = time.time()
 
         try:
-            api_url = "http://localhost:5000/generate"
-            headers = {"Authorization": f"Bearer {self.api_keys.get('llama')}"}
-            payload = {"prompt": prompt, "max_tokens": 1500}
-            response = await asyncio.to_thread(
-                requests.post, api_url, headers=headers, json=payload
+            client = self.clients["ollama"]
+            model_name = os.getenv("OLLAMA_MODEL", "llama3")
+
+            response = await client.post(
+                "/api/generate",
+                json={
+                    "model": model_name,
+                    "prompt": prompt,
+                    "temperature": temperature,
+                    "num_predict": max_tokens,
+                },
             )
-            response.raise_for_status()
-            self.logger.info(f"Raw Llama response: {response.json()}")
-            return response.json().get("text", "").strip()
+
+            if response.status_code != 200:
+                return ModelResponse(
+                    model_name="ollama",
+                    error=f"API error: {response.status_code} - {response.text}",
+                )
+
+            data = response.json()
+            content = data.get("response", "")
+
+            model_response = ModelResponse(
+                model_name="ollama",
+                content=content,
+            )
+
+            # Set processing time
+            model_response.set_processing_time(time.time() - start_time)
+
+            return model_response
+
         except Exception as e:
-            self.logger.error(f"Llama API call failed: {e}")
-            return str(e)
+            logger.error(f"Error getting Ollama response: {e}")
+            return ModelResponse(
+                model_name="ollama",
+                error=str(e),
+            )
 
-    async def test_apis(self):
-        """Test all enabled API endpoints."""
-        print("Testing APIs individually...\n")
+    @cached(ttl=3600)
+    async def call_llama(
+        self,
+        prompt: str,
+        temperature: float = 0.7,
+        max_tokens: int = 1024,
+    ) -> ModelResponse:
+        """
+        Get response from LLaMA API.
 
-        for model in self.available_models:
-            print(f"Testing {model}...")
-            try:
-                if model == "openai":
-                    response = await self.call_chatgpt("Test prompt for OpenAI.")
-                elif model == "gemini":
-                    response = await self.call_gemini("Test prompt for Gemini.")
-                elif model == "anthropic":
-                    response = await self.call_claude("Test prompt for Claude.")
-                elif model == "deepseek":
-                    response = await self.call_deepseek("Test prompt for DeepSeek.")
-                elif model == "mistral":
-                    response = await self.call_mistral("Test prompt for Mistral.")
-                elif model == "ollama":
-                    response = await self.call_ollama("Test prompt for Ollama.")
-                elif model == "llama":
-                    response = await self.call_llama("Test prompt for Llama.")
+        Args:
+            prompt: The prompt to send
+            temperature: Temperature parameter (0.0 to 1.0)
+            max_tokens: Maximum tokens to generate
 
-                if response and not response.startswith("Error:"):
-                    print(f"{model} test successful!\n")
-                else:
-                    print(f"{model} test failed: {response}\n")
-            except Exception as e:
-                print(f"{model} test failed with error: {e}\n")
+        Returns:
+            ModelResponse object with the response
+        """
+        if "llama" not in self.clients:
+            return ModelResponse(
+                model_name="llama",
+                error="LLaMA client not initialized",
+            )
 
-    @retry(
-        stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=4, max=10)
-    )
-    async def process_with_documents(
-        self, prompt: str, file_paths: List[str]
-    ) -> Dict[str, str]:
-        """Process a prompt with document context."""
+        start_time = time.time()
+
         try:
-            # Process documents
-            documents = self.documents.process_documents(file_paths)
+            client = self.clients["llama"]
+            llama_url = os.getenv("LLAMA_API_URL", "https://api.llama-api.com")
 
-            # Combine document content with prompt
-            context = "\n\n".join(
-                [
-                    f"Document {i+1}:\n{content}"
-                    for i, content in enumerate(documents.values())
-                ]
+            response = await client.post(
+                f"{llama_url}/v1/chat/completions",
+                json={
+                    "model": "llama-3-70b-instruct",
+                    "messages": [{"role": "user", "content": prompt}],
+                    "temperature": temperature,
+                    "max_tokens": max_tokens,
+                },
             )
-            enhanced_prompt = f"{prompt}\n\nContext from documents:\n{context}"
 
-            # Process with available LLMs
-            responses = {}
-            for model in self.available_models:
-                if model == "openai":
-                    responses["chatgpt"] = await self.call_chatgpt(enhanced_prompt)
-                elif model == "gemini":
-                    responses["gemini"] = await self.call_gemini(enhanced_prompt)
-                elif model == "anthropic":
-                    responses["claude"] = await self.call_claude(enhanced_prompt)
-                elif model == "deepseek":
-                    responses["deepseek"] = await self.call_deepseek(enhanced_prompt)
-                elif model == "mistral":
-                    responses["mistral"] = await self.call_mistral(enhanced_prompt)
-                elif model == "ollama":
-                    responses["ollama"] = await self.call_ollama(enhanced_prompt)
-                elif model == "llama":
-                    responses["llama"] = await self.call_llama(enhanced_prompt)
+            if response.status_code != 200:
+                return ModelResponse(
+                    model_name="llama",
+                    error=f"API error: {response.status_code} - {response.text}",
+                )
 
-            return responses
+            data = response.json()
+            content = data["choices"][0]["message"]["content"]
+
+            model_response = ModelResponse(
+                model_name="llama",
+                content=content,
+            )
+
+            # Set processing time
+            model_response.set_processing_time(time.time() - start_time)
+
+            return model_response
 
         except Exception as e:
-            self.logger.error(f"Error processing documents: {str(e)}")
-            raise
+            logger.error(f"Error getting LLaMA response: {e}")
+            return ModelResponse(
+                model_name="llama",
+                error=str(e),
+            )

@@ -1,0 +1,116 @@
+/* Progressive Disclosure Component styling */
+:root {
+    --pd-primary-color: #00f0ff;
+    --pd-secondary-color: #ff00aa;
+    --pd-highlight-color: #ffcc00;
+    --pd-dark-bg: #0d1425;
+    --pd-darker-bg: #050a18;
+    --pd-glow-primary: 0 0 10px rgba(0, 240, 255, 0.7);
+    --pd-glow-secondary: 0 0 10px rgba(255, 0, 170, 0.7);
+    --pd-glow-highlight: 0 0 15px rgba(255, 204, 0, 0.8);
+}
+
+.progressive-disclosure {
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+/* New feature discovery styling */
+.progressive-disclosure.new-discovery {
+    animation: feature-reveal 0.5s ease forwards;
+    position: relative;
+    z-index: 1;
+}
+
+.discovery-indicator {
+    position: absolute;
+    top: -10px;
+    right: -10px;
+    background-color: var(--pd-darker-bg);
+    border: 1px solid var(--pd-highlight-color);
+    border-radius: 4px;
+    padding: 3px 6px;
+    font-size: 10px;
+    font-weight: bold;
+    color: var(--pd-highlight-color);
+    box-shadow: var(--pd-glow-highlight);
+    z-index: 2;
+    transform: rotate(3deg);
+    animation: float 3s ease-in-out infinite;
+}
+
+.discovery-text {
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* Highlight outline for new discoveries */
+.progressive-disclosure.new-discovery::before {
+    content: '';
+    position: absolute;
+    top: -3px;
+    left: -3px;
+    right: -3px;
+    bottom: -3px;
+    border: 1px dashed var(--pd-highlight-color);
+    border-radius: 4px;
+    opacity: 0.7;
+    pointer-events: none;
+    animation: pulse-border 2s infinite;
+}
+
+/* Animations */
+@keyframes feature-reveal {
+    0% {
+        opacity: 0;
+        transform: scale(0.95);
+        filter: brightness(1.5) blur(2px);
+    }
+
+    50% {
+        filter: brightness(1.2) blur(1px);
+    }
+
+    100% {
+        opacity: 1;
+        transform: scale(1);
+        filter: brightness(1) blur(0);
+    }
+}
+
+@keyframes float {
+
+    0%,
+    100% {
+        transform: translateY(0) rotate(3deg);
+    }
+
+    50% {
+        transform: translateY(-5px) rotate(3deg);
+    }
+}
+
+@keyframes pulse-border {
+    0% {
+        opacity: 0.3;
+        box-shadow: 0 0 5px rgba(255, 204, 0, 0.3);
+    }
+
+    50% {
+        opacity: 0.7;
+        box-shadow: 0 0 15px rgba(255, 204, 0, 0.7);
+    }
+
+    100% {
+        opacity: 0.3;
+        box-shadow: 0 0 5px rgba(255, 204, 0, 0.3);
+    }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .discovery-indicator {
+        font-size: 8px;
+        padding: 2px 4px;
+    }
+}
