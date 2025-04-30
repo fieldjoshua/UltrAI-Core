@@ -1,6 +1,6 @@
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.4.0
+    rev: v5.0.0
     hooks:
       - id: trailing-whitespace
       - id: end-of-file-fixer
@@ -11,7 +11,7 @@ repos:
       - id: detect-private-key
 
   - repo: https://github.com/pycqa/flake8
-    rev: 6.0.0
+    rev: 7.2.0
     hooks:
       - id: flake8
         additional_dependencies:
@@ -23,19 +23,19 @@ repos:
         exclude: ^(node_modules/|dist/|build/|.venv/|.env/)
 
   - repo: https://github.com/pycqa/isort
-    rev: 5.12.0
+    rev: 6.0.1
     hooks:
       - id: isort
 
   - repo: https://github.com/psf/black
-    rev: 23.3.0
+    rev: 25.1.0
     hooks:
       - id: black
         args:
           - --line-length=88
 
   - repo: https://github.com/pre-commit/mirrors-eslint
-    rev: v9.0.0-beta.2
+    rev: v9.25.1
     hooks:
       - id: eslint
         files: \.(js|ts|jsx|tsx)$
@@ -47,25 +47,19 @@ repos:
           - eslint-config-prettier
 
   - repo: https://github.com/pre-commit/mirrors-prettier
-    rev: v3.2.5
+    rev: v4.0.0-alpha.8
     hooks:
       - id: prettier
         types_or: [javascript, jsx, ts, tsx, json, css, markdown]
 
   - repo: https://github.com/zricethezav/gitleaks
-    rev: v8.18.2
+    rev: v8.25.1
     hooks:
       - id: gitleaks
 
-  - repo: https://github.com/gitleaks/gitleaks
-    rev: v8.18.2
-    hooks:
-      - id: gitleaks-docker
-        name: Detect hardcoded secrets
-
   # Add a dedicated Bandit hook that uses our configuration
   - repo: https://github.com/pycqa/bandit
-    rev: 1.7.7
+    rev: 1.8.3
     hooks:
       - id: bandit
         args: ["-c", ".bandit.yaml"]
