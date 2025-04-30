@@ -1,0 +1,249 @@
+/* ContextualHelp.css - Cyberpunk themed tooltip and popover styles */
+
+/* Base styling variables */
+:root {
+    --help-primary: #00f0ff;
+    --help-secondary: #ff00aa;
+    --help-background: rgba(13, 15, 25, 0.95);
+    --help-text: #ffffff;
+    --help-border-glow: 0 0 10px rgba(0, 240, 255, 0.7);
+    --help-tooltip-glow: 0 0 15px rgba(255, 0, 170, 0.5);
+    --help-hint-glow: 0 0 15px rgba(255, 204, 0, 0.5);
+}
+
+/* Base contextual help styles */
+.contextual-help {
+    position: absolute;
+    z-index: 10000;
+    color: var(--help-text);
+    font-family: 'Rajdhani', 'Orbitron', sans-serif;
+    pointer-events: auto;
+    opacity: 0;
+    transform: translateY(5px);
+    animation: help-fade-in 0.3s forwards;
+}
+
+/* Tooltip variant */
+.contextual-help.tooltip {
+    max-width: 250px;
+    padding: 8px 12px;
+    background-color: var(--help-background);
+    border: 1px solid var(--help-primary);
+    border-radius: 4px;
+    box-shadow: var(--help-border-glow);
+    font-size: 0.9rem;
+    line-height: 1.4;
+}
+
+/* Popover variant */
+.contextual-help.popover {
+    width: 300px;
+    max-width: 90vw;
+    background-color: var(--help-background);
+    border: 1px solid var(--help-secondary);
+    border-radius: 4px;
+    box-shadow: var(--help-tooltip-glow);
+    overflow: hidden;
+}
+
+/* Hint variant */
+.contextual-help.hint {
+    width: 280px;
+    max-width: 90vw;
+    padding: 0;
+    background-color: var(--help-background);
+    border: 1px solid #ffcc00;
+    border-radius: 4px;
+    box-shadow: var(--help-hint-glow);
+    overflow: hidden;
+    animation: hint-pulse 2s infinite alternate;
+}
+
+/* Header styling */
+.help-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 15px;
+    border-bottom: 1px solid var(--help-secondary);
+    background: linear-gradient(90deg, rgba(0, 240, 255, 0.1) 0%, rgba(255, 0, 170, 0.1) 100%);
+}
+
+.help-title {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--help-primary);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.help-close-btn {
+    background: none;
+    border: none;
+    color: var(--help-text);
+    font-size: 1.5rem;
+    line-height: 1;
+    cursor: pointer;
+    padding: 0 0 2px;
+    opacity: 0.7;
+    transition: all 0.2s ease;
+}
+
+.help-close-btn:hover {
+    opacity: 1;
+    color: var(--help-secondary);
+}
+
+/* Body styling */
+.help-body {
+    padding: 12px 15px;
+}
+
+.help-content {
+    font-size: 0.9rem;
+    line-height: 1.5;
+}
+
+.help-content p {
+    margin: 0 0 8px 0;
+}
+
+.help-content p:last-child {
+    margin-bottom: 0;
+}
+
+.help-image {
+    max-width: 100%;
+    height: auto;
+    margin-bottom: 10px;
+    border: 1px solid var(--help-secondary);
+}
+
+/* Tooltip arrow styling */
+.help-arrow {
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    background-color: var(--help-background);
+    transform: rotate(45deg);
+    border: 1px solid var(--help-primary);
+}
+
+/* Arrow positions */
+.contextual-help[data-position="top"] .help-arrow {
+    bottom: -5px;
+    left: calc(50% - 4px);
+    border-top: none;
+    border-left: none;
+    box-shadow: 2px 2px 2px rgba(0, 0, 0, 0.2);
+}
+
+.contextual-help[data-position="bottom"] .help-arrow {
+    top: -5px;
+    left: calc(50% - 4px);
+    border-bottom: none;
+    border-right: none;
+    box-shadow: -2px -2px 2px rgba(0, 0, 0, 0.1);
+}
+
+.contextual-help[data-position="left"] .help-arrow {
+    right: -5px;
+    top: calc(50% - 4px);
+    border-left: none;
+    border-bottom: none;
+    box-shadow: 2px -2px 2px rgba(0, 0, 0, 0.1);
+}
+
+.contextual-help[data-position="right"] .help-arrow {
+    left: -5px;
+    top: calc(50% - 4px);
+    border-right: none;
+    border-top: none;
+    box-shadow: -2px 2px 2px rgba(0, 0, 0, 0.1);
+}
+
+/* Variant specific arrow styling */
+.contextual-help.popover .help-arrow {
+    border-color: var(--help-secondary);
+}
+
+.contextual-help.hint .help-arrow {
+    border-color: #ffcc00;
+}
+
+/* Animations */
+@keyframes help-fade-in {
+    from {
+        opacity: 0;
+        transform: translateY(5px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes hint-pulse {
+    from {
+        box-shadow: 0 0 5px rgba(255, 204, 0, 0.3);
+    }
+
+    to {
+        box-shadow: 0 0 15px rgba(255, 204, 0, 0.7);
+    }
+}
+
+/* Tooltip glitch effect on hover */
+.contextual-help.tooltip:hover::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(0, 240, 255, 0.2), transparent);
+    z-index: -1;
+    animation: glitch-sweep 1s forwards;
+}
+
+@keyframes glitch-sweep {
+    0% {
+        transform: translateX(-100%);
+    }
+
+    100% {
+        transform: translateX(100%);
+    }
+}
+
+/* Tooltip types with icons */
+.contextual-help.tooltip.info::before {
+    content: 'i';
+    position: absolute;
+    top: -8px;
+    left: -8px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--help-primary);
+    color: var(--help-background);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 12px;
+    line-height: 1;
+    font-style: italic;
+}
+
+/* Responsive adjustments */
+@media (max-width: 480px) {
+
+    .contextual-help.popover,
+    .contextual-help.hint {
+        width: calc(100vw - 40px);
+        max-width: calc(100vw - 40px);
+    }
+}
