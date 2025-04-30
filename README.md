@@ -168,4 +168,53 @@ To contribute to Ultra:
 
 ## License
 
-MIT
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## Performance Dashboard
+
+The Ultra Framework includes a detailed performance monitoring dashboard that provides real-time metrics and visualizations:
+
+### Dashboard Features
+- **System Overview**: CPU, memory, and disk usage metrics with trend indicators
+- **Performance Metrics**: Request counts, document processing stats, and response times
+- **Efficiency Analytics**: Average processing times, cache hit rates, and resource utilization
+- **System Information**: Runtime environment details, uptime, and system status
+
+### Accessing the Dashboard
+- Navigate to `/dashboard` in your browser
+- Click the dashboard icon in the top-right corner of the main application
+- Auto-refreshes every 5 seconds to show real-time data
+
+For detailed information about the Performance Dashboard, see [PERFORMANCE_DASHBOARD.md](PERFORMANCE_DASHBOARD.md).
+
+## Documentation
+
+For a comprehensive view of all project documentation, please see [DOCUMENTATION.md](./DOCUMENTATION.md) which contains a categorized index of all documentation files along with their priority levels.
+
+The documentation index also includes the current development priorities based on our roadmap.
+
+## Performance Optimizations
+
+Ultra AI has been optimized for performance in several key areas:
+
+### Code Splitting & Lazy Loading
+- Components are lazy-loaded to reduce initial bundle size
+- Route-based code splitting for optimal loading
+- Suspense boundaries with loading indicators
+
+### Mobile Optimization
+- Responsive design for all device sizes
+- Optimized touch targets for mobile devices
+- Reduced motion options for accessibility
+
+### Asset Optimization
+- Preloading of critical resources
+- Optimized font loading strategies
+- Inline critical CSS for faster initial render
+
+### Build Optimization
+- Vendor chunk separation for better caching
+- Brotli and Gzip compression
+- Bundle analysis tools for monitoring
+
+For more details, see [PERFORMANCE_IMPROVEMENTS.md](./PERFORMANCE_IMPROVEMENTS.md)

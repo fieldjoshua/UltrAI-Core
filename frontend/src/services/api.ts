@@ -206,60 +206,113 @@ export const fetchAvailableModels = async (): Promise<string[]> => {
   }
 };
 
-// Define payload structure for analysis endpoint
+// Enhanced interface for AnalysisPayload with more specific types
 interface AnalysisPayload {
   prompt: string;
   selected_models: string[];
-  ultra_model: string | null;
+  ultra_model: string;
   pattern: string;
-  options?: any; // Define more specific type if possible
+  options?: Record<string, any>;
   output_format?: string;
-  userId?: string | null;
-  // Add other fields like document IDs if needed for this specific endpoint
+  userId?: string;
 }
 
-// Define expected response structure for analysis endpoint
+// Enhanced response types for more accurate type checking
+interface ModelResponse {
+  [model: string]: string;
+}
+
+interface TokenCount {
+  prompt_tokens: number;
+  completion_tokens: number;
+  total_tokens: number;
+}
+
+interface AnalysisPerformance {
+  total_time_seconds: number;
+  model_times: Record<string, number>;
+  token_counts: Record<string, TokenCount>;
+}
+
 interface AnalysisResponse {
+  status: 'success' | 'error' | 'partial_success';
+  message?: string;
+  error?: string;
+  debug_info?: string;
+  model_responses?: ModelResponse;
   ultra_response: string;
-  model_responses?: Record<string, string>; // Add model responses field
+  performance?: AnalysisPerformance;
   cached?: boolean;
   id?: string;
   timestamp?: string;
-  // Add other fields returned by the API (results, performance, etc.)
 }
 
-// Function to call the analyze endpoint
+// Enhanced error handling in the analyze function
 export const analyzePrompt = async (
   payload: AnalysisPayload
 ): Promise<AnalysisResponse> => {
   try {
-    console.log('Sending analysis payload via api service:', payload);
+    // Format the payload to match the backend's expected format
+    const formattedPayload = {
+      prompt: payload.prompt,
+      models: payload.selected_models, // Match backend expected field name
+      ultraModel: payload.ultra_model, // Match backend expected field name
+      pattern: payload.pattern,
+      options: payload.options || {},
+      output_format: payload.output_format || 'txt',
+      userId: payload.userId || null,
+    };
 
-    // Use the generic request helper or apiClient directly
-    const response = await request<AnalysisResponse>({
-      url: endpoints.analysis.analyze,
-      method: 'POST',
-      data: payload,
-    });
+    console.log('Sending analysis request with payload:', formattedPayload);
 
-    // Ensure we have individual model responses
-    if (!response.model_responses) {
-      // If the server didn't provide individual model responses, create a mock structure
-      // This ensures backward compatibility with older API versions
-      response.model_responses = {};
+    const response = await apiClient.post<AnalysisResponse>(
+      endpoints.analysis.analyze,
+      formattedPayload
+    );
 
-      // Add a marker to indicate these are missing from the API
-      payload.selected_models.forEach(model => {
-        response.model_responses![model] =
-          `Response from ${model} not provided by the API.
-                This may be a limitation of the current server implementation.`;
-      });
+    console.log('Received analysis response:', response.data);
+
+    // Handle successful but error-containing responses
+    if (response.data.status === 'error') {
+      throw new Error(
+        response.data.message ||
+          response.data.error ||
+          'An error occurred during analysis'
+      );
     }
 
-    return response;
-  } catch (error) {
-    console.error('Analysis API call failed:', error);
-    throw error;
+    if (response.data.status === 'partial_success') {
+      console.warn('Partial success in analysis:', response.data.message);
+    }
+
+    return response.data;
+  } catch (error: any) {
+    console.error('API analyzePrompt error:', error);
+
+    // Handle different error types
+    if (error.response) {
+      // The request was made and the server responded with a status code
+      // that falls out of the range of 2xx
+      console.error('Response error data:', error.response.data);
+      console.error('Response error status:', error.response.status);
+
+      const errorMessage =
+        (error.response.data && error.response.data.message) ||
+        (error.response.data && error.response.data.error) ||
+        `Server error: ${error.response.status}`;
+
+      throw new Error(errorMessage);
+    } else if (error.request) {
+      // The request was made but no response was received
+      console.error('Request error:', error.request);
+      throw new Error(
+        'No response from server. Please check your network connection.'
+      );
+    } else {
+      // Something happened in setting up the request that triggered an Error
+      console.error('Error message:', error.message);
+      throw error;
+    }
   }
 };
 

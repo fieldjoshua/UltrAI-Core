@@ -1,10 +1,9 @@
-import React from 'react'
+import React, { lazy, Suspense } from 'react'
 import ReactDOM from 'react-dom/client'
 import * as Sentry from "@sentry/react";
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
-import App from './App.tsx'
-import { SpeedInsights } from "@vercel/speed-insights/react"
 import './index.css'
+import ErrorBoundary from './components/ErrorBoundary'
 
 // Initialize Sentry for performance monitoring and error tracking
 Sentry.init({
@@ -42,10 +41,26 @@ const router = createBrowserRouter([
   }
 ]);
 
+// Lazy-load components for better performance
+const App = lazy(() => import('./App'))
+
+// Loading fallback component
+const LoadingFallback = () => (
+  <div className="flex items-center justify-center min-h-screen bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500">
+    <div className="text-center">
+      <div className="w-16 h-16 border-4 border-t-blue-500 border-r-transparent border-b-blue-500 border-l-transparent rounded-full animate-spin mx-auto"></div>
+      <p className="mt-4 text-white text-xl font-semibold">Loading Ultra AI...</p>
+    </div>
+  </div>
+);
+
 // Simple, direct rendering without StrictMode
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    <RouterProvider router={router} />
-    <SpeedInsights />
+    <ErrorBoundary>
+      <Suspense fallback={<LoadingFallback />}>
+        <App />
+      </Suspense>
+    </ErrorBoundary>
   </React.StrictMode>
 )

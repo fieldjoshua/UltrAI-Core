@@ -7,41 +7,42 @@
   :root {
     --background: 224 71% 4%;
     --foreground: 213 31% 91%;
-    
+
     --muted: 223 47% 11%;
     --muted-foreground: 215.4 16.3% 56.9%;
-    
+
     --card: 0 0% 100%;
     --card-foreground: 222.2 84% 4.9%;
-    
+
     --popover: 224 71% 4%;
     --popover-foreground: 215 20.2% 65.1%;
-    
+
     --border: 216 34% 17%;
     --input: 216 34% 17%;
-    
+
     --primary: 210 40% 98%;
     --primary-foreground: 222.2 47.4% 1.2%;
-    
+
     --secondary: 222.2 47.4% 11.2%;
     --secondary-foreground: 210 40% 98%;
-    
+
     --accent: 216 34% 17%;
     --accent-foreground: 210 40% 98%;
-    
+
     --destructive: 0 63% 31%;
     --destructive-foreground: 210 40% 98%;
-    
+
     --ring: 216 34% 17%;
-    
+
     --radius: 0.5rem;
-    
+
     --chart-1: 210 80% 56%;
     --chart-2: 260 80% 56%;
     --chart-3: 300 80% 56%;
     --chart-4: 360 80% 56%;
     --chart-5: 340 75% 55%
   }
+
   .dark {
     --background: 222.2 84% 4.9%;
     --foreground: 210 40% 98%;
@@ -68,6 +69,7 @@
     --chart-4: 280 65% 60%;
     --chart-5: 340 75% 55%
   }
+
   * {
     @apply border-border;
   }
@@ -78,4 +80,263 @@
     @apply bg-background text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;
   }
-} 
+}
+
+/* Theme variables */
+:root {
+  /* Light theme colors (default) */
+  --bg-primary: #ffffff;
+  --bg-secondary: #f7fafc;
+  --text-primary: #1a202c;
+  --text-secondary: #4a5568;
+  --accent-color: #3182ce;
+  --border-color: #e2e8f0;
+  --hover-bg: #f0f5fa;
+  --shadow-color: rgba(0, 0, 0, 0.1);
+}
+
+.dark-theme {
+  /* Dark theme colors */
+  --bg-primary: #1a202c;
+  --bg-secondary: #2d3748;
+  --text-primary: #f7fafc;
+  --text-secondary: #e2e8f0;
+  --accent-color: #4299e1;
+  --border-color: #4a5568;
+  --hover-bg: #2d3748;
+  --shadow-color: rgba(0, 0, 0, 0.3);
+}
+
+/* Apply theme variables to the body */
+body {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  transition: background-color 0.3s, color 0.3s;
+}
+
+/* Theme toggle button styles */
+.theme-toggle-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+.theme-toggle-button.light {
+  color: var(--text-secondary);
+}
+
+.theme-toggle-button.light:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.theme-toggle-button.dark {
+  color: var(--text-secondary);
+}
+
+.theme-toggle-button.dark:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Export component styles */
+.export-results {
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 0.5rem;
+  padding: 1rem;
+  margin-top: 1rem;
+}
+
+.export-format-label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.export-format-select {
+  display: block;
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid var(--border-color);
+  border-radius: 0.375rem;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  margin-bottom: 1rem;
+  font-size: 0.875rem;
+}
+
+.export-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  border-radius: 0.375rem;
+  background-color: var(--accent-color);
+  color: white;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.export-button:hover:not(:disabled) {
+  background-color: #2c5282;
+}
+
+.export-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Responsive container class */
+.ultra-container {
+  transition: background-color 0.3s, color 0.3s;
+}
+
+.light-theme {
+  background-color: #f8fafc;
+  color: #334155;
+}
+
+.dark-theme {
+  background-color: #0f172a;
+  color: #e2e8f0;
+}
+
+/* Model comparison chart container */
+.model-comparison-container {
+  background-color: var(--bg-secondary);
+  border-radius: 0.5rem;
+  padding: 1rem;
+  box-shadow: 0 4px 6px var(--shadow-color);
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+
+  to {
+    opacity: 0;
+  }
+}
+
+.fadeIn {
+  animation: fadeIn 0.5s ease-in-out forwards;
+}
+
+.fadeOut {
+  animation: fadeOut 0.5s ease-in-out forwards;
+}
+
+/* Mobile-first responsive design improvements */
+@media (max-width: 640px) {
+  .ultra-container {
+    padding: 1rem !important;
+    margin: 0 !important;
+  }
+
+  .model-comparison-container {
+    height: 300px !important;
+  }
+
+  .export-format-options {
+    flex-direction: column;
+  }
+
+  .theme-toggle-button {
+    padding: 6px;
+  }
+
+  /* Adjust font sizes for better mobile readability */
+  h1 {
+    font-size: 1.5rem !important;
+  }
+
+  h2 {
+    font-size: 1.25rem !important;
+  }
+
+  h3 {
+    font-size: 1.125rem !important;
+  }
+
+  /* Ensure buttons are easier to tap on mobile */
+  button,
+  .button,
+  [role="button"],
+  .export-button {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* Stack buttons vertically on narrow screens */
+  .mobile-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+}
+
+/* Tablet adjustments */
+@media (min-width: 641px) and (max-width: 1024px) {
+  .ultra-container {
+    padding: 1.5rem !important;
+  }
+
+  .model-comparison-container {
+    height: 350px !important;
+  }
+}
+
+/* Performance optimizations */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
+
+/* Dark mode optimizations */
+@media (prefers-color-scheme: dark) {
+  body:not(.light-theme) {
+    color-scheme: dark;
+  }
+}
+
+/* Improve tap target areas on mobile */
+@media (pointer: coarse) {
+
+  input,
+  select,
+  textarea {
+    font-size: 16px !important;
+    /* Prevents iOS zoom */
+  }
+
+  .clickable,
+  button,
+  [role="button"],
+  a {
+    padding: 0.5rem;
+  }
+}

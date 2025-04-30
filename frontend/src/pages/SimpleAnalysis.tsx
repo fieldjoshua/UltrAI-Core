@@ -1,7 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { analyzePrompt, fetchAvailableModels } from '../services/api';
-import { CheckCircle, ChevronRight, ChevronLeft, Loader2 } from 'lucide-react';
+import {
+  CheckCircle,
+  ChevronRight,
+  ChevronLeft,
+  Loader2,
+  AlertCircle,
+  Copy,
+  RefreshCw,
+} from 'lucide-react';
 
 type Step = 'intro' | 'prompt' | 'models' | 'pattern' | 'results';
 
@@ -99,6 +107,20 @@ const SimpleAnalysis: React.FC = () => {
   // Add state for individual model responses
   const [modelResponses, setModelResponses] = useState<ModelResponse[]>([]);
 
+  // Add state for analysis metrics
+  const [analysisMetrics, setAnalysisMetrics] = useState({
+    timeTaken: 0,
+    tokenCounts: {} as Record<string, number>,
+  });
+
+  // Add state for response view type
+  const [responseView, setResponseView] = useState<'combined' | 'sideBySide'>(
+    'sideBySide'
+  );
+
+  // Add reference to results section for scroll behavior
+  const resultsRef = React.useRef<HTMLDivElement>(null);
+
   // Fetch available models
   useEffect(() => {
     const getModels = async () => {
@@ -158,7 +180,7 @@ const SimpleAnalysis: React.FC = () => {
     setSelectedPattern(pattern);
   };
 
-  // Handle form submission
+  // Handle form submission (modified to include metrics)
   const handleSubmit = async () => {
     if (!prompt.trim()) {
       setError('Please enter a prompt');
@@ -213,7 +235,23 @@ const SimpleAnalysis: React.FC = () => {
       }
 
       setModelResponses(individualResponses);
+
+      // Save performance metrics if available
+      if (result.performance) {
+        setAnalysisMetrics({
+          timeTaken: result.performance.total_time_seconds || 0,
+          tokenCounts: result.performance.token_counts || {},
+        });
+      }
+
       setCurrentStep('results');
+
+      // Scroll to results after a brief delay
+      setTimeout(() => {
+        if (resultsRef.current) {
+          resultsRef.current.scrollIntoView({ behavior: 'smooth' });
+        }
+      }, 100);
     } catch (err: any) {
       setError(err.message || 'An error occurred during analysis');
       console.error('Analysis error:', err);
@@ -245,6 +283,32 @@ const SimpleAnalysis: React.FC = () => {
     if (currentStep === 'prompt' && !prompt.trim()) return false;
     if (currentStep === 'models' && selectedModels.length === 0) return false;
     return true;
+  };
+
+  // Format the model name for display
+  const formatModelName = (name: string): string => {
+    // Convert model IDs to readable names
+    const modelMap: Record<string, string> = {
+      gpt4o: 'GPT-4o',
+      gpt4turbo: 'GPT-4 Turbo',
+      claude37: 'Claude 3.7',
+      claude3opus: 'Claude 3 Opus',
+      gemini15: 'Gemini 1.5 Pro',
+      llama3: 'Llama 3',
+    };
+
+    return modelMap[name] || name;
+  };
+
+  // Copy response to clipboard
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    // Could add a toast notification here
+  };
+
+  // Retry analysis
+  const retryAnalysis = () => {
+    handleSubmit();
   };
 
   // Render current step content
@@ -476,8 +540,225 @@ const SimpleAnalysis: React.FC = () => {
     }
   };
 
+  // Render the results view
+  const renderResults = () => {
+    if (isLoading) {
+      return (
+        <div className="flex flex-col items-center justify-center p-8 space-y-4">
+          <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
+          <p className="text-lg font-medium">Analyzing your prompt...</p>
+          <p className="text-sm text-gray-500">This may take a few moments</p>
+        </div>
+      );
+    }
+
+    if (error) {
+      return (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-6 my-4">
+          <div className="flex items-start space-x-3">
+            <AlertCircle className="h-6 w-6 text-red-500 mt-0.5" />
+            <div>
+              <h3 className="text-lg font-medium text-red-800">
+                Analysis Error
+              </h3>
+              <p className="text-red-700 mt-1">{error}</p>
+              <button
+                onClick={retryAnalysis}
+                className="mt-3 px-4 py-2 bg-red-100 hover:bg-red-200 text-red-800 rounded-md flex items-center space-x-2 transition-colors"
+              >
+                <RefreshCw className="h-4 w-4" />
+                <span>Retry Analysis</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    if (modelResponses.length === 0) {
+      return (
+        <div className="text-center p-8 text-gray-500">
+          <p>No results to display. Please run an analysis first.</p>
+        </div>
+      );
+    }
+
+    return (
+      <div ref={resultsRef} className="space-y-8">
+        {/* Results view toggle */}
+        <div className="flex items-center justify-between">
+          <h2 className="text-2xl font-bold">Analysis Results</h2>
+          <div className="flex items-center space-x-2">
+            <button
+              onClick={() => setResponseView('sideBySide')}
+              className={`px-3 py-1.5 rounded-md ${
+                responseView === 'sideBySide'
+                  ? 'bg-blue-100 text-blue-700'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              Side by Side
+            </button>
+            <button
+              onClick={() => setResponseView('combined')}
+              className={`px-3 py-1.5 rounded-md ${
+                responseView === 'combined'
+                  ? 'bg-blue-100 text-blue-700'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              Combined View
+            </button>
+          </div>
+        </div>
+
+        {/* Performance metrics */}
+        <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+          <h3 className="text-sm font-medium text-gray-700 mb-2">
+            Analysis Performance
+          </h3>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="bg-white p-3 rounded border border-gray-100">
+              <p className="text-xs text-gray-500">Total Time</p>
+              <p className="text-lg font-medium">
+                {analysisMetrics.timeTaken.toFixed(2)}s
+              </p>
+            </div>
+            <div className="bg-white p-3 rounded border border-gray-100">
+              <p className="text-xs text-gray-500">Models Used</p>
+              <p className="text-lg font-medium">{modelResponses.length}</p>
+            </div>
+            <div className="bg-white p-3 rounded border border-gray-100">
+              <p className="text-xs text-gray-500">Pattern</p>
+              <p className="text-lg font-medium">{selectedPattern}</p>
+            </div>
+            <div className="bg-white p-3 rounded border border-gray-100">
+              <p className="text-xs text-gray-500">Primary Model</p>
+              <p className="text-lg font-medium">
+                {formatModelName(primaryModel)}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Prompt display */}
+        <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+          <div className="flex justify-between items-center mb-2">
+            <h3 className="text-sm font-medium text-gray-700">Your Prompt</h3>
+            <button
+              onClick={() => copyToClipboard(prompt)}
+              className="text-gray-500 hover:text-gray-700"
+              title="Copy prompt"
+            >
+              <Copy className="h-4 w-4" />
+            </button>
+          </div>
+          <div className="bg-white p-3 rounded border border-gray-100">
+            <p className="whitespace-pre-wrap">{prompt}</p>
+          </div>
+        </div>
+
+        {/* Model responses */}
+        {responseView === 'sideBySide' ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {modelResponses.map((modelResponse, index) => (
+              <div
+                key={index}
+                className="bg-white border border-gray-200 rounded-lg shadow-sm"
+              >
+                <div className="bg-gray-50 p-3 border-b border-gray-200 flex justify-between items-center">
+                  <h3 className="font-medium">
+                    {formatModelName(modelResponse.model)}
+                  </h3>
+                  <button
+                    onClick={() => copyToClipboard(modelResponse.response)}
+                    className="text-gray-500 hover:text-gray-700"
+                    title="Copy response"
+                  >
+                    <Copy className="h-4 w-4" />
+                  </button>
+                </div>
+                <div className="p-4 overflow-auto max-h-[400px]">
+                  <pre className="whitespace-pre-wrap text-sm">
+                    {modelResponse.response}
+                  </pre>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {modelResponses.map((modelResponse, index) => (
+              <div
+                key={index}
+                className="bg-white border border-gray-200 rounded-lg shadow-sm"
+              >
+                <div className="bg-gray-50 p-3 border-b border-gray-200 flex justify-between items-center">
+                  <h3 className="font-medium">
+                    {formatModelName(modelResponse.model)}
+                  </h3>
+                  <button
+                    onClick={() => copyToClipboard(modelResponse.response)}
+                    className="text-gray-500 hover:text-gray-700"
+                    title="Copy response"
+                  >
+                    <Copy className="h-4 w-4" />
+                  </button>
+                </div>
+                <div className="p-4 overflow-auto max-h-[400px]">
+                  <pre className="whitespace-pre-wrap text-sm">
+                    {modelResponse.response}
+                  </pre>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Ultra model summary/analysis */}
+        {output && (
+          <div className="bg-blue-50 border border-blue-200 rounded-lg shadow-sm">
+            <div className="bg-blue-100 p-3 border-b border-blue-200 flex justify-between items-center">
+              <h3 className="font-medium text-blue-800">
+                Ultra Analysis Summary
+              </h3>
+              <button
+                onClick={() => copyToClipboard(output)}
+                className="text-blue-600 hover:text-blue-800"
+                title="Copy analysis"
+              >
+                <Copy className="h-4 w-4" />
+              </button>
+            </div>
+            <div className="p-4 overflow-auto max-h-[500px]">
+              <pre className="whitespace-pre-wrap text-sm">{output}</pre>
+            </div>
+          </div>
+        )}
+
+        {/* Action buttons */}
+        <div className="flex justify-between pt-4">
+          <button
+            onClick={() => setCurrentStep('pattern')}
+            className="px-4 py-2 border border-gray-300 rounded-md flex items-center space-x-2 hover:bg-gray-50 transition-colors"
+          >
+            <ChevronLeft className="h-4 w-4" />
+            <span>Back to Pattern Selection</span>
+          </button>
+          <button
+            onClick={retryAnalysis}
+            className="px-4 py-2 bg-blue-600 text-white rounded-md flex items-center space-x-2 hover:bg-blue-700 transition-colors"
+          >
+            <RefreshCw className="h-4 w-4" />
+            <span>Run Analysis Again</span>
+          </button>
+        </div>
+      </div>
+    );
+  };
+
   return (
-    <div className="container mx-auto px-4 py-8 max-w-4xl">
+    <div className="container mx-auto px-4 py-8 max-w-7xl">
       <h1 className="text-3xl font-bold text-gray-900 mb-6">UltrAI Analysis</h1>
 
       {/* Step progress */}
@@ -552,6 +833,11 @@ const SimpleAnalysis: React.FC = () => {
       <div className="bg-white shadow-md rounded-lg p-6 mb-8">
         {renderStepContent()}
       </div>
+
+      {/* Results View */}
+      {currentStep === 'results' && (
+        <div className="mt-6">{renderResults()}</div>
+      )}
 
       {/* Navigation buttons */}
       {currentStep !== 'intro' && currentStep !== 'results' && (

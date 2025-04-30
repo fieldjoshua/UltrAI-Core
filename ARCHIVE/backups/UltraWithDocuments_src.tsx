@@ -7,8 +7,15 @@ import { Textarea } from './ui/textarea';
 import { Label } from './ui/label';
 import { Checkbox } from './ui/checkbox';
 import { Progress } from './ui/progress';
-import { Zap, Award, Brain, Feather, Shield, FileText, Users, Network, Clock, Lightbulb, RefreshCw, Upload, X, File, Check, History, Save, Trash2, WifiOff, Share2, Copy, Link, ExternalLink, DollarSign } from 'lucide-react';
+import {
+  Award, Brain, Shield, FileText, Users, Network, Lightbulb,
+  RefreshCw, Upload, X, File, Check, History, Save, Trash2,
+  WifiOff, Share2, Copy, Link, DollarSign, Download, BarChart
+} from 'lucide-react';
 import AnimatedLogoV3 from './AnimatedLogoV3';
+import ThemeToggle from './ThemeToggle';
+import ExportResults from './ExportResults';
+import ModelComparisonChart from './ModelComparisonChart';
 
 // Simplified API URL
 const API_URL = import.meta.env.VITE_API_URL || 'https://ultra-api.vercel.app';
@@ -119,11 +126,11 @@ interface ShareItem extends HistoryItem {
 
 // Analysis pattern options
 const analysisTypes = [
-  { id: 'confidence', name: 'Confidence', description: 'Standard analysis with confidence scoring', icon: Shield },
+  { id: 'confidence', name: 'Confidence', description: 'Standard analysis with confidence scoring', icon: FileText },
   { id: 'critique', name: 'Critique', description: 'Critical evaluation with pros and cons', icon: FileText },
-  { id: 'perspective', name: 'Perspective', description: 'Multiple viewpoints on the topic', icon: Users },
-  { id: 'fact_check', name: 'Fact Check', description: 'Verification of factual claims', icon: Check },
-  { id: 'scenario', name: 'Scenario', description: 'Future scenario exploration', icon: Network }
+  { id: 'perspective', name: 'Perspective', description: 'Multiple viewpoints on the topic', icon: FileText },
+  { id: 'fact_check', name: 'Fact Check', description: 'Verification of factual claims', icon: FileText },
+  { id: 'scenario', name: 'Scenario', description: 'Future scenario exploration', icon: FileText }
 ];
 
 export default function UltraWithDocuments() {
@@ -135,10 +142,27 @@ export default function UltraWithDocuments() {
   const [availableModels, setAvailableModels] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
 
+  // Theme state
+  const [colorTheme, setColorTheme] = useState<'light' | 'dark'>('light');
+
   // Processing state
   const [isProcessing, setIsProcessing] = useState(false);
   const [isComplete, setIsComplete] = useState(false);
   const [isCached, setIsCached] = useState(false);
+
+  // Visualization state
+  const [showModelComparison, setShowModelComparison] = useState(false);
+  const [modelMetrics, setModelMetrics] = useState<{
+    models: string[];
+    confidenceScores: number[];
+    uniqueInsights: number[];
+    responseTime: number[];
+  }>({
+    models: [],
+    confidenceScores: [],
+    uniqueInsights: [],
+    responseTime: []
+  });
 
   // Document state
   const [documents, setDocuments] = useState<File[]>([]);
@@ -155,7 +179,7 @@ export default function UltraWithDocuments() {
   const [progressMessage, setProgressMessage] = useState('Initializing analysis...');
 
   // Animation state
-  const [animating, setAnimating] = useState(false);
+  const [isAnimating, _setAnimating] = useState(false);
 
   // Create a ref for the output container to implement scroll to results
   const outputRef = React.useRef<HTMLDivElement>(null);
@@ -616,18 +640,6 @@ export default function UltraWithDocuments() {
     }
   };
 
-  // Modify the analyze function to use the updated step flow
-  const handleAnalyzeClick = async () => {
-    if (currentStep === 'ANALYSIS_TYPE') {
-      setCurrentStep('PROCESSING');
-      setProgress(calculateProgress());
-      await handleAnalyze();
-    } else if (currentStep === 'PROCESSING' && isComplete) {
-      setCurrentStep('RESULTS');
-      setProgress(calculateProgress());
-    }
-  };
-
   // Main function to analyze the prompt
   const handleAnalyze = async () => {
     // Skip if offline
@@ -913,7 +925,10 @@ High: The answer is accurate based on the available information and general know
           <Checkbox
             id="useDocuments"
             checked={isUsingDocuments}
-            onCheckedChange={(checked) => setIsUsingDocuments(checked as boolean)}
+            onCheckedChange={(checked: boolean | 'indeterminate') => {
+              if (checked === 'indeterminate') return;
+              setIsUsingDocuments(checked as boolean);
+            }}
             disabled={isProcessing}
           />
           <Label htmlFor="useDocuments" className="text-cyan-300">
@@ -941,6 +956,7 @@ High: The answer is accurate based on the available information and general know
                 multiple
                 onChange={handleFileSelect}
                 disabled={isProcessing}
+                aria-label="Upload documents"
               />
             </div>
 
@@ -977,6 +993,7 @@ High: The answer is accurate based on the available information and general know
                           <button
                             onClick={() => removeDocument(index)}
                             className="text-cyan-500 hover:text-red-500"
+                            aria-label={`Remove document: ${doc.name}`}
                           >
                             <X className="h-5 w-5" />
                           </button>
@@ -1076,7 +1093,7 @@ High: The answer is accurate based on the available information and general know
 
       case 'PROMPT':
         return (
-          <div className={`space-y-4 ${animating ? 'fadeOut' : 'fadeIn'}`}>
+          <div className={`space-y-4 ${isAnimating ? 'fadeOut' : 'fadeIn'}`}>
             <div className="border-2 border-cyan-700 rounded-lg p-6 bg-black/50 relative overflow-hidden">
               <div className="absolute inset-0 bg-gradient-to-r from-cyan-900/20 to-purple-900/20"></div>
               <div className="relative z-10">
@@ -1089,7 +1106,7 @@ High: The answer is accurate based on the available information and general know
                   <Textarea
                     placeholder="Describe what you want multiple AI models to analyze. Try things like 'Explain quantum computing', 'Is AI dangerous?', or 'What are the ethical implications of genetic engineering?'"
                     value={prompt}
-                    onChange={(e) => setPrompt(e.target.value)}
+                    onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setPrompt(e.target.value)}
                     className="min-h-[200px] text-lg p-4 leading-relaxed bg-gray-900 border-gray-700 text-cyan-50"
                   />
                 </div>
@@ -1120,7 +1137,7 @@ High: The answer is accurate based on the available information and general know
 
       case 'MODELS':
         return (
-          <div className={`space-y-4 ${animating ? 'fadeOut' : 'fadeIn'}`}>
+          <div className={`space-y-4 ${isAnimating ? 'fadeOut' : 'fadeIn'}`}>
             <div className="border-2 border-cyan-700 rounded-lg p-6 bg-black/50 relative overflow-hidden">
               <div className="absolute inset-0 bg-gradient-to-r from-cyan-900/20 to-purple-900/20"></div>
               <div className="relative z-10">
@@ -1156,7 +1173,10 @@ High: The answer is accurate based on the available information and general know
                             <div className="flex items-center gap-2">
                               <Checkbox
                                 checked={isSelected}
-                                onCheckedChange={() => handleLLMChange(model)}
+                                onCheckedChange={(checked: boolean | 'indeterminate') => {
+                                  if (checked === 'indeterminate') return;
+                                  handleLLMChange(model);
+                                }}
                                 disabled={isProcessing || isOffline}
                                 className="data-[state=checked]:bg-blue-600"
                               />
@@ -1558,534 +1578,251 @@ High: The answer is accurate based on the available information and general know
     );
   };
 
-  // Render the main component
-  return (
-    <div className="container mx-auto p-4 md:p-8 max-w-6xl" ref={containerRef}>
-      {/* Step Progress Bar */}
-      <div className="mb-8">
-        <Progress
-          value={progress}
-          animated={true}
-          labels={Object.values(stepInfo).map(step => step.title)}
-          showLabels={true}
-          activeStep={Object.keys(stepInfo).indexOf(currentStep)}
+  // Navigate to another step
+  const goToStep = (step: Step) => {
+    setCurrentStep(step);
+  };
+
+  // Handle theme change
+  const handleThemeChange = (theme: 'light' | 'dark') => {
+    setColorTheme(theme);
+    // Apply theme class to document root
+    document.documentElement.className = '';
+    document.documentElement.classList.add(`${theme}-theme`);
+  };
+
+  // Generate random metrics for model comparison
+  // In the real implementation, this would use actual data from the API responses
+  const generateModelMetrics = () => {
+    if (selectedLLMs.length === 0) return;
+
+    const models = selectedLLMs;
+    const confidenceScores = models.map(() => Math.floor(Math.random() * 30) + 70); // 70-100
+    const uniqueInsights = models.map(() => Math.floor(Math.random() * 40) + 30); // 30-70
+    const responseTime = models.map(() => Math.floor(Math.random() * 1000) + 500); // 500-1500ms
+
+    setModelMetrics({
+      models,
+      confidenceScores,
+      uniqueInsights,
+      responseTime
+    });
+
+    setShowModelComparison(true);
+  };
+
+  // Render the model comparison visualization
+  const renderModelComparison = () => {
+    if (!showModelComparison || modelMetrics.models.length === 0) return null;
+
+    return (
+      <div className="model-comparison mt-8 p-4 rounded-lg border border-gray-200 dark:border-gray-800">
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-lg font-semibold flex items-center">
+            <BarChart className="w-5 h-5 mr-2" />
+            Model Performance Comparison
+          </h3>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setShowModelComparison(false)}
+          >
+            <X className="w-4 h-4" />
+          </Button>
+        </div>
+
+        <ModelComparisonChart
+          models={modelMetrics.models}
+          confidenceScores={modelMetrics.confidenceScores}
+          uniqueInsights={modelMetrics.uniqueInsights}
+          responseTime={modelMetrics.responseTime}
+          colorTheme={colorTheme}
         />
+
+        <div className="text-sm text-gray-500 mt-4">
+          <p>This visualization compares the performance metrics of the selected models.</p>
+          <ul className="list-disc list-inside mt-2">
+            <li><span className="font-medium">Confidence</span>: How confident the model is in its response</li>
+            <li><span className="font-medium">Unique Insights</span>: Number of unique insights provided</li>
+            <li><span className="font-medium">Response Speed</span>: How quickly the model generated its response</li>
+          </ul>
+        </div>
       </div>
+    );
+  };
 
-      {/* Current Step Title and Description */}
-      <div className="mb-8 text-center">
-        <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-2">
-          {stepInfo[currentStep].title}
-        </h2>
-        <p className="text-gray-600 dark:text-gray-300">
-          {stepInfo[currentStep].description}
-        </p>
+  // Main render function for the header with theme toggle
+  const renderHeader = () => {
+    return (
+      <div className="flex justify-between items-center mb-6">
+        <div className="flex items-center">
+          <AnimatedLogoV3 isProcessing={isAnimating} size="medium" />
+          <span className="ml-2 text-xl font-semibold">Ultra AI</span>
+        </div>
+
+        <div className="flex items-center space-x-4">
+          <ThemeToggle
+            onThemeChange={handleThemeChange}
+            initialTheme={colorTheme}
+            className="mr-2"
+          />
+
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setShowHistory(!showHistory)}
+            className="flex items-center"
+          >
+            <History className="w-4 h-4 mr-1" /> History
+          </Button>
+        </div>
       </div>
+    );
+  };
 
-      {/* Floating Price Component */}
-      {renderFloatingPrice()}
+  // Update the renderResultsStep function to include export functionality
+  const renderResultsStep = () => {
+    const analysisData = {
+      prompt,
+      result: output,
+      timestamp: new Date().toISOString(),
+      models: selectedLLMs,
+      pattern: selectedAnalysisType,
+      ultraModel: ultraLLM || undefined
+    };
 
-      {/* Main Content Area - Different for each step */}
-      <div className="bg-white dark:bg-gray-900 rounded-xl shadow-md p-6 mb-8 transition-all duration-500">
-        {/* Step 1: Introduction */}
-        {currentStep === 'INTRO' && (
-          <div className="space-y-6">
-            <div className="flex justify-center mb-8">
-              <AnimatedLogoV3 size="large" />
-            </div>
+    return (
+      <div>
+        <div className="mb-8">
+          <h2 className="text-2xl font-bold mb-2">Analysis Complete</h2>
+          <p className="text-gray-600 dark:text-gray-300">
+            Ultra has analyzed your query using {selectedLLMs.length} different AI models.
+          </p>
+        </div>
 
-            <div className="text-center max-w-2xl mx-auto">
-              <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
-                Welcome to Ultra AI
-              </h1>
-              <p className="text-gray-700 dark:text-gray-300 mb-6">
-                Ultra multiplies intelligence by analyzing your prompt with multiple AI models simultaneously,
-                then synthesizing the insights into a comprehensive response.
-              </p>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-                <div className="bg-blue-50 dark:bg-blue-900/30 p-4 rounded-lg">
-                  <Brain className="w-8 h-8 text-blue-500 mb-2 mx-auto" />
-                  <h3 className="font-semibold text-gray-800 dark:text-gray-200 mb-1">Multiple Models</h3>
-                </div>
-
-                <div className="bg-purple-50 dark:bg-purple-900/30 p-4 rounded-lg">
-                  <Lightbulb className="w-8 h-8 text-purple-500 mb-2 mx-auto" />
-                  <h3 className="font-semibold text-gray-800 dark:text-gray-200 mb-1">Enhanced Analysis</h3>
-                </div>
-
-                <div className="bg-green-50 dark:bg-green-900/30 p-4 rounded-lg">
-                  <FileText className="w-8 h-8 text-green-500 mb-2 mx-auto" />
-                  <h3 className="font-semibold text-gray-800 dark:text-gray-200 mb-1">Document Context</h3>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Step 2: Prompt Input */}
-        {currentStep === 'PROMPT' && (
-          <div className="space-y-6">
-            <div className="mb-6">
-              <Label htmlFor="prompt" className="text-lg font-medium mb-2 block">
-                What would you like Ultra to analyze?
-              </Label>
-              <div className="relative">
-                <Textarea
-                  id="prompt"
-                  placeholder="Enter your question or request here..."
-                  className="w-full min-h-32 p-3 text-md"
-                  value={prompt}
-                  onChange={(e) => setPrompt(e.target.value)}
-                  disabled={isProcessing || isOffline}
-                />
-                {prompt.length > 0 && (
-                  <div className="absolute bottom-2 right-2 text-xs text-gray-500">
-                    {prompt.length} characters
-                  </div>
-                )}
-              </div>
-
-              <div className="text-sm text-gray-600 dark:text-gray-400 mt-2">
-                <p>Tips for great prompts:</p>
-                <ul className="list-disc pl-5 mt-1 space-y-1">
-                  <li>Be specific about what you're looking for</li>
-                  <li>Provide context when relevant</li>
-                  <li>Ask for analysis, comparisons, or evaluations</li>
-                </ul>
-              </div>
-            </div>
-
-            {error && (
-              <div className="bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-300 p-3 rounded-md mb-4">
-                {error}
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Step 3: Documents Upload */}
-        {currentStep === 'DOCUMENTS' && (
-          <div className="space-y-6">
-            <div className="mb-4">
-              <div className="flex items-center space-x-2 mb-2">
-                <Checkbox
-                  id="useDocuments"
-                  checked={isUsingDocuments}
-                  onCheckedChange={(checked) => setIsUsingDocuments(checked as boolean)}
-                  disabled={isProcessing || isOffline}
-                />
-                <Label htmlFor="useDocuments" className="text-lg font-medium">
-                  Include documents in your analysis
-                </Label>
-              </div>
-              <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-                Upload files that provide context or information relevant to your query.
-              </p>
-            </div>
-
-            {isUsingDocuments && (
-              <div className="space-y-4">
-                <div
-                  className="border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-lg p-8 text-center cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
-                  onClick={() => fileInputRef.current?.click()}
-                >
-                  <Upload className="h-10 w-10 text-gray-400 dark:text-gray-600 mx-auto mb-3" />
-                  <p className="text-gray-600 dark:text-gray-400">
-                    Drag and drop files here, or click to select
-                  </p>
-                  <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
-                    Supports PDF, TXT, DOCX, and more (max 4MB per file)
-                  </p>
-                  <input
-                    type="file"
-                    ref={fileInputRef}
-                    className="hidden"
-                    multiple
-                    onChange={handleFileSelect}
-                    disabled={isProcessing || isOffline}
-                  />
-                </div>
-
-                {/* Document List */}
-                {documents.length > 0 && (
-                  <div className="mt-4">
-                    <h3 className="font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Selected Documents ({documents.length})
-                    </h3>
-                    <div className="space-y-2">
-                      {documents.map((doc, index) => (
-                        <div
-                          key={index}
-                          className="flex items-center justify-between bg-gray-50 dark:bg-gray-800 p-3 rounded-md"
-                        >
-                          <div className="flex items-center space-x-3">
-                            <File className="h-5 w-5 text-blue-500" />
-                            <div>
-                              <p className="text-sm font-medium text-gray-800 dark:text-gray-200">{doc.name}</p>
-                            </div>
-                          </div>
-
-                          <div className="flex items-center">
-                            {uploadProgress[doc.name] !== undefined && uploadProgress[doc.name] < 100 ? (
-                              <div className="w-16">
-                                <Progress value={uploadProgress[doc.name]} size="sm" />
-                              </div>
-                            ) : uploadProgress[doc.name] === 100 ? (
-                              <Check className="h-5 w-5 text-green-500" />
-                            ) : (
-                              <button
-                                onClick={() => removeDocument(index)}
-                                className="text-gray-500 hover:text-red-600 dark:text-gray-400 dark:hover:text-red-400"
-                              >
-                                <X className="h-5 w-5" />
-                              </button>
-                            )}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Uploaded Documents */}
-                {uploadedDocuments.length > 0 && (
-                  <div className="mt-4">
-                    <h3 className="font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Uploaded Documents ({uploadedDocuments.length})
-                    </h3>
-                    <div className="space-y-2">
-                      {uploadedDocuments.map((doc) => (
-                        <div
-                          key={doc.id}
-                          className="flex items-center justify-between bg-green-50 dark:bg-green-900/20 p-3 rounded-md"
-                        >
-                          <div className="flex items-center space-x-3">
-                            <File className="h-5 w-5 text-green-500" />
-                            <p className="text-sm font-medium text-gray-800 dark:text-gray-200">{doc.name}</p>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {documents.length > 0 && (
-                  <div className="flex justify-center mt-4">
-                    <Button
-                      onClick={uploadDocuments}
-                      disabled={isProcessing || documents.length === 0 || isOffline}
-                      className="bg-blue-600 hover:bg-blue-700 text-white"
-                    >
-                      Upload Selected Documents
-                    </Button>
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Step 4: Model Selection */}
-        {currentStep === 'MODELS' && (
-          <div className={`space-y-4 ${animating ? 'fadeOut' : 'fadeIn'}`}>
-            <div className="border-2 border-cyan-700 rounded-lg p-6 bg-black/50 relative overflow-hidden">
-              <div className="absolute inset-0 bg-gradient-to-r from-cyan-900/20 to-purple-900/20"></div>
-              <div className="relative z-10">
-                <div className="flex items-center mb-4">
-                  <div className="w-8 h-8 rounded-full bg-cyan-700 flex items-center justify-center mr-3 text-white font-bold">2</div>
-                  <h2 className="text-2xl font-bold text-cyan-400">Select AI models</h2>
-                </div>
-                <p className="text-cyan-100 mb-4">
-                  Choose which AI models will analyze your query. Each model brings unique strengths and perspectives.
-                </p>
-
-                <div className="space-y-2">
-                  <Label className="text-lg text-cyan-200">Available AI Models</Label>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-2">
-                    {availableModels.map((model) => {
-                      const isSelected = selectedLLMs.includes(model);
-                      const isUltra = ultraLLM === model;
-
-                      return (
-                        <div
-                          key={model}
-                          className={`
-                            border rounded-lg p-4 cursor-pointer transition-all
-                            ${isSelected
-                              ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
-                              : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'}
-                            ${isUltra ? 'ring-2 ring-purple-500' : ''}
-                          `}
-                          onClick={() => handleLLMChange(model)}
-                        >
-                          <div className="flex justify-between items-center">
-                            <div className="flex items-center gap-2">
-                              <Checkbox
-                                checked={isSelected}
-                                onCheckedChange={() => handleLLMChange(model)}
-                                disabled={isProcessing || isOffline}
-                                className="data-[state=checked]:bg-blue-600"
-                              />
-                              <span className="font-medium text-gray-800 dark:text-gray-200">
-                                {model.charAt(0).toUpperCase() + model.slice(1)}
-                              </span>
-                            </div>
-                            <div className="text-sm text-gray-500 dark:text-gray-400">
-                              ${prices[model]?.toFixed(4)} / 1K tokens
-                            </div>
-                          </div>
-
-                          <div className="mt-4 flex justify-between items-center">
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleUltraChange(model);
-                              }}
-                              disabled={!isSelected || isProcessing || isOffline}
-                              className={`
-                                text-xs font-medium px-3 py-1 rounded-full
-                                ${isUltra
-                                  ? 'bg-purple-600 text-white'
-                                  : 'bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300 hover:bg-purple-200'}
-                                ${!isSelected ? 'opacity-50 cursor-not-allowed' : ''}
-                              `}
-                            >
-                              {isUltra ? 'Ultra Model ✓' : 'Set as Ultra Model'}
-                            </button>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="mt-4">
-              <PricingDisplay />
-            </div>
-
-            <div className="pt-4 flex justify-between">
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md mb-6">
+          <div className="flex justify-between items-start mb-4">
+            <h3 className="text-lg font-semibold">Your Prompt</h3>
+            <div className="flex space-x-2">
               <Button
-                onClick={goToPreviousStep}
-                variant="outline"
-                size="lg"
-                className="border-cyan-700 text-cyan-400 hover:bg-cyan-950"
-              >
-                Back
-              </Button>
-              <Button
-                onClick={goToNextStep}
-                size="lg"
-                className="font-medium text-lg bg-gradient-to-r from-cyan-600 to-cyan-700 hover:from-cyan-500 hover:to-cyan-600"
-                disabled={selectedLLMs.length < 2 || !ultraLLM}
-              >
-                Analyze Now
-              </Button>
-            </div>
-          </div>
-        )}
-
-        {/* Step 5: Analysis Type Selection */}
-        {currentStep === 'ANALYSIS_TYPE' && (
-          <div className="space-y-6">
-            <div className="mb-6">
-              <h3 className="text-lg font-medium text-gray-800 dark:text-white mb-2">
-                Select Analysis Method
-              </h3>
-              <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-                Choose how Ultra should approach your query.
-              </p>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {analysisTypes.map((type) => {
-                  const isSelected = selectedAnalysisType === type.id;
-                  const Icon = type.icon;
-
-                  return (
-                    <div
-                      key={type.id}
-                      className={`
-                        border rounded-lg p-4 cursor-pointer transition-all
-                        ${isSelected
-                          ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/20'
-                          : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'}
-                      `}
-                      onClick={() => handleAnalysisTypeChange(type.id)}
-                    >
-                      <div className="flex flex-col items-center text-center">
-                        <div className={`p-3 rounded-full mb-3 ${isSelected ? 'bg-purple-100 dark:bg-purple-900/30' : 'bg-gray-100 dark:bg-gray-800'}`}>
-                          <Icon className={`h-6 w-6 ${isSelected ? 'text-purple-600' : 'text-gray-500 dark:text-gray-400'}`} />
-                        </div>
-                        <h4 className="font-medium text-gray-800 dark:text-gray-200 mb-1">
-                          {type.name}
-                        </h4>
-                        <p className="text-xs text-gray-600 dark:text-gray-400">
-                          {type.description}
-                        </p>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Step 6: Processing */}
-        {currentStep === 'PROCESSING' && (
-          <div className="space-y-6 text-center">
-            <div className="flex justify-center mb-8">
-              <div className="relative">
-                <AnimatedLogoV3 size="large" />
-              </div>
-            </div>
-
-            <h3 className="text-xl font-medium text-gray-800 dark:text-white mb-2">
-              {isComplete ? 'Analysis Complete!' : 'Processing Your Analysis'}
-            </h3>
-
-            <div className="max-w-md mx-auto mb-6">
-              <Progress value={isComplete ? 100 : progress} animated={!isComplete} />
-              <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
-                {progressMessage}
-              </p>
-            </div>
-
-            {isComplete && (
-              <div className="text-center">
-                <p className="text-green-600 dark:text-green-400 font-medium mb-4">
-                  {isCached ? 'Results retrieved from cache' : 'Analysis completed successfully'}
-                </p>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Step 7: Results */}
-        {currentStep === 'RESULTS' && (
-          <div className="space-y-6" ref={outputRef}>
-            <div className="mb-6">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-xl font-medium text-gray-800 dark:text-white">
-                  Ultra Analysis Results
-                </h3>
-                <div className="flex items-center space-x-2">
-                  <button
-                    onClick={() => saveToHistory()}
-                    disabled={isOffline}
-                    className="text-sm text-blue-600 dark:text-blue-400 flex items-center gap-1 hover:underline"
-                  >
-                    <Save className="h-4 w-4" />
-                    Save
-                  </button>
-                  <button
-                    onClick={() => shareAnalysis()}
-                    disabled={isOffline}
-                    className="text-sm text-purple-600 dark:text-purple-400 flex items-center gap-1 hover:underline"
-                  >
-                    <Share2 className="h-4 w-4" />
-                    Share
-                  </button>
-                </div>
-              </div>
-
-              <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 mb-4">
-                <h4 className="font-medium text-gray-700 dark:text-gray-300 mb-2">Your Prompt</h4>
-                <p className="text-gray-800 dark:text-gray-200">{prompt}</p>
-              </div>
-
-              <div className="prose prose-lg dark:prose-invert max-w-none">
-                {output && (
-                  <div className="whitespace-pre-wrap rounded-lg border border-gray-200 dark:border-gray-700 p-4">
-                    {output}
-                  </div>
-                )}
-              </div>
-            </div>
-
-            <div className="flex flex-col md:flex-row gap-4 mt-8">
-              <Button
+                variant="ghost"
+                size="sm"
                 onClick={() => {
-                  setCurrentStep('PROMPT');
-                  setPrompt('');
-                  setSelectedLLMs([]);
-                  setUltraLLM(null);
-                  setDocuments([]);
-                  setUploadedDocuments([]);
-                  setOutput('');
-                  setIsComplete(false);
-                  setProgress(0);
-                  setIsUsingDocuments(false);
+                  navigator.clipboard.writeText(prompt);
+                  // Add a copy success message logic here
                 }}
-                className="bg-blue-600 hover:bg-blue-700 text-white"
               >
-                <RefreshCw className="h-4 w-4 mr-2" />
-                Start New Analysis
-              </Button>
-
-              <Button
-                onClick={() => setShowHistory(true)}
-                variant="outline"
-                className="border-gray-300 dark:border-gray-700"
-              >
-                <History className="h-4 w-4 mr-2" />
-                View History
+                <Copy className="w-4 h-4 mr-1" /> Copy
               </Button>
             </div>
           </div>
-        )}
-      </div>
-
-      {/* Navigation Buttons */}
-      <div className="flex justify-between mt-8">
-        <Button
-          onClick={goToPreviousStep}
-          disabled={currentStep === 'INTRO' || isProcessing}
-          variant="outline"
-          className="border-gray-300 dark:border-gray-700"
-        >
-          Previous
-        </Button>
-
-        {currentStep !== 'PROCESSING' && currentStep !== 'RESULTS' ? (
-          <Button
-            onClick={goToNextStep}
-            disabled={!validateCurrentStep() || isProcessing || isOffline}
-            className="bg-blue-600 hover:bg-blue-700 text-white"
-          >
-            {currentStep === 'ANALYSIS_TYPE' ? 'Start Analysis' : 'Next'}
-          </Button>
-        ) : currentStep === 'PROCESSING' ? (
-          <Button
-            onClick={handleAnalyzeClick}
-            disabled={!isComplete || isOffline}
-            className="bg-green-600 hover:bg-green-700 text-white"
-          >
-            View Results
-          </Button>
-        ) : null}
-      </div>
-
-      {/* History Dialog */}
-      {renderHistoryPanel()}
-
-      {/* Share Dialog */}
-      {renderShareDialog()}
-
-      {/* Offline Mode Banner */}
-      {isOffline && (
-        <div className="fixed bottom-4 right-4 bg-amber-50 dark:bg-amber-900/30 text-amber-800 dark:text-amber-300 p-4 rounded-lg shadow-lg flex items-center gap-3 max-w-md z-50">
-          <div className="bg-amber-200 dark:bg-amber-800 p-2 rounded-full">
-            <WifiOff className="h-5 w-5 text-amber-700 dark:text-amber-300" />
-          </div>
-          <div>
-            <h3 className="font-medium mb-1">Offline Mode</h3>
-            <p className="text-sm">You're currently offline. You can view saved analyses, but cannot make new requests.</p>
+          <div className="p-4 bg-gray-50 dark:bg-gray-700 rounded-md whitespace-pre-wrap">
+            {prompt}
           </div>
         </div>
-      )}
+
+        <div ref={outputRef} className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
+          <div className="flex justify-between items-start mb-4">
+            <h3 className="text-lg font-semibold flex items-center">
+              <Brain className="w-5 h-5 mr-2" /> Ultra Response
+            </h3>
+            <div className="flex space-x-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  navigator.clipboard.writeText(output);
+                  // Add a copy success message logic here
+                }}
+              >
+                <Copy className="w-4 h-4 mr-1" /> Copy
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowModelComparison(!showModelComparison)}
+              >
+                <BarChart className="w-4 h-4 mr-1" /> Metrics
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => shareAnalysis()}
+              >
+                <Share2 className="w-4 h-4 mr-1" /> Share
+              </Button>
+            </div>
+          </div>
+
+          <div className="prose prose-sm max-w-none dark:prose-invert mb-6">
+            <div className="whitespace-pre-wrap">{output}</div>
+          </div>
+
+          {/* Export functionality */}
+          <div className="mt-8 border-t pt-4 dark:border-gray-700">
+            <h4 className="text-md font-medium mb-3 flex items-center">
+              <Download className="w-4 h-4 mr-2" /> Export Results
+            </h4>
+            <ExportResults analysisData={analysisData} />
+          </div>
+        </div>
+
+        {/* Action buttons */}
+        <div className="flex justify-between mt-8">
+          <Button
+            variant="outline"
+            onClick={() => {
+              setPrompt('');
+              setOutput('');
+              setSelectedLLMs([]);
+              setUltraLLM(null);
+              setIsComplete(false);
+              setShowModelComparison(false);
+              goToStep('INTRO');
+            }}
+          >
+            Start New Analysis
+          </Button>
+
+          <Button
+            onClick={() => saveToHistory()}
+            disabled={!output}
+          >
+            <Save className="w-4 h-4 mr-2" /> Save Analysis
+          </Button>
+        </div>
+      </div>
+    );
+  };
+
+  // Main render function for the component
+  return (
+    <div className={`ultra-container p-4 md:p-8 max-w-4xl mx-auto relative ${colorTheme === 'dark' ? 'dark-theme' : 'light-theme'}`} ref={containerRef}>
+      {/* Offline banner */}
+      {renderOfflineBanner()}
+
+      {/* Header with logo and theme toggle */}
+      {renderHeader()}
+
+      {/* Main content */}
+      <div className="main-content">
+        {/* Step indicator */}
+        {renderStepIndicator()}
+
+        {/* Step content */}
+        <div className="step-content mt-8">
+          {renderStepContent()}
+        </div>
+      </div>
+
+      {/* Floating price component */}
+      {floatingPriceVisible && renderFloatingPrice()}
+
+      {/* History panel */}
+      {showHistory && renderHistoryPanel()}
+
+      {/* Share dialog */}
+      {showShareDialog && shareDialogItem && renderShareDialog()}
     </div>
   );
 }
