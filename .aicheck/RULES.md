@@ -24,7 +24,14 @@ PLANS must be kept up to date and, along with objective instructions, must detai
 
 Changes, including which sole ActiveAction is being worked on, must be reflected in the ACTIONS INDEX and in relevant docs.
 
-Supporting documentation for the ACTION must be maintained in the ACTION's directory.
+Supporting documentation for the ACTION must be maintained in the ACTION's supporting_docs directory.
+
+Documentation is categorized into two main types:
+
+- **Process Documentation**: Temporary documents relevant only during an ACTION's lifecycle, stored in .aicheck/actions/[ACTION_NAME]/supporting_docs/
+- **Product Documentation**: Enduring documents with relevance beyond an ACTION's completion, stored in /documentation/[CATEGORY]/
+
+When an ACTION is completed, any documentation with enduring value must be migrated to the appropriate /documentation/ subdirectory.
 
 ### 3. Development Guidelines
 
@@ -133,6 +140,38 @@ The following ALWAYS require human manager approval:
 - Use predefined status values with progress percentage, document blockers clearly, and update timestamps
 - Create clear error messages with error codes, resolution steps, and appropriate logging
 
+## Documentation Organization
+
+### Documentation Types and Locations
+
+1. **ACTION Process Documentation** (.aicheck/actions/[ACTION_NAME]/supporting_docs/)
+   - Documents with temporary relevance during the ACTION lifecycle
+   - Implementation details specific to the ACTION
+   - Research notes, experiments, and progress tracking
+   - Design worksheets and ACTION-specific planning
+
+2. **Product Documentation** (/documentation/[CATEGORY]/)
+   - Documents with enduring relevance beyond ACTION completion
+   - System architecture and component descriptions
+   - User guides and API references
+   - Standards, patterns, and best practices
+   - Configuration and deployment guides
+
+### Documentation Migration
+
+When an ACTION is completed:
+
+1. Evaluate all documentation for enduring value
+2. Prepare documents for migration by:
+   - Updating ACTION-specific terminology
+   - Ensuring completeness and accuracy
+   - Adding appropriate metadata
+3. Move relevant documents to appropriate /documentation/ subdirectories
+4. Update references and documentation indexes
+5. Note migrations in the ACTION completion record
+
+A complete Documentation Migration Checklist can be found in documentation/technical/processes/documentation_migration.md
+
 ## Script Usage
 
 - Project scripts are located in:
@@ -144,8 +183,8 @@ The following ALWAYS require human manager approval:
 
 ## Last Updated
 
-Date: 2025-04-29
-Version: 1.1.0
+Date: 2025-05-03
+Version: 1.2.0
 
 ## Test Rule
 
