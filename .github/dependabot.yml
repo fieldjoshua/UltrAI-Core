@@ -1,19 +1,16 @@
 version: 2
 updates:
-  # Check for updates to npm packages
+  # Frontend dependencies
   - package-ecosystem: "npm"
     directory: "/"
     schedule:
       interval: "weekly"
     open-pull-requests-limit: 10
-    versioning-strategy: auto
     labels:
       - "dependencies"
       - "security"
-    reviewers:
-      - "fieldjoshua"
 
-  # Check for updates to Python packages
+  # Backend dependencies (if using Python)
   - package-ecosystem: "pip"
     directory: "/"
     schedule:
@@ -22,91 +19,12 @@ updates:
     labels:
       - "dependencies"
       - "security"
-    reviewers:
-      - "fieldjoshua"
 
-  # Check for updates to GitHub Actions
+  # GitHub Actions
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
-      interval: "monthly"
-    open-pull-requests-limit: 5
-    labels:
-      - "dependencies"
-      - "github-actions"
-
-  # Maintain dependencies for npm (JavaScript/TypeScript)
-  - package-ecosystem: "npm"
-    directory: "/"
-    schedule:
       interval: "weekly"
-    open-pull-requests-limit: 10
-    target-branch: "main"
     labels:
+      - "ci-cd"
       - "dependencies"
-    versioning-strategy: auto
-    groups:
-      dev-dependencies:
-        patterns:
-          - "*eslint*"
-          - "*jest*"
-          - "*testing-library*"
-        exclude-patterns:
-          - "@types/*"
-      minor-patch-dependencies:
-        update-types:
-          - "minor"
-          - "patch"
-    commit-message:
-      prefix: "fix"
-      prefix-development: "chore"
-      include: "scope"
-    security-updates-only: true
-
-  # Maintain dependencies for pip (Python)
-  - package-ecosystem: "pip"
-    directory: "/backend"
-    schedule:
-      interval: "weekly"
-    open-pull-requests-limit: 10
-    target-branch: "main"
-    labels:
-      - "dependencies"
-      - "backend"
-    versioning-strategy: auto
-    groups:
-      dev-dependencies:
-        patterns:
-          - "pytest*"
-          - "flake8*"
-          - "black"
-      ai-dependencies:
-        patterns:
-          - "openai"
-          - "anthropic"
-          - "google-generativeai"
-          - "cohere"
-      web-dependencies:
-        patterns:
-          - "fastapi"
-          - "uvicorn"
-          - "starlette"
-    commit-message:
-      prefix: "fix"
-      prefix-development: "chore"
-      include: "scope"
-    security-updates-only: true
-
-  # Maintain dependencies for GitHub Actions
-  - package-ecosystem: "github-actions"
-    directory: "/"
-    schedule:
-      interval: "monthly"
-    open-pull-requests-limit: 5
-    target-branch: "main"
-    labels:
-      - "dependencies"
-      - "ci"
-    commit-message:
-      prefix: "ci"
-      include: "scope"
