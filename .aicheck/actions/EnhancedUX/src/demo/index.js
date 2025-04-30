@@ -6,5 +6,6 @@
 
 import FeatureDiscoveryDemo from './FeatureDiscoveryDemo';
 import MinimalDemo from './MinimalDemo';
+import PersonalizationDemo from './PersonalizationDemo';
 
-export { FeatureDiscoveryDemo, MinimalDemo };
+export { FeatureDiscoveryDemo, MinimalDemo, PersonalizationDemo };
