@@ -1,0 +1,2 @@
+# Ignore test credentials
+backend/tests/conftest.py:199:stripe-access-token
