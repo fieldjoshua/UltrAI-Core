@@ -2,6 +2,23 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Project Rules
+
+Claude should follow the rules specified in `.aicheck/RULES.md` which include:
+
+- Focus on one ActiveAction at a time
+- Documentation-first approach
+- Follow AICheck directory structure
+- Update action status and document progress
+- Adhere to language-specific best practices
+
+Claude should not make changes to:
+
+- ActiveAction status
+- Action Plans
+- Templates
+- The AICheck system itself
+
 ## Setup
 
 - Backend: `pip3 install -r requirements.txt PyJWT passlib redis` (install Python dependencies)
@@ -67,6 +84,16 @@ test('renders login form', () => {
   expect(screen.getByLabelText('Email')).toBeInTheDocument();
 });
 ```
+
+## Documentation Style
+
+Per the rules in `.aicheck/RULES.md`:
+
+- Use ATX-style headers and fenced code blocks
+- Use PascalCase for Action names
+- Use kebab-case for file names
+- Follow language-specific style guides
+- Separate process documentation (temporary) from product documentation (enduring)
 
 ## Code Style Guidelines
 
