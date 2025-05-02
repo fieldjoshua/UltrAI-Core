@@ -1,3 +1,9 @@
+"""
+Alembic environment module for database migrations.
+
+This module configures the Alembic environment and defines how migrations are run.
+"""
+
 import os
 import sys
 from logging.config import fileConfig
@@ -8,8 +14,11 @@ from sqlalchemy import engine_from_config, pool
 # Add the parent directory to the path so we can import models
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))))
 
-# Import the SQLAlchemy metadata and database URL
-from backend.database.connection import Base, DATABASE_URL
+# Import database connection settings
+from backend.database.connection import DATABASE_URL, DB_HOST, DB_PORT, DB_USER, DB_PASSWORD, DB_NAME
+
+# Import the SQLAlchemy base
+from backend.database.models.base import Base
 
 # Alembic Config object, which provides access to values in the .ini file
 config = context.config
@@ -17,18 +26,22 @@ config = context.config
 # Override the sqlalchemy.url from the alembic.ini file with our actual connection URL
 config.set_main_option("sqlalchemy.url", DATABASE_URL)
 
-# Interpret the config file for Python logging.
-# This line sets up loggers basically.
+# Interpret the config file for Python logging
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-# Add your model's MetaData object here for 'autogenerate' support
 # Import all models to ensure they're included in the migration
 from backend.database.models.user import User, ApiKey
 from backend.database.models.document import Document, DocumentChunk
-from backend.database.models.analysis import Analysis
+from backend.database.models.analysis import Analysis, AnalysisResult
 
+# Set target metadata to Base.metadata
 target_metadata = Base.metadata
+
+
+def get_url():
+    """Get database URL from environment variables or default to the one in alembic.ini."""
+    return DATABASE_URL
 
 
 def run_migrations_offline() -> None:
@@ -43,7 +56,7 @@ def run_migrations_offline() -> None:
     Calls to context.execute() here emit the given string to the
     script output.
     """
-    url = config.get_main_option("sqlalchemy.url")
+    url = get_url()
     context.configure(
         url=url,
         target_metadata=target_metadata,
@@ -62,15 +75,27 @@ def run_migrations_online() -> None:
     In this scenario we need to create an Engine
     and associate a connection with the context.
     """
+    # Use connection string from the config
+    configuration = config.get_section(config.config_ini_section)
+    configuration["sqlalchemy.url"] = get_url()
+    
+    # Create the engine
     connectable = engine_from_config(
-        config.get_section(config.config_ini_section),
+        configuration,
         prefix="sqlalchemy.",
         poolclass=pool.NullPool,
     )
 
     with connectable.connect() as connection:
         context.configure(
-            connection=connection, target_metadata=target_metadata
+            connection=connection, 
+            target_metadata=target_metadata,
+            # Use transaction per migration to ensure atomic upgrades
+            transaction_per_migration=True,
+            # Compare types to catch subtle schema changes
+            compare_type=True,
+            # Compare server default values
+            compare_server_default=True,
         )
 
         with context.begin_transaction():

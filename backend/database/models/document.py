@@ -13,7 +13,7 @@ from sqlalchemy import (Column, DateTime, Enum, Float, ForeignKey, Integer,
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import relationship
 
-from backend.database.connection import Base
+from backend.database.models.base import Base
 
 
 class DocumentStatus(enum.Enum):

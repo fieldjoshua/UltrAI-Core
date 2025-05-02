@@ -11,7 +11,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # Import the FastAPI app and config
 from backend.app import app
-from backend.config import Settings, get_settings
+from backend.config import Config
 
 # For backward compatibility with existing tests
 try:
@@ -138,19 +138,20 @@ def mock_environment():
 @pytest.fixture
 def mock_settings():
     """Mock settings with test data"""
-    settings = MagicMock(spec=Settings)
+    settings = MagicMock()
     settings.MODEL_PROVIDERS = MOCK_PROVIDERS
     settings.ANALYSIS_PATTERNS = MOCK_ANALYSIS_PATTERNS
-    settings.MOCK_MODE = True
+    settings.use_mock = True
     settings.DEBUG = True
     return settings
 
 @pytest.fixture
 def mock_get_settings(mock_settings):
-    """Override the get_settings dependency to use mock settings"""
-    app.dependency_overrides[get_settings] = lambda: mock_settings
+    """Override settings for testing"""
+    original_mock = Config.use_mock
+    Config.use_mock = True
     yield
-    app.dependency_overrides = {}
+    Config.use_mock = original_mock
 
 @pytest.fixture
 def mock_env_vars():
