@@ -41,6 +41,8 @@ Claude should not make changes to:
 - Run tests with coverage: `python3 -m pytest --cov=backend backend/tests/ -v`
 - Frontend tests: `cd frontend && npm test -- -t "test name"`
 - E2E tests: `cd frontend && npm run test:e2e`
+- API integration test: `python3 test_api.py --base-url http://localhost:8085 --models gpt4o,claude3opus --prompt "Your test prompt"`
+- Docker Model Runner test: `python3 test_docker_modelrunner.py --base-url http://localhost:8085 --model ai/smollm2`
 
 ## Common Workflows
 
@@ -62,7 +64,44 @@ Claude should not make changes to:
 
 1. Check existing models in `backend/services/llm_config_service.py`
 2. Use mock mode during development: `export USE_MOCK=true`
-3. Add new providers by extending the orchestrator pattern
+3. Use Docker Model Runner for local LLMs: `export USE_MODEL_RUNNER=true`
+4. Add new providers by extending the orchestrator pattern
+
+### Docker Model Runner Setup
+
+For local development with open-source LLMs:
+
+1. Install Docker Desktop 4.40+:
+
+   - Docker Desktop now includes Docker Model Runner functionality with the `docker model` command
+
+2. Pull a model to use with Ultra:
+
+   ```bash
+   docker model pull ai/smollm2
+   ```
+
+3. Test the Docker Model Runner CLI adapter:
+
+   ```bash
+   python3 scripts/test_modelrunner_cli.py
+   ```
+
+4. Run locally with Docker Model Runner enabled:
+
+   ```bash
+   # Enable Docker Model Runner with CLI adapter
+   export USE_MODEL_RUNNER=true
+   export MODEL_RUNNER_TYPE=cli
+
+   # Start the backend
+   python3 -m uvicorn backend.app:app --reload
+   ```
+
+5. Use local models in your API requests by including them in the models array:
+   ```json
+   { "prompt": "What is machine learning?", "models": ["ai/smollm2"] }
+   ```
 
 ### Test Examples
 

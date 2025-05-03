@@ -154,11 +154,11 @@ const SimpleAnalysis: React.FC = () => {
     if (selectedModels.includes(model)) {
       // Don't allow deselecting the last model
       if (selectedModels.length > 1) {
-        setSelectedModels(selectedModels.filter(m => m !== model));
+        setSelectedModels(selectedModels.filter((m) => m !== model));
 
         // If removing the primary model, set a new one
         if (primaryModel === model) {
-          setPrimaryModel(selectedModels.filter(m => m !== model)[0]);
+          setPrimaryModel(selectedModels.filter((m) => m !== model)[0]);
         }
       }
     } else {
@@ -217,9 +217,17 @@ const SimpleAnalysis: React.FC = () => {
       // If the API returns individual model responses, use those
       if (result.model_responses) {
         for (const model in result.model_responses) {
+          // Handle both string and object formats for backwards compatibility
+          const response =
+            typeof result.model_responses[model] === 'string'
+              ? result.model_responses[model]
+              : result.model_responses[model]?.content ||
+                result.model_responses[model]?.response ||
+                JSON.stringify(result.model_responses[model]);
+
           individualResponses.push({
             model,
-            response: result.model_responses[model],
+            response: response,
           });
         }
       } else {
@@ -349,8 +357,8 @@ const SimpleAnalysis: React.FC = () => {
             <div className="mb-4">
               <textarea
                 value={prompt}
-                onChange={e => setPrompt(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                onChange={(e) => setPrompt(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600 dark:placeholder-gray-400"
                 rows={5}
                 placeholder="What would you like to analyze?"
               />
@@ -377,7 +385,7 @@ const SimpleAnalysis: React.FC = () => {
             ) : (
               <div className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  {availableModels.map(model => (
+                  {availableModels.map((model) => (
                     <div
                       key={model}
                       className={`border p-3 rounded-md cursor-pointer ${
@@ -446,7 +454,7 @@ const SimpleAnalysis: React.FC = () => {
             </p>
 
             <div className="space-y-3">
-              {patterns.map(pattern => (
+              {patterns.map((pattern) => (
                 <div
                   key={pattern.key}
                   className={`border p-3 rounded-md cursor-pointer ${
@@ -644,7 +652,9 @@ const SimpleAnalysis: React.FC = () => {
         {/* Prompt display */}
         <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
           <div className="flex justify-between items-center mb-2">
-            <h3 className="text-sm font-medium text-gray-700">Your Prompt</h3>
+            <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              Your Prompt
+            </h3>
             <button
               onClick={() => copyToClipboard(prompt)}
               className="text-gray-500 hover:text-gray-700"
@@ -654,7 +664,9 @@ const SimpleAnalysis: React.FC = () => {
             </button>
           </div>
           <div className="bg-white p-3 rounded border border-gray-100">
-            <p className="whitespace-pre-wrap">{prompt}</p>
+            <p className="whitespace-pre-wrap text-gray-900 dark:text-gray-100">
+              {prompt}
+            </p>
           </div>
         </div>
 
@@ -667,7 +679,7 @@ const SimpleAnalysis: React.FC = () => {
                 className="bg-white border border-gray-200 rounded-lg shadow-sm"
               >
                 <div className="bg-gray-50 p-3 border-b border-gray-200 flex justify-between items-center">
-                  <h3 className="font-medium">
+                  <h3 className="font-medium text-gray-900 dark:text-gray-100">
                     {formatModelName(modelResponse.model)}
                   </h3>
                   <button
@@ -679,7 +691,7 @@ const SimpleAnalysis: React.FC = () => {
                   </button>
                 </div>
                 <div className="p-4 overflow-auto max-h-[400px]">
-                  <pre className="whitespace-pre-wrap text-sm">
+                  <pre className="whitespace-pre-wrap text-sm text-gray-900 dark:text-gray-100">
                     {modelResponse.response}
                   </pre>
                 </div>
@@ -694,7 +706,7 @@ const SimpleAnalysis: React.FC = () => {
                 className="bg-white border border-gray-200 rounded-lg shadow-sm"
               >
                 <div className="bg-gray-50 p-3 border-b border-gray-200 flex justify-between items-center">
-                  <h3 className="font-medium">
+                  <h3 className="font-medium text-gray-900 dark:text-gray-100">
                     {formatModelName(modelResponse.model)}
                   </h3>
                   <button
@@ -706,7 +718,7 @@ const SimpleAnalysis: React.FC = () => {
                   </button>
                 </div>
                 <div className="p-4 overflow-auto max-h-[400px]">
-                  <pre className="whitespace-pre-wrap text-sm">
+                  <pre className="whitespace-pre-wrap text-sm text-gray-900 dark:text-gray-100">
                     {modelResponse.response}
                   </pre>
                 </div>
@@ -731,7 +743,9 @@ const SimpleAnalysis: React.FC = () => {
               </button>
             </div>
             <div className="p-4 overflow-auto max-h-[500px]">
-              <pre className="whitespace-pre-wrap text-sm">{output}</pre>
+              <pre className="whitespace-pre-wrap text-sm text-gray-900 dark:text-gray-100">
+                {output}
+              </pre>
             </div>
           </div>
         )}

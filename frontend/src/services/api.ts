@@ -1,9 +1,11 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
 
-// HARDCODED: Absolutely force the API URL to port 8000
-const API_URL = 'http://localhost:8000/api';
-
-console.log('HARDCODED API URL (ignoring env vars):', API_URL);
+// Use the environment variable for the API base URL
+// In the browser, this will be set to http://localhost:8000/api
+// console.log to aid debugging
+console.log('API URL from env:', import.meta.env.VITE_API_URL);
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api'; // Fallback just in case
+console.log('Using API URL:', API_URL);
 
 // Configuration for API calls (moved from component)
 const API_CONFIG = {
@@ -23,7 +25,7 @@ const apiClient: AxiosInstance = axios.create({
 });
 
 // Add retry interceptor (moved from component)
-apiClient.interceptors.response.use(undefined, async error => {
+apiClient.interceptors.response.use(undefined, async (error) => {
   const { config, response = {} } = error;
 
   // Skip retry for specific error status codes or if we've already retried the maximum times
@@ -44,7 +46,7 @@ apiClient.interceptors.response.use(undefined, async error => {
     API_CONFIG.retryDelay * Math.pow(2, (config as any).__retryCount - 1);
 
   // Wait for the delay
-  await new Promise(resolve => setTimeout(resolve, delay));
+  await new Promise((resolve) => setTimeout(resolve, delay));
 
   // Retry the request
   return apiClient(config);
@@ -52,7 +54,7 @@ apiClient.interceptors.response.use(undefined, async error => {
 
 // Request interceptor (keep existing)
 apiClient.interceptors.request.use(
-  config => {
+  (config) => {
     // Get token from storage
     const token = localStorage.getItem('authToken');
 
@@ -63,7 +65,7 @@ apiClient.interceptors.request.use(
 
     return config;
   },
-  error => {
+  (error) => {
     console.error('Request error:', error);
     return Promise.reject(error);
   }
@@ -72,8 +74,8 @@ apiClient.interceptors.request.use(
 // Response interceptor (keep existing token refresh logic, merge retry logic)
 // Note: Retry logic moved above to avoid duplication
 apiClient.interceptors.response.use(
-  response => response,
-  async error => {
+  (response) => response,
+  async (error) => {
     const originalRequest = error.config;
 
     // Handle token refresh for 401 errors
@@ -173,13 +175,21 @@ interface AvailableModelsResponse {
 // Function to fetch available models
 export const fetchAvailableModels = async (): Promise<string[]> => {
   try {
+    console.log(
+      'Fetching available models from:',
+      endpoints.analysis.availableModels
+    );
+
     // Use actual API call to fetch models
     const response = await apiClient.get<AvailableModelsResponse>(
       endpoints.analysis.availableModels
     );
 
+    console.log('Response from available-models endpoint:', response.data);
+
     // Properly handle the API response
     if (response.data && response.data.available_models) {
+      console.log('Found available models:', response.data.available_models);
       return response.data.available_models;
     } else {
       // If the API doesn't return the expected structure, log and throw
@@ -192,17 +202,28 @@ export const fetchAvailableModels = async (): Promise<string[]> => {
   } catch (error) {
     console.error('Failed to fetch available models:', error);
 
+    // Log more details about the error
+    if (error.response) {
+      console.error('Error response:', error.response.data);
+      console.error('Error status:', error.response.status);
+    } else if (error.request) {
+      console.error('No response received:', error.request);
+    } else {
+      console.error('Error message:', error.message);
+    }
+
     // Fallback to default models if API fails
     console.warn('Using fallback model list');
-    return [
+    const fallbackModels = [
       'gpt4o',
       'gpt4turbo',
-      'gpto3mini',
       'claude37',
       'claude3opus',
       'gemini15',
       'llama3',
     ];
+    console.log('Using fallback models:', fallbackModels);
+    return fallbackModels;
   }
 };
 
@@ -219,7 +240,7 @@ interface AnalysisPayload {
 
 // Enhanced response types for more accurate type checking
 interface ModelResponse {
-  [model: string]: string;
+  [model: string]: string | any;
 }
 
 interface TokenCount {
@@ -255,8 +276,8 @@ export const analyzePrompt = async (
     // Format the payload to match the backend's expected format
     const formattedPayload = {
       prompt: payload.prompt,
-      models: payload.selected_models, // Match backend expected field name
-      ultraModel: payload.ultra_model, // Match backend expected field name
+      selected_models: payload.selected_models, // CORRECT: Match backend expected field name
+      ultra_model: payload.ultra_model, // CORRECT: Match backend expected field name
       pattern: payload.pattern,
       options: payload.options || {},
       output_format: payload.output_format || 'txt',

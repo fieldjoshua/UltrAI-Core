@@ -9,7 +9,7 @@ This module provides API routes for prompt analysis and progress tracking.
 import json
 import logging
 import time
-from typing import List, Optional, Dict, Any
+from typing import Any, Dict, List, Optional
 
 from fastapi import (
     APIRouter,
@@ -21,38 +21,36 @@ from fastapi import (
     HTTPException,
     Request,
     UploadFile,
+    status,
 )
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
+from sse_starlette.sse import EventSourceResponse
 
+from backend.config import Config
+from backend.database.connection import get_db
+from backend.database.models import User
+from backend.decorators.cache_decorator import cached
 from backend.models import analysis as models
 from backend.models.analysis import (
     AnalysisProgress,
-    AnalysisStage,
-    AnalysisStageStatus,
     AnalysisProgressResponse,
     AnalysisResultsResponse,
+    AnalysisStage,
+    AnalysisStageStatus,
 )
-from backend.database.connection import get_db
-from backend.decorators.cache_decorator import cached
-from backend.database.models import User
 from backend.services.auth_service import auth_service
 from backend.services.cache_service import cache_service
-from backend.services.prompt_service import prompt_service
-from backend.utils.auth import default_user_id
-from backend.utils.db import default_db
 
-# Import the mock service for development
-from backend.services.mock_llm_service import MockLLMService
+# Import the singleton instance
+from backend.services.llm_config_service import llm_config_service
+from backend.services.prompt_service import PromptService
 
 # Configure logging
 logger = logging.getLogger("analyze_routes")
 
 # Create a router
 analyze_router = APIRouter(tags=["Analysis"])
-
-# Create a mock service instance
-mock_service = MockLLMService()
 
 # Get database session
 get_db_session = get_db
@@ -103,6 +101,14 @@ ERROR_MESSAGES = {
     "processing_error": "Error processing analysis: {error}",
 }
 
+# --- Dependency Injection Setup --- #
+
+
+def get_prompt_service() -> PromptService:
+    """Dependency provider for PromptService."""
+    # Instantiate PromptService using the singleton llm_config_service
+    return PromptService(llm_config_service=llm_config_service)
+
 
 async def get_current_user(
     request: Request, db: Session = default_db
@@ -143,11 +149,12 @@ async def get_current_user(
 
 
 @analyze_router.post("/api/analyze")
-@cached(prefix="analyze", ttl=60*60*24)  # Cache for 24 hours
+@cached(prefix="analyze", ttl=60 * 60 * 24)  # Cache for 24 hours
 async def analyze_prompt(
     request: Request,
     analysis_request: models.AnalysisRequest,
-    db: Session,
+    db: Session = Depends(get_db),
+    prompt_svc: PromptService = Depends(get_prompt_service),
 ):
     """
     Analyze a prompt using multiple LLMs and an Ultra LLM
@@ -156,6 +163,7 @@ async def analyze_prompt(
         request: FastAPI request
         analysis_request: Analysis request data
         db: Database session
+        prompt_svc: PromptService instance
 
     Returns:
         Analysis results with progress tracking
@@ -200,39 +208,94 @@ async def analyze_prompt(
         )
         pattern_key = PATTERN_NAME_MAPPING.get(pattern_name, "comprehensive_analysis")
 
-        # Process the prompt
+        # Log the analysis request for debugging
+        logger.debug(f"Processing analysis request: {analysis_request}")
+        logger.debug(f"Using pattern: {pattern_name} (mapped to: {pattern_key})")
+
+        # Parse selected_models to handle both string and list input
+        selected_models = []
+        if isinstance(analysis_request.selected_models, str):
+            try:
+                selected_models = json.loads(analysis_request.selected_models)
+            except:
+                selected_models = [analysis_request.selected_models]
+        elif isinstance(analysis_request.selected_models, list):
+            selected_models = analysis_request.selected_models
+
+        # Use the PromptService to actually process the analysis
         try:
-            result = await prompt_service.process_prompt(analysis_request)
+            # Get available models from the service
+            available_models = llm_config_service.get_available_models()
+            logger.info(f"Available models: {list(available_models.keys())}")
+
+            # Validate that selected models exist in our registry
+            valid_models = []
+            for model in selected_models:
+                if model in available_models:
+                    valid_models.append(model)
+                else:
+                    logger.warning(f"Model {model} not found in registry, skipping")
+
+            if not valid_models:
+                return JSONResponse(
+                    status_code=400,
+                    content={"status": "error", "message": ERROR_MESSAGES["no_models"]},
+                )
+
+            # Validate ultra model exists
+            if analysis_request.ultra_model not in available_models:
+                logger.warning(
+                    f"Ultra model {analysis_request.ultra_model} not found, using fallback"
+                )
+                ultra_model = valid_models[0]  # Use first valid model as fallback
+            else:
+                ultra_model = analysis_request.ultra_model
+
+            # Process the analysis using the prompt service
+            logger.info(
+                f"Processing analysis with models: {valid_models}, ultra: {ultra_model}, pattern: {pattern_key}"
+            )
+            result = await prompt_svc.analyze_prompt(
+                prompt=analysis_request.prompt,
+                models=valid_models,
+                ultra_model=ultra_model,
+                pattern=pattern_key,
+                options=analysis_request.options or {},
+            )
+
+            # Log successful analysis
+            logger.info(
+                f"Analysis completed successfully with {len(result.get('model_responses', {}))} model responses"
+            )
+
+            # Calculate processing time
+            processing_time = time.time() - start_time
+
+            # Format the response to ensure consistent format for frontend
+            # Frontend expects direct access to model_responses and ultra_response
+            response_data = {
+                "status": "success",
+                "analysis_id": analysis_id,
+                "model_responses": result.get("model_responses", {}),
+                "ultra_response": result.get("ultra_response", ""),
+                "performance": result.get("performance", {}),
+                "metadata": result.get("metadata", {}),
+            }
+
+            # Return the response
+            return response_data
         except Exception as e:
-            logger.error(f"Error processing analysis: {str(e)}")
+            logger.error(f"Error formatting response: {str(e)}", exc_info=True)
             return JSONResponse(
                 status_code=500,
                 content={
                     "status": "error",
-                    "message": ERROR_MESSAGES["processing_error"].format(error=str(e)),
+                    "message": f"Error formatting response: {str(e)}",
                 },
             )
 
-        # Calculate processing time
-        processing_time = time.time() - start_time
-
-        # Return standardized response
-        return {
-            "status": "success",
-            "analysis_id": analysis_id,
-            "results": {
-                "model_responses": result.model_responses,
-                "ultra_response": result.ultra_response,
-                "performance": {
-                    "total_time_seconds": processing_time,
-                    "model_times": result.model_times,
-                    "token_counts": result.token_counts,
-                },
-            },
-        }
-
     except Exception as e:
-        logger.error(f"Unexpected error in analyze endpoint: {str(e)}")
+        logger.error(f"Unexpected error in analyze endpoint: {str(e)}", exc_info=True)
         return JSONResponse(
             status_code=500,
             content={"status": "error", "message": ERROR_MESSAGES["internal_error"]},
@@ -249,6 +312,7 @@ async def analyze_with_docs(
     pattern: str = default_pattern,
     options: str = default_options,
     user_id: str = default_user_id_form,
+    prompt_svc: PromptService = Depends(get_prompt_service),
 ):
     """Process documents and analyze them with models"""
     try:
@@ -301,21 +365,21 @@ async def analyze_with_docs(
 @analyze_router.get("/api/analyze/{analysis_id}/progress")
 async def get_analysis_progress(
     analysis_id: str,
-    db: Session,
+    prompt_svc: PromptService = Depends(get_prompt_service),
 ):
     """
     Get the progress of a multi-stage analysis
 
     Args:
         analysis_id: The ID of the analysis to track
-        db: Database session
+        prompt_svc: PromptService instance
 
     Returns:
         Progress information for the analysis
     """
     try:
         # Get progress from the prompt service
-        progress = await prompt_service.get_analysis_progress(analysis_id)
+        progress = await prompt_svc.get_analysis_progress(analysis_id)
 
         if not progress:
             raise HTTPException(
@@ -333,7 +397,10 @@ async def get_analysis_progress(
     "/api/analyze/{analysis_id}/results", response_model=AnalysisResultsResponse
 )
 async def get_analysis_results(
-    analysis_id: str, request: Request, db: Session = default_db
+    analysis_id: str,
+    request: Request,
+    db: Session = default_db,
+    prompt_svc: PromptService = Depends(get_prompt_service),
 ):
     """
     Get the results of a completed analysis
@@ -342,6 +409,7 @@ async def get_analysis_results(
         analysis_id: Unique identifier for the analysis
         request: FastAPI request
         db: Database session
+        prompt_svc: PromptService instance
 
     Returns:
         Analysis results
