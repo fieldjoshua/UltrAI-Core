@@ -40,6 +40,12 @@
 - **Goal:** Add more robust database migration handling and version tracking.
 - **Plan:** `.aicheck/actions/DatabaseMigrationHandling/DatabaseMigrationHandling-PLAN.md`
 
+## ActionIndexAutomation
+
+- **Status:** Completed
+- **Goal:** Create an automated HTML index for actions with search, filtering, and automatic updates.
+- **Plan:** `.aicheck/actions/ActionIndexAutomation/ActionIndexAutomation-PLAN.md`
+
 ## ImproveTestingAndSecurity
 
 - **Status:** PendingApproval
