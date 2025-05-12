@@ -15,10 +15,16 @@ from backend.utils.server import is_port_available, find_available_port
 from backend.utils.logging import get_logger
 from backend.utils.error_handler import error_handling_middleware, register_exception_handlers
 from backend.utils.middleware import setup_middleware
+
+# Import security middleware
+from backend.middleware.auth_middleware import setup_auth_middleware
+from backend.middleware.api_key_middleware import setup_api_key_middleware
+from backend.middleware.csrf_middleware import setup_csrf_middleware
+from backend.middleware.security_headers_middleware import setup_security_headers_middleware
+from backend.middleware.validation_middleware import setup_validation_middleware
+
+# Import rate limiting
 from backend.utils.rate_limit_middleware import rate_limit_middleware
-from backend.utils.security_headers_middleware import setup_security_headers_middleware
-from backend.utils.cookie_security_middleware import setup_cookie_security_middleware
-from backend.utils.enhanced_validation import setup_enhanced_validation
 
 # Import database
 from backend.database import init_db, check_database_connection
@@ -27,11 +33,15 @@ from backend.database import init_db, check_database_connection
 from backend.routes.health import health_router
 from backend.routes.metrics import metrics_router
 from backend.routes.document_routes import document_router
+from backend.routes.document_analysis_routes import document_analysis_router
 from backend.routes.analyze_routes import analyze_router
 from backend.routes.pricing_routes import pricing_router
 from backend.routes.user_routes import user_router
 from backend.routes.oauth_routes import oauth_router
+from backend.routes.auth_routes import auth_router
 from backend.routes.llm_routes import llm_router
+from backend.routes.docker_modelrunner_routes import router as modelrunner_router
+from backend.routes.orchestrator_routes import orchestrator_router
 
 # Get logger
 logger = get_logger("ultra_api", "logs/api.log")
@@ -68,15 +78,20 @@ async def lifespan(app: FastAPI):
         logger.error(f"Database initialization error: {str(e)}")
         logger.warning("Continuing without database connection - some features may not work correctly")
 
-    # Initialize Sentry if available
+    # Initialize Sentry if available and DSN is configured
     if SENTRY_AVAILABLE:
-        sentry_sdk.init(
-            dsn="https://860c945f86e625b606babebefb04c009@o4509109008531456.ingest.us.sentry.io/4509109123350528",
-            send_default_pii=True,
-            traces_sample_rate=1.0,
-            environment=os.getenv("ENVIRONMENT", "development"),
-        )
-        logger.info("Sentry initialized for error tracking")
+        # Get DSN from environment variable, with empty default
+        sentry_dsn = os.environ.get("SENTRY_DSN", "")
+        if sentry_dsn:
+            sentry_sdk.init(
+                dsn=sentry_dsn,
+                send_default_pii=True,
+                traces_sample_rate=1.0,
+                environment=os.environ.get("ENVIRONMENT", "development"),
+            )
+            logger.info("Sentry initialized for error tracking")
+        else:
+            logger.info("No Sentry DSN configured, error tracking disabled")
 
     # Load mock service if configured
     global mock_service
@@ -113,14 +128,13 @@ app.add_middleware(
         *[f"http://localhost:{i}" for i in range(3000, 3020)],
         "https://ultrai.app",
         "https://api.ultrai.app",
+        "http://frontend:3009",  # Docker container hostname
+        "*",  # Allow all origins for testing
     ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-# Set up enhanced validation
-setup_enhanced_validation(app)
 
 # Register exception handlers
 register_exception_handlers(app)
@@ -128,23 +142,33 @@ register_exception_handlers(app)
 # Add error handling middleware
 app.middleware("http")(error_handling_middleware)
 
-# Set up security headers and additional middleware
+# Set up security middleware
 setup_security_headers_middleware(app)
-setup_cookie_security_middleware(app)
+setup_csrf_middleware(app)
+setup_validation_middleware(app)
+setup_auth_middleware(app)
+setup_api_key_middleware(app)
 setup_middleware(app)
 
 # Set up rate limiting
 app.middleware("http")(rate_limit_middleware)
 
+
+# --- END ADDED ROUTE --- #
+
 # Include routers
-app.include_router(health_router)
-app.include_router(metrics_router)
-app.include_router(document_router)
-app.include_router(analyze_router)
-app.include_router(pricing_router)
-app.include_router(user_router)
-app.include_router(oauth_router)
-app.include_router(llm_router)
+app.include_router(health_router, prefix="/api")
+app.include_router(metrics_router, prefix="/api")
+app.include_router(document_router, prefix="/api")
+app.include_router(document_analysis_router)  # Already has /api prefix in its route definitions
+app.include_router(analyze_router)  # Already has /api prefix in its route definitions
+app.include_router(pricing_router, prefix="/api")
+app.include_router(user_router, prefix="/api")
+app.include_router(oauth_router, prefix="/api")
+app.include_router(auth_router, prefix="/api")
+app.include_router(llm_router, prefix="/api")
+app.include_router(modelrunner_router)  # Already has /api prefix in its route definitions
+app.include_router(orchestrator_router, prefix="/api")  # New orchestrator routes
 
 
 def run_server():
