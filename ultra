@@ -1,0 +1,11 @@
+#!/bin/bash
+# Simple launcher for UltrAI CLI
+
+# Current directory
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+# Source the environment variables
+source "$DIR/.env"
+
+# Launch the CLI
+"$DIR/ultra_cli.py" "$@"

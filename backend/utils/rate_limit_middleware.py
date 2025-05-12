@@ -195,12 +195,16 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
             response = await call_next(request)
 
             # Add rate limit headers to the response
-            response.headers["X-RateLimit-Limit"] = str(rate_limit_info.get("limit", 0))
-            response.headers["X-RateLimit-Remaining"] = str(
-                rate_limit_info.get("remaining", 0)
-            )
-            response.headers["X-RateLimit-Reset"] = str(rate_limit_info.get("reset", 0))
-            response.headers["X-Request-ID"] = request_id
+            try:
+                if hasattr(response, "headers"):
+                    response.headers["X-RateLimit-Limit"] = str(rate_limit_info.get("limit", 0))
+                    response.headers["X-RateLimit-Remaining"] = str(
+                        rate_limit_info.get("remaining", 0)
+                    )
+                    response.headers["X-RateLimit-Reset"] = str(rate_limit_info.get("reset", 0))
+                    response.headers["X-Request-ID"] = request_id
+            except Exception as e:
+                logger.error(f"Error adding rate limit headers: {str(e)}")
 
             return response
 
@@ -270,8 +274,17 @@ async def rate_limit_middleware(request: Request, call_next):
     Returns:
         Response from next middleware or route handler
     """
-    # Use the same middleware implementation with default settings
-    middleware = RateLimitMiddleware(app=None)
+    try:
+        # Check if this is a health check or a path that should be excluded
+        if request.url.path.startswith("/health") or request.url.path.startswith("/api/docs"):
+            return await call_next(request)
 
-    # Call the dispatch method directly
-    return await middleware.dispatch(request, call_next)
+        # Use the same middleware implementation with default settings
+        middleware = RateLimitMiddleware(app=None)
+
+        # Call the dispatch method directly
+        return await middleware.dispatch(request, call_next)
+    except Exception as e:
+        logger.error(f"Error in standalone rate limit middleware: {str(e)}")
+        # Continue with the request even if rate limiting fails
+        return await call_next(request)

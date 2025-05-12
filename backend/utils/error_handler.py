@@ -5,6 +5,7 @@ This module provides comprehensive error handling capabilities with
 consistent error responses, detailed logging, and error classification.
 """
 
+import os
 import sys
 import traceback
 from http import HTTPStatus
@@ -403,7 +404,7 @@ async def error_handling_middleware(request: Request, call_next: Any) -> Respons
         status_code = ErrorClassification.get_status_code(error_code)
 
         # Don't expose internal error details in production
-        is_production = sys.env.get("ENVIRONMENT") == "production"
+        is_production = os.environ.get("ENVIRONMENT", "development") == "production"
         details = None if is_production else format_exception(e)
 
         # Create error response

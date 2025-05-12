@@ -1,0 +1,43 @@
+digraph EndToEndAnalysis {
+    rankdir=TB;
+    graph [size="7.5,10", ratio=fill, orientation=portrait];
+    node [fontsize=10, shape=rectangle, style=filled, fillcolor="#E0ECFF"];
+    edge [fontsize=10];
+
+    Start [label="Start", shape=circle, fillcolor="#B3CDE3"];
+    UserInit [label="User initiates analysis\nrequest (prompt, models, pattern,\noptional docs)"];
+    FrontValidate [label="Frontend validates input\nand sends API request"];
+    BackendAuth [label="Backend receives request\nand performs auth"];
+    OrchestratorPM [label="Pass to orchestrator\nprocess manager"];
+
+    DocDecision [label="Documents\nuploaded?", shape=diamond, fillcolor="#FFFFB3"];
+    DocProcess [label="Document processor:\nextract & chunk text, select\nrelevant chunks, prepare context"];
+
+    PatternSelect [label="Orchestrator selects\npattern handler"];
+    LoadPattern [label="Load pattern\nconfiguration"];
+    ValidateModels [label="Model registry validates\nselected models"];
+
+    StageLoop [label="Stage loop:\n- Populate templates\n- Query models\n- Collect responses\n- Quality evaluation\n- Store results"];
+    MoreStages [label="More stages?", shape=diamond, fillcolor="#FFFFB3"];
+
+    Synthesis [label="Lead model performs\nsynthesis with insights"];
+    AssemblePkg [label="Assemble result package:\nresponses, synthesis, metrics,\nbilling info"];
+    CacheResults [label="Cache results"];
+    UpdateSession [label="Update user session\nwith history"];
+    SendFrontend [label="Send response to frontend"];
+    FrontRender [label="Frontend renders results\n(comparison, synthesis, metrics, export)"];
+    RecordMetrics [label="Record usage metrics\n(billing, optimization, tracking)"];
+    End [label="End", shape=circle, fillcolor="#B3CDE3"];
+
+    Start -> UserInit -> FrontValidate -> BackendAuth -> OrchestratorPM -> DocDecision;
+    DocDecision -> DocProcess [label="Yes"];
+    DocDecision -> PatternSelect [label="No"];
+    DocProcess -> PatternSelect;
+
+    PatternSelect -> LoadPattern -> ValidateModels -> StageLoop;
+    StageLoop -> MoreStages;
+    MoreStages -> StageLoop [label="Yes"];
+    MoreStages -> Synthesis [label="No"];
+
+    Synthesis -> AssemblePkg -> CacheResults -> UpdateSession -> SendFrontend -> FrontRender -> RecordMetrics -> End;
+}

@@ -22,6 +22,7 @@ from backend.middleware.api_key_middleware import setup_api_key_middleware
 from backend.middleware.csrf_middleware import setup_csrf_middleware
 from backend.middleware.security_headers_middleware import setup_security_headers_middleware
 from backend.middleware.validation_middleware import setup_validation_middleware
+from backend.utils.cookie_security_middleware import setup_cookie_security_middleware
 
 # Import rate limiting
 from backend.utils.rate_limit_middleware import rate_limit_middleware
@@ -30,7 +31,7 @@ from backend.utils.rate_limit_middleware import rate_limit_middleware
 from backend.database import init_db, check_database_connection
 
 # Import routes
-from backend.routes.health import health_router
+from backend.routes.health_routes import router as health_router
 from backend.routes.metrics import metrics_router
 from backend.routes.document_routes import document_router
 from backend.routes.document_analysis_routes import document_analysis_router
@@ -67,6 +68,18 @@ async def lifespan(app: FastAPI):
     # Startup: Create necessary directories
     Config.create_directories()
 
+    # Validate configuration
+    try:
+        Config.validate_configuration()
+        logger.info(f"Configuration validated for {Config.ENVIRONMENT} environment")
+    except Exception as e:
+        logger.error(f"Configuration validation error: {str(e)}")
+        if Config.ENVIRONMENT == "production":
+            logger.critical("Invalid configuration in production environment, exiting")
+            sys.exit(1)
+        else:
+            logger.warning("Continuing with invalid configuration in non-production environment")
+
     # Initialize database
     try:
         init_db()
@@ -87,7 +100,7 @@ async def lifespan(app: FastAPI):
                 dsn=sentry_dsn,
                 send_default_pii=True,
                 traces_sample_rate=1.0,
-                environment=os.environ.get("ENVIRONMENT", "development"),
+                environment=Config.ENVIRONMENT,
             )
             logger.info("Sentry initialized for error tracking")
         else:
@@ -95,7 +108,7 @@ async def lifespan(app: FastAPI):
 
     # Load mock service if configured
     global mock_service
-    if Config.use_mock:
+    if Config.USE_MOCK or Config.MOCK_MODE:
         try:
             from backend.services.mock_llm_service import MockLLMService
             mock_service = MockLLMService()
@@ -103,6 +116,12 @@ async def lifespan(app: FastAPI):
         except ImportError:
             logger.error("⚠️ Mock service module not found. Please create mock_llm_service.py first.")
             sys.exit(1)
+    else:
+        # Log that we're running with real services
+        logger.info("🚀 Running with REAL SERVICES - API keys will be used for LLM providers")
+        # Check if we have at least one API key configured
+        if not any([Config.OPENAI_API_KEY, Config.ANTHROPIC_API_KEY, Config.GOOGLE_API_KEY]):
+            logger.warning("⚠️ No API keys configured for LLM providers - some features may not work correctly")
 
     yield
 
@@ -175,9 +194,9 @@ def run_server():
     """Run the server with command line arguments"""
     # Parse command line arguments
     parser = argparse.ArgumentParser(description="Run the UltraAI backend server")
-    parser.add_argument("--host", default="127.0.0.1", help="Host to bind the server to")
+    parser.add_argument("--host", default=Config.API_HOST, help="Host to bind the server to")
     parser.add_argument(
-        "--port", type=int, default=8085, help="Port to bind the server to"
+        "--port", type=int, default=Config.API_PORT, help="Port to bind the server to"
     )
     parser.add_argument(
         "--reload", action="store_true", help="Enable auto-reload on code changes"
@@ -192,8 +211,10 @@ def run_server():
     )
     args = parser.parse_args()
 
-    # Set config from arguments
-    Config.use_mock = args.mock
+    # Set config from arguments if provided
+    if args.mock:
+        Config.USE_MOCK = True
+        Config.MOCK_MODE = True
 
     port = args.port
 
@@ -203,13 +224,19 @@ def run_server():
         port = find_available_port(original_port)
         logger.info(f"Port {original_port} is in use, using port {port} instead")
 
-    # Start the server
-    env = os.getenv("ENVIRONMENT", "development")
-    log_level = "debug" if env == "development" else "info"
+    # Determine log level based on environment
+    log_level = "debug" if Config.DEBUG else Config.LOG_LEVEL.lower()
+    if log_level not in ["critical", "error", "warning", "info", "debug", "trace"]:
+        log_level = "info"  # Default if invalid
 
-    logger.info(f"Starting UltraAI backend server in {env} environment")
+    # Start the server
+    logger.info(f"Starting UltraAI backend server in {Config.ENVIRONMENT} environment")
     logger.info(f"Server running at http://{args.host}:{port}")
     logger.info(f"API documentation available at http://{args.host}:{port}/api/docs")
+
+    # Additional mode information
+    if Config.USE_MOCK or Config.MOCK_MODE:
+        logger.info("Running in MOCK MODE - real API keys will not be used")
 
     uvicorn.run(
         "app:app",

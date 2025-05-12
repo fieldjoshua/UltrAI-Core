@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modern Analysis Interface</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            color: #1a202c;
+            background-color: #f7fafc;
+        }
+        
+        .animate-pulse {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.5;
+            }
+        }
+        
+        .dark-mode {
+            background-color: #1a202c;
+            color: #f7fafc;
+        }
+        
+        .dark-mode .bg-white {
+            background-color: #2d3748;
+        }
+        
+        .dark-mode .border-gray-200 {
+            border-color: #4a5568;
+        }
+        
+        .dark-mode .text-gray-700 {
+            color: #e2e8f0;
+        }
+        
+        .dark-mode .text-gray-500 {
+            color: #a0aec0;
+        }
+        
+        .dark-mode .bg-gray-100 {
+            background-color: #4a5568;
+        }
+        
+        .transition-all {
+            transition-property: all;
+            transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+            transition-duration: 150ms;
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+    <!-- Navigation -->
+    <header class="bg-white shadow-sm sticky top-0 z-40 border-b border-gray-200">
+        <div class="container mx-auto px-4 py-3">
+            <div class="flex items-center justify-between">
+                <!-- Logo and Brand -->
+                <div class="flex items-center">
+                    <a href="#" class="flex items-center">
+                        <span class="text-blue-600 mr-2">
+                            <i class="fas fa-bolt"></i>
+                        </span>
+                        <span class="text-xl font-bold text-gray-900">
+                            UltrAI
+                        </span>
+                    </a>
+                </div>
+
+                <!-- Desktop Navigation -->
+                <nav class="hidden md:flex items-center space-x-1">
+                    <a href="#" class="px-3 py-2 rounded-md text-sm font-medium bg-blue-50 text-blue-700">
+                        <div class="flex items-center">
+                            <i class="fas fa-file-alt mr-2"></i>
+                            Documents
+                        </div>
+                    </a>
+
+                    <a href="#" class="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-100">
+                        <div class="flex items-center">
+                            <i class="fas fa-bolt mr-2"></i>
+                            Simple Analysis
+                        </div>
+                    </a>
+
+                    <a href="#" class="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-100">
+                        <div class="flex items-center">
+                            <i class="fas fa-cube mr-2"></i>
+                            Model Runner
+                        </div>
+                    </a>
+
+                    <a href="#" class="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-100">
+                        <div class="flex items-center">
+                            <i class="fas fa-layer-group mr-2"></i>
+                            Orchestrator
+                        </div>
+                    </a>
+                </nav>
+
+                <!-- User controls -->
+                <div class="flex items-center space-x-3">
+                    <button id="theme-toggle" class="p-2 rounded-full text-gray-500 hover:bg-gray-100">
+                        <i class="fas fa-moon"></i>
+                    </button>
+                    <button class="p-2 rounded-full text-gray-500 hover:bg-gray-100">
+                        <i class="fas fa-bell"></i>
+                    </button>
+                    <div class="h-8 w-8 rounded-full bg-blue-500 text-white flex items-center justify-center">
+                        <span class="text-sm font-medium">JS</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-4 py-8 max-w-4xl">
+        <div class="flex justify-between items-center mb-8">
+            <h1 class="text-3xl font-bold">LLM Analysis Interface</h1>
+            <div class="flex items-center space-x-4">
+                <button class="p-2 rounded-md border border-gray-300 shadow-sm text-gray-700 hover:bg-gray-50" title="View keyboard shortcuts and help">
+                    <i class="fas fa-keyboard mr-2"></i>
+                    Help
+                </button>
+                <button class="p-2 rounded-md border border-gray-300 shadow-sm text-gray-700 hover:bg-gray-50" title="View analysis history">
+                    <i class="fas fa-history mr-2"></i>
+                    History
+                </button>
+            </div>
+        </div>
+
+        <div class="space-y-6">
+            <!-- Prompt Input -->
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                <label for="prompt" class="block text-sm font-medium text-gray-700 mb-2">Your Prompt</label>
+                <div class="relative">
+                    <textarea 
+                        id="prompt" 
+                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        rows="4"
+                        placeholder="What would you like to analyze?"
+                    >Analyze the impact of quantum computing on modern cryptography, addressing both potential threats and opportunities.</textarea>
+                    <button class="absolute right-2 bottom-2 bg-blue-600 text-white rounded-md px-4 py-2 hover:bg-blue-700 transition-colors">
+                        Analyze
+                        <i class="fas fa-arrow-right ml-2"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Model Selection -->
+                <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                    <h3 class="text-lg font-medium text-gray-900 mb-4">Select AI Models</h3>
+                    <div class="space-y-3">
+                        <div class="flex items-center p-3 border border-blue-300 bg-blue-50 rounded-md">
+                            <input type="checkbox" id="model-gpt4" checked class="h-4 w-4 text-blue-600 rounded">
+                            <label for="model-gpt4" class="ml-3 flex-1">
+                                <div class="font-medium">GPT-4</div>
+                                <div class="text-sm text-gray-500">OpenAI's most advanced model</div>
+                            </label>
+                            <div class="flex items-center">
+                                <input type="radio" id="primary-gpt4" name="primary-model" checked class="h-4 w-4 text-blue-600">
+                                <label for="primary-gpt4" class="ml-2 text-sm text-gray-500">Primary</label>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-center p-3 border border-gray-200 rounded-md hover:border-blue-300 hover:bg-blue-50 transition-all">
+                            <input type="checkbox" id="model-claude3" class="h-4 w-4 text-blue-600 rounded">
+                            <label for="model-claude3" class="ml-3">
+                                <div class="font-medium">Claude 3</div>
+                                <div class="text-sm text-gray-500">Anthropic's latest model</div>
+                            </label>
+                        </div>
+                        
+                        <div class="flex items-center p-3 border border-gray-200 rounded-md hover:border-blue-300 hover:bg-blue-50 transition-all">
+                            <input type="checkbox" id="model-llama2" class="h-4 w-4 text-blue-600 rounded">
+                            <label for="model-llama2" class="ml-3">
+                                <div class="font-medium">Llama 2</div>
+                                <div class="text-sm text-gray-500">Meta's open-source model</div>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Analysis Pattern Selection -->
+                <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                    <h3 class="text-lg font-medium text-gray-900 mb-4">Analysis Pattern</h3>
+                    <div class="space-y-3">
+                        <div class="flex items-center p-3 border border-blue-300 bg-blue-50 rounded-md">
+                            <input type="radio" id="pattern-basic" name="pattern" checked class="h-4 w-4 text-blue-600">
+                            <label for="pattern-basic" class="ml-3">
+                                <div class="font-medium">Basic Analysis</div>
+                                <div class="text-sm text-gray-500">Standard analysis of the prompt</div>
+                            </label>
+                        </div>
+                        
+                        <div class="flex items-center p-3 border border-gray-200 rounded-md hover:border-blue-300 hover:bg-blue-50 transition-all">
+                            <input type="radio" id="pattern-detailed" name="pattern" class="h-4 w-4 text-blue-600">
+                            <label for="pattern-detailed" class="ml-3">
+                                <div class="font-medium">Detailed Analysis</div>
+                                <div class="text-sm text-gray-500">In-depth analysis with additional insights</div>
+                            </label>
+                        </div>
+                        
+                        <div class="flex items-center p-3 border border-gray-200 rounded-md hover:border-blue-300 hover:bg-blue-50 transition-all">
+                            <input type="radio" id="pattern-comparative" name="pattern" class="h-4 w-4 text-blue-600">
+                            <label for="pattern-comparative" class="ml-3">
+                                <div class="font-medium">Comparative Analysis</div>
+                                <div class="text-sm text-gray-500">Compare responses across models</div>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Results Section -->
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-medium text-gray-900">Analysis Results</h3>
+                    <div class="flex space-x-2">
+                        <button class="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50">
+                            <i class="fas fa-copy mr-1"></i> Copy
+                        </button>
+                        <button class="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50">
+                            <i class="fas fa-download mr-1"></i> Export
+                        </button>
+                        <button class="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50">
+                            <i class="fas fa-share-alt mr-1"></i> Share
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Performance metrics -->
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+                    <div class="bg-gray-100 rounded-lg p-3">
+                        <div class="text-sm text-gray-500">Processing Time</div>
+                        <div class="font-medium text-lg">3.2s</div>
+                    </div>
+                    <div class="bg-gray-100 rounded-lg p-3">
+                        <div class="text-sm text-gray-500">Models Used</div>
+                        <div class="font-medium text-lg">1</div>
+                    </div>
+                    <div class="bg-gray-100 rounded-lg p-3">
+                        <div class="text-sm text-gray-500">Token Count</div>
+                        <div class="font-medium text-lg">1,245</div>
+                    </div>
+                    <div class="bg-gray-100 rounded-lg p-3">
+                        <div class="text-sm text-gray-500">Primary Model</div>
+                        <div class="font-medium text-lg">GPT-4</div>
+                    </div>
+                </div>
+
+                <!-- Tabs for different models -->
+                <div class="mb-6">
+                    <div class="border-b border-gray-200">
+                        <nav class="-mb-px flex space-x-8">
+                            <button class="border-blue-500 text-blue-600 whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm">
+                                Combined Analysis
+                            </button>
+                            <button class="border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm">
+                                GPT-4
+                            </button>
+                        </nav>
+                    </div>
+                </div>
+
+                <!-- Result Content -->
+                <div class="prose max-w-none">
+                    <h2>Impact of Quantum Computing on Modern Cryptography</h2>
+                    
+                    <h3>Threats to Current Cryptographic Systems</h3>
+                    <p>Quantum computing poses significant threats to several widely-used cryptographic systems:</p>
+                    <ol>
+                        <li><strong>RSA and ECC Vulnerability</strong>: Quantum computers running Shor's algorithm could efficiently factor large integers and compute discrete logarithms, breaking RSA and Elliptic Curve Cryptography.</li>
+                        <li><strong>Public Key Infrastructure at Risk</strong>: Most of our digital security infrastructure relies on these vulnerable algorithms, potentially compromising secure communications, financial transactions, and identity verification.</li>
+                        <li><strong>Symmetric Key Weakening</strong>: Grover's algorithm could reduce the effective security of symmetric key algorithms like AES, requiring key length doubling for equivalent security.</li>
+                    </ol>
+                    
+                    <h3>Opportunities and Solutions</h3>
+                    <p>Despite these threats, quantum computing also creates opportunities:</p>
+                    <ol>
+                        <li><strong>Post-Quantum Cryptography (PQC)</strong>: Development of new cryptographic algorithms resistant to quantum attacks, including lattice-based, hash-based, and code-based cryptography.</li>
+                        <li><strong>Quantum Key Distribution (QKD)</strong>: Uses quantum mechanics principles to create theoretically unbreakable encryption through quantum entanglement and the no-cloning theorem.</li>
+                        <li><strong>Hybrid Approaches</strong>: Implementing both classical and post-quantum algorithms provides security against both conventional and quantum attacks during the transition period.</li>
+                    </ol>
+                    
+                    <h3>Current Status and Timeline</h3>
+                    <p>The cryptographic community is actively working on quantum-resistant solutions:</p>
+                    <ol>
+                        <li><strong>NIST Standardization</strong>: The National Institute of Standards and Technology is in the final stages of standardizing post-quantum cryptographic algorithms.</li>
+                        <li><strong>Industry Adoption</strong>: Major tech companies are implementing quantum-resistant algorithms in their security infrastructure.</li>
+                        <li><strong>Migration Challenge</strong>: The greatest challenge is the massive global migration of existing systems to quantum-resistant alternatives before large-scale quantum computers become available.</li>
+                    </ol>
+                    
+                    <h3>Conclusion</h3>
+                    <p>While quantum computing presents a serious threat to our current cryptographic infrastructure, the advance warning has allowed the security community to develop robust alternatives. The race is now between the implementation of quantum-resistant cryptography and the development of cryptographically relevant quantum computers.</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div class="mt-8 text-center pb-8">
+        <a href="../../index.html" class="text-blue-600 hover:text-blue-800 font-medium">← Back to UI/UX Overview</a>
+    </div>
+
+    <script>
+        // Simple dark mode toggle functionality
+        const themeToggle = document.getElementById('theme-toggle');
+        const body = document.body;
+        const icon = themeToggle.querySelector('i');
+        
+        themeToggle.addEventListener('click', () => {
+            if (body.classList.contains('dark-mode')) {
+                body.classList.remove('dark-mode');
+                icon.classList.remove('fa-sun');
+                icon.classList.add('fa-moon');
+            } else {
+                body.classList.add('dark-mode');
+                icon.classList.remove('fa-moon');
+                icon.classList.add('fa-sun');
+            }
+        });
+    </script>
+</body>
+</html>

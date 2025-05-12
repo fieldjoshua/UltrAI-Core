@@ -1,0 +1,50 @@
+flowchart TD
+    A[User Request] --> B{Resource Check}
+    B -->|Resources Available| C[Model Selection]
+    B -->|Resources Unavailable| D[Queue Request]
+    D --> E[Resource Monitor]
+    E -->|Resources Freed| B
+    
+    C --> F[Initial Response Generation]
+    F --> G[Response Validation]
+    G -->|Valid| H[Meta Analysis]
+    G -->|Invalid| I[Error Handler]
+    I --> J[Retry Logic]
+    J --> F
+    
+    H --> K[Ultra Synthesis]
+    K --> L[Quality Check]
+    L -->|Meets Threshold| M[Hyper Analysis]
+    L -->|Below Threshold| N[Refinement Loop]
+    N --> K
+    
+    M --> O[Final Response]
+    O --> P[Performance Metrics]
+    P --> Q[Optimization Feedback]
+    
+    subgraph "Error Handling"
+        I
+        J
+    end
+    
+    subgraph "Resource Management"
+        B
+        D
+        E
+    end
+    
+    subgraph "Processing Pipeline"
+        F
+        G
+        H
+        K
+        L
+        M
+        N
+    end
+    
+    subgraph "Optimization Loop"
+        O
+        P
+        Q
+    end

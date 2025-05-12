@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tailwind Analysis Form</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Additional custom styles */
+        .animate-spin {
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            from {
+                transform: rotate(0deg);
+            }
+            to {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen font-sans">
+    <div class="max-w-4xl mx-auto p-4 py-8">
+        <h2 class="text-2xl font-bold mb-4">AI Analysis</h2>
+        
+        <!-- Analysis form -->
+        <form class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <!-- Prompt input -->
+            <div class="mb-4">
+                <label 
+                    for="prompt" 
+                    class="block text-sm font-medium text-gray-700 mb-1"
+                >
+                    Prompt
+                </label>
+                <textarea
+                    id="prompt"
+                    class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    rows="4"
+                    placeholder="What would you like to analyze?"
+                    aria-label="Prompt"
+                ></textarea>
+            </div>
+            
+            <!-- Model selection -->
+            <div class="mb-4">
+                <h3 class="text-sm font-medium text-gray-700 mb-2">Select AI Models</h3>
+                
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
+                    <div 
+                        class="border rounded-md p-3 cursor-pointer border-blue-500 bg-blue-50"
+                    >
+                        <div class="flex justify-between items-center">
+                            <div class="flex items-center">
+                                <input
+                                    type="checkbox"
+                                    id="model-gpt4o"
+                                    checked
+                                    class="mr-2"
+                                    aria-label="GPT-4o"
+                                />
+                                <label 
+                                    for="model-gpt4o"
+                                    class="text-sm"
+                                >
+                                    GPT-4o
+                                </label>
+                            </div>
+                            
+                            <div class="flex items-center">
+                                <input
+                                    type="radio"
+                                    id="primary-gpt4o"
+                                    name="primaryModel"
+                                    checked
+                                    class="mr-1"
+                                    aria-label="Set GPT-4o as primary"
+                                />
+                                <label 
+                                    for="primary-gpt4o"
+                                    class="text-xs text-gray-500"
+                                >
+                                    Primary
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div 
+                        class="border rounded-md p-3 cursor-pointer border-gray-200"
+                    >
+                        <div class="flex justify-between items-center">
+                            <div class="flex items-center">
+                                <input
+                                    type="checkbox"
+                                    id="model-claude3opus"
+                                    class="mr-2"
+                                    aria-label="Claude 3 Opus"
+                                />
+                                <label 
+                                    for="model-claude3opus"
+                                    class="text-sm"
+                                >
+                                    Claude 3 Opus
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div 
+                        class="border rounded-md p-3 cursor-pointer border-gray-200"
+                    >
+                        <div class="flex justify-between items-center">
+                            <div class="flex items-center">
+                                <input
+                                    type="checkbox"
+                                    id="model-gemini15"
+                                    class="mr-2"
+                                    aria-label="Gemini 1.5 Pro"
+                                />
+                                <label 
+                                    for="model-gemini15"
+                                    class="text-sm"
+                                >
+                                    Gemini 1.5 Pro
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div 
+                        class="border rounded-md p-3 cursor-pointer border-gray-200"
+                    >
+                        <div class="flex justify-between items-center">
+                            <div class="flex items-center">
+                                <input
+                                    type="checkbox"
+                                    id="model-llama3"
+                                    class="mr-2"
+                                    aria-label="Llama 3"
+                                />
+                                <label 
+                                    for="model-llama3"
+                                    class="text-sm"
+                                >
+                                    Llama 3
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Pattern selection -->
+            <div class="mb-4">
+                <h3 class="text-sm font-medium text-gray-700 mb-2">Analysis Pattern</h3>
+                
+                <div class="space-y-2">
+                    <div 
+                        class="border rounded-md p-3 cursor-pointer border-blue-500 bg-blue-50"
+                    >
+                        <div class="flex items-center">
+                            <input
+                                type="radio"
+                                id="pattern-gut"
+                                name="pattern"
+                                value="gut"
+                                checked
+                                class="mr-2"
+                                aria-label="Gut Check"
+                            />
+                            <label for="pattern-gut">
+                                <div class="font-medium text-sm">Gut Check</div>
+                                <div class="text-xs text-gray-500">Rapid evaluation of different perspectives</div>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div 
+                        class="border rounded-md p-3 cursor-pointer border-gray-200"
+                    >
+                        <div class="flex items-center">
+                            <input
+                                type="radio"
+                                id="pattern-confidence"
+                                name="pattern"
+                                value="confidence"
+                                class="mr-2"
+                                aria-label="Confidence Analysis"
+                            />
+                            <label for="pattern-confidence">
+                                <div class="font-medium text-sm">Confidence Analysis</div>
+                                <div class="text-xs text-gray-500">Evaluates the strength of each model response</div>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div 
+                        class="border rounded-md p-3 cursor-pointer border-gray-200"
+                    >
+                        <div class="flex items-center">
+                            <input
+                                type="radio"
+                                id="pattern-critique"
+                                name="pattern"
+                                value="critique"
+                                class="mr-2"
+                                aria-label="Critique Analysis"
+                            />
+                            <label for="pattern-critique">
+                                <div class="font-medium text-sm">Critique Analysis</div>
+                                <div class="text-xs text-gray-500">Models critically evaluate each other's reasoning</div>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div 
+                        class="border rounded-md p-3 cursor-pointer border-gray-200"
+                    >
+                        <div class="flex items-center">
+                            <input
+                                type="radio"
+                                id="pattern-perspective"
+                                name="pattern"
+                                value="perspective"
+                                class="mr-2"
+                                aria-label="Perspective Analysis"
+                            />
+                            <label for="pattern-perspective">
+                                <div class="font-medium text-sm">Perspective Analysis</div>
+                                <div class="text-xs text-gray-500">Examines a question from multiple analytical perspectives</div>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Submit button -->
+            <div class="flex justify-end">
+                <button
+                    type="submit"
+                    class="flex items-center px-4 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700"
+                >
+                    Run Analysis
+                    <svg xmlns="http://www.w3.org/2000/svg" class="ml-1 h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="9 18 15 12 9 6"></polyline>
+                    </svg>
+                </button>
+            </div>
+        </form>
+        
+        <!-- Results -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h3 class="text-xl font-bold mb-4">Analysis Results</h3>
+            
+            <div class="mb-6">
+                <h4 class="text-lg font-medium mb-2">Your Prompt</h4>
+                <div class="bg-gray-50 p-4 rounded border border-gray-200">
+                    <p>Analyze the impact of quantum computing on modern cryptography, addressing both potential threats and opportunities.</p>
+                </div>
+            </div>
+            
+            <!-- Performance metrics -->
+            <div class="mb-6">
+                <h4 class="text-lg font-medium mb-2">Performance</h4>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div class="bg-gray-50 p-3 rounded border border-gray-200">
+                        <p class="text-xs text-gray-500">Total Time</p>
+                        <p class="font-medium">3.5s</p>
+                    </div>
+                    <div class="bg-gray-50 p-3 rounded border border-gray-200">
+                        <p class="text-xs text-gray-500">Models Used</p>
+                        <p class="font-medium">1</p>
+                    </div>
+                    <div class="bg-gray-50 p-3 rounded border border-gray-200">
+                        <p class="text-xs text-gray-500">Total Tokens</p>
+                        <p class="font-medium">
+                            1,245
+                        </p>
+                    </div>
+                    <div class="bg-gray-50 p-3 rounded border border-gray-200">
+                        <p class="text-xs text-gray-500">Primary Model</p>
+                        <p class="font-medium">GPT-4o</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Ultra response -->
+            <div class="mb-6">
+                <h4 class="text-lg font-medium mb-2">Ultra Analysis</h4>
+                <div class="bg-blue-50 p-4 rounded border border-blue-200">
+                    <p class="whitespace-pre-wrap text-gray-900">
+# Impact of Quantum Computing on Modern Cryptography
+
+## Threats to Current Cryptographic Systems
+
+Quantum computing poses significant threats to several widely-used cryptographic systems:
+
+1. **RSA and ECC Vulnerability**: Quantum computers running Shor's algorithm could efficiently factor large integers and compute discrete logarithms, breaking RSA and Elliptic Curve Cryptography.
+
+2. **Public Key Infrastructure at Risk**: Most of our digital security infrastructure relies on these vulnerable algorithms, potentially compromising secure communications, financial transactions, and identity verification.
+
+3. **Symmetric Key Weakening**: Grover's algorithm could reduce the effective security of symmetric key algorithms like AES, requiring key length doubling for equivalent security.
+
+## Opportunities and Solutions
+
+Despite these threats, quantum computing also creates opportunities:
+
+1. **Post-Quantum Cryptography (PQC)**: Development of new cryptographic algorithms resistant to quantum attacks, including lattice-based, hash-based, and code-based cryptography.
+
+2. **Quantum Key Distribution (QKD)**: Uses quantum mechanics principles to create theoretically unbreakable encryption through quantum entanglement and the no-cloning theorem.
+
+3. **Hybrid Approaches**: Implementing both classical and post-quantum algorithms provides security against both conventional and quantum attacks during the transition period.
+
+## Current Status and Timeline
+
+The cryptographic community is actively working on quantum-resistant solutions:
+
+1. **NIST Standardization**: The National Institute of Standards and Technology is in the final stages of standardizing post-quantum cryptographic algorithms.
+
+2. **Industry Adoption**: Major tech companies are implementing quantum-resistant algorithms in their security infrastructure.
+
+3. **Migration Challenge**: The greatest challenge is the massive global migration of existing systems to quantum-resistant alternatives before large-scale quantum computers become available.
+
+## Conclusion
+
+While quantum computing presents a serious threat to our current cryptographic infrastructure, the advance warning has allowed the security community to develop robust alternatives. The race is now between the implementation of quantum-resistant cryptography and the development of cryptographically relevant quantum computers.
+                    </p>
+                </div>
+            </div>
+            
+            <!-- Individual model responses -->
+            <div class="mb-4">
+                <h4 class="text-lg font-medium mb-2">Individual Model Responses</h4>
+                <div class="space-y-4">
+                    <div class="bg-white rounded border border-gray-200">
+                        <div class="bg-gray-50 px-4 py-2 border-b border-gray-200 font-medium">
+                            GPT-4o
+                            <span class="ml-2 text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded">
+                                Primary
+                            </span>
+                        </div>
+                        <div class="p-4">
+                            <p class="whitespace-pre-wrap text-gray-900">
+# Analysis: Impact of Quantum Computing on Modern Cryptography
+
+## Potential Threats
+
+### 1. Breaking Asymmetric Encryption
+Quantum computers pose a significant threat to widely used public-key cryptographic systems like RSA, DSA, and ECC through Shor's algorithm, which can efficiently factor large integers and compute discrete logarithms.
+
+### 2. Weakening Symmetric Encryption
+Grover's algorithm could theoretically reduce the security of symmetric key algorithms (like AES) by effectively halving their security strength, requiring key sizes to be doubled to maintain equivalent security levels.
+
+### 3. Digital Signatures at Risk
+Most digital signature schemes rely on the same mathematical problems that quantum computers could solve, potentially compromising non-repudiation and authentication systems worldwide.
+
+### 4. Infrastructure Overhaul Challenges
+The need to replace vulnerable cryptographic systems presents enormous logistical, financial, and technical challenges across all sectors of the digital economy.
+
+## Opportunities
+
+### 1. Post-Quantum Cryptography (PQC)
+The development of quantum-resistant algorithms has accelerated, with NIST standardizing new approaches based on lattices, hashes, codes, and multivariate polynomials that resist quantum attacks.
+
+### 2. Quantum Key Distribution (QKD)
+Quantum mechanics principles enable the creation of communication channels that are theoretically immune to eavesdropping, leveraging quantum properties like the no-cloning theorem and quantum entanglement.
+
+### 3. Hybrid Cryptographic Systems
+Transition systems combining classical and post-quantum algorithms provide protection against both conventional and quantum threats during the migration period.
+
+### 4. Cryptographic Agility
+The quantum threat has emphasized the importance of designing systems with cryptographic agility—the ability to quickly swap algorithms without major infrastructure changes.
+
+## Current Status
+
+The cybersecurity community is actively addressing quantum threats through:
+- NIST's Post-Quantum Cryptography standardization process
+- Early adoption of quantum-resistant algorithms by major tech companies
+- Increased research funding in quantum-resistant cryptography
+- Development of migration roadmaps for critical infrastructure
+
+While large-scale cryptographically relevant quantum computers may still be years away, the extensive time required for cryptographic transitions necessitates immediate action to ensure systems remain secure in the post-quantum era.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Success message -->
+            <div class="mt-4 bg-green-50 border border-green-200 rounded-md p-4">
+                <div class="flex items-start">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="text-green-500 mt-1 mr-2 h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                        <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                    </svg>
+                    <p class="text-green-700">Analysis completed successfully</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="mt-8 text-center pb-8">
+        <a href="../../index.html" class="text-blue-600 hover:text-blue-800 font-medium">← Back to UI/UX Overview</a>
+    </div>
+</body>
+</html>

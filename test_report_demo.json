@@ -1,0 +1,165 @@
+{
+  "timestamp": "2025-05-12T10:29:47.142181",
+  "duration": 16.922580003738403,
+  "categories": {
+    "API": {
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "skipped": 0,
+      "running": false,
+      "tests": {
+        "test_health_endpoint": {
+          "result": "pass",
+          "duration": 0.5,
+          "message": ""
+        },
+        "test_available_models_endpoint": {
+          "result": "pass",
+          "duration": 0.8,
+          "message": ""
+        },
+        "test_analyze_endpoint": {
+          "result": "pass",
+          "duration": 1.2,
+          "message": ""
+        },
+        "test_llm_request_endpoint": {
+          "result": "pass",
+          "duration": 0.9,
+          "message": ""
+        },
+        "test_api_errors": {
+          "result": "pass",
+          "duration": 0.6,
+          "message": ""
+        },
+        "test_api_auth": {
+          "result": "pass",
+          "duration": 0.7,
+          "message": ""
+        }
+      }
+    },
+    "AUTH": {
+      "total": 4,
+      "passed": 4,
+      "failed": 0,
+      "skipped": 0,
+      "running": false,
+      "tests": {
+        "test_jwt_utils": {
+          "result": "pass",
+          "duration": 0.5,
+          "message": ""
+        },
+        "test_auth_edge_cases": {
+          "result": "pass",
+          "duration": 0.9,
+          "message": ""
+        },
+        "test_auth_endpoints": {
+          "result": "pass",
+          "duration": 0.4,
+          "message": ""
+        },
+        "test_e2e_auth_workflow": {
+          "result": "pass",
+          "duration": 1.5,
+          "message": ""
+        }
+      }
+    },
+    "RATE": {
+      "total": 2,
+      "passed": 2,
+      "failed": 0,
+      "skipped": 0,
+      "running": false,
+      "tests": {
+        "test_rate_limit_service": {
+          "result": "pass",
+          "duration": 0.7,
+          "message": ""
+        },
+        "test_rate_limit_middleware": {
+          "result": "pass",
+          "duration": 0.9,
+          "message": ""
+        }
+      }
+    },
+    "ORCH": {
+      "total": 4,
+      "passed": 2,
+      "failed": 1,
+      "skipped": 1,
+      "running": false,
+      "tests": {
+        "test_basic_orchestrator": {
+          "result": "pass",
+          "duration": 1.1,
+          "message": ""
+        },
+        "test_orchestrator": {
+          "result": "pass",
+          "duration": 0.8,
+          "message": ""
+        },
+        "test_orchestrator_with_real_apis": {
+          "result": "fail",
+          "duration": 2.3,
+          "message": "Connection timeout when connecting to API provider"
+        },
+        "test_real_orchestrator": {
+          "result": "skip",
+          "duration": 0.1,
+          "message": "Real orchestrator tests require API keys"
+        }
+      }
+    },
+    "INTEG": {
+      "total": 3,
+      "passed": 2,
+      "failed": 0,
+      "skipped": 1,
+      "running": false,
+      "tests": {
+        "test_e2e_analysis_flow": {
+          "result": "pass",
+          "duration": 3.2,
+          "message": ""
+        },
+        "test_health_check": {
+          "result": "pass",
+          "duration": 0.4,
+          "message": ""
+        },
+        "test_docker_modelrunner": {
+          "result": "skip",
+          "duration": 0.1,
+          "message": "Docker ModelRunner not available in test environment"
+        }
+      }
+    },
+    "DOC": {
+      "total": 2,
+      "passed": 1,
+      "failed": 1,
+      "skipped": 0,
+      "running": false,
+      "tests": {
+        "test_document_upload": {
+          "result": "pass",
+          "duration": 0.7,
+          "message": ""
+        },
+        "test_document_analysis": {
+          "result": "fail",
+          "duration": 1.4,
+          "message": "Failed to extract text from PDF document"
+        }
+      }
+    }
+  }
+}

@@ -16,6 +16,7 @@ from pydantic import (
     constr,
     conint,
     confloat,
+    model_validator,
 )
 
 # Type variable for model classes
@@ -33,9 +34,9 @@ class APIBaseModel(BaseModel):
         # Forbid extra attributes that are not model fields
         extra = "forbid"
         # Keep field order as defined in model
-        orm_mode = True
+        from_attributes = True
         # Allow population by field name
-        allow_population_by_field_name = True
+        populate_by_name = True
 
 
 class ResponseStatus(str, Enum):
@@ -121,7 +122,7 @@ class PaginatedResponse(SuccessResponse):
     has_previous: bool = Field(..., description="Whether there is a previous page")
     has_next: bool = Field(..., description="Whether there is a next page")
 
-    @root_validator
+    @root_validator(skip_on_failure=True)
     def calculate_pagination_info(cls, values):
         """Calculate pagination information"""
         page = values.get("page", 1)

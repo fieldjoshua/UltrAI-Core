@@ -1,0 +1,33 @@
+version: '3.8'
+
+services:
+  # Backend with Docker Model Runner enabled via HTTP API
+  backend:
+    environment:
+      - USE_MODEL_RUNNER=true
+      - ENABLE_MODEL_RUNNER=true
+      - MODEL_RUNNER_TYPE=api
+      - DEFAULT_LOCAL_MODEL=ai/smollm2
+      - USE_LOCAL_MODELS_WHEN_OFFLINE=true
+      - MODEL_RUNNER_URL=http://host.docker.internal:8080
+    extra_hosts:
+      # Add host.docker.internal mapping for MacOS/Windows and Linux
+      - "host.docker.internal:host-gateway"
+
+  # Worker with Docker Model Runner enabled via HTTP API
+  worker:
+    environment:
+      - USE_MODEL_RUNNER=true
+      - ENABLE_MODEL_RUNNER=true
+      - MODEL_RUNNER_TYPE=api
+      - DEFAULT_LOCAL_MODEL=ai/smollm2
+      - USE_LOCAL_MODELS_WHEN_OFFLINE=true
+      - MODEL_RUNNER_URL=http://host.docker.internal:8080
+    extra_hosts:
+      # Add host.docker.internal mapping for MacOS/Windows and Linux
+      - "host.docker.internal:host-gateway"
+
+  # Include frontend in the default profile
+  frontend:
+    profiles:
+      - default

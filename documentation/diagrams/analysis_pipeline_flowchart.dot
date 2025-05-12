@@ -1,0 +1,39 @@
+digraph AnalysisPipeline {
+    rankdir=TB;
+    graph [size="7.5,10", ratio=fill, orientation=portrait];
+    node [fontsize=10, shape=rectangle, style=filled, fillcolor="#E0ECFF"];
+    edge [fontsize=10];
+
+    Start [label="Start", shape=circle, fillcolor="#B3CDE3"];
+    Receive [label="Receive analysis request\nwith prompt, models, pattern"];
+    LoadPattern [label="Load selected pattern\nconfiguration"];
+    InitCtx [label="Initialize analysis context\nand tracking metrics"];
+
+    StageStart [label="Determine participating\nmodels for stage"];
+    PrepPrompts [label="Prepare stage-specific\nprompts"];
+    ExecQueries [label="Execute model queries\n(parallel or sequential)"];
+    CollectResp [label="Collect and validate\nresponses"];
+    UpdateMetrics [label="Update metrics and\nanalysis context"];
+    DecIntermediate [label="Intermediate processing\nrequired?", shape=diamond, fillcolor="#FFFFB3"];
+    ProcIntermediate [label="Process intermediate\nresults"];
+    DecMoreStages [label="More stages remaining?", shape=diamond, fillcolor="#FFFFB3"];
+
+    SynthSelect [label="Select synthesis model"];
+    SynthPrompt [label="Generate synthesis prompt\nwith collected context"];
+    ExecSynth [label="Execute synthesis query"];
+    FormatResp [label="Format final response\npackage"];
+    UpdateUsage [label="Update usage metrics"];
+    ReturnResults [label="Return comprehensive\nresults package"];
+    End [label="End", shape=circle, fillcolor="#B3CDE3"];
+
+    Start -> Receive -> LoadPattern -> InitCtx -> StageStart;
+    StageStart -> PrepPrompts -> ExecQueries -> CollectResp -> UpdateMetrics -> DecIntermediate;
+    DecIntermediate -> ProcIntermediate [label="Yes"];
+    DecIntermediate -> DecMoreStages [label="No"];
+    ProcIntermediate -> DecMoreStages;
+
+    DecMoreStages -> StageStart [label="Yes"];
+    DecMoreStages -> SynthSelect [label="No"];
+
+    SynthSelect -> SynthPrompt -> ExecSynth -> FormatResp -> UpdateUsage -> ReturnResults -> End;
+}

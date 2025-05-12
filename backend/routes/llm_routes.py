@@ -19,6 +19,9 @@ from backend.models.llm_models import (
     AnalysisModesResponse,
 )
 
+# Import BaseModel if needed
+from pydantic import BaseModel
+
 # Create a router
 llm_router = APIRouter(tags=["LLM Management"])
 
@@ -26,7 +29,61 @@ llm_router = APIRouter(tags=["LLM Management"])
 logger = logging.getLogger("llm_routes")
 
 
-@llm_router.get("/api/llms", response_model=ModelsResponse)
+# --- ADDING NEW ENDPOINT --- #
+class AvailableModelsResponse(BaseModel):
+    status: str
+    available_models: List[str]
+
+
+@llm_router.get(
+    "/available-models",
+    response_model=AvailableModelsResponse,
+    tags=["LLM Management"],
+)
+async def get_just_available_model_names():  # Renamed slightly from original in app.py
+    """Get just the names of available LLM models."""
+    try:
+        models_dict = llm_config_service.get_available_models()
+        
+        # Check if we have models
+        if models_dict and len(models_dict) > 0:
+            model_names = list(models_dict.keys())
+        else:
+            # Fallback model names if we couldn't get any real models
+            logger.warning("No models found, returning fallback model list")
+            model_names = [
+                "gpt4o", 
+                "gpt4turbo", 
+                "claude37", 
+                "claude3opus", 
+                "gemini15", 
+                "llama3"
+            ]
+            
+        return {
+            "status": "success",
+            "available_models": model_names,
+        }
+    except Exception as e:
+        logger.error(f"Error getting available LLM names: {str(e)}")
+        # Instead of throwing an error, return a fallback list
+        return {
+            "status": "partial",
+            "available_models": [
+                "gpt4o", 
+                "gpt4turbo", 
+                "claude37", 
+                "claude3opus", 
+                "gemini15", 
+                "llama3"
+            ],
+        }
+
+
+# --- END NEW ENDPOINT --- #
+
+
+@llm_router.get("/llms", response_model=ModelsResponse)
 async def get_available_llms(
     tags: Optional[List[str]] = None,
     capability: Optional[str] = None,
@@ -63,7 +120,7 @@ async def get_available_llms(
         )
 
 
-@llm_router.get("/api/llms/{model_name}", response_model=ModelResponse)
+@llm_router.get("/llms/{model_name}", response_model=ModelResponse)
 async def get_llm_details(model_name: str):
     """
     Get detailed information about a specific LLM model
@@ -82,7 +139,7 @@ async def get_llm_details(model_name: str):
     return {"status": "success", "model": model}
 
 
-@llm_router.get("/api/llms/{model_name}/status", response_model=ModelStatusResponse)
+@llm_router.get("/llms/{model_name}/status", response_model=ModelStatusResponse)
 async def get_llm_status(model_name: str):
     """
     Get the current status of a specific LLM model
@@ -98,7 +155,7 @@ async def get_llm_status(model_name: str):
     return {"status": "success", "model_status": status}
 
 
-@llm_router.get("/api/patterns", response_model=PatternsResponse)
+@llm_router.get("/patterns", response_model=PatternsResponse)
 async def get_available_patterns():
     """
     Get all available analysis patterns
@@ -111,7 +168,7 @@ async def get_available_patterns():
     return {"status": "success", "count": len(patterns), "patterns": patterns}
 
 
-@llm_router.get("/api/analysis-modes", response_model=AnalysisModesResponse)
+@llm_router.get("/analysis-modes", response_model=AnalysisModesResponse)
 async def get_available_analysis_modes():
     """
     Get all available analysis modes

@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OrchestratorInterface Preview</title>
+    <style>
+        /* Base styling */
+        body {
+            font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #f8fafc;
+            color: #1e293b;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Container */
+        .container {
+            max-width: 1024px;
+            margin: 0 auto;
+            padding: 1rem;
+        }
+
+        /* Page header */
+        .page-header {
+            margin-bottom: 1rem;
+        }
+
+        .page-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #1e293b;
+            margin-bottom: 0.5rem;
+        }
+
+        /* Error message */
+        .error-message {
+            background-color: #fee2e2;
+            border: 1px solid #fecaca;
+            border-radius: 0.375rem;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .error-text {
+            color: #b91c1c;
+            margin: 0;
+        }
+
+        /* Content card */
+        .form-card {
+            background-color: white;
+            border-radius: 0.5rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        /* Form elements */
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #4b5563;
+            margin-bottom: 0.25rem;
+        }
+
+        .form-textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.375rem;
+            font-family: inherit;
+            font-size: 0.875rem;
+            resize: vertical;
+            min-height: 6rem;
+        }
+
+        .form-textarea:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
+        }
+
+        /* Model selection */
+        .section-heading {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #4b5563;
+            margin-bottom: 0.5rem;
+        }
+
+        .loading-indicator {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+            color: #6b7280;
+            font-size: 0.875rem;
+        }
+
+        .spinner {
+            width: 1rem;
+            height: 1rem;
+            border: 2px solid rgba(107, 114, 128, 0.25);
+            border-right-color: #6b7280;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 0.5rem;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .models-grid {
+            display: grid;
+            grid-template-columns: repeat(1, 1fr);
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        @media (min-width: 640px) {
+            .models-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (min-width: 768px) {
+            .models-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        .model-card {
+            border: 1px solid #e5e7eb;
+            border-radius: 0.375rem;
+            padding: 0.75rem;
+            cursor: pointer;
+        }
+
+        .model-card.selected {
+            border-color: #3b82f6;
+            background-color: #eff6ff;
+        }
+
+        .model-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .model-selection {
+            display: flex;
+            align-items: center;
+        }
+
+        .checkbox {
+            margin-right: 0.5rem;
+        }
+
+        .model-name {
+            font-size: 0.875rem;
+        }
+
+        .primary-radio {
+            display: flex;
+            align-items: center;
+        }
+
+        .radio {
+            margin-right: 0.25rem;
+        }
+
+        .primary-label {
+            font-size: 0.75rem;
+            color: #6b7280;
+        }
+
+        /* Analysis type */
+        .analysis-types {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .analysis-type {
+            display: flex;
+            align-items: center;
+        }
+
+        .radio-label {
+            font-size: 0.875rem;
+            margin-left: 0.25rem;
+        }
+
+        /* Submit button */
+        .button-container {
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .submit-button {
+            padding: 0.5rem 1rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: white;
+            background-color: #3b82f6;
+            border: none;
+            border-radius: 0.375rem;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .submit-button:hover {
+            background-color: #2563eb;
+        }
+
+        .submit-button:disabled {
+            background-color: #d1d5db;
+            cursor: not-allowed;
+        }
+
+        /* Results */
+        .results-card {
+            background-color: white;
+            border-radius: 0.5rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            padding: 1.5rem;
+        }
+
+        .results-title {
+            font-size: 1.25rem;
+            font-weight: bold;
+            color: #1e293b;
+            margin-bottom: 1rem;
+        }
+
+        .results-section {
+            margin-bottom: 1.5rem;
+        }
+
+        .section-title {
+            font-size: 1rem;
+            font-weight: 500;
+            color: #1e293b;
+            margin-bottom: 0.5rem;
+        }
+
+        .response-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .response-item {
+            background-color: #f8fafc;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.375rem;
+            padding: 1rem;
+        }
+
+        .response-header {
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .primary-badge {
+            margin-left: 0.5rem;
+            font-size: 0.625rem;
+            background-color: #dbeafe;
+            color: #1d4ed8;
+            padding: 0.125rem 0.375rem;
+            border-radius: 9999px;
+        }
+
+        .response-text {
+            font-size: 0.875rem;
+            white-space: pre-wrap;
+            margin: 0;
+        }
+
+        .analysis-results {
+            background-color: #eff6ff;
+            border: 1px solid #bfdbfe;
+            border-radius: 0.375rem;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .synthesis {
+            background-color: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            border-radius: 0.375rem;
+            padding: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="page-header">
+            <h1 class="page-title">UltrAI Orchestrator</h1>
+        </div>
+
+        <!-- Error message (hidden by default) -->
+        <!-- <div class="error-message">
+            <p class="error-text">Please enter a prompt and select at least one model.</p>
+        </div> -->
+
+        <!-- Input form -->
+        <form class="form-card">
+            <!-- Prompt input -->
+            <div class="form-group">
+                <label for="prompt" class="form-label">Prompt</label>
+                <textarea id="prompt" class="form-textarea" rows="4" placeholder="What would you like to analyze?"></textarea>
+            </div>
+
+            <!-- Model selection -->
+            <div class="form-group">
+                <h3 class="section-heading">Select Models</h3>
+
+                <!-- Loading indicator (hidden if not loading) -->
+                <!-- <div class="loading-indicator">
+                    <div class="spinner"></div>
+                    <span>Loading available models...</span>
+                </div> -->
+
+                <div class="models-grid">
+                    <!-- Model 1 -->
+                    <div class="model-card selected">
+                        <div class="model-header">
+                            <div class="model-selection">
+                                <input type="checkbox" id="model-gpt4" class="checkbox" checked>
+                                <label for="model-gpt4" class="model-name">GPT-4o</label>
+                            </div>
+                            <div class="primary-radio">
+                                <input type="radio" id="primary-gpt4" name="primary-model" class="radio" checked>
+                                <label for="primary-gpt4" class="primary-label">Primary</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Model 2 -->
+                    <div class="model-card">
+                        <div class="model-header">
+                            <div class="model-selection">
+                                <input type="checkbox" id="model-claude" class="checkbox">
+                                <label for="model-claude" class="model-name">Claude 3.7</label>
+                            </div>
+                            <div class="primary-radio">
+                                <input type="radio" id="primary-claude" name="primary-model" class="radio">
+                                <label for="primary-claude" class="primary-label">Primary</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Model 3 -->
+                    <div class="model-card selected">
+                        <div class="model-header">
+                            <div class="model-selection">
+                                <input type="checkbox" id="model-gemini" class="checkbox" checked>
+                                <label for="model-gemini" class="model-name">Gemini 1.5</label>
+                            </div>
+                            <div class="primary-radio">
+                                <input type="radio" id="primary-gemini" name="primary-model" class="radio">
+                                <label for="primary-gemini" class="primary-label">Primary</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Analysis type selection -->
+            <div class="form-group">
+                <h3 class="section-heading">Analysis Type</h3>
+                <div class="analysis-types">
+                    <div class="analysis-type">
+                        <input type="radio" id="type-comparative" name="analysis-type" class="radio" checked>
+                        <label for="type-comparative" class="radio-label">Comparative</label>
+                    </div>
+                    <div class="analysis-type">
+                        <input type="radio" id="type-factual" name="analysis-type" class="radio">
+                        <label for="type-factual" class="radio-label">Factual</label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Submit button -->
+            <div class="button-container">
+                <button type="submit" class="submit-button">Generate Response</button>
+            </div>
+        </form>
+
+        <!-- Results (shown after submission) -->
+        <div class="results-card">
+            <h2 class="results-title">Results</h2>
+
+            <!-- Initial responses -->
+            <div class="results-section">
+                <h3 class="section-title">Initial Responses</h3>
+                <div class="response-list">
+                    <!-- Response 1 -->
+                    <div class="response-item">
+                        <div class="response-header">
+                            GPT-4o (OpenAI)
+                            <span class="primary-badge">Primary</span>
+                        </div>
+                        <p class="response-text">Large language models (LLMs) have demonstrated remarkable capabilities in natural language understanding and generation. They can produce coherent and contextually relevant text across a wide range of topics and formats. However, they also face several key challenges:
+
+1. Factual accuracy: LLMs can generate plausible-sounding but incorrect information (hallucinations).
+
+2. Contextual understanding: While improving, they sometimes miss nuanced context or struggle with complex reasoning.
+
+3. Bias: Models can reflect and amplify biases present in their training data.
+
+4. Transparency: The "black box" nature of these models makes it difficult to understand their decision-making process.
+
+5. Computational resources: Training and running large models requires significant computing power and energy.</p>
+                    </div>
+
+                    <!-- Response 2 -->
+                    <div class="response-item">
+                        <div class="response-header">
+                            Gemini 1.5 (Google)
+                        </div>
+                        <p class="response-text">The main challenges in AI research today include:
+
+• Reliable reasoning and reducing hallucinations
+• Building truly general-purpose AI systems
+• Achieving human-level common sense understanding
+• Developing more efficient training methods
+• Creating explainable AI systems
+• Ensuring ethical development and deployment
+• Addressing bias and fairness concerns
+• Managing computational resource requirements
+• Maintaining data privacy and security
+• Enabling better human-AI collaboration
+
+These challenges span technical capabilities, responsible development, and the integration of AI into human society.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Analysis results -->
+            <div class="results-section">
+                <h3 class="section-title">Analysis Results (comparative)</h3>
+                <div class="analysis-results">
+                    <p class="response-text">The responses from GPT-4o and Gemini 1.5 show significant overlap in identifying key challenges in AI research, though they express and organize these challenges differently.
+
+Common themes identified by both models:
+1. Factual accuracy/reliable reasoning (both mention hallucinations)
+2. Resource requirements (computational demands)
+3. Explainability/transparency challenges
+4. Bias and fairness concerns
+
+GPT-4o provides more detailed explanations for each point but covers fewer total challenges. Gemini 1.5 offers a more comprehensive bullet-point list with additional challenges not mentioned by GPT-4o, such as:
+- Building general-purpose AI systems
+- Developing more efficient training methods
+- Privacy and security concerns
+- Human-AI collaboration
+
+The Gemini response is more structured and covers a broader range of issues, while the GPT-4o response provides deeper explanation of fewer points.</p>
+                </div>
+            </div>
+
+            <!-- Synthesis -->
+            <div class="results-section">
+                <h3 class="section-title">Synthesized Response</h3>
+                <div class="synthesis">
+                    <h4 class="response-header">Synthesized by GPT-4o (OpenAI)</h4>
+                    <p class="response-text"># Key Challenges in AI Research Today
+
+Contemporary AI research faces several critical challenges that span technical, ethical, and practical domains:
+
+## Technical Challenges
+- **Reducing hallucinations and improving factual reliability**: AI systems often generate plausible but incorrect information
+- **Developing robust reasoning capabilities**: Moving beyond pattern recognition to logical and causal reasoning
+- **Creating truly general AI systems**: Building models that can generalize across different domains and tasks
+- **Achieving human-level common sense**: Incorporating basic understanding that humans take for granted
+- **Computational efficiency**: Reducing the massive computing resources required for training and inference
+
+## Interpretability and Trust
+- **Transparency and explainability**: Understanding how and why AI systems reach specific conclusions
+- **Evaluation methodologies**: Developing better ways to test and benchmark AI capabilities
+
+## Ethical and Social Considerations
+- **Addressing bias and fairness**: Mitigating harmful biases in both data and models
+- **Ensuring responsible development**: Creating frameworks for ethical AI research and deployment
+- **Privacy and security**: Protecting data and preventing malicious uses
+- **Human-AI collaboration**: Designing systems that effectively complement human capabilities
+
+These challenges are interconnected, and progress often requires advancements across multiple fronts simultaneously. The field continues to evolve rapidly, with researchers working to balance cutting-edge capabilities with responsible innovation.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

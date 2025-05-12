@@ -1,0 +1,485 @@
+{
+    "title": "Recording 5/1/2025 at 8:15:28 PM",
+    "steps": [
+        {
+            "type": "setViewport",
+            "width": 605,
+            "height": 737,
+            "deviceScaleFactor": 1,
+            "isMobile": false,
+            "hasTouch": false,
+            "isLandscape": false
+        },
+        {
+            "type": "navigate",
+            "url": "http://localhost:3009/analyze",
+            "assertedEvents": [
+                {
+                    "type": "navigation",
+                    "url": "http://localhost:3009/analyze",
+                    "title": "Ultra AI"
+                }
+            ]
+        },
+        {
+            "type": "click",
+            "target": "main",
+            "selectors": [
+                [
+                    "aria/Get Started"
+                ],
+                [
+                    "main button"
+                ],
+                [
+                    "xpath///*[@id=\"root\"]/div/main/div/div[2]/div/div/button"
+                ],
+                [
+                    "pierce/main button"
+                ],
+                [
+                    "text/Get Started"
+                ]
+            ],
+            "offsetY": 4.5,
+            "offsetX": 17.5234375
+        },
+        {
+            "type": "click",
+            "target": "main",
+            "selectors": [
+                [
+                    "aria/What would you like to analyze?"
+                ],
+                [
+                    "textarea"
+                ],
+                [
+                    "xpath///*[@id=\"root\"]/div/main/div/div[2]/div/div/textarea"
+                ],
+                [
+                    "pierce/textarea"
+                ]
+            ],
+            "offsetY": 39.5,
+            "offsetX": 106
+        },
+        {
+            "type": "change",
+            "value": "top 10 angel investors for peer-to-peer sales on college campuses. ??",
+            "selectors": [
+                [
+                    "aria/What would you like to analyze?"
+                ],
+                [
+                    "textarea"
+                ],
+                [
+                    "xpath///*[@id=\"root\"]/div/main/div/div[2]/div/div/textarea"
+                ],
+                [
+                    "pierce/textarea"
+                ]
+            ],
+            "target": "main"
+        },
+        {
+            "type": "click",
+            "target": "main",
+            "selectors": [
+                [
+                    "aria/Next"
+                ],
+                [
+                    "button.bg-blue-600"
+                ],
+                [
+                    "xpath///*[@id=\"root\"]/div/main/div/div[3]/button[2]"
+                ],
+                [
+                    "pierce/button.bg-blue-600"
+                ],
+                [
+                    "text/Next"
+                ]
+            ],
+            "offsetY": 18,
+            "offsetX": 38.3046875
+        },
+        {
+            "type": "click",
+            "target": "main",
+            "selectors": [
+                [
+                    "div:nth-of-type(4) > div > div"
+                ],
+                [
+                    "xpath///*[@id=\"root\"]/div/main/div/div[2]/div/div/div[1]/div[4]/div/div"
+                ],
+                [
+                    "pierce/div:nth-of-type(4) > div > div"
+                ]
+            ],
+            "offsetY": 4.5,
+            "offsetX": 17
+        },
+        {
+            "type": "click",
+            "target": "main",
+            "selectors": [
+                [
+                    "div.bg-white div:nth-of-type(5)"
+                ],
+                [
+                    "xpath///*[@id=\"root\"]/div/main/div/div[2]/div/div/div[1]/div[5]"
+                ],
+                [
+                    "pierce/div.bg-white div:nth-of-type(5)"
+                ]
+            ],
+            "offsetY": 37.5,
+            "offsetX": 30
+        },
+        {
+            "type": "click",
+            "target": "main",
+            "selectors": [
+                [
+                    "div:nth-of-type(6) > div > div"
+                ],
+                [
+                    "xpath///*[@id=\"root\"]/div/main/div/div[2]/div/div/div[1]/div[6]/div/div"
+                ],
+                [
+                    "pierce/div:nth-of-type(6) > div > div"
+                ]
+            ],
+            "offsetY": 11.5,
+            "offsetX": 18
+        },
+        {
+            "type": "click",
+            "target": "main",
+            "selectors": [
+                [
+                    "div:nth-of-type(7) > div > div"
+                ],
+                [
+                    "xpath///*[@id=\"root\"]/div/main/div/div[2]/div/div/div[1]/div[7]/div/div"
+                ],
+                [
+                    "pierce/div:nth-of-type(7) > div > div"
+                ]
+            ],
+            "offsetY": 12.5,
+            "offsetX": 21
+        },
+        {
+            "type": "click",
+            "target": "main",
+            "selectors": [
+                [
+                    "aria/Next"
+                ],
+                [
+                    "button.bg-blue-600"
+                ],
+                [
+                    "xpath///*[@id=\"root\"]/div/main/div/div[3]/button[2]"
+                ],
+                [
+                    "pierce/button.bg-blue-600"
+                ],
+                [
+                    "text/Next"
+                ]
+            ],
+            "offsetY": 21,
+            "offsetX": 18.3046875
+        },
+        {
+            "type": "click",
+            "target": "main",
+            "selectors": [
+                [
+                    "aria/Next"
+                ],
+                [
+                    "button.bg-blue-600"
+                ],
+                [
+                    "xpath///*[@id=\"root\"]/div/main/div/div[3]/button[2]"
+                ],
+                [
+                    "pierce/button.bg-blue-600"
+                ],
+                [
+                    "text/Next"
+                ]
+            ],
+            "offsetY": 15,
+            "offsetX": 53.8984375
+        },
+        {
+            "type": "click",
+            "target": "main",
+            "selectors": [
+                [
+                    "html"
+                ],
+                [
+                    "xpath//html"
+                ],
+                [
+                    "pierce/html"
+                ]
+            ],
+            "offsetY": 2493.5,
+            "offsetX": 531,
+            "duration": 1892.1000000014901
+        },
+        {
+            "type": "click",
+            "target": "main",
+            "selectors": [
+                [
+                    "main > div > div:nth-of-type(1) div:nth-of-type(4) > div.flex"
+                ],
+                [
+                    "xpath///*[@id=\"root\"]/div/main/div/div[1]/div[1]/div[4]/div[1]"
+                ],
+                [
+                    "pierce/main > div > div:nth-of-type(1) div:nth-of-type(4) > div.flex"
+                ]
+            ],
+            "offsetY": 23.5,
+            "offsetX": 14.5
+        },
+        {
+            "type": "click",
+            "target": "main",
+            "selectors": [
+                [
+                    "span:nth-of-type(4)"
+                ],
+                [
+                    "xpath///*[@id=\"root\"]/div/main/div/div[1]/div[2]/span[4]"
+                ],
+                [
+                    "pierce/span:nth-of-type(4)"
+                ]
+            ],
+            "offsetY": 2.5,
+            "offsetX": 21.6875
+        },
+        {
+            "type": "click",
+            "target": "main",
+            "selectors": [
+                [
+                    "aria/New Analysis"
+                ],
+                [
+                    "main > div > div.bg-white button"
+                ],
+                [
+                    "xpath///*[@id=\"root\"]/div/main/div/div[2]/div/div[4]/button"
+                ],
+                [
+                    "pierce/main > div > div.bg-white button"
+                ],
+                [
+                    "text/New Analysis"
+                ]
+            ],
+            "offsetY": 21.5,
+            "offsetX": 84
+        },
+        {
+            "type": "click",
+            "target": "main",
+            "selectors": [
+                [
+                    "aria/What would you like to analyze?"
+                ],
+                [
+                    "textarea"
+                ],
+                [
+                    "xpath///*[@id=\"root\"]/div/main/div/div[2]/div/div/textarea"
+                ],
+                [
+                    "pierce/textarea"
+                ]
+            ],
+            "offsetY": 78.5,
+            "offsetX": 134
+        },
+        {
+            "type": "change",
+            "value": "top 10 angel investors for peer-to-peer sales on college campuses. ??best lklm",
+            "selectors": [
+                [
+                    "aria/What would you like to analyze?"
+                ],
+                [
+                    "textarea"
+                ],
+                [
+                    "xpath///*[@id=\"root\"]/div/main/div/div[2]/div/div/textarea"
+                ],
+                [
+                    "pierce/textarea"
+                ]
+            ],
+            "target": "main"
+        },
+        {
+            "type": "keyDown",
+            "target": "main",
+            "key": "Shift"
+        },
+        {
+            "type": "keyUp",
+            "key": "M",
+            "target": "main"
+        },
+        {
+            "type": "change",
+            "value": "top 10 angel investors for peer-to-peer sales on college campuses. ??best lklm?",
+            "selectors": [
+                [
+                    "aria/What would you like to analyze?"
+                ],
+                [
+                    "textarea"
+                ],
+                [
+                    "xpath///*[@id=\"root\"]/div/main/div/div[2]/div/div/textarea"
+                ],
+                [
+                    "pierce/textarea"
+                ]
+            ],
+            "target": "main"
+        },
+        {
+            "type": "keyUp",
+            "key": "Shift",
+            "target": "main"
+        },
+        {
+            "type": "click",
+            "target": "main",
+            "selectors": [
+                [
+                    "aria/Next"
+                ],
+                [
+                    "button.bg-blue-600"
+                ],
+                [
+                    "xpath///*[@id=\"root\"]/div/main/div/div[3]/button[2]"
+                ],
+                [
+                    "pierce/button.bg-blue-600"
+                ],
+                [
+                    "text/Next"
+                ]
+            ],
+            "offsetY": 27,
+            "offsetX": 19.3046875
+        },
+        {
+            "type": "click",
+            "target": "main",
+            "selectors": [
+                [
+                    "aria/Next"
+                ],
+                [
+                    "button.bg-blue-600"
+                ],
+                [
+                    "xpath///*[@id=\"root\"]/div/main/div/div[3]/button[2]"
+                ],
+                [
+                    "pierce/button.bg-blue-600"
+                ],
+                [
+                    "text/Next"
+                ]
+            ],
+            "offsetY": 10,
+            "offsetX": 10.3046875
+        },
+        {
+            "type": "click",
+            "target": "main",
+            "selectors": [
+                [
+                    "div:nth-of-type(3) p"
+                ],
+                [
+                    "xpath///*[@id=\"root\"]/div/main/div/div[2]/div/div/div[3]/div/div/p"
+                ],
+                [
+                    "pierce/div:nth-of-type(3) p"
+                ],
+                [
+                    "text/Models critically"
+                ]
+            ],
+            "offsetY": 7,
+            "offsetX": 169
+        },
+        {
+            "type": "click",
+            "target": "main",
+            "selectors": [
+                [
+                    "aria/Run Analysis"
+                ],
+                [
+                    "button.bg-blue-600"
+                ],
+                [
+                    "xpath///*[@id=\"root\"]/div/main/div/div[3]/button[2]"
+                ],
+                [
+                    "pierce/button.bg-blue-600"
+                ],
+                [
+                    "text/Run Analysis"
+                ]
+            ],
+            "offsetY": 26,
+            "offsetX": 15.8984375
+        },
+        {
+            "type": "click",
+            "target": "main",
+            "selectors": [
+                [
+                    "aria/Run Analysis Again",
+                    "aria/[role=\"generic\"]"
+                ],
+                [
+                    "button.bg-blue-600 > span"
+                ],
+                [
+                    "xpath///*[@id=\"root\"]/div/main/div/div[3]/div/div[5]/button[2]/span"
+                ],
+                [
+                    "pierce/button.bg-blue-600 > span"
+                ],
+                [
+                    "text/Run Analysis"
+                ]
+            ],
+            "offsetY": 5,
+            "offsetX": 94.5625
+        }
+    ]
+}

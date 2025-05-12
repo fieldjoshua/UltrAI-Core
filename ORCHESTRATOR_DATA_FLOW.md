@@ -29,7 +29,8 @@ This document provides a comprehensive overview of the UltrAI Orchestrator syste
 ## 1. User Interface Layer
 
 ### CLI Scripts
-- `ultra_cli.py`: Main command-line interface 
+
+- `ultra_cli.py`: Main command-line interface
 - `menu_ultra.sh`: Menu-based launcher with interactive options
 - `simple_ultra.sh`: Simplified interface for quick usage
 - `ultimate.sh`: Enhanced interface with progress visualization
@@ -40,31 +41,37 @@ This document provides a comprehensive overview of the UltrAI Orchestrator syste
 - `wrapper.py`: Progress bar and error suppression wrapper
 
 ### Environment Setup
+
 - `setup_env.sh`: Creates template .env file for API configuration
 
 ## 2. Orchestrator Layer
 
 ### Orchestrator Implementations
+
 - `src/simple_core/orchestrator.py`: Base orchestrator implementation
 - `src/simple_core/enhanced_orchestrator.py`: Second iteration with advanced features
 - `src/simple_core/modular_orchestrator.py`: Third iteration with pluggable components
 
 ### Configuration
+
 - `src/simple_core/config.py`: Core configuration components
 - `src/simple_core/config/request_config.py`: Request configuration models
 - `src/simple_core/config/analysis_config.py`: Analysis configuration models
 - `src/simple_core/config/factory_helpers.py`: Factory helper functions
 
 ### Factory System
+
 - `src/simple_core/factory.py`: Factory for creating orchestrator instances from environment
 
 ## 3. Adapter Layer
 
 ### Adapter Framework
+
 - `src/simple_core/adapter.py`: Base adapter interface and core implementations
 - `src/simple_core/adapter_extensions.py`: Extended adapters for additional providers
 
 ### Supported Providers
+
 1. OpenAI (GPT-4, GPT-3.5)
 2. Anthropic (Claude)
 3. Google (Gemini)
@@ -76,15 +83,18 @@ This document provides a comprehensive overview of the UltrAI Orchestrator syste
 ## 4. Analysis Layer
 
 ### Analysis Framework
+
 - `src/simple_core/analysis/analysis_module.py`: Base analysis module interface
 - `src/simple_core/analysis/analysis_manager.py`: Manager for analysis modules
 - `src/simple_core/analysis/results.py`: Analysis result models
 
 ### Analysis Modules
+
 - `src/simple_core/analysis/modules/comparative.py`: Comparative analysis of multiple responses
 - `src/simple_core/analysis/modules/factual.py`: Factual accuracy analysis
 
 ### Runtime Fixes
+
 - `src/simple_core/analysis_fix.py`: Patch for analysis module configuration
 - `apply_fix.py`: Runtime application of analysis fixes
 - `direct_analysis_fix.py`: Direct fixes for analysis module issues
@@ -92,17 +102,21 @@ This document provides a comprehensive overview of the UltrAI Orchestrator syste
 ## 5. Services Layer
 
 ### Caching
+
 - `src/simple_core/cache_service.py`: Response caching service
 
 ### Quality Assessment
+
 - `src/simple_core/quality_metrics.py`: Response quality assessment
 
 ### Prompt Management
+
 - `src/simple_core/prompt_templates.py`: Template management for system prompts
 
 ## 6. Testing Layer
 
 ### Test Scripts
+
 - `test_basic_orchestrator.py`: Tests for basic orchestrator
 - `test_orchestrator.py`: General orchestrator tests
 - `test_real_orchestrator.py`: Tests with real LLM adapters
@@ -115,6 +129,7 @@ This document provides a comprehensive overview of the UltrAI Orchestrator syste
 ## 7. Example Layer
 
 ### Example Scripts
+
 - `src/simple_core/examples/basic_usage.py`: Basic usage examples
 - `src/simple_core/examples/enhanced_interactive.py`: Enhanced orchestrator examples
 - `src/simple_core/examples/interactive.py`: Interactive session examples
@@ -123,6 +138,7 @@ This document provides a comprehensive overview of the UltrAI Orchestrator syste
 ## Data Flow Sequence
 
 ### Request Flow
+
 1. User interacts with one of the shell interface scripts
 2. Interface collects configuration and creates a request
 3. Request is passed to `ultra_cli.py` (main entry point)
@@ -138,6 +154,7 @@ This document provides a comprehensive overview of the UltrAI Orchestrator syste
 7. Interface presents results based on configuration
 
 ### Response Flow
+
 ```
 ┌───────────┐     ┌───────────┐     ┌───────────┐     ┌───────────┐
 │           │     │           │     │           │     │           │
@@ -157,20 +174,23 @@ This document provides a comprehensive overview of the UltrAI Orchestrator syste
 ## External Dependencies
 
 ### Required Python Packages
+
 - Core dependencies:
+
   - `aiohttp`: Async HTTP requests
   - `asyncio`: Asynchronous I/O
   - `pydantic`: Data validation
   - `python-dotenv`: Environment variable management
   - `tenacity`: Retry logic
   - `tqdm`: Progress bars
-  
+
 - Provider-specific dependencies:
   - `openai`: OpenAI API
   - `anthropic`: Anthropic API
   - `google-generativeai`: Google Gemini API
 
 ### Optional Dependencies
+
 - `colorama`: Terminal color support
 - `rich`: Enhanced terminal formatting
 - `uvloop`: Faster event loop (Unix only)
@@ -269,17 +289,20 @@ USE_MOCK=true|false
 ### CLI Scripts
 
 1. **ultra_cli.py**
+
    - Main entry point for the orchestrator
    - Processes command-line arguments
    - Creates and configures orchestrator instance
    - Manages response formatting and display
 
 2. **menu_ultra.sh**
+
    - Interactive menu for configuration
    - Supports model selection, analysis type, display options
    - Builds appropriate command for ultra_cli.py
 
 3. **simple_ultra.sh**
+
    - Simplified interface for quick usage
    - Focuses on common options
    - Uses mock mode for demonstration
@@ -293,12 +316,14 @@ USE_MOCK=true|false
 ### Orchestrators
 
 1. **BaseOrchestrator** (orchestrator.py)
+
    - Handles basic request processing
    - Manages provider connection
    - Executes requests against a single model
    - Provides caching (if enabled)
 
 2. **EnhancedOrchestrator** (enhanced_orchestrator.py)
+
    - Extends BaseOrchestrator
    - Supports multiple models
    - Adds quality assessment

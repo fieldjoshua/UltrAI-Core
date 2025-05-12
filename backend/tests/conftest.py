@@ -10,16 +10,31 @@ from httpx import AsyncClient
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # Import the FastAPI app and config
+import os
+from pathlib import Path
+from dotenv import load_dotenv
+
+# Load test environment variables
+test_env_file = Path(__file__).parent.parent.parent / ".env.testing"
+if test_env_file.exists():
+    load_dotenv(dotenv_path=str(test_env_file))
+else:
+    # Set minimal test environment if file doesn't exist
+    os.environ["ENVIRONMENT"] = "testing"
+    os.environ["TESTING"] = "true"
+    os.environ["USE_MOCK"] = "true"
+    os.environ["MOCK_MODE"] = "true"
+
+# Now import the app and config
 from backend.app import app
 from backend.config import Config
 
 # For backward compatibility with existing tests
 try:
-    from main import app as main_app, Config
+    from main import app as main_app
 except ImportError:
     # Use backend app if main app is not found
     main_app = app
-    Config = type('Config', (), {'use_mock': True})
 
 # Test data constants
 MOCK_PROVIDERS = {
@@ -86,27 +101,66 @@ def event_loop():
 @pytest.fixture(scope="module")
 def client():
     """Create a TestClient for testing sync endpoints (using main app for backward compatibility)"""
-    # Enable mock mode for testing
-    Config.use_mock = True
-    
+    # Configure testing environment
+    Config.TESTING = True
+    Config.USE_MOCK = os.environ.get("USE_MOCK", "true").lower() == "true"
+    Config.MOCK_MODE = os.environ.get("MOCK_MODE", "true").lower() == "true"
+
+    # Set up test token for all requests
+    test_token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0ZXN0QGV4YW1wbGUuY29tIiwiaWF0IjoxNTE2MjM5MDIyLCJleHAiOjk5OTk5OTk5OTl9.c14U6E_qhXlULTAW9zBCHpjdIXGXpYi7fdLdyHJl4wo"
+
     # Create test client
     with TestClient(main_app) as test_client:
+        # Add authentication header to all requests
+        test_client.headers.update({
+            "Authorization": f"Bearer {test_token}",
+            "Content-Type": "application/json",
+            "X-Test-Client": "true"
+        })
+
         yield test_client
 
 @pytest.fixture(scope="module")
 def test_client():
     """Create a TestClient for testing sync endpoints with the backend app"""
+    # Configure testing environment
+    Config.TESTING = True
+    Config.USE_MOCK = os.environ.get("USE_MOCK", "true").lower() == "true"
+    Config.MOCK_MODE = os.environ.get("MOCK_MODE", "true").lower() == "true"
+
+    # Set up test token for all requests
+    test_token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0ZXN0QGV4YW1wbGUuY29tIiwiaWF0IjoxNTE2MjM5MDIyLCJleHAiOjk5OTk5OTk5OTl9.c14U6E_qhXlULTAW9zBCHpjdIXGXpYi7fdLdyHJl4wo"
+
     with TestClient(app) as client:
+        # Add authentication header to all requests
+        client.headers.update({
+            "Authorization": f"Bearer {test_token}",
+            "Content-Type": "application/json",
+            "X-Test-Client": "true"
+        })
+
         yield client
 
 @pytest.fixture(scope="module")
 async def async_client():
     """Create an AsyncClient for testing async endpoints"""
-    # Enable mock mode for testing
-    Config.use_mock = True
-    
+    # Configure testing environment
+    Config.TESTING = True
+    Config.USE_MOCK = os.environ.get("USE_MOCK", "true").lower() == "true"
+    Config.MOCK_MODE = os.environ.get("MOCK_MODE", "true").lower() == "true"
+
+    # Set up test token for all requests
+    test_token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0ZXN0QGV4YW1wbGUuY29tIiwiaWF0IjoxNTE2MjM5MDIyLCJleHAiOjk5OTk5OTk5OTl9.c14U6E_qhXlULTAW9zBCHpjdIXGXpYi7fdLdyHJl4wo"
+
     # Create async test client
     async with AsyncClient(app=main_app, base_url="http://test") as ac:
+        # Add authentication header to all requests
+        ac.headers.update({
+            "Authorization": f"Bearer {test_token}",
+            "Content-Type": "application/json",
+            "X-Test-Client": "true"
+        })
+
         yield ac
 
 @pytest.fixture(scope="function")
@@ -157,23 +211,36 @@ def mock_get_settings(mock_settings):
 def mock_env_vars():
     """Set test environment variables and restore them after the test"""
     original_env = os.environ.copy()
-    
+
     # Set test environment variables
     test_vars = {
-        "MOCK_MODE": "true",
-        "DEBUG": "true",
         "ENVIRONMENT": "testing",
+        "TESTING": "true",
+        "DEBUG": "true",
+        "USE_MOCK": os.environ.get("USE_MOCK", "true"),
+        "MOCK_MODE": os.environ.get("MOCK_MODE", "true"),
+        "ENABLE_AUTH": "true",
+        "JWT_SECRET": "test-jwt-secret",
         "OPENAI_API_KEY": "test-openai-key",
         "ANTHROPIC_API_KEY": "test-anthropic-key",
-        "MISTRAL_API_KEY": "test-mistral-key",
-        "ALLOWED_EXTERNAL_DOMAINS": "api.openai.com,api.anthropic.com,api.mistral.ai",
+        "GOOGLE_API_KEY": "test-google-key",
+        "DEFAULT_PROVIDER": "openai",
+        "DEFAULT_MODEL": "gpt-4o",
+        "REDIS_URL": "redis://localhost:6379/1",
+        "DATABASE_URL": "sqlite:///:memory:",
+        "CORS_ORIGINS": "*",
         "SENTRY_DSN": ""  # Empty to disable Sentry during tests
     }
-    
+
     os.environ.update(test_vars)
-    
+
+    # Update config with test settings
+    Config.TESTING = True
+    Config.USE_MOCK = test_vars["USE_MOCK"].lower() == "true"
+    Config.MOCK_MODE = test_vars["MOCK_MODE"].lower() == "true"
+
     yield
-    
+
     # Restore original environment
     os.environ.clear()
     os.environ.update(original_env)

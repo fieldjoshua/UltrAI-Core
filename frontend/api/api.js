@@ -186,9 +186,15 @@ const analyzeWithDocuments = async ({
   }
 };
 
+// Import orchestrator API functions
+const { getOrchestratorModels, processWithOrchestrator } = require('./orchestrator');
+
 // CommonJS module export
 module.exports = {
   analyzePrompt,
   uploadDocuments,
   analyzeWithDocuments,
+  // New orchestrator functions
+  getOrchestratorModels,
+  processWithOrchestrator,
 };

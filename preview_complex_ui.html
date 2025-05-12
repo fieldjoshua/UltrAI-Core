@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ultra Complex UI Preview</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background-color: #0a0e17;
+      color: #fff;
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem;
+    }
+    
+    header {
+      margin-bottom: 2rem;
+    }
+    
+    h1 {
+      font-size: 2.5rem;
+      margin: 0;
+      background: linear-gradient(to right, #00ffff, #ff00de);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+    
+    .description {
+      margin-top: 1rem;
+      color: #aaa;
+    }
+    
+    .ui-section {
+      margin-bottom: 3rem;
+      background-color: rgba(255, 255, 255, 0.05);
+      border-radius: 10px;
+      padding: 1.5rem;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    h2 {
+      margin-top: 0;
+      font-size: 1.8rem;
+      color: #00ffff;
+    }
+    
+    h3 {
+      color: #ff00de;
+      margin-top: 1.5rem;
+      margin-bottom: 0.75rem;
+    }
+    
+    .step-container {
+      display: flex;
+      gap: 15px;
+      margin: 1.5rem 0;
+      flex-wrap: wrap;
+    }
+    
+    .step {
+      padding: 15px;
+      background-color: rgba(0, 255, 255, 0.1);
+      border: 1px solid rgba(0, 255, 255, 0.3);
+      border-radius: 8px;
+      flex: 1;
+      min-width: 160px;
+      transition: all 0.3s ease;
+    }
+    
+    .step:hover {
+      background-color: rgba(0, 255, 255, 0.2);
+      transform: translateY(-3px);
+    }
+    
+    .step h4 {
+      margin-top: 0;
+      color: #fff;
+    }
+    
+    .step p {
+      margin-bottom: 0;
+      font-size: 0.9rem;
+      color: #ccc;
+    }
+    
+    .component-mockup {
+      margin-top: 1.5rem;
+      background-color: rgba(0, 0, 0, 0.3);
+      border-radius: 8px;
+      padding: 1.5rem;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .models-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 15px;
+      margin-top: 1rem;
+    }
+    
+    .model-card {
+      background-color: rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(0, 255, 255, 0.3);
+      border-radius: 8px;
+      padding: 12px;
+      transition: all 0.3s ease;
+    }
+    
+    .model-card.selected {
+      background-color: rgba(0, 255, 255, 0.1);
+      border-color: #00ffff;
+    }
+    
+    .model-card.primary {
+      position: relative;
+    }
+    
+    .model-card.primary::after {
+      content: "Primary";
+      position: absolute;
+      top: -10px;
+      right: 10px;
+      background-color: #ff00de;
+      color: white;
+      font-size: 0.7rem;
+      padding: 2px 6px;
+      border-radius: 3px;
+    }
+    
+    .form-field {
+      margin-bottom: 1.5rem;
+    }
+    
+    label {
+      display: block;
+      margin-bottom: 0.5rem;
+      color: #ddd;
+    }
+    
+    textarea {
+      width: 100%;
+      padding: 12px;
+      border-radius: 8px;
+      background-color: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: white;
+      font-family: inherit;
+      resize: vertical;
+      min-height: 100px;
+    }
+    
+    .button {
+      background: linear-gradient(to right, #00ffff, #ff00de);
+      border: none;
+      color: black;
+      font-weight: bold;
+      padding: 10px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    
+    .button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(0, 255, 255, 0.3);
+    }
+    
+    .progress-container {
+      margin: 1.5rem 0;
+      background-color: rgba(255, 255, 255, 0.1);
+      border-radius: 10px;
+      height: 10px;
+      overflow: hidden;
+    }
+    
+    .progress-bar {
+      height: 100%;
+      background: linear-gradient(to right, #00ffff, #ff00de);
+      width: 65%;
+      border-radius: 10px;
+    }
+    
+    .floating-price {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background-color: rgba(0, 0, 0, 0.8);
+      border: 2px solid #ff00de;
+      padding: 10px 15px;
+      border-radius: 8px;
+      z-index: 1000;
+    }
+    
+    .floating-price h4 {
+      margin: 0;
+      color: #ff00de;
+    }
+    
+    .floating-price p {
+      margin: 5px 0 0;
+      font-size: 1.2rem;
+    }
+    
+    .analysis-types {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 15px;
+      margin-top: 1rem;
+    }
+    
+    .analysis-type {
+      background-color: rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 8px;
+      padding: 15px;
+      transition: all 0.3s ease;
+    }
+    
+    .analysis-type.selected {
+      background-color: rgba(0, 255, 255, 0.1);
+      border-color: #00ffff;
+    }
+    
+    .analysis-type h4 {
+      margin-top: 0;
+      display: flex;
+      align-items: center;
+    }
+    
+    .icon {
+      width: 24px;
+      height: 24px;
+      margin-right: 8px;
+      color: #00ffff;
+    }
+    
+    .options-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 15px;
+      margin-top: 1rem;
+    }
+    
+    .option-card {
+      background-color: rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 8px;
+      padding: 15px;
+      transition: all 0.3s ease;
+    }
+    
+    .option-card.selected {
+      background-color: rgba(0, 255, 255, 0.1);
+      border-color: #00ffff;
+    }
+    
+    .documents-list {
+      margin-top: 1rem;
+    }
+    
+    .document-item {
+      background-color: rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 8px;
+      padding: 10px 15px;
+      margin-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .document-item .info {
+      display: flex;
+      align-items: center;
+    }
+    
+    .document-item .icon {
+      margin-right: 10px;
+    }
+    
+    .document-item .remove-button {
+      background-color: rgba(255, 0, 0, 0.2);
+      border: none;
+      color: #ff6b6b;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+    
+    @media (max-width: 768px) {
+      .step-container, .models-grid, .analysis-types, .options-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Ultra UI Preview - Complex Version</h1>
+      <p class="description">This is a static HTML representation of the older, more complex UltraWithDocuments component from the archived UI.</p>
+    </header>
+    
+    <div class="ui-section">
+      <h2>Multi-Step Wizard Interface</h2>
+      <p>The older UI featured a comprehensive multi-step wizard that guided users through the analysis process.</p>
+      
+      <div class="step-container">
+        <div class="step">
+          <h4>1. Welcome</h4>
+          <p>Introduction to Ultra AI</p>
+        </div>
+        <div class="step">
+          <h4>2. Enter Prompt</h4>
+          <p>What would you like to analyze?</p>
+        </div>
+        <div class="step">
+          <h4>3. Add Context</h4>
+          <p>Upload documents to provide additional context</p>
+        </div>
+        <div class="step">
+          <h4>4. Select Models</h4>
+          <p>Choose which AI models to use</p>
+        </div>
+        <div class="step">
+          <h4>5. Analysis Method</h4>
+          <p>Select how Ultra should approach your query</p>
+        </div>
+        <div class="step">
+          <h4>6. Options</h4>
+          <p>Select additional a la carte options</p>
+        </div>
+        <div class="step">
+          <h4>7. Processing</h4>
+          <p>Ultra is analyzing across multiple models</p>
+        </div>
+        <div class="step">
+          <h4>8. Results</h4>
+          <p>Review your analysis</p>
+        </div>
+      </div>
+    </div>
+    
+    <div class="ui-section">
+      <h2>Current Step: Enter Prompt</h2>
+      
+      <div class="component-mockup">
+        <div class="form-field">
+          <label for="prompt">What would you like Ultra to analyze?</label>
+          <textarea id="prompt" placeholder="Be specific for better results"></textarea>
+        </div>
+        
+        <div style="display: flex; justify-content: space-between; margin-top: 1.5rem;">
+          <button class="button" style="background: rgba(255, 255, 255, 0.2); color: white;">Back</button>
+          <button class="button">Continue</button>
+        </div>
+      </div>
+    </div>
+    
+    <div class="ui-section">
+      <h2>Current Step: Add Context</h2>
+      
+      <div class="component-mockup">
+        <div style="background-color: rgba(0, 255, 255, 0.1); padding: 15px; border-radius: 8px; margin-bottom: 1.5rem;">
+          <h4 style="margin-top: 0;">Would you like to use documents?</h4>
+          <p style="margin-bottom: 10px;">Upload files to provide additional context for your analysis</p>
+          <div style="display: flex; gap: 10px;">
+            <button class="button">Yes, use documents</button>
+            <button class="button" style="background: rgba(255, 255, 255, 0.2); color: white;">No, text only</button>
+          </div>
+        </div>
+        
+        <div class="form-field">
+          <label>Upload Documents</label>
+          <div style="background-color: rgba(255, 255, 255, 0.05); border: 2px dashed rgba(255, 255, 255, 0.2); border-radius: 8px; padding: 30px; text-align: center;">
+            <div style="font-size: 2rem; margin-bottom: 10px;">📄</div>
+            <p>Drag and drop files here or click to browse</p>
+            <p style="font-size: 0.8rem; color: #aaa;">Maximum file size: 4MB per file</p>
+            <button class="button" style="margin-top: 15px;">Browse Files</button>
+          </div>
+        </div>
+        
+        <div class="documents-list">
+          <h4>Uploaded Documents</h4>
+          
+          <div class="document-item">
+            <div class="info">
+              <div class="icon">📄</div>
+              <div>
+                <div>research-paper.pdf</div>
+                <div style="font-size: 0.8rem; color: #aaa;">2.1 MB</div>
+              </div>
+            </div>
+            <button class="remove-button">×</button>
+          </div>
+          
+          <div class="document-item">
+            <div class="info">
+              <div class="icon">📄</div>
+              <div>
+                <div>data-analysis.xlsx</div>
+                <div style="font-size: 0.8rem; color: #aaa;">1.3 MB</div>
+              </div>
+            </div>
+            <button class="remove-button">×</button>
+          </div>
+        </div>
+        
+        <div style="display: flex; justify-content: space-between; margin-top: 1.5rem;">
+          <button class="button" style="background: rgba(255, 255, 255, 0.2); color: white;">Back</button>
+          <button class="button">Continue</button>
+        </div>
+      </div>
+    </div>
+    
+    <div class="ui-section">
+      <h2>Current Step: Select Models</h2>
+      
+      <div class="component-mockup">
+        <h3>Choose which AI models to use for your analysis</h3>
+        
+        <div class="models-grid">
+          <div class="model-card selected primary">
+            <h4>GPT-4o</h4>
+            <p>Latest OpenAI model</p>
+          </div>
+          <div class="model-card selected">
+            <h4>Claude 3.7</h4>
+            <p>Anthropic's newest model</p>
+          </div>
+          <div class="model-card">
+            <h4>GPT-4 Turbo</h4>
+            <p>OpenAI's enhanced model</p>
+          </div>
+          <div class="model-card selected">
+            <h4>Gemini 1.5</h4>
+            <p>Google's advanced model</p>
+          </div>
+          <div class="model-card">
+            <h4>Claude 3 Opus</h4>
+            <p>Anthropic's largest model</p>
+          </div>
+          <div class="model-card">
+            <h4>Llama 3</h4>
+            <p>Meta's open model</p>
+          </div>
+        </div>
+        
+        <div style="display: flex; justify-content: space-between; margin-top: 1.5rem;">
+          <button class="button" style="background: rgba(255, 255, 255, 0.2); color: white;">Back</button>
+          <button class="button">Continue</button>
+        </div>
+      </div>
+    </div>
+    
+    <div class="ui-section">
+      <h2>Current Step: Analysis Method</h2>
+      
+      <div class="component-mockup">
+        <h3>Select how Ultra should approach your query</h3>
+        
+        <div class="analysis-types">
+          <div class="analysis-type selected">
+            <h4><span class="icon">🛡️</span> Confidence</h4>
+            <p>Standard analysis with confidence scoring</p>
+          </div>
+          <div class="analysis-type">
+            <h4><span class="icon">📝</span> Critique</h4>
+            <p>Critical evaluation with pros and cons</p>
+          </div>
+          <div class="analysis-type">
+            <h4><span class="icon">👥</span> Perspective</h4>
+            <p>Multiple viewpoints on the topic</p>
+          </div>
+          <div class="analysis-type">
+            <h4><span class="icon">✓</span> Fact Check</h4>
+            <p>Verification of factual claims</p>
+          </div>
+          <div class="analysis-type">
+            <h4><span class="icon">🔄</span> Scenario</h4>
+            <p>Future scenario exploration</p>
+          </div>
+        </div>
+        
+        <div style="display: flex; justify-content: space-between; margin-top: 1.5rem;">
+          <button class="button" style="background: rgba(255, 255, 255, 0.2); color: white;">Back</button>
+          <button class="button">Continue</button>
+        </div>
+      </div>
+    </div>
+    
+    <div class="ui-section">
+      <h2>Current Step: Options</h2>
+      
+      <div class="component-mockup">
+        <h3>Select A La Carte Options</h3>
+        
+        <div class="options-grid">
+          <div class="option-card">
+            <h4><span class="icon">✓</span> Fact Check</h4>
+            <p>Verify factual claims in the text</p>
+          </div>
+          <div class="option-card selected">
+            <h4><span class="icon">👁️</span> Avoid AI Detection</h4>
+            <p>Optimize output to avoid AI detection tools</p>
+          </div>
+          <div class="option-card">
+            <h4><span class="icon">🔗</span> Sourcing</h4>
+            <p>Include sources to support the analysis</p>
+          </div>
+          <div class="option-card selected">
+            <h4><span class="icon">🔒</span> Encrypted</h4>
+            <p>Enhanced encryption for sensitive content</p>
+          </div>
+          <div class="option-card">
+            <h4><span class="icon">🛡️</span> No Data Sharing</h4>
+            <p>Ensure data isn't shared or stored</p>
+          </div>
+          <div class="option-card">
+            <h4><span class="icon">↔️</span> Alternate Perspective</h4>
+            <p>Include alternative viewpoints</p>
+          </div>
+        </div>
+        
+        <h3 style="margin-top: 2rem;">Output Format</h3>
+        
+        <div class="options-grid" style="grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));">
+          <div class="option-card selected">
+            <h4><span class="icon">📄</span> Plain Text</h4>
+            <p>Simple text format</p>
+          </div>
+          <div class="option-card">
+            <h4><span class="icon">📝</span> Rich Text</h4>
+            <p>Formatted text with styling</p>
+          </div>
+          <div class="option-card">
+            <h4><span class="icon">📋</span> Google Docs</h4>
+            <p>Optimized for Google Docs</p>
+          </div>
+          <div class="option-card">
+            <h4><span class="icon">📄</span> MS Word</h4>
+            <p>Optimized for MS Word</p>
+          </div>
+        </div>
+        
+        <div style="display: flex; justify-content: space-between; margin-top: 1.5rem;">
+          <button class="button" style="background: rgba(255, 255, 255, 0.2); color: white;">Back</button>
+          <button class="button">Analyze Now</button>
+        </div>
+      </div>
+    </div>
+    
+    <div class="ui-section">
+      <h2>Current Step: Processing</h2>
+      
+      <div class="component-mockup">
+        <h3>Ultra is analyzing your query across multiple models</h3>
+        
+        <div class="progress-container">
+          <div class="progress-bar"></div>
+        </div>
+        
+        <p style="text-align: center;">Processing with models... (65%)</p>
+        
+        <div style="display: flex; justify-content: center; margin-top: 2rem;">
+          <div style="width: 100px; height: 100px; border: 4px solid rgba(0, 255, 255, 0.3); border-top-color: #00ffff; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="ui-section">
+      <h2>Floating Price Component</h2>
+      
+      <div class="floating-price">
+        <h4>Estimated Cost</h4>
+        <p>$0.24</p>
+      </div>
+      
+      <div class="component-mockup">
+        <p>The original UI had a floating price component that dynamically calculated costs based on:</p>
+        <ul>
+          <li>Selected models (premium models cost more)</li>
+          <li>Prompt length and complexity</li>
+          <li>Number and size of attachments</li>
+          <li>Type of analysis selected</li>
+          <li>Additional options chosen</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  
+  <style>
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+  </style>
+</body>
+</html>

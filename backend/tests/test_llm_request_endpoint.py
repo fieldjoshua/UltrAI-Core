@@ -5,7 +5,7 @@ import json
 from unittest.mock import patch, MagicMock
 
 from backend.app import app
-from backend.config import Settings
+from backend.config import Config
 from backend.models.llm_models import ModelProvider
 
 client = TestClient(app)

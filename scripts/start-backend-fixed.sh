@@ -29,8 +29,8 @@ if [[ "$*" == *"--mock"* ]]; then
     echo "*** Running in MOCK MODE - using simulated responses ***"
 fi
 
-# Try to run the server with python
-python start.py $MOCK_FLAG --port $PORT
+# Try to run the server with python3
+python3 start.py $MOCK_FLAG --port $PORT
 
 # If the server exits with an error, show a message
 if [ $? -ne 0 ]; then

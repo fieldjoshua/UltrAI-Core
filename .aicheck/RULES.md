@@ -1,4 +1,4 @@
-# ICheck Rules
+# AICheck Rules
 
 This document serves as the controlling reference for all work managed by the AICheck system which applies to this PROJECT.
 
@@ -36,9 +36,14 @@ When an ACTION is completed, any documentation with enduring value must be migra
 ### 3. Development Guidelines
 
 - Focus on one ActiveAction at a time; complete or pause before switching
+-so
 - Follow the AICheck directory structure and naming conventions
 - Update action status and document progress regularly
 - Follow language-specific best practices and maintain code quality standards
+- Implement graceful degradation for optional dependencies
+- Use Docker-based development environment when possible
+- Document all environment variables and configuration options
+- Do not create unnecessary additonal documents. Action implementtion procedures should reside within the Action's Plan.md
 
 ## Action Management
 
@@ -181,10 +186,28 @@ A complete Documentation Migration Checklist can be found in documentation/techn
 - Scripts should use relative paths when possible to maintain portability
 - Scripts should be tested after any relocation or path changes
 
+## Development Environment
+
+### Docker Development
+
+- Docker Compose is the preferred method for local development
+- All service dependencies must be defined in docker-compose.yml
+- Environment variables should be sourced from .env.example with secure defaults
+- Volume mounts should preserve data between container restarts
+- Development and production environments should be as similar as possible
+
+### Dependency Management
+
+- Required dependencies must be documented in requirements.txt or package.json
+- Optional dependencies must be clearly marked in documentation
+- Code must implement graceful degradation for optional dependencies
+- Dependency version ranges should be specified to ensure compatibility
+- Security vulnerabilities must be regularly checked and addressed
+
 ## Last Updated
 
-Date: 2025-05-03
-Version: 1.2.0
+Date: 2025-05-04
+Version: 1.3.0
 
 ## Test Rule
 

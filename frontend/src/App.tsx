@@ -8,6 +8,9 @@ import {
 import ErrorFallback from './components/ErrorFallback';
 import DocumentsPage from './pages/DocumentsPage';
 import SimpleAnalysis from './pages/SimpleAnalysis';
+import ModelRunnerDemo from './pages/ModelRunnerDemo';
+import OrchestratorPage from './pages/OrchestratorPage';
+import UIPrototype from './pages/UIPrototype';
 import NavBar from './components/layout/NavBar';
 
 // Simple error boundary component since the imported one is causing TypeScript errors
@@ -48,7 +51,10 @@ const App: React.FC = () => {
             <Routes>
               <Route path="/documents" element={<DocumentsPage />} />
               <Route path="/analyze" element={<SimpleAnalysis />} />
-              <Route path="/" element={<Navigate to="/documents" replace />} />
+              <Route path="/modelrunner" element={<ModelRunnerDemo />} />
+              <Route path="/orchestrator" element={<OrchestratorPage />} />
+              <Route path="/prototype" element={<UIPrototype />} />
+              <Route path="/" element={<Navigate to="/analyze" replace />} />
             </Routes>
           </main>
         </div>

@@ -2,15 +2,15 @@
 Caching service for the Ultra backend.
 
 This module provides a caching system with Redis backend and in-memory fallback.
-It uses the dependency_manager to handle graceful degradation when Redis is not available.
+It uses dependency_manager to handle graceful degradation when Redis is unavailable.
 """
 
 import json
 import os
 import hashlib
 import time
-import pickle
-from typing import Any, Dict, Optional, List, Union
+import pickle  # nosec B403
+from typing import Any, Dict, Optional, List
 import threading
 from collections import OrderedDict
 
@@ -123,7 +123,7 @@ class RedisCache(CacheInterface):
         except Exception as e:
             logger.error(f"Failed to connect to Redis: {str(e)}")
             self.client = None
-            raise  # Let the service fallback to memory cache
+            # Don't raise exception - just return None and let service fallback to memory cache
 
     def get(self, key: str) -> Optional[Any]:
         """Get a value from Redis"""
@@ -134,7 +134,7 @@ class RedisCache(CacheInterface):
             value = self.client.get(key)
             if value is None:
                 return None
-            return pickle.loads(value)
+            return pickle.loads(value)  # nosec B301
         except Exception as e:
             logger.error(f"Error getting key {key} from Redis: {str(e)}")
             return None

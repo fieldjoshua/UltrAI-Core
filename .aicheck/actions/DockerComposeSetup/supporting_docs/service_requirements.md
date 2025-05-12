@@ -8,41 +8,41 @@ This document outlines the requirements for services to be included in the Docke
 
 ### PostgreSQL
 
-| Parameter | Value | Notes |
-|-----------|-------|-------|
-| Version | 15 | Latest stable version with long-term support |
-| Port | 5432 | Standard PostgreSQL port |
-| Environment Variables | POSTGRES_USER<br>POSTGRES_PASSWORD<br>POSTGRES_DB | Will be stored in .env file |
-| Volume | postgres-data | For data persistence |
-| Network | ultra-network | For internal service communication |
-| Init Scripts | init-db.sql | Creates default schema and tables |
-| Health Check | pg_isready | For readiness checking |
+| Parameter             | Value                                             | Notes                                        |
+| --------------------- | ------------------------------------------------- | -------------------------------------------- |
+| Version               | 15                                                | Latest stable version with long-term support |
+| Port                  | 5432                                              | Standard PostgreSQL port                     |
+| Environment Variables | POSTGRES_USER<br>POSTGRES_PASSWORD<br>POSTGRES_DB | Will be stored in .env file                  |
+| Volume                | postgres-data                                     | For data persistence                         |
+| Network               | ultra-network                                     | For internal service communication           |
+| Init Scripts          | init-db.sql                                       | Creates default schema and tables            |
+| Health Check          | pg_isready                                        | For readiness checking                       |
 
 ### Redis
 
-| Parameter | Value | Notes |
-|-----------|-------|-------|
-| Version | 7 | Latest stable version |
-| Port | 6379 | Standard Redis port |
-| Command | redis-server --appendonly yes | Enable AOF persistence |
-| Volume | redis-data | For data persistence |
-| Network | ultra-network | For internal service communication |
-| Health Check | redis-cli ping | For readiness checking |
+| Parameter    | Value                         | Notes                              |
+| ------------ | ----------------------------- | ---------------------------------- |
+| Version      | 7                             | Latest stable version              |
+| Port         | 6379                          | Standard Redis port                |
+| Command      | redis-server --appendonly yes | Enable AOF persistence             |
+| Volume       | redis-data                    | For data persistence               |
+| Network      | ultra-network                 | For internal service communication |
+| Health Check | redis-cli ping                | For readiness checking             |
 
 ### Backend Service
 
-| Parameter | Value | Notes |
-|-----------|-------|-------|
-| Base Image | python:3.12-slim | Lightweight Python image |
-| Working Directory | /app | Standard container directory |
-| Volumes | .:/app | Mount local code for development |
-| Network | ultra-network | For internal service communication |
-| Environment Variables | DATABASE_URL<br>REDIS_URL<br>USE_MOCK<br>API_KEYS | Will be stored in .env file |
-| Dependencies | Depends on PostgreSQL and Redis | Wait for dependencies to be ready |
-| Command | python -m uvicorn backend.app:app --host 0.0.0.0 | Run the API server |
-| Health Check | curl -f http://localhost:8000/health | For readiness checking |
-| Build Context | . | Current directory |
-| Dockerfile | Dockerfile | Custom Dockerfile for backend |
+| Parameter             | Value                                             | Notes                              |
+| --------------------- | ------------------------------------------------- | ---------------------------------- |
+| Base Image            | python:3.12-slim                                  | Lightweight Python image           |
+| Working Directory     | /app                                              | Standard container directory       |
+| Volumes               | .:/app                                            | Mount local code for development   |
+| Network               | ultra-network                                     | For internal service communication |
+| Environment Variables | DATABASE_URL<br>REDIS_URL<br>USE_MOCK<br>API_KEYS | Will be stored in .env file        |
+| Dependencies          | Depends on PostgreSQL and Redis                   | Wait for dependencies to be ready  |
+| Command               | python -m uvicorn backend.app:app --host 0.0.0.0  | Run the API server                 |
+| Health Check          | curl -f http://localhost:8000/health              | For readiness checking             |
+| Build Context         | .                                                 | Current directory                  |
+| Dockerfile            | Dockerfile                                        | Custom Dockerfile for backend      |
 
 ## Network Configuration
 
@@ -103,7 +103,7 @@ CREATE TABLE IF NOT EXISTS users (
 );
 
 -- Add some test data
-INSERT INTO users (username, email) 
+INSERT INTO users (username, email)
 VALUES ('testuser', 'test@example.com')
 ON CONFLICT DO NOTHING;
 ```
@@ -118,10 +118,10 @@ version: '3.8'
 services:
   postgres:
     # PostgreSQL service configuration
-  
+
   redis:
     # Redis service configuration
-  
+
   backend:
     # Backend service configuration
 

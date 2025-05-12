@@ -56,12 +56,13 @@ class PromptService:
         for mode in analysis_modes:
             # Create orchestrator config based on mode settings
             config = OrchestratorConfig(
-                analysis_pattern=mode["pattern"],
-                model_selection_strategy=mode["model_selection_strategy"],
-                timeout=mode["timeout"] or 30.0,
-                enable_circuit_breaker=True,
-                enable_metrics=True,
-                enable_quality_evaluation=True,
+                default_pattern=mode["pattern"],
+                parallel_processing=True,
+                circuit_breaker_enabled=True,
+                collect_metrics=True,
+                max_retries=3,
+                retry_base_delay=0.5,
+                recovery_timeout=int(mode["timeout"] or 30.0)
             )
             self.orchestrators[mode["name"]] = EnhancedOrchestrator(config)
 
@@ -69,10 +70,15 @@ class PromptService:
             models_dict = self.llm_config_service.get_available_models()
             for model_name, model in models_dict.items():
                 if model.get("available", False) and model.get("status", "") == "ready":
+                    # Mock API key for testing
+                    api_key = "sk_test_mock_key"
+
+                    # Register the model with the orchestrator
                     self.orchestrators[mode["name"]].register_model(
                         name=model_name,
+                        api_key=api_key,  # Use mock API key
                         provider=model.get("provider", ""),
-                        model_id=model.get("model", ""),
+                        model=model.get("model", ""),
                         weight=model.get("weight", 1.0),
                     )
 

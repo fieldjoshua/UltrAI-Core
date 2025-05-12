@@ -3,15 +3,19 @@
 Wrapper script to suppress warnings and add progress bars
 """
 import os
-import sys
-import time
 import random
 import subprocess
+import sys
+import time
+
 from tqdm import tqdm
+
 
 def show_progress(description, steps=20, min_time=1.0):
     """Show a progress bar with random pauses"""
-    with tqdm(total=steps, desc=description, bar_format="{l_bar}{bar}| {n_fmt}/{total_fmt}") as pbar:
+    with tqdm(
+        total=steps, desc=description, bar_format="{l_bar}{bar}| {n_fmt}/{total_fmt}"
+    ) as pbar:
         start_time = time.time()
         for i in range(steps):
             # Randomize step time but ensure total is at least min_time
@@ -21,8 +25,9 @@ def show_progress(description, steps=20, min_time=1.0):
             time.sleep(delay)
             pbar.update(1)
 
+
 # Redirect stderr to /dev/null to hide warnings
-stderr_null = open(os.devnull, 'w')
+stderr_null = open(os.devnull, "w")
 
 # Show progress for initialization
 show_progress("Initializing orchestrator", steps=10, min_time=1.0)

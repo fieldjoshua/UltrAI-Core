@@ -7,12 +7,11 @@ when the database is not available by using an in-memory fallback.
 """
 
 import os
-import time
 from contextlib import contextmanager
-from typing import Generator, Optional, Any, Union
+from typing import Generator, Any
 
 from backend.utils.logging import get_logger
-from backend.utils.dependency_manager import sqlalchemy_dependency, dependency_registry
+from backend.utils.dependency_manager import sqlalchemy_dependency
 
 # Set up logger
 logger = get_logger("database", "logs/database.log")
@@ -49,13 +48,13 @@ def get_engine():
         SQLAlchemy engine instance
     """
     global _engine, _use_fallback
-    
+
     # Check if SQLAlchemy is available
     if not sqlalchemy_dependency.is_available():
         logger.warning("SQLAlchemy not available, using in-memory database fallback")
         _use_fallback = True
         return None
-    
+
     # If fallback is already active, don't try to create an engine
     if _use_fallback:
         return None
@@ -66,10 +65,10 @@ def get_engine():
 
     try:
         logger.info(f"Creating database engine for {DB_HOST}:{DB_PORT}/{DB_NAME}")
-        
+
         # Import SQLAlchemy dynamically
         sqlalchemy = sqlalchemy_dependency.get_module()
-        
+
         # Create engine with connection pooling
         _engine = sqlalchemy.create_engine(
             DATABASE_URL,
@@ -80,17 +79,17 @@ def get_engine():
             connect_args={"connect_timeout": DB_CONNECTION_TIMEOUT},
             echo=False,  # Set to True for SQL logging (development only)
         )
-        
+
         # Try to connect to verify connection works
         with _engine.connect() as conn:
             conn.execute(sqlalchemy.text("SELECT 1"))
-            
+
         logger.info("Database engine created successfully")
-        
+
         return _engine
     except Exception as e:
         logger.error(f"Error creating database engine: {str(e)}")
-        
+
         if ENABLE_DB_FALLBACK:
             logger.warning("Using in-memory database fallback due to connection error")
             _use_fallback = True
@@ -107,12 +106,12 @@ def init_db() -> None:
     This should be called at application startup.
     """
     global SessionLocal, _use_fallback
-    
+
     # Check if SQLAlchemy is available
     if not sqlalchemy_dependency.is_available():
         logger.warning("SQLAlchemy not available, using in-memory database fallback")
         _use_fallback = True
-        
+
         try:
             # Import fallback dynamically
             from backend.database.fallback import fallback_session
@@ -120,37 +119,37 @@ def init_db() -> None:
         except ImportError as e:
             logger.error(f"Error importing fallback database module: {str(e)}")
             raise
-            
+
         return
 
     try:
         # Get or create engine
         engine = get_engine()
-        
+
         if engine is None:
             # Using fallback
             from backend.database.fallback import fallback_session
             SessionLocal = fallback_session
             return
-            
+
         # Import SQLAlchemy dynamically
         sqlalchemy = sqlalchemy_dependency.get_module()
-        
+
         # Create session factory
         SessionLocal = sqlalchemy.orm.sessionmaker(
             autocommit=False,
             autoflush=False,
             bind=engine,
         )
-        
+
         logger.info("Database session factory initialized with PostgreSQL")
     except Exception as e:
         logger.error(f"Error initializing database: {str(e)}")
-        
+
         if ENABLE_DB_FALLBACK:
             logger.warning("Using in-memory database fallback due to initialization error")
             _use_fallback = True
-            
+
             try:
                 # Import fallback dynamically
                 from backend.database.fallback import fallback_session
@@ -173,16 +172,16 @@ def create_tables() -> None:
     if _use_fallback:
         logger.warning("Using in-memory database, tables are created on-demand")
         return
-        
+
     if not sqlalchemy_dependency.is_available():
         logger.warning("SQLAlchemy not available, cannot create tables")
         return
-        
+
     engine = get_engine()
     if engine is None:
         logger.warning("Database engine not available, cannot create tables")
         return
-    
+
     try:
         # Import Base and create tables
         from backend.database.models.base import Base
@@ -190,7 +189,7 @@ def create_tables() -> None:
         logger.info("Database tables created")
     except Exception as e:
         logger.error(f"Error creating database tables: {str(e)}")
-        
+
         if not ENABLE_DB_FALLBACK:
             raise
 
@@ -245,7 +244,8 @@ def get_db() -> Generator[Any, None, None]:
         ```
     """
     if SessionLocal is None:
-        raise RuntimeError("Database session factory not initialized. Call init_db() first.")
+        msg = "Database session factory not initialized. Call init_db() first."
+        raise RuntimeError(msg)
 
     if _use_fallback:
         # Using fallback session
@@ -271,7 +271,7 @@ def check_database_connection() -> bool:
         # We're using fallback, so connection is "working" in fallback mode
         logger.info("Using in-memory database fallback, connection check passed")
         return True
-        
+
     if not sqlalchemy_dependency.is_available():
         logger.warning("SQLAlchemy not available, cannot check database connection")
         return False
@@ -280,9 +280,9 @@ def check_database_connection() -> bool:
         engine = get_engine()
         if engine is None:
             return False
-            
+
         sqlalchemy = sqlalchemy_dependency.get_module()
-        
+
         with engine.connect() as conn:
             conn.execute(sqlalchemy.text("SELECT 1"))
         return True
@@ -314,7 +314,7 @@ def get_database_status() -> dict:
         "fallback_enabled": ENABLE_DB_FALLBACK,
         "sqlalchemy_available": sqlalchemy_dependency.is_available(),
     }
-    
+
     if not _use_fallback:
         # Add PostgreSQL-specific status
         status.update({
@@ -334,5 +334,5 @@ def get_database_status() -> dict:
             status.update({
                 "memory_db_status": "Not available",
             })
-    
+
     return status

@@ -11,27 +11,33 @@ This document summarizes the implementation of end-to-end integration tests for 
 We implemented comprehensive tests that cover the following aspects of the analysis flow:
 
 1. **Model Availability Test**
+
    - Tests the `/api/available-models` endpoint
    - Verifies the endpoint returns the expected model information
 
 2. **Basic Analysis Flow Test**
+
    - Tests the complete analysis flow from request to results
    - Verifies the response format and content
    - Validates performance metrics in the response
 
 3. **Document Analysis Test**
+
    - Tests analysis with document uploads
    - Verifies document processing and integration with analysis
 
 4. **Progress Tracking Test**
+
    - Tests the progress tracking endpoint
    - Verifies status information during analysis
 
 5. **Results Retrieval Test**
+
    - Tests fetching analysis results after completion
    - Validates result structure and content
 
 6. **Error Handling Tests**
+
    - Tests various error cases (invalid inputs, missing parameters)
    - Verifies appropriate error responses
 

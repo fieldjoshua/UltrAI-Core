@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SimpleAnalysis Preview</title>
+    <style>
+        /* Base styling */
+        body {
+            font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #f8fafc;
+            color: #1e293b;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Light theme variables */
+        :root {
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8fafc;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --accent-blue: #3b82f6;
+            --accent-blue-light: #eff6ff;
+            --border-color: #e2e8f0;
+            --shadow-color: rgba(0, 0, 0, 0.1);
+        }
+
+        /* Container */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* Page header */
+        .page-header {
+            margin-bottom: 1.5rem;
+        }
+
+        .page-title {
+            font-size: 1.875rem;
+            font-weight: bold;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        /* Progress indicator */
+        .progress-indicator {
+            margin-bottom: 1.5rem;
+        }
+
+        .steps-display {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .step {
+            display: flex;
+            align-items: center;
+            margin-right: 0.5rem;
+        }
+
+        .step-circle {
+            width: 2rem;
+            height: 2rem;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 0.5rem;
+            font-size: 0.875rem;
+            font-weight: bold;
+        }
+
+        .step-circle.active {
+            background-color: var(--accent-blue);
+            color: white;
+        }
+
+        .step-circle.completed {
+            background-color: #10b981;
+            color: white;
+        }
+
+        .step-circle.upcoming {
+            background-color: #e2e8f0;
+            color: var(--text-secondary);
+        }
+
+        .step-label {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        .step-connector {
+            height: 1px;
+            flex-grow: 1;
+            background-color: #e2e8f0;
+            margin: 0 0.5rem;
+        }
+
+        .step-connector.active {
+            background-color: #10b981;
+        }
+
+        /* Content card */
+        .content-card {
+            background-color: white;
+            border-radius: 0.5rem;
+            box-shadow: 0 1px 3px var(--shadow-color);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .card-header {
+            margin-bottom: 1rem;
+        }
+
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: bold;
+            color: var(--text-primary);
+            margin-bottom: 0.25rem;
+        }
+
+        .card-description {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+
+        /* Form elements */
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .label {
+            display: block;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            color: var(--text-primary);
+        }
+
+        .textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--border-color);
+            border-radius: 0.375rem;
+            font-family: inherit;
+            resize: vertical;
+            min-height: 6rem;
+        }
+
+        .textarea:focus {
+            outline: none;
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+        }
+
+        /* Model selection */
+        .models-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 1rem;
+        }
+
+        .model-card {
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            padding: 1rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .model-card:hover {
+            border-color: #cbd5e1;
+            background-color: #f8fafc;
+        }
+
+        .model-card.selected {
+            border-color: var(--accent-blue);
+            background-color: var(--accent-blue-light);
+        }
+
+        .model-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .model-selection {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .checkbox {
+            width: 1rem;
+            height: 1rem;
+        }
+
+        .model-name {
+            font-weight: 500;
+        }
+
+        .primary-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .radio {
+            width: 0.875rem;
+            height: 0.875rem;
+        }
+
+        .primary-label {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        /* Analysis pattern selection */
+        .patterns-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .pattern-item {
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            padding: 1rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .pattern-item:hover {
+            border-color: #cbd5e1;
+            background-color: #f8fafc;
+        }
+
+        .pattern-item.selected {
+            border-color: var(--accent-blue);
+            background-color: var(--accent-blue-light);
+        }
+
+        .pattern-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .pattern-radio {
+            width: 1rem;
+            height: 1rem;
+        }
+
+        .pattern-info {
+            flex-grow: 1;
+        }
+
+        .pattern-name {
+            font-weight: 500;
+            margin-bottom: 0.25rem;
+        }
+
+        .pattern-description {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        /* Navigation buttons */
+        .navigation-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 1.5rem;
+        }
+
+        .nav-button {
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .back-button {
+            background-color: #e2e8f0;
+            border: none;
+            color: var(--text-primary);
+        }
+
+        .back-button:hover {
+            background-color: #cbd5e1;
+        }
+
+        .next-button {
+            background-color: var(--accent-blue);
+            border: none;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .next-button:hover {
+            background-color: #2563eb;
+        }
+
+        .next-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Helper text */
+        .helper-text {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            margin-top: 0.5rem;
+        }
+
+        /* Error message */
+        .error-message {
+            background-color: #fee2e2;
+            border: 1px solid #fecaca;
+            color: #b91c1c;
+            padding: 0.75rem;
+            border-radius: 0.375rem;
+            margin-bottom: 1rem;
+        }
+
+        /* Results section */
+        .results-section {
+            margin-top: 2rem;
+        }
+
+        .results-header {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+        }
+
+        .prompt-display {
+            background-color: #f8fafc;
+            border: 1px solid var(--border-color);
+            padding: 1rem;
+            border-radius: 0.375rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .prompt-label {
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            padding: 0.125rem 0.375rem;
+            background-color: #e2e8f0;
+            border-radius: 0.25rem;
+            display: inline-block;
+            margin-right: 0.5rem;
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .result-card {
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            overflow: hidden;
+        }
+
+        .result-header {
+            padding: 0.75rem 1rem;
+            background-color: #f8fafc;
+            border-bottom: 1px solid var(--border-color);
+            font-weight: 500;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .primary-badge {
+            font-size: 0.625rem;
+            background-color: #dbeafe;
+            color: #1d4ed8;
+            padding: 0.125rem 0.375rem;
+            border-radius: 9999px;
+        }
+
+        .result-content {
+            padding: 1rem;
+            font-size: 0.875rem;
+            white-space: pre-wrap;
+        }
+
+        .combined-result {
+            background-color: #eff6ff;
+            border: 1px solid #bfdbfe;
+            border-radius: 0.5rem;
+            padding: 1rem;
+        }
+
+        .combined-header {
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            color: #1d4ed8;
+        }
+
+        .combined-content {
+            white-space: pre-wrap;
+        }
+
+        /* Icon styling */
+        .icon {
+            width: 1rem;
+            height: 1rem;
+        }
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="page-header">
+            <h1 class="page-title">UltrAI Analysis</h1>
+        </div>
+
+        <!-- Progress steps -->
+        <div class="progress-indicator">
+            <div class="steps-display">
+                <div class="step">
+                    <div class="step-circle completed">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                        </svg>
+                    </div>
+                    <span class="step-label">Intro</span>
+                </div>
+                <div class="step-connector active"></div>
+                <div class="step">
+                    <div class="step-circle completed">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                        </svg>
+                    </div>
+                    <span class="step-label">Prompt</span>
+                </div>
+                <div class="step-connector active"></div>
+                <div class="step">
+                    <div class="step-circle active">3</div>
+                    <span class="step-label">Models</span>
+                </div>
+                <div class="step-connector"></div>
+                <div class="step">
+                    <div class="step-circle upcoming">4</div>
+                    <span class="step-label">Pattern</span>
+                </div>
+                <div class="step-connector"></div>
+                <div class="step">
+                    <div class="step-circle upcoming">5</div>
+                    <span class="step-label">Results</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main content -->
+        <div class="content-card">
+            <div class="card-header">
+                <h2 class="card-title">Step 2: Select AI Models</h2>
+                <p class="card-description">Choose which AI models to use for your analysis. Each model brings unique strengths.</p>
+            </div>
+
+            <div class="models-grid">
+                <!-- Model 1 -->
+                <div class="model-card selected">
+                    <div class="model-header">
+                        <div class="model-selection">
+                            <input type="checkbox" class="checkbox" checked id="model-gpt4o">
+                            <label for="model-gpt4o" class="model-name">GPT-4o</label>
+                        </div>
+                        <div class="primary-indicator">
+                            <input type="radio" name="primary" class="radio" checked id="primary-gpt4o">
+                            <label for="primary-gpt4o" class="primary-label">Primary</label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Model 2 -->
+                <div class="model-card">
+                    <div class="model-header">
+                        <div class="model-selection">
+                            <input type="checkbox" class="checkbox" id="model-claude">
+                            <label for="model-claude" class="model-name">Claude 3.7</label>
+                        </div>
+                        <div class="primary-indicator">
+                            <input type="radio" name="primary" class="radio" id="primary-claude">
+                            <label for="primary-claude" class="primary-label">Primary</label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Model 3 -->
+                <div class="model-card selected">
+                    <div class="model-header">
+                        <div class="model-selection">
+                            <input type="checkbox" class="checkbox" checked id="model-gemini">
+                            <label for="model-gemini" class="model-name">Gemini 1.5 Pro</label>
+                        </div>
+                        <div class="primary-indicator">
+                            <input type="radio" name="primary" class="radio" id="primary-gemini">
+                            <label for="primary-gemini" class="primary-label">Primary</label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Model 4 -->
+                <div class="model-card">
+                    <div class="model-header">
+                        <div class="model-selection">
+                            <input type="checkbox" class="checkbox" id="model-llama">
+                            <label for="model-llama" class="model-name">Llama 3</label>
+                        </div>
+                        <div class="primary-indicator">
+                            <input type="radio" name="primary" class="radio" id="primary-llama">
+                            <label for="primary-llama" class="primary-label">Primary</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="helper-text">
+                Selected Models: GPT-4o, Gemini 1.5 Pro<br>
+                Primary Model: GPT-4o
+            </div>
+        </div>
+
+        <!-- Navigation buttons -->
+        <div class="navigation-buttons">
+            <button class="nav-button back-button">
+                <svg xmlns="http://www.w3.org/2000/svg" class="icon" viewBox="0 0 20 20" fill="currentColor" style="margin-right: 0.25rem;">
+                    <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
+                </svg>
+                Back
+            </button>
+            <button class="nav-button next-button">
+                Next
+                <svg xmlns="http://www.w3.org/2000/svg" class="icon" viewBox="0 0 20 20" fill="currentColor" style="margin-left: 0.25rem;">
+                    <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+                </svg>
+            </button>
+        </div>
+    </div>
+</body>
+</html>

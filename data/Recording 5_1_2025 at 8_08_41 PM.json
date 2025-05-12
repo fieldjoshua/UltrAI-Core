@@ -1,0 +1,377 @@
+{
+    "title": "Recording 5/1/2025 at 8:08:41 PM",
+    "steps": [
+        {
+            "type": "setViewport",
+            "width": 590,
+            "height": 736,
+            "deviceScaleFactor": 1,
+            "isMobile": false,
+            "hasTouch": false,
+            "isLandscape": false
+        },
+        {
+            "type": "navigate",
+            "url": "http://localhost:3009/analyze",
+            "assertedEvents": [
+                {
+                    "type": "navigation",
+                    "url": "http://localhost:3009/analyze",
+                    "title": "Ultra AI"
+                }
+            ]
+        },
+        {
+            "type": "click",
+            "target": "main",
+            "selectors": [
+                [
+                    "aria/Run Analysis Again",
+                    "aria/[role=\"generic\"]"
+                ],
+                [
+                    "button.bg-blue-600 > span"
+                ],
+                [
+                    "xpath///*[@id=\"root\"]/div/main/div/div[3]/div/div[5]/button[2]/span"
+                ],
+                [
+                    "pierce/button.bg-blue-600 > span"
+                ]
+            ],
+            "offsetY": 6,
+            "offsetX": 69.5625
+        },
+        {
+            "type": "click",
+            "target": "main",
+            "selectors": [
+                [
+                    "main > div > div:nth-of-type(1) div:nth-of-type(2) svg"
+                ],
+                [
+                    "xpath///*[@id=\"root\"]/div/main/div/div[1]/div[1]/div[2]/div[1]/svg"
+                ],
+                [
+                    "pierce/main > div > div:nth-of-type(1) div:nth-of-type(2) svg"
+                ]
+            ],
+            "offsetY": 10,
+            "offsetX": 2.5
+        },
+        {
+            "type": "click",
+            "target": "main",
+            "selectors": [
+                [
+                    "main > div > div:nth-of-type(1)"
+                ],
+                [
+                    "xpath///*[@id=\"root\"]/div/main/div/div[1]"
+                ],
+                [
+                    "pierce/main > div > div:nth-of-type(1)"
+                ]
+            ],
+            "offsetY": 32,
+            "offsetX": 150
+        },
+        {
+            "type": "click",
+            "target": "main",
+            "selectors": [
+                [
+                    "div.items-center > div:nth-of-type(1) > div.flex"
+                ],
+                [
+                    "xpath///*[@id=\"root\"]/div/main/div/div[1]/div[1]/div[1]/div[1]"
+                ],
+                [
+                    "pierce/div.items-center > div:nth-of-type(1) > div.flex"
+                ]
+            ],
+            "offsetY": 17,
+            "offsetX": 5
+        },
+        {
+            "type": "keyDown",
+            "target": "main",
+            "key": "Meta"
+        },
+        {
+            "type": "keyDown",
+            "target": "main",
+            "key": "Shift"
+        },
+        {
+            "type": "keyDown",
+            "target": "main",
+            "key": "r",
+            "assertedEvents": [
+                {
+                    "type": "navigation",
+                    "url": "",
+                    "title": "Ultra AI"
+                }
+            ]
+        },
+        {
+            "type": "keyUp",
+            "key": "Meta",
+            "target": "main"
+        },
+        {
+            "type": "keyUp",
+            "key": "Shift",
+            "target": "main"
+        },
+        {
+            "type": "click",
+            "target": "main",
+            "selectors": [
+                [
+                    "aria/Get Started"
+                ],
+                [
+                    "main button"
+                ],
+                [
+                    "xpath///*[@id=\"root\"]/div/main/div/div[2]/div/div/button"
+                ],
+                [
+                    "pierce/main button"
+                ],
+                [
+                    "text/Get Started"
+                ]
+            ],
+            "offsetY": 14.5,
+            "offsetX": 60.5234375
+        },
+        {
+            "type": "click",
+            "target": "main",
+            "selectors": [
+                [
+                    "aria/What would you like to analyze?"
+                ],
+                [
+                    "textarea"
+                ],
+                [
+                    "xpath///*[@id=\"root\"]/div/main/div/div[2]/div/div/textarea"
+                ],
+                [
+                    "pierce/textarea"
+                ]
+            ],
+            "offsetY": 70.5,
+            "offsetX": 218
+        },
+        {
+            "type": "change",
+            "value": "top 10 angel investors for peer to peer sales",
+            "selectors": [
+                [
+                    "aria/What would you like to analyze?"
+                ],
+                [
+                    "textarea"
+                ],
+                [
+                    "xpath///*[@id=\"root\"]/div/main/div/div[2]/div/div/textarea"
+                ],
+                [
+                    "pierce/textarea"
+                ]
+            ],
+            "target": "main"
+        },
+        {
+            "type": "click",
+            "target": "main",
+            "selectors": [
+                [
+                    "aria/Next"
+                ],
+                [
+                    "button.bg-blue-600"
+                ],
+                [
+                    "xpath///*[@id=\"root\"]/div/main/div/div[3]/button[2]"
+                ],
+                [
+                    "pierce/button.bg-blue-600"
+                ],
+                [
+                    "text/Next"
+                ]
+            ],
+            "offsetY": 11,
+            "offsetX": 36.3046875
+        },
+        {
+            "type": "click",
+            "target": "main",
+            "selectors": [
+                [
+                    "div.bg-white div:nth-of-type(3)"
+                ],
+                [
+                    "xpath///*[@id=\"root\"]/div/main/div/div[2]/div/div/div[1]/div[3]"
+                ],
+                [
+                    "pierce/div.bg-white div:nth-of-type(3)"
+                ]
+            ],
+            "offsetY": 38.5,
+            "offsetX": 73
+        },
+        {
+            "type": "click",
+            "target": "main",
+            "selectors": [
+                [
+                    "div:nth-of-type(4) span"
+                ],
+                [
+                    "xpath///*[@id=\"root\"]/div/main/div/div[2]/div/div/div[1]/div[4]/div/div/span"
+                ],
+                [
+                    "pierce/div:nth-of-type(4) span"
+                ],
+                [
+                    "text/claude37"
+                ]
+            ],
+            "offsetY": 6.5,
+            "offsetX": 36
+        },
+        {
+            "type": "click",
+            "target": "main",
+            "selectors": [
+                [
+                    "div:nth-of-type(5) span"
+                ],
+                [
+                    "xpath///*[@id=\"root\"]/div/main/div/div[2]/div/div/div[1]/div[5]/div/div/span"
+                ],
+                [
+                    "pierce/div:nth-of-type(5) span"
+                ],
+                [
+                    "text/claude3opus"
+                ]
+            ],
+            "offsetY": 6.5,
+            "offsetX": 39
+        },
+        {
+            "type": "click",
+            "target": "main",
+            "selectors": [
+                [
+                    "div:nth-of-type(6) span"
+                ],
+                [
+                    "xpath///*[@id=\"root\"]/div/main/div/div[2]/div/div/div[1]/div[6]/div/div/span"
+                ],
+                [
+                    "pierce/div:nth-of-type(6) span"
+                ],
+                [
+                    "text/gemini15"
+                ]
+            ],
+            "offsetY": 4.5,
+            "offsetX": 33
+        },
+        {
+            "type": "click",
+            "target": "main",
+            "selectors": [
+                [
+                    "div:nth-of-type(7) span"
+                ],
+                [
+                    "xpath///*[@id=\"root\"]/div/main/div/div[2]/div/div/div[1]/div[7]/div/div/span"
+                ],
+                [
+                    "pierce/div:nth-of-type(7) span"
+                ],
+                [
+                    "text/llama3"
+                ]
+            ],
+            "offsetY": 16.5,
+            "offsetX": 14
+        },
+        {
+            "type": "click",
+            "target": "main",
+            "selectors": [
+                [
+                    "aria/Next"
+                ],
+                [
+                    "button.bg-blue-600"
+                ],
+                [
+                    "xpath///*[@id=\"root\"]/div/main/div/div[3]/button[2]"
+                ],
+                [
+                    "pierce/button.bg-blue-600"
+                ],
+                [
+                    "text/Next"
+                ]
+            ],
+            "offsetY": 31,
+            "offsetX": 24.3046875
+        },
+        {
+            "type": "click",
+            "target": "main",
+            "selectors": [
+                [
+                    "aria/Next"
+                ],
+                [
+                    "button.bg-blue-600"
+                ],
+                [
+                    "xpath///*[@id=\"root\"]/div/main/div/div[3]/button[2]"
+                ],
+                [
+                    "pierce/button.bg-blue-600"
+                ],
+                [
+                    "text/Next"
+                ]
+            ],
+            "offsetY": 19,
+            "offsetX": 81.8984375
+        },
+        {
+            "type": "click",
+            "target": "main",
+            "selectors": [
+                [
+                    "aria/Run Analysis Again"
+                ],
+                [
+                    "button.bg-blue-600"
+                ],
+                [
+                    "xpath///*[@id=\"root\"]/div/main/div/div[3]/div/div[5]/button[2]"
+                ],
+                [
+                    "pierce/button.bg-blue-600"
+                ]
+            ],
+            "offsetY": 8,
+            "offsetX": 87.5625
+        }
+    ]
+}

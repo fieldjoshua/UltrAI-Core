@@ -4,10 +4,10 @@ Multi-LLM analysis platform that allows you to compare responses from different 
 
 ## Features
 
-- Connect to multiple LLM providers (OpenAI, Anthropic, Google, Mistral, Llama)
+- Connect to multiple LLM providers (OpenAI, Anthropic, Google, Mistral, Cohere)
 - Compare responses side-by-side with intuitive UI
 - Generate synthesized analysis from multiple models
-- Support for local models via Ollama
+- Support for local models via Docker Model Runner
 - Multiple analysis patterns for specialized comparisons
 - Robust error handling and fallbacks for reliability
 - Full API for programmatic access
@@ -61,26 +61,87 @@ Multi-LLM analysis platform that allows you to compare responses from different 
 
 ## Configuration
 
-Ultra requires API keys for the LLM providers you want to use. At minimum, configure:
+By default, Ultra will work in mock mode without any API keys, allowing you to explore the interface and functionality. When you're ready to use real LLM APIs, configure your API keys:
 
 - `OPENAI_API_KEY` for GPT models (from [OpenAI](https://platform.openai.com/api-keys))
 - `ANTHROPIC_API_KEY` for Claude models (from [Anthropic](https://console.anthropic.com/))
 - `GOOGLE_API_KEY` for Gemini models (from [Google AI Studio](https://ai.google.dev/))
 
-For local models, install [Ollama](https://ollama.ai/) and pull your preferred models.
+For local models, enable Docker Model Runner in Docker Desktop and set `USE_MODEL_RUNNER=true` in your environment variables.
 
-See `env.example` for all available configuration options.
+### Environment Management
 
-## LLM Integration Testing
+Ultra supports multiple environment configurations:
+
+```bash
+# Set the environment (development, testing, production)
+./scripts/set-env.sh development
+
+# Toggle between development and production environments
+./scripts/toggle_environment.sh development  # Use mock LLMs (for development)
+./scripts/toggle_environment.sh production   # Use real LLM APIs (for production)
+./scripts/toggle_environment.sh status       # Show current environment
+```
+
+Key environment variables:
+- `ENVIRONMENT`: Set to `development`, `testing`, or `production`
+- `USE_MOCK=true`: Enable mock services (development environment)
+- `MOCK_MODE=true`: Use fully mocked dependencies (development environment)
+- `AUTO_REGISTER_PROVIDERS=true`: Register all providers even without API keys (on by default)
+
+To quickly verify your setup:
+```bash
+# Check all providers in production environment (using API keys)
+python scripts/check_cloud_llms.py
+
+# Check all providers in development environment (works without API keys)
+USE_MOCK=true python scripts/check_cloud_llms.py
+
+# Test all environments
+./scripts/test_production.sh
+```
+
+See `env.example` for all available configuration options and check the [LLM Providers documentation](documentation/technical/integrations/llm_providers.md) for detailed setup instructions.
+
+## Testing
+
+### Development/Production Environment Testing
+
+Ultra provides comprehensive tools for testing in both development and production environments:
+
+```bash
+# Run tests in development environment (with mock services)
+./scripts/run_tests.sh
+
+# Run tests in production environment (with real API endpoints)
+./scripts/test_production.sh
+
+# Toggle between environments for testing
+export ENVIRONMENT=development
+export USE_MOCK=true   # Use mock services
+# or
+export ENVIRONMENT=production
+export USE_MOCK=false  # Use real services
+```
+
+For detailed information on testing strategies for different environments, see [Development vs. Production Testing Guide](documentation/testing/mock_vs_real_testing.md).
+
+### LLM Integration Testing
 
 Test your API keys and LLM connections:
 
 ```bash
-cd .aicheck/actions/MVPCompletion/supporting_docs
-python llm_integration_test.py
+# Test cloud LLM providers (OpenAI, Anthropic, Google)
+python scripts/test_cloud_llms.py
+
+# Test Docker Model Runner
+python scripts/test_modelrunner_cli.py
+
+# Run comprehensive verification
+python scripts/verify_cloud_llm_integration.py
 ```
 
-This will test connections to all configured LLM providers and show which ones are working correctly.
+These scripts will test connections to all configured LLM providers and show which ones are working correctly.
 
 ## Usage
 

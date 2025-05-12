@@ -1,7 +1,8 @@
 """Patch script to apply the analysis fix."""
-import sys
-import os
+
 import importlib.util
+import os
+import sys
 
 # Add the current directory to Python path
 sys.path.insert(0, os.getcwd())
@@ -9,6 +10,7 @@ sys.path.insert(0, os.getcwd())
 # Import our analysis fix
 try:
     from src.simple_core.analysis_fix import patch_modular_orchestrator
+
     success = patch_modular_orchestrator()
     if success:
         print("Successfully applied analysis fix patch")

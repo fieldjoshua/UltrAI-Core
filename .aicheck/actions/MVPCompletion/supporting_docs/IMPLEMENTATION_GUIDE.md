@@ -1,654 +1,499 @@
 # MVP Implementation Guide
 
-This guide provides specific implementation tasks and code changes required to complete the MVP functionality. It focuses on ensuring that the core LLM comparison flow works end-to-end.
+This document provides detailed technical guidance for implementing the MVP functionality as outlined in the MVPCompletion action plan.
 
-## 1. LLM Integration Verification
+## Current Implementation Status
 
-### 1.1 Test API Client Connections
+Based on a comprehensive code audit, here's the current status of key MVP components:
 
-Create a simple test script to verify connections to all supported LLM APIs:
+### LLM Adapters (90% Complete)
 
-```python
-# scripts/test_llm_connections.py
-import asyncio
-import os
-from dotenv import load_dotenv
-from src.core.ultra_llm import UltraLLM
+✅ **Implemented:**
+- OpenAI adapter with streaming and error handling
+- Claude (Anthropic) adapter with streaming and error handling
+- Gemini (Google) adapter with proper integration
+- Mistral adapter with streaming support
+- Cohere adapter with basic functionality
+- Docker Model Runner adapters (both API and CLI versions)
 
-async def test_connections():
-    """Test connections to all configured LLM APIs"""
-    load_dotenv()
+⚠️ **Needs Improvement:**
+- More consistent error handling across adapters
+- Better handling of rate limits and retries
+- Enhanced logging for debugging
 
-    # Get API keys from environment
-    api_keys = {
-        "openai": os.getenv("OPENAI_API_KEY"),
-        "anthropic": os.getenv("ANTHROPIC_API_KEY"),
-        "google": os.getenv("GOOGLE_API_KEY"),
-        "mistral": os.getenv("MISTRAL_API_KEY"),
-        "llama": os.getenv("LLAMA_API_KEY"),
-    }
+### Backend API (80% Complete)
 
-    # Create UltraLLM instance with all features enabled
-    llm = UltraLLM(
-        api_keys=api_keys,
-        enabled_features=["openai", "anthropic", "gemini", "mistral", "ollama", "llama"]
-    )
+✅ **Implemented:**
+- `/api/analyze` endpoint for multi-model comparison
+- Model selection and configuration
+- Basic response handling and storage
 
-    # Initialize clients
-    llm._initialize_clients()
+⚠️ **Needs Improvement:**
+- More robust input validation
+- Better error handling for edge cases
+- Improved response format standardization
+- Enhanced caching mechanism
 
-    # Print available models
-    print(f"Available models: {llm.available_models}")
+### Frontend Components (70% Complete)
 
-    # Test a simple prompt with each available model
-    test_prompt = "What is the capital of France?"
-    for model in llm.available_models:
-        print(f"\nTesting {model}...")
-        try:
-            if model == "openai":
-                response = await llm.get_chatgpt_response(test_prompt)
-            elif model == "anthropic":
-                response = await llm.get_claude_response(test_prompt)
-            elif model == "gemini":
-                response = await llm.get_gemini_response(test_prompt)
-            elif model == "mistral":
-                response = await llm.get_mistral_response(test_prompt)
-            elif model == "ollama":
-                response = await llm.call_ollama(test_prompt)
-            elif model == "llama":
-                response = await llm.call_llama(test_prompt)
-            else:
-                print(f"No test method for {model}")
-                continue
+✅ **Implemented:**
+- Model selection interface
+- Basic results display
+- Analysis pattern selection
 
-            print(f"Response: {response[:100]}...")
-            print("Connection successful!")
-        except Exception as e:
-            print(f"Error: {str(e)}")
+⚠️ **Needs Improvement:**
+- Side-by-side comparison view enhancement
+- Better loading states and error handling
+- Improved mobile responsiveness
+- More intuitive user flow
 
-if __name__ == "__main__":
-    asyncio.run(test_connections())
-```
+### Testing (50% Complete)
 
-### 1.2 Verify API Key Management
+✅ **Implemented:**
+- Basic end-to-end tests
+- Mock service for offline testing
 
-Ensure that API keys are properly handled in the configuration system:
+⚠️ **Needs Improvement:**
+- More comprehensive test coverage
+- Tests for error scenarios
+- Performance benchmark tests
+- Cross-browser compatibility tests
 
-1. Check `.env` handling in the main application
-2. Verify that keys are securely stored and not exposed in logs
-3. Test error handling for missing or invalid API keys
+## Implementation Approach
 
-## 2. Core Endpoint Implementation
+### Phase 1: Backend API Refinement
 
-### 2.1 Standardize `/api/analyze` Endpoint
+#### 1.1 Standardize `/api/analyze` Endpoint
 
-Ensure the analyze endpoint is consistent across all backend implementations:
+The endpoint should follow this standard format:
 
 ```python
-# backend/routes/analyze_routes.py
-from fastapi import APIRouter, Depends, Request, Body
-from sqlalchemy.orm import Session
-from backend.models.analysis_models import AnalysisRequest, AnalysisResponse
-from backend.services.prompt_service import prompt_service
-from backend.dependencies import get_db
-from backend.utils.errors import ERROR_MESSAGES
-from backend.utils.cache import cached
-
-analyze_router = APIRouter(tags=["Analysis"])
-
-@analyze_router.post("/api/analyze", response_model=AnalysisResponse)
-@cached(prefix="analyze", ttl=60*60*24)  # Cache for 24 hours
-async def analyze_prompt(
-    request: AnalysisRequest = Body(...),
-    db: Session = Depends(get_db),
+@router.post("/analyze")
+async def analyze(
+    request: AnalysisRequest,
+    background_tasks: BackgroundTasks,
+    user: User = Depends(get_current_user),
 ):
     """
-    Analyze a prompt using multiple LLMs and an Ultra LLM
+    Process an analysis request across multiple LLM providers.
+    
+    Returns a unique analysis_id that can be used to track progress
+    and retrieve results.
     """
-    # Validate request
-    if not request.prompt:
-        return {
-            "status": "error",
-            "message": ERROR_MESSAGES["invalid_request"]
-        }
-
-    if not request.selected_models:
-        return {
-            "status": "error",
-            "message": ERROR_MESSAGES["no_models"]
-        }
-
-    # Process the prompt
-    try:
-        result = await prompt_service.process_prompt(request)
-
-        return {
-            "status": "success",
-            "analysis_id": f"analysis_{int(time.time())}",
-            "results": {
-                "model_responses": result.model_responses,
-                "ultra_response": result.ultra_response,
-                "performance": {
-                    "total_time_seconds": result.processing_time,
-                    "model_times": result.model_times,
-                    "token_counts": result.token_counts,
-                }
-            }
-        }
-    except Exception as e:
-        return {
-            "status": "error",
-            "message": f"Error processing analysis: {str(e)}"
-        }
 ```
 
-### 2.2 Ensure Orchestrator Implementation
+**Input Schema:**
+```python
+class AnalysisRequest(BaseModel):
+    prompt: str
+    models: List[str]  # List of model identifiers
+    primary_model: Optional[str] = None  # Model to use for synthesis
+    analysis_pattern: Optional[str] = "default"  # Analysis pattern to apply
+    max_tokens: Optional[int] = 1000
+    temperature: Optional[float] = 0.7
+    additional_params: Optional[Dict[str, Any]] = {}
+```
 
-Make sure the `MultiLLMOrchestrator` class is properly implemented:
+**Response Schema:**
+```python
+class AnalysisResponse(BaseModel):
+    analysis_id: str
+    status: str  # "pending", "in_progress", "completed", "failed"
+    estimated_time: Optional[int] = None  # Estimated completion time in seconds
+```
+
+#### 1.2 Implement Response Caching
+
+Enhance the caching service to improve performance:
 
 ```python
-# src/orchestrator.py
-# Ensure this method works properly
-async def process_responses(
-    self,
-    prompt: str,
-    models: List[str],
-    ultra_model: Optional[str] = None
-) -> Dict[str, Any]:
-    """Process prompt with multiple models"""
-    try:
-        self.logger.info(f"Processing prompt with models: {models}")
-
-        # Get appropriate model clients
-        model_clients = [self.models[name] for name in models if name in self.models]
-
-        if not model_clients:
-            raise ValueError("No valid models selected")
-
-        # Get responses in parallel
-        start_time = time.time()
-        responses = await asyncio.gather(
-            *[self.get_model_response(model, prompt, "initial")
-              for model in model_clients],
-            return_exceptions=True
-        )
-
-        # Process responses
-        model_responses = {}
-        for i, response in enumerate(responses):
-            model_name = models[i] if i < len(models) else f"model_{i}"
-
-            if isinstance(response, Exception):
-                self.logger.error(f"Error from {model_name}: {str(response)}")
-                model_responses[model_name] = {
-                    "error": str(response),
-                    "content": None
-                }
-            else:
-                model_responses[model_name] = {
-                    "content": response.content,
-                    "tokens": response.tokens_used,
-                    "processing_time": response.processing_time
-                }
-
-        # Generate synthesis if ultra model is specified
-        ultra_response = None
-        if ultra_model and ultra_model in self.models:
-            synthesis_prompt = self._create_synthesis_prompt(
-                model_responses, prompt
-            )
-
-            try:
-                ultra_result = await self.get_model_response(
-                    self.models[ultra_model], synthesis_prompt, "synthesis"
-                )
-                ultra_response = {
-                    "content": ultra_result.content,
-                    "tokens": ultra_result.tokens_used,
-                    "processing_time": ultra_result.processing_time
-                }
-            except Exception as e:
-                self.logger.error(f"Ultra synthesis error: {str(e)}")
-                ultra_response = {
-                    "error": str(e),
-                    "content": None
-                }
-
-        total_time = time.time() - start_time
-
-        return {
-            "model_responses": model_responses,
-            "ultra_response": ultra_response,
-            "total_time": total_time
-        }
-    except Exception as e:
-        self.logger.error(f"Process responses error: {str(e)}")
-        raise
+class CacheService:
+    def __init__(self, redis_client=None):
+        self.redis = redis_client
+        self.use_cache = redis_client is not None
+        
+    async def get_cached_response(self, model: str, prompt: str, params: Dict[str, Any]):
+        """Get cached response if available"""
+        if not self.use_cache:
+            return None
+            
+        cache_key = self._generate_cache_key(model, prompt, params)
+        cached_data = await self.redis.get(cache_key)
+        
+        if cached_data:
+            return json.loads(cached_data)
+        return None
+        
+    async def cache_response(self, model: str, prompt: str, params: Dict[str, Any], response: Dict[str, Any], ttl: int = 3600):
+        """Cache a response with TTL"""
+        if not self.use_cache:
+            return
+            
+        cache_key = self._generate_cache_key(model, prompt, params)
+        await self.redis.set(cache_key, json.dumps(response), ex=ttl)
+        
+    def _generate_cache_key(self, model: str, prompt: str, params: Dict[str, Any]):
+        """Generate a unique cache key"""
+        params_str = json.dumps(params, sort_keys=True)
+        key_input = f"{model}:{prompt}:{params_str}"
+        return hashlib.sha256(key_input.encode()).hexdigest()
 ```
 
-## 3. Frontend Implementation
+### Phase 2: Frontend Enhancement
 
-### 3.1 Complete Analysis Page
+#### 2.1 Enhanced Model Selection Component
 
-Ensure the main analysis page is functional:
+Improve the model selection UI with more information and better organization:
 
-```jsx
-// frontend/src/pages/AnalysisPage.jsx
-import React, { useState } from 'react';
-import { LLMSelector } from '../components/LLMSelector';
-import { PromptInput } from '../components/PromptInput';
-import { AnalysisResults } from '../components/AnalysisResults';
-import { api } from '../services/api';
+```tsx
+interface ModelSelectionProps {
+  availableModels: Model[];
+  selectedModels: string[];
+  onModelSelectionChange: (selectedModels: string[]) => void;
+  primaryModel: string | null;
+  onPrimaryModelChange: (model: string) => void;
+}
 
-const availableModels = [
-  { id: 'gpt4o', name: 'GPT-4 Omni', description: 'Latest OpenAI model' },
-  { id: 'claude3opus', name: 'Claude 3 Opus', description: 'Anthropic\'s flagship model' },
-  { id: 'gemini15', name: 'Gemini 1.5 Pro', description: 'Google\'s multimodal model' },
-  { id: 'mistral', name: 'Mistral Large', description: 'Mistral AI\'s largest model' },
-  { id: 'llama3', name: 'Llama 3 70B', description: 'Meta\'s open model' },
-];
-
-export const AnalysisPage = () => {
-  const [selectedModels, setSelectedModels] = useState(['gpt4o']);
-  const [ultraModel, setUltraModel] = useState('gpt4o');
-  const [prompt, setPrompt] = useState('');
-  const [results, setResults] = useState(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState(null);
-
-  const handleModelChange = (modelId) => {
-    if (selectedModels.includes(modelId)) {
-      // Remove model if already selected
-      setSelectedModels(selectedModels.filter(id => id !== modelId));
-
-      // If this was the ultra model, reset ultra model
-      if (ultraModel === modelId && selectedModels.length > 1) {
-        setUltraModel(selectedModels.filter(id => id !== modelId)[0]);
-      }
-    } else {
-      // Add model if not selected
-      setSelectedModels([...selectedModels, modelId]);
+const ModelSelection: React.FC<ModelSelectionProps> = ({
+  availableModels,
+  selectedModels,
+  onModelSelectionChange,
+  primaryModel,
+  onPrimaryModelChange,
+}) => {
+  // Group models by provider
+  const modelsByProvider = availableModels.reduce((acc, model) => {
+    if (!acc[model.provider]) {
+      acc[model.provider] = [];
     }
-  };
-
-  const handleUltraModelChange = (modelId) => {
-    setUltraModel(modelId);
-  };
-
-  const handleAnalyze = async () => {
-    if (!prompt) {
-      setError('Please enter a prompt');
-      return;
-    }
-
-    if (selectedModels.length === 0) {
-      setError('Please select at least one model');
-      return;
-    }
-
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      const response = await api.analyzePrompt({
-        prompt,
-        selected_models: selectedModels,
-        ultra_model: ultraModel,
-      });
-
-      setResults(response.results);
-    } catch (err) {
-      setError(err.message || 'An error occurred during analysis');
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    acc[model.provider].push(model);
+    return acc;
+  }, {} as Record<string, Model[]>);
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="text-2xl font-bold mb-6">Multi-LLM Analysis</h1>
-
-      <div className="mb-6">
-        <LLMSelector
-          models={availableModels}
-          selectedModels={selectedModels}
-          ultraModel={ultraModel}
-          onModelChange={handleModelChange}
-          onUltraChange={handleUltraModelChange}
-          disabled={isLoading}
-        />
+    <div className="model-selection">
+      <h3 className="text-lg font-medium mb-4">Select Models to Compare</h3>
+      
+      {Object.entries(modelsByProvider).map(([provider, models]) => (
+        <div key={provider} className="mb-4">
+          <h4 className="text-md font-medium mb-2">{provider}</h4>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
+            {models.map(model => (
+              <ModelCard
+                key={model.id}
+                model={model}
+                isSelected={selectedModels.includes(model.id)}
+                isPrimary={primaryModel === model.id}
+                onSelect={() => {
+                  const newSelection = selectedModels.includes(model.id)
+                    ? selectedModels.filter(id => id !== model.id)
+                    : [...selectedModels, model.id];
+                  onModelSelectionChange(newSelection);
+                  
+                  // If this was the primary and is being deselected, clear primary
+                  if (primaryModel === model.id && !newSelection.includes(model.id)) {
+                    onPrimaryModelChange('');
+                  }
+                }}
+                onSetPrimary={() => onPrimaryModelChange(model.id)}
+              />
+            ))}
+          </div>
+        </div>
+      ))}
+      
+      <div className="mt-4 p-3 bg-blue-50 rounded-md">
+        <p className="text-sm text-blue-700">
+          <span className="font-medium">Tip:</span> Select multiple models to compare their responses.
+          Designate one as the "Primary" model for synthesized analysis.
+        </p>
       </div>
+    </div>
+  );
+};
+```
 
-      <div className="mb-6">
-        <PromptInput
-          value={prompt}
-          onChange={setPrompt}
-          onSubmit={handleAnalyze}
-          disabled={isLoading}
-        />
+#### 2.2 Results Comparison Component
+
+Implement an enhanced side-by-side comparison view:
+
+```tsx
+interface ComparisonViewProps {
+  results: AnalysisResult[];
+  primaryResult?: AnalysisResult;
+}
+
+const ComparisonView: React.FC<ComparisonViewProps> = ({ results, primaryResult }) => {
+  const [viewMode, setViewMode] = useState<'cards' | 'table'>('cards');
+  
+  return (
+    <div className="comparison-view">
+      <div className="mb-4 flex justify-between items-center">
+        <h3 className="text-lg font-medium">Analysis Results</h3>
+        <div className="flex space-x-2">
+          <button
+            className={`px-3 py-1 rounded-md ${viewMode === 'cards' ? 'bg-blue-600 text-white' : 'bg-gray-200'}`}
+            onClick={() => setViewMode('cards')}
+          >
+            Card View
+          </button>
+          <button
+            className={`px-3 py-1 rounded-md ${viewMode === 'table' ? 'bg-blue-600 text-white' : 'bg-gray-200'}`}
+            onClick={() => setViewMode('table')}
+          >
+            Table View
+          </button>
+        </div>
       </div>
-
-      {error && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6">
-          {error}
+      
+      {primaryResult && (
+        <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+          <h4 className="text-md font-medium mb-2">Primary Analysis (Synthesized)</h4>
+          <div className="prose max-w-none">
+            <ReactMarkdown>{primaryResult.content}</ReactMarkdown>
+          </div>
+          <div className="mt-2 flex items-center text-sm text-gray-500">
+            <ClockIcon className="w-4 h-4 mr-1" />
+            {primaryResult.metrics.responseTime}ms
+            <TagIcon className="w-4 h-4 ml-3 mr-1" />
+            {primaryResult.metrics.tokenCount} tokens
+          </div>
         </div>
       )}
-
-      {isLoading && (
-        <div className="text-center p-4">
-          <p>Analyzing with {selectedModels.length} models...</p>
-          <div className="mt-2 animate-pulse">⏳</div>
+      
+      {viewMode === 'cards' ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {results.map(result => (
+            <ResultCard key={result.modelId} result={result} />
+          ))}
         </div>
-      )}
-
-      {results && !isLoading && (
-        <AnalysisResults results={results} />
+      ) : (
+        <ResultsTable results={results} />
       )}
     </div>
   );
 };
 ```
 
-### 3.2 Implement API Service
+### Phase 3: Testing Strategy
 
-Complete the API service for frontend-to-backend communication:
+#### 3.1 End-to-End Testing
 
-```javascript
-// frontend/src/services/api.js
-const API_BASE_URL = process.env.REACT_APP_API_URL || '/api';
-
-export const api = {
-  /**
-   * Get available LLM models
-   */
-  getAvailableModels: async () => {
-    try {
-      const response = await fetch(`${API_BASE_URL}/llms`);
-
-      if (!response.ok) {
-        throw new Error(`Failed to fetch models: ${response.statusText}`);
-      }
-
-      const data = await response.json();
-      return data.models;
-    } catch (error) {
-      console.error('Error fetching available models:', error);
-      throw error;
-    }
-  },
-
-  /**
-   * Get available analysis patterns
-   */
-  getAnalysisPatterns: async () => {
-    try {
-      const response = await fetch(`${API_BASE_URL}/patterns`);
-
-      if (!response.ok) {
-        throw new Error(`Failed to fetch patterns: ${response.statusText}`);
-      }
-
-      const data = await response.json();
-      return data.patterns;
-    } catch (error) {
-      console.error('Error fetching analysis patterns:', error);
-      throw error;
-    }
-  },
-
-  /**
-   * Analyze prompt with selected models
-   */
-  analyzePrompt: async ({ prompt, selected_models, ultra_model, pattern = 'comprehensive' }) => {
-    try {
-      const response = await fetch(`${API_BASE_URL}/analyze`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          prompt,
-          selected_models,
-          ultra_model,
-          pattern,
-        }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || `Failed to analyze: ${response.statusText}`);
-      }
-
-      return await response.json();
-    } catch (error) {
-      console.error('Error analyzing prompt:', error);
-      throw error;
-    }
-  },
-};
-```
-
-## 4. Testing and Validation
-
-### 4.1 Integration Test Script
-
-Create an integration test script to verify the full flow:
+Create comprehensive E2E tests that cover the complete analysis flow:
 
 ```python
-# scripts/test_full_flow.py
-import asyncio
-import requests
-import json
-import time
-
-async def test_full_flow():
-    """Test the full analysis flow"""
-    # 1. Check if server is running
-    try:
-        server_response = requests.get("http://localhost:8000/api/health")
-        print(f"Server status: {server_response.json()}")
-    except Exception as e:
-        print(f"Server not running: {e}")
-        return
-
-    # 2. Get available models
-    try:
-        models_response = requests.get("http://localhost:8000/api/llms")
-        models_data = models_response.json()
-        print(f"Available models: {[m['name'] for m in models_data['models']]}")
-    except Exception as e:
-        print(f"Failed to get models: {e}")
-        return
-
-    # 3. Run analysis
-    try:
-        analysis_request = {
-            "prompt": "Explain the theory of relativity in simple terms",
-            "selected_models": ["gpt4o", "claude3opus", "gemini15"],
-            "ultra_model": "gpt4o",
-            "pattern": "comprehensive"
-        }
-
-        print(f"Sending analysis request: {json.dumps(analysis_request, indent=2)}")
-
-        analysis_response = requests.post(
-            "http://localhost:8000/api/analyze",
-            json=analysis_request
-        )
-
-        analysis_data = analysis_response.json()
-
-        if analysis_data["status"] == "success":
-            print("Analysis successful!")
-            print(f"Models used: {list(analysis_data['results']['model_responses'].keys())}")
-
-            # Print a sample of each response
-            for model, response in analysis_data['results']['model_responses'].items():
-                content = response.get('content', '')
-                if content:
-                    print(f"\n{model} response (first 100 chars): {content[:100]}...")
-                else:
-                    print(f"\n{model} error: {response.get('error', 'Unknown error')}")
-
-            if analysis_data['results']['ultra_response']:
-                ultra_content = analysis_data['results']['ultra_response'].get('content', '')
-                if ultra_content:
-                    print(f"\nUltra response (first 100 chars): {ultra_content[:100]}...")
-                else:
-                    print(f"\nUltra error: {analysis_data['results']['ultra_response'].get('error', 'Unknown error')}")
+def test_complete_analysis_flow(client, mock_llm_service):
+    """Test the complete analysis flow from request to results retrieval."""
+    # Setup mock responses
+    mock_llm_service.add_mock_response(
+        "gpt-4", "What is machine learning?", 
+        {"content": "Machine learning is a field of AI...", "model": "gpt-4"}
+    )
+    mock_llm_service.add_mock_response(
+        "claude-3-opus", "What is machine learning?", 
+        {"content": "Machine learning is a branch of artificial intelligence...", "model": "claude-3-opus"}
+    )
+    
+    # Submit analysis request
+    request_data = {
+        "prompt": "What is machine learning?",
+        "models": ["gpt-4", "claude-3-opus"],
+        "primary_model": "gpt-4",
+        "analysis_pattern": "compare_and_contrast"
+    }
+    
+    response = client.post("/api/analyze", json=request_data)
+    assert response.status_code == 200
+    result = response.json()
+    assert "analysis_id" in result
+    analysis_id = result["analysis_id"]
+    
+    # Poll for results
+    max_attempts = 10
+    attempts = 0
+    complete = False
+    
+    while attempts < max_attempts and not complete:
+        response = client.get(f"/api/analyze/{analysis_id}/progress")
+        assert response.status_code == 200
+        progress_data = response.json()
+        
+        if progress_data["status"] == "completed":
+            complete = True
         else:
-            print(f"Analysis failed: {analysis_data.get('message', 'Unknown error')}")
-
-    except Exception as e:
-        print(f"Analysis request failed: {e}")
-
-if __name__ == "__main__":
-    asyncio.run(test_full_flow())
+            time.sleep(0.5)
+            attempts += 1
+    
+    assert complete, "Analysis did not complete in time"
+    
+    # Get final results
+    response = client.get(f"/api/analyze/{analysis_id}/results")
+    assert response.status_code == 200
+    results = response.json()
+    
+    # Verify results structure
+    assert "model_responses" in results
+    assert len(results["model_responses"]) == 2
+    assert "synthesized_response" in results
+    
+    # Verify metrics
+    for response in results["model_responses"]:
+        assert "modelId" in response
+        assert "content" in response
+        assert "metrics" in response
+        assert "responseTime" in response["metrics"]
+        assert "tokenCount" in response["metrics"]
 ```
 
-### 4.2 End-to-End Testing
+#### 3.2 Error Handling Tests
 
-Test the full application from frontend to backend:
+Create tests for error scenarios to ensure graceful degradation:
 
-1. Start the backend server
-2. Start the frontend development server
-3. Open the application in a browser
-4. Run through the complete user flow:
-   - Select multiple models
-   - Enter a prompt
-   - Submit for analysis
-   - Verify results are displayed properly
-
-## 5. Environment Setup
-
-### 5.1 Create `.env.example` File
-
-```
-# API Keys
-OPENAI_API_KEY=your-openai-key
-ANTHROPIC_API_KEY=your-anthropic-key
-GOOGLE_API_KEY=your-google-key
-MISTRAL_API_KEY=your-mistral-key
-
-# Local models
-OLLAMA_BASE_URL=http://localhost:11434
-
-# Server configuration
-PORT=8000
-HOST=0.0.0.0
-DEBUG=True
-
-# Frontend configuration
-REACT_APP_API_URL=http://localhost:8000/api
-```
-
-### 5.2 Setup Scripts
-
-Create a simple setup script:
-
-```bash
-#!/bin/bash
-# scripts/setup.sh
-
-# Check if .env file exists
-if [ ! -f .env ]; then
-  echo "Creating .env file from .env.example"
-  cp .env.example .env
-  echo "Please edit .env and fill in your API keys"
-else
-  echo ".env file already exists"
-fi
-
-# Install backend dependencies
-echo "Installing backend dependencies..."
-pip install -r requirements.txt
-
-# Install frontend dependencies
-echo "Installing frontend dependencies..."
-cd frontend
-npm install
-cd ..
-
-echo "Setup complete! Use ./scripts/run.sh to start the application"
+```python
+def test_handle_unavailable_model(client, mock_llm_service):
+    """Test handling of unavailable models."""
+    # Setup mock to simulate unavailable model
+    mock_llm_service.set_model_unavailable("gpt-4")
+    
+    # Submit analysis request with mix of available and unavailable models
+    request_data = {
+        "prompt": "What is machine learning?",
+        "models": ["gpt-4", "claude-3-opus"],
+        "primary_model": "claude-3-opus"
+    }
+    
+    response = client.post("/api/analyze", json=request_data)
+    assert response.status_code == 200
+    result = response.json()
+    assert "analysis_id" in result
+    analysis_id = result["analysis_id"]
+    
+    # Wait for analysis to complete
+    wait_for_completion(client, analysis_id)
+    
+    # Get results
+    response = client.get(f"/api/analyze/{analysis_id}/results")
+    assert response.status_code == 200
+    results = response.json()
+    
+    # Verify that unavailable model is marked as failed but others proceed
+    found_error = False
+    found_success = False
+    
+    for response in results["model_responses"]:
+        if response["modelId"] == "gpt-4":
+            assert response["status"] == "failed"
+            assert "error" in response
+            found_error = True
+        elif response["modelId"] == "claude-3-opus":
+            assert response["status"] == "completed"
+            assert "content" in response
+            found_success = True
+    
+    assert found_error and found_success
+    
+    # Verify that synthesized response still works with available model
+    assert "synthesized_response" in results
+    assert results["synthesized_response"]["modelId"] == "claude-3-opus"
 ```
 
-Create a run script:
+### Phase 4: Performance Optimization
 
-```bash
-#!/bin/bash
-# scripts/run.sh
+#### 4.1 Parallel Processing
 
-# Start backend
-echo "Starting backend server..."
-python src/main.py &
-BACKEND_PID=$!
+Implement parallel processing for multiple model requests:
 
-# Start frontend
-echo "Starting frontend development server..."
-cd frontend
-npm start &
-FRONTEND_PID=$!
-
-# Function to handle termination
-function cleanup {
-  echo "Shutting down servers..."
-  kill -9 $BACKEND_PID
-  kill -9 $FRONTEND_PID
-  exit 0
-}
-
-# Register the cleanup function for the SIGINT signal (Ctrl+C)
-trap cleanup SIGINT
-
-echo "Ultra is running! Press Ctrl+C to stop."
-wait
+```python
+async def process_analysis(analysis_id: str, request: AnalysisRequest):
+    """Process an analysis request with multiple models in parallel."""
+    # Update analysis status
+    await update_analysis_status(analysis_id, "in_progress")
+    
+    # Get LLM service
+    llm_service = get_llm_service()
+    
+    # Process models in parallel
+    tasks = []
+    for model_id in request.models:
+        task = asyncio.create_task(
+            process_single_model(
+                analysis_id=analysis_id,
+                model_id=model_id,
+                prompt=request.prompt,
+                max_tokens=request.max_tokens,
+                temperature=request.temperature,
+                additional_params=request.additional_params
+            )
+        )
+        tasks.append(task)
+    
+    # Wait for all model processing to complete
+    model_results = await asyncio.gather(*tasks, return_exceptions=True)
+    
+    # Process results
+    processed_results = []
+    for i, result in enumerate(model_results):
+        model_id = request.models[i]
+        if isinstance(result, Exception):
+            # Handle exception
+            processed_results.append({
+                "modelId": model_id,
+                "status": "failed",
+                "error": str(result),
+                "metrics": {
+                    "responseTime": 0,
+                    "tokenCount": 0
+                }
+            })
+        else:
+            processed_results.append(result)
+    
+    # Generate synthesized response if a primary model is specified
+    synthesized_response = None
+    if request.primary_model and request.primary_model in request.models:
+        # Find the primary model result
+        primary_result = next(
+            (r for r in processed_results if r["modelId"] == request.primary_model and r["status"] == "completed"),
+            None
+        )
+        
+        if primary_result:
+            synthesized_response = await generate_synthesized_response(
+                request.prompt,
+                primary_result,
+                [r for r in processed_results if r["status"] == "completed" and r["modelId"] != request.primary_model],
+                request.analysis_pattern
+            )
+    
+    # Store final results
+    await store_analysis_results(
+        analysis_id=analysis_id,
+        model_responses=processed_results,
+        synthesized_response=synthesized_response
+    )
+    
+    # Update analysis status
+    await update_analysis_status(analysis_id, "completed")
 ```
 
-## 6. Documentation Updates
+## Timeline and Milestones
 
-### 6.1 Update README.md
+| Week | Phase | Milestones |
+|------|-------|------------|
+| Week 1 | Backend API Refinement | - Standardized API endpoints<br>- Enhanced caching<br>- Model integration tests |
+| Week 2 | Frontend Enhancement | - Improved model selection UI<br>- Enhanced results comparison<br>- Responsive UI for all devices |
+| Week 3 | Testing and Optimization | - End-to-end test suite<br>- Performance optimization<br>- Documentation completion |
 
-Create a clear README with setup and usage instructions:
+## Next Steps
 
-```markdown
-# Ultra MVP
+1. Begin implementation of Phase 1 tasks
+2. Create a test plan for comprehensive testing
+3. Schedule regular progress reviews
+4. Define performance benchmarks for optimization phase
 
-Multi-LLM analysis platform that allows you to compare responses from different AI models.
+## References
 
-## Features
-
-- Connect to multiple LLM providers (OpenAI, Anthropic, Google)
-- Compare responses side-by-side
-- Generate synthesized analysis from multiple models
-- Support for local models via Ollama
-
-## Quick Start
-
-1. Clone the repository
-2. Run the setup script: `./scripts/setup.sh`
-3. Edit the `.env` file with your API keys
-4. Start the application: `./scripts/run.sh`
-5. Open the application in your browser: http://localhost:3000
-
-## Usage
-
-1. Select the LLM models you want to compare
-2. Enter your prompt in the text area
-3. Click "Analyze" to send the prompt to all selected models
-4. View the responses side-by-side
-5. (Optional) Generate an Ultra synthesis from all responses
-
-## Configuration
-
-See the `.env.example` file for available configuration options.
-
-## Development
-
-- Backend: FastAPI-based Python application
-- Frontend: React-based UI
-- API: RESTful API for communication between frontend and backend
-
-## License
-
-MIT
-```
+- [FastAPI Documentation](https://fastapi.tiangolo.com/)
+- [React Patterns](https://reactpatterns.com/)
+- [Testing FastAPI Applications](https://fastapi.tiangolo.com/tutorial/testing/)
+- [React Testing Library](https://testing-library.com/docs/react-testing-library/intro/)

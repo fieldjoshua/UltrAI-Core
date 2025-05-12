@@ -14,8 +14,28 @@ import hashlib
 class MockLLMService:
     """Mock LLM service that returns pre-defined responses"""
 
-    def __init__(self):
-        """Initialize the mock LLM service"""
+    def __init__(self, config=None):
+        """
+        Initialize the mock LLM service
+        
+        Args:
+            config: Optional configuration dictionary
+        """
+        # Initialize configuration
+        self.config = config or {}
+        
+        # Check if we should use Docker Model Runner for more realistic mock responses
+        self.use_model_runner = self.config.get("USE_MODEL_RUNNER_FOR_MOCK", False)
+        if self.use_model_runner:
+            try:
+                from src.models.docker_modelrunner_adapter import DockerModelRunnerAdapter
+                # Create an adapter for the default model
+                default_model = self.config.get("DEFAULT_LOCAL_MODEL", "phi3:mini")
+                self.model_runner_adapter = DockerModelRunnerAdapter(model=default_model)
+                print(f"Mock LLM service will use Docker Model Runner with model {default_model} when available")
+            except ImportError:
+                print("Docker Model Runner adapter not available, using static mock responses")
+                self.use_model_runner = False
         self.models = {
             "gpt4o": "GPT-4 Omni",
             "gpt4turbo": "GPT-4 Turbo",
@@ -87,8 +107,69 @@ class MockLLMService:
             "innovation": "This innovation bridge uses cross-domain analogies to discover non-obvious patterns...",
         }
 
-    def _generate_model_response(self, model: str, prompt: str) -> str:
+    async def _try_model_runner_response(self, model: str, prompt: str) -> str:
+        """
+        Attempt to get a response from Docker Model Runner.
+        
+        Args:
+            model: The model name
+            prompt: The prompt to send
+            
+        Returns:
+            Response from Model Runner or None if unavailable
+        """
+        if not self.use_model_runner:
+            return None
+            
+        try:
+            # Map internal model name to Docker Model Runner model if needed
+            model_mapping = {
+                "llama3": "llama3:8b",
+                "gpt4o": "phi3:mini",  # Fallback mapping
+                "claude3opus": "mistral:7b",  # Fallback mapping
+            }
+            
+            # Use the mapped model or the original if no mapping exists
+            model_runner_model = model_mapping.get(model, "phi3:mini")
+            
+            # Construct a system message appropriate for the model
+            if "gpt" in model:
+                system_msg = "You are GPT-4, a helpful and precise AI assistant from OpenAI."
+            elif "claude" in model:
+                system_msg = "You are Claude, a helpful and thoughtful AI assistant from Anthropic."
+            elif "gemini" in model:
+                system_msg = "You are Gemini, a helpful and knowledgeable AI assistant from Google."
+            elif "llama" in model:
+                system_msg = "You are Llama, a helpful and creative open-source AI assistant."
+            else:
+                system_msg = "You are a helpful AI assistant."
+            
+            # Get response from Docker Model Runner
+            response = await self.model_runner_adapter.generate(
+                prompt,
+                model=model_runner_model,
+                system_message=system_msg,
+                max_tokens=500,
+                temperature=0.7
+            )
+            
+            return response
+        except Exception as e:
+            print(f"Failed to get response from Docker Model Runner: {e}")
+            return None
+    
+    async def _generate_model_response(self, model: str, prompt: str) -> str:
         """Generate a model-specific response that reflects its personality"""
+        # Try to get a response from Docker Model Runner first
+        if self.use_model_runner:
+            try:
+                runner_response = await self._try_model_runner_response(model, prompt)
+                if runner_response:
+                    return runner_response
+            except Exception as e:
+                print(f"Error using Docker Model Runner for mock response: {e}")
+        
+        # Fall back to static responses if Model Runner is not available or fails
         # Get model style or use default if not defined
         style_info = self.model_response_styles.get(
             model,
@@ -155,7 +236,7 @@ class MockLLMService:
                 + f"This analysis is based on general principles of {random.choice(['system design', 'project management', 'business strategy', 'technological innovation'])}."
             )
 
-    def analyze(
+    async def analyze(
         self,
         prompt: str,
         llms: List[str],
@@ -182,7 +263,7 @@ class MockLLMService:
         """
         # Add some delay to simulate processing - longer for more models
         processing_time = random.uniform(0.5, 1.0) * len(llms)
-        time.sleep(processing_time)
+        await asyncio.sleep(processing_time)
 
         # Create mock model responses
         model_responses = {}
@@ -220,7 +301,7 @@ class MockLLMService:
         # Generate model-specific responses
         for model in llms:
             # Create a model-specific response
-            model_responses[model] = self._generate_model_response(model, prompt)
+            model_responses[model] = await self._generate_model_response(model, prompt)
 
             # Calculate model-specific time (make primary model slightly faster)
             model_time = random.uniform(0.8, 3.0)
@@ -317,8 +398,6 @@ Based on the {pattern} analysis of responses from {', '.join(model_names[:-1]) +
         options: Optional[Dict[str, Any]] = None
     ) -> Dict[str, Any]:
         """Asynchronous version of analyze method"""
-        # Introduce a realistic delay for async processing
-        await asyncio.sleep(random.uniform(0.2, 0.5) * len(models))
-
-        result = self.analyze(prompt, models, ultra_model, pattern, ala_carte_options, output_format, options)
-        return result
+        # Call the async analyze method directly 
+        # (renamed the non-async method to async since we need async for Docker Model Runner)
+        return await self.analyze(prompt, models, ultra_model, pattern, ala_carte_options, output_format, options)

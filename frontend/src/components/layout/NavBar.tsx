@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { FileText, Zap, Settings, ChevronRight, Menu, X } from 'lucide-react';
+import { FileText, Zap, Box, Settings, ChevronRight, Menu, X, Layers, LayoutTemplate } from 'lucide-react';
 import { Button } from '../ui/button';
 
 export default function NavBar() {
@@ -56,6 +56,48 @@ export default function NavBar() {
                 Simple Analysis
               </div>
             </Link>
+
+            <Link
+              to="/modelrunner"
+              className={`px-3 py-2 rounded-md text-sm font-medium ${
+                isActive('/modelrunner')
+                  ? 'bg-blue-50 text-blue-700 dark:bg-blue-900 dark:text-blue-200'
+                  : 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800'
+              }`}
+            >
+              <div className="flex items-center">
+                <Box size={16} className="mr-2" />
+                Model Runner
+              </div>
+            </Link>
+
+            <Link
+              to="/orchestrator"
+              className={`px-3 py-2 rounded-md text-sm font-medium ${
+                isActive('/orchestrator')
+                  ? 'bg-blue-50 text-blue-700 dark:bg-blue-900 dark:text-blue-200'
+                  : 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800'
+              }`}
+            >
+              <div className="flex items-center">
+                <Layers size={16} className="mr-2" />
+                Orchestrator
+              </div>
+            </Link>
+
+            <Link
+              to="/prototype"
+              className={`px-3 py-2 rounded-md text-sm font-medium ${
+                isActive('/prototype')
+                  ? 'bg-blue-50 text-blue-700 dark:bg-blue-900 dark:text-blue-200'
+                  : 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800'
+              }`}
+            >
+              <div className="flex items-center">
+                <LayoutTemplate size={16} className="mr-2" />
+                UI Prototype
+              </div>
+            </Link>
           </nav>
 
           {/* Mobile Menu Button */}
@@ -101,6 +143,51 @@ export default function NavBar() {
               <div className="flex items-center">
                 <Zap size={16} className="mr-2" />
                 Simple Analysis
+              </div>
+            </Link>
+
+            <Link
+              to="/modelrunner"
+              className={`block px-3 py-2 rounded-md text-base font-medium ${
+                isActive('/modelrunner')
+                  ? 'bg-blue-50 text-blue-700 dark:bg-blue-900 dark:text-blue-200'
+                  : 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800'
+              }`}
+              onClick={() => setIsMenuOpen(false)}
+            >
+              <div className="flex items-center">
+                <Box size={16} className="mr-2" />
+                Model Runner
+              </div>
+            </Link>
+
+            <Link
+              to="/orchestrator"
+              className={`block px-3 py-2 rounded-md text-base font-medium ${
+                isActive('/orchestrator')
+                  ? 'bg-blue-50 text-blue-700 dark:bg-blue-900 dark:text-blue-200'
+                  : 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800'
+              }`}
+              onClick={() => setIsMenuOpen(false)}
+            >
+              <div className="flex items-center">
+                <Layers size={16} className="mr-2" />
+                Orchestrator
+              </div>
+            </Link>
+
+            <Link
+              to="/prototype"
+              className={`block px-3 py-2 rounded-md text-base font-medium ${
+                isActive('/prototype')
+                  ? 'bg-blue-50 text-blue-700 dark:bg-blue-900 dark:text-blue-200'
+                  : 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800'
+              }`}
+              onClick={() => setIsMenuOpen(false)}
+            >
+              <div className="flex items-center">
+                <LayoutTemplate size={16} className="mr-2" />
+                UI Prototype
               </div>
             </Link>
           </div>

@@ -1,0 +1,23 @@
+digraph DynamicModelRegistration {
+    rankdir=TB;
+    graph [size="7.5,10", ratio=fill, orientation=portrait];
+    node [fontsize=10, shape=rectangle, style=filled, fillcolor="#E0ECFF"];
+    edge [fontsize=10];
+
+    Start [label="Start", shape=circle, fillcolor="#B3CDE3"];
+    Initiate [label="User/Developer\ninitiates model\nregistration"];
+    Validate [label="System validates model\nconfiguration parameters"];
+    TestConn [label="System tests connection\nto model provider"];
+    Decision [label="Connection\nsuccessful?", shape=diamond, fillcolor="#FFFFB3"];
+    AddModel [label="Add model to\nruntime registry"];
+    UpdateList [label="Update available\nmodels list"];
+    Success [label="Return success\nresponse"];
+    Error [label="Return error with\ndiagnostic information"];
+    End [label="End", shape=circle, fillcolor="#B3CDE3"];
+
+    Start -> Initiate -> Validate -> TestConn -> Decision;
+    Decision -> AddModel [label="Yes"];
+    AddModel -> UpdateList -> Success -> End;
+    Decision -> Error [label="No"];
+    Error -> End;
+}

@@ -1,20 +1,183 @@
 import os
+import sys
+import logging
+from typing import Dict, Any, Optional, List
+from pathlib import Path
+from dotenv import load_dotenv
 
+# Configure logging
+logger = logging.getLogger("config")
+
+# Determine environment
+ENVIRONMENT = os.getenv("ENVIRONMENT", "development").lower()
+TESTING = os.getenv("TESTING", "false").lower() == "true"
+
+# Load appropriate .env file based on environment
+base_path = Path(os.path.dirname(__file__)).parent
+env_files = [
+    base_path / f".env.{ENVIRONMENT}.local",  # Environment-specific local overrides
+    base_path / f".env.{ENVIRONMENT}",        # Environment-specific defaults
+    base_path / ".env.local",                 # Local overrides
+    base_path / ".env"                        # Default .env file
+]
+
+# Load the first env file that exists
+for env_file in env_files:
+    if env_file.exists():
+        logger.info(f"Loading environment from {env_file}")
+        load_dotenv(dotenv_path=str(env_file))
+        break
+
+class ConfigValidationError(Exception):
+    """Exception raised for configuration validation errors."""
+    pass
 
 class Config:
     """Configuration object to hold runtime settings"""
 
     # Basic configuration
-    use_mock = False
+    ENVIRONMENT = ENVIRONMENT
+    TESTING = TESTING
+    DEBUG = os.getenv("DEBUG", "false").lower() == "true"
+    LOG_LEVEL = os.getenv("LOG_LEVEL", "info").upper()
+    API_HOST = os.getenv("API_HOST", "0.0.0.0")
+    API_PORT = int(os.getenv("API_PORT", "8000"))
+    CORS_ORIGINS = os.getenv("CORS_ORIGINS", "*").split(",")
+    SECRET_KEY = os.getenv("SECRET_KEY", "default-dev-secret-key")
 
-    # Document storage paths
+    # Application paths
+    BASE_PATH = str(base_path)
     DOCUMENT_STORAGE_PATH = os.getenv("DOCUMENT_STORAGE_PATH", "document_storage")
+    TEMP_UPLOADS_PATH = os.getenv("TEMP_UPLOADS_PATH", "temp_uploads")
+    TEMP_PATH = os.getenv("TEMP_PATH", "temp")
+    LOGS_PATH = os.getenv("LOGS_PATH", "logs")
 
-    # Create necessary directories on startup
+    # Mock configuration
+    USE_MOCK = os.getenv("USE_MOCK", "false").lower() == "true"
+    MOCK_MODE = os.getenv("MOCK_MODE", "false").lower() == "true"
+
+    # LLM Configuration
+    USE_MODEL_RUNNER = os.getenv("USE_MODEL_RUNNER", "false").lower() == "true"
+    MODEL_RUNNER_TYPE = os.getenv("MODEL_RUNNER_TYPE", "cli")  # 'api' or 'cli'
+    MODEL_RUNNER_URL = os.getenv("MODEL_RUNNER_URL", "http://localhost:8080")
+    DEFAULT_LOCAL_MODEL = os.getenv("DEFAULT_LOCAL_MODEL", "ai/smollm2")
+    DEFAULT_PROVIDER = os.getenv("DEFAULT_PROVIDER", "openai")
+    DEFAULT_MODEL = os.getenv("DEFAULT_MODEL", "gpt-4o")
+
+    # Authentication
+    ENABLE_AUTH = os.getenv("ENABLE_AUTH", "true").lower() == "true"
+    JWT_SECRET = os.getenv("JWT_SECRET", "default-dev-jwt-secret")
+    JWT_ALGORITHM = os.getenv("JWT_ALGORITHM", "HS256")
+    JWT_ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("JWT_ACCESS_TOKEN_EXPIRE_MINUTES", "30"))
+    JWT_REFRESH_TOKEN_EXPIRE_DAYS = int(os.getenv("JWT_REFRESH_TOKEN_EXPIRE_DAYS", "7"))
+
+    # Database
+    DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./ultra.db")
+    DATABASE_POOL_SIZE = int(os.getenv("DATABASE_POOL_SIZE", "5"))
+    DATABASE_MAX_OVERFLOW = int(os.getenv("DATABASE_MAX_OVERFLOW", "10"))
+    DATABASE_POOL_TIMEOUT = int(os.getenv("DATABASE_POOL_TIMEOUT", "30"))
+
+    # Redis Cache
+    REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")
+    ENABLE_CACHE = os.getenv("ENABLE_CACHE", "true").lower() == "true"
+    CACHE_TTL = int(os.getenv("CACHE_TTL", "3600"))
+
+    # Feature flags
+    ENABLE_MOCK_LLM = os.getenv("ENABLE_MOCK_LLM", "false").lower() == "true"
+    ENABLE_RATE_LIMIT = os.getenv("ENABLE_RATE_LIMIT", "true").lower() == "true"
+    ENABLE_SECURITY_HEADERS = os.getenv("ENABLE_SECURITY_HEADERS", "true").lower() == "true"
+    ENABLE_HTTPS_REDIRECT = os.getenv("ENABLE_HTTPS_REDIRECT", "false").lower() == "true"
+
+    # Security
+    API_KEY_ENCRYPTION_KEY = os.getenv("API_KEY_ENCRYPTION_KEY", "default-dev-encryption-key")
+
+    # LLM API Keys (loaded if not in mock mode)
+    OPENAI_API_KEY: Optional[str] = None
+    ANTHROPIC_API_KEY: Optional[str] = None
+    GOOGLE_API_KEY: Optional[str] = None
+
+    # Public paths for authentication
+    PUBLIC_PATHS: List[str] = [
+        "/api/health",
+        "/api/docs",
+        "/api/redoc",
+        "/api/openapi.json",
+        "/api/auth/login",
+        "/api/auth/register",
+        "/api/auth/refresh",
+        "/api/auth/password-reset"
+    ]
+
     @classmethod
-    def create_directories(cls):
+    def create_directories(cls) -> None:
         """Create necessary directories for the application"""
-        os.makedirs("temp_uploads", exist_ok=True)
+        os.makedirs(cls.TEMP_UPLOADS_PATH, exist_ok=True)
         os.makedirs(cls.DOCUMENT_STORAGE_PATH, exist_ok=True)
-        os.makedirs("temp", exist_ok=True)
-        os.makedirs("logs", exist_ok=True)
+        os.makedirs(cls.TEMP_PATH, exist_ok=True)
+        os.makedirs(cls.LOGS_PATH, exist_ok=True)
+
+    @classmethod
+    def validate_configuration(cls) -> None:
+        """Validate the configuration and load sensitive values"""
+        errors = []
+
+        # Check for development secrets in production
+        if cls.ENVIRONMENT == "production":
+            if cls.SECRET_KEY == "default-dev-secret-key":
+                errors.append("Production environment must have a secure SECRET_KEY")
+
+            if cls.JWT_SECRET == "default-dev-jwt-secret":
+                errors.append("Production environment must have a secure JWT_SECRET")
+
+            if cls.API_KEY_ENCRYPTION_KEY == "default-dev-encryption-key":
+                errors.append("Production environment must have a secure API_KEY_ENCRYPTION_KEY")
+
+            if "*" in cls.CORS_ORIGINS:
+                errors.append("Production environment should specify allowed CORS origins")
+
+        # Load API keys if not in mock mode
+        if not cls.USE_MOCK and not cls.MOCK_MODE:
+            cls.OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+            cls.ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY")
+            cls.GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
+
+            # Verify at least one API key is available
+            if not any([cls.OPENAI_API_KEY, cls.ANTHROPIC_API_KEY, cls.GOOGLE_API_KEY]):
+                errors.append("At least one LLM API key is required when not in mock mode")
+
+            # Check if default provider has an API key
+            if cls.DEFAULT_PROVIDER == "openai" and not cls.OPENAI_API_KEY:
+                errors.append("OpenAI API key is required when using OpenAI as default provider")
+            elif cls.DEFAULT_PROVIDER == "anthropic" and not cls.ANTHROPIC_API_KEY:
+                errors.append("Anthropic API key is required when using Anthropic as default provider")
+            elif cls.DEFAULT_PROVIDER == "google" and not cls.GOOGLE_API_KEY:
+                errors.append("Google API key is required when using Google as default provider")
+
+        # Raise exception if there are validation errors
+        if errors and not cls.TESTING:
+            for error in errors:
+                logger.error(f"Configuration error: {error}")
+
+            if cls.ENVIRONMENT == "production":
+                raise ConfigValidationError("Invalid configuration for production environment")
+            else:
+                logger.warning("Configuration has issues but will continue in non-production environment")
+
+    @classmethod
+    def get_settings(cls) -> Dict[str, Any]:
+        """Get all settings as a dictionary for API responses"""
+        # Don't include sensitive values
+        settings = {k: v for k, v in cls.__dict__.items()
+                   if not k.startswith('_') and k not in [
+                       'OPENAI_API_KEY', 'ANTHROPIC_API_KEY', 'GOOGLE_API_KEY',
+                       'JWT_SECRET', 'SECRET_KEY', 'API_KEY_ENCRYPTION_KEY'
+                   ]}
+
+        # Add API key availability status
+        settings.update({
+            "openai_api_available": bool(cls.OPENAI_API_KEY),
+            "anthropic_api_available": bool(cls.ANTHROPIC_API_KEY),
+            "google_api_available": bool(cls.GOOGLE_API_KEY)
+        })
+
+        return settings

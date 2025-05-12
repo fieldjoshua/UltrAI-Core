@@ -4,18 +4,19 @@ import path from 'path';
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
-  // Load env file based on mode (development, production)
-  // This ensures .env.local is loaded in development
-  const env = loadEnv(mode, process.cwd(), 'VITE_'); // Load env from current working directory
+  // Let Vite handle loading .env files automatically based on mode and cwd
+  // process.cwd() should be 'frontend/' when running 'npm run dev' from there
+  const env = loadEnv(mode, process.cwd(), ''); // Load all env vars
 
-  // Also try to load from frontend directory if we're in the project root
-  const frontendPath = path.resolve(process.cwd(), 'frontend');
-  const frontendEnv = loadEnv(mode, frontendPath, 'VITE_');
-
-  // Combine environment variables, prioritizing frontend directory
-  const combinedEnv = { ...env, ...frontendEnv };
-
-  console.log('API URL from env:', combinedEnv.VITE_API_URL || 'Not found');
+  // Log the specific variable we expect to be loaded
+  console.log('API URL Vite sees:', env.VITE_API_URL || 'Not found');
+  console.log('IS_DOCKER value:', env.VITE_IS_DOCKER);
+  
+  // For browser requests, always use localhost or the host machine IP
+  // The Docker service name 'backend' only works for container-to-container communication
+  const apiUrl = env.VITE_API_URL || 'http://localhost:8000/api';
+  
+  console.log('Using API URL:', apiUrl);
 
   return {
     plugins: [react()],
@@ -28,9 +29,9 @@ export default defineConfig(({ mode }) => {
       port: 3009, // Still attempts this port first
       open: true,
     },
-    // Define env variables to expose to client-side code
     define: {
-      'import.meta.env.VITE_API_URL': JSON.stringify(combinedEnv.VITE_API_URL || 'http://localhost:8000/api')
-    }
+      // Use the loaded env variable directly
+      'import.meta.env.VITE_API_URL': JSON.stringify(apiUrl)
+    },
   };
 });

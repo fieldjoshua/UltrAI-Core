@@ -19,6 +19,7 @@ Ultra documentation is organized into two main types:
 * [API References](technical/api/) - API specifications and usage guides
 * [Database Schema](technical/database/) - Database structure and relationships
 * [System Architecture](technical/architecture/) - Technical architecture documents
+* [Testing Documentation](testing/testing_index.md) - Testing strategies and environment-specific guides
 
 ### Implementation Documentation
 
@@ -58,6 +59,8 @@ Ultra documentation is organized into two main types:
 
 ## Recent Additions
 
+* **[Development vs. Production Testing Guide](testing/mock_vs_real_testing.md)** - Comprehensive guide for testing in different environments
+* **[Testing Index](testing/testing_index.md)** - Central index for all testing-related documentation
 * **[Error Handling Guide for EnhancedUX Components](implementation/error_handling/enhanced_ux_error_handling.md)** - Comprehensive guide for handling errors in EnhancedUX components
 * **[Documentation Migration Process](technical/processes/documentation_migration.md)** - Process for migrating documentation from ACTION directories to the main documentation system
 

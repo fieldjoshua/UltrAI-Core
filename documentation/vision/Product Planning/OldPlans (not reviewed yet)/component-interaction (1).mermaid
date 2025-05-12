@@ -1,0 +1,47 @@
+graph TB
+    subgraph "Model Layer"
+        ML1[Model Registry]
+        ML2[Model Selector]
+        ML3[Model Adapter]
+    end
+    
+    subgraph "Analysis Layer"
+        AL1[Initial Analyzer]
+        AL2[Meta Analyzer]
+        AL3[Ultra Synthesizer]
+        AL4[Hyper Analyzer]
+    end
+    
+    subgraph "Resource Layer"
+        RL1[Rate Limiter]
+        RL2[Resource Manager]
+        RL3[Queue Manager]
+        RL4[Performance Monitor]
+    end
+    
+    subgraph "Error Layer"
+        EL1[Retry Handler]
+        EL2[State Manager]
+        EL3[Error Handler]
+    end
+    
+    ML1 --> ML2
+    ML2 --> ML3
+    ML3 --> AL1
+    
+    AL1 --> AL2
+    AL2 --> AL3
+    AL3 --> AL4
+    
+    RL1 --> ML2
+    RL2 --> ML1
+    RL3 --> RL1
+    RL4 --> RL2
+    
+    EL1 --> ML3
+    EL2 --> AL1
+    EL3 --> RL1
+    
+    AL4 --> RL4
+    RL4 --> EL3
+    EL3 --> ML1

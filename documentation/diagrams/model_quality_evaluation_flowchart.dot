@@ -1,0 +1,28 @@
+digraph ModelQualityEvaluation {
+    rankdir=TB;
+    graph [size="7.5,10", ratio=fill, orientation=portrait];
+    node [fontsize=10, shape=rectangle, style=filled, fillcolor="#E0ECFF"];
+    edge [fontsize=10];
+
+    Start [label="Start", shape=circle, fillcolor="#B3CDE3"];
+    ReceiveResp [label="Receive model response\nfor evaluation"];
+    ExtractCriteria [label="Extract evaluation criteria\nfrom configuration"];
+
+    DimStart [label="Apply dimension-specific\nscoring algorithm"];
+    Normalize [label="Normalize score"];
+    StoreScore [label="Store dimension score"];
+    MoreDims [label="More dimensions?", shape=diamond, fillcolor="#FFFFB3"];
+
+    Aggregate [label="Calculate aggregate\nquality score"];
+    CompareHist [label="Compare against\nhistorical performance"];
+    UpdateMetrics [label="Update model\nquality metrics"];
+    ReturnAssess [label="Return quality\nassessment"];
+    End [label="End", shape=circle, fillcolor="#B3CDE3"];
+
+    Start -> ReceiveResp -> ExtractCriteria -> DimStart;
+    DimStart -> Normalize -> StoreScore -> MoreDims;
+    MoreDims -> DimStart [label="Yes"];
+    MoreDims -> Aggregate [label="No"];
+
+    Aggregate -> CompareHist -> UpdateMetrics -> ReturnAssess -> End;
+}
