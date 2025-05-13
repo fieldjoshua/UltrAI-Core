@@ -10,10 +10,13 @@ This document contains an organized list of all actions within the UltraAI proje
 - [DockerModelRunnerIntegration](../actions/DockerModelRunnerIntegration/DockerModelRunnerIntegration-COMPLETED.md) - Docker Model Runner integration
 - [DockerizedOrchestrator](../actions/DockerizedOrchestrator/DockerizedOrchestrator-COMPLETED.md) - Dockerized orchestration system
 - [HealthCheckImplementation](../actions/HealthCheckImplementation/HealthCheckImplementation-COMPLETED.md) - Health check system
+- [PortManagementUtility](../actions/PortManagementUtility/PortManagementUtility-COMPLETED.md) - Port management utility for resolving conflicts
+- [ProductionReadiness](../actions/ProductionReadiness/ProductionReadiness-COMPLETED.md) - Production readiness improvements
 
 ## In Progress Actions
 
 ### MVP Priority Actions
+
 - [IterativeOrchestratorBuild](../actions/IterativeOrchestratorBuild/IterativeOrchestratorBuild-PLAN.md) (1 of 16) - Iterative orchestrator build
 - [MVPSecurityImplementation](../actions/MVPSecurityImplementation/MVPSecurityImplementation-PLAN.md) (2 of 16) - MVP security implementation
 - [APIIntegration](../actions/APIIntegration/APIIntegration-PLAN.md) (3 of 16) - API integration
@@ -29,6 +32,7 @@ This document contains an organized list of all actions within the UltraAI proje
 - [MVPIntegrationTesting](../actions/MVPIntegrationTesting/MVPIntegrationTesting-PLAN.md) (13 of 16) - MVP integration testing
 
 ### Other In Progress Actions
+
 - [APIConsolidation](../actions/APIConsolidation/APIConsolidation-PLAN.md) - API consolidation
 - [EnhancedUX](../actions/EnhancedUX/supporting_docs/EnhancedUX-IMPLEMENTATION.md) (14 of 16) - Enhanced user experience
 - [ImprovementsRedux](../actions/ImprovementsRedux/ImprovementsRedux-PLAN.md) - Redux improvements
