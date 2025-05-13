@@ -1,6 +1,16 @@
 #!/bin/bash
 set -e
 
+# Define the port
+PORT=8000
+
+# Source the port clearing utility
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/clear_port.sh"
+
+# Clear the port before starting
+clear_port $PORT
+
 # Create necessary directories
 mkdir -p logs
 mkdir -p document_storage
@@ -16,4 +26,4 @@ echo "Skipping database migrations (alembic not installed)"
 
 # Start the FastAPI application with auto-reload for development
 echo "Starting Ultra backend in development mode..."
-python -m uvicorn backend.app:app --host 0.0.0.0 --port 8000 --reload
+python -m uvicorn backend.app:app --host 0.0.0.0 --port $PORT --reload

@@ -156,8 +156,17 @@ Some models may not be available to all users. Check:
 
 If you see "Address already in use" errors:
 
-- Change the `PORT` value in your `.env` file
-- Check for existing processes using the default ports
+- Use the port clearing utilities:
+  ```bash
+  # Clear a specific port
+  ./scripts/clear_port.sh 8000
+  # or
+  ./scripts/kill_api_ports.sh 8000
+  ```
+- Alternatively, change the `PORT` value in your `.env` file
+- Most server scripts now automatically clear ports before starting
+
+The `clear_port.sh` script automatically finds and kills processes using the specified port, making it easier to restart servers without manually hunting for process IDs.
 
 ### Logs
 

@@ -1,8 +1,9 @@
+import logging
 import os
 import sys
-import logging
-from typing import Dict, Any, Optional, List
 from pathlib import Path
+from typing import Any, Dict, List, Optional
+
 from dotenv import load_dotenv
 
 # Configure logging
@@ -16,9 +17,9 @@ TESTING = os.getenv("TESTING", "false").lower() == "true"
 base_path = Path(os.path.dirname(__file__)).parent
 env_files = [
     base_path / f".env.{ENVIRONMENT}.local",  # Environment-specific local overrides
-    base_path / f".env.{ENVIRONMENT}",        # Environment-specific defaults
-    base_path / ".env.local",                 # Local overrides
-    base_path / ".env"                        # Default .env file
+    base_path / f".env.{ENVIRONMENT}",  # Environment-specific defaults
+    base_path / ".env.local",  # Local overrides
+    base_path / ".env",  # Default .env file
 ]
 
 # Load the first env file that exists
@@ -28,9 +29,12 @@ for env_file in env_files:
         load_dotenv(dotenv_path=str(env_file))
         break
 
+
 class ConfigValidationError(Exception):
     """Exception raised for configuration validation errors."""
+
     pass
+
 
 class Config:
     """Configuration object to hold runtime settings"""
@@ -51,6 +55,16 @@ class Config:
     TEMP_UPLOADS_PATH = os.getenv("TEMP_UPLOADS_PATH", "temp_uploads")
     TEMP_PATH = os.getenv("TEMP_PATH", "temp")
     LOGS_PATH = os.getenv("LOGS_PATH", "logs")
+    
+    # Convert relative paths to absolute paths
+    if not os.path.isabs(DOCUMENT_STORAGE_PATH):
+        DOCUMENT_STORAGE_PATH = os.path.join(BASE_PATH, DOCUMENT_STORAGE_PATH)
+    if not os.path.isabs(TEMP_UPLOADS_PATH):
+        TEMP_UPLOADS_PATH = os.path.join(BASE_PATH, TEMP_UPLOADS_PATH)
+    if not os.path.isabs(TEMP_PATH):
+        TEMP_PATH = os.path.join(BASE_PATH, TEMP_PATH)
+    if not os.path.isabs(LOGS_PATH):
+        LOGS_PATH = os.path.join(BASE_PATH, LOGS_PATH)
 
     # Mock configuration
     USE_MOCK = os.getenv("USE_MOCK", "false").lower() == "true"
@@ -68,7 +82,9 @@ class Config:
     ENABLE_AUTH = os.getenv("ENABLE_AUTH", "true").lower() == "true"
     JWT_SECRET = os.getenv("JWT_SECRET", "default-dev-jwt-secret")
     JWT_ALGORITHM = os.getenv("JWT_ALGORITHM", "HS256")
-    JWT_ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("JWT_ACCESS_TOKEN_EXPIRE_MINUTES", "30"))
+    JWT_ACCESS_TOKEN_EXPIRE_MINUTES = int(
+        os.getenv("JWT_ACCESS_TOKEN_EXPIRE_MINUTES", "30")
+    )
     JWT_REFRESH_TOKEN_EXPIRE_DAYS = int(os.getenv("JWT_REFRESH_TOKEN_EXPIRE_DAYS", "7"))
 
     # Database
@@ -85,11 +101,17 @@ class Config:
     # Feature flags
     ENABLE_MOCK_LLM = os.getenv("ENABLE_MOCK_LLM", "false").lower() == "true"
     ENABLE_RATE_LIMIT = os.getenv("ENABLE_RATE_LIMIT", "true").lower() == "true"
-    ENABLE_SECURITY_HEADERS = os.getenv("ENABLE_SECURITY_HEADERS", "true").lower() == "true"
-    ENABLE_HTTPS_REDIRECT = os.getenv("ENABLE_HTTPS_REDIRECT", "false").lower() == "true"
+    ENABLE_SECURITY_HEADERS = (
+        os.getenv("ENABLE_SECURITY_HEADERS", "true").lower() == "true"
+    )
+    ENABLE_HTTPS_REDIRECT = (
+        os.getenv("ENABLE_HTTPS_REDIRECT", "false").lower() == "true"
+    )
 
     # Security
-    API_KEY_ENCRYPTION_KEY = os.getenv("API_KEY_ENCRYPTION_KEY", "default-dev-encryption-key")
+    API_KEY_ENCRYPTION_KEY = os.getenv(
+        "API_KEY_ENCRYPTION_KEY", "default-dev-encryption-key"
+    )
 
     # LLM API Keys (loaded if not in mock mode)
     OPENAI_API_KEY: Optional[str] = None
@@ -105,16 +127,23 @@ class Config:
         "/api/auth/login",
         "/api/auth/register",
         "/api/auth/refresh",
-        "/api/auth/password-reset"
+        "/api/auth/password-reset",
     ]
 
     @classmethod
     def create_directories(cls) -> None:
         """Create necessary directories for the application"""
-        os.makedirs(cls.TEMP_UPLOADS_PATH, exist_ok=True)
-        os.makedirs(cls.DOCUMENT_STORAGE_PATH, exist_ok=True)
-        os.makedirs(cls.TEMP_PATH, exist_ok=True)
-        os.makedirs(cls.LOGS_PATH, exist_ok=True)
+        try:
+            os.makedirs(cls.TEMP_UPLOADS_PATH, exist_ok=True)
+            os.makedirs(cls.DOCUMENT_STORAGE_PATH, exist_ok=True)
+            os.makedirs(cls.TEMP_PATH, exist_ok=True)
+            os.makedirs(cls.LOGS_PATH, exist_ok=True)
+            logger.info(f"Created required directories")
+        except (OSError, PermissionError) as e:
+            # If we can't create directories (e.g., in Docker with read-only filesystem)
+            # just log a warning and continue - the app will use in-memory storage
+            logger.warning(f"Failed to create some directories: {str(e)}")
+            logger.warning("Will use in-memory fallbacks where possible")
 
     @classmethod
     def validate_configuration(cls) -> None:
@@ -130,10 +159,14 @@ class Config:
                 errors.append("Production environment must have a secure JWT_SECRET")
 
             if cls.API_KEY_ENCRYPTION_KEY == "default-dev-encryption-key":
-                errors.append("Production environment must have a secure API_KEY_ENCRYPTION_KEY")
+                errors.append(
+                    "Production environment must have a secure API_KEY_ENCRYPTION_KEY"
+                )
 
             if "*" in cls.CORS_ORIGINS:
-                errors.append("Production environment should specify allowed CORS origins")
+                errors.append(
+                    "Production environment should specify allowed CORS origins"
+                )
 
         # Load API keys if not in mock mode
         if not cls.USE_MOCK and not cls.MOCK_MODE:
@@ -143,15 +176,23 @@ class Config:
 
             # Verify at least one API key is available
             if not any([cls.OPENAI_API_KEY, cls.ANTHROPIC_API_KEY, cls.GOOGLE_API_KEY]):
-                errors.append("At least one LLM API key is required when not in mock mode")
+                errors.append(
+                    "At least one LLM API key is required when not in mock mode"
+                )
 
             # Check if default provider has an API key
             if cls.DEFAULT_PROVIDER == "openai" and not cls.OPENAI_API_KEY:
-                errors.append("OpenAI API key is required when using OpenAI as default provider")
+                errors.append(
+                    "OpenAI API key is required when using OpenAI as default provider"
+                )
             elif cls.DEFAULT_PROVIDER == "anthropic" and not cls.ANTHROPIC_API_KEY:
-                errors.append("Anthropic API key is required when using Anthropic as default provider")
+                errors.append(
+                    "Anthropic API key is required when using Anthropic as default provider"
+                )
             elif cls.DEFAULT_PROVIDER == "google" and not cls.GOOGLE_API_KEY:
-                errors.append("Google API key is required when using Google as default provider")
+                errors.append(
+                    "Google API key is required when using Google as default provider"
+                )
 
         # Raise exception if there are validation errors
         if errors and not cls.TESTING:
@@ -159,25 +200,40 @@ class Config:
                 logger.error(f"Configuration error: {error}")
 
             if cls.ENVIRONMENT == "production":
-                raise ConfigValidationError("Invalid configuration for production environment")
+                raise ConfigValidationError(
+                    "Invalid configuration for production environment"
+                )
             else:
-                logger.warning("Configuration has issues but will continue in non-production environment")
+                logger.warning(
+                    "Configuration has issues but will continue in non-production environment"
+                )
 
     @classmethod
     def get_settings(cls) -> Dict[str, Any]:
         """Get all settings as a dictionary for API responses"""
         # Don't include sensitive values
-        settings = {k: v for k, v in cls.__dict__.items()
-                   if not k.startswith('_') and k not in [
-                       'OPENAI_API_KEY', 'ANTHROPIC_API_KEY', 'GOOGLE_API_KEY',
-                       'JWT_SECRET', 'SECRET_KEY', 'API_KEY_ENCRYPTION_KEY'
-                   ]}
+        settings = {
+            k: v
+            for k, v in cls.__dict__.items()
+            if not k.startswith("_")
+            and k
+            not in [
+                "OPENAI_API_KEY",
+                "ANTHROPIC_API_KEY",
+                "GOOGLE_API_KEY",
+                "JWT_SECRET",
+                "SECRET_KEY",
+                "API_KEY_ENCRYPTION_KEY",
+            ]
+        }
 
         # Add API key availability status
-        settings.update({
-            "openai_api_available": bool(cls.OPENAI_API_KEY),
-            "anthropic_api_available": bool(cls.ANTHROPIC_API_KEY),
-            "google_api_available": bool(cls.GOOGLE_API_KEY)
-        })
+        settings.update(
+            {
+                "openai_api_available": bool(cls.OPENAI_API_KEY),
+                "anthropic_api_available": bool(cls.ANTHROPIC_API_KEY),
+                "google_api_available": bool(cls.GOOGLE_API_KEY),
+            }
+        )
 
         return settings

@@ -84,12 +84,28 @@ Ultra supports multiple environment configurations:
 ```
 
 Key environment variables:
+
 - `ENVIRONMENT`: Set to `development`, `testing`, or `production`
 - `USE_MOCK=true`: Enable mock services (development environment)
 - `MOCK_MODE=true`: Use fully mocked dependencies (development environment)
 - `AUTO_REGISTER_PROVIDERS=true`: Register all providers even without API keys (on by default)
 
+### Port Management
+
+If you encounter "address already in use" errors when starting servers, use the port clearing utility:
+
+```bash
+# Clear a specific port
+./scripts/clear_port.sh 8085
+
+# Server scripts automatically clear ports before starting
+# For example, to restart the backend on a clean port:
+./scripts/kill_api_ports.sh 8085
+python -m uvicorn backend.app:app --port 8085
+```
+
 To quickly verify your setup:
+
 ```bash
 # Check all providers in production environment (using API keys)
 python scripts/check_cloud_llms.py
@@ -236,12 +252,14 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 The Ultra Framework includes a detailed performance monitoring dashboard that provides real-time metrics and visualizations:
 
 ### Dashboard Features
+
 - **System Overview**: CPU, memory, and disk usage metrics with trend indicators
 - **Performance Metrics**: Request counts, document processing stats, and response times
 - **Efficiency Analytics**: Average processing times, cache hit rates, and resource utilization
 - **System Information**: Runtime environment details, uptime, and system status
 
 ### Accessing the Dashboard
+
 - Navigate to `/dashboard` in your browser
 - Click the dashboard icon in the top-right corner of the main application
 - Auto-refreshes every 5 seconds to show real-time data
@@ -259,21 +277,25 @@ The documentation index also includes the current development priorities based o
 Ultra AI has been optimized for performance in several key areas:
 
 ### Code Splitting & Lazy Loading
+
 - Components are lazy-loaded to reduce initial bundle size
 - Route-based code splitting for optimal loading
 - Suspense boundaries with loading indicators
 
 ### Mobile Optimization
+
 - Responsive design for all device sizes
 - Optimized touch targets for mobile devices
 - Reduced motion options for accessibility
 
 ### Asset Optimization
+
 - Preloading of critical resources
 - Optimized font loading strategies
 - Inline critical CSS for faster initial render
 
 ### Build Optimization
+
 - Vendor chunk separation for better caching
 - Brotli and Gzip compression
 - Bundle analysis tools for monitoring

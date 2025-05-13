@@ -122,13 +122,15 @@ run_test() {
         while IFS= read -r line; do
             # Skip empty lines and comments
             [[ -z "$line" || "$line" == \#* ]] && continue
+            # Skip lines with echo commands or other shell commands
+            [[ "$line" == echo* ]] && continue
             # Extract variable assignment before any comments
             var_assignment=$(echo "$line" | sed 's/#.*$//' | xargs)
-            # Only export if there's content
-            if [ ! -z "$var_assignment" ]; then
+            # Only export if there's content and looks like a variable assignment
+            if [ ! -z "$var_assignment" ] && [[ "$var_assignment" == *=* ]]; then
                 export "$var_assignment"
             fi
-        done < <(grep -v '^[[:space:]]*#' .env.test_production)
+        done < .env.test_production
     fi
 
     # Execute the test
@@ -177,6 +179,16 @@ cleanup() {
     # Stop the mock server if it's running
     echo -e "${BLUE}Stopping mock server if running...${NC}"
     pkill -f "python3 mock_available_models_api.py" > /dev/null 2>&1
+
+    # Clear common ports for future runs
+    if type clear_port &>/dev/null; then
+        echo -e "${BLUE}Clearing commonly used ports for future runs...${NC}"
+        # Array of common ports to clear
+        ports=(8085 8086 8000 8080 8081)
+        for port in "${ports[@]}"; do
+            clear_port $port
+        done
+    fi
 
     # Reset environment variables
     unset ENVIRONMENT
@@ -249,9 +261,29 @@ if __name__ == "__main__":
     exit(0 if success else 1)
 EOF
 
+    # Import the port clearing utility
+    if [ -f "scripts/clear_port.sh" ]; then
+        source scripts/clear_port.sh
+    fi
+
+    # Define the API port to test
+    API_PORT=8085
+
     # Run simplified production health test with timeout to prevent hanging
     echo -e "${BLUE}Testing health endpoint accessibility (server running check)${NC}"
-    if curl -s -f -o /dev/null -m 2 http://localhost:8085/api/health -H 'X-Test-Mode: true'; then
+
+    # Try to clear the port if not in use by the server
+    if ! curl -s -f -o /dev/null -m 2 http://localhost:${API_PORT}/api/health -H 'X-Test-Mode: true'; then
+        echo -e "${YELLOW}⚠️ API server not detected on port ${API_PORT}${NC}"
+        # Clear the port if the utility is available
+        if type clear_port &>/dev/null; then
+            echo -e "${BLUE}Attempting to clear port ${API_PORT} for server...${NC}"
+            clear_port ${API_PORT}
+        fi
+    fi
+
+    # Check again if the API is available
+    if curl -s -f -o /dev/null -m 2 http://localhost:${API_PORT}/api/health -H 'X-Test-Mode: true'; then
         echo -e "${GREEN}✓ Server is running and health endpoint is accessible${NC}"
         run_test "Production Health Endpoint Test" "timeout 10 python backend/tests/test_prod_health.py"
         if [ $? -ne 0 ]; then
@@ -259,8 +291,8 @@ EOF
             echo -e "${RED}Health endpoint test failed or timed out${NC}"
         fi
     else
-        echo -e "${YELLOW}⚠️ API server is not running on port 8085${NC}"
-        echo -e "${YELLOW}To run complete tests, start the server with: python -m uvicorn backend.app:app --reload --port 8085${NC}"
+        echo -e "${YELLOW}⚠️ API server is not running on port ${API_PORT}${NC}"
+        echo -e "${YELLOW}To run complete tests, start the server with: python -m uvicorn backend.app:app --reload --port ${API_PORT}${NC}"
         echo -e "${YELLOW}Continuing with offline tests...${NC}"
         # Mark as inconclusive but don't fail the build
         echo -e "${BLUE}Production Health Endpoint Test${NC}"
