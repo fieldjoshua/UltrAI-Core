@@ -6,12 +6,11 @@ This module provides the SQLAlchemy ORM model for User entities.
 
 import enum
 from datetime import datetime
-from typing import Optional
 
 from sqlalchemy import Column, Integer, String, Float, DateTime, Enum, Boolean, ForeignKey
 from sqlalchemy.orm import relationship
 
-from backend.database.base import Base
+from backend.database.models.base import Base
 
 
 class SubscriptionTier(str, enum.Enum):
@@ -60,6 +59,7 @@ class User(Base):
     # Relationships
     documents = relationship("Document", back_populates="owner")
     analyses = relationship("Analysis", back_populates="user")
+    api_keys = relationship("ApiKey", back_populates="user")
 
     def __repr__(self) -> str:
         return f"<User {self.username or self.email}>"
