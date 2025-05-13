@@ -1,8 +1,6 @@
 [flake8]
+# Max line length - we can be a bit more permissive than the standard 79
 max-line-length = 150
-extend-ignore = E203
-exclude = .git,__pycache__,build,dist
+# Ignore assert warnings in test files
 per-file-ignores =
-    # These files don't need docstrings
-    __init__.py: D104
-    tests/*.py: D100,D101,D102,D103
+    tests/*: S101, E501
