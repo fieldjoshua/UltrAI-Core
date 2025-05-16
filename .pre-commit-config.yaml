@@ -64,3 +64,13 @@ repos:
       - id: bandit
         args: ["-c", ".bandit.yaml"]
         exclude: ^(node_modules/|dist/|build/|.venv/|.env/|tests/)
+
+  # AICheck compliance hooks (Phase 1 & 2)
+  - repo: local
+    hooks:
+      - id: aicheck-validation
+        name: AICheck Validation
+        entry: .aicheck/hooks/pre-commit-aicheck
+        language: script
+        pass_filenames: false
+        always_run: true
