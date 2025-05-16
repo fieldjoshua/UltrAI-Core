@@ -1,499 +1,303 @@
-"""
-Global error handling for the Ultra backend.
+"""Centralized error handling for the application."""
 
-This module provides comprehensive error handling capabilities with
-consistent error responses, detailed logging, and error classification.
-"""
-
-import os
-import sys
+import logging
 import traceback
-from http import HTTPStatus
-from typing import Any, Dict, List, Optional, Type, Union
+from datetime import datetime
+from typing import Any, Dict, Optional, Tuple
 
-import sentry_sdk
-from fastapi import FastAPI, Request, Response, status
-from fastapi.exceptions import RequestValidationError
+from fastapi import HTTPException, Request, Response
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel, ValidationError
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
-from backend.models.base_models import ErrorDetail, ErrorResponse
-from backend.utils.logging import get_logger
+from .errors import (
+    BaseError,
+    ErrorCategory,
+    ErrorSeverity,
+    InternalServerError,
+    ValidationError,
+)
 
-# Configure logger
-logger = get_logger("error_handler", "logs/error.log")
-
-
-class ErrorCode:
-    """Error code constants"""
-
-    # General errors
-    INTERNAL_ERROR = "internal_error"
-    NOT_FOUND = "not_found"
-    VALIDATION_ERROR = "validation_error"
-
-    # Authentication errors
-    UNAUTHORIZED = "unauthorized"
-    FORBIDDEN = "forbidden"
-    INVALID_TOKEN = "invalid_token"
-    EXPIRED_TOKEN = "expired_token"
-
-    # Input errors
-    INVALID_INPUT = "invalid_input"
-    MISSING_FIELD = "missing_field"
-    INVALID_FORMAT = "invalid_format"
-
-    # Resource errors
-    RESOURCE_EXISTS = "resource_exists"
-    RESOURCE_NOT_FOUND = "resource_not_found"
-    RESOURCE_CONFLICT = "resource_conflict"
-
-    # Rate limiting errors
-    RATE_LIMIT_EXCEEDED = "rate_limit_exceeded"
-
-    # Service errors
-    SERVICE_UNAVAILABLE = "service_unavailable"
-    EXTERNAL_SERVICE_ERROR = "external_service_error"
-    TIMEOUT = "timeout"
-
-    # Business logic errors
-    BUSINESS_LOGIC_ERROR = "business_logic_error"
-    PERMISSION_DENIED = "permission_denied"
+logger = logging.getLogger(__name__)
 
 
-class ErrorCategory:
-    """Error category constants"""
+class ErrorHandler:
+    """Centralized error handler for consistent error responses."""
 
-    SYSTEM = "system"          # System-level errors
-    AUTHENTICATION = "auth"     # Authentication/authorization errors
-    VALIDATION = "validation"   # Input validation errors
-    RESOURCE = "resource"       # Resource-related errors
-    RATE_LIMIT = "rate_limit"   # Rate limiting errors
-    SERVICE = "service"         # Service-related errors
-    BUSINESS = "business"       # Business logic errors
+    def __init__(self, debug: bool = False):
+        self.debug = debug
+        self.error_mappings = self._load_error_mappings()
 
-
-class ErrorClassification:
-    """Classification of errors by code, HTTP status, and category"""
-
-    # Map error codes to HTTP status codes and categories
-    ERROR_MAP = {
-        # General errors
-        ErrorCode.INTERNAL_ERROR: (status.HTTP_500_INTERNAL_SERVER_ERROR, ErrorCategory.SYSTEM),
-        ErrorCode.NOT_FOUND: (status.HTTP_404_NOT_FOUND, ErrorCategory.RESOURCE),
-        ErrorCode.VALIDATION_ERROR: (status.HTTP_422_UNPROCESSABLE_ENTITY, ErrorCategory.VALIDATION),
-
-        # Authentication errors
-        ErrorCode.UNAUTHORIZED: (status.HTTP_401_UNAUTHORIZED, ErrorCategory.AUTHENTICATION),
-        ErrorCode.FORBIDDEN: (status.HTTP_403_FORBIDDEN, ErrorCategory.AUTHENTICATION),
-        ErrorCode.INVALID_TOKEN: (status.HTTP_401_UNAUTHORIZED, ErrorCategory.AUTHENTICATION),
-        ErrorCode.EXPIRED_TOKEN: (status.HTTP_401_UNAUTHORIZED, ErrorCategory.AUTHENTICATION),
-
-        # Input errors
-        ErrorCode.INVALID_INPUT: (status.HTTP_400_BAD_REQUEST, ErrorCategory.VALIDATION),
-        ErrorCode.MISSING_FIELD: (status.HTTP_400_BAD_REQUEST, ErrorCategory.VALIDATION),
-        ErrorCode.INVALID_FORMAT: (status.HTTP_400_BAD_REQUEST, ErrorCategory.VALIDATION),
-
-        # Resource errors
-        ErrorCode.RESOURCE_EXISTS: (status.HTTP_409_CONFLICT, ErrorCategory.RESOURCE),
-        ErrorCode.RESOURCE_NOT_FOUND: (status.HTTP_404_NOT_FOUND, ErrorCategory.RESOURCE),
-        ErrorCode.RESOURCE_CONFLICT: (status.HTTP_409_CONFLICT, ErrorCategory.RESOURCE),
-
-        # Rate limiting errors
-        ErrorCode.RATE_LIMIT_EXCEEDED: (status.HTTP_429_TOO_MANY_REQUESTS, ErrorCategory.RATE_LIMIT),
-
-        # Service errors
-        ErrorCode.SERVICE_UNAVAILABLE: (status.HTTP_503_SERVICE_UNAVAILABLE, ErrorCategory.SERVICE),
-        ErrorCode.EXTERNAL_SERVICE_ERROR: (status.HTTP_502_BAD_GATEWAY, ErrorCategory.SERVICE),
-        ErrorCode.TIMEOUT: (status.HTTP_504_GATEWAY_TIMEOUT, ErrorCategory.SERVICE),
-
-        # Business logic errors
-        ErrorCode.BUSINESS_LOGIC_ERROR: (status.HTTP_422_UNPROCESSABLE_ENTITY, ErrorCategory.BUSINESS),
-        ErrorCode.PERMISSION_DENIED: (status.HTTP_403_FORBIDDEN, ErrorCategory.BUSINESS),
-    }
-
-    @classmethod
-    def get_status_code(cls, error_code: str) -> int:
-        """Get HTTP status code for an error code"""
-        return cls.ERROR_MAP.get(error_code, (status.HTTP_500_INTERNAL_SERVER_ERROR, None))[0]
-
-    @classmethod
-    def get_category(cls, error_code: str) -> str:
-        """Get category for an error code"""
-        return cls.ERROR_MAP.get(error_code, (None, ErrorCategory.SYSTEM))[1]
-
-    @classmethod
-    def get_error_code(cls, exception: Exception) -> str:
-        """Get error code for an exception"""
-        # Handle known exception types
-        if isinstance(exception, RequestValidationError):
-            return ErrorCode.VALIDATION_ERROR
-
-        # Default to internal error
-        return ErrorCode.INTERNAL_ERROR
-
-
-class UltraBaseException(Exception):
-    """Base class for all Ultra exceptions"""
-
-    def __init__(
-        self,
-        message: str,
-        code: str = ErrorCode.INTERNAL_ERROR,
-        status_code: Optional[int] = None,
-        details: Optional[Any] = None,
-    ):
-        self.message = message
-        self.code = code
-        self.status_code = status_code or ErrorClassification.get_status_code(code)
-        self.details = details
-        super().__init__(message)
-
-
-class ValidationException(UltraBaseException):
-    """Exception for validation errors"""
-
-    def __init__(
-        self,
-        message: str = "Validation error",
-        code: str = ErrorCode.VALIDATION_ERROR,
-        field_errors: Optional[Dict[str, str]] = None,
-        details: Optional[Any] = None,
-    ):
-        # Convert field errors to details if provided
-        if field_errors:
-            error_details = []
-            for field, msg in field_errors.items():
-                error_details.append(
-                    ErrorDetail(
-                        type=ErrorCode.INVALID_INPUT,
-                        msg=msg,
-                        loc=[field],
-                    )
-                )
-            details = {"field_errors": error_details}
-
-        super().__init__(
-            message=message,
-            code=code,
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            details=details,
-        )
-
-
-class ResourceNotFoundException(UltraBaseException):
-    """Exception for resource not found errors"""
-
-    def __init__(
-        self,
-        resource_type: str,
-        resource_id: str,
-        message: Optional[str] = None,
-    ):
-        message = message or f"{resource_type} with ID {resource_id} not found"
-        details = {
-            "resource_type": resource_type,
-            "resource_id": resource_id,
+    def _load_error_mappings(self) -> Dict[str, str]:
+        """Load error code mappings."""
+        return {
+            # Add any custom error mappings here
         }
 
-        super().__init__(
-            message=message,
-            code=ErrorCode.RESOURCE_NOT_FOUND,
-            status_code=status.HTTP_404_NOT_FOUND,
-            details=details,
-        )
-
-
-class AuthenticationException(UltraBaseException):
-    """Exception for authentication errors"""
-
-    def __init__(
+    def handle_error(
         self,
-        message: str = "Authentication failed",
-        code: str = ErrorCode.UNAUTHORIZED,
-    ):
-        super().__init__(
-            message=message,
-            code=code,
-            status_code=status.HTTP_401_UNAUTHORIZED,
-        )
-
-
-class BusinessLogicException(UltraBaseException):
-    """Exception for business logic errors"""
-
-    def __init__(
-        self,
-        message: str,
-        code: str = ErrorCode.BUSINESS_LOGIC_ERROR,
-        details: Optional[Any] = None,
-    ):
-        super().__init__(
-            message=message,
-            code=code,
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            details=details,
-        )
-
-
-class ServiceException(UltraBaseException):
-    """Exception for service-related errors"""
-
-    def __init__(
-        self,
-        message: str,
-        service_name: str,
-        code: str = ErrorCode.SERVICE_UNAVAILABLE,
-        details: Optional[Any] = None,
-    ):
-        if details is None:
-            details = {}
-
-        details["service_name"] = service_name
-
-        super().__init__(
-            message=message,
-            code=code,
-            details=details,
-        )
-
-
-def create_error_response(
-    error_code: str,
-    message: str,
-    details: Optional[Any] = None,
-    request_id: Optional[str] = None,
-) -> ErrorResponse:
-    """
-    Create a standardized error response
-
-    Args:
-        error_code: Error code
-        message: Error message
-        details: Additional error details
-        request_id: Request ID for tracking
-
-    Returns:
-        ErrorResponse object
-    """
-    return ErrorResponse(
-        status="error",
-        message=message,
-        code=error_code,
-        details=details,
-        request_id=request_id,
-    )
-
-
-def format_exception(
-    exception: Exception,
-    include_traceback: bool = False,
-) -> Dict[str, Any]:
-    """
-    Format an exception into a standardized dictionary
-
-    Args:
-        exception: Exception to format
-        include_traceback: Whether to include traceback
-
-    Returns:
-        Formatted exception as a dictionary
-    """
-    result = {
-        "type": type(exception).__name__,
-        "message": str(exception),
-    }
-
-    # Add traceback if requested
-    if include_traceback:
-        result["traceback"] = traceback.format_exception(
-            type(exception),
-            exception,
-            exception.__traceback__,
-        )
-
-    # Add extra details for Ultra exceptions
-    if isinstance(exception, UltraBaseException):
-        result["code"] = exception.code
-        result["status_code"] = exception.status_code
-
-        if exception.details:
-            result["details"] = exception.details
-
-    return result
-
-
-def log_exception(
-    request: Request,
-    exception: Exception,
-    level: str = "error",
-) -> None:
-    """
-    Log an exception with standardized format
-
-    Args:
-        request: FastAPI request
-        exception: Exception to log
-        level: Log level
-    """
-    # Format the exception
-    formatted_exception = format_exception(
-        exception,
-        include_traceback=True,  # Always include traceback in logs
-    )
-
-    # Add request information
-    log_data = {
-        "exception": formatted_exception,
-        "request": {
-            "method": request.method,
-            "url": str(request.url),
-            "client_host": getattr(request.client, "host", "unknown"),
-            "headers": dict(request.headers),
-        },
-    }
-
-    # Get log function based on level
-    log_func = getattr(logger, level, logger.error)
-
-    # Log the error
-    log_func(
-        f"Exception occurred: {type(exception).__name__}: {str(exception)}",
-        extra=log_data,
-    )
-
-
-async def error_handling_middleware(request: Request, call_next: Any) -> Response:
-    """
-    Middleware for handling exceptions in request processing
-
-    Args:
-        request: FastAPI request
-        call_next: Next middleware or route handler
-
-    Returns:
-        Response object
-    """
-    try:
-        # Process the request
-        return await call_next(request)
-    except UltraBaseException as e:
-        # Log Ultra exceptions
-        log_exception(request, e, level="warning")
-
-        # Create error response
-        error_response = create_error_response(
-            error_code=e.code,
-            message=e.message,
-            details=e.details,
-            request_id=getattr(request.state, "request_id", None),
-        )
-
-        # Return JSON response
-        return JSONResponse(
-            content=error_response.dict(exclude_none=True),
-            status_code=e.status_code,
-        )
-    except Exception as e:
-        # Log unexpected exceptions
-        log_exception(request, e, level="error")
-
-        # Get error code
-        error_code = ErrorClassification.get_error_code(e)
-        status_code = ErrorClassification.get_status_code(error_code)
-
-        # Don't expose internal error details in production
-        is_production = os.environ.get("ENVIRONMENT", "development") == "production"
-        details = None if is_production else format_exception(e)
-
-        # Create error response
-        error_response = create_error_response(
-            error_code=error_code,
-            message="An unexpected error occurred",
-            details=details,
-            request_id=getattr(request.state, "request_id", None),
-        )
-
-        # Return JSON response
-        return JSONResponse(
-            content=error_response.dict(exclude_none=True),
-            status_code=status_code,
-        )
-
-
-def register_exception_handlers(app: FastAPI) -> None:
-    """
-    Register exception handlers for a FastAPI application
-
-    Args:
-        app: FastAPI application
-    """
-    # Handle validation errors
-    @app.exception_handler(RequestValidationError)
-    async def validation_exception_handler(
-        request: Request, exc: RequestValidationError
+        error: Exception,
+        request: Optional[Request] = None,
+        context: Optional[Dict[str, Any]] = None,
     ) -> JSONResponse:
-        """Handle FastAPI validation errors"""
-        # Log the error
-        log_exception(request, exc, level="warning")
-
-        # Format validation errors
-        error_details = []
-        for error in exc.errors():
-            # Extract location
-            location = error.get("loc", [])
-            field = ".".join(str(part) for part in location if not isinstance(part, int))
-
-            # Skip body parameter itself (usually means the whole body is invalid)
-            if field == "body":
-                field = ""
-
-            # Create error detail
-            error_detail = ErrorDetail(
-                type=error.get("type", "validation_error"),
-                msg=error.get("msg", "Invalid value"),
-                loc=[str(loc) for loc in location],
-                ctx=error.get("ctx"),
+        """Handle error and return appropriate response."""
+        # Add request context
+        if request:
+            context = context or {}
+            context.update(
+                {
+                    "method": request.method,
+                    "path": request.url.path,
+                    "client": request.client.host if request.client else None,
+                    "headers": dict(request.headers) if self.debug else None,
+                    "locale": getattr(request.state, "locale", None),
+                }
             )
 
-            error_details.append(error_detail)
+        # Handle different error types
+        if isinstance(error, BaseError):
+            return self._handle_base_error(error, context)
+        elif isinstance(error, HTTPException):
+            return self._handle_http_exception(error, context)
+        elif isinstance(error, StarletteHTTPException):
+            return self._handle_starlette_exception(error, context)
+        else:
+            return self._handle_unknown_error(error, context)
 
-        # Create error response
-        error_response = create_error_response(
-            error_code=ErrorCode.VALIDATION_ERROR,
-            message="Validation error",
-            details=error_details,
-            request_id=getattr(request.state, "request_id", None),
-        )
-
-        # Return JSON response
-        return JSONResponse(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            content=error_response.dict(exclude_none=True),
-        )
-
-    # Handle Ultra base exceptions
-    @app.exception_handler(UltraBaseException)
-    async def ultra_exception_handler(
-        request: Request, exc: UltraBaseException
+    def _handle_base_error(
+        self, error: BaseError, context: Optional[Dict[str, Any]] = None
     ) -> JSONResponse:
-        """Handle Ultra base exceptions"""
-        # Log the error
-        log_exception(request, exc, level="warning")
+        """Handle custom BaseError instances."""
+        # Update error context
+        if context:
+            error.context.update(context)
 
-        # Create error response
-        error_response = create_error_response(
-            error_code=exc.code,
-            message=exc.message,
-            details=exc.details,
-            request_id=getattr(request.state, "request_id", None),
+        # Get user-friendly message
+        user_message = self._get_user_message(error)
+
+        response_data = {
+            "error": {
+                "code": error.code,
+                "message": user_message,
+                "details": error.details if self.debug else {},
+                "timestamp": error.timestamp,
+                "request_id": context.get("request_id") if context else None,
+            }
+        }
+
+        # Add debug information in development
+        if self.debug:
+            response_data["error"]["debug"] = {
+                "category": error.category.value,
+                "severity": error.severity.value,
+                "context": error.context,
+                "traceback": traceback.format_exc(),
+            }
+
+        return JSONResponse(status_code=error.status_code, content=response_data)
+
+    def _handle_http_exception(
+        self, error: HTTPException, context: Optional[Dict[str, Any]] = None
+    ) -> JSONResponse:
+        """Handle FastAPI HTTPException."""
+        response_data = {
+            "error": {
+                "code": f"HTTP_{error.status_code}",
+                "message": error.detail,
+                "timestamp": datetime.utcnow().isoformat(),
+                "request_id": context.get("request_id") if context else None,
+            }
+        }
+
+        logger.warning(f"HTTP Exception: {error.status_code} - {error.detail}")
+
+        return JSONResponse(status_code=error.status_code, content=response_data)
+
+    def _handle_starlette_exception(
+        self, error: StarletteHTTPException, context: Optional[Dict[str, Any]] = None
+    ) -> JSONResponse:
+        """Handle Starlette HTTPException."""
+        return self._handle_http_exception(
+            HTTPException(status_code=error.status_code, detail=error.detail), context
         )
 
-        # Return JSON response
-        return JSONResponse(
-            status_code=exc.status_code,
-            content=error_response.dict(exclude_none=True),
+    def _handle_unknown_error(
+        self, error: Exception, context: Optional[Dict[str, Any]] = None
+    ) -> JSONResponse:
+        """Handle unknown/unexpected errors."""
+        # Create InternalServerError
+        internal_error = InternalServerError(
+            message="An unexpected error occurred",
+            details={"original_error": str(error)} if self.debug else {},
+            context=context,
         )
 
-    logger.info("Exception handlers registered successfully")
+        # Log the full error
+        logger.error(
+            f"Unexpected error: {type(error).__name__}: {str(error)}",
+            exc_info=True,
+            extra={"context": context},
+        )
+
+        return self._handle_base_error(internal_error, context)
+
+    def _get_user_message(self, error: BaseError) -> str:
+        """Get user-friendly error message."""
+        from .user_messages import get_user_message
+
+        # Get locale from request context if available
+        locale = None
+        if error.context and "locale" in error.context:
+            locale = error.context["locale"]
+
+        # Get user-friendly message
+        return get_user_message(
+            error_code=error.code, locale=locale, fallback_message=error.message
+        )
+
+    def create_error_response(
+        self,
+        error_code: str,
+        message: Optional[str] = None,
+        status_code: int = 400,
+        details: Optional[Dict[str, Any]] = None,
+    ) -> JSONResponse:
+        """Create error response with standard format."""
+        from .errors import ERROR_REGISTRY
+
+        # Get error class
+        error_class = ERROR_REGISTRY.get(error_code, BaseError)
+
+        # Create error instance
+        error = error_class(message=message, details=details)
+
+        return self._handle_base_error(error)
+
+
+# Get debug mode from config
+import os
+
+DEBUG_MODE = os.environ.get("DEBUG", "false").lower() == "true"
+
+# Global error handler instance
+error_handler = ErrorHandler(debug=DEBUG_MODE)
+
+
+# Error response model for type hints
+def error_response_model():
+    """Return error response model for documentation."""
+    return {
+        "error": {
+            "code": "string",
+            "message": "string",
+            "details": {},
+            "timestamp": "string",
+            "request_id": "string",
+        }
+    }
+
+
+# Exception handlers for FastAPI
+async def base_error_handler(request: Request, exc: BaseError) -> JSONResponse:
+    """Handle BaseError exceptions."""
+    return error_handler.handle_error(exc, request)
+
+
+async def http_exception_handler(request: Request, exc: HTTPException) -> JSONResponse:
+    """Handle HTTPException."""
+    return error_handler.handle_error(exc, request)
+
+
+async def validation_exception_handler(
+    request: Request, exc: ValidationError
+) -> JSONResponse:
+    """Handle validation exceptions."""
+    return error_handler.handle_error(exc, request)
+
+
+async def generic_exception_handler(request: Request, exc: Exception) -> JSONResponse:
+    """Handle all other exceptions."""
+    return error_handler.handle_error(exc, request)
+
+
+async def validation_exception_handler(request: Request, exc) -> JSONResponse:
+    """Handle validation exceptions from FastAPI/Pydantic."""
+    from fastapi.exceptions import RequestValidationError
+
+    if isinstance(exc, RequestValidationError):
+        # Extract validation errors
+        errors = exc.errors()
+        details = {
+            "validation_errors": errors,
+            "body": exc.body if hasattr(exc, "body") else None,
+        }
+
+        validation_error = ValidationError(
+            message="Request validation failed", details=details
+        )
+        return error_handler.handle_error(validation_error, request)
+
+    # For other validation errors, convert to ValidationError
+    validation_error = ValidationError(
+        message=str(exc), details={"error": type(exc).__name__}
+    )
+    return error_handler.handle_error(validation_error, request)
+
+
+# Utility functions
+def wrap_error_detail(field: str, message: str) -> Dict[str, Any]:
+    """Wrap field-specific error details."""
+    return {"field": field, "message": message}
+
+
+def create_validation_error(field_errors: Dict[str, str]) -> ValidationError:
+    """Create validation error from field errors."""
+    from .errors import InvalidFormatError, RequiredFieldMissingError
+
+    # Determine primary error type
+    if any("required" in msg.lower() for msg in field_errors.values()):
+        error_class = RequiredFieldMissingError
+    else:
+        error_class = InvalidFormatError
+
+    # Create detailed error
+    return error_class(message="Validation failed", details={"fields": field_errors})
+
+
+# Missing functions for app.py compatibility
+async def error_handling_middleware(request: Request, call_next):
+    """
+    Middleware for handling errors consistently across the application.
+    """
+    try:
+        response = await call_next(request)
+        return response
+    except BaseError as e:
+        return error_handler.handle_error(e, request)
+    except HTTPException as e:
+        return error_handler.handle_error(e, request)
+    except Exception as e:
+        return error_handler.handle_error(e, request)
+
+
+def register_exception_handlers(app):
+    """
+    Register all custom exception handlers with the FastAPI app.
+    """
+    from fastapi.exceptions import RequestValidationError
+
+    from .errors import BaseError
+
+    # Register handler for BaseError and subclasses
+    app.add_exception_handler(BaseError, base_error_handler)
+
+    # Register handler for HTTPException
+    app.add_exception_handler(HTTPException, http_exception_handler)
+
+    # Register handler for Starlette HTTPException
+    app.add_exception_handler(StarletteHTTPException, http_exception_handler)
+
+    # Register handler for validation errors
+    app.add_exception_handler(RequestValidationError, validation_exception_handler)
+
+    # Register catch-all handler
+    app.add_exception_handler(Exception, generic_exception_handler)
