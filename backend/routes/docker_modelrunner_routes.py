@@ -23,19 +23,31 @@ get_available_models = None
 # Try to import the CLI adapter
 try:
     sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
-    from src.models.docker_modelrunner_cli_adapter import (
-        DockerModelRunnerCLIAdapter,
-        create_modelrunner_cli_adapter,
-    )
+    try:
+        from models.docker_modelrunner_cli_adapter import (
+            DockerModelRunnerCLIAdapter,
+            create_modelrunner_cli_adapter,
+        )
+    except ImportError:
+        from backend.models.docker_modelrunner_cli_adapter import (
+            DockerModelRunnerCLIAdapter,
+            create_modelrunner_cli_adapter,
+        )
 except ImportError as e:
     logging.error(f"Failed to import Docker Model Runner CLI adapter: {e}")
 
 # Try to import the API adapter
 try:
-    from src.models.docker_modelrunner_adapter import (
-        DockerModelRunnerAdapter,
-        get_available_models,
-    )
+    try:
+        from models.docker_modelrunner_adapter import (
+            DockerModelRunnerAdapter,
+            get_available_models,
+        )
+    except ImportError:
+        from backend.models.docker_modelrunner_adapter import (
+            DockerModelRunnerAdapter,
+            get_available_models,
+        )
 except ImportError as e:
     logging.error(f"Failed to import Docker Model Runner API adapter: {e}")
 

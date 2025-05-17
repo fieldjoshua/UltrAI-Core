@@ -23,11 +23,18 @@ try:
         sys.path.append(src_path)
 
     # Import the actual orchestrator
-    from src.models.enhanced_orchestrator import (
-        AnalysisMode,
-        EnhancedOrchestrator,
-        OrchestratorConfig,
-    )
+    try:
+        from models.enhanced_orchestrator import (
+            AnalysisMode,
+            EnhancedOrchestrator,
+            OrchestratorConfig,
+        )
+    except ImportError:
+        from orchestration.enhanced_orchestrator import (
+            AnalysisMode,
+            EnhancedOrchestrator,
+            OrchestratorConfig,
+        )
 
     # Note: We're keeping this as src.models because this is a facade that intentionally
     # imports from the src directory
