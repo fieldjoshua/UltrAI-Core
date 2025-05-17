@@ -28,18 +28,19 @@ RUN pip install --no-cache-dir --upgrade pip setuptools wheel && \
 COPY . .
 
 # Create necessary directories (no VOLUME)
-RUN mkdir -p /app/logs /app/document_storage && \
-    chown -R app:app /app
+RUN mkdir -p /app/logs /app/document_storage
+
+# Copy entrypoint and make executable
+COPY --chmod=755 entrypoint.sh ./
+
+# Change ownership
+RUN chown -R app:app /app
 
 # Switch to non-root user
 USER app
 
 # Expose port
 EXPOSE 8000
-
-# Copy entrypoint
-COPY entrypoint.sh ./
-RUN chmod +x entrypoint.sh
 
 # Use entrypoint script
 ENTRYPOINT ["./entrypoint.sh"]
