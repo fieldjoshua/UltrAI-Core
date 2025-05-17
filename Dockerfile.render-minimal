@@ -1,6 +1,9 @@
-FROM python:3.10-slim
+FROM python:3.10-slim as production
 
-# Keep it minimal
+# Force rebuild with timestamp
+ARG REBUILD_TIMESTAMP=1737109060
+
+# Keep it minimal  
 WORKDIR /app
 
 # Install only essential system dependencies
