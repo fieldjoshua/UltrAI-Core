@@ -276,6 +276,9 @@ cython_debug/
 *.pfx
 .key-*
 .cert-*
+jwt_secret.txt
+.env.production
+.env.api_keys
 
 # Coverage reports
 coverage/
