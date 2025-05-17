@@ -28,6 +28,7 @@ COPY alembic.ini /app/alembic.ini
 COPY gunicorn_conf.py /app/gunicorn_conf.py
 COPY gunicorn_conf_minimal.py /app/gunicorn_conf_minimal.py
 COPY scripts /app/scripts
+COPY .env.render /app/.env
 
 # Make scripts executable
 RUN chmod +x /app/scripts/*.sh
@@ -38,5 +39,5 @@ RUN mkdir -p /app/logs /app/document_storage /app/temp_uploads /app/temp
 # Expose port
 EXPOSE 8000
 
-# Run gunicorn directly with explicit port binding for Render
-CMD ["sh", "-c", "exec gunicorn --workers 1 --worker-class uvicorn.workers.UvicornWorker --bind 0.0.0.0:${PORT:-10000} --timeout 120 --access-logfile - --error-logfile - backend.app:app"]
+# Run startup script with explicit configuration
+CMD ["/app/scripts/render-start.sh"]
