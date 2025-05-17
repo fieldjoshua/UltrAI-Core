@@ -20,6 +20,10 @@ passlib==1.7.4
 # Missing dependency for metrics
 psutil==6.1.0
 
-# Database (optional - comment out if not using)
-# sqlalchemy==2.0.0
-# psycopg2-binary==2.9.0
+# Database - REQUIRED for MVP
+sqlalchemy==2.0.23
+psycopg2-binary==2.9.9
+alembic==1.13.1
+
+# Cache service - REQUIRED for MVP
+redis==5.1.1
