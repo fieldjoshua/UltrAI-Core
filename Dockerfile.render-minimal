@@ -8,9 +8,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy minimal requirements
-COPY requirements-minimal.txt .
-RUN pip install --no-cache-dir -r requirements-minimal.txt
+# Copy production requirements
+COPY requirements-production.txt .
+RUN pip install --no-cache-dir -r requirements-production.txt
 
 # Copy only essential code
 COPY backend /app/backend
