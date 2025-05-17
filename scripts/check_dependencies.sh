@@ -45,4 +45,17 @@ else
 fi
 
 echo "Dependency check completed successfully."
-exit 0
+
+# Check and install gunicorn if not found
+if ! command -v gunicorn &> /dev/null; then
+    echo "Installing gunicorn..."
+    pip install gunicorn
+fi
+
+# Use python module if gunicorn command not found
+if ! command -v gunicorn &> /dev/null; then
+    echo "Starting with python -m gunicorn..."
+    exec python -m gunicorn --config gunicorn_conf.py backend.app:app
+else
+    exec gunicorn --config gunicorn_conf.py backend.app:app
+fi
