@@ -7,7 +7,7 @@ services:
     buildCommand: "docker build --no-cache --file Dockerfile.render ."
     envVars:
       - key: PORT
-        value: 8000
+        value: 10000
       - key: ENVIRONMENT
         value: production
       - fromGroup: ultra-env
