@@ -37,5 +37,5 @@ RUN mkdir -p /app/logs /app/document_storage /app/temp_uploads /app/temp
 # Expose port
 EXPOSE 8000
 
-# Run gunicorn directly
-CMD ["gunicorn", "--config", "gunicorn_conf.py", "backend.app:app"]
+# Run gunicorn directly, binding to Render's PORT
+CMD ["sh", "-c", "gunicorn --config gunicorn_conf.py --bind 0.0.0.0:${PORT:-8000} backend.app:app"]
