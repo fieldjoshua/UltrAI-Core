@@ -7,12 +7,12 @@ This service handles document analysis logic, processing documents and generatin
 import logging
 import os
 import time
-from typing import Dict, List, Any, Optional
+from typing import Any, Dict, List, Optional
 
 from backend.config import Config
 from backend.services.document_processor import document_processor
-from backend.services.prompt_service import PromptService
 from backend.services.llm_config_service import llm_config_service
+from backend.services.prompt_service import PromptService
 
 # Configure logging
 logger = logging.getLogger("document_analysis_service")
@@ -64,6 +64,7 @@ class DocumentAnalysisService:
                 raise ValueError(f"Document metadata not found: {document_id}")
 
             import json
+
             with open(metadata_path, "r") as f:
                 metadata = json.load(f)
 
@@ -73,12 +74,14 @@ class DocumentAnalysisService:
                 raise ValueError(f"Document file not found: {file_path}")
 
             # Process document to extract content
-            document_data = [{
-                "id": document_id,
-                "path": file_path,
-                "name": metadata.get("original_filename", ""),
-                "type": metadata.get("file_type", ""),
-            }]
+            document_data = [
+                {
+                    "id": document_id,
+                    "path": file_path,
+                    "name": metadata.get("original_filename", ""),
+                    "type": metadata.get("file_type", ""),
+                }
+            ]
 
             # Use document processor to extract content
             processing_result = self.document_processor.process_documents(document_data)
@@ -88,7 +91,9 @@ class DocumentAnalysisService:
                 raise ValueError("No content could be extracted from document")
 
             # Combine chunks for analysis
-            document_content = "\n\n".join([chunk.get("text", "") for chunk in document_chunks])
+            document_content = "\n\n".join(
+                [chunk.get("text", "") for chunk in document_chunks]
+            )
 
             # Create analysis prompt
             analysis_prompt = (

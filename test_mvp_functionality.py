@@ -57,7 +57,8 @@ class MVPTester:
         """Test health endpoint"""
         try:
             print(f"\n=== Testing Health Endpoint ===")
-            response = requests.get(f"{self.base_url}/api/health")
+            headers = {"X-API-Key": "test-api-key"}
+            response = requests.get(f"{self.base_url}/api/health", headers=headers)
             print(f"Status: {response.status_code}")
             print(f"Response: {json.dumps(response.json(), indent=2)}")
             return response.status_code == 200
@@ -69,7 +70,8 @@ class MVPTester:
         """Test available models endpoint"""
         try:
             print(f"\n=== Testing Available Models ===")
-            response = requests.get(f"{self.base_url}/api/available-models")
+            headers = {"X-API-Key": "test-api-key"}
+            response = requests.get(f"{self.base_url}/api/available-models", headers=headers)
             print(f"Status: {response.status_code}")
             data = response.json()
             print(f"Models found: {len(data.get('models', []))}")
@@ -86,18 +88,22 @@ class MVPTester:
             print(f"\n=== Testing Analyze Endpoint ===")
             payload = {
                 "prompt": "What is artificial intelligence?",
-                "selected_models": ["gpt-4", "claude-3"],
+                "selected_models": ["gpt4o", "claude3opus"],
                 "pattern": "gut",
-                "ultra_model": "gpt-4",
-                "output_format": "markdown",
+                "ultra_model": "gpt4o",
+                "output_format": "txt",
                 "options": {},
             }
 
             print(f"Request payload: {json.dumps(payload, indent=2)}")
+            headers = {
+                "Content-Type": "application/json",
+                "X-API-Key": "test-api-key"
+            }
             response = requests.post(
                 f"{self.base_url}/api/analyze",
                 json=payload,
-                headers={"Content-Type": "application/json"},
+                headers=headers,
             )
 
             print(f"Status: {response.status_code}")
@@ -115,15 +121,8 @@ class MVPTester:
             print(f"Analyze test failed: {e}")
             return False
 
-    def run_all_tests(self):
+    def run_tests(self):
         """Run all MVP tests"""
-        print("=== Ultra MVP Functionality Test ===")
-        print("Mode: Mock")
-        print(f"Base URL: {self.base_url}")
-
-        # Start server
-        self.start_server()
-
         try:
             # Run tests
             tests = {
@@ -145,13 +144,39 @@ class MVPTester:
             )
 
             return all_passed
+        except Exception as e:
+            print(f"Test error: {e}")
+            return False
 
+    def run_all_tests(self):
+        """Run all MVP tests"""
+        print("=== Ultra MVP Functionality Test ===")
+        print("Mode: Mock")
+        print(f"Base URL: {self.base_url}")
+
+        # Start server
+        self.start_server()
+
+        try:
+            return self.run_tests()
         finally:
             # Stop server
             self.stop_server()
 
 
 if __name__ == "__main__":
+    # Check if --no-start flag is provided
+    no_start = "--no-start" in sys.argv
+    
     tester = MVPTester()
-    success = tester.run_all_tests()
+    
+    if no_start:
+        print("=== Ultra MVP Functionality Test ===")
+        print("Mode: Mock")
+        print(f"Base URL: {tester.base_url}")
+        print("Server start: Skipped (--no-start flag)")
+        success = tester.run_tests()
+    else:
+        success = tester.run_all_tests()
+    
     sys.exit(0 if success else 1)

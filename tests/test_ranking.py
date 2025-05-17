@@ -4,7 +4,6 @@ import re
 import numpy as np
 import pytest
 from scipy import stats
-
 from sklearn import datasets, svm
 from sklearn.datasets import make_multilabel_classification
 from sklearn.exceptions import UndefinedMetricWarning

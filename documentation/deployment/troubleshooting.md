@@ -18,6 +18,7 @@ This guide addresses common issues that may occur during the deployment of Ultra
 When troubleshooting deployment issues, follow these general steps:
 
 1. **Check Logs**: Always start by examining the relevant logs:
+
    ```bash
    docker-compose logs --tail=100           # View the most recent logs
    docker-compose logs --tail=100 backend   # View logs for a specific service
@@ -25,12 +26,14 @@ When troubleshooting deployment issues, follow these general steps:
    ```
 
 2. **Check Service Status**:
+
    ```bash
    docker-compose ps           # View the status of all services
    docker stats                # Monitor resource usage
    ```
 
 3. **Check API Health**:
+
    ```bash
    curl http://localhost:8000/health                  # Basic health check
    curl http://localhost:8000/health?detail=true      # Detailed health check
@@ -53,16 +56,19 @@ When troubleshooting deployment issues, follow these general steps:
 **Solutions**:
 
 1. Check container logs for specific error messages:
+
    ```bash
    docker-compose logs backend
    ```
 
 2. Verify environment variables:
+
    ```bash
    docker-compose config   # Shows resolved configuration
    ```
 
 3. Check for port conflicts:
+
    ```bash
    sudo lsof -i :8000   # Check if port 8000 is already in use
    sudo lsof -i :5432   # Check if port 5432 (PostgreSQL) is in use
@@ -84,11 +90,13 @@ When troubleshooting deployment issues, follow these general steps:
 1. Check Docker build logs for specific errors.
 
 2. Try cleaning Docker cache:
+
    ```bash
    docker builder prune -f
    ```
 
 3. Ensure dependencies are available:
+
    ```bash
    docker-compose build --pull   # Force pull latest base images
    ```
@@ -107,6 +115,7 @@ When troubleshooting deployment issues, follow these general steps:
 **Solutions**:
 
 1. Check database container is running:
+
    ```bash
    docker-compose ps postgres
    ```
@@ -114,11 +123,13 @@ When troubleshooting deployment issues, follow these general steps:
 2. Verify database credentials match in the environment file and Docker Compose file.
 
 3. Check if PostgreSQL is accepting connections:
+
    ```bash
    docker-compose exec postgres pg_isready -U ultra
    ```
 
 4. Check PostgreSQL logs:
+
    ```bash
    docker-compose logs postgres
    ```
@@ -135,11 +146,13 @@ When troubleshooting deployment issues, follow these general steps:
 **Solutions**:
 
 1. Run migrations manually:
+
    ```bash
    docker-compose exec backend alembic upgrade head
    ```
 
 2. Check migration status:
+
    ```bash
    docker-compose exec backend alembic current
    ```
@@ -159,6 +172,7 @@ When troubleshooting deployment issues, follow these general steps:
 **Solutions**:
 
 1. Check Redis container is running:
+
    ```bash
    docker-compose ps redis
    ```
@@ -166,6 +180,7 @@ When troubleshooting deployment issues, follow these general steps:
 2. Verify Redis password is correct in environment variables.
 
 3. Check Redis is accepting connections:
+
    ```bash
    docker-compose exec redis redis-cli -a $REDIS_PASSWORD ping
    ```
@@ -182,11 +197,13 @@ When troubleshooting deployment issues, follow these general steps:
 **Solutions**:
 
 1. Check Redis memory usage and configuration:
+
    ```bash
    docker-compose exec redis redis-cli -a $REDIS_PASSWORD info
    ```
 
 2. Consider clearing Redis cache:
+
    ```bash
    docker-compose exec redis redis-cli -a $REDIS_PASSWORD FLUSHALL
    ```
@@ -207,6 +224,7 @@ When troubleshooting deployment issues, follow these general steps:
 1. Check API keys are correctly set in environment variables.
 
 2. Verify network connectivity to external APIs:
+
    ```bash
    docker-compose exec backend curl -I https://api.openai.com/v1
    docker-compose exec backend curl -I https://api.anthropic.com
@@ -227,16 +245,19 @@ When troubleshooting deployment issues, follow these general steps:
 **Solutions**:
 
 1. Check model-runner container is running:
+
    ```bash
    docker-compose ps model-runner
    ```
 
 2. Check model-runner logs:
+
    ```bash
    docker-compose logs model-runner
    ```
 
 3. Verify models are correctly downloaded:
+
    ```bash
    docker-compose exec model-runner docker model list
    ```
@@ -252,17 +273,20 @@ When troubleshooting deployment issues, follow these general steps:
 **Solutions**:
 
 1. Check system resource usage:
+
    ```bash
    docker stats
    ```
 
 2. Check if database queries are slow:
+
    ```bash
    # Check PostgreSQL slow query log
    docker-compose exec postgres cat /var/log/postgresql/postgresql-slow.log
    ```
 
 3. Check Redis performance:
+
    ```bash
    docker-compose exec redis redis-cli -a $REDIS_PASSWORD --latency
    ```
@@ -284,6 +308,7 @@ When troubleshooting deployment issues, follow these general steps:
 2. Check for memory leaks in the application.
 
 3. Enable more aggressive garbage collection:
+
    ```bash
    # For Python backend
    export PYTHONMALLOC=debug
@@ -328,23 +353,26 @@ When troubleshooting deployment issues, follow these general steps:
 **Solutions**:
 
 1. Check rollback logs:
+
    ```bash
    cat logs/rollback_$(date +%Y%m%d).log
    ```
 
 2. Verify backup archive was extracted correctly:
+
    ```bash
    ls -la rollbacks/
    ```
 
 3. Try a manual rollback:
+
    ```bash
    # Stop all containers
    docker-compose down
-   
+
    # Restore from backup
    tar -xzf backups/production/backup-20250511-120345.tar.gz -C ./
-   
+
    # Start services
    docker-compose up -d
    ```
@@ -356,11 +384,13 @@ When troubleshooting deployment issues, follow these general steps:
 **Solutions**:
 
 1. Check the backups directory:
+
    ```bash
    ls -la backups/production/
    ```
 
 2. If no suitable backup exists, perform a fresh deployment:
+
    ```bash
    git checkout main
    ./scripts/deploy-mvp.sh --environment production
@@ -373,15 +403,15 @@ When troubleshooting deployment issues, follow these general steps:
 
 ## Common Error Messages and Solutions
 
-| Error Message | Possible Cause | Solution |
-|---------------|----------------|----------|
-| `Connection refused to PostgreSQL` | Database container not running or wrong connection settings | Check PostgreSQL container status and connection configuration |
-| `Redis connection error` | Redis container not running or password incorrect | Verify Redis container status and credentials |
-| `API key invalid` | LLM provider API key is incorrect or expired | Check and update API keys in environment file |
-| `No space left on device` | Docker host has run out of disk space | Clean up unused Docker images, volumes, and containers |
-| `Permission denied` | File permissions issue | Check file ownership and permissions in mounted volumes |
-| `Out of memory` | Container exceeding memory limits | Increase memory allocation in Docker Compose file |
-| `Circuit breaker open` | Too many failures have occurred to an external service | Check external service health and review circuit breaker settings |
+| Error Message                      | Possible Cause                                              | Solution                                                          |
+| ---------------------------------- | ----------------------------------------------------------- | ----------------------------------------------------------------- |
+| `Connection refused to PostgreSQL` | Database container not running or wrong connection settings | Check PostgreSQL container status and connection configuration    |
+| `Redis connection error`           | Redis container not running or password incorrect           | Verify Redis container status and credentials                     |
+| `API key invalid`                  | LLM provider API key is incorrect or expired                | Check and update API keys in environment file                     |
+| `No space left on device`          | Docker host has run out of disk space                       | Clean up unused Docker images, volumes, and containers            |
+| `Permission denied`                | File permissions issue                                      | Check file ownership and permissions in mounted volumes           |
+| `Out of memory`                    | Container exceeding memory limits                           | Increase memory allocation in Docker Compose file                 |
+| `Circuit breaker open`             | Too many failures have occurred to an external service      | Check external service health and review circuit breaker settings |
 
 ## Additional Troubleshooting Resources
 

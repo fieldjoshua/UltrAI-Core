@@ -16,13 +16,14 @@ Dept of MS&E, Stanford University.
 
 """
 
-from numpy import array, arange, eye, zeros, ones, transpose, hstack
+import pytest
+from numpy import arange, array, eye, hstack, ones, transpose, zeros
 from numpy.linalg import norm
 from numpy.testing import assert_allclose
-import pytest
 from scipy.sparse import coo_array
-from scipy.sparse.linalg._interface import aslinearoperator
 from scipy.sparse.linalg import lsmr
+from scipy.sparse.linalg._interface import aslinearoperator
+
 from .test_lsqr import G, b
 
 
@@ -44,18 +45,18 @@ class TestLSMR:
 
     def testIdentityACase2(self):
         A = eye(self.n)
-        xtrue = ones((self.n,1))
+        xtrue = ones((self.n, 1))
         self.assertCompatibleSystem(A, xtrue)
 
     def testIdentityACase3(self):
         A = eye(self.n)
-        xtrue = transpose(arange(self.n,0,-1))
+        xtrue = transpose(arange(self.n, 0, -1))
         self.assertCompatibleSystem(A, xtrue)
 
     def testBidiagonalA(self):
-        A = lowerBidiagonalMatrix(20,self.n)
-        xtrue = transpose(arange(self.n,0,-1))
-        self.assertCompatibleSystem(A,xtrue)
+        A = lowerBidiagonalMatrix(20, self.n)
+        xtrue = transpose(arange(self.n, 0, -1))
+        self.assertCompatibleSystem(A, xtrue)
 
     def testScalarB(self):
         A = array([[1.0, 2.0]])
@@ -97,7 +98,7 @@ class TestLSMR:
     def testInitialization(self):
         # Test that the default setting is not modified
         x_ref, _, itn_ref, normr_ref, *_ = lsmr(G, b)
-        assert_allclose(norm(b - G@x_ref), normr_ref, atol=1e-6)
+        assert_allclose(norm(b - G @ x_ref), normr_ref, atol=1e-6)
 
         # Test passing zeros yields similar result
         x0 = zeros(b.shape)
@@ -108,7 +109,7 @@ class TestLSMR:
         x0 = lsmr(G, b, maxiter=1)[0]
 
         x, _, itn, normr, *_ = lsmr(G, b, x0=x0)
-        assert_allclose(norm(b - G@x), normr, atol=1e-6)
+        assert_allclose(norm(b - G @ x), normr, atol=1e-6)
 
         # NOTE(gh-12139): This doesn't always converge to the same value as
         # ref because error estimates will be slightly different when calculated
@@ -147,8 +148,9 @@ class TestLSMRReturns:
 
     def testNormar(self):
         x, istop, itn, normr, normar, normA, condA, normx = self.returnValues
-        assert (norm(self.Afun.rmatvec(self.b - self.Afun.matvec(x)))
-                == pytest.approx(normar))
+        assert norm(self.Afun.rmatvec(self.b - self.Afun.matvec(x))) == pytest.approx(
+            normar
+        )
 
     def testNormx(self):
         x, istop, itn, normr, normar, normA, condA, normx = self.returnValues
@@ -168,18 +170,12 @@ def lowerBidiagonalMatrix(m, n):
     #
     # 04 Jun 2010: First version for distribution with lsmr.py
     if m <= n:
-        row = hstack((arange(m, dtype=int),
-                      arange(1, m, dtype=int)))
-        col = hstack((arange(m, dtype=int),
-                      arange(m-1, dtype=int)))
-        data = hstack((arange(1, m+1, dtype=float),
-                       arange(1,m, dtype=float)))
-        return coo_array((data, (row, col)), shape=(m,n))
+        row = hstack((arange(m, dtype=int), arange(1, m, dtype=int)))
+        col = hstack((arange(m, dtype=int), arange(m - 1, dtype=int)))
+        data = hstack((arange(1, m + 1, dtype=float), arange(1, m, dtype=float)))
+        return coo_array((data, (row, col)), shape=(m, n))
     else:
-        row = hstack((arange(n, dtype=int),
-                      arange(1, n+1, dtype=int)))
-        col = hstack((arange(n, dtype=int),
-                      arange(n, dtype=int)))
-        data = hstack((arange(1, n+1, dtype=float),
-                       arange(1,n+1, dtype=float)))
-        return coo_array((data,(row, col)), shape=(m,n))
+        row = hstack((arange(n, dtype=int), arange(1, n + 1, dtype=int)))
+        col = hstack((arange(n, dtype=int), arange(n, dtype=int)))
+        data = hstack((arange(1, n + 1, dtype=float), arange(1, n + 1, dtype=float)))
+        return coo_array((data, (row, col)), shape=(m, n))

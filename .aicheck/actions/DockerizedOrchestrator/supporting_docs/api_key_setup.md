@@ -82,7 +82,7 @@ To specify which provider to use for a particular run:
 # Use OpenAI's GPT-4
 ./scripts/run-docker-orchestrator.sh comparative "Your prompt here" openai-gpt4o
 
-# Use Anthropic's Claude 
+# Use Anthropic's Claude
 ./scripts/run-docker-orchestrator.sh comparative "Your prompt here" anthropic-claude
 
 # Use both
@@ -106,11 +106,13 @@ docker compose exec -e PYTHONPATH=/app backend python -c "from src.adapters.adap
 If you encounter issues with API keys:
 
 1. **Keys not available in container**:
+
    - Ensure `.env` file is in the project root
    - Check file permissions (should be readable)
    - Verify Docker Compose is loading the file
 
 2. **Authentication errors**:
+
    - Confirm API keys are valid and active
    - Check for typos in key values
    - Verify you have billing set up with the provider
@@ -123,13 +125,16 @@ If you encounter issues with API keys:
 ## Security Best Practices
 
 1. **Never commit API keys to version control**:
+
    - Add `.env` to your `.gitignore`
    - Use environment variables in CI/CD pipelines
 
 2. **Restrict file permissions**:
+
    - `chmod 600 .env` to make it readable only by the owner
 
 3. **Use dedicated keys for development**:
+
    - Create separate API keys for development and production
    - Apply usage limits to development keys
 

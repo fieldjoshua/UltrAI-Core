@@ -8,9 +8,9 @@
 
 **Applicant Information:**
 
-Name: [APPLICANT NAME]  
-Address: [APPLICANT ADDRESS]  
-Email: [APPLICANT EMAIL]  
+Name: [APPLICANT NAME]
+Address: [APPLICANT ADDRESS]
+Email: [APPLICANT EMAIL]
 Phone: [APPLICANT PHONE NUMBER]
 
 ---

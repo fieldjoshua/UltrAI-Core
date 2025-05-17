@@ -8,7 +8,6 @@ import joblib
 import numpy as np
 import pytest
 from numpy.testing import assert_allclose
-
 from sklearn import config_context
 from sklearn.base import BaseEstimator, ClassifierMixin
 from sklearn.cluster import KMeans
@@ -26,6 +25,9 @@ from sklearn.metrics import (
     balanced_accuracy_score,
     brier_score_loss,
     check_scoring,
+)
+from sklearn.metrics import cluster as cluster_module
+from sklearn.metrics import (
     f1_score,
     fbeta_score,
     get_scorer,
@@ -40,7 +42,6 @@ from sklearn.metrics import (
     roc_auc_score,
     top_k_accuracy_score,
 )
-from sklearn.metrics import cluster as cluster_module
 from sklearn.metrics._scorer import (
     _check_multimetric_scoring,
     _CurveScorer,
@@ -53,9 +54,7 @@ from sklearn.multiclass import OneVsRestClassifier
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.pipeline import make_pipeline
 from sklearn.svm import LinearSVC
-from sklearn.tests.metadata_routing_common import (
-    assert_request_is_empty,
-)
+from sklearn.tests.metadata_routing_common import assert_request_is_empty
 from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
 from sklearn.utils._testing import (
     assert_almost_equal,

@@ -2,7 +2,7 @@
 
 ---
 
-## Title: 
+## Title:
 **System and Method for Dynamic Data Processing and Visualization**
 
 ## Technical Field:

@@ -11,6 +11,15 @@ source "$SCRIPT_DIR/clear_port.sh"
 # Clear the port before starting
 clear_port $PORT
 
+# Check for required dependencies
+echo "Checking for missing dependencies..."
+# Install prometheus_client if missing
+if ! python -c "import prometheus_client" &>/dev/null; then
+    echo "Installing prometheus_client package..."
+    pip install prometheus_client
+fi
+# Using stubs for other missing dependencies
+
 # Create necessary directories
 mkdir -p logs
 mkdir -p document_storage

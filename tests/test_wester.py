@@ -6,56 +6,72 @@ See also http://math.unm.edu/~wester/cas_review.html for detailed output of
 each tested system.
 """
 
+from itertools import islice, takewhile
+
+import mpmath
+from mpmath import mpc, mpi
 from sympy.assumptions.ask import Q, ask
 from sympy.assumptions.refine import refine
-from sympy.concrete.products import product
+from sympy.calculus.util import minimum
+from sympy.concrete import Sum
+from sympy.concrete.products import Product, product
 from sympy.core import EulerGamma
 from sympy.core.evalf import N
-from sympy.core.function import (Derivative, Function, Lambda, Subs,
-    diff, expand, expand_func)
-from sympy.core.mul import Mul
+from sympy.core.function import (Derivative, Function, Lambda, Subs, diff, expand,
+                                 expand_func)
 from sympy.core.intfunc import igcd
-from sympy.core.numbers import (AlgebraicNumber, E, I, Rational,
-    nan, oo, pi, zoo)
-from sympy.core.relational import Eq, Lt
+from sympy.core.mul import Mul
+from sympy.core.numbers import AlgebraicNumber, E, I, Rational, nan, oo, pi, zoo
+from sympy.core.relational import Eq, Equality, Lt
 from sympy.core.singleton import S
 from sympy.core.symbol import Dummy, Symbol, symbols
-from sympy.functions.combinatorial.factorials import (rf, binomial,
-    factorial, factorial2)
-from sympy.functions.combinatorial.numbers import bernoulli, fibonacci, totient, partition
-from sympy.functions.elementary.complexes import (conjugate, im, re,
-    sign)
+from sympy.functions.combinatorial.factorials import binomial, factorial, factorial2, rf
+from sympy.functions.combinatorial.numbers import (bernoulli, fibonacci, partition,
+                                                   stirling, totient)
+from sympy.functions.elementary.complexes import conjugate, im, re, sign
 from sympy.functions.elementary.exponential import LambertW, exp, log
-from sympy.functions.elementary.hyperbolic import (asinh, cosh, sinh,
-    tanh)
+from sympy.functions.elementary.hyperbolic import asinh, cosh, sinh, tanh
 from sympy.functions.elementary.integers import ceiling, floor
 from sympy.functions.elementary.miscellaneous import Max, Min, sqrt
 from sympy.functions.elementary.piecewise import Piecewise
-from sympy.functions.elementary.trigonometric import (acos, acot, asin,
-    atan, cos, cot, csc, sec, sin, tan)
+from sympy.functions.elementary.trigonometric import (acos, acot, asin, atan, cos, cot,
+                                                      csc, sec, sin, tan)
 from sympy.functions.special.bessel import besselj
-from sympy.functions.special.delta_functions import DiracDelta
-from sympy.functions.special.elliptic_integrals import (elliptic_e,
-    elliptic_f)
+from sympy.functions.special.delta_functions import DiracDelta, Heaviside
+from sympy.functions.special.elliptic_integrals import elliptic_e, elliptic_f
+from sympy.functions.special.error_functions import Ci, Si, erf
 from sympy.functions.special.gamma_functions import gamma, polygamma
 from sympy.functions.special.hyper import hyper
-from sympy.functions.special.polynomials import (assoc_legendre,
-    chebyshevt)
-from sympy.functions.special.zeta_functions import polylog
+from sympy.functions.special.polynomials import assoc_legendre, chebyshevt
+from sympy.functions.special.zeta_functions import polylog, zeta
 from sympy.geometry.util import idiff
+from sympy.integrals import integrate
+from sympy.integrals.transforms import (LaplaceTransform, fourier_transform,
+                                        inverse_laplace_transform,
+                                        laplace_correspondence, laplace_initial_conds,
+                                        laplace_transform, mellin_transform)
 from sympy.logic.boolalg import And
+from sympy.matrices import GramSchmidt, Matrix, eye
 from sympy.matrices.dense import hessian, wronskian
+from sympy.matrices.expressions import MatrixSymbol, ZeroMatrix
+from sympy.matrices.expressions.blockmatrix import BlockMatrix, block_collapse
 from sympy.matrices.expressions.matmul import MatMul
-from sympy.ntheory.continued_fraction import (
-    continued_fraction_convergents as cf_c,
-    continued_fraction_iterator as cf_i, continued_fraction_periodic as
-    cf_p, continued_fraction_reduce as cf_r)
+from sympy.ntheory.continued_fraction import continued_fraction_convergents as cf_c
+from sympy.ntheory.continued_fraction import continued_fraction_iterator as cf_i
+from sympy.ntheory.continued_fraction import continued_fraction_periodic as cf_p
+from sympy.ntheory.continued_fraction import continued_fraction_reduce as cf_r
 from sympy.ntheory.factor_ import factorint
 from sympy.ntheory.generate import primerange
+from sympy.physics.quantum import Commutator
 from sympy.polys.domains.integerring import ZZ
+from sympy.polys.fields import FracField
 from sympy.polys.orthopolys import legendre_poly
 from sympy.polys.partfrac import apart
 from sympy.polys.polytools import Poly, factor, gcd, resultant
+from sympy.polys.rings import PolyRing
+from sympy.polys.solvers import solve_lin_sys
+from sympy.series.formal import fps
+from sympy.series.fourier import fourier_series
 from sympy.series.limits import limit
 from sympy.series.order import O
 from sympy.series.residues import residue
@@ -69,38 +85,12 @@ from sympy.simplify.radsimp import radsimp
 from sympy.simplify.simplify import logcombine, simplify
 from sympy.simplify.sqrtdenest import sqrtdenest
 from sympy.simplify.trigsimp import trigsimp
-from sympy.solvers.solvers import solve
-
-import mpmath
-from sympy.functions.combinatorial.numbers import stirling
-from sympy.functions.special.delta_functions import Heaviside
-from sympy.functions.special.error_functions import Ci, Si, erf
-from sympy.functions.special.zeta_functions import zeta
-from sympy.testing.pytest import (XFAIL, slow, SKIP, tooslow, raises)
-from sympy.utilities.iterables import partitions
-from mpmath import mpi, mpc
-from sympy.matrices import Matrix, GramSchmidt, eye
-from sympy.matrices.expressions.blockmatrix import BlockMatrix, block_collapse
-from sympy.matrices.expressions import MatrixSymbol, ZeroMatrix
-from sympy.physics.quantum import Commutator
-from sympy.polys.rings import PolyRing
-from sympy.polys.fields import FracField
-from sympy.polys.solvers import solve_lin_sys
-from sympy.concrete import Sum
-from sympy.concrete.products import Product
-from sympy.integrals import integrate
-from sympy.integrals.transforms import laplace_transform,\
-    inverse_laplace_transform, LaplaceTransform, fourier_transform,\
-    mellin_transform, laplace_correspondence, laplace_initial_conds
-from sympy.solvers.recurr import rsolve
-from sympy.solvers.solveset import solveset, solveset_real, linsolve
 from sympy.solvers.ode import dsolve
-from sympy.core.relational import Equality
-from itertools import islice, takewhile
-from sympy.series.formal import fps
-from sympy.series.fourier import fourier_series
-from sympy.calculus.util import minimum
-
+from sympy.solvers.recurr import rsolve
+from sympy.solvers.solvers import solve
+from sympy.solvers.solveset import linsolve, solveset, solveset_real
+from sympy.testing.pytest import SKIP, XFAIL, raises, slow, tooslow
+from sympy.utilities.iterables import partitions
 
 EmptySet = S.EmptySet
 R = Rational

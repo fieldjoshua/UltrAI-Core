@@ -9,7 +9,6 @@ from textwrap import dedent
 import numpy as np
 import pytest
 from numpy.random import RandomState
-
 from sklearn.base import is_classifier
 from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.exceptions import NotFittedError

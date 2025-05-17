@@ -1,20 +1,13 @@
-from datetime import (
-    date,
-    datetime,
-)
 import itertools
 import re
+from datetime import date, datetime
 
 import numpy as np
-import pytest
-
-from pandas._libs.internals import BlockPlacement
-from pandas.compat import IS64
-import pandas.util._test_decorators as td
-
-from pandas.core.dtypes.common import is_scalar
-
 import pandas as pd
+import pandas._testing as tm
+import pandas.core.algorithms as algos
+import pandas.util._test_decorators as td
+import pytest
 from pandas import (
     Categorical,
     DataFrame,
@@ -26,18 +19,11 @@ from pandas import (
     Timestamp,
     period_range,
 )
-import pandas._testing as tm
-import pandas.core.algorithms as algos
-from pandas.core.arrays import (
-    DatetimeArray,
-    SparseArray,
-    TimedeltaArray,
-)
-from pandas.core.internals import (
-    BlockManager,
-    SingleBlockManager,
-    make_block,
-)
+from pandas._libs.internals import BlockPlacement
+from pandas.compat import IS64
+from pandas.core.arrays import DatetimeArray, SparseArray, TimedeltaArray
+from pandas.core.dtypes.common import is_scalar
+from pandas.core.internals import BlockManager, SingleBlockManager, make_block
 from pandas.core.internals.blocks import (
     ensure_block_shape,
     maybe_coerce_values,

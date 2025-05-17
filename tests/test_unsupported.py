@@ -6,18 +6,15 @@ and are clearly communicated to the user.
 Ultimately, the goal is to remove test cases from this
 test suite as new feature support is added to the parsers.
 """
-from io import StringIO
 import os
+from io import StringIO
 from pathlib import Path
 
-import pytest
-
-from pandas.errors import ParserError
-
 import pandas._testing as tm
-
-from pandas.io.parsers import read_csv
 import pandas.io.parsers.readers as parsers
+import pytest
+from pandas.errors import ParserError
+from pandas.io.parsers import read_csv
 
 pytestmark = pytest.mark.filterwarnings(
     "ignore:Passing a BlockManager to DataFrame:DeprecationWarning"

@@ -12,6 +12,7 @@ This directory contains UI/UX design assets, previews, and documentation for the
   - `/v5_billboard_animation/` - Cyberpunk theme with animated cityscape
 
 Each version directory contains:
+
 - `index.html` - Demo of the interface
 - `/assets/` - UI assets specific to this version
 - `/design_system/` - Design guidelines and components
@@ -21,9 +22,11 @@ Each version directory contains:
 ## Interface Versions
 
 ### 1. No-graphic Advanced
+
 **Path:** `versions/v1_no_graphic_advanced/`
 
 This is a dark-themed 8-step wizard with cyan/magenta gradients and a floating price component. Features include:
+
 - Deep dark background (#0a0e17)
 - Vibrant cyan and magenta gradient accents
 - Card-based UI with subtle transparency
@@ -32,9 +35,11 @@ This is a dark-themed 8-step wizard with cyan/magenta gradients and a floating p
 - Floating price component
 
 ### 2. No-graphic Succinct Logic Pro
+
 **Path:** `versions/v2_no_graphic_succinct_logic_pro/`
 
 A streamlined dark theme with animated logo, card-based UI, and minimalist step indicator. Features include:
+
 - Dark theme with cyan and magenta gradient accents
 - Animated logo with rotating wireframes
 - Model selection grid with "Ultra Model" toggle
@@ -43,9 +48,11 @@ A streamlined dark theme with animated logo, card-based UI, and minimalist step 
 - Clean card-based layout
 
 ### 3. Clean Succinct Logic Professional
+
 **Path:** `versions/v3_clean_succinct_logic_professional/`
 
 Clean, minimal interface with blue accents and horizontal step progression. Features include:
+
 - Light theme with blue accent colors
 - Clear horizontal step indicators
 - Minimal card design with light shadows
@@ -54,9 +61,11 @@ Clean, minimal interface with blue accents and horizontal step progression. Feat
 - Clean typography and spacing
 
 ### 4. Clean Succinct Logic Professional (Alternative)
+
 **Path:** `versions/v4_clean_succinct_logic_professional/`
 
 Utilitarian, developer-focused single-page form. Features include:
+
 - Minimal light theme
 - Simple form layout with standard controls
 - No wizard flow - single page form
@@ -65,9 +74,11 @@ Utilitarian, developer-focused single-page form. Features include:
 - Functional focus over visual flair
 
 ### 5. Billboard Animation; Floating Side Bars
+
 **Path:** `versions/v5_billboard_animation/`
 
 Highly stylized cyberpunk theme with animated cityscape, glowing elements, and floating UI components. Features include:
+
 - Futuristic cityscape backdrop with animated elements
 - Dark theme with neon accents (cyan, magenta, green)
 - Glowing, billboard-style header

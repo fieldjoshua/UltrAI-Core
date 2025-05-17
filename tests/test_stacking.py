@@ -10,7 +10,6 @@ import numpy as np
 import pytest
 from numpy.testing import assert_array_equal
 from scipy import sparse
-
 from sklearn import config_context
 from sklearn.base import BaseEstimator, ClassifierMixin, RegressorMixin, clone
 from sklearn.datasets import (

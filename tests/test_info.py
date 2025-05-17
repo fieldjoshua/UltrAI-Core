@@ -1,17 +1,12 @@
-from io import StringIO
 import re
-from string import ascii_uppercase
 import sys
 import textwrap
+from io import StringIO
+from string import ascii_uppercase
 
 import numpy as np
+import pandas._testing as tm
 import pytest
-
-from pandas.compat import (
-    IS64,
-    PYPY,
-)
-
 from pandas import (
     CategoricalIndex,
     DataFrame,
@@ -20,7 +15,7 @@ from pandas import (
     date_range,
     option_context,
 )
-import pandas._testing as tm
+from pandas.compat import IS64, PYPY
 
 
 @pytest.fixture

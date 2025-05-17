@@ -1,6 +1,6 @@
 /**
  * API Endpoints Test Suite
- * 
+ *
  * Tests the API client functionality against mock responses to ensure
  * proper handling of various model combinations and response formats.
  */
@@ -30,14 +30,14 @@ const analyzePrompt = async (request) => {
       result: `Mock analysis using pattern: ${request.pattern}`,
       model_responses: Object.fromEntries(
         request.selectedModels.map(model => [
-          model, 
+          model,
           `This is a simulated response for ${model} analyzing: "${request.prompt}"`
         ])
       ),
       processing_time_ms: 500,
       session_id: 'mock-session-id'
     };
-    
+
     return response;
   } catch (error) {
     console.error('Failed to analyze prompt:', error);
@@ -54,7 +54,7 @@ const uploadDocuments = async (files) => {
     if (files.some(f => f.name.includes('fail'))) {
       throw new Error('Network error');
     }
-    
+
     const response = {
       status: "success",
       documents: files.map((file, index) => ({
@@ -69,7 +69,7 @@ const uploadDocuments = async (files) => {
       })),
       processing_time: 0.5
     };
-    
+
     return response;
   } catch (error) {
     console.error('Failed to upload documents:', error);
@@ -87,14 +87,14 @@ const analyzeWithDocuments = async ({ prompt, selectedModels, ultraModel, files,
     if (prompt.includes('fail')) {
       throw new Error('Network error');
     }
-    
+
     const response = {
       status: "success",
       data: {
         analysis: `Mock analysis of ${files.length} documents with prompt: "${prompt}"`,
         model_responses: Object.fromEntries(
           selectedModels.map(model => [
-            model, 
+            model,
             `Mock response from ${model} for document analysis with pattern: ${pattern}`
           ])
         )
@@ -105,7 +105,7 @@ const analyzeWithDocuments = async ({ prompt, selectedModels, ultraModel, files,
         timestamp: new Date().toISOString()
       }
     };
-    
+
     return response;
   } catch (error) {
     console.error('Failed to analyze with documents:', error);
@@ -130,15 +130,15 @@ describe('API Client Functions', () => {
       selectedModels: ['model1', 'model2'],
       pattern: 'Confidence Analysis'
     };
-    
+
     const result = await analyzePrompt(request);
-    
+
     expect(result).toHaveProperty('result');
     expect(result).toHaveProperty('model_responses');
     expect(Object.keys(result.model_responses)).toEqual(['model1', 'model2']);
     expect(result.result).toContain('Confidence Analysis');
   });
-  
+
   test('analyzePrompt handles errors gracefully', async () => {
     const request = {
       prompt: 'Test prompt',
@@ -146,38 +146,38 @@ describe('API Client Functions', () => {
       pattern: 'Confidence Analysis',
       shouldFail: true
     };
-    
+
     const result = await analyzePrompt(request);
-    
+
     expect(result).toHaveProperty('error');
     expect(result.result).toBe('Error occurred');
   });
-  
+
   test('uploadDocuments returns expected document format', async () => {
     const mockFile1 = new File(['test content'], 'test1.pdf', { type: 'application/pdf' });
     const mockFile2 = new File(['test content'], 'test2.docx', { type: 'application/docx' });
-    
+
     const result = await uploadDocuments([mockFile1, mockFile2]);
-    
+
     expect(result.status).toBe('success');
     expect(result.documents).toHaveLength(2);
     expect(result.documents[0].name).toBe('test1.pdf');
     expect(result.documents[1].name).toBe('test2.docx');
     expect(result.documents[0].chunks).toHaveLength(2);
   });
-  
+
   test('uploadDocuments handles errors gracefully', async () => {
     const mockFile = new File(['test content'], 'fail.pdf', { type: 'application/pdf' });
-    
+
     const result = await uploadDocuments([mockFile]);
-    
+
     expect(result.status).toBe('error');
     expect(result).toHaveProperty('message');
   });
-  
+
   test('analyzeWithDocuments returns expected analysis format', async () => {
     const mockFile = new File(['test content'], 'test.pdf', { type: 'application/pdf' });
-    
+
     const params = {
       prompt: 'Test prompt with document',
       selectedModels: ['model1', 'model2'],
@@ -185,19 +185,19 @@ describe('API Client Functions', () => {
       files: [mockFile],
       pattern: 'Document Analysis'
     };
-    
+
     const result = await analyzeWithDocuments(params);
-    
+
     expect(result.status).toBe('success');
     expect(result.data).toHaveProperty('analysis');
     expect(result.data).toHaveProperty('model_responses');
     expect(Object.keys(result.data.model_responses)).toEqual(['model1', 'model2']);
     expect(result.document_metadata.documents_used).toEqual(['test.pdf']);
   });
-  
+
   test('analyzeWithDocuments handles errors gracefully', async () => {
     const mockFile = new File(['test content'], 'test.pdf', { type: 'application/pdf' });
-    
+
     const params = {
       prompt: 'fail this request',
       selectedModels: ['model1'],
@@ -205,13 +205,13 @@ describe('API Client Functions', () => {
       files: [mockFile],
       pattern: 'Document Analysis'
     };
-    
+
     const result = await analyzeWithDocuments(params);
-    
+
     expect(result.status).toBe('error');
     expect(result).toHaveProperty('message');
   });
-  
+
   // Ensure the test passes with a simple assertion
   test('API functions have correct interfaces', () => {
     expect(typeof analyzePrompt).toBe('function');
@@ -219,4 +219,4 @@ describe('API Client Functions', () => {
     expect(typeof analyzeWithDocuments).toBe('function');
     expect(true).toBe(true);
   });
-}); 
+});

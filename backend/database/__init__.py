@@ -4,12 +4,12 @@ Database module for the Ultra backend.
 This module provides database connectivity and models for the Ultra backend.
 """
 
-from backend.database.connection import init_db, get_db, check_database_connection
+from backend.database.connection import check_database_connection, get_db, init_db
 from backend.database.repositories import (
-    UserRepository,
-    DocumentRepository,
+    AnalysisRepository,
     DocumentChunkRepository,
-    AnalysisRepository
+    DocumentRepository,
+    UserRepository,
 )
 
 __all__ = [
@@ -19,5 +19,5 @@ __all__ = [
     "UserRepository",
     "DocumentRepository",
     "DocumentChunkRepository",
-    "AnalysisRepository"
+    "AnalysisRepository",
 ]

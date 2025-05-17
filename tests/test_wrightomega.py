@@ -1,8 +1,7 @@
-import pytest
 import numpy as np
-from numpy.testing import assert_, assert_equal, assert_allclose
-
+import pytest
 import scipy.special as sc
+from numpy.testing import assert_, assert_allclose, assert_equal
 from scipy.special._testutils import assert_func_equal
 
 

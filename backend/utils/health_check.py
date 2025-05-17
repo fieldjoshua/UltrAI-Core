@@ -6,9 +6,6 @@ It defines a common interface for health checks and includes implementations for
 services like databases, caches, and LLM APIs.
 """
 
-import importlib
-import json
-import logging
 import os
 import socket
 import ssl
@@ -21,8 +18,9 @@ from urllib.parse import urlparse
 
 import requests
 
-from utils.dependency_manager import dependency_registry
-from utils.logging import get_logger
+# Import dependency registry but avoid unused import warning
+from backend.utils.dependency_manager import dependency_registry  # noqa: F401
+from backend.utils.logging import get_logger
 
 # Get logger
 logger = get_logger("health_check", "logs/health_check.log")
@@ -192,9 +190,9 @@ class CircuitBreaker:
     """
 
     # Circuit breaker states
-    CLOSED = "closed"       # Normal operation
-    OPEN = "open"           # Circuit tripped, failing fast
-    HALF_OPEN = "half_open" # Testing if service is back
+    CLOSED = "closed"  # Normal operation
+    OPEN = "open"  # Circuit tripped, failing fast
+    HALF_OPEN = "half_open"  # Testing if service is back
 
     def __init__(
         self,
@@ -240,13 +238,18 @@ class CircuitBreaker:
             self.failure_count += 1
             self.last_failure_time = time.time()
 
-            if self.state == self.CLOSED and self.failure_count >= self.failure_threshold:
+            if (
+                self.state == self.CLOSED
+                and self.failure_count >= self.failure_threshold
+            ):
                 logger.warning(
                     f"Circuit breaker {self.name} tripped after {self.failure_count} failures"
                 )
                 self.state = self.OPEN
             elif self.state == self.HALF_OPEN:
-                logger.warning(f"Circuit breaker {self.name} reopened after test failure")
+                logger.warning(
+                    f"Circuit breaker {self.name} reopened after test failure"
+                )
                 self.state = self.OPEN
                 self.half_open_calls = 0
 
@@ -280,7 +283,9 @@ class CircuitBreaker:
                 return False
 
             # Unknown state, allow request but warn
-            logger.warning(f"Circuit breaker {self.name} in unknown state, allowing request")
+            logger.warning(
+                f"Circuit breaker {self.name} in unknown state, allowing request"
+            )
             return True
 
     def expected_recovery_time(self) -> Optional[float]:
@@ -313,10 +318,16 @@ class CircuitBreaker:
                 "name": self.name,
                 "state": self.state,
                 "failure_count": self.failure_count,
-                "last_failure": datetime.fromtimestamp(self.last_failure_time).isoformat()
-                                if self.last_failure_time > 0 else None,
-                "last_success": datetime.fromtimestamp(self.last_success_time).isoformat()
-                                if self.last_success_time > 0 else None,
+                "last_failure": (
+                    datetime.fromtimestamp(self.last_failure_time).isoformat()
+                    if self.last_failure_time > 0
+                    else None
+                ),
+                "last_success": (
+                    datetime.fromtimestamp(self.last_success_time).isoformat()
+                    if self.last_success_time > 0
+                    else None
+                ),
                 "recovery_timeout": self.recovery_timeout,
                 "failure_threshold": self.failure_threshold,
                 "expected_recovery_seconds": self.expected_recovery_time(),
@@ -343,8 +354,10 @@ class HealthCheckRegistry:
             self.health_checks[health_check.name] = health_check
 
             # Create a circuit breaker for this service if it's a critical LLM provider
-            if (health_check.service_type == ServiceType.LLM_PROVIDER and
-                health_check.is_critical):
+            if (
+                health_check.service_type == ServiceType.LLM_PROVIDER
+                and health_check.is_critical
+            ):
                 self.circuit_breakers[health_check.name] = CircuitBreaker(
                     name=health_check.name,
                     failure_threshold=3,  # More aggressive for LLM providers
@@ -425,10 +438,17 @@ class HealthCheckRegistry:
                 continue
 
             # Check if circuit breaker allows the request
-            if name in self.circuit_breakers and not self.circuit_breakers[name].allow_request():
+            if (
+                name in self.circuit_breakers
+                and not self.circuit_breakers[name].allow_request()
+            ):
                 # Circuit is open, fail fast
                 recovery_time = self.circuit_breakers[name].expected_recovery_time()
-                recovery_msg = f" (expected recovery in {int(recovery_time)}s)" if recovery_time else ""
+                recovery_msg = (
+                    f" (expected recovery in {int(recovery_time)}s)"
+                    if recovery_time
+                    else ""
+                )
 
                 results[name] = {
                     "status": HealthStatus.UNAVAILABLE,
@@ -482,7 +502,10 @@ class HealthCheckRegistry:
                 continue
 
             # Check if circuit breaker is open
-            if name in self.circuit_breakers and not self.circuit_breakers[name].allow_request():
+            if (
+                name in self.circuit_breakers
+                and not self.circuit_breakers[name].allow_request()
+            ):
                 failing_critical.append(f"{name} (circuit open)")
                 overall_status = HealthStatus.CRITICAL
                 continue
@@ -528,7 +551,7 @@ def check_database_health() -> Dict[str, Any]:
     Returns:
         Health check result
     """
-    from database.connection import (
+    from backend.database.connection import (
         check_database_connection,
         get_database_status,
         is_using_fallback,
@@ -573,7 +596,7 @@ def check_redis_health() -> Dict[str, Any]:
     Returns:
         Health check result
     """
-    from services.cache_service import cache_service
+    from backend.services.cache_service import cache_service
 
     # Get cache status
     cache_details = cache_service.get_status()
@@ -605,7 +628,7 @@ def check_jwt_health() -> Dict[str, Any]:
     Returns:
         Health check result
     """
-    from utils.jwt_wrapper import get_jwt_status, is_using_pyjwt
+    from backend.utils.jwt_wrapper import get_jwt_status, is_using_pyjwt
 
     # Get JWT status
     jwt_details = get_jwt_status()
@@ -680,7 +703,7 @@ def check_llm_provider_health(provider: str, api_key_env_var: str) -> Dict[str, 
     # Check if dependency is available
     provider_dependency = provider_info[provider]["dependency"]
     if provider_dependency == "openai":
-        from utils.dependency_manager import openai_dependency
+        from backend.utils.dependency_manager import openai_dependency
 
         if not openai_dependency.is_available():
             return {
@@ -692,7 +715,7 @@ def check_llm_provider_health(provider: str, api_key_env_var: str) -> Dict[str, 
                 "timestamp": datetime.utcnow().isoformat(),
             }
     elif provider_dependency == "anthropic":
-        from utils.dependency_manager import anthropic_dependency
+        from backend.utils.dependency_manager import anthropic_dependency
 
         if not anthropic_dependency.is_available():
             return {
@@ -704,7 +727,7 @@ def check_llm_provider_health(provider: str, api_key_env_var: str) -> Dict[str, 
                 "timestamp": datetime.utcnow().isoformat(),
             }
     elif provider_dependency == "google.generativeai":
-        from utils.dependency_manager import google_ai_dependency
+        from backend.utils.dependency_manager import google_ai_dependency
 
         if not google_ai_dependency.is_available():
             return {
@@ -862,6 +885,16 @@ def check_system_health() -> Dict[str, Any]:
             status = HealthStatus.OK
             message = "System resources OK"
 
+        # Update Prometheus metrics
+        try:
+            from backend.utils.metrics import MetricsCollector
+
+            metrics = MetricsCollector()
+            metrics.update_system_metrics()
+        except ImportError:
+            # Continue even if Prometheus is not available
+            pass
+
         # Build response
         return {
             "status": status,
@@ -887,6 +920,7 @@ def check_system_health() -> Dict[str, Any]:
                     "logical_cores": psutil.cpu_count(logical=True),
                 },
             },
+            "metrics_enabled": True,
             "timestamp": datetime.utcnow().isoformat(),
         }
     except Exception as e:

@@ -5,7 +5,7 @@ This module provides a standardized format for LLM responses.
 """
 
 from datetime import datetime
-from typing import Optional, Dict, Any
+from typing import Any, Dict, Optional
 
 
 class ModelResponse:

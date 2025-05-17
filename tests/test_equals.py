@@ -1,15 +1,13 @@
 """
 Tests shared for DatetimeIndex/TimedeltaIndex/PeriodIndex
 """
-from datetime import (
-    datetime,
-    timedelta,
-)
+
+from datetime import datetime, timedelta
 
 import numpy as np
-import pytest
-
 import pandas as pd
+import pandas._testing as tm
+import pytest
 from pandas import (
     CategoricalIndex,
     DatetimeIndex,
@@ -20,7 +18,6 @@ from pandas import (
     period_range,
     timedelta_range,
 )
-import pandas._testing as tm
 
 
 class EqualsTests:

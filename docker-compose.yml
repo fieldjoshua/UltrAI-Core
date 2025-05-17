@@ -73,37 +73,37 @@ services:
       - DB_NAME=${POSTGRES_DB:-ultra_dev}
       - DB_USER=${POSTGRES_USER:-ultra}
       - DB_PASSWORD=${POSTGRES_PASSWORD:-ultra_dev_password}
-      
+
       # Redis connection
       - REDIS_HOST=redis
       - REDIS_PORT=6379
       - REDIS_PASSWORD=${REDIS_PASSWORD:-redis_password}
       - REDIS_URL=redis://:${REDIS_PASSWORD:-redis_password}@redis:6379/0
-      
+
       # Application settings
       - ENVIRONMENT=${ENVIRONMENT:-development}
       - LOG_LEVEL=${LOG_LEVEL:-debug}
       - DEBUG=${DEBUG:-true}
-      
+
       # Feature flags
       - USE_MOCK=${USE_MOCK:-true}
       - ENABLE_CACHE=${ENABLE_CACHE:-true}
       - ENABLE_MOCK_LLM=${ENABLE_MOCK_LLM:-true}
       - ENABLE_DOCUMENT_PROCESSING=${ENABLE_DOCUMENT_PROCESSING:-true}
       - ENABLE_AUTH=${ENABLE_AUTH:-false}
-      
+
       # JWT settings
       - JWT_SECRET=${JWT_SECRET:-super_secret_jwt_key_for_development_only}
-      
+
       # Database connection settings
       - DB_CONNECTION_RETRIES=30
       - DB_CONNECTION_RETRY_INTERVAL=2
-      
+
       # Pass through API keys if available
       - OPENAI_API_KEY=${OPENAI_API_KEY:-}
       - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
       - GOOGLE_API_KEY=${GOOGLE_API_KEY:-}
-      
+
       # Docker Model Runner configuration
       - ENABLE_MODEL_RUNNER=${ENABLE_MODEL_RUNNER:-false}
       - MODEL_RUNNER_URL=http://model-runner:8080
@@ -152,26 +152,26 @@ services:
       - DB_NAME=${POSTGRES_DB:-ultra_dev}
       - DB_USER=${POSTGRES_USER:-ultra}
       - DB_PASSWORD=${POSTGRES_PASSWORD:-ultra_dev_password}
-      
+
       # Redis connection
       - REDIS_HOST=redis
       - REDIS_PORT=6379
       - REDIS_PASSWORD=${REDIS_PASSWORD:-redis_password}
       - REDIS_URL=redis://:${REDIS_PASSWORD:-redis_password}@redis:6379/0
-      
+
       # Application settings
       - ENVIRONMENT=${ENVIRONMENT:-development}
       - LOG_LEVEL=${LOG_LEVEL:-debug}
-      
+
       # Feature flags
       - USE_MOCK=${USE_MOCK:-true}
       - ENABLE_MOCK_LLM=${ENABLE_MOCK_LLM:-true}
-      
+
       # Pass through API keys if available
       - OPENAI_API_KEY=${OPENAI_API_KEY:-}
       - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
       - GOOGLE_API_KEY=${GOOGLE_API_KEY:-}
-      
+
       # Docker Model Runner configuration
       - ENABLE_MODEL_RUNNER=${ENABLE_MODEL_RUNNER:-false}
       - MODEL_RUNNER_URL=http://model-runner:8080
@@ -213,7 +213,7 @@ services:
       - ultra-network
     profiles:
       - with-frontend
-      
+
   # Docker Model Runner Service (optional)
   model-runner:
     image: docker/modelrunner-api:latest

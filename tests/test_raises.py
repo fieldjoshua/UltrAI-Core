@@ -6,15 +6,9 @@ import datetime
 import re
 
 import numpy as np
-import pytest
-
-from pandas import (
-    Categorical,
-    DataFrame,
-    Grouper,
-    Series,
-)
 import pandas._testing as tm
+import pytest
+from pandas import Categorical, DataFrame, Grouper, Series
 from pandas.tests.groupby import get_groupby_method_args
 
 
@@ -423,12 +417,14 @@ def test_groupby_raises_category(
         ),
         "ffill": (None, ""),
         "fillna": (
-            TypeError,
-            r"Cannot setitem on a Categorical with a new category \(0\), "
-            "set the categories first",
-        )
-        if not using_copy_on_write
-        else (None, ""),  # no-op with CoW
+            (
+                TypeError,
+                r"Cannot setitem on a Categorical with a new category \(0\), "
+                "set the categories first",
+            )
+            if not using_copy_on_write
+            else (None, "")
+        ),  # no-op with CoW
         "first": (None, ""),
         "idxmax": (None, ""),
         "idxmin": (None, ""),
@@ -633,19 +629,25 @@ def test_groupby_raises_category_on_category(
         "diff": (TypeError, "unsupported operand type"),
         "ffill": (None, ""),
         "fillna": (
-            TypeError,
-            r"Cannot setitem on a Categorical with a new category \(0\), "
-            "set the categories first",
-        )
-        if not using_copy_on_write
-        else (None, ""),  # no-op with CoW
+            (
+                TypeError,
+                r"Cannot setitem on a Categorical with a new category \(0\), "
+                "set the categories first",
+            )
+            if not using_copy_on_write
+            else (None, "")
+        ),  # no-op with CoW
         "first": (None, ""),
-        "idxmax": (ValueError, "empty group due to unobserved categories")
-        if empty_groups
-        else (None, ""),
-        "idxmin": (ValueError, "empty group due to unobserved categories")
-        if empty_groups
-        else (None, ""),
+        "idxmax": (
+            (ValueError, "empty group due to unobserved categories")
+            if empty_groups
+            else (None, "")
+        ),
+        "idxmin": (
+            (ValueError, "empty group due to unobserved categories")
+            if empty_groups
+            else (None, "")
+        ),
         "last": (None, ""),
         "max": (None, ""),
         "mean": (TypeError, "category dtype does not support aggregation 'mean'"),

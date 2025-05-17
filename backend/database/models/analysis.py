@@ -7,8 +7,17 @@ This module defines the SQLAlchemy ORM models for analysis results and related d
 import enum
 from datetime import datetime
 
-from sqlalchemy import (Column, DateTime, Enum, Float, ForeignKey, Integer,
-                        String, Text, Boolean)
+from sqlalchemy import (
+    Boolean,
+    Column,
+    DateTime,
+    Enum,
+    Float,
+    ForeignKey,
+    Integer,
+    String,
+    Text,
+)
 from sqlalchemy.dialects.postgresql import ARRAY, JSONB
 from sqlalchemy.orm import relationship
 
@@ -17,6 +26,7 @@ from backend.database.models.base import Base
 
 class AnalysisStatus(enum.Enum):
     """Analysis status enumeration"""
+
     PENDING = "pending"
     PROCESSING = "processing"
     COMPLETED = "completed"
@@ -25,6 +35,7 @@ class AnalysisStatus(enum.Enum):
 
 class AnalysisType(enum.Enum):
     """Analysis type enumeration"""
+
     STANDARD = "standard"
     DOCUMENT = "document"
     SUMMARIZATION = "summarization"
@@ -34,6 +45,7 @@ class AnalysisType(enum.Enum):
 
 class AlaCarteOption(enum.Enum):
     """A la carte options for analysis"""
+
     FACT_CHECK = "fact_check"
     AVOID_AI_DETECTION = "avoid_ai_detection"
     SOURCING = "sourcing"
@@ -44,6 +56,7 @@ class AlaCarteOption(enum.Enum):
 
 class OutputFormat(enum.Enum):
     """Output format options"""
+
     TEXT = "txt"
     RTF = "rtf"
     GOOGLE_DOCS = "google_docs"
@@ -61,7 +74,9 @@ class Analysis(Base):
 
     # Analysis metadata
     prompt = Column(Text, nullable=False)
-    analysis_type = Column(Enum(AnalysisType), default=AnalysisType.STANDARD, nullable=False)
+    analysis_type = Column(
+        Enum(AnalysisType), default=AnalysisType.STANDARD, nullable=False
+    )
     pattern = Column(String, nullable=True)
     ultra_model = Column(String, nullable=False)
 
@@ -69,13 +84,17 @@ class Analysis(Base):
     ala_carte_options = Column(ARRAY(String), nullable=True)
 
     # Output format
-    output_format = Column(Enum(OutputFormat), default=OutputFormat.TEXT, nullable=False)
+    output_format = Column(
+        Enum(OutputFormat), default=OutputFormat.TEXT, nullable=False
+    )
 
     # Selected models
     selected_models = Column(ARRAY(String), nullable=False)
 
     # Results
-    status = Column(Enum(AnalysisStatus), default=AnalysisStatus.PENDING, nullable=False)
+    status = Column(
+        Enum(AnalysisStatus), default=AnalysisStatus.PENDING, nullable=False
+    )
     result = Column(JSONB, nullable=True)
     ultra_response = Column(Text, nullable=True)
     error_message = Column(Text, nullable=True)
@@ -94,7 +113,9 @@ class Analysis(Base):
 
     # Timestamps
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+    updated_at = Column(
+        DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False
+    )
     completed_at = Column(DateTime, nullable=True)
 
     # Cache metadata

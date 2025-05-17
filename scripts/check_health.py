@@ -7,13 +7,14 @@ of various services and dependencies. It can be used as a command-line tool
 or as part of a monitoring system.
 """
 
+import argparse
+import json
 import os
 import sys
-import json
-import argparse
-import requests
-from datetime import datetime
 import time
+from datetime import datetime
+
+import requests
 
 # Default API URL
 DEFAULT_API_URL = "http://localhost:8000"
@@ -86,7 +87,7 @@ def print_basic_health(data):
     """Print basic health information"""
     status = data.get("status", "unknown")
     uptime = data.get("uptime", 0)
-    
+
     print(f"Status: {color_status(status)}")
     print(f"Uptime: {color_text(format_time(uptime), 'cyan')}")
 
@@ -97,14 +98,20 @@ def print_system_health(data):
     memory = details.get("memory", {})
     disk = details.get("disk", {})
     cpu = details.get("cpu", {})
-    
+
     print("\n" + color_text("System Health:", "bold"))
-    print(f"Memory: {memory.get('percent', 0)}% used "
-          f"({memory.get('used_gb', 0):.1f}GB / {memory.get('total_gb', 0):.1f}GB)")
-    print(f"Disk: {disk.get('percent', 0)}% used "
-          f"({disk.get('used_gb', 0):.1f}GB / {disk.get('total_gb', 0):.1f}GB)")
-    print(f"CPU: {cpu.get('percent', 0)}% used "
-          f"({cpu.get('cores', 0)} cores / {cpu.get('logical_cores', 0)} logical cores)")
+    print(
+        f"Memory: {memory.get('percent', 0)}% used "
+        f"({memory.get('used_gb', 0):.1f}GB / {memory.get('total_gb', 0):.1f}GB)"
+    )
+    print(
+        f"Disk: {disk.get('percent', 0)}% used "
+        f"({disk.get('used_gb', 0):.1f}GB / {disk.get('total_gb', 0):.1f}GB)"
+    )
+    print(
+        f"CPU: {cpu.get('percent', 0)}% used "
+        f"({cpu.get('cores', 0)} cores / {cpu.get('logical_cores', 0)} logical cores)"
+    )
 
 
 def print_service_health(service, data):
@@ -113,13 +120,13 @@ def print_service_health(service, data):
     message = data.get("message", "")
     details = data.get("details", {})
     using_fallback = data.get("using_fallback", False)
-    
+
     print(f"  {service}: {color_status(status)}")
     print(f"    {message}")
-    
+
     if using_fallback:
         print(f"    {color_text('Using fallback implementation', 'yellow')}")
-    
+
     # Print interesting details based on service type
     if service == "database":
         if "host" in details:
@@ -142,12 +149,12 @@ def print_service_health(service, data):
 def print_all_services(services):
     """Print information about all services"""
     print("\n" + color_text("Services:", "bold"))
-    
+
     # Group by service type
     service_types = {}
     for name, data in services.items():
         service_type = None
-        
+
         # Try to infer service type
         if name in ["database", "postgres"]:
             service_type = "Database"
@@ -163,11 +170,11 @@ def print_all_services(services):
             service_type = "Network"
         else:
             service_type = "Other"
-            
+
         if service_type not in service_types:
             service_types[service_type] = {}
         service_types[service_type][name] = data
-    
+
     # Print by service type
     for service_type, services in service_types.items():
         print(f"\n{color_text(service_type, 'bold')}:")
@@ -185,24 +192,24 @@ def print_llm_providers(providers):
 def print_dependencies(dependencies):
     """Print information about dependencies"""
     print("\n" + color_text("Dependencies:", "bold"))
-    
+
     # Group by availability
     available = []
     unavailable = []
-    
+
     for name, data in dependencies.items():
         if data.get("is_available"):
             available.append((name, data))
         else:
             unavailable.append((name, data))
-    
+
     # Print available dependencies
     if available:
         print(color_text("  Available:", "green"))
         for name, data in available:
             required = "*" if data.get("is_required") else ""
             print(f"    {name}{required}: {data.get('name', '')}")
-    
+
     # Print unavailable dependencies
     if unavailable:
         print(color_text("  Unavailable:", "yellow"))
@@ -213,30 +220,30 @@ def print_dependencies(dependencies):
                 print(f"      Error: {data.get('error')}")
             if data.get("installation_cmd"):
                 print(f"      Install: {data.get('installation_cmd')}")
-    
+
     print("\n  * Required dependencies")
 
 
 def print_feature_flags(features):
     """Print information about feature flags"""
     print("\n" + color_text("Feature Flags:", "bold"))
-    
+
     # Group by enabled/disabled
     enabled = []
     disabled = []
-    
+
     for name, enabled_flag in features.items():
         if enabled_flag:
             enabled.append(name)
         else:
             disabled.append(name)
-    
+
     # Print enabled features
     if enabled:
         print(color_text("  Enabled:", "green"))
         for name in enabled:
             print(f"    {name}")
-    
+
     # Print disabled features
     if disabled:
         print(color_text("  Disabled:", "yellow"))
@@ -248,10 +255,10 @@ def check_basic_health(api_url):
     """Check and print basic health information"""
     url = f"{api_url}/health"
     data = make_request(url)
-    
+
     print(color_text("\nBasic Health Check:", "bold"))
     print_basic_health(data)
-    
+
     return data.get("status") == "ok"
 
 
@@ -260,39 +267,43 @@ def check_detailed_health(api_url):
     url = f"{api_url}/api/health"
     params = {"detail": "true", "include_system": "true"}
     data = make_request(url, params)
-    
+
     print(color_text("\nDetailed Health Check:", "bold"))
     print_basic_health(data)
-    
+
     # Print failing services if any
     if "failing_services" in data:
         failing = data.get("failing_services", [])
         print(color_text(f"\nFailing services: {', '.join(failing)}", "red"))
-    
+
     # Print system metrics if available
     if "system" in data:
         system = data.get("system", {})
         memory = system.get("memory", {})
         disk = system.get("disk", {})
-        
+
         print("\n" + color_text("System Resources:", "bold"))
-        print(f"  Memory: {memory.get('percent_used', 0)}% used "
-              f"({memory.get('available_gb', 0):.1f}GB available)")
-        print(f"  Disk: {disk.get('percent_used', 0)}% used "
-              f"({disk.get('free_gb', 0):.1f}GB free)")
-    
+        print(
+            f"  Memory: {memory.get('percent_used', 0)}% used "
+            f"({memory.get('available_gb', 0):.1f}GB available)"
+        )
+        print(
+            f"  Disk: {disk.get('percent_used', 0)}% used "
+            f"({disk.get('free_gb', 0):.1f}GB free)"
+        )
+
     # Print services
     if "services" in data:
         print_all_services(data.get("services", {}))
-    
+
     # Print dependencies
     if "dependencies" in data:
         print_dependencies(data.get("dependencies", {}))
-    
+
     # Print feature flags
     if "features" in data:
         print_feature_flags(data.get("features", {}))
-    
+
     return data.get("status") == "ok"
 
 
@@ -300,16 +311,16 @@ def check_system_health(api_url):
     """Check and print system health information"""
     url = f"{api_url}/api/health/system"
     data = make_request(url)
-    
+
     print(color_text("\nSystem Health Check:", "bold"))
     status = data.get("status", "unknown")
     message = data.get("message", "")
-    
+
     print(f"Status: {color_status(status)}")
     print(f"Message: {message}")
-    
+
     print_system_health(data)
-    
+
     return status == "ok"
 
 
@@ -317,15 +328,15 @@ def check_llm_health(api_url):
     """Check and print LLM provider health information"""
     url = f"{api_url}/api/health/llm"
     data = make_request(url)
-    
+
     print(color_text("\nLLM Provider Health Check:", "bold"))
     status = data.get("status", "unknown")
-    
+
     print(f"Overall status: {color_status(status)}")
-    
+
     if "providers" in data:
         print_llm_providers(data.get("providers", {}))
-    
+
     return status == "ok"
 
 
@@ -333,16 +344,26 @@ def main():
     """Main function to run the script"""
     parser = argparse.ArgumentParser(description="Check health of Ultra backend.")
     parser.add_argument("--url", default=DEFAULT_API_URL, help="API URL")
-    parser.add_argument("--basic", action="store_true", help="Run basic health check only")
-    parser.add_argument("--system", action="store_true", help="Run system health check only")
-    parser.add_argument("--llm", action="store_true", help="Run LLM provider health check only")
+    parser.add_argument(
+        "--basic", action="store_true", help="Run basic health check only"
+    )
+    parser.add_argument(
+        "--system", action="store_true", help="Run system health check only"
+    )
+    parser.add_argument(
+        "--llm", action="store_true", help="Run LLM provider health check only"
+    )
     parser.add_argument("--all", action="store_true", help="Run all health checks")
     parser.add_argument("--json", action="store_true", help="Output in JSON format")
-    parser.add_argument("--monitor", action="store_true", help="Run in monitor mode (continuous)")
-    parser.add_argument("--interval", type=int, default=60, help="Monitoring interval in seconds")
-    
+    parser.add_argument(
+        "--monitor", action="store_true", help="Run in monitor mode (continuous)"
+    )
+    parser.add_argument(
+        "--interval", type=int, default=60, help="Monitoring interval in seconds"
+    )
+
     args = parser.parse_args()
-    
+
     if args.json:
         # Output in JSON format
         if args.all or (not args.basic and not args.system and not args.llm):
@@ -365,11 +386,21 @@ def main():
     elif args.monitor:
         # Run in monitor mode
         try:
-            print(color_text(f"Monitoring Ultra health (Ctrl+C to stop, interval: {args.interval}s)", "bold"))
+            print(
+                color_text(
+                    f"Monitoring Ultra health (Ctrl+C to stop, interval: {args.interval}s)",
+                    "bold",
+                )
+            )
             while True:
                 clear_screen()
-                print(color_text(f"Ultra Health Monitor - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}", "bold"))
-                
+                print(
+                    color_text(
+                        f"Ultra Health Monitor - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
+                        "bold",
+                    )
+                )
+
                 if args.all or (not args.basic and not args.system and not args.llm):
                     check_detailed_health(args.url)
                 elif args.basic:
@@ -378,7 +409,7 @@ def main():
                     check_system_health(args.url)
                 elif args.llm:
                     check_llm_health(args.url)
-                
+
                 time.sleep(args.interval)
         except KeyboardInterrupt:
             print("\nMonitoring stopped")
@@ -386,13 +417,13 @@ def main():
         # Run health checks
         if args.all or (not args.basic and not args.system and not args.llm):
             check_detailed_health(args.url)
-        
+
         if args.basic:
             check_basic_health(args.url)
-        
+
         if args.system:
             check_system_health(args.url)
-        
+
         if args.llm:
             check_llm_health(args.url)
 
@@ -400,7 +431,7 @@ def main():
 def clear_screen():
     """Clear the terminal screen"""
     if sys.stdout.isatty():
-        os.system('cls' if os.name == 'nt' else 'clear')
+        os.system("cls" if os.name == "nt" else "clear")
 
 
 if __name__ == "__main__":

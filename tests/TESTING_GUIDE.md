@@ -95,10 +95,10 @@ def test_my_new_feature(client):
     """Test that my new feature works correctly."""
     # Setup test data
     test_data = {"key": "value"}
-    
+
     # Make request to the endpoint
     response = client.post("/api/my-endpoint", json=test_data)
-    
+
     # Verify response
     assert response.status_code == 200
     assert "result" in response.json()

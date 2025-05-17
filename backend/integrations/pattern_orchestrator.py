@@ -8,7 +8,7 @@ according to different analysis patterns.
 import asyncio
 import logging
 import time
-from typing import Dict, List, Any, Optional
+from typing import Any, Dict, List, Optional
 
 # Configure logging
 logger = logging.getLogger("pattern_orchestrator")
@@ -22,7 +22,7 @@ class PatternOrchestrator:
         models: Optional[List[str]] = None,
         ultra_model: Optional[str] = None,
         pattern: str = "comprehensive_analysis",
-        options: Optional[Dict[str, Any]] = None
+        options: Optional[Dict[str, Any]] = None,
     ):
         """
         Initialize the pattern orchestrator
@@ -89,7 +89,7 @@ class PatternOrchestrator:
             "model_times": model_times,
             "token_counts": token_counts,
             "total_time": processing_time,
-            "options_used": self.options
+            "options_used": self.options,
         }
 
         return result
@@ -131,16 +131,14 @@ class PatternOrchestrator:
         token_counts = {
             "prompt_tokens": len(prompt.split()) * 4,
             "completion_tokens": len(response.split()) * 4,
-            "total_tokens": (len(prompt.split()) + len(response.split())) * 4
+            "total_tokens": (len(prompt.split()) + len(response.split())) * 4,
         }
 
         logger.info(f"Model {model} processed prompt in {processing_time:.2f} seconds")
         return model, response, processing_time, token_counts
 
     async def _process_with_ultra_model(
-        self,
-        prompt: str,
-        model_responses: Dict[str, str]
+        self, prompt: str, model_responses: Dict[str, str]
     ) -> str:
         """
         Process all model responses with the ultra model
@@ -176,7 +174,9 @@ This analysis combines insights from multiple models about: {prompt[:100]}...
         elif "critical" in self.pattern:
             ultra_response += "\n## Critical Analysis\nEvaluating the strengths and weaknesses of each approach."
         else:
-            ultra_response += "\n## Conclusion\nThe combined analysis provides valuable insights."
+            ultra_response += (
+                "\n## Conclusion\nThe combined analysis provides valuable insights."
+            )
 
         logger.info(f"Ultra model processed responses with pattern: {self.pattern}")
         return ultra_response

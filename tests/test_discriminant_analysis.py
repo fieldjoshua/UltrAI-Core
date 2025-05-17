@@ -3,7 +3,6 @@ import warnings
 import numpy as np
 import pytest
 from scipy import linalg
-
 from sklearn.cluster import KMeans
 from sklearn.covariance import LedoitWolf, ShrunkCovariance, ledoit_wolf
 from sklearn.datasets import make_blobs

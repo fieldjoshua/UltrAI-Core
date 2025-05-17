@@ -12,22 +12,26 @@ The integration of cloud LLM providers with Ultra has been successfully complete
 ## Components Implemented
 
 1. **LLM Adapters**:
+
    - Comprehensive adapter classes for all supported providers in `src/models/llm_adapter.py`
    - Common interface providing both synchronous and streaming generation
    - Capabilities detection and reporting
    - Robust error handling and retry logic
 
 2. **Factory Functions**:
+
    - Synchronous and asynchronous adapter creation functions
    - Support for alternative API endpoints
    - Environment variable configuration
 
 3. **Model Registration**:
+
    - Automatic detection and registration of available models in `backend/services/llm_config_service.py`
    - Support for custom model weights and tags
    - Dynamic capability detection
 
 4. **Testing Tools**:
+
    - Test script for cloud providers (`scripts/test_cloud_llms.py`)
    - Docker Model Runner test script (`scripts/test_modelrunner_cli.py`)
    - Model verification tools

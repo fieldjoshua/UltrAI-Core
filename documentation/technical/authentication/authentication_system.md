@@ -194,8 +194,8 @@ The `AuthMiddleware` class provides:
 
 ```python
 result = auth_service.create_user(
-    db, 
-    "user@example.com", 
+    db,
+    "user@example.com",
     "SecurePassword123!",
     name="Example User"
 )

@@ -37,4 +37,4 @@ When you report a vulnerability:
 - Security-related pull requests are prioritized and reviewed promptly.
 - Regular security audits are conducted on our codebase.
 
-Thank you for helping keep Ultra and our users safe! 
+Thank you for helping keep Ultra and our users safe!

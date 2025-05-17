@@ -7,8 +7,8 @@ Large Language Model (LLM) providers through a common adapter pattern.
 
 import asyncio
 import logging
-import time
 import os
+import time
 from abc import ABC, abstractmethod
 from typing import Any, AsyncGenerator, Dict, Optional
 from urllib.parse import urlparse
@@ -22,18 +22,19 @@ from tenacity import retry, stop_after_attempt, wait_exponential
 
 # Import URL validation utilities if available
 try:
-    from backend.utils.validation import validate_url, is_url_safe
+    from backend.utils.validation import is_url_safe, validate_url
+
     URL_VALIDATION_AVAILABLE = True
 except ImportError:
     # Create stub functions if validation module is not available
     def validate_url(url, check_ips=True):
         """Stub function when validation module is not available."""
         return True
-        
+
     def is_url_safe(url, check_ips=True):
         """Stub function when validation module is not available."""
         return True
-        
+
     URL_VALIDATION_AVAILABLE = False
 
 
@@ -136,7 +137,7 @@ class OpenAIAdapter(LLMAdapter):
 
     def __init__(self, api_key: str, model: str = "gpt-4", **kwargs):
         super().__init__(name="openai", api_key=api_key)
-        
+
         # Extract and validate base_url if provided
         base_url = kwargs.get("base_url")
         if base_url and URL_VALIDATION_AVAILABLE:
@@ -149,7 +150,7 @@ class OpenAIAdapter(LLMAdapter):
                 self.client = AsyncOpenAI(api_key=api_key)
         else:
             self.client = AsyncOpenAI(api_key=api_key)
-            
+
         self.model = model
         self.rate_limit_seconds = 0.5  # OpenAI rate limiting
 
@@ -179,18 +180,20 @@ class OpenAIAdapter(LLMAdapter):
             # Return mock response
             if use_mock:
                 await asyncio.sleep(1)  # Add a short delay to simulate API call
-                
+
                 # Import local only when in mock mode to avoid circular imports
                 try:
                     from backend.mock_llm_service import MOCK_RESPONSES
-                    
+
                     model = options.get("model", self.model)
                     mock_response = MOCK_RESPONSES.get(
-                        model, 
-                        f"Mock response from OpenAI {model}. This would be an intelligent analysis of your prompt."
+                        model,
+                        f"Mock response from OpenAI {model}. This would be an intelligent analysis of your prompt.",
                     )
-                    
-                    self.logger.info(f"Returning mock response for OpenAI model {model}")
+
+                    self.logger.info(
+                        f"Returning mock response for OpenAI model {model}"
+                    )
                     return f"{mock_response}\n\n[Note: This is a mock response as Ultra is running in mock mode]"
                 except ImportError:
                     # Fallback if mock_llm_service is not available
@@ -294,7 +297,7 @@ class AnthropicAdapter(LLMAdapter):
 
     def __init__(self, api_key: str, model: str = "claude-3-opus-20240229", **kwargs):
         super().__init__(name="anthropic", api_key=api_key)
-        
+
         # Extract and validate base_url if provided
         base_url = kwargs.get("base_url")
         if base_url and URL_VALIDATION_AVAILABLE:
@@ -307,7 +310,7 @@ class AnthropicAdapter(LLMAdapter):
                 self.client = AsyncAnthropic(api_key=api_key)
         else:
             self.client = AsyncAnthropic(api_key=api_key)
-            
+
         self.model = model
         self.rate_limit_seconds = 0.5  # Anthropic rate limiting
 
@@ -336,18 +339,20 @@ class AnthropicAdapter(LLMAdapter):
             # Return mock response
             if use_mock:
                 await asyncio.sleep(1.2)  # Add a short delay to simulate API call
-                
+
                 # Import local only when in mock mode to avoid circular imports
                 try:
                     from backend.mock_llm_service import MOCK_RESPONSES
-                    
+
                     model = options.get("model", self.model)
                     mock_response = MOCK_RESPONSES.get(
-                        model, 
-                        f"Mock response from Anthropic {model}. I would provide a thoughtful and nuanced analysis if this were a real Claude model."
+                        model,
+                        f"Mock response from Anthropic {model}. I would provide a thoughtful and nuanced analysis if this were a real Claude model.",
                     )
-                    
-                    self.logger.info(f"Returning mock response for Anthropic model {model}")
+
+                    self.logger.info(
+                        f"Returning mock response for Anthropic model {model}"
+                    )
                     return f"{mock_response}\n\n[Note: This is a mock response as Ultra is running in mock mode]"
                 except ImportError:
                     # Fallback if mock_llm_service is not available
@@ -416,14 +421,22 @@ class AnthropicAdapter(LLMAdapter):
 
             async for chunk in stream:
                 # Handle different versions of anthropic-sdk
-                if hasattr(chunk, 'delta') and hasattr(chunk.delta, 'text') and chunk.delta.text:
+                if (
+                    hasattr(chunk, "delta")
+                    and hasattr(chunk.delta, "text")
+                    and chunk.delta.text
+                ):
                     yield chunk.delta.text
-                elif hasattr(chunk, 'type') and chunk.type == 'content_block_delta':
-                    if hasattr(chunk, 'delta') and hasattr(chunk.delta, 'text'):
+                elif hasattr(chunk, "type") and chunk.type == "content_block_delta":
+                    if hasattr(chunk, "delta") and hasattr(chunk.delta, "text"):
                         yield chunk.delta.text
-                elif hasattr(chunk, 'content') and chunk.content and len(chunk.content) > 0:
+                elif (
+                    hasattr(chunk, "content")
+                    and chunk.content
+                    and len(chunk.content) > 0
+                ):
                     for content_block in chunk.content:
-                        if hasattr(content_block, 'text') and content_block.text:
+                        if hasattr(content_block, "text") and content_block.text:
                             yield content_block.text
 
         except Exception as e:
@@ -483,18 +496,20 @@ class GeminiAdapter(LLMAdapter):
             # Return mock response
             if use_mock:
                 await asyncio.sleep(0.8)  # Add a short delay to simulate API call
-                
+
                 # Import local only when in mock mode to avoid circular imports
                 try:
                     from backend.mock_llm_service import MOCK_RESPONSES
-                    
+
                     model = options.get("model", self.model)
                     mock_response = MOCK_RESPONSES.get(
-                        model, 
-                        f"Mock response from Google Gemini {model}. This would be an insightful analysis if using the actual Gemini model."
+                        model,
+                        f"Mock response from Google Gemini {model}. This would be an insightful analysis if using the actual Gemini model.",
                     )
-                    
-                    self.logger.info(f"Returning mock response for Gemini model {model}")
+
+                    self.logger.info(
+                        f"Returning mock response for Gemini model {model}"
+                    )
                     return f"{mock_response}\n\n[Note: This is a mock response as Ultra is running in mock mode]"
                 except ImportError:
                     # Fallback if mock_llm_service is not available
@@ -508,7 +523,11 @@ class GeminiAdapter(LLMAdapter):
             temperature = options.get("temperature", 0.7)
 
             # If Google key is empty or invalid, we can't initialize the API
-            if not self.api_key or len(self.api_key) < 10 or self.api_key.startswith("AIza-mock"):
+            if (
+                not self.api_key
+                or len(self.api_key) < 10
+                or self.api_key.startswith("AIza-mock")
+            ):
                 raise ValueError("Invalid or missing Google API key")
 
             # Check if Google SDK is already configured
@@ -715,23 +734,28 @@ def create_adapter(provider: str, api_key: str = None, **options) -> LLMAdapter:
 
     Raises:
         ValueError: If the provider is not supported or if API endpoints don't validate
-        
+
     Note:
         For providers that require async initialization, use create_adapter_async instead.
     """
     # This is the synchronous version that only works with adapters that don't need async init
     # Check if trying to use Docker Model Runner with CLI adapter
-    if (provider.lower() == "docker_modelrunner" and 
-        os.environ.get("MODEL_RUNNER_TYPE", "cli").lower() == "cli"):
+    if (
+        provider.lower() == "docker_modelrunner"
+        and os.environ.get("MODEL_RUNNER_TYPE", "cli").lower() == "cli"
+    ):
         raise ValueError(
             "Docker Model Runner with CLI adapter requires asynchronous initialization. "
             "Use create_adapter_async instead."
         )
-    
+
     return _create_adapter_internal(provider, api_key, **options)
 
+
 # Helper function to create the appropriate adapter (async version)
-async def create_adapter_async(provider: str, api_key: str = None, **options) -> LLMAdapter:
+async def create_adapter_async(
+    provider: str, api_key: str = None, **options
+) -> LLMAdapter:
     """
     Create an LLM adapter for the specified provider (asynchronous version).
 
@@ -747,45 +771,55 @@ async def create_adapter_async(provider: str, api_key: str = None, **options) ->
         ValueError: If the provider is not supported or if API endpoints don't validate
     """
     # Special handling for providers that need async initialization
-    if (provider.lower() == "docker_modelrunner" and 
-        os.environ.get("MODEL_RUNNER_TYPE", "cli").lower() == "cli"):
+    if (
+        provider.lower() == "docker_modelrunner"
+        and os.environ.get("MODEL_RUNNER_TYPE", "cli").lower() == "cli"
+    ):
         # Import CLI adapter
-        from src.models.docker_modelrunner_cli_adapter import create_modelrunner_cli_adapter
+        from src.models.docker_modelrunner_cli_adapter import (
+            create_modelrunner_cli_adapter,
+        )
+
         model = options.get("model") or os.environ.get("DEFAULT_MODEL", "ai/smollm2")
         return await create_modelrunner_cli_adapter(model=model)
-    
+
     # For other providers, use the sync implementation
     return _create_adapter_internal(provider, api_key, **options)
 
+
 # Internal helper function used by both sync and async versions
-def _create_adapter_internal(provider: str, api_key: str = None, **options) -> LLMAdapter:
+def _create_adapter_internal(
+    provider: str, api_key: str = None, **options
+) -> LLMAdapter:
     """Internal implementation for adapter creation."""
     model = options.get("model")
     base_url = options.get("base_url")
-    
+
     # Validate base_url if provided and validation is available
     if base_url and URL_VALIDATION_AVAILABLE:
         try:
             validate_url(base_url)
         except ValueError as e:
             raise ValueError(f"Invalid base URL for {provider}: {e}")
-    
+
     # Get endpoint from environment variable if available, otherwise use defaults
     endpoint_env_var = f"{provider.upper()}_API_ENDPOINT"
     endpoint = os.environ.get(endpoint_env_var)
-    
+
     if endpoint and URL_VALIDATION_AVAILABLE:
         try:
             validate_url(endpoint)
         except ValueError as e:
             # Log but don't fail - fall back to default endpoints
-            logging.warning(f"Invalid endpoint from environment ({endpoint_env_var}): {e}")
+            logging.warning(
+                f"Invalid endpoint from environment ({endpoint_env_var}): {e}"
+            )
             endpoint = None
 
     # Pass endpoint to adapter if provided
     if endpoint:
         options["base_url"] = endpoint
-    
+
     # Remove model from options to avoid "multiple values for keyword argument" error
     adapter_options = options.copy()
     if "model" in adapter_options:
@@ -794,16 +828,26 @@ def _create_adapter_internal(provider: str, api_key: str = None, **options) -> L
     if provider.lower() == "openai":
         return OpenAIAdapter(api_key, model=model or "gpt-4", **adapter_options)
     elif provider.lower() == "anthropic":
-        return AnthropicAdapter(api_key, model=model or "claude-3-opus-20240229", **adapter_options)
+        return AnthropicAdapter(
+            api_key, model=model or "claude-3-opus-20240229", **adapter_options
+        )
     elif provider.lower() == "gemini":
         return GeminiAdapter(api_key, model=model or "gemini-pro", **adapter_options)
     elif provider.lower() == "mistral":
-        return MistralAdapter(api_key, model=model or "mistral-large-latest", **adapter_options)
+        return MistralAdapter(
+            api_key, model=model or "mistral-large-latest", **adapter_options
+        )
     elif provider.lower() == "cohere":
         return CohereAdapter(api_key, model=model or "command", **adapter_options)
-    elif provider.lower() == "docker_modelrunner" and os.environ.get("MODEL_RUNNER_TYPE", "cli").lower() != "cli":
+    elif (
+        provider.lower() == "docker_modelrunner"
+        and os.environ.get("MODEL_RUNNER_TYPE", "cli").lower() != "cli"
+    ):
         # Only handle API adapter here, CLI adapter is handled in create_adapter_async
         from src.models.docker_modelrunner_adapter import DockerModelRunnerAdapter
-        return DockerModelRunnerAdapter(model=model or os.environ.get("DEFAULT_MODEL", "phi3:mini"), **options)
+
+        return DockerModelRunnerAdapter(
+            model=model or os.environ.get("DEFAULT_MODEL", "phi3:mini"), **options
+        )
     else:
         raise ValueError(f"Unsupported LLM provider: {provider}")

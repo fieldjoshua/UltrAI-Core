@@ -17,41 +17,48 @@ The Ultra project currently lacks a standardized development environment setup, 
 ## Steps
 
 1. **Audit Current Infrastructure Requirements**
+
    - [ ] Document all external services used by Ultra (Redis, PostgreSQL, etc.)
    - [ ] Identify specific version requirements for each service
    - [ ] Determine optimal configuration parameters for development
 
 2. **Design Docker Compose Architecture**
+
    - [ ] Create container architecture diagram
    - [ ] Define network configuration for inter-service communication
    - [ ] Plan volume mounts for data persistence
    - [ ] Determine environment variable strategy
 
 3. **Implement Base Docker Compose File**
+
    - [ ] Set up PostgreSQL service with appropriate extensions and initial schemas
    - [ ] Configure Redis service with development-appropriate settings
    - [ ] Create a service for the Ultra backend with hot-reloading
    - [ ] Set up a service for the Ultra frontend with development server
 
 4. **Configure Service Dependencies**
+
    - [ ] Implement proper startup order with dependency checks
    - [ ] Create health checks for each service
    - [ ] Configure networking between services
    - [ ] Set up shared volumes where needed
 
 5. **Add Development Utilities**
+
    - [ ] Include database administration tools (pgAdmin or similar)
    - [ ] Add Redis management interface
    - [ ] Configure logging aggregation for all services
    - [ ] Set up convenient volume mapping for code editing
 
 6. **Create Initialization Scripts**
+
    - [ ] Develop database initialization scripts
    - [ ] Create seed data scripts for development
    - [ ] Implement service readiness checks
    - [ ] Add database migration initialization
 
 7. **Documentation and Guides**
+
    - [ ] Create detailed README with setup instructions
    - [ ] Document all available services and their purposes
    - [ ] Add troubleshooting guide for common issues

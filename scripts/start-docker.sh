@@ -109,7 +109,7 @@ if ! command -v docker-compose &> /dev/null; then
     echo "Please install Docker Compose: https://docs.docker.com/compose/install/"
     exit 1
   fi
-  
+
   # Use docker compose V2 syntax
   CMD="docker compose"
 else

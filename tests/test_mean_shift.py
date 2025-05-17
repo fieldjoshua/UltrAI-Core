@@ -7,7 +7,6 @@ import warnings
 
 import numpy as np
 import pytest
-
 from sklearn.cluster import MeanShift, estimate_bandwidth, get_bin_seeds, mean_shift
 from sklearn.datasets import make_blobs
 from sklearn.metrics import v_measure_score

@@ -15,7 +15,6 @@ import numpy as np
 import pytest
 from joblib.numpy_pickle import NumpyPickler
 from numpy.testing import assert_allclose
-
 from sklearn import clone, datasets, tree
 from sklearn.dummy import DummyRegressor
 from sklearn.exceptions import NotFittedError
@@ -24,44 +23,21 @@ from sklearn.metrics import accuracy_score, mean_poisson_deviance, mean_squared_
 from sklearn.model_selection import cross_val_score, train_test_split
 from sklearn.pipeline import make_pipeline
 from sklearn.random_projection import _sparse_random_matrix
-from sklearn.tree import (
-    DecisionTreeClassifier,
-    DecisionTreeRegressor,
-    ExtraTreeClassifier,
-    ExtraTreeRegressor,
-)
-from sklearn.tree._classes import (
-    CRITERIA_CLF,
-    CRITERIA_REG,
-    DENSE_SPLITTERS,
-    SPARSE_SPLITTERS,
-)
+from sklearn.tree import (DecisionTreeClassifier, DecisionTreeRegressor,
+                          ExtraTreeClassifier, ExtraTreeRegressor)
+from sklearn.tree._classes import (CRITERIA_CLF, CRITERIA_REG, DENSE_SPLITTERS,
+                                   SPARSE_SPLITTERS)
 from sklearn.tree._partitioner import _py_sort
-from sklearn.tree._tree import (
-    NODE_DTYPE,
-    TREE_LEAF,
-    TREE_UNDEFINED,
-    _build_pruned_tree_py,
-    _check_n_classes,
-    _check_node_ndarray,
-    _check_value_ndarray,
-)
+from sklearn.tree._tree import NODE_DTYPE, TREE_LEAF, TREE_UNDEFINED
 from sklearn.tree._tree import Tree as CythonTree
+from sklearn.tree._tree import (_build_pruned_tree_py, _check_n_classes,
+                                _check_node_ndarray, _check_value_ndarray)
 from sklearn.utils import compute_sample_weight
-from sklearn.utils._testing import (
-    assert_almost_equal,
-    assert_array_almost_equal,
-    assert_array_equal,
-    create_memmap_backed_data,
-    ignore_warnings,
-    skip_if_32bit,
-)
-from sklearn.utils.fixes import (
-    _IS_32BIT,
-    COO_CONTAINERS,
-    CSC_CONTAINERS,
-    CSR_CONTAINERS,
-)
+from sklearn.utils._testing import (assert_almost_equal, assert_array_almost_equal,
+                                    assert_array_equal, create_memmap_backed_data,
+                                    ignore_warnings, skip_if_32bit)
+from sklearn.utils.fixes import (_IS_32BIT, COO_CONTAINERS, CSC_CONTAINERS,
+                                 CSR_CONTAINERS)
 from sklearn.utils.validation import check_random_state
 
 CLF_CRITERIONS = ("gini", "log_loss")

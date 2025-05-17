@@ -7,6 +7,7 @@ This document explains how to integrate and use various LLM providers with Ultra
 Ultra supports the following LLM providers:
 
 1. **Cloud Providers**:
+
    - **OpenAI** (GPT-4, GPT-4o, GPT-3.5 Turbo)
    - **Anthropic** (Claude 3 Opus, Claude 3 Sonnet, Claude 3 Haiku)
    - **Google** (Gemini 1.5 Pro, Gemini 1.5 Flash)
@@ -140,11 +141,11 @@ python3 scripts/pull_modelrunner_models.py --models ai/smollm2,ai/mistral
 
 ### Hardware Requirements for Local Models
 
-| Model      | Size | RAM        | Disk     | GPU     |
-|------------|------|------------|----------|---------|
-| ai/smollm2 | ~250MB | 1-2GB     | ~500MB   | Optional |
-| ai/mistral | ~4GB  | 8GB+      | ~10GB    | Recommended |
-| ai/llama3  | ~8GB  | 16GB+     | ~20GB    | Required for good performance |
+| Model      | Size   | RAM   | Disk   | GPU                           |
+| ---------- | ------ | ----- | ------ | ----------------------------- |
+| ai/smollm2 | ~250MB | 1-2GB | ~500MB | Optional                      |
+| ai/mistral | ~4GB   | 8GB+  | ~10GB  | Recommended                   |
+| ai/llama3  | ~8GB   | 16GB+ | ~20GB  | Required for good performance |
 
 ### Concurrent Request Limits
 
@@ -168,23 +169,25 @@ Ultra can dynamically select appropriate models based on availability:
 
 Provider streaming support:
 
-| Provider   | Streaming | 
-|------------|-----------|
-| OpenAI     | Yes       |
-| Anthropic  | Yes       |
-| Gemini     | Limited   |
-| Mistral    | Yes       |
-| Local      | Yes       |
+| Provider  | Streaming |
+| --------- | --------- |
+| OpenAI    | Yes       |
+| Anthropic | Yes       |
+| Gemini    | Limited   |
+| Mistral   | Yes       |
+| Local     | Yes       |
 
 ## Troubleshooting
 
 ### Common Issues
 
 1. **API Key Problems**:
+
    - Verify keys are correctly set in environment/`.env`
    - Check for whitespace or formatting issues
 
 2. **Rate Limits**:
+
    - Implement backoff strategies
    - Distribute load across providers
    - Consider upgrading API tier

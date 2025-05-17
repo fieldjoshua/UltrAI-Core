@@ -15,7 +15,7 @@ Artificial Intelligence (AI) and, more specifically, Artificial General Intellig
 **Strategies for Staying Informed and Engaged**
 
 - **Diverse Resource Exploration**: Engaging with a variety of materials—from books and academic papers to conferences and expert talks—enriches the understanding of AGI’s multifaceted impact, offering a balanced view that transcends the echo chambers of singular narratives.
-  
+
 - **Critical Analysis and Source Verification**: Assessing the credibility of sources and the expertise of authors ensures the reliability of the information consumed, protecting against misinformation and fostering a well-informed public discourse.
 
 - **Continuous Learning and Adaptation**: The rapid evolution of AI/AGI technologies necessitates an ongoing commitment to learning, urging individuals and institutions alike to remain agile and receptive to new information and perspectives.

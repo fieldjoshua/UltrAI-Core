@@ -17,7 +17,7 @@ module.exports = {
   ],
   testPathIgnorePatterns: ['/node_modules/', '/dist/', '/archive/'],
   testMatch: [
-    '**/__tests__/**/*.js?(x)', 
+    '**/__tests__/**/*.js?(x)',
     '**/?(*.)+(spec|test).js?(x)',
     '**/tests/auto/**/*.test.{js,jsx,ts,tsx}'
   ],
@@ -39,4 +39,4 @@ module.exports = {
     'jest-watch-typeahead/filename',
     'jest-watch-typeahead/testname',
   ],
-}; 
+};

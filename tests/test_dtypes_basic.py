@@ -2,25 +2,17 @@
 Tests dtype specification during parsing
 for all of the parsers defined in parsers.py
 """
+
 from collections import defaultdict
 from io import StringIO
 
 import numpy as np
-import pytest
-
-from pandas.errors import ParserWarning
-
 import pandas as pd
-from pandas import (
-    DataFrame,
-    Timestamp,
-)
 import pandas._testing as tm
-from pandas.core.arrays import (
-    ArrowStringArray,
-    IntegerArray,
-    StringArray,
-)
+import pytest
+from pandas import DataFrame, Timestamp
+from pandas.core.arrays import ArrowStringArray, IntegerArray, StringArray
+from pandas.errors import ParserWarning
 
 pytestmark = pytest.mark.filterwarnings(
     "ignore:Passing a BlockManager to DataFrame:DeprecationWarning"

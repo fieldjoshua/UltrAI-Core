@@ -5,7 +5,6 @@ from typing import Any, List
 import numpy as np
 import pytest
 import scipy.sparse as sp
-
 from sklearn.exceptions import DataDimensionalityWarning, NotFittedError
 from sklearn.metrics import euclidean_distances
 from sklearn.random_projection import (

@@ -1,0 +1,15 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Install dependencies
+RUN pip install fastapi uvicorn pydantic
+
+# Copy mock LLM service
+COPY mock_llm_service.py .
+
+# Expose port
+EXPOSE 8086
+
+# Run the service
+CMD ["uvicorn", "mock_llm_service:app", "--host", "0.0.0.0", "--port", "8086"]

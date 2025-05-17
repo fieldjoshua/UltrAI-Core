@@ -1,15 +1,15 @@
-from datetime import datetime, timezone, timedelta
 import platform
+from datetime import datetime, timedelta, timezone
 from unittest.mock import MagicMock
 
-import matplotlib.pyplot as plt
-from matplotlib.testing.decorators import check_figures_equal, image_comparison
 import matplotlib.patches as mpatches
+import matplotlib.pyplot as plt
 import matplotlib.units as munits
-from matplotlib.category import StrCategoryConverter, UnitData
-from matplotlib.dates import DateConverter
 import numpy as np
 import pytest
+from matplotlib.category import StrCategoryConverter, UnitData
+from matplotlib.dates import DateConverter
+from matplotlib.testing.decorators import check_figures_equal, image_comparison
 
 
 # Basic class that wraps numpy array and has units

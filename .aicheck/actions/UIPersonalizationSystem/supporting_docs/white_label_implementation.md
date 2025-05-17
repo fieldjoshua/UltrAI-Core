@@ -17,18 +17,18 @@ interface BrandConfiguration {
   // Organization information
   organizationName: string;
   organizationLegal?: string;
-  
+
   // Visual identity
   logo: BrandLogoSet;
   colors: BrandColorSet;
   typography: BrandTypography;
-  
+
   // Assets
   assets: BrandAssets;
-  
+
   // UI customization
   interfaceCustomization: InterfaceCustomization;
-  
+
   // Experience customization
   experienceCustomization: ExperienceCustomization;
 }

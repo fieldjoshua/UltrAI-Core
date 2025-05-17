@@ -1,13 +1,10 @@
-from datetime import (
-    datetime,
-    timedelta,
-)
+from datetime import datetime, timedelta
 from decimal import Decimal
 
 import numpy as np
-import pytest
-
 import pandas as pd
+import pandas._testing as tm
+import pytest
 from pandas import (
     Categorical,
     DataFrame,
@@ -27,7 +24,6 @@ from pandas import (
     timedelta_range,
     to_timedelta,
 )
-import pandas._testing as tm
 from pandas.core import nanops
 from pandas.core.arrays.string_arrow import ArrowStringArrayNumpySemantics
 

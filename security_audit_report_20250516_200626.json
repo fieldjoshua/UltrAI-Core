@@ -1,0 +1,134 @@
+{
+  "timestamp": "2025-05-16T20:06:26.835840",
+  "summary": {
+    "total": 21,
+    "passed": 13,
+    "failed": 5,
+    "errors": 0,
+    "warnings": 1,
+    "skipped": 2
+  },
+  "results": {
+    "Authentication Security": [
+      [
+        "User Registration",
+        "PASS",
+        "User created successfully"
+      ],
+      [
+        "User Login",
+        "PASS",
+        "JWT token received"
+      ],
+      [
+        "Protected Endpoint Auth",
+        "FAIL",
+        "Expected 401, got 405"
+      ],
+      [
+        "Token Authentication",
+        "PASS",
+        "Token accepted"
+      ]
+    ],
+    "JWT Security": [
+      [
+        "Invalid JWT Format",
+        "FAIL",
+        "Expected 401, got 400"
+      ],
+      [
+        "Expired Token",
+        "SKIP",
+        "Requires time delay for expiration"
+      ],
+      [
+        "Algorithm Validation",
+        "SKIP",
+        "Requires JWT library for testing"
+      ]
+    ],
+    "API Key Security": [
+      [
+        "API Key Generation",
+        "FAIL",
+        "Status: 401"
+      ],
+      [
+        "Invalid API Key",
+        "FAIL",
+        "Expected 401, got 400"
+      ]
+    ],
+    "CORS Security": [
+      [
+        "Allowed Origin",
+        "PASS",
+        "Origin allowed: http://localhost:3009"
+      ],
+      [
+        "Disallowed Origin",
+        "FAIL",
+        "Evil origin was allowed"
+      ]
+    ],
+    "Rate Limiting": [
+      [
+        "Rate Limiting",
+        "WARN",
+        "No rate limiting detected in 10 requests"
+      ]
+    ],
+    "Security Headers": [
+      [
+        "X-Content-Type-Options",
+        "PASS",
+        "Value: nosniff"
+      ],
+      [
+        "X-Frame-Options",
+        "PASS",
+        "Value: DENY"
+      ],
+      [
+        "X-XSS-Protection",
+        "PASS",
+        "Value: 1; mode=block"
+      ],
+      [
+        "Strict-Transport-Security",
+        "PASS",
+        "Value: max-age=31536000; includeSubDomains; preload"
+      ]
+    ],
+    "Injection Protection": [
+      [
+        "SQL Injection ('; DROP TABLE users;...)",
+        "PASS",
+        "Payload rejected"
+      ],
+      [
+        "SQL Injection (1' OR '1'='1...)",
+        "PASS",
+        "Payload rejected"
+      ],
+      [
+        "SQL Injection (1 UNION SELECT * FRO...)",
+        "PASS",
+        "Payload rejected"
+      ]
+    ],
+    "Error Handling": [
+      [
+        "Stack Trace Exposure",
+        "PASS",
+        "No stack trace in error response"
+      ],
+      [
+        "Internal Error Exposure",
+        "PASS",
+        "No internal details exposed"
+      ]
+    ]
+  }
+}

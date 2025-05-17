@@ -1,12 +1,12 @@
 from sympy.core.singleton import S
-from sympy.physics.vector import Vector, ReferenceFrame, Dyadic
+from sympy.physics.vector import Dyadic, ReferenceFrame, Vector
 from sympy.testing.pytest import raises
 
-A = ReferenceFrame('A')
+A = ReferenceFrame("A")
 
 
 def test_output_type():
-    A = ReferenceFrame('A')
+    A = ReferenceFrame("A")
     v = A.x + A.y
     d = v | v
     zerov = Vector(0)

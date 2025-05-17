@@ -12,7 +12,6 @@ from tempfile import mkdtemp
 import joblib
 import numpy as np
 import pytest
-
 from sklearn import config_context
 from sklearn.base import (
     BaseEstimator,

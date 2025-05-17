@@ -1,17 +1,8 @@
-from datetime import (
-    datetime,
-    timedelta,
-)
+from datetime import datetime, timedelta
 
 import numpy as np
+import pandas._testing as tm
 import pytest
-
-from pandas.compat import (
-    IS64,
-    is_platform_arm,
-    is_platform_power,
-)
-
 from pandas import (
     DataFrame,
     DatetimeIndex,
@@ -24,10 +15,9 @@ from pandas import (
     to_datetime,
     to_timedelta,
 )
-import pandas._testing as tm
 from pandas.api.indexers import BaseIndexer
+from pandas.compat import IS64, is_platform_arm, is_platform_power
 from pandas.core.indexers.objects import VariableOffsetWindowIndexer
-
 from pandas.tseries.offsets import BusinessDay
 
 

@@ -1,6 +1,6 @@
 import numpy as np
+import pandas._testing as tm
 import pytest
-
 from pandas._libs.tslibs.dtypes import NpyDatetimeUnit
 from pandas._libs.tslibs.np_datetime import (
     OutOfBoundsDatetime,
@@ -10,8 +10,6 @@ from pandas._libs.tslibs.np_datetime import (
     py_get_unit_from_dtype,
     py_td64_to_tdstruct,
 )
-
-import pandas._testing as tm
 
 
 def test_is_unitless():

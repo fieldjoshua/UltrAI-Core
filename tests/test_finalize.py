@@ -1,14 +1,14 @@
 """
 An exhaustive list of pandas methods exercising NDFrame.__finalize__.
 """
+
 import operator
 import re
 
 import numpy as np
-import pytest
-
 import pandas as pd
 import pandas._testing as tm
+import pytest
 
 # TODO:
 # * Binary methods (mul, div, etc.)

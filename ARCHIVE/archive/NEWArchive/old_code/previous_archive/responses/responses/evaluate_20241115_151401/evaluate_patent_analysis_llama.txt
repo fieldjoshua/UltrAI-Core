@@ -42,18 +42,18 @@ import random
 class EngineSelector:
     def __init__(self, engines):
         self.engines = engines
-        
+
     def select_engine(self, input):
         # Extract relevant information from user input
         input_representation = process_input(input)
         # Select the most appropriate engine based on the extracted information
         selected_engine = random.choice(self.engines)
         return selected_engine
-        
+
 class ResponseGenerator:
     def __init__(self, selected_engine):
         self.selected_engine = selected_engine
-        
+
     def generate_response(self, input_representation):
         # Use the selected engine to generate a response
         response = generate_response_using_engine(self.selected_engine, input_representation)

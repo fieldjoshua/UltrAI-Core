@@ -13,8 +13,19 @@ from typing import Any, Dict, List, Optional
 
 import psutil
 import uvicorn
-from fastapi import (BackgroundTasks, Body, Depends, FastAPI, File, Form, HTTPException,
-                     Query, Request, Response, UploadFile)
+from fastapi import (
+    BackgroundTasks,
+    Body,
+    Depends,
+    FastAPI,
+    File,
+    Form,
+    HTTPException,
+    Query,
+    Request,
+    Response,
+    UploadFile,
+)
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, PlainTextResponse
 from pydantic import BaseModel, ValidationError
@@ -30,6 +41,7 @@ import shutil
 from pathlib import Path
 
 from cachetools import TTLCache, cached
+
 # Import error handling system
 from error_handler import error_handling_middleware, register_exception_handlers
 
@@ -49,8 +61,11 @@ import argparse
 import socket
 from contextlib import asynccontextmanager, contextmanager
 
-from pricing_integration import (PricingIntegration, check_request_authorization,
-                                 track_request_cost)
+from pricing_integration import (
+    PricingIntegration,
+    check_request_authorization,
+    track_request_cost,
+)
 from pricing_simulator import PricingSimulator
 
 # Create the necessary directories - use environment variable for document storage in cloud

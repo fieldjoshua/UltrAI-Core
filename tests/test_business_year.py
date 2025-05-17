@@ -3,21 +3,14 @@ Tests for the following offsets:
 - BYearBegin
 - BYearEnd
 """
+
 from __future__ import annotations
 
 from datetime import datetime
 
 import pytest
-
-from pandas.tests.tseries.offsets.common import (
-    assert_is_on_offset,
-    assert_offset_equal,
-)
-
-from pandas.tseries.offsets import (
-    BYearBegin,
-    BYearEnd,
-)
+from pandas.tests.tseries.offsets.common import assert_is_on_offset, assert_offset_equal
+from pandas.tseries.offsets import BYearBegin, BYearEnd
 
 
 class TestBYearBegin:

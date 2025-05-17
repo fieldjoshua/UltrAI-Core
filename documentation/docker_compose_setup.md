@@ -21,17 +21,20 @@ The Docker Compose configuration standardizes development environments by contai
 ## Installation
 
 1. Clone the Ultra repository (if you haven't already)
+
    ```bash
    git clone https://github.com/yourusername/Ultra.git
    cd Ultra
    ```
 
 2. Create environment file
+
    ```bash
    cp env.example .env
    ```
 
 3. Edit `.env` with your specific configuration
+
    - Update API keys
    - Set passwords for PostgreSQL and Redis
    - Configure other settings as needed
@@ -45,21 +48,21 @@ The Docker Compose configuration standardizes development environments by contai
 
 Key variables in `.env` that affect the Docker Compose setup:
 
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `BUILD_TARGET` | Build stage to use (development/production) | development |
-| `TAG` | Docker image tag | latest |
-| `COMPOSE_PROJECT_NAME` | Project name prefix for containers | ultra |
-| `RESTART_POLICY` | Container restart policy | unless-stopped |
-| `DB_HOST` | PostgreSQL hostname | postgres |
-| `DB_PORT` | PostgreSQL port | 5432 |
-| `DB_USER` | PostgreSQL username | postgres |
-| `DB_PASSWORD` | PostgreSQL password | postgres_password |
-| `DB_NAME` | PostgreSQL database name | ultra |
-| `REDIS_HOST` | Redis hostname | redis |
-| `REDIS_PORT` | Redis port | 6379 |
-| `REDIS_PASSWORD` | Redis password | redis_password |
-| `FRONTEND_PORT` | Frontend service port | 3009 |
+| Variable               | Description                                 | Default           |
+| ---------------------- | ------------------------------------------- | ----------------- |
+| `BUILD_TARGET`         | Build stage to use (development/production) | development       |
+| `TAG`                  | Docker image tag                            | latest            |
+| `COMPOSE_PROJECT_NAME` | Project name prefix for containers          | ultra             |
+| `RESTART_POLICY`       | Container restart policy                    | unless-stopped    |
+| `DB_HOST`              | PostgreSQL hostname                         | postgres          |
+| `DB_PORT`              | PostgreSQL port                             | 5432              |
+| `DB_USER`              | PostgreSQL username                         | postgres          |
+| `DB_PASSWORD`          | PostgreSQL password                         | postgres_password |
+| `DB_NAME`              | PostgreSQL database name                    | ultra             |
+| `REDIS_HOST`           | Redis hostname                              | redis             |
+| `REDIS_PORT`           | Redis port                                  | 6379              |
+| `REDIS_PASSWORD`       | Redis password                              | redis_password    |
+| `FRONTEND_PORT`        | Frontend service port                       | 3009              |
 
 ## Service Details
 
@@ -125,19 +128,22 @@ The Docker Compose setup is optimized for development with:
 ### Common Issues
 
 1. **Container fails to start**
+
    - Check logs: `docker-compose logs backend`
    - Verify environment variables in `.env`
    - Ensure ports are not already in use
 
 2. **Database connection fails**
+
    - Verify PostgreSQL container is running: `docker-compose ps postgres`
    - Check database initialization: `docker-compose logs postgres`
-   - Ensure DB_* environment variables are correctly set
+   - Ensure DB\_\* environment variables are correctly set
 
 3. **Redis connection fails**
+
    - Verify Redis container is running: `docker-compose ps redis`
    - Check Redis logs: `docker-compose logs redis`
-   - Ensure REDIS_* environment variables are correctly set
+   - Ensure REDIS\_\* environment variables are correctly set
 
 4. **Changes not reflected**
    - Verify volumes are mounted correctly

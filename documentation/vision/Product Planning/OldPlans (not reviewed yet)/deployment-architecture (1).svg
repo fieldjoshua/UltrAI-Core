@@ -5,32 +5,32 @@
     <!-- Client Layer -->
     <rect x="50" y="80" width="900" height="100" fill="#f8f9fa" stroke="#333"/>
     <text x="100" y="110" font-size="16" font-weight="bold">Client Layer</text>
-    
+
     <!-- API Clients -->
     <rect x="150" y="120" width="120" height="40" fill="white" stroke="#333"/>
     <text x="210" y="145" text-anchor="middle" font-size="12">REST API Client</text>
-    
+
     <rect x="300" y="120" width="120" height="40" fill="white" stroke="#333"/>
     <text x="360" y="145" text-anchor="middle" font-size="12">gRPC Client</text>
-    
+
     <rect x="450" y="120" width="120" height="40" fill="white" stroke="#333"/>
     <text x="510" y="145" text-anchor="middle" font-size="12">WebSocket Client</text>
 
     <!-- Load Balancer Layer -->
     <rect x="50" y="200" width="900" height="80" fill="#e9ecef" stroke="#333"/>
     <text x="100" y="230" font-size="16" font-weight="bold">Load Balancer Layer</text>
-    
+
     <path d="M210 160 L210 280" stroke="#333" stroke-width="1" stroke-dasharray="5,5"/>
     <path d="M360 160 L360 280" stroke="#333" stroke-width="1" stroke-dasharray="5,5"/>
     <path d="M510 160 L510 280" stroke="#333" stroke-width="1" stroke-dasharray="5,5"/>
-    
+
     <rect x="150" y="240" width="600" height="30" fill="white" stroke="#333"/>
     <text x="450" y="260" text-anchor="middle" font-size="12">Load Balancer (HAProxy/Nginx)</text>
 
     <!-- Orchestrator Layer -->
     <rect x="50" y="300" width="900" height="200" fill="#f0f8ff" stroke="#333"/>
     <text x="100" y="330" font-size="16" font-weight="bold">Orchestrator Layer</text>
-    
+
     <!-- Orchestrator Instances -->
     <rect x="150" y="350" width="160" height="120" fill="white" stroke="#333"/>
     <text x="230" y="370" text-anchor="middle" font-size="12">Orchestrator Instance 1</text>

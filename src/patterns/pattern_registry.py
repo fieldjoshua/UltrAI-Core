@@ -7,11 +7,11 @@ allowing easy access and discovery of patterns.
 
 from typing import Dict, List, Optional
 
-from .ultra_analysis_patterns import AnalysisPattern, get_pattern_mapping
-from .educational_feather import EducationalFeather
 from .collaborative_feather import CollaborativeFeather
-from .synthesis_feather import SynthesisFeather
+from .educational_feather import EducationalFeather
 from .feedback_feather import FeedbackFeather
+from .synthesis_feather import SynthesisFeather
+from .ultra_analysis_patterns import AnalysisPattern, get_pattern_mapping
 
 
 class PatternRegistry:

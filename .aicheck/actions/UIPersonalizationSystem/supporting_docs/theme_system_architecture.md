@@ -19,6 +19,7 @@ The theme system is built on several key architectural concepts:
 The Theme Registry serves as the central store for all available themes and manages theme registration, validation, and retrieval.
 
 #### Key Responsibilities:
+
 - Maintaining a repository of all available themes
 - Validating new themes against the theme schema
 - Providing theme metadata for UI display
@@ -42,6 +43,7 @@ interface ThemeRegistry {
 The Theme Provider is a React context provider that distributes the active theme throughout the component tree.
 
 #### Key Responsibilities:
+
 - Wrapping the application with theme context
 - Converting theme properties to CSS variables
 - Handling theme change notifications
@@ -55,22 +57,22 @@ The Theme Definition is a strongly-typed schema that defines all aspects of a th
 
 ```typescript
 interface ThemeDefinition {
-  id: string;              // Unique identifier
-  name: string;            // Display name
-  description?: string;    // Optional description
-  author?: string;         // Theme creator
-  version?: string;        // Version information
-  
+  id: string; // Unique identifier
+  name: string; // Display name
+  description?: string; // Optional description
+  author?: string; // Theme creator
+  version?: string; // Version information
+
   // Core design tokens
   colors: ThemeColors;
   typography: ThemeTypography;
   spacing: ThemeSpacing;
   borders: ThemeBorders;
   shadows: ThemeShadows;
-  
+
   // Optional component-specific overrides
   components?: ComponentOverrides;
-  
+
   // Optional branding configuration
   branding?: BrandingConfiguration;
 }

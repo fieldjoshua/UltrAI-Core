@@ -52,6 +52,7 @@ The integration of the modular LLM orchestration system with the React frontend 
 ### Frontend Components
 
 1. **OrchestratorPage.tsx**
+
    - Simple container page for the orchestrator interface
    - Provides layout and page-level styling
    - Renders OrchestratorInterface component
@@ -65,6 +66,7 @@ The integration of the modular LLM orchestration system with the React frontend 
 ### API Client Layer
 
 1. **orchestrator.js**
+
    - Provides functions for interacting with the orchestrator backend
    - Handles error cases with fallback responses
    - Formats requests and parses responses
@@ -112,11 +114,13 @@ The integration of the modular LLM orchestration system with the React frontend 
 ## Error Handling
 
 1. **API Client Layer**
+
    - Timeouts are handled with default fallback responses
    - Network errors trigger fallback UI states
    - Invalid JSON responses are handled gracefully
 
 2. **Backend Layer**
+
    - Exceptions are caught and converted to appropriate HTTP errors
    - Input validation ensures request integrity
    - Service unavailability is communicated clearly
@@ -131,6 +135,7 @@ The integration of the modular LLM orchestration system with the React frontend 
 The integration uses the following configuration:
 
 1. **API Base URL**
+
    - Default: `http://localhost:8085`
    - Used in orchestrator.js for API requests
 
@@ -141,14 +146,17 @@ The integration uses the following configuration:
 ## Future Enhancements
 
 1. **Real-time Processing Updates**
+
    - Implement WebSocket connection for streaming responses
    - Show real-time progress during orchestration
 
 2. **Result Caching**
+
    - Cache recent results for improved performance
    - Allow result comparison between sessions
 
 3. **Enhanced Visualization**
+
    - Add visualizations for comparative analysis
    - Implement confidence scoring display
 

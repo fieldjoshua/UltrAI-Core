@@ -11,7 +11,7 @@ from fastapi.testclient import TestClient
 from pydantic import Field
 
 from backend.utils.middleware import RequestValidationMiddleware
-from backend.utils.validation_service import validate_input, ValidatedModel
+from backend.utils.validation_service import ValidatedModel, validate_input
 
 
 class TestUser(ValidatedModel):

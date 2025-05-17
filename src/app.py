@@ -4,13 +4,13 @@ Ultra MVP Backend Application
 This module provides the FastAPI application with the core endpoints for the Ultra MVP.
 """
 
+import logging
 import os
 import time
-import logging
-from typing import Dict, List, Optional, Any
-from dotenv import load_dotenv
+from typing import Any, Dict, List, Optional
 
-from fastapi import FastAPI, Body, HTTPException, Request
+from dotenv import load_dotenv
+from fastapi import Body, FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field

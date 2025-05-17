@@ -6,20 +6,20 @@ including circuit breakers, caching, retries, and timeouts.
 """
 
 import asyncio
-import time
+import json
 import logging
 import random
-import json
-from typing import Dict, Any, Optional, Callable, Union, List, Tuple
+import time
+from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 from urllib.parse import urlparse
 
 import aiohttp
 import backoff
-from aiohttp import ClientSession, TCPConnector, ClientTimeout, ClientError
+from aiohttp import ClientError, ClientSession, ClientTimeout, TCPConnector
 
+from backend.services.cache_service import cache_service
 from backend.utils.logging import get_logger
 from src.models.circuit_breaker import CircuitBreaker, CircuitBreakerRegistry
-from backend.services.cache_service import cache_service
 
 # Set up logger
 logger = get_logger("resilient_client", "logs/http_client.log")
@@ -34,7 +34,7 @@ DEFAULT_CACHE_TTL = 60 * 60  # 1 hour
 class ResilientClient:
     """
     Resilient HTTP client with circuit breaker, caching, and retry mechanisms.
-    
+
     This client ensures reliability for external service calls by implementing:
     - Circuit breaker pattern to prevent cascading failures
     - Request retries with exponential backoff
@@ -60,7 +60,7 @@ class ResilientClient:
     ):
         """
         Initialize the resilient client.
-        
+
         Args:
             base_url: Base URL for the service
             circuit_name: Name for the circuit breaker
@@ -88,23 +88,23 @@ class ResilientClient:
         self.cache_enabled = cache_enabled
         self.cache_ttl = cache_ttl
         self.default_headers = headers or {}
-        
+
         # Create circuit breaker
         self.circuit = circuit_registry.get_or_create(
             self.circuit_name,
             failure_threshold=self.failure_threshold,
-            recovery_timeout=self.recovery_timeout
+            recovery_timeout=self.recovery_timeout,
         )
-        
+
         # Internal session
         self._session = None
-        
+
         logger.info(f"Created resilient client for {self.domain}")
-    
+
     async def _get_session(self) -> ClientSession:
         """
         Get an aiohttp session, creating it if necessary.
-        
+
         Returns:
             An aiohttp ClientSession
         """
@@ -115,7 +115,7 @@ class ResilientClient:
                 connect=self.connect_timeout,
                 sock_connect=self.connect_timeout,
             )
-            
+
             # Create connector with connection pooling
             connector = TCPConnector(
                 limit=self.pool_size,
@@ -123,7 +123,7 @@ class ResilientClient:
                 enable_cleanup_closed=True,
                 ssl=False,  # Disable SSL verification for internal calls
             )
-            
+
             # Create session
             self._session = aiohttp.ClientSession(
                 connector=connector,
@@ -131,33 +131,35 @@ class ResilientClient:
                 headers=self.default_headers,
                 raise_for_status=False,  # Don't raise exceptions for HTTP errors
             )
-        
+
         return self._session
-    
+
     async def close(self) -> None:
         """Close the underlying HTTP session."""
         if self._session and not self._session.closed:
             await self._session.close()
             self._session = None
-    
-    def _get_cache_key(self, method: str, url: str, params: Optional[Dict] = None, data: Any = None) -> str:
+
+    def _get_cache_key(
+        self, method: str, url: str, params: Optional[Dict] = None, data: Any = None
+    ) -> str:
         """
         Generate a cache key for a request.
-        
+
         Args:
             method: HTTP method
             url: Request URL
             params: Query parameters
             data: Request body
-            
+
         Returns:
             Cache key string
         """
         import hashlib
-        
+
         # Normalize and serialize parameters for consistent hashing
         params_str = json.dumps(params, sort_keys=True) if params else ""
-        
+
         # Serialize data if it's a dict
         if isinstance(data, dict):
             data_str = json.dumps(data, sort_keys=True)
@@ -165,49 +167,54 @@ class ResilientClient:
             data_str = str(data)
         else:
             data_str = ""
-        
+
         # Create composite key
         key_data = f"{method}:{url}:{params_str}:{data_str}"
-        
+
         # Hash it
         return hashlib.md5(key_data.encode()).hexdigest()
-    
+
     async def _get_cached_response(
         self, method: str, url: str, params: Optional[Dict] = None, data: Any = None
     ) -> Optional[Dict[str, Any]]:
         """
         Get a cached response if available.
-        
+
         Args:
             method: HTTP method
             url: Request URL
             params: Query parameters
             data: Request body
-            
+
         Returns:
             Cached response or None
         """
         if not self.cache_enabled:
             return None
-        
+
         try:
             cache_key = self._get_cache_key(method, url, params, data)
             cached = await cache_service.get_json("http", {"key": cache_key})
-            
+
             if cached:
                 logger.debug(f"Cache hit for {method} {url}")
                 return cached
         except Exception as e:
             logger.warning(f"Error getting cached response: {e}")
-        
+
         return None
-    
+
     async def _cache_response(
-        self, method: str, url: str, params: Optional[Dict], data: Any, response: Dict[str, Any]
+        self,
+        method: str,
+        url: str,
+        params: Optional[Dict],
+        data: Any,
+        response: Dict[str, Any],
     ) -> None:
         """
         Cache a response.
-        
+
         Args:
             method: HTTP method
             url: Request URL
@@ -217,19 +224,23 @@ class ResilientClient:
         """
         if not self.cache_enabled:
             return
-        
+
         try:
             cache_key = self._get_cache_key(method, url, params, data)
-            await cache_service.set_json("http", {"key": cache_key}, response, ttl=self.cache_ttl)
+            await cache_service.set_json(
+                "http", {"key": cache_key}, response, ttl=self.cache_ttl
+            )
         except Exception as e:
             logger.warning(f"Error caching response: {e}")
-    
+
     @backoff.on_exception(
         backoff.expo,
         (aiohttp.ClientError, asyncio.TimeoutError),
         max_tries=3,
         max_time=30,
-        giveup=lambda e: isinstance(e, aiohttp.ClientResponseError) and e.status >= 400 and e.status < 500,
+        giveup=lambda e: isinstance(e, aiohttp.ClientResponseError)
+        and e.status >= 400
+        and e.status < 500,
     )
     async def request(
         self,
@@ -245,7 +256,7 @@ class ResilientClient:
     ) -> Dict[str, Any]:
         """
         Send an HTTP request with resiliency features.
-        
+
         Args:
             method: HTTP method (GET, POST, etc.)
             url: Request URL (relative to base_url if provided)
@@ -256,39 +267,45 @@ class ResilientClient:
             cache_ttl: Cache TTL in seconds
             skip_cache: Whether to skip cache lookup
             skip_circuit_breaker: Whether to skip circuit breaker check
-            
+
         Returns:
             Response data
-            
+
         Raises:
             Exception: If the request fails after all retries
         """
         # Construct full URL if base_url is provided
-        full_url = f"{self.base_url.rstrip('/')}/{url.lstrip('/')}" if self.base_url else url
-        
+        full_url = (
+            f"{self.base_url.rstrip('/')}/{url.lstrip('/')}" if self.base_url else url
+        )
+
         # Check circuit breaker
         if not skip_circuit_breaker and not self.circuit.allow_request():
-            logger.warning(f"Circuit breaker open for {self.circuit_name}, request blocked")
+            logger.warning(
+                f"Circuit breaker open for {self.circuit_name}, request blocked"
+            )
             raise ClientError(f"Circuit breaker open for {self.circuit_name}")
-        
+
         # Check cache for GET requests
         if method.upper() == "GET" and not skip_cache:
-            cached_response = await self._get_cached_response(method, full_url, params, data)
+            cached_response = await self._get_cached_response(
+                method, full_url, params, data
+            )
             if cached_response:
                 return cached_response
-        
+
         # Make the request
         try:
             session = await self._get_session()
-            
+
             # Configure the timeout
             request_timeout = timeout or self.request_timeout
-            
+
             # Merge headers
             merged_headers = {**self.default_headers}
             if headers:
                 merged_headers.update(headers)
-            
+
             # Send the request
             start_time = time.time()
             async with session.request(
@@ -302,14 +319,16 @@ class ResilientClient:
                 allow_redirects=True,
             ) as response:
                 # Get response data
-                is_json = response.headers.get("content-type", "").startswith("application/json")
-                
+                is_json = response.headers.get("content-type", "").startswith(
+                    "application/json"
+                )
+
                 if is_json:
                     response_data = await response.json()
                 else:
                     response_text = await response.text()
                     response_data = {"text": response_text}
-                
+
                 # Add response metadata
                 result = {
                     "status": response.status,
@@ -317,15 +336,17 @@ class ResilientClient:
                     "data": response_data,
                     "elapsed": time.time() - start_time,
                 }
-                
+
                 # Check for errors
                 if response.status >= 400:
-                    logger.warning(f"HTTP error {response.status} for {method} {full_url}")
-                    
+                    logger.warning(
+                        f"HTTP error {response.status} for {method} {full_url}"
+                    )
+
                     # Record failure in circuit breaker for server errors
                     if response.status >= 500 and not skip_circuit_breaker:
                         self.circuit.record_failure()
-                    
+
                     # Include the error in the result
                     result["error"] = True
                     result["error_message"] = f"HTTP error {response.status}"
@@ -333,22 +354,22 @@ class ResilientClient:
                     # Record success in circuit breaker
                     if not skip_circuit_breaker:
                         self.circuit.record_success()
-                    
+
                     # Cache successful GET responses
                     if method.upper() == "GET" and not skip_cache:
                         await self._cache_response(
                             method, full_url, params, data, result
                         )
-                
+
                 return result
         except (aiohttp.ClientError, asyncio.TimeoutError) as e:
             # Record failure in circuit breaker
             if not skip_circuit_breaker:
                 self.circuit.record_failure()
-            
+
             logger.error(f"Request failed for {method} {full_url}: {e}")
             raise
-    
+
     async def get(
         self,
         url: str,
@@ -361,7 +382,7 @@ class ResilientClient:
     ) -> Dict[str, Any]:
         """
         Send a GET request.
-        
+
         Args:
             url: Request URL
             params: Query parameters
@@ -370,7 +391,7 @@ class ResilientClient:
             cache_ttl: Cache TTL in seconds
             skip_cache: Whether to skip cache lookup
             skip_circuit_breaker: Whether to skip circuit breaker check
-            
+
         Returns:
             Response data
         """
@@ -384,7 +405,7 @@ class ResilientClient:
             skip_cache=skip_cache,
             skip_circuit_breaker=skip_circuit_breaker,
         )
-    
+
     async def post(
         self,
         url: str,
@@ -396,7 +417,7 @@ class ResilientClient:
     ) -> Dict[str, Any]:
         """
         Send a POST request.
-        
+
         Args:
             url: Request URL
             data: Request body
@@ -404,7 +425,7 @@ class ResilientClient:
             headers: Request headers
             timeout: Request timeout in seconds
             skip_circuit_breaker: Whether to skip circuit breaker check
-            
+
         Returns:
             Response data
         """
@@ -418,7 +439,7 @@ class ResilientClient:
             skip_cache=True,  # Always skip cache for POST
             skip_circuit_breaker=skip_circuit_breaker,
         )
-    
+
     async def put(
         self,
         url: str,
@@ -430,7 +451,7 @@ class ResilientClient:
     ) -> Dict[str, Any]:
         """
         Send a PUT request.
-        
+
         Args:
             url: Request URL
             data: Request body
@@ -438,7 +459,7 @@ class ResilientClient:
             headers: Request headers
             timeout: Request timeout in seconds
             skip_circuit_breaker: Whether to skip circuit breaker check
-            
+
         Returns:
             Response data
         """
@@ -452,7 +473,7 @@ class ResilientClient:
             skip_cache=True,  # Always skip cache for PUT
             skip_circuit_breaker=skip_circuit_breaker,
         )
-    
+
     async def delete(
         self,
         url: str,
@@ -463,14 +484,14 @@ class ResilientClient:
     ) -> Dict[str, Any]:
         """
         Send a DELETE request.
-        
+
         Args:
             url: Request URL
             params: Query parameters
             headers: Request headers
             timeout: Request timeout in seconds
             skip_circuit_breaker: Whether to skip circuit breaker check
-            
+
         Returns:
             Response data
         """
@@ -483,11 +504,11 @@ class ResilientClient:
             skip_cache=True,  # Always skip cache for DELETE
             skip_circuit_breaker=skip_circuit_breaker,
         )
-    
+
     def get_circuit_status(self) -> Dict[str, str]:
         """
         Get the status of the circuit breaker.
-        
+
         Returns:
             Circuit breaker status
         """

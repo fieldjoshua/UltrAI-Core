@@ -1,13 +1,8 @@
-from datetime import (
-    datetime,
-    timezone,
-)
+from datetime import datetime, timezone
 
 import numpy as np
+import pandas._testing as tm
 import pytest
-
-from pandas.errors import InvalidIndexError
-
 from pandas import (
     CategoricalDtype,
     CategoricalIndex,
@@ -18,7 +13,7 @@ from pandas import (
     Series,
     Timestamp,
 )
-import pandas._testing as tm
+from pandas.errors import InvalidIndexError
 
 
 def test_at_timezone():

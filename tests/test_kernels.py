@@ -7,7 +7,6 @@ from inspect import signature
 
 import numpy as np
 import pytest
-
 from sklearn.base import clone
 from sklearn.gaussian_process.kernels import (
     RBF,

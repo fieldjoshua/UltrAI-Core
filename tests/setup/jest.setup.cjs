@@ -20,10 +20,10 @@ if (expect) {
     },
     toMatchResponse(received, expected) {
       // Basic check if response has expected structure
-      const hasExpectedKeys = Object.keys(expected).every(key => 
+      const hasExpectedKeys = Object.keys(expected).every(key =>
         received.hasOwnProperty(key)
       );
-      
+
       if (hasExpectedKeys) {
         return {
           message: () => `expected response not to match structure`,
@@ -94,4 +94,4 @@ document.createRange = () => {
   range.getClientRects = jest.fn(() => []);
   range.selectNodeContents = jest.fn();
   return range;
-}; 
+};

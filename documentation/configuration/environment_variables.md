@@ -76,103 +76,103 @@ CORS_ORIGINS=https://app.ultrai.app,https://api.ultrai.app
 
 ### Core Settings
 
-| Variable | Description | Default | Required |
-|----------|-------------|---------|----------|
-| `ENVIRONMENT` | Deployment environment (development, testing, production) | `development` | Yes |
-| `DEBUG` | Enable debug mode | `false` | No |
-| `LOG_LEVEL` | Logging level (debug, info, warning, error) | `info` | No |
-| `API_HOST` | API host | `0.0.0.0` | No |
-| `API_PORT` | API port | `8000` | No |
-| `CORS_ORIGINS` | Allowed CORS origins | `*` | Yes |
-| `SECRET_KEY` | Secret key for encryption | None | Yes |
+| Variable       | Description                                               | Default       | Required |
+| -------------- | --------------------------------------------------------- | ------------- | -------- |
+| `ENVIRONMENT`  | Deployment environment (development, testing, production) | `development` | Yes      |
+| `DEBUG`        | Enable debug mode                                         | `false`       | No       |
+| `LOG_LEVEL`    | Logging level (debug, info, warning, error)               | `info`        | No       |
+| `API_HOST`     | API host                                                  | `0.0.0.0`     | No       |
+| `API_PORT`     | API port                                                  | `8000`        | No       |
+| `CORS_ORIGINS` | Allowed CORS origins                                      | `*`           | Yes      |
+| `SECRET_KEY`   | Secret key for encryption                                 | None          | Yes      |
 
 ### Authentication
 
-| Variable | Description | Default | Required |
-|----------|-------------|---------|----------|
-| `ENABLE_AUTH` | Enable authentication | `true` | No |
-| `JWT_SECRET` | Secret for JWT token signing | None | Yes |
-| `JWT_ALGORITHM` | Algorithm for JWT token signing | `HS256` | No |
-| `JWT_ACCESS_TOKEN_EXPIRE_MINUTES` | Access token expiration in minutes | `30` | No |
-| `JWT_REFRESH_TOKEN_EXPIRE_DAYS` | Refresh token expiration in days | `7` | No |
+| Variable                          | Description                        | Default | Required |
+| --------------------------------- | ---------------------------------- | ------- | -------- |
+| `ENABLE_AUTH`                     | Enable authentication              | `true`  | No       |
+| `JWT_SECRET`                      | Secret for JWT token signing       | None    | Yes      |
+| `JWT_ALGORITHM`                   | Algorithm for JWT token signing    | `HS256` | No       |
+| `JWT_ACCESS_TOKEN_EXPIRE_MINUTES` | Access token expiration in minutes | `30`    | No       |
+| `JWT_REFRESH_TOKEN_EXPIRE_DAYS`   | Refresh token expiration in days   | `7`     | No       |
 
 ### Database
 
-| Variable | Description | Default | Required |
-|----------|-------------|---------|----------|
-| `DATABASE_URL` | Database connection URL | `sqlite:///./ultra.db` | Yes |
-| `DATABASE_POOL_SIZE` | Database connection pool size | `5` | No |
-| `DATABASE_MAX_OVERFLOW` | Maximum number of connections to overflow | `10` | No |
-| `DATABASE_POOL_TIMEOUT` | Connection pool timeout in seconds | `30` | No |
-| `POSTGRES_USER` | PostgreSQL username (for Docker) | `ultra` | No |
-| `POSTGRES_PASSWORD` | PostgreSQL password (for Docker) | None | No |
-| `POSTGRES_DB` | PostgreSQL database name (for Docker) | `ultra` | No |
+| Variable                | Description                               | Default                | Required |
+| ----------------------- | ----------------------------------------- | ---------------------- | -------- |
+| `DATABASE_URL`          | Database connection URL                   | `sqlite:///./ultra.db` | Yes      |
+| `DATABASE_POOL_SIZE`    | Database connection pool size             | `5`                    | No       |
+| `DATABASE_MAX_OVERFLOW` | Maximum number of connections to overflow | `10`                   | No       |
+| `DATABASE_POOL_TIMEOUT` | Connection pool timeout in seconds        | `30`                   | No       |
+| `POSTGRES_USER`         | PostgreSQL username (for Docker)          | `ultra`                | No       |
+| `POSTGRES_PASSWORD`     | PostgreSQL password (for Docker)          | None                   | No       |
+| `POSTGRES_DB`           | PostgreSQL database name (for Docker)     | `ultra`                | No       |
 
 ### Redis Cache
 
-| Variable | Description | Default | Required |
-|----------|-------------|---------|----------|
-| `REDIS_URL` | Redis connection URL | `redis://localhost:6379/0` | No |
-| `REDIS_PASSWORD` | Redis password (for Docker) | None | No |
-| `ENABLE_CACHE` | Enable Redis caching | `true` | No |
-| `CACHE_TTL` | Cache TTL in seconds | `3600` | No |
+| Variable         | Description                 | Default                    | Required |
+| ---------------- | --------------------------- | -------------------------- | -------- |
+| `REDIS_URL`      | Redis connection URL        | `redis://localhost:6379/0` | No       |
+| `REDIS_PASSWORD` | Redis password (for Docker) | None                       | No       |
+| `ENABLE_CACHE`   | Enable Redis caching        | `true`                     | No       |
+| `CACHE_TTL`      | Cache TTL in seconds        | `3600`                     | No       |
 
 ### LLM Providers
 
-| Variable | Description | Default | Required |
-|----------|-------------|---------|----------|
-| `OPENAI_API_KEY` | OpenAI API key | None | Yes* |
-| `ANTHROPIC_API_KEY` | Anthropic API key | None | Yes* |
-| `GOOGLE_API_KEY` | Google Generative AI API key | None | Yes* |
-| `MISTRAL_API_KEY` | Mistral API key | None | No |
-| `DEEPSEEK_API_KEY` | DeepSeek API key | None | No |
-| `COHERE_API_KEY` | Cohere API key | None | No |
-| `DEFAULT_PROVIDER` | Default LLM provider | `openai` | No |
-| `DEFAULT_MODEL` | Default model for the selected provider | `gpt-4o` | No |
-| `DEFAULT_LEAD_MODEL` | Default lead model for orchestration | `anthropic-claude` | No |
-| `DEFAULT_ANALYSIS_TYPE` | Default analysis type | `comparative` | No |
+| Variable                | Description                             | Default            | Required |
+| ----------------------- | --------------------------------------- | ------------------ | -------- |
+| `OPENAI_API_KEY`        | OpenAI API key                          | None               | Yes\*    |
+| `ANTHROPIC_API_KEY`     | Anthropic API key                       | None               | Yes\*    |
+| `GOOGLE_API_KEY`        | Google Generative AI API key            | None               | Yes\*    |
+| `MISTRAL_API_KEY`       | Mistral API key                         | None               | No       |
+| `DEEPSEEK_API_KEY`      | DeepSeek API key                        | None               | No       |
+| `COHERE_API_KEY`        | Cohere API key                          | None               | No       |
+| `DEFAULT_PROVIDER`      | Default LLM provider                    | `openai`           | No       |
+| `DEFAULT_MODEL`         | Default model for the selected provider | `gpt-4o`           | No       |
+| `DEFAULT_LEAD_MODEL`    | Default lead model for orchestration    | `anthropic-claude` | No       |
+| `DEFAULT_ANALYSIS_TYPE` | Default analysis type                   | `comparative`      | No       |
 
-*At least one LLM provider API key is required in production mode.
+\*At least one LLM provider API key is required in production mode.
 
 ### Storage
 
-| Variable | Description | Default | Required |
-|----------|-------------|---------|----------|
-| `DOCUMENT_STORAGE_PATH` | Path for document storage | `document_storage` | No |
-| `TEMP_UPLOADS_PATH` | Path for temporary uploads | `temp_uploads` | No |
-| `TEMP_PATH` | Path for temporary files | `temp` | No |
-| `LOGS_PATH` | Path for log files | `logs` | No |
+| Variable                | Description                | Default            | Required |
+| ----------------------- | -------------------------- | ------------------ | -------- |
+| `DOCUMENT_STORAGE_PATH` | Path for document storage  | `document_storage` | No       |
+| `TEMP_UPLOADS_PATH`     | Path for temporary uploads | `temp_uploads`     | No       |
+| `TEMP_PATH`             | Path for temporary files   | `temp`             | No       |
+| `LOGS_PATH`             | Path for log files         | `logs`             | No       |
 
 ### Security
 
-| Variable | Description | Default | Required |
-|----------|-------------|---------|----------|
-| `ENABLE_SECURITY_HEADERS` | Enable security headers | `true` | No |
-| `ENABLE_RATE_LIMIT` | Enable rate limiting | `true` | No |
-| `ENABLE_HTTPS_REDIRECT` | Redirect HTTP to HTTPS | `false` | No |
-| `API_KEY_ENCRYPTION_KEY` | Key for API key encryption | None | Yes |
+| Variable                  | Description                | Default | Required |
+| ------------------------- | -------------------------- | ------- | -------- |
+| `ENABLE_SECURITY_HEADERS` | Enable security headers    | `true`  | No       |
+| `ENABLE_RATE_LIMIT`       | Enable rate limiting       | `true`  | No       |
+| `ENABLE_HTTPS_REDIRECT`   | Redirect HTTP to HTTPS     | `false` | No       |
+| `API_KEY_ENCRYPTION_KEY`  | Key for API key encryption | None    | Yes      |
 
 ### Mock Settings
 
-| Variable | Description | Default | Required |
-|----------|-------------|---------|----------|
-| `USE_MOCK` | Enable mock mode | `false` | No |
-| `MOCK_MODE` | Enable mock mode (alias) | `false` | No |
-| `ENABLE_MOCK_LLM` | Enable mock LLM responses | `false` | No |
+| Variable          | Description               | Default | Required |
+| ----------------- | ------------------------- | ------- | -------- |
+| `USE_MOCK`        | Enable mock mode          | `false` | No       |
+| `MOCK_MODE`       | Enable mock mode (alias)  | `false` | No       |
+| `ENABLE_MOCK_LLM` | Enable mock LLM responses | `false` | No       |
 
 ### Monitoring
 
-| Variable | Description | Default | Required |
-|----------|-------------|---------|----------|
-| `SENTRY_DSN` | Sentry DSN for error tracking | None | No |
-| `SENTRY_ENVIRONMENT` | Sentry environment | Same as `ENVIRONMENT` | No |
-| `SENTRY_TRACES_SAMPLE_RATE` | Sentry trace sample rate | `1.0` | No |
+| Variable                    | Description                   | Default               | Required |
+| --------------------------- | ----------------------------- | --------------------- | -------- |
+| `SENTRY_DSN`                | Sentry DSN for error tracking | None                  | No       |
+| `SENTRY_ENVIRONMENT`        | Sentry environment            | Same as `ENVIRONMENT` | No       |
+| `SENTRY_TRACES_SAMPLE_RATE` | Sentry trace sample rate      | `1.0`                 | No       |
 
 ### Frontend Settings
 
-| Variable | Description | Default | Required |
-|----------|-------------|---------|----------|
-| `VITE_API_URL` | API URL for frontend | `http://localhost:8000` | No |
+| Variable       | Description          | Default                 | Required |
+| -------------- | -------------------- | ----------------------- | -------- |
+| `VITE_API_URL` | API URL for frontend | `http://localhost:8000` | No       |
 
 ## Generating Secure Keys
 

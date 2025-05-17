@@ -1,29 +1,20 @@
 """
 test .agg behavior / note that .apply is tested generally in test_groupby.py
 """
+
 import datetime
 import functools
-from functools import partial
 import re
+from functools import partial
 
 import numpy as np
-import pytest
-
-from pandas.errors import SpecificationError
-
-from pandas.core.dtypes.common import is_integer_dtype
-
 import pandas as pd
-from pandas import (
-    DataFrame,
-    Index,
-    MultiIndex,
-    Series,
-    concat,
-    to_datetime,
-)
 import pandas._testing as tm
+import pytest
+from pandas import DataFrame, Index, MultiIndex, Series, concat, to_datetime
+from pandas.core.dtypes.common import is_integer_dtype
 from pandas.core.groupby.grouper import Grouping
+from pandas.errors import SpecificationError
 
 
 def test_groupby_agg_no_extra_calls():
@@ -1188,9 +1179,7 @@ class TestLambdaMangling:
 
         # check pd.NameAgg case
         result1 = df.groupby(by="kind").agg(
-            height_sqr_min=pd.NamedAgg(
-                column="height", aggfunc=lambda x: np.min(x**2)
-            ),
+            height_sqr_min=pd.NamedAgg(column="height", aggfunc=lambda x: np.min(x**2)),
             height_max=pd.NamedAgg(column="height", aggfunc="max"),
             weight_max=pd.NamedAgg(column="weight", aggfunc="max"),
         )
@@ -1245,9 +1234,7 @@ class TestLambdaMangling:
 
         # check pd.NamedAgg case
         result2 = df.groupby(by="kind").agg(
-            height_sqr_min=pd.NamedAgg(
-                column="height", aggfunc=lambda x: np.min(x**2)
-            ),
+            height_sqr_min=pd.NamedAgg(column="height", aggfunc=lambda x: np.min(x**2)),
             height_max=pd.NamedAgg(column="height", aggfunc="max"),
             weight_max=pd.NamedAgg(column="weight", aggfunc="max"),
             height_max_2=pd.NamedAgg(column="height", aggfunc=lambda x: np.max(x)),

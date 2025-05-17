@@ -8,7 +8,7 @@ With the proliferation of generative AI models, leveraging their individual stre
 
 ### Summary of the Invention
 
-The disclosed invention, herein referred to as TriLLMOrchestrator, presents a novel system for orchestrating the interaction between multiple AI models to generate a synthesized output that leverages the unique strengths of each model. This system introduces an innovative approach to AI model integration, providing a workflow that includes initial response generation, meta-analysis, ultra-synthesis, and a final hyper-analysis to produce comprehensive and refined outputs. 
+The disclosed invention, herein referred to as TriLLMOrchestrator, presents a novel system for orchestrating the interaction between multiple AI models to generate a synthesized output that leverages the unique strengths of each model. This system introduces an innovative approach to AI model integration, providing a workflow that includes initial response generation, meta-analysis, ultra-synthesis, and a final hyper-analysis to produce comprehensive and refined outputs.
 
 The system is designed to harness the power of AI models like Llama, ChatGPT, and Gemini in a sequential manner to tackle complex tasks that no single AI could solve as effectively on its own. This orchestration enables a novel workflow that can be applied to various domains, from content creation and summarization to complex problem-solving and innovation brainstorming.
 

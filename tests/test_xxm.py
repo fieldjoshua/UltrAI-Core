@@ -14,22 +14,14 @@
 # and added to all classes.
 #
 
-from sympy.external.gmpy import GROUND_TYPES
-
-from sympy import ZZ, QQ, GF, ZZ_I, symbols
-
-from sympy.polys.matrices.exceptions import (
-    DMBadInputError,
-    DMDomainError,
-    DMNonSquareMatrixError,
-    DMNonInvertibleMatrixError,
-    DMShapeError,
-)
-
-from sympy.polys.matrices.domainmatrix import DM, DomainMatrix, DDM, SDM, DFM
-
-from sympy.testing.pytest import raises, skip
 import pytest
+from sympy import GF, QQ, ZZ, ZZ_I, symbols
+from sympy.external.gmpy import GROUND_TYPES
+from sympy.polys.matrices.domainmatrix import DDM, DFM, DM, SDM, DomainMatrix
+from sympy.polys.matrices.exceptions import (DMBadInputError, DMDomainError,
+                                             DMNonInvertibleMatrixError,
+                                             DMNonSquareMatrixError, DMShapeError)
+from sympy.testing.pytest import raises, skip
 
 
 def test_XXM_constructors():

@@ -3,13 +3,9 @@ from datetime import datetime
 from decimal import Decimal
 
 import numpy as np
+import pandas._testing as tm
 import pytest
 import pytz
-
-from pandas._config import using_pyarrow_string_dtype
-
-from pandas.compat import is_platform_little_endian
-
 from pandas import (
     CategoricalIndex,
     DataFrame,
@@ -19,7 +15,8 @@ from pandas import (
     Series,
     date_range,
 )
-import pandas._testing as tm
+from pandas._config import using_pyarrow_string_dtype
+from pandas.compat import is_platform_little_endian
 
 
 class TestFromRecords:

@@ -10,15 +10,15 @@ from fastapi import FastAPI, HTTPException, Request, status
 from fastapi.testclient import TestClient
 
 from backend.utils.error_handler import (
-    UltraBaseException,
-    ValidationException,
-    ResourceNotFoundException,
     AuthenticationException,
     BusinessLogicException,
-    ServiceException,
-    ErrorCode,
     ErrorCategory,
     ErrorClassification,
+    ErrorCode,
+    ResourceNotFoundException,
+    ServiceException,
+    UltraBaseException,
+    ValidationException,
     register_exception_handlers,
 )
 

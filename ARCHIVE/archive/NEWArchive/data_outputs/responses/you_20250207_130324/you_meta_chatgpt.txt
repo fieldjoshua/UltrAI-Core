@@ -6,7 +6,7 @@
 
 ---
 
-#### **Title:** 
+#### **Title:**
 System for the Automated and Integrated Workflow Management of AI Generative Models
 
 ---
@@ -40,7 +40,7 @@ The proposed invention offers a novel, automated system for the integration and 
 ##### System Components:
 
 1. **Central Management Unit (CMU):** Oversees operations, handling inputs and delivering synthesized insights.
-   
+
 2. **Dynamic Selection Module (DSM):** Evaluates and selects AI models based on the analysis needs, enhancing output quality.
 
 3. **Workflow Orchestration Module (WOM):** Ensures efficient data flow and task execution among selected models, minimizing latency.

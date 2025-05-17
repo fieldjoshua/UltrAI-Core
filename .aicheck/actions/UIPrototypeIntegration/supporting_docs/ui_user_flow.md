@@ -32,17 +32,20 @@ This document outlines the user flow for the Ultra UI prototype, detailing the d
 **Purpose:** Entry point for the application, providing quick access to start an analysis.
 
 **Components:**
+
 - Header with navigation
 - Brief introduction to Ultra
 - Quick start analysis form (simplified)
 - Access to documentation and help
 
 **User Actions:**
+
 - Begin an analysis (navigate to Configure Analysis)
 - Access help/documentation
 - View sample analyses (if implemented)
 
 **States:**
+
 - Default: Clean entry point
 - Returning User: May show recent analyses
 - Error: Display system-wide errors if any
@@ -52,6 +55,7 @@ This document outlines the user flow for the Ultra UI prototype, detailing the d
 **Purpose:** Allow the user to set up their analysis with all necessary parameters.
 
 **Components:**
+
 - Prompt input component
 - Model selector
 - Analysis pattern selector
@@ -59,6 +63,7 @@ This document outlines the user flow for the Ultra UI prototype, detailing the d
 - Submit button
 
 **User Actions:**
+
 - Enter prompt text
 - Select models for analysis
 - Choose analysis pattern
@@ -67,6 +72,7 @@ This document outlines the user flow for the Ultra UI prototype, detailing the d
 - Cancel and return to main page
 
 **States:**
+
 - Default: Empty form
 - Filling: Partial completion of form
 - Ready: All required fields completed
@@ -74,6 +80,7 @@ This document outlines the user flow for the Ultra UI prototype, detailing the d
 - Submitting: Processing submission
 
 **Validation Rules:**
+
 - Prompt must be 10-4000 characters
 - At least one model must be selected
 - Analysis pattern must be selected
@@ -84,22 +91,26 @@ This document outlines the user flow for the Ultra UI prototype, detailing the d
 **Purpose:** Show progress while the analysis is being performed.
 
 **Components:**
+
 - Progress indicator
 - Status message
 - Cancel button (if cancellation is supported)
 - Estimated time remaining
 
 **User Actions:**
+
 - Cancel analysis (if supported)
 - View detailed progress information
 
 **States:**
+
 - Queued: Waiting for processing to begin
 - Processing: Analysis in progress with progress indicator
 - Almost Complete: Final processing steps
 - Error: Processing failed
 
 **Transitions:**
+
 - Auto-transition to Results Display when complete
 - Return to Configure Analysis on cancellation
 - Show Error State on failure
@@ -109,6 +120,7 @@ This document outlines the user flow for the Ultra UI prototype, detailing the d
 **Purpose:** Present analysis results clearly and allow interaction with the data.
 
 **Components:**
+
 - Tabbed interface for multiple model results
 - Side-by-side comparison view
 - Text formatting for structured results
@@ -117,6 +129,7 @@ This document outlines the user flow for the Ultra UI prototype, detailing the d
 - Return to analysis button
 
 **User Actions:**
+
 - Switch between model results
 - Toggle comparison view
 - Expand/collapse sections
@@ -126,6 +139,7 @@ This document outlines the user flow for the Ultra UI prototype, detailing the d
 - Share results (if implemented)
 
 **States:**
+
 - Loading: Results being prepared for display
 - Complete: All results displayed
 - Empty: No results available
@@ -136,6 +150,7 @@ This document outlines the user flow for the Ultra UI prototype, detailing the d
 **Purpose:** Provide guidance on using the system.
 
 **Components:**
+
 - Usage guide
 - FAQ section
 - Example analyses
@@ -143,6 +158,7 @@ This document outlines the user flow for the Ultra UI prototype, detailing the d
 - Model capabilities
 
 **User Actions:**
+
 - Read documentation
 - Try example analyses
 - Return to main interface
@@ -152,6 +168,7 @@ This document outlines the user flow for the Ultra UI prototype, detailing the d
 **Purpose:** Display meaningful error information and recovery options.
 
 **Components:**
+
 - Error message
 - Possible solutions
 - Retry button
@@ -159,11 +176,13 @@ This document outlines the user flow for the Ultra UI prototype, detailing the d
 - Contact support option
 
 **User Actions:**
+
 - Retry the operation
 - Return to previous screen
 - Contact support (if implemented)
 
 **Error Categories:**
+
 - Validation Errors: Form validation issues
 - Processing Errors: Analysis processing failed
 - API Errors: Backend communication issues

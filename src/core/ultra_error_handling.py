@@ -4,8 +4,12 @@ from datetime import datetime, timedelta
 from functools import wraps
 from typing import Any, Callable, Dict, Optional
 
-from tenacity import (retry, retry_if_exception_type, stop_after_attempt,
-                      wait_exponential)
+from tenacity import (
+    retry,
+    retry_if_exception_type,
+    stop_after_attempt,
+    wait_exponential,
+)
 
 
 class RateLimiter:

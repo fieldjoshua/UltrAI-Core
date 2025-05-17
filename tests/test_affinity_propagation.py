@@ -7,7 +7,6 @@ import warnings
 
 import numpy as np
 import pytest
-
 from sklearn.cluster import AffinityPropagation, affinity_propagation
 from sklearn.cluster._affinity_propagation import _equal_similarities_and_preferences
 from sklearn.datasets import make_blobs

@@ -34,22 +34,22 @@ json_parse:
   status:
     path: $.status
     type: string
-  
+
   # Database status
   database_status:
     path: $.services.database.status
     type: string
-  
+
   # Redis status
   redis_status:
     path: $.services.redis.status
     type: string
-  
+
   # Memory usage
   memory_percent:
     path: $.system.memory.percent_used
     type: float
-  
+
   # Disk usage
   disk_percent:
     path: $.system.disk.percent_used
@@ -149,9 +149,7 @@ Create a Grafana dashboard to visualize Ultra's health metrics:
         "justifyMode": "auto",
         "orientation": "auto",
         "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
+          "calcs": ["lastNotNull"],
           "fields": "",
           "values": false
         },
@@ -236,7 +234,7 @@ startupProbe:
   initialDelaySeconds: 10
   periodSeconds: 5
   timeoutSeconds: 5
-  failureThreshold: 12  # Allow 1 minute (12 * 5s) for startup
+  failureThreshold: 12 # Allow 1 minute (12 * 5s) for startup
 ```
 
 ## AWS CloudWatch Integration
@@ -259,10 +257,7 @@ Configure the CloudWatch agent to scrape the health check endpoints:
       "procstat": [
         {
           "pattern": "ultra",
-          "measurement": [
-            "cpu_usage",
-            "memory_rss"
-          ]
+          "measurement": ["cpu_usage", "memory_rss"]
         }
       ],
       "http": [
@@ -306,12 +301,7 @@ Create a CloudWatch dashboard to visualize the metrics:
       "width": 12,
       "height": 6,
       "properties": {
-        "metrics": [
-          [
-            "Ultra",
-            "memory_utilization"
-          ]
-        ],
+        "metrics": [["Ultra", "memory_utilization"]],
         "view": "timeSeries",
         "stacked": false,
         "region": "us-east-1",
@@ -326,12 +316,7 @@ Create a CloudWatch dashboard to visualize the metrics:
       "width": 12,
       "height": 6,
       "properties": {
-        "metrics": [
-          [
-            "Ultra",
-            "disk_utilization"
-          ]
-        ],
+        "metrics": [["Ultra", "disk_utilization"]],
         "view": "timeSeries",
         "stacked": false,
         "region": "us-east-1",
@@ -369,7 +354,7 @@ instances:
         name: system.uptime
         path: $.uptime
         result_type: float
-  
+
   - url: http://localhost:8000/api/health/system
     timeout: 5
     headers:
@@ -484,19 +469,19 @@ while True:
     try:
         response = requests.get('http://localhost:8000/api/health/system')
         data = response.json()
-        
+
         # Send metrics to StatsD
         memory_percent = data.get('details', {}).get('memory', {}).get('percent', 0)
         disk_percent = data.get('details', {}).get('disk', {}).get('percent', 0)
         cpu_percent = data.get('details', {}).get('cpu', {}).get('percent', 0)
-        
+
         statsd_client.gauge('memory.percent', memory_percent)
         statsd_client.gauge('disk.percent', disk_percent)
         statsd_client.gauge('cpu.percent', cpu_percent)
-        
+
     except Exception as e:
         print(f"Error getting health metrics: {e}")
-    
+
     # Wait before next check
     time.sleep(60)
 ```

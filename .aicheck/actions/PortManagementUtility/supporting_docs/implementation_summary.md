@@ -38,21 +38,21 @@ Path handling improvements in `config.py` follow these principles:
 ```bash
 clear_port() {
     local PORT=$1
-    
+
     echo "Checking if port $PORT is in use..."
     if lsof -i :"$PORT" > /dev/null 2>&1; then
         echo "Port $PORT is in use. Killing process..."
         lsof_output=$(lsof -i :"$PORT")
         echo "Process details: "
         echo "$lsof_output"
-        
+
         # Get PIDs and kill them
         pids=$(lsof -t -i :"$PORT" 2>/dev/null)
         for pid in $pids; do
             echo "Killing process with PID $pid"
             kill -9 "$pid" 2>/dev/null
         done
-        
+
         # Verify the port is free
         sleep 1
         if ! lsof -i :"$PORT" > /dev/null 2>&1; then
@@ -64,7 +64,7 @@ clear_port() {
     else
         echo "✅ Port $PORT is available"
     fi
-    
+
     return 0
 }
 ```

@@ -185,9 +185,9 @@
 
 ## Sign-Off
 
-**Security Lead**: ******\_\_\_****** Date: ****\_\_\_****
-**Engineering Lead**: ****\_\_\_**** Date: ****\_\_\_****
-**CTO/VP Engineering**: ****\_**** Date: ****\_\_\_****
+**Security Lead**: **\*\***\_\_\_**\*\*** Date: \***\*\_\_\_\*\***
+**Engineering Lead**: \***\*\_\_\_\*\*** Date: \***\*\_\_\_\*\***
+**CTO/VP Engineering**: \***\*\_\*\*** Date: \***\*\_\_\_\*\***
 
 ## Appendix
 
@@ -197,7 +197,7 @@
 - [ ] Burp Suite
 - [ ] SonarQube
 - [ ] Snyk
-- [ ] Other: ******\_******
+- [ ] Other: **\*\***\_**\*\***
 
 ### References
 

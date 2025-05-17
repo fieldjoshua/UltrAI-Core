@@ -1,0 +1,124 @@
+{
+  "timestamp": "2025-05-16T18:44:53.596881",
+  "summary": {
+    "total": 19,
+    "passed": 8,
+    "failed": 3,
+    "errors": 0,
+    "warnings": 6,
+    "skipped": 2
+  },
+  "results": {
+    "Authentication Security": [
+      [
+        "User Registration",
+        "FAIL",
+        "Status: 500, Response: {\"error\":{\"code\":\"SYS_001\",\"message\":\"Something went wrong on our end. Please try again later.\",\"details\":{},\"timestamp\":\"2025-05-17T01:44:52.341437\",\"request_id\":null}}"
+      ],
+      [
+        "User Login",
+        "FAIL",
+        "Status: 500, Response: {\"error\":{\"code\":\"SYS_001\",\"message\":\"Something went wrong on our end. Please try again later.\",\"details\":{},\"timestamp\":\"2025-05-17T01:44:52.387908\",\"request_id\":null}}"
+      ],
+      [
+        "Protected Endpoint Auth",
+        "PASS",
+        "Correctly rejected unauthorized request"
+      ]
+    ],
+    "JWT Security": [
+      [
+        "Invalid JWT Format",
+        "PASS",
+        "Correctly rejected invalid token"
+      ],
+      [
+        "Expired Token",
+        "SKIP",
+        "Requires time delay for expiration"
+      ],
+      [
+        "Algorithm Validation",
+        "SKIP",
+        "Requires JWT library for testing"
+      ]
+    ],
+    "API Key Security": [
+      [
+        "Invalid API Key",
+        "PASS",
+        "Correctly rejected invalid key"
+      ]
+    ],
+    "CORS Security": [
+      [
+        "Allowed Origin",
+        "FAIL",
+        "No CORS headers found"
+      ],
+      [
+        "Disallowed Origin",
+        "PASS",
+        "No CORS headers for evil origin"
+      ]
+    ],
+    "Rate Limiting": [
+      [
+        "Rate Limiting",
+        "WARN",
+        "No rate limiting detected in 10 requests"
+      ]
+    ],
+    "Security Headers": [
+      [
+        "X-Content-Type-Options",
+        "PASS",
+        "Value: nosniff"
+      ],
+      [
+        "X-Frame-Options",
+        "PASS",
+        "Value: DENY"
+      ],
+      [
+        "X-XSS-Protection",
+        "PASS",
+        "Value: 1; mode=block"
+      ],
+      [
+        "Strict-Transport-Security",
+        "PASS",
+        "Value: max-age=31536000; includeSubDomains; preload"
+      ]
+    ],
+    "Injection Protection": [
+      [
+        "SQL Injection ('; DROP TABLE users;...)",
+        "WARN",
+        "Status: 401"
+      ],
+      [
+        "SQL Injection (1' OR '1'='1...)",
+        "WARN",
+        "Status: 401"
+      ],
+      [
+        "SQL Injection (1 UNION SELECT * FRO...)",
+        "WARN",
+        "Status: 401"
+      ]
+    ],
+    "Error Handling": [
+      [
+        "Stack Trace Exposure",
+        "WARN",
+        "Unexpected status: 401"
+      ],
+      [
+        "Internal Error Exposure",
+        "WARN",
+        "Unexpected status: 401"
+      ]
+    ]
+  }
+}

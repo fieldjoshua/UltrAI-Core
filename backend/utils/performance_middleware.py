@@ -5,7 +5,8 @@ This module provides performance monitoring functionality for API endpoints.
 """
 
 import time
-from typing import Dict, Any
+from typing import Any, Dict
+
 from fastapi import Request
 from fastapi.responses import Response
 

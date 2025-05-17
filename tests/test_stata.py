@@ -1,26 +1,20 @@
 import bz2
 import datetime as dt
-from datetime import datetime
 import gzip
 import io
 import os
 import struct
 import tarfile
 import zipfile
+from datetime import datetime
 
 import numpy as np
-import pytest
-
-import pandas.util._test_decorators as td
-
 import pandas as pd
-from pandas import CategoricalDtype
 import pandas._testing as tm
-from pandas.core.frame import (
-    DataFrame,
-    Series,
-)
-
+import pandas.util._test_decorators as td
+import pytest
+from pandas import CategoricalDtype
+from pandas.core.frame import DataFrame, Series
 from pandas.io.parsers import read_csv
 from pandas.io.stata import (
     CategoricalConversionWarning,
@@ -406,7 +400,7 @@ class TestStata:
             [(1, 2, 3, 4)],
             columns=[
                 "good",
-                "b\u00E4d",
+                "b\u00e4d",
                 "8number",
                 "astringwithmorethan32characters______",
             ],
@@ -1356,7 +1350,7 @@ class TestStata:
                 )
 
     def test_write_variable_label_errors(self, mixed_frame):
-        values = ["\u03A1", "\u0391", "\u039D", "\u0394", "\u0391", "\u03A3"]
+        values = ["\u03a1", "\u0391", "\u039d", "\u0394", "\u0391", "\u03a3"]
 
         variable_labels_utf8 = {
             "a": "City Rank",

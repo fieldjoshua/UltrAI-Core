@@ -5,14 +5,15 @@ Custom prompt runner for the Ultra orchestration system.
 
 import asyncio
 import logging
-import sys
 import os
+import sys
 from typing import Any, Dict
 
 # Configure logging
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
+
 
 async def run_custom_prompt(prompt: str):
     """Run a custom prompt through the orchestrator."""
@@ -32,7 +33,7 @@ async def run_custom_prompt(prompt: str):
     os.environ["ANTHROPIC_API_KEY"] = ""
     os.environ["GOOGLE_API_KEY"] = ""
     os.environ["DEEPSEEK_API_KEY"] = ""
-    
+
     # Create the orchestrator with only OpenAI
     orchestrator = create_from_env(modular=True, analysis_type="factual")
 
@@ -89,7 +90,7 @@ async def run_custom_prompt(prompt: str):
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
-        print("Usage: python run_custom_prompt.py \"Your prompt here\"")
+        print('Usage: python run_custom_prompt.py "Your prompt here"')
         sys.exit(1)
 
     prompt = sys.argv[1]

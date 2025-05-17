@@ -1,17 +1,19 @@
 import unittest
-from ..struct_chat import (
-    convert_to_parsed_chat_completion_response,
-    ParsedChatCompletionResponse,
-    ParsedChatCompletionChoice,
-    ParsedAssistantMessage,
-)
+
+from pydantic import BaseModel
+
 from ...models import (
+    AssistantMessage,
+    ChatCompletionChoice,
     ChatCompletionResponse,
     UsageInfo,
-    ChatCompletionChoice,
-    AssistantMessage,
 )
-from pydantic import BaseModel
+from ..struct_chat import (
+    ParsedAssistantMessage,
+    ParsedChatCompletionChoice,
+    ParsedChatCompletionResponse,
+    convert_to_parsed_chat_completion_response,
+)
 
 
 class Explanation(BaseModel):

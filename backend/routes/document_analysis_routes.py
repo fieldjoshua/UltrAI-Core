@@ -22,11 +22,11 @@ from backend.models.document_analysis import (
     DocumentChunkAnalysisRequest,
     DocumentChunkAnalysisResponse,
 )
-from backend.services.document_processor import document_processor
-from backend.services.prompt_service import PromptService
-from backend.services.llm_config_service import llm_config_service
 from backend.services.cache_service import cache_service
 from backend.services.document_analysis_service import document_analysis_service
+from backend.services.document_processor import document_processor
+from backend.services.llm_config_service import llm_config_service
+from backend.services.prompt_service import PromptService
 
 # Configure logging
 logger = logging.getLogger("document_analysis_routes")
@@ -52,13 +52,16 @@ PATTERN_NAME_MAPPING = {
     "custom": "custom_pattern",
 }
 
+
 # Dependency Injection
 def get_prompt_service() -> PromptService:
     """Dependency provider for PromptService."""
     return PromptService(llm_config_service=llm_config_service)
 
 
-@document_analysis_router.post("/api/analyze-document", response_model=DocumentAnalysisResponse)
+@document_analysis_router.post(
+    "/api/analyze-document", response_model=DocumentAnalysisResponse
+)
 async def analyze_document(
     request: Request,
     document_analysis: DocumentAnalysisRequest,
@@ -96,7 +99,10 @@ async def analyze_document(
         if not document_analysis.selected_models:
             return JSONResponse(
                 status_code=400,
-                content={"status": "error", "message": "No models selected for processing"},
+                content={
+                    "status": "error",
+                    "message": "No models selected for processing",
+                },
             )
 
         if not document_analysis.ultra_model:
@@ -123,66 +129,85 @@ async def analyze_document(
         try:
             # Retrieve document data
             from os import path
+
             from backend.config import Config
-            
-            document_path = path.join(Config.DOCUMENT_STORAGE_PATH, document_analysis.document_id)
+
+            document_path = path.join(
+                Config.DOCUMENT_STORAGE_PATH, document_analysis.document_id
+            )
             metadata_path = path.join(document_path, "metadata.json")
-            
+
             # Check if document exists
             if not path.exists(document_path):
                 return JSONResponse(
                     status_code=404,
-                    content={"status": "error", "message": f"Document not found: {document_analysis.document_id}"},
+                    content={
+                        "status": "error",
+                        "message": f"Document not found: {document_analysis.document_id}",
+                    },
                 )
-                
+
             # Read document metadata
             try:
                 with open(metadata_path, "r") as f:
                     metadata = json.load(f)
-                    
+
                 file_path = metadata.get("file_path", "")
                 file_type = metadata.get("file_type", "")
-                
+
                 # Process document to extract content
-                document_data = [{
-                    "id": document_analysis.document_id,
-                    "path": file_path,
-                    "name": metadata.get("original_filename", ""),
-                    "type": file_type,
-                }]
-                
+                document_data = [
+                    {
+                        "id": document_analysis.document_id,
+                        "path": file_path,
+                        "name": metadata.get("original_filename", ""),
+                        "type": file_type,
+                    }
+                ]
+
                 # Process document using document processor
                 processing_result = document_processor.process_documents(document_data)
                 document_chunks = processing_result.get("chunks", [])
-                
+
                 if not document_chunks:
                     return JSONResponse(
                         status_code=400,
-                        content={"status": "error", "message": "No content could be extracted from document"},
+                        content={
+                            "status": "error",
+                            "message": "No content could be extracted from document",
+                        },
                     )
-                    
+
                 # Combine chunks for analysis
-                document_content = "\n\n".join([chunk.get("text", "") for chunk in document_chunks])
-                
+                document_content = "\n\n".join(
+                    [chunk.get("text", "") for chunk in document_chunks]
+                )
+
             except Exception as e:
                 logger.error(f"Error reading document metadata: {str(e)}")
                 return JSONResponse(
                     status_code=500,
-                    content={"status": "error", "message": f"Error processing document: {str(e)}"},
+                    content={
+                        "status": "error",
+                        "message": f"Error processing document: {str(e)}",
+                    },
                 )
-                
+
         except Exception as e:
             logger.error(f"Error retrieving document: {str(e)}")
             return JSONResponse(
                 status_code=500,
-                content={"status": "error", "message": f"Error retrieving document: {str(e)}"},
+                content={
+                    "status": "error",
+                    "message": f"Error retrieving document: {str(e)}",
+                },
             )
 
         # Validate selected_models
         try:
             # Get available models from the service
             available_models = llm_config_service.get_available_models()
-            
+
             # Validate that selected models exist in our registry
             valid_models = []
             for model in document_analysis.selected_models:
@@ -190,13 +215,16 @@ async def analyze_document(
                     valid_models.append(model)
                 else:
                     logger.warning(f"Model {model} not found in registry, skipping")
-                    
+
             if not valid_models:
                 return JSONResponse(
                     status_code=400,
-                    content={"status": "error", "message": "No valid models selected for processing"},
+                    content={
+                        "status": "error",
+                        "message": "No valid models selected for processing",
+                    },
                 )
-                
+
             # Validate ultra model exists
             if document_analysis.ultra_model not in available_models:
                 logger.warning(
@@ -205,17 +233,22 @@ async def analyze_document(
                 ultra_model = valid_models[0]  # Use first valid model as fallback
             else:
                 ultra_model = document_analysis.ultra_model
-                
+
         except Exception as e:
             logger.error(f"Error validating models: {str(e)}")
             return JSONResponse(
                 status_code=500,
-                content={"status": "error", "message": f"Error validating models: {str(e)}"},
+                content={
+                    "status": "error",
+                    "message": f"Error validating models: {str(e)}",
+                },
             )
 
         # Create analysis prompt based on document content
-        analysis_prompt = f"Please analyze the following document content:\n\n{document_content}"
-        
+        analysis_prompt = (
+            f"Please analyze the following document content:\n\n{document_content}"
+        )
+
         # Process the analysis using the document analysis service
         try:
             logger.info(
@@ -230,15 +263,15 @@ async def analyze_document(
                 pattern=pattern_key,
                 options=document_analysis.options or {},
             )
-            
+
             # Log successful analysis
             logger.info(
                 f"Document analysis completed successfully with {len(result.get('model_responses', {}))} model responses"
             )
-            
+
             # Calculate processing time
             processing_time = time.time() - start_time
-            
+
             # Store the analysis results
             # Add document metadata to results
             result["document_metadata"] = {
@@ -247,15 +280,15 @@ async def analyze_document(
                 "type": file_type,
                 "size": metadata.get("file_size", 0),
             }
-            
+
             # Cache the results for retrieval
             await cache_service.set(
-                "document_analysis_results", 
-                {"analysis_id": analysis_id}, 
+                "document_analysis_results",
+                {"analysis_id": analysis_id},
                 result,
-                ttl=60*60*24  # Cache for 24 hours
+                ttl=60 * 60 * 24,  # Cache for 24 hours
             )
-            
+
             # Format the response
             response_data = {
                 "status": "success",
@@ -266,11 +299,11 @@ async def analyze_document(
                     "performance": result.get("performance", {}),
                     "metadata": result.get("metadata", {}),
                     "document_metadata": result.get("document_metadata", {}),
-                }
+                },
             }
-            
+
             return response_data
-            
+
         except Exception as e:
             logger.error(f"Error processing document analysis: {str(e)}", exc_info=True)
             return JSONResponse(
@@ -280,12 +313,17 @@ async def analyze_document(
                     "message": f"Error processing document analysis: {str(e)}",
                 },
             )
-            
+
     except Exception as e:
-        logger.error(f"Unexpected error in document analysis endpoint: {str(e)}", exc_info=True)
+        logger.error(
+            f"Unexpected error in document analysis endpoint: {str(e)}", exc_info=True
+        )
         return JSONResponse(
             status_code=500,
-            content={"status": "error", "message": f"An internal error occurred: {str(e)}"},
+            content={
+                "status": "error",
+                "message": f"An internal error occurred: {str(e)}",
+            },
         )
 
 
@@ -309,14 +347,17 @@ async def get_document_analysis_results(
         results = await cache_service.get(
             "document_analysis_results", {"analysis_id": analysis_id}
         )
-        
+
         if not results:
             # Analysis not found or expired
             return JSONResponse(
                 status_code=404,
-                content={"status": "error", "message": f"Analysis {analysis_id} not found"},
+                content={
+                    "status": "error",
+                    "message": f"Analysis {analysis_id} not found",
+                },
             )
-            
+
         # Return the cached results
         return {
             "status": "success",
@@ -327,12 +368,15 @@ async def get_document_analysis_results(
                 "performance": results.get("performance", {}),
                 "metadata": results.get("metadata", {}),
                 "document_metadata": results.get("document_metadata", {}),
-            }
+            },
         }
-        
+
     except Exception as e:
         logger.error(f"Error retrieving document analysis results: {str(e)}")
         return JSONResponse(
             status_code=500,
-            content={"status": "error", "message": f"Error retrieving results: {str(e)}"},
+            content={
+                "status": "error",
+                "message": f"Error retrieving results: {str(e)}",
+            },
         )

@@ -9,7 +9,6 @@ is too big to use in unit-testing.
 from functools import partial
 
 import pytest
-
 from sklearn.datasets.tests.test_common import (
     check_as_frame,
     check_pandas_dependency_message,

@@ -28,7 +28,9 @@ const ModelRunnerDemo: React.FC = () => {
         }
       } catch (err) {
         console.error('Error fetching models:', err);
-        setError('Failed to fetch models. Make sure Docker Model Runner is running.');
+        setError(
+          'Failed to fetch models. Make sure Docker Model Runner is running.'
+        );
       } finally {
         setIsLoading(false);
       }
@@ -64,7 +66,7 @@ const ModelRunnerDemo: React.FC = () => {
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-3xl font-bold mb-6">Docker Model Runner Demo</h1>
-      
+
       {error && (
         <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
           <p>{error}</p>
@@ -90,7 +92,10 @@ const ModelRunnerDemo: React.FC = () => {
             </select>
           </div>
         ) : (
-          <p>No models available. Please make sure Docker Model Runner is running.</p>
+          <p>
+            No models available. Please make sure Docker Model Runner is
+            running.
+          </p>
         )}
       </div>
 

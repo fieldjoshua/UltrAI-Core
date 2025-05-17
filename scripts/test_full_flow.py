@@ -13,8 +13,9 @@ import asyncio
 import json
 import sys
 import time
+from typing import Any, Dict
+
 import requests
-from typing import Dict, Any
 
 # Configuration
 API_BASE_URL = "http://localhost:8000"

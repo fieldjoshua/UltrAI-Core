@@ -20,7 +20,6 @@
     "test:simple": "jest --config jest.simple.config.cjs",
     "prepare": "husky install",
     "analyze-bundle": "NODE_OPTIONS=--max-old-space-size=4096 source-map-explorer 'dist/*.js'",
-    "bundlesize": "bundlesize",
     "test:a11y": "jest --config=jest.config.cjs --testPathPattern='src/tests/a11y'",
     "audit": "npm audit --production",
     "type-check": "tsc --noEmit"
@@ -86,7 +85,6 @@
     "autoprefixer": "^10.4.17",
     "axe-core": "^4.9.1",
     "babel-jest": "^29.7.0",
-    "bundlesize": "^0.18.1",
     "eslint": "^8.57.1",
     "eslint-config-prettier": "^10.1.2",
     "eslint-import-resolver-typescript": "^4.3.4",

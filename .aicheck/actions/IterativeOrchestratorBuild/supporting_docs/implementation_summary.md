@@ -11,6 +11,7 @@ The implementation of the IterativeOrchestratorBuild action has resulted in a co
 **Location**: `/src/orchestration/base_orchestrator.py`
 
 **Description**: An abstract base class providing core orchestration functionality:
+
 - Provider registration and management
 - Asynchronous request handling
 - Parallel processing
@@ -25,6 +26,7 @@ The BaseOrchestrator defines the common interface and functionality shared by al
 **Location**: `/src/orchestration/simple_orchestrator.py`
 
 **Description**: A basic orchestrator implementation that follows a straightforward workflow:
+
 1. Collect responses from multiple providers
 2. Analyze the responses (comparative or factual)
 3. Synthesize a final response using a lead provider
@@ -36,6 +38,7 @@ This orchestrator is suitable for cases where comprehensive analysis and synthes
 **Location**: `/src/orchestration/parallel_orchestrator.py`
 
 **Description**: A performance-focused orchestrator optimized for efficient resource utilization:
+
 - Dynamic provider prioritization based on performance metrics
 - Early stopping when sufficient quality responses are received
 - Best response selection logic
@@ -48,6 +51,7 @@ This orchestrator is ideal for high-throughput scenarios where efficiency is a p
 **Location**: `/src/orchestration/adaptive_orchestrator.py`
 
 **Description**: A sophisticated orchestrator capable of adapting its strategy based on the context:
+
 - Multiple orchestration strategies for different requirements
 - Context-aware strategy selection
 - System load monitoring
@@ -60,6 +64,7 @@ The AdaptiveOrchestrator can select the most appropriate strategy based on the r
 **Location**: `/src/orchestration/config.py`
 
 **Description**: Pydantic models for structured configuration:
+
 - `LLMProvider` enum for standardized provider identification
 - `ModelConfig` for model configuration
 - `OrchestratorConfig` for orchestrator settings
@@ -70,6 +75,7 @@ The AdaptiveOrchestrator can select the most appropriate strategy based on the r
 **Location**: `/examples/orchestrator_example.py`
 
 **Description**: Comprehensive examples demonstrating:
+
 - Initializing different orchestrator types
 - Registering providers
 - Processing prompts with various strategies
@@ -127,7 +133,7 @@ async def main():
         parallel_requests=True,
         analysis_type="comparative"
     )
-    
+
     # Register providers
     await orchestrator.register_provider(
         provider_id="openai",
@@ -135,19 +141,19 @@ async def main():
         api_key="YOUR_OPENAI_API_KEY",
         model="gpt-4o"
     )
-    
+
     await orchestrator.register_provider(
         provider_id="anthropic",
         provider_type="anthropic",
         api_key="YOUR_ANTHROPIC_API_KEY",
         model="claude-3-opus-20240229"
     )
-    
+
     # Process a prompt
     result = await orchestrator.process(
         "Explain the benefits of multi-LLM orchestration systems."
     )
-    
+
     # Access the synthesized response
     synthesis = result["synthesis"]["response"]
     print(synthesis)

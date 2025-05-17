@@ -6,17 +6,17 @@ for all API models.
 """
 
 from enum import Enum
-from typing import Any, Dict, List, Optional, Set, Union, TypeVar
+from typing import Any, Dict, List, Optional, Set, TypeVar, Union
 
 from pydantic import (
     BaseModel,
     Field,
+    confloat,
+    conint,
+    constr,
+    model_validator,
     root_validator,
     validator,
-    constr,
-    conint,
-    confloat,
-    model_validator,
 )
 
 # Type variable for model classes

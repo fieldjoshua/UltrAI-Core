@@ -5,10 +5,10 @@ This module provides a unified approach to handle optional dependencies in the U
 It allows graceful degradation of services when optional dependencies are not available.
 """
 
-import os
 import importlib
 import logging
-from typing import Dict, Any, Optional, Callable, TypeVar, Generic, List, Tuple
+import os
+from typing import Any, Callable, Dict, Generic, List, Optional, Tuple, TypeVar
 
 # Set up logging
 from backend.utils.logging import get_logger
@@ -86,14 +86,14 @@ class DependencyRegistry:
             env_flag = f"ENABLE_{feature_name.upper()}"
             # Check if there's an explicit environment override
             env_value = os.getenv(env_flag)
-            
+
             if env_value is not None:
                 # Environment variable takes precedence if it exists
                 is_enabled = env_value.lower() in ("true", "1", "yes")
             else:
                 # Otherwise, base it on dependency availability
                 is_enabled = status.is_available
-            
+
             self.feature_flags[feature_name] = is_enabled
             logger.info(
                 f"Feature '{feature_name}' {'enabled' if is_enabled else 'disabled'} "
@@ -119,9 +119,7 @@ class DependencyRegistry:
         Returns:
             Dictionary of dependency statuses
         """
-        return {
-            key: status.to_dict() for key, status in self.dependencies.items()
-        }
+        return {key: status.to_dict() for key, status in self.dependencies.items()}
 
     def get_required_status(self) -> Tuple[bool, List[str]]:
         """
@@ -134,7 +132,7 @@ class DependencyRegistry:
         for name, status in self.dependencies.items():
             if status.is_required and not status.is_available:
                 missing.append(name)
-        
+
         return len(missing) == 0, missing
 
     def get_feature_flags(self) -> Dict[str, bool]:
@@ -153,6 +151,7 @@ dependency_registry = DependencyRegistry()
 
 class DependencyNotAvailableError(Exception):
     """Exception raised when trying to use an unavailable dependency"""
+
     pass
 
 
@@ -187,7 +186,7 @@ class OptionalDependency(Generic[T]):
         self.fallback_factory = fallback_factory
         self.module: Optional[Any] = None
         self._error_message: Optional[str] = None
-        
+
         # Try to import the module
         try:
             self.module = importlib.import_module(module_name)
@@ -224,7 +223,7 @@ class OptionalDependency(Generic[T]):
                     f"Some features may be disabled. "
                     f"Install with: {installation_cmd or f'pip install {module_name}'}"
                 )
-        
+
         # Register the dependency status
         dependency_registry.register_dependency(status, feature_name)
 
@@ -267,13 +266,13 @@ class OptionalDependency(Generic[T]):
         """
         if self.module is not None:
             return self.module
-        
+
         if self.fallback_factory is not None:
             logger.info(
                 f"Using fallback implementation for {self.display_name} ({self.module_name})"
             )
             return self.fallback_factory()
-        
+
         raise DependencyNotAvailableError(
             f"Dependency {self.display_name} ({self.module_name}) is not available "
             f"and no fallback is configured. "

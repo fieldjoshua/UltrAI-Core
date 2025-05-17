@@ -1,7 +1,13 @@
-from sympy.tensor.tensor import (Tensor, TensorIndexType, TensorSymmetry,
-        tensor_indices, TensorHead, TensorElement)
-from sympy.tensor import Array
 from sympy.core.symbol import Symbol
+from sympy.tensor import Array
+from sympy.tensor.tensor import (
+    Tensor,
+    TensorElement,
+    TensorHead,
+    TensorIndexType,
+    TensorSymmetry,
+    tensor_indices,
+)
 
 
 def test_tensor_element():

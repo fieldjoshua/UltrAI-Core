@@ -6,7 +6,7 @@ The documents provided center on the discussion of a novel and highly significan
 The invention is referred to under titles emphasizing its primary function and goal - the automated and integrated workflow management for AI generative models. This reflects its core objective of facilitating a seamless, efficient, and comprehensive analysis system leveraging the capabilities of various AI generative models.
 
 #### Inventors and Applicants
-The details regarding inventors and applicants are consistently positioned at the forefront, underscoring the human intellect and collaborative effort behind this technological advancement. 
+The details regarding inventors and applicants are consistently positioned at the forefront, underscoring the human intellect and collaborative effort behind this technological advancement.
 
 #### Field of the Invention
 The invention positions itself firmly within the domains of Artificial Intelligence, Machine Learning, and Natural Language Processing. It addresses current challenges in these fields by offering a system that integrates various generative AI models for enhanced analysis and synthesis, thereby solving the problem of managing complex, multi-model workflows.
@@ -21,7 +21,7 @@ The proposed system is elaborately described through its key modules and operati
 - **Synthesis Module**: Synthesizes the insights from multiple models into comprehensive conclusions and actionable recommendations.
 
 #### Workflow Process
-The operational workflow of the system is designed to automate the entire process from data input to synthesis of insights, streamlining complex procedures to save time and resources without compromising efficiency or quality of the analysis. 
+The operational workflow of the system is designed to automate the entire process from data input to synthesis of insights, streamlining complex procedures to save time and resources without compromising efficiency or quality of the analysis.
 
 #### Advantages
 - Enhanced operational efficiency and processing speed.

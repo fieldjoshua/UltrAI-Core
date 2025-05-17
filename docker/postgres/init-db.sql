@@ -151,7 +151,7 @@ BEGIN
     -- Insert test user if no users exist
     IF NOT EXISTS (SELECT 1 FROM users LIMIT 1) THEN
         INSERT INTO users (username, email, name, password_hash, subscription_tier)
-        VALUES 
+        VALUES
         ('testuser', 'test@example.com', 'Test User', '$2b$12$SRQd8YM.SjENvv.Hd1vUXeQ8dVLigdBHPq5iZlO36zT0/bcbKWJQi', 'premium'), -- password is 'testpassword'
         ('admin', 'admin@example.com', 'Admin User', '$2b$12$SRQd8YM.SjENvv.Hd1vUXeQ8dVLigdBHPq5iZlO36zT0/bcbKWJQi', 'enterprise');
     END IF;
@@ -159,16 +159,16 @@ BEGIN
     -- Insert default settings if settings table is empty
     IF NOT EXISTS (SELECT 1 FROM settings LIMIT 1) THEN
         INSERT INTO settings (key, value, description)
-        VALUES 
+        VALUES
         ('default_models', '{"text": "gpt-3.5-turbo", "embedding": "text-embedding-ada-002"}'::jsonb, 'Default models to use for each task type'),
         ('rate_limits', '{"anonymous": 10, "user": 100, "admin": 1000}'::jsonb, 'Rate limits per minute for different user types'),
         ('feature_flags', '{"document_processing": true, "advanced_analytics": true, "mock_llm": true}'::jsonb, 'Feature flags configuration');
     END IF;
-    
+
     -- Insert default analysis patterns if empty
     IF NOT EXISTS (SELECT 1 FROM analysis_patterns LIMIT 1) THEN
         INSERT INTO analysis_patterns (name, description, prompt_template, is_public)
-        VALUES 
+        VALUES
         ('Basic Summary', 'Generate a concise summary of the document', 'Please provide a concise summary of the following document in 3-5 paragraphs: {{document}}', TRUE),
         ('Key Insights', 'Extract key insights from the document', 'What are the 5-7 most important insights from this document? {{document}}', TRUE),
         ('Action Items', 'Extract action items from the document', 'Please identify all action items, next steps, or tasks mentioned in the following document: {{document}}', TRUE);

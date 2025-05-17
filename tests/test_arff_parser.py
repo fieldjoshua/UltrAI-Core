@@ -2,7 +2,6 @@ import textwrap
 from io import BytesIO
 
 import pytest
-
 from sklearn.datasets._arff_parser import (
     _liac_arff_parser,
     _pandas_arff_parser,

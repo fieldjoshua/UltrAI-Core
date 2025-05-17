@@ -2,42 +2,37 @@ import sys
 import warnings
 
 import numpy as np
-from numpy.testing import assert_, assert_equal, IS_PYPY
 import pytest
-from pytest import raises as assert_raises
-
 import scipy.special as sc
+from numpy.testing import IS_PYPY, assert_, assert_equal
+from pytest import raises as assert_raises
 from scipy.special._ufuncs import _sf_error_test_function
 
 _sf_error_code_map = {
     # skip 'ok'
-    'singular': 1,
-    'underflow': 2,
-    'overflow': 3,
-    'slow': 4,
-    'loss': 5,
-    'no_result': 6,
-    'domain': 7,
-    'arg': 8,
-    'other': 9,
-    'memory': 10,
+    "singular": 1,
+    "underflow": 2,
+    "overflow": 3,
+    "slow": 4,
+    "loss": 5,
+    "no_result": 6,
+    "domain": 7,
+    "arg": 8,
+    "other": 9,
+    "memory": 10,
 }
 
-_sf_error_actions = [
-    'ignore',
-    'warn',
-    'raise'
-]
+_sf_error_actions = ["ignore", "warn", "raise"]
 
 
 def _check_action(fun, args, action):
     # TODO: special expert should correct
     # the coercion at the true location?
     args = np.asarray(args, dtype=np.dtype("long"))
-    if action == 'warn':
+    if action == "warn":
         with pytest.warns(sc.SpecialFunctionWarning):
             fun(*args)
-    elif action == 'raise':
+    elif action == "raise":
         with assert_raises(sc.SpecialFunctionError):
             fun(*args)
     else:
@@ -79,8 +74,8 @@ def test_sf_error_special_refcount():
     # Check that the reference count of scipy.special is not increased
     # when a SpecialFunctionError is raised.
     refcount_before = sys.getrefcount(sc)
-    with sc.errstate(all='raise'):
-        with pytest.raises(sc.SpecialFunctionError, match='domain error'):
+    with sc.errstate(all="raise"):
+        with pytest.raises(sc.SpecialFunctionError, match="domain error"):
             sc.ndtri(2.0)
     refcount_after = sys.getrefcount(sc)
     assert refcount_after == refcount_before
@@ -88,7 +83,7 @@ def test_sf_error_special_refcount():
 
 def test_errstate_pyx_basic():
     olderr = sc.geterr()
-    with sc.errstate(singular='raise'):
+    with sc.errstate(singular="raise"):
         with assert_raises(sc.SpecialFunctionError):
             sc.loggamma(0)
     assert_equal(olderr, sc.geterr())
@@ -96,7 +91,7 @@ def test_errstate_pyx_basic():
 
 def test_errstate_c_basic():
     olderr = sc.geterr()
-    with sc.errstate(domain='raise'):
+    with sc.errstate(domain="raise"):
         with assert_raises(sc.SpecialFunctionError):
             sc.spence(-1)
     assert_equal(olderr, sc.geterr())
@@ -104,7 +99,7 @@ def test_errstate_c_basic():
 
 def test_errstate_cpp_basic():
     olderr = sc.geterr()
-    with sc.errstate(underflow='raise'):
+    with sc.errstate(underflow="raise"):
         with assert_raises(sc.SpecialFunctionError):
             sc.wrightomega(-1000)
     assert_equal(olderr, sc.geterr())
@@ -112,7 +107,7 @@ def test_errstate_cpp_basic():
 
 def test_errstate_cpp_scipy_special():
     olderr = sc.geterr()
-    with sc.errstate(singular='raise'):
+    with sc.errstate(singular="raise"):
         with assert_raises(sc.SpecialFunctionError):
             sc.lambertw(0, 1)
     assert_equal(olderr, sc.geterr())
@@ -120,7 +115,7 @@ def test_errstate_cpp_scipy_special():
 
 def test_errstate_cpp_alt_ufunc_machinery():
     olderr = sc.geterr()
-    with sc.errstate(singular='raise'):
+    with sc.errstate(singular="raise"):
         with assert_raises(sc.SpecialFunctionError):
             sc.gammaln(0)
     assert_equal(olderr, sc.geterr())
@@ -138,7 +133,7 @@ def test_errstate():
 
 def test_errstate_all_but_one():
     olderr = sc.geterr()
-    with sc.errstate(all='raise', singular='ignore'):
+    with sc.errstate(all="raise", singular="ignore"):
         sc.gammaln(0)
         with assert_raises(sc.SpecialFunctionError):
             sc.spence(-1.0)

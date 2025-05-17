@@ -3,8 +3,8 @@ You can find lots of cnf files in
 ftp://dimacs.rutgers.edu/pub/challenge/satisfiability/benchmarks/cnf/
 """
 
-from sympy.logic.utilities.dimacs import load
 from sympy.logic.algorithms.dpll import dpll_satisfiable
+from sympy.logic.utilities.dimacs import load
 
 
 def test_f1():
@@ -25,6 +25,7 @@ def test_f4():
 
 def test_f5():
     assert bool(dpll_satisfiable(load(f5)))
+
 
 f1 = """c  simple example
 c Resolution: SATISFIABLE

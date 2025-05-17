@@ -13,7 +13,6 @@ from types import GeneratorType
 import numpy as np
 import pytest
 from scipy.stats import bernoulli, expon, uniform
-
 from sklearn import config_context
 from sklearn.base import BaseEstimator, ClassifierMixin, is_classifier
 from sklearn.cluster import KMeans

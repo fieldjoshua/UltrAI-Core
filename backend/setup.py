@@ -1,4 +1,4 @@
-from setuptools import setup, find_packages
+from setuptools import find_packages, setup
 
 setup(
     name="trillm_orchestrator",
@@ -8,10 +8,10 @@ setup(
         # Add your dependencies here
     ],
     extras_require={
-        'test': [
-            'pytest',
-            'pytest-asyncio',
+        "test": [
+            "pytest",
+            "pytest-asyncio",
             # Add other test dependencies here
         ],
     },
-) 
+)

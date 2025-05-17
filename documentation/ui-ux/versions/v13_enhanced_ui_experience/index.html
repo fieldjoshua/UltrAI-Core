@@ -463,24 +463,24 @@
             .layout {
                 display: block;
             }
-            
+
             .main-content {
                 margin-left: 0;
                 padding-top: var(--header-height);
             }
-            
+
             .sidebar {
                 transform: translateX(-100%);
             }
-            
+
             .header {
                 left: 0;
             }
-            
+
             .sidebar-toggle {
                 display: block;
             }
-            
+
             .sidebar-open .sidebar {
                 transform: translateX(0);
             }
@@ -887,7 +887,7 @@
                                             </div>
                                         </div>
                                     </div>
-                                    
+
                                     <div class="model-card">
                                         <div class="model-header">
                                             <span class="model-provider">Anthropic</span>
@@ -906,7 +906,7 @@
                                             </div>
                                         </div>
                                     </div>
-                                    
+
                                     <div class="model-card">
                                         <div class="model-header">
                                             <span class="model-provider">Google</span>
@@ -925,7 +925,7 @@
                                             </div>
                                         </div>
                                     </div>
-                                    
+
                                     <div class="model-card">
                                         <div class="model-header">
                                             <span class="model-provider">Meta</span>
@@ -968,33 +968,33 @@
         // Toggle sidebar
         const sidebarToggle = document.getElementById('sidebar-toggle');
         const layout = document.getElementById('layout');
-        
+
         if (sidebarToggle) {
             sidebarToggle.addEventListener('click', () => {
                 layout.classList.toggle('sidebar-collapsed');
             });
         }
-        
+
         // Toggle dark mode
         const darkModeToggle = document.getElementById('dark-mode-toggle');
         const body = document.body;
         const moonIcon = '<i class="fas fa-moon"></i>';
         const sunIcon = '<i class="fas fa-sun"></i>';
-        
+
         if (darkModeToggle) {
             darkModeToggle.addEventListener('click', () => {
                 body.classList.toggle('dark-mode');
                 darkModeToggle.innerHTML = body.classList.contains('dark-mode') ? sunIcon : moonIcon;
             });
         }
-        
+
         // Model card selection
         const modelCards = document.querySelectorAll('.model-card');
         modelCards.forEach(card => {
             card.addEventListener('click', () => {
                 // Toggle the selected class
                 card.classList.toggle('selected');
-                
+
                 // Find the radio button inside this card
                 const radio = card.querySelector('input[type="radio"]');
                 if (radio) {

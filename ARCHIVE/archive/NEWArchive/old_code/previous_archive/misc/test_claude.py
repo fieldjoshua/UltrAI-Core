@@ -1,4 +1,4 @@
-from anthropic import Anthropic, HUMAN_PROMPT, AI_PROMPT
+from anthropic import AI_PROMPT, HUMAN_PROMPT, Anthropic
 
 # Initialize the client
 client = Anthropic(
@@ -12,4 +12,4 @@ completion = client.completions.create(
     prompt=f"{HUMAN_PROMPT} Hello, world! {AI_PROMPT}",
 )
 
-print(completion.completion) 
+print(completion.completion)

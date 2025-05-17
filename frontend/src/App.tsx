@@ -11,7 +11,9 @@ import SimpleAnalysis from './pages/SimpleAnalysis';
 import ModelRunnerDemo from './pages/ModelRunnerDemo';
 import OrchestratorPage from './pages/OrchestratorPage';
 import UIPrototype from './pages/UIPrototype';
+import UniversalUI from './pages/UniversalUI';
 import NavBar from './components/layout/NavBar';
+import { ThemeProvider } from './theme/ThemeContext';
 
 // Simple error boundary component since the imported one is causing TypeScript errors
 class SimpleErrorBoundary extends React.Component<{
@@ -44,21 +46,24 @@ class SimpleErrorBoundary extends React.Component<{
 const App: React.FC = () => {
   return (
     <SimpleErrorBoundary>
-      <Router>
-        <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-          <NavBar />
-          <main className="pt-6">
-            <Routes>
-              <Route path="/documents" element={<DocumentsPage />} />
-              <Route path="/analyze" element={<SimpleAnalysis />} />
-              <Route path="/modelrunner" element={<ModelRunnerDemo />} />
-              <Route path="/orchestrator" element={<OrchestratorPage />} />
-              <Route path="/prototype" element={<UIPrototype />} />
-              <Route path="/" element={<Navigate to="/analyze" replace />} />
-            </Routes>
-          </main>
-        </div>
-      </Router>
+      <ThemeProvider>
+        <Router>
+          <div className="min-h-screen bg-background text-foreground">
+            <NavBar />
+            <main className="pt-6">
+              <Routes>
+                <Route path="/documents" element={<DocumentsPage />} />
+                <Route path="/analyze" element={<SimpleAnalysis />} />
+                <Route path="/modelrunner" element={<ModelRunnerDemo />} />
+                <Route path="/orchestrator" element={<OrchestratorPage />} />
+                <Route path="/prototype" element={<UIPrototype />} />
+                <Route path="/universal-ui" element={<UniversalUI />} />
+                <Route path="/" element={<Navigate to="/analyze" replace />} />
+              </Routes>
+            </main>
+          </div>
+        </Router>
+      </ThemeProvider>
     </SimpleErrorBoundary>
   );
 };

@@ -1,89 +1,89 @@
 <svg viewBox="0 0 800 600" xmlns="http://www.w3.org/2000/svg">
     <!-- System Border -->
     <rect x="10" y="10" width="780" height="580" fill="none" stroke="#333" stroke-width="2"/>
-    
+
     <!-- Title -->
     <text x="400" y="40" text-anchor="middle" font-size="20" font-weight="bold">TriLLMOrchestrator System Architecture</text>
-    
+
     <!-- Layer 1: Multi-Model Orchestration -->
     <rect x="30" y="70" width="740" height="120" fill="#f0f8ff" stroke="#333"/>
     <text x="400" y="90" text-anchor="middle" font-weight="bold">Multi-Model Orchestration Layer</text>
-    
+
     <!-- Model Components -->
     <rect x="50" y="110" width="160" height="60" fill="white" stroke="#333"/>
     <text x="130" y="140" text-anchor="middle" font-size="12">Model Registry</text>
-    
+
     <rect x="230" y="110" width="160" height="60" fill="white" stroke="#333"/>
     <text x="310" y="140" text-anchor="middle" font-size="12">Dynamic Model Selection</text>
-    
+
     <rect x="410" y="110" width="160" height="60" fill="white" stroke="#333"/>
     <text x="490" y="140" text-anchor="middle" font-size="12">Request Manager</text>
-    
+
     <rect x="590" y="110" width="160" height="60" fill="white" stroke="#333"/>
     <text x="670" y="140" text-anchor="middle" font-size="12">Response Aggregator</text>
-    
+
     <!-- Layer 2: Multi-Layered Analysis -->
     <rect x="30" y="210" width="740" height="120" fill="#f0fff0" stroke="#333"/>
     <text x="400" y="230" text-anchor="middle" font-weight="bold">Multi-Layered Analysis Layer</text>
-    
+
     <!-- Analysis Components -->
     <rect x="50" y="250" width="160" height="60" fill="white" stroke="#333"/>
     <text x="130" y="280" text-anchor="middle" font-size="12">Initial Analysis</text>
-    
+
     <rect x="230" y="250" width="160" height="60" fill="white" stroke="#333"/>
     <text x="310" y="280" text-anchor="middle" font-size="12">Meta Analysis</text>
-    
+
     <rect x="410" y="250" width="160" height="60" fill="white" stroke="#333"/>
     <text x="490" y="280" text-anchor="middle" font-size="12">Ultra Synthesis</text>
-    
+
     <rect x="590" y="250" width="160" height="60" fill="white" stroke="#333"/>
     <text x="670" y="280" text-anchor="middle" font-size="12">Hyper Analysis</text>
-    
+
     <!-- Layer 3: Resource Management -->
     <rect x="30" y="350" width="740" height="120" fill="#fff0f0" stroke="#333"/>
     <text x="400" y="370" text-anchor="middle" font-weight="bold">Resource Management Layer</text>
-    
+
     <!-- Resource Components -->
     <rect x="50" y="390" width="160" height="60" fill="white" stroke="#333"/>
     <text x="130" y="420" text-anchor="middle" font-size="12">Rate Limiter</text>
-    
+
     <rect x="230" y="390" width="160" height="60" fill="white" stroke="#333"/>
     <text x="310" y="420" text-anchor="middle" font-size="12">Hardware Manager</text>
-    
+
     <rect x="410" y="390" width="160" height="60" fill="white" stroke="#333"/>
     <text x="490" y="420" text-anchor="middle" font-size="12">Queue Manager</text>
-    
+
     <rect x="590" y="390" width="160" height="60" fill="white" stroke="#333"/>
     <text x="670" y="420" text-anchor="middle" font-size="12">Performance Monitor</text>
-    
+
     <!-- Layer 4: Error Handling -->
     <rect x="30" y="490" width="740" height="80" fill="#fff0ff" stroke="#333"/>
     <text x="400" y="510" text-anchor="middle" font-weight="bold">Error Handling Layer</text>
-    
+
     <!-- Error Components -->
     <rect x="50" y="530" width="160" height="30" fill="white" stroke="#333"/>
     <text x="130" y="550" text-anchor="middle" font-size="12">Retry Manager</text>
-    
+
     <rect x="230" y="530" width="160" height="30" fill="white" stroke="#333"/>
     <text x="310" y="550" text-anchor="middle" font-size="12">State Manager</text>
-    
+
     <rect x="410" y="530" width="160" height="30" fill="white" stroke="#333"/>
     <text x="490" y="550" text-anchor="middle" font-size="12">Recovery Manager</text>
-    
+
     <rect x="590" y="530" width="160" height="30" fill="white" stroke="#333"/>
     <text x="670" y="550" text-anchor="middle" font-size="12">Error Reporter</text>
-    
+
     <!-- Interconnecting Lines -->
     <path d="M130 170 L130 250" stroke="#333" stroke-width="1" fill="none"/>
     <path d="M310 170 L310 250" stroke="#333" stroke-width="1" fill="none"/>
     <path d="M490 170 L490 250" stroke="#333" stroke-width="1" fill="none"/>
     <path d="M670 170 L670 250" stroke="#333" stroke-width="1" fill="none"/>
-    
+
     <path d="M130 310 L130 390" stroke="#333" stroke-width="1" fill="none"/>
     <path d="M310 310 L310 390" stroke="#333" stroke-width="1" fill="none"/>
     <path d="M490 310 L490 390" stroke="#333" stroke-width="1" fill="none"/>
     <path d="M670 310 L670 390" stroke="#333" stroke-width="1" fill="none"/>
-    
+
     <path d="M130 450 L130 530" stroke="#333" stroke-width="1" fill="none"/>
     <path d="M310 450 L310 530" stroke="#333" stroke-width="1" fill="none"/>
     <path d="M490 450 L490 530" stroke="#333" stroke-width="1" fill="none"/>

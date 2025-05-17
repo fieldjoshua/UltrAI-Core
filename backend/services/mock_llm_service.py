@@ -4,11 +4,11 @@ Mock LLM service for testing.
 This module provides a mock implementation of the LLM service for development and testing.
 """
 
+import asyncio
+import hashlib
 import random
 import time
-import asyncio
-from typing import Dict, List, Any, Optional
-import hashlib
+from typing import Any, Dict, List, Optional
 
 
 class MockLLMService:
@@ -17,24 +17,33 @@ class MockLLMService:
     def __init__(self, config=None):
         """
         Initialize the mock LLM service
-        
+
         Args:
             config: Optional configuration dictionary
         """
         # Initialize configuration
         self.config = config or {}
-        
+
         # Check if we should use Docker Model Runner for more realistic mock responses
         self.use_model_runner = self.config.get("USE_MODEL_RUNNER_FOR_MOCK", False)
         if self.use_model_runner:
             try:
-                from src.models.docker_modelrunner_adapter import DockerModelRunnerAdapter
+                from src.models.docker_modelrunner_adapter import (
+                    DockerModelRunnerAdapter,
+                )
+
                 # Create an adapter for the default model
                 default_model = self.config.get("DEFAULT_LOCAL_MODEL", "phi3:mini")
-                self.model_runner_adapter = DockerModelRunnerAdapter(model=default_model)
-                print(f"Mock LLM service will use Docker Model Runner with model {default_model} when available")
+                self.model_runner_adapter = DockerModelRunnerAdapter(
+                    model=default_model
+                )
+                print(
+                    f"Mock LLM service will use Docker Model Runner with model {default_model} when available"
+                )
             except ImportError:
-                print("Docker Model Runner adapter not available, using static mock responses")
+                print(
+                    "Docker Model Runner adapter not available, using static mock responses"
+                )
                 self.use_model_runner = False
         self.models = {
             "gpt4o": "GPT-4 Omni",
@@ -110,17 +119,17 @@ class MockLLMService:
     async def _try_model_runner_response(self, model: str, prompt: str) -> str:
         """
         Attempt to get a response from Docker Model Runner.
-        
+
         Args:
             model: The model name
             prompt: The prompt to send
-            
+
         Returns:
             Response from Model Runner or None if unavailable
         """
         if not self.use_model_runner:
             return None
-            
+
         try:
             # Map internal model name to Docker Model Runner model if needed
             model_mapping = {
@@ -128,36 +137,40 @@ class MockLLMService:
                 "gpt4o": "phi3:mini",  # Fallback mapping
                 "claude3opus": "mistral:7b",  # Fallback mapping
             }
-            
+
             # Use the mapped model or the original if no mapping exists
             model_runner_model = model_mapping.get(model, "phi3:mini")
-            
+
             # Construct a system message appropriate for the model
             if "gpt" in model:
-                system_msg = "You are GPT-4, a helpful and precise AI assistant from OpenAI."
+                system_msg = (
+                    "You are GPT-4, a helpful and precise AI assistant from OpenAI."
+                )
             elif "claude" in model:
                 system_msg = "You are Claude, a helpful and thoughtful AI assistant from Anthropic."
             elif "gemini" in model:
                 system_msg = "You are Gemini, a helpful and knowledgeable AI assistant from Google."
             elif "llama" in model:
-                system_msg = "You are Llama, a helpful and creative open-source AI assistant."
+                system_msg = (
+                    "You are Llama, a helpful and creative open-source AI assistant."
+                )
             else:
                 system_msg = "You are a helpful AI assistant."
-            
+
             # Get response from Docker Model Runner
             response = await self.model_runner_adapter.generate(
                 prompt,
                 model=model_runner_model,
                 system_message=system_msg,
                 max_tokens=500,
-                temperature=0.7
+                temperature=0.7,
             )
-            
+
             return response
         except Exception as e:
             print(f"Failed to get response from Docker Model Runner: {e}")
             return None
-    
+
     async def _generate_model_response(self, model: str, prompt: str) -> str:
         """Generate a model-specific response that reflects its personality"""
         # Try to get a response from Docker Model Runner first
@@ -168,7 +181,7 @@ class MockLLMService:
                     return runner_response
             except Exception as e:
                 print(f"Error using Docker Model Runner for mock response: {e}")
-        
+
         # Fall back to static responses if Model Runner is not available or fails
         # Get model style or use default if not defined
         style_info = self.model_response_styles.get(
@@ -278,22 +291,34 @@ class MockLLMService:
         processed_options = []
         for option in ala_carte_options:
             # Handle both string and enum types
-            option_value = getattr(option, 'value', option) if option else ''
+            option_value = getattr(option, "value", option) if option else ""
             processed_options.append(option_value)
 
         for option in processed_options:
             if option == "fact_check":
-                ala_carte_responses["fact_check"] = "Facts have been verified for this analysis."
+                ala_carte_responses["fact_check"] = (
+                    "Facts have been verified for this analysis."
+                )
             elif option == "avoid_ai_detection":
-                ala_carte_responses["avoid_ai_detection"] = "Content optimized to avoid AI detection."
+                ala_carte_responses["avoid_ai_detection"] = (
+                    "Content optimized to avoid AI detection."
+                )
             elif option == "sourcing":
-                ala_carte_responses["sourcing"] = "Sources have been added to support claims."
+                ala_carte_responses["sourcing"] = (
+                    "Sources have been added to support claims."
+                )
             elif option == "encrypted":
-                ala_carte_responses["encrypted"] = "Analysis has been encrypted for security."
+                ala_carte_responses["encrypted"] = (
+                    "Analysis has been encrypted for security."
+                )
             elif option == "no_data_sharing":
-                ala_carte_responses["no_data_sharing"] = "Analysis performed with no data sharing."
+                ala_carte_responses["no_data_sharing"] = (
+                    "Analysis performed with no data sharing."
+                )
             elif option == "alternate_perspective":
-                ala_carte_responses["alternate_perspective"] = "Alternative perspectives have been included."
+                ala_carte_responses["alternate_perspective"] = (
+                    "Alternative perspectives have been included."
+                )
 
         # Apply formatting based on output_format
         formatting_applied = f"Output formatted for {output_format.upper()}"
@@ -320,8 +345,7 @@ class MockLLMService:
 
         # Get pattern response
         pattern_response = self.pattern_responses.get(
-            pattern,
-            "This is a default analysis pattern..."
+            pattern, "This is a default analysis pattern..."
         )
 
         # Create ultra response - more comprehensive
@@ -395,9 +419,17 @@ Based on the {pattern} analysis of responses from {', '.join(model_names[:-1]) +
         pattern: str,
         ala_carte_options: Optional[List[Any]] = None,
         output_format: str = "txt",
-        options: Optional[Dict[str, Any]] = None
+        options: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
         """Asynchronous version of analyze method"""
-        # Call the async analyze method directly 
+        # Call the async analyze method directly
         # (renamed the non-async method to async since we need async for Docker Model Runner)
-        return await self.analyze(prompt, models, ultra_model, pattern, ala_carte_options, output_format, options)
+        return await self.analyze(
+            prompt,
+            models,
+            ultra_model,
+            pattern,
+            ala_carte_options,
+            output_format,
+            options,
+        )

@@ -37,7 +37,7 @@ Data is ingested from various sources, preprocessed to a suitable format, and th
 
 **3. Collaborative Analysis and Synthesis:**
 
-The core of the invention lies in its collaborative mechanism. AI models share their intermediate findings with the coordination unit, which then analyzes these findings to determine if additional processing from other models is needed. This iterative process continues until a comprehensive analysis is achieved. 
+The core of the invention lies in its collaborative mechanism. AI models share their intermediate findings with the coordination unit, which then analyzes these findings to determine if additional processing from other models is needed. This iterative process continues until a comprehensive analysis is achieved.
 
 Subsequently, the system synthesizes the processed information into actionable insights, reports, or predictions, depending on the application requirements. The synthesis process also involves an aggregation layer that harmonizes the outcomes from various models, ensuring coherence and accuracy.
 

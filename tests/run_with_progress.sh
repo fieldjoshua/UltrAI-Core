@@ -65,14 +65,14 @@ if [ "$USE_PROGRESS" = true ]; then
   FIFO="/tmp/ultra_test_fifo_$$"
   rm -f "$FIFO"
   mkfifo "$FIFO"
-  
+
   # Start the progress monitor in the background
   python3 "$(dirname "$0")/test_progress.py" --report "$REPORT_PATH" < "$FIFO" &
   MONITOR_PID=$!
-  
+
   # Open the pipe for writing
   exec 3>"$FIFO"
-  
+
   # Send initial commands to the monitor
   echo '{"command": "init"}' >&3
 fi
@@ -82,26 +82,26 @@ run_test_category() {
   local category="$1"
   local description="$2"
   shift 2
-  
+
   echo -e "${BLUE}${BOLD}Running $description...${NC}"
-  
+
   if [ "$USE_PROGRESS" = true ]; then
     echo "{\"command\": \"start_category\", \"category\": \"$category\"}" >&3
   fi
-  
+
   # Run each test in the category
   local all_passed=true
   for test_file in "$@"; do
     test_name=$(basename "$test_file" .py)
     echo -e "${BLUE}Running $test_name...${NC}"
-    
+
     # Run the test and capture output
     TEST_START=$(date +%s.%N)
     output=$(python3 -m pytest "$test_file" -v 2>&1)
     exit_code=$?
     TEST_END=$(date +%s.%N)
     TEST_DURATION=$(echo "$TEST_END - $TEST_START" | bc)
-    
+
     # Determine the result
     if [ $exit_code -eq 0 ]; then
       result="pass"
@@ -116,7 +116,7 @@ run_test_category() {
       # Extract the error message
       error_message=$(echo "$output" | grep -A 5 "FAILED" | head -n 6 | tr '\n' ' ' | sed 's/\"//g')
     fi
-    
+
     # Send test result to progress monitor
     if [ "$USE_PROGRESS" = true ]; then
       if [ "$result" = "fail" ]; then
@@ -126,11 +126,11 @@ run_test_category() {
       fi
     fi
   done
-  
+
   if [ "$USE_PROGRESS" = true ]; then
     echo "{\"command\": \"end_category\", \"category\": \"$category\"}" >&3
   fi
-  
+
   if [ "$all_passed" = true ]; then
     echo -e "${GREEN}${BOLD}All $description passed!${NC}"
     return 0
@@ -147,8 +147,8 @@ echo -e "${BOLD}=======================================================${NC}"
 
 # Set up test categories
 # Format: category name, description, test files...
-API_TESTS=("API" "API Endpoint Tests" 
-  "backend/tests/test_health_endpoint.py" 
+API_TESTS=("API" "API Endpoint Tests"
+  "backend/tests/test_health_endpoint.py"
   "backend/tests/test_available_models_endpoint.py"
   "backend/tests/test_analyze_endpoint.py"
   "backend/tests/test_llm_request_endpoint.py"

@@ -15,7 +15,7 @@ from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
 
 from backend.database.connection import get_db
-from backend.middleware.auth_middleware import token_blacklist, add_token_to_blacklist
+from backend.middleware.auth_middleware import add_token_to_blacklist, token_blacklist
 from backend.models.auth import (
     MessageResponse,
     PasswordReset,
@@ -54,7 +54,7 @@ db_dependency = Depends(get_db)
 
 
 @auth_router.post(
-    "/api/auth/register",
+    "/auth/register",
     status_code=status.HTTP_201_CREATED,
     response_model=MessageResponse,
 )
@@ -72,11 +72,11 @@ async def register_user(user: UserCreate, db: Session = db_dependency):
     try:
         # Create the user with AuthService
         result = auth_service.create_user(
-            db, 
-            user.email, 
+            db,
+            user.email,
             user.password,
             name=user.name,
-            auto_verify=True  # Auto-verify for simplicity in MVP
+            auto_verify=True,  # Auto-verify for simplicity in MVP
         )
 
         # Check for error
@@ -102,7 +102,7 @@ async def register_user(user: UserCreate, db: Session = db_dependency):
         )
 
 
-@auth_router.post("/api/auth/login", response_model=TokenResponse)
+@auth_router.post("/auth/login", response_model=TokenResponse)
 async def login(user_data: UserLogin, db: Session = db_dependency):
     """
     Authenticate a user and return access and refresh tokens.
@@ -140,8 +140,10 @@ async def login(user_data: UserLogin, db: Session = db_dependency):
         )
 
 
-@auth_router.post("/api/auth/refresh", response_model=TokenResponse)
-async def refresh_token(refresh_request: RefreshTokenRequest, db: Session = db_dependency):
+@auth_router.post("/auth/refresh", response_model=TokenResponse)
+async def refresh_token(
+    refresh_request: RefreshTokenRequest, db: Session = db_dependency
+):
     """
     Refresh an access token using a refresh token.
 
@@ -191,9 +193,11 @@ async def refresh_token(refresh_request: RefreshTokenRequest, db: Session = db_d
         )
 
 
-@auth_router.post("/api/auth/logout", response_model=MessageResponse)
-async def logout(authorization: Optional[str] = Header(None),
-              refresh_token: Optional[str] = Header(None)):
+@auth_router.post("/auth/logout", response_model=MessageResponse)
+async def logout(
+    authorization: Optional[str] = Header(None),
+    refresh_token: Optional[str] = Header(None),
+):
     """
     Log out a user by invalidating their token.
 
@@ -206,12 +210,12 @@ async def logout(authorization: Optional[str] = Header(None),
     """
     try:
         # Add tokens to blacklist using the utility function
-        
+
         # Add access token to blacklist
         if authorization and authorization.startswith("Bearer "):
             token = authorization.replace("Bearer ", "")
             add_token_to_blacklist(token)
-        
+
         # Add refresh token to blacklist if provided
         if refresh_token:
             add_token_to_blacklist(refresh_token)
@@ -225,8 +229,10 @@ async def logout(authorization: Optional[str] = Header(None),
         )
 
 
-@auth_router.post("/api/auth/reset-password-request", response_model=MessageResponse)
-async def request_password_reset(request_data: PasswordResetRequest, db: Session = db_dependency):
+@auth_router.post("/auth/reset-password-request", response_model=MessageResponse)
+async def request_password_reset(
+    request_data: PasswordResetRequest, db: Session = db_dependency
+):
     """
     Request a password reset. Sends an email with reset instructions.
 
@@ -240,16 +246,16 @@ async def request_password_reset(request_data: PasswordResetRequest, db: Session
     try:
         # Check if user exists
         user = auth_service.get_user_by_email(db, request_data.email)
-        
+
         # Always return success regardless of whether the email exists
         # This prevents email enumeration attacks
-        
+
         # TODO: If email service is integrated, send actual password reset email here
         # For now, just log the action for users that exist
         if user:
             logger.info(f"Password reset requested for user {request_data.email}")
             # In a real implementation, we would generate a token and send an email
-        
+
         return {
             "status": "success",
             "message": "If the email exists, reset instructions have been sent",
@@ -265,7 +271,7 @@ async def request_password_reset(request_data: PasswordResetRequest, db: Session
         )
 
 
-@auth_router.post("/api/auth/reset-password", response_model=MessageResponse)
+@auth_router.post("/auth/reset-password", response_model=MessageResponse)
 async def reset_password(reset_data: PasswordReset, db: Session = db_dependency):
     """
     Reset a password using a valid reset token.
@@ -326,8 +332,10 @@ async def reset_password(reset_data: PasswordReset, db: Session = db_dependency)
 # --- Protected Endpoints ---
 
 
-@auth_router.get("/api/users/me", response_model=dict)
-async def get_current_user(authorization: Optional[str] = Header(None), db: Session = db_dependency):
+@auth_router.get("/users/me", response_model=dict)
+async def get_current_user(
+    authorization: Optional[str] = Header(None), db: Session = db_dependency
+):
     """
     Get the current authenticated user.
 
@@ -383,14 +391,14 @@ async def get_current_user(authorization: Optional[str] = Header(None), db: Sess
         # Use AuthService to verify the token and get the user
         try:
             user = await auth_service.get_current_user(token, db)
-            
+
             return {
                 "user_id": str(user.id),
                 "email": user.email,
                 "name": user.full_name,
                 "username": user.username,
                 "tier": user.subscription_tier.value,
-                "is_verified": user.is_verified
+                "is_verified": user.is_verified,
             }
         except AuthenticationException as auth_exc:
             return JSONResponse(
@@ -439,20 +447,21 @@ async def get_current_user(authorization: Optional[str] = Header(None), db: Sess
 
 # --- User Profile Management ---
 
-@auth_router.put("/api/users/me", response_model=dict)
+
+@auth_router.put("/users/me", response_model=dict)
 async def update_user_profile(
     profile_data: dict,
     authorization: Optional[str] = Header(None),
-    db: Session = db_dependency
+    db: Session = db_dependency,
 ):
     """
     Update the current user's profile.
-    
+
     Args:
         profile_data: Profile data to update
         authorization: Authorization header with token
         db: Database session
-        
+
     Returns:
         Updated user information
     """
@@ -466,9 +475,9 @@ async def update_user_profile(
                 },
                 headers={"WWW-Authenticate": "Bearer"},
             )
-            
+
         token = authorization.replace("Bearer ", "")
-        
+
         # Check if token is blacklisted
         if token in token_blacklist:
             return JSONResponse(
@@ -479,25 +488,22 @@ async def update_user_profile(
                 },
                 headers={"WWW-Authenticate": "Bearer"},
             )
-            
+
         try:
             # Get current user from token
             user = await auth_service.get_current_user(token, db)
-            
+
             # Update user profile
             result = auth_service.update_user_profile(db, user.id, profile_data)
-            
+
             if "error" in result:
                 return JSONResponse(
                     status_code=status.HTTP_400_BAD_REQUEST,
                     content={"status": "error", "message": result["error"]},
                 )
-                
+
             # Return updated user info
-            return {
-                "status": "success",
-                **result
-            }
+            return {"status": "success", **result}
         except AuthenticationException as auth_exc:
             return JSONResponse(
                 status_code=status.HTTP_401_UNAUTHORIZED,
@@ -524,26 +530,29 @@ async def update_user_profile(
         )
 
 
-@auth_router.post("/api/users/me/change-password", response_model=MessageResponse)
+@auth_router.post("/users/me/change-password", response_model=MessageResponse)
 async def change_password(
     password_data: dict,
     authorization: Optional[str] = Header(None),
-    db: Session = db_dependency
+    db: Session = db_dependency,
 ):
     """
     Change the current user's password.
-    
+
     Args:
         password_data: Current and new password
         authorization: Authorization header with token
         db: Database session
-        
+
     Returns:
         Success message
     """
     try:
         # Check if required fields are present
-        if "current_password" not in password_data or "new_password" not in password_data:
+        if (
+            "current_password" not in password_data
+            or "new_password" not in password_data
+        ):
             return JSONResponse(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 content={
@@ -551,7 +560,7 @@ async def change_password(
                     "message": "Both current_password and new_password are required",
                 },
             )
-            
+
         if not authorization or not authorization.startswith("Bearer "):
             return JSONResponse(
                 status_code=status.HTTP_401_UNAUTHORIZED,
@@ -561,9 +570,9 @@ async def change_password(
                 },
                 headers={"WWW-Authenticate": "Bearer"},
             )
-            
+
         token = authorization.replace("Bearer ", "")
-        
+
         # Check if token is blacklisted
         if token in token_blacklist:
             return JSONResponse(
@@ -574,20 +583,20 @@ async def change_password(
                 },
                 headers={"WWW-Authenticate": "Bearer"},
             )
-            
+
         try:
             # Get current user from token
             user = await auth_service.get_current_user(token, db)
-            
+
             # Change password
             try:
                 success = auth_service.change_password(
                     db,
                     user.id,
                     password_data["current_password"],
-                    password_data["new_password"]
+                    password_data["new_password"],
                 )
-                
+
                 if success:
                     return {
                         "status": "success",
@@ -637,20 +646,21 @@ async def change_password(
 
 # --- API Key Management ---
 
-@auth_router.post("/api/users/me/api-keys", response_model=dict)
+
+@auth_router.post("/users/me/api-keys", response_model=dict)
 async def create_api_key(
     key_data: dict,
     authorization: Optional[str] = Header(None),
-    db: Session = db_dependency
+    db: Session = db_dependency,
 ):
     """
     Create a new API key for the current user.
-    
+
     Args:
         key_data: API key data (name)
         authorization: Authorization header with token
         db: Database session
-        
+
     Returns:
         Created API key
     """
@@ -664,7 +674,7 @@ async def create_api_key(
                     "message": "API key name is required",
                 },
             )
-            
+
         if not authorization or not authorization.startswith("Bearer "):
             return JSONResponse(
                 status_code=status.HTTP_401_UNAUTHORIZED,
@@ -674,9 +684,9 @@ async def create_api_key(
                 },
                 headers={"WWW-Authenticate": "Bearer"},
             )
-            
+
         token = authorization.replace("Bearer ", "")
-        
+
         # Check if token is blacklisted
         if token in token_blacklist:
             return JSONResponse(
@@ -687,14 +697,14 @@ async def create_api_key(
                 },
                 headers={"WWW-Authenticate": "Bearer"},
             )
-            
+
         try:
             # Get current user from token
             user = await auth_service.get_current_user(token, db)
-            
+
             # Create API key
             api_key = auth_service.create_api_key(db, user.id, key_data["name"])
-            
+
             if not api_key:
                 return JSONResponse(
                     status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -703,12 +713,12 @@ async def create_api_key(
                         "message": "Error creating API key",
                     },
                 )
-                
+
             # Return API key info
             return {
                 "status": "success",
                 "message": "API key created successfully",
-                "api_key": api_key
+                "api_key": api_key,
             }
         except AuthenticationException as auth_exc:
             return JSONResponse(
@@ -738,16 +748,15 @@ async def create_api_key(
 
 @auth_router.get("/api/users/me/api-keys", response_model=dict)
 async def get_api_keys(
-    authorization: Optional[str] = Header(None),
-    db: Session = db_dependency
+    authorization: Optional[str] = Header(None), db: Session = db_dependency
 ):
     """
     Get all API keys for the current user.
-    
+
     Args:
         authorization: Authorization header with token
         db: Database session
-        
+
     Returns:
         List of API keys
     """
@@ -761,9 +770,9 @@ async def get_api_keys(
                 },
                 headers={"WWW-Authenticate": "Bearer"},
             )
-            
+
         token = authorization.replace("Bearer ", "")
-        
+
         # Check if token is blacklisted
         if token in token_blacklist:
             return JSONResponse(
@@ -774,19 +783,16 @@ async def get_api_keys(
                 },
                 headers={"WWW-Authenticate": "Bearer"},
             )
-            
+
         try:
             # Get current user from token
             user = await auth_service.get_current_user(token, db)
-            
+
             # Get API keys
             api_keys = auth_service.get_api_keys(db, user.id)
-                
+
             # Return API keys
-            return {
-                "status": "success",
-                "api_keys": api_keys
-            }
+            return {"status": "success", "api_keys": api_keys}
         except AuthenticationException as auth_exc:
             return JSONResponse(
                 status_code=status.HTTP_401_UNAUTHORIZED,
@@ -817,16 +823,16 @@ async def get_api_keys(
 async def revoke_api_key(
     key_id: int,
     authorization: Optional[str] = Header(None),
-    db: Session = db_dependency
+    db: Session = db_dependency,
 ):
     """
     Revoke an API key for the current user.
-    
+
     Args:
         key_id: API key ID
         authorization: Authorization header with token
         db: Database session
-        
+
     Returns:
         Success message
     """
@@ -840,9 +846,9 @@ async def revoke_api_key(
                 },
                 headers={"WWW-Authenticate": "Bearer"},
             )
-            
+
         token = authorization.replace("Bearer ", "")
-        
+
         # Check if token is blacklisted
         if token in token_blacklist:
             return JSONResponse(
@@ -853,14 +859,14 @@ async def revoke_api_key(
                 },
                 headers={"WWW-Authenticate": "Bearer"},
             )
-            
+
         try:
             # Get current user from token
             user = await auth_service.get_current_user(token, db)
-            
+
             # Revoke API key
             success = auth_service.revoke_api_key(db, key_id, user.id)
-            
+
             if not success:
                 return JSONResponse(
                     status_code=status.HTTP_404_NOT_FOUND,
@@ -869,7 +875,7 @@ async def revoke_api_key(
                         "message": "API key not found or not owned by user",
                     },
                 )
-                
+
             # Return success message
             return {
                 "status": "success",

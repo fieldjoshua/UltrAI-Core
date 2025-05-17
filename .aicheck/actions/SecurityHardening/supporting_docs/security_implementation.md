@@ -34,6 +34,7 @@ else:
 ```
 
 This change provides several benefits:
+
 - Removes sensitive credentials from the codebase
 - Allows different Sentry DSNs for different environments
 - Makes it optional, so the application can run without Sentry
@@ -51,6 +52,7 @@ is_production = os.environ.get("ENVIRONMENT", "development") == "production"
 ```
 
 Benefits:
+
 - Uses the standard `os.environ` instead of the non-existent `sys.env`
 - Provides a default value of "development" for safer fallback
 - Ensures consistent environment detection throughout the application
@@ -60,6 +62,7 @@ Benefits:
 We've implemented a URL validation utility in `backend/utils/validation.py` to prevent Server-Side Request Forgery (SSRF) attacks:
 
 #### Key Features
+
 - Whitelisting of allowed external domains
 - Validation of URL schemes (only http/https allowed)
 - Private IP range blocking
@@ -67,6 +70,7 @@ We've implemented a URL validation utility in `backend/utils/validation.py` to p
 - Configuration via environment variables
 
 #### Implementation in LLM Adapters
+
 The URL validation has been integrated with the LLM adapters:
 
 ```python
@@ -82,6 +86,7 @@ if base_url and URL_VALIDATION_AVAILABLE:
 ```
 
 Benefits:
+
 - Prevents attackers from redirecting API calls to internal services
 - Blocks access to private networks
 - Provides a configurable allowed domain list
@@ -114,9 +119,10 @@ When working with the application:
 1. **Environment Variables**: Always use environment variables for sensitive configuration including API keys, endpoints, and security settings.
 
 2. **URL Validation**: When adding new external API integrations, ensure URLs are properly validated using the validation utility:
+
    ```python
    from backend.utils.validation import validate_url
-   
+
    # Will raise ValueError if URL is invalid
    validate_url(external_url)
    ```

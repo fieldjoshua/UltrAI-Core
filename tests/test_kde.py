@@ -1,7 +1,6 @@
 import joblib
 import numpy as np
 import pytest
-
 from sklearn.datasets import make_blobs
 from sklearn.exceptions import NotFittedError
 from sklearn.model_selection import GridSearchCV

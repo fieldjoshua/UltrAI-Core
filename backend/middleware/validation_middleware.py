@@ -15,15 +15,15 @@ from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.types import ASGIApp
 
-from backend.utils.logging import get_logger, log_error
 from backend.models.base_models import ErrorResponse
+from backend.utils.logging import get_logger, log_error
 
 # Set up logger
 logger = get_logger("validation_middleware", "logs/security.log")
 
 # Common patterns for validation
 SQL_INJECTION_PATTERN = re.compile(
-    r"(?i)(select|insert|update|delete|drop|alter|create|union|exec|execute|--|\\\*\/)"
+    r"(?i)(\bselect\s+|insert\s+into|update\s+|delete\s+from|drop\s+|alter\s+|create\s+|union\s+|exec\s+|execute\s+|--|\\\*\/)"
 )
 XSS_PATTERN = re.compile(r"(?i)(<script|javascript:|on\w+\s*=|<iframe|<object|alert\()")
 PATH_TRAVERSAL_PATTERN = re.compile(r"(?i)(\.\.\/|\.\.\\|~\/|~\\)")
@@ -75,7 +75,9 @@ class ValidationMiddleware(BaseHTTPMiddleware):
             "/health",
             "/metrics",
         ]
-        logger.info(f"Initialized ValidationMiddleware with {len(self.exempt_paths)} exempt paths")
+        logger.info(
+            f"Initialized ValidationMiddleware with {len(self.exempt_paths)} exempt paths"
+        )
 
     async def dispatch(self, request: Request, call_next: Callable) -> Response:
         """
@@ -226,17 +228,23 @@ class ValidationMiddleware(BaseHTTPMiddleware):
             # Validate each key and value in the dictionary
             for key, value in data.items():
                 # Validate key for injection patterns
-                key_validation = self._validate_string_input(f"key at {path}/{key}", key)
+                key_validation = self._validate_string_input(
+                    f"key at {path}/{key}", key
+                )
                 if key_validation:
                     return key_validation
 
                 # Recursively validate value
                 if isinstance(value, (dict, list)):
-                    nested_validation = self._validate_json_content(value, f"{path}/{key}")
+                    nested_validation = self._validate_json_content(
+                        value, f"{path}/{key}"
+                    )
                     if nested_validation:
                         return nested_validation
                 elif isinstance(value, str):
-                    string_validation = self._validate_string_input(f"value at {path}/{key}", value)
+                    string_validation = self._validate_string_input(
+                        f"value at {path}/{key}", value
+                    )
                     if string_validation:
                         return string_validation
 
@@ -248,11 +256,15 @@ class ValidationMiddleware(BaseHTTPMiddleware):
             # Recursively validate each item in the array
             for i, item in enumerate(data):
                 if isinstance(item, (dict, list)):
-                    nested_validation = self._validate_json_content(item, f"{path}[{i}]")
+                    nested_validation = self._validate_json_content(
+                        item, f"{path}[{i}]"
+                    )
                     if nested_validation:
                         return nested_validation
                 elif isinstance(item, str):
-                    string_validation = self._validate_string_input(f"item at {path}[{i}]", item)
+                    string_validation = self._validate_string_input(
+                        f"item at {path}[{i}]", item
+                    )
                     if string_validation:
                         return string_validation
 

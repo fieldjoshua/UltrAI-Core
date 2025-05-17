@@ -3,7 +3,6 @@
 import numpy as np
 import pytest
 from scipy.sparse import issparse
-
 from sklearn.base import BaseEstimator, BiclusterMixin
 from sklearn.cluster import SpectralBiclustering, SpectralCoclustering
 from sklearn.cluster._bicluster import (

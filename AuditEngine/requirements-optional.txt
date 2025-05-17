@@ -1,0 +1,27 @@
+# Optional dependencies for enhanced AuditEngine functionality
+
+# Analysis tools
+pylint>=2.15.0       # Python code analysis
+flake8>=5.0.0        # Python style checker
+mypy>=0.991          # Static type checking
+bandit>=1.7.0        # Security vulnerability scanner
+black>=22.0          # Code formatter
+isort>=5.10.0        # Import sorting
+
+# JavaScript/TypeScript analysis
+# These require npm/node to be installed separately
+
+# Reporting and visualization
+matplotlib>=3.5.0    # For generating charts
+plotly>=5.11.0       # Interactive visualizations
+reportlab>=3.6.0     # PDF generation
+jinja2>=3.1.0        # Template engine
+
+# Performance
+numpy>=1.21.0        # Numerical computing
+pandas>=1.3.0        # Data analysis
+
+# Development
+pytest>=7.2.0        # Testing framework
+pytest-cov>=4.0.0    # Coverage reporting
+ipython>=8.0.0       # Enhanced REPL

@@ -2,7 +2,6 @@ import warnings
 
 import numpy as np
 import pytest
-
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import FunctionTransformer, StandardScaler
 from sklearn.utils._testing import (

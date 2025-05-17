@@ -27,7 +27,7 @@ ENV_EXAMPLE="$PROJECT_ROOT/.env.example"
 if [ ! -f "$ENV_TEMPLATE" ]; then
     echo "Error: Environment template for '$ENVIRONMENT' not found."
     echo "Expected file: $ENV_TEMPLATE"
-    
+
     # Check if the example file exists
     if [ -f "$ENV_EXAMPLE" ]; then
         echo
@@ -62,7 +62,7 @@ ln -s "$ENV_TEMPLATE" "$ENV_FILE"
 
 echo "Environment set to $ENVIRONMENT"
 echo "Using environment file: $ENV_TEMPLATE"
-echo 
+echo
 
 # Print some info about the environment
 echo "Environment Settings:"

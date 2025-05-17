@@ -12,62 +12,28 @@ from time import sleep
 import numpy as np
 import pytest
 from scipy.sparse import issparse
-
 from sklearn import config_context
 from sklearn.base import BaseEstimator, ClassifierMixin, clone
 from sklearn.cluster import KMeans
-from sklearn.datasets import (
-    load_diabetes,
-    load_digits,
-    load_iris,
-    make_classification,
-    make_multilabel_classification,
-    make_regression,
-)
+from sklearn.datasets import (load_diabetes, load_digits, load_iris,
+                              make_classification, make_multilabel_classification,
+                              make_regression)
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.exceptions import FitFailedWarning
 from sklearn.impute import SimpleImputer
-from sklearn.linear_model import (
-    LogisticRegression,
-    PassiveAggressiveClassifier,
-    Ridge,
-    RidgeClassifier,
-    SGDClassifier,
-)
-from sklearn.metrics import (
-    accuracy_score,
-    check_scoring,
-    confusion_matrix,
-    explained_variance_score,
-    make_scorer,
-    mean_squared_error,
-    precision_recall_fscore_support,
-    precision_score,
-    r2_score,
-)
+from sklearn.linear_model import (LogisticRegression, PassiveAggressiveClassifier,
+                                  Ridge, RidgeClassifier, SGDClassifier)
+from sklearn.metrics import (accuracy_score, check_scoring, confusion_matrix,
+                             explained_variance_score, make_scorer, mean_squared_error,
+                             precision_recall_fscore_support, precision_score, r2_score)
 from sklearn.metrics._scorer import _MultimetricScorer
-from sklearn.model_selection import (
-    GridSearchCV,
-    GroupKFold,
-    GroupShuffleSplit,
-    KFold,
-    LeaveOneGroupOut,
-    LeaveOneOut,
-    LeavePGroupsOut,
-    ShuffleSplit,
-    StratifiedKFold,
-    cross_val_predict,
-    cross_val_score,
-    cross_validate,
-    learning_curve,
-    permutation_test_score,
-    validation_curve,
-)
-from sklearn.model_selection._validation import (
-    _check_is_permutation,
-    _fit_and_score,
-    _score,
-)
+from sklearn.model_selection import (GridSearchCV, GroupKFold, GroupShuffleSplit, KFold,
+                                     LeaveOneGroupOut, LeaveOneOut, LeavePGroupsOut,
+                                     ShuffleSplit, StratifiedKFold, cross_val_predict,
+                                     cross_val_score, cross_validate, learning_curve,
+                                     permutation_test_score, validation_curve)
+from sklearn.model_selection._validation import (_check_is_permutation, _fit_and_score,
+                                                 _score)
 from sklearn.model_selection.tests.common import OneTimeSplitter
 from sklearn.model_selection.tests.test_search import FailingClassifier
 from sklearn.multiclass import OneVsRestClassifier
@@ -76,21 +42,13 @@ from sklearn.neural_network import MLPRegressor
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import LabelEncoder, scale
 from sklearn.svm import SVC, LinearSVC
-from sklearn.tests.metadata_routing_common import (
-    ConsumingClassifier,
-    ConsumingScorer,
-    ConsumingSplitter,
-    _Registry,
-    check_recorded_metadata,
-)
+from sklearn.tests.metadata_routing_common import (ConsumingClassifier, ConsumingScorer,
+                                                   ConsumingSplitter, _Registry,
+                                                   check_recorded_metadata)
 from sklearn.utils import shuffle
 from sklearn.utils._mocking import CheckingClassifier, MockDataFrame
-from sklearn.utils._testing import (
-    assert_allclose,
-    assert_almost_equal,
-    assert_array_almost_equal,
-    assert_array_equal,
-)
+from sklearn.utils._testing import (assert_allclose, assert_almost_equal,
+                                    assert_array_almost_equal, assert_array_equal)
 from sklearn.utils.fixes import COO_CONTAINERS, CSR_CONTAINERS
 from sklearn.utils.validation import _num_samples
 

@@ -13,7 +13,7 @@ from typing import Dict, Optional, Tuple
 import redis
 from fastapi import Request
 
-from backend.database.models.user import User, SubscriptionTier
+from backend.database.models.user import SubscriptionTier, User
 from backend.utils.logging import get_logger
 
 # Set up logger
@@ -31,6 +31,7 @@ DEFAULT_WINDOW_SECONDS = 60  # 1 minute window
 
 class RateLimitInterval(str, Enum):
     """Rate limit time intervals"""
+
     SECOND = "second"
     MINUTE = "minute"
     HOUR = "hour"
@@ -48,7 +49,7 @@ class RateLimitTier:
         analyze_limit: int,
         analyze_interval: RateLimitInterval,
         document_limit: int,
-        document_interval: RateLimitInterval
+        document_interval: RateLimitInterval,
     ):
         """
         Initialize rate limit tier configuration
@@ -96,40 +97,40 @@ class RateLimitTier:
 TIER_LIMITS = {
     SubscriptionTier.FREE: RateLimitTier(
         tier=SubscriptionTier.FREE,
-        general_limit=60,             # 60 requests per minute for general API
+        general_limit=60,  # 60 requests per minute for general API
         general_interval=RateLimitInterval.MINUTE,
-        analyze_limit=10,             # 10 requests per minute for /analyze
+        analyze_limit=10,  # 10 requests per minute for /analyze
         analyze_interval=RateLimitInterval.MINUTE,
-        document_limit=5,             # 5 requests per minute for document operations
-        document_interval=RateLimitInterval.MINUTE
+        document_limit=5,  # 5 requests per minute for document operations
+        document_interval=RateLimitInterval.MINUTE,
     ),
     SubscriptionTier.BASIC: RateLimitTier(
         tier=SubscriptionTier.BASIC,
-        general_limit=300,            # 300 requests per minute for general API
+        general_limit=300,  # 300 requests per minute for general API
         general_interval=RateLimitInterval.MINUTE,
-        analyze_limit=60,             # 60 requests per minute for /analyze
+        analyze_limit=60,  # 60 requests per minute for /analyze
         analyze_interval=RateLimitInterval.MINUTE,
-        document_limit=30,            # 30 requests per minute for document operations
-        document_interval=RateLimitInterval.MINUTE
+        document_limit=30,  # 30 requests per minute for document operations
+        document_interval=RateLimitInterval.MINUTE,
     ),
     SubscriptionTier.PREMIUM: RateLimitTier(
         tier=SubscriptionTier.PREMIUM,
-        general_limit=1000,           # 1000 requests per minute for general API
+        general_limit=1000,  # 1000 requests per minute for general API
         general_interval=RateLimitInterval.MINUTE,
-        analyze_limit=120,            # 120 requests per minute for /analyze
+        analyze_limit=120,  # 120 requests per minute for /analyze
         analyze_interval=RateLimitInterval.MINUTE,
-        document_limit=60,            # 60 requests per minute for document operations
-        document_interval=RateLimitInterval.MINUTE
+        document_limit=60,  # 60 requests per minute for document operations
+        document_interval=RateLimitInterval.MINUTE,
     ),
     SubscriptionTier.ENTERPRISE: RateLimitTier(
         tier=SubscriptionTier.ENTERPRISE,
-        general_limit=5000,           # 5000 requests per minute for general API
+        general_limit=5000,  # 5000 requests per minute for general API
         general_interval=RateLimitInterval.MINUTE,
-        analyze_limit=600,            # 600 requests per minute for /analyze (10 per second)
+        analyze_limit=600,  # 600 requests per minute for /analyze (10 per second)
         analyze_interval=RateLimitInterval.MINUTE,
-        document_limit=300,           # 300 requests per minute for document operations
-        document_interval=RateLimitInterval.MINUTE
-    )
+        document_limit=300,  # 300 requests per minute for document operations
+        document_interval=RateLimitInterval.MINUTE,
+    ),
 }
 
 # Default tier for unauthenticated requests
@@ -138,6 +139,7 @@ DEFAULT_TIER = SubscriptionTier.FREE
 
 class RateLimitCategory(str, Enum):
     """Categories of rate limits"""
+
     GENERAL = "general"
     ANALYZE = "analyze"
     DOCUMENT = "document"
@@ -152,7 +154,7 @@ class RateLimitResult:
         limit: int,
         remaining: int,
         reset_at: int,
-        retry_after: Optional[int] = None
+        retry_after: Optional[int] = None,
     ):
         """
         Initialize rate limit result
@@ -182,7 +184,7 @@ class RateLimitService:
                 port=REDIS_PORT,
                 db=REDIS_DB,
                 password=REDIS_PASSWORD,
-                decode_responses=True
+                decode_responses=True,
             )
             # Test connection
             self.redis.ping()
@@ -221,9 +223,7 @@ class RateLimitService:
             return RateLimitCategory.GENERAL
 
     def get_limit_for_category(
-        self,
-        tier: SubscriptionTier,
-        category: RateLimitCategory
+        self, tier: SubscriptionTier, category: RateLimitCategory
     ) -> Tuple[int, RateLimitInterval]:
         """
         Get the rate limit for a category and tier
@@ -244,7 +244,9 @@ class RateLimitService:
         else:
             return tier_config.general_limit, tier_config.general_interval
 
-    def get_client_identifier(self, request: Request, user: Optional[User] = None) -> str:
+    def get_client_identifier(
+        self, request: Request, user: Optional[User] = None
+    ) -> str:
         """
         Get a unique identifier for the client
 
@@ -270,10 +272,7 @@ class RateLimitService:
         return f"ip:{ip}"
 
     def build_key(
-        self,
-        identifier: str,
-        category: RateLimitCategory,
-        window_timestamp: int
+        self, identifier: str, category: RateLimitCategory, window_timestamp: int
     ) -> str:
         """
         Build a Redis key for rate limiting
@@ -292,7 +291,7 @@ class RateLimitService:
         self,
         request: Request,
         user: Optional[User] = None,
-        override_category: Optional[RateLimitCategory] = None
+        override_category: Optional[RateLimitCategory] = None,
     ) -> RateLimitResult:
         """
         Check if a request is allowed based on rate limits
@@ -307,12 +306,7 @@ class RateLimitService:
         """
         # If rate limiting is disabled, always allow
         if not self.is_enabled():
-            return RateLimitResult(
-                is_allowed=True,
-                limit=0,
-                remaining=0,
-                reset_at=0
-            )
+            return RateLimitResult(is_allowed=True, limit=0, remaining=0, reset_at=0)
 
         # Determine tier based on user
         tier = user.subscription_tier if user else DEFAULT_TIER
@@ -355,17 +349,14 @@ class RateLimitService:
                 limit=limit,
                 remaining=remaining,
                 reset_at=reset_at,
-                retry_after=retry_after
+                retry_after=retry_after,
             )
 
         except redis.RedisError as e:
             # Log error and allow the request in case of Redis failure
             logger.error(f"Redis error during rate limiting: {str(e)}")
             return RateLimitResult(
-                is_allowed=True,
-                limit=limit,
-                remaining=limit,
-                reset_at=reset_at
+                is_allowed=True, limit=limit, remaining=limit, reset_at=reset_at
             )
 
     def add_rate_limit_headers(self, response: Dict, result: RateLimitResult) -> Dict:

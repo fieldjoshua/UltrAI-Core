@@ -8,8 +8,8 @@ interface AnimatedLogoProps {
   color?: 'blue' | 'purple' | 'green' | 'rainbow';
 }
 
-const AnimatedLogoV2: React.FC<AnimatedLogoProps> = ({ 
-  isProcessing = false, 
+const AnimatedLogoV2: React.FC<AnimatedLogoProps> = ({
+  isProcessing = false,
   size = 'medium',
   theme = 'dark',
   color = 'blue'
@@ -31,7 +31,7 @@ const AnimatedLogoV2: React.FC<AnimatedLogoProps> = ({
 
     interval = setInterval(() => {
       currentIntensity += 0.05 * direction;
-      
+
       if (currentIntensity >= 1) {
         currentIntensity = 1;
         direction = -1;
@@ -39,7 +39,7 @@ const AnimatedLogoV2: React.FC<AnimatedLogoProps> = ({
         currentIntensity = 0.2;
         direction = 1;
       }
-      
+
       setIntensity(currentIntensity);
     }, 50);
 
@@ -68,9 +68,9 @@ const AnimatedLogoV2: React.FC<AnimatedLogoProps> = ({
   ].filter(Boolean).join(' ');
 
   return (
-    <div 
+    <div
       className={logoClasses}
-      style={{ 
+      style={{
         '--intensity': intensity,
         '--angle': `${angle}deg`,
       } as React.CSSProperties}
@@ -78,48 +78,48 @@ const AnimatedLogoV2: React.FC<AnimatedLogoProps> = ({
       {/* Background wireframe that animates */}
       <div className="ultra-logo-v2__wireframe">
         {Array.from({ length: 10 }).map((_, i) => (
-          <div 
-            key={`wireframe-${i}`} 
+          <div
+            key={`wireframe-${i}`}
             className="ultra-logo-v2__wireframe-line"
             style={{ transform: `rotate(${i * 36}deg)` }}
           />
         ))}
       </div>
-      
+
       {/* Actual logo SVG */}
-      <svg 
+      <svg
         ref={svgRef}
-        className="ultra-logo-v2__svg" 
-        viewBox="0 0 800 800" 
+        className="ultra-logo-v2__svg"
+        viewBox="0 0 800 800"
         xmlns="http://www.w3.org/2000/svg"
       >
         {/* Rounded square background */}
-        <rect 
-          x="50" 
-          y="50" 
-          width="700" 
-          height="700" 
-          rx="150" 
-          className="ultra-logo-v2__background" 
+        <rect
+          x="50"
+          y="50"
+          width="700"
+          height="700"
+          rx="150"
+          className="ultra-logo-v2__background"
         />
-        
+
         {/* Center circle */}
-        <circle 
-          cx="400" 
-          cy="400" 
-          r="250" 
-          className="ultra-logo-v2__circle" 
+        <circle
+          cx="400"
+          cy="400"
+          r="250"
+          className="ultra-logo-v2__circle"
         />
-        
+
         {/* Ultra "U" shape */}
-        <path 
-          d="M300 250 L300 450 L500 450 L500 550 L200 550 L200 250 Z" 
-          className="ultra-logo-v2__u-shape" 
+        <path
+          d="M300 250 L300 450 L500 450 L500 550 L200 550 L200 250 Z"
+          className="ultra-logo-v2__u-shape"
         />
-        
+
         {/* Arrow element */}
-        <path 
-          d="M400 250 L550 400 L400 550" 
+        <path
+          d="M400 250 L550 400 L400 550"
           className="ultra-logo-v2__arrow"
           strokeWidth="100"
           strokeLinecap="round"
@@ -127,7 +127,7 @@ const AnimatedLogoV2: React.FC<AnimatedLogoProps> = ({
           fill="none"
         />
       </svg>
-      
+
       {/* Glow effect when processing */}
       {isProcessing && (
         <div className="ultra-logo-v2__glow" style={{ opacity: intensity * 0.8 }} />
@@ -136,4 +136,4 @@ const AnimatedLogoV2: React.FC<AnimatedLogoProps> = ({
   );
 };
 
-export default AnimatedLogoV2; 
+export default AnimatedLogoV2;

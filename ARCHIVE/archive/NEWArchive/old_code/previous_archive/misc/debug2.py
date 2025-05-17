@@ -1,5 +1,5 @@
-import sys
 import os
+import sys
 
 print("START", flush=True)
 sys.stdout.write("STDOUT TEST\n")

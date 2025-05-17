@@ -20,6 +20,7 @@ python3 scripts/test_modelrunner.py
 ```
 
 This script will:
+
 - Check if the Docker Model Runner API is reachable
 - List available models
 - Provide troubleshooting tips if the connection fails
@@ -39,6 +40,7 @@ python3 -m pytest tests/test_docker_modelrunner.py -v
 ```
 
 These tests will:
+
 - Test adapter creation and configuration
 - Test response generation
 - Test streaming capabilities
@@ -51,16 +53,19 @@ If Docker Model Runner is not available, tests requiring a live connection will 
 For manual testing of the Ultra platform with Docker Model Runner:
 
 1. Start the system with Docker Model Runner enabled:
+
    ```bash
    docker-compose --profile with-model-runner up -d
    ```
 
 2. In a separate terminal, start the backend with Model Runner support:
+
    ```bash
    USE_MODEL_RUNNER=true python3 -m uvicorn backend.app:app --reload
    ```
 
 3. Test an analysis request that will use the Model Runner:
+
    ```bash
    curl -X POST "http://localhost:8000/api/analyze" \
      -H "Content-Type: application/json" \
@@ -79,15 +84,18 @@ For manual testing of the Ultra platform with Docker Model Runner:
 If the Docker Model Runner is not available, check:
 
 1. Docker Desktop status:
+
    ```bash
    docker info
    ```
 
 2. Docker Model Runner extension status in Docker Desktop
+
    - Open Docker Desktop → Extensions → Model Runner
    - Check if it shows as "Installed" and "Running"
 
 3. Docker Model Runner logs:
+
    ```bash
    docker logs ultra-model-runner
    ```
@@ -102,16 +110,19 @@ If the Docker Model Runner is not available, check:
 If models fail to load:
 
 1. Check Model Runner logs for errors:
+
    ```bash
    docker logs ultra-model-runner
    ```
 
 2. Verify model is downloaded and available:
+
    ```bash
    curl http://localhost:8080/v1/models
    ```
 
 3. Check available disk space and memory:
+
    ```bash
    df -h
    free -m
@@ -124,11 +135,13 @@ If models fail to load:
 To test the fallback mechanism:
 
 1. Start the backend with Model Runner support but no running Model Runner:
+
    ```bash
    USE_MODEL_RUNNER=true MODEL_RUNNER_URL=http://localhost:9999 python3 -m uvicorn backend.app:app --reload
    ```
 
 2. Submit an analysis request - the system should fall back to static responses:
+
    ```bash
    curl -X POST "http://localhost:8000/api/analyze" \
      -H "Content-Type: application/json" \
@@ -142,6 +155,7 @@ To test the fallback mechanism:
 For performance testing with Docker Model Runner:
 
 1. Test response times with different models:
+
    ```bash
    time python3 scripts/test_modelrunner.py --generate --model phi3:mini
    time python3 scripts/test_modelrunner.py --generate --model llama3:8b
@@ -149,7 +163,7 @@ For performance testing with Docker Model Runner:
 
 2. Test concurrent requests:
    ```bash
-   for i in {1..5}; do 
+   for i in {1..5}; do
      python3 scripts/test_modelrunner.py --generate --prompt "Explain concept $i" &
    done
    ```

@@ -35,13 +35,13 @@ The Docker orchestration environment includes the following main components:
 
 Key environment variables for the orchestrator:
 
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `USE_MOCK` | Enable mock mode for testing | `false` |
-| `ENABLE_MODEL_RUNNER` | Enable Docker Model Runner | `false` |
-| `MODEL_RUNNER_TYPE` | Type of Model Runner interface (`api` or `cli`) | `api` |
-| `MODEL_RUNNER_URL` | URL for Model Runner API | `http://model-runner:8080` |
-| `DEFAULT_LOCAL_MODEL` | Default model for local inference | `phi3:mini` |
+| Variable              | Description                                     | Default                    |
+| --------------------- | ----------------------------------------------- | -------------------------- |
+| `USE_MOCK`            | Enable mock mode for testing                    | `false`                    |
+| `ENABLE_MODEL_RUNNER` | Enable Docker Model Runner                      | `false`                    |
+| `MODEL_RUNNER_TYPE`   | Type of Model Runner interface (`api` or `cli`) | `api`                      |
+| `MODEL_RUNNER_URL`    | URL for Model Runner API                        | `http://model-runner:8080` |
+| `DEFAULT_LOCAL_MODEL` | Default model for local inference               | `phi3:mini`                |
 
 ### Docker Compose Profiles
 
@@ -115,12 +115,14 @@ export MODEL_RUNNER_TYPE=api
 ### Common Issues
 
 1. **Model Runner Connectivity Issues**
+
    - Ensure Docker Desktop is running
    - Verify Model Runner extension is installed and enabled
    - Check if the model-runner container is running
    - Verify the correct port is being used (default: 8080)
 
 2. **LLM API Connection Issues**
+
    - Check API keys are correctly set in environment variables
    - Enable mock mode for testing without API keys
    - Check network connectivity to LLM providers

@@ -1,23 +1,18 @@
-import pytest
-
 from functools import lru_cache
 
-from numpy.testing import (assert_warns, assert_,
-                           assert_allclose,
-                           assert_equal,
-                           assert_array_equal,
-                           suppress_warnings)
 import numpy as np
-from numpy import finfo, power, nan, isclose, sqrt, exp, sin, cos
-
+import pytest
+from numpy import cos, exp, finfo, isclose, nan, power, sin, sqrt
+from numpy.testing import (assert_, assert_allclose, assert_array_equal, assert_equal,
+                           assert_warns, suppress_warnings)
 from scipy import optimize
-from scipy.optimize import (_zeros_py as zeros, newton, root_scalar,
-                            OptimizeResult)
-
 from scipy._lib._util import getfullargspec_no_self as _getfullargspec
-
+from scipy.optimize import OptimizeResult
+from scipy.optimize import _zeros_py as zeros
+from scipy.optimize import newton, root_scalar
 # Import testing parameters
-from scipy.optimize._tstutils import get_tests, functions as tstutils_functions
+from scipy.optimize._tstutils import functions as tstutils_functions
+from scipy.optimize._tstutils import get_tests
 
 TOL = 4*np.finfo(float).eps  # tolerance
 

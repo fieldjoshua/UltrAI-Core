@@ -1,9 +1,9 @@
 import os
 
 import numpy as np
-import pytest
-
 import pandas as pd
+import pandas._testing as tm
+import pytest
 from pandas import (
     Categorical,
     DatetimeIndex,
@@ -20,9 +20,7 @@ from pandas import (
     qcut,
     timedelta_range,
 )
-import pandas._testing as tm
 from pandas.api.types import CategoricalDtype
-
 from pandas.tseries.offsets import Day
 
 

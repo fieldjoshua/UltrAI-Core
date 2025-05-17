@@ -39,7 +39,7 @@ If your application is approved, you'll need to pay an issue fee after which you
 
 - **Documentation:** Keep comprehensive and dated records of your developmental process.
 - **Research:** Conduct thorough patent searches or hire a professional to do so.
-- **Professional Help:** Consider hiring a patent attorney or agent, especially for drafting and filing your application. 
+- **Professional Help:** Consider hiring a patent attorney or agent, especially for drafting and filing your application.
 - **Budget:** Be prepared for the costs associated with filing a patent application, which can include filing fees, attorney fees, and possibly drawing fees, among others.
 
 Patenting software involves navigating complex legal and technical requirements, but securing a patent can provide significant protection and potential financial rewards for your invention. Always stay up-to-date with the latest USPTO guidelines and consider professional legal advice to navigate the process effectively.

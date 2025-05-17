@@ -47,6 +47,7 @@ The new iterative orchestrator will follow a layered, modular design that addres
 ### Key Components
 
 1. **BaseOrchestrator**
+
    - Handles core LLM orchestration
    - Manages parallel requests
    - Provides basic response synthesis
@@ -54,6 +55,7 @@ The new iterative orchestrator will follow a layered, modular design that addres
    - Supports mock mode for testing
 
 2. **EnhancedOrchestrator**
+
    - Extends BaseOrchestrator
    - Adds document processing
    - Supports analysis pattern selection
@@ -61,11 +63,13 @@ The new iterative orchestrator will follow a layered, modular design that addres
    - Provides detailed metrics and logging
 
 3. **LLM Adapters**
+
    - Standardized interface for different LLM providers
    - Handles provider-specific request formatting
    - Manages authentication and rate limiting
 
 4. **Analysis Patterns**
+
    - Modular approach to different analysis types
    - Configurable prompts and synthesis methods
    - Extensible for future patterns
@@ -81,11 +85,13 @@ The new iterative orchestrator will follow a layered, modular design that addres
 The implementation will follow an iterative approach, with each phase delivering working functionality:
 
 1. **Foundation Phase**
+
    - Create BaseOrchestrator with minimal but complete functionality
    - Extract and refactor common utilities
    - Implement basic CLI for testing
 
 2. **Enhancement Phase**
+
    - Build EnhancedOrchestrator with advanced features
    - Create adapters for existing API endpoints
    - Develop comprehensive test suite

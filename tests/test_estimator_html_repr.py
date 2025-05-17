@@ -9,7 +9,6 @@ from unittest.mock import patch
 
 import numpy as np
 import pytest
-
 from sklearn import config_context
 from sklearn.base import BaseEstimator
 from sklearn.cluster import AgglomerativeClustering, Birch

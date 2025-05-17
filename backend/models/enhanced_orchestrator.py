@@ -5,9 +5,9 @@ This module simply re-exports the EnhancedOrchestrator from the src module
 to make it available in the backend.
 """
 
-import sys
-import os
 import logging
+import os
+import sys
 from typing import Dict, Optional
 
 # Configure logger
@@ -24,10 +24,13 @@ try:
 
     # Import the actual orchestrator
     from src.models.enhanced_orchestrator import (
+        AnalysisMode,
         EnhancedOrchestrator,
         OrchestratorConfig,
-        AnalysisMode,
     )
+
+    # Note: We're keeping this as src.models because this is a facade that intentionally
+    # imports from the src directory
 
     logger.info("Successfully imported EnhancedOrchestrator from src")
 except ImportError as e:

@@ -72,6 +72,7 @@ async for chunk in adapter.stream_generate("Explain containerization."):
 To use the CLI adapter with Ultra, update the Ultra configuration:
 
 1. Set the environment variable to enable Docker Model Runner:
+
    ```bash
    export USE_MODEL_RUNNER=true
    export MODEL_RUNNER_TYPE=cli
@@ -91,6 +92,7 @@ python3 scripts/test_modelrunner_cli.py
 ```
 
 This script:
+
 - Checks if Docker Model Runner is running
 - Lists available models
 - Tests generation with a simple prompt
@@ -138,13 +140,13 @@ For other issues:
 
 ## Comparison with API Adapter
 
-| Feature | CLI Adapter | API Adapter |
-|---------|-------------|-------------|
-| Connection Method | CLI commands | HTTP API |
-| Configuration | Simple | Requires port configuration |
-| Performance | Slightly slower | Faster |
-| Error Handling | Robust | Depends on API stability |
-| Model Support | All CLI models | API-exposed models |
+| Feature           | CLI Adapter     | API Adapter                 |
+| ----------------- | --------------- | --------------------------- |
+| Connection Method | CLI commands    | HTTP API                    |
+| Configuration     | Simple          | Requires port configuration |
+| Performance       | Slightly slower | Faster                      |
+| Error Handling    | Robust          | Depends on API stability    |
+| Model Support     | All CLI models  | API-exposed models          |
 
 ## Conclusion
 

@@ -1,14 +1,13 @@
-from sympy.core.function import (Derivative, Function)
-from sympy.core.numbers import (I, pi)
-from sympy.core.symbol import (Symbol, symbols)
-from sympy.functions.elementary.miscellaneous import sqrt
-from sympy.functions.elementary.trigonometric import (atan2, cos, sin)
-from sympy.simplify.simplify import simplify
 from sympy.abc import epsilon, mu
+from sympy.core.function import Derivative, Function
+from sympy.core.numbers import I, pi
+from sympy.core.symbol import Symbol, symbols
 from sympy.functions.elementary.exponential import exp
-from sympy.physics.units import speed_of_light, m, s
+from sympy.functions.elementary.miscellaneous import sqrt
+from sympy.functions.elementary.trigonometric import atan2, cos, sin
 from sympy.physics.optics import TWave
-
+from sympy.physics.units import m, s, speed_of_light
+from sympy.simplify.simplify import simplify
 from sympy.testing.pytest import raises
 
 c = speed_of_light.convert_to(m/s)

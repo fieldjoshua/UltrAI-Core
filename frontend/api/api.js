@@ -2,15 +2,17 @@
  * API client for UltrAI backend
  */
 
-// Base API URL - adjusted to use port 8085
-const API_BASE_URL = 'http://localhost:8085';
+import { getApiBaseUrl, reportApiError } from './config';
+
+// Base API URL - will be discovered dynamically
+let API_BASE_URL = 'http://localhost:8085';
 
 /**
  * Analyze a prompt using multiple models
  * @param {Object} request - Request containing prompt, models, and pattern
  * @returns {Promise<Object>} - Analysis results
  */
-const analyzePrompt = async (request) => {
+export const analyzePrompt = async (request) => {
   try {
     const response = await fetch(`${API_BASE_URL}/api/analyze`, {
       method: 'POST',
@@ -60,7 +62,7 @@ const analyzePrompt = async (request) => {
  * @param {File[]} files - Files to upload
  * @returns {Promise<Object>} - Processed document information
  */
-const uploadDocuments = async (files) => {
+export const uploadDocuments = async (files) => {
   try {
     const formData = new FormData();
 
@@ -115,7 +117,7 @@ const uploadDocuments = async (files) => {
  * @param {Object} params - Parameters including prompt, models, files
  * @returns {Promise<Object>} - Analysis results with document context
  */
-const analyzeWithDocuments = async ({
+export const analyzeWithDocuments = async ({
   prompt,
   selectedModels,
   ultraModel,
@@ -187,14 +189,16 @@ const analyzeWithDocuments = async ({
 };
 
 // Import orchestrator API functions
-const { getOrchestratorModels, processWithOrchestrator } = require('./orchestrator');
+import { getOrchestratorModels, processWithOrchestrator } from './orchestrator';
 
-// CommonJS module export
-module.exports = {
+// Re-export orchestrator functions
+export { getOrchestratorModels, processWithOrchestrator };
+
+// Default export for compatibility
+export default {
   analyzePrompt,
   uploadDocuments,
   analyzeWithDocuments,
-  // New orchestrator functions
   getOrchestratorModels,
   processWithOrchestrator,
 };

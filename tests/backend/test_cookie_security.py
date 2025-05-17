@@ -10,8 +10,8 @@ from fastapi.responses import JSONResponse
 from fastapi.testclient import TestClient
 
 from backend.utils.cookie_security_middleware import (
-    setup_cookie_security_middleware,
     CookieSecurityMiddleware,
+    setup_cookie_security_middleware,
 )
 
 

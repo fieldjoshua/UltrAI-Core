@@ -28,9 +28,9 @@ mkdir -p .aicheck/actions
 run_test_suite() {
     local suite_name="$1"
     local script_path="$2"
-    
+
     echo -e "\n${YELLOW}Running $suite_name...${NC}"
-    
+
     if bash "$script_path"; then
         ((PASSED_TESTS++))
         echo -e "${GREEN}✓ $suite_name passed${NC}"
@@ -38,7 +38,7 @@ run_test_suite() {
         ((FAILED_TESTS++))
         echo -e "${RED}✗ $suite_name failed${NC}"
     fi
-    
+
     ((TOTAL_TESTS++))
 }
 
@@ -46,9 +46,9 @@ run_test_suite() {
 test_action_management() {
     local test_action="TestAction"
     local test_action2="TestAction2"
-    
+
     echo -e "\n${YELLOW}Testing Action Management...${NC}"
-    
+
     # Test action creation
     if .aicheck/scripts/action.sh create "$test_action"; then
         echo -e "${GREEN}✓ Action creation test passed${NC}"
@@ -57,7 +57,7 @@ test_action_management() {
         echo -e "${RED}✗ Action creation test failed${NC}"
         ((FAILED_TESTS++))
     fi
-    
+
     # Test duplicate action creation (should fail)
     if ! .aicheck/scripts/action.sh create "$test_action"; then
         echo -e "${GREEN}✓ Duplicate action creation test passed${NC}"
@@ -66,7 +66,7 @@ test_action_management() {
         echo -e "${RED}✗ Duplicate action creation test failed${NC}"
         ((FAILED_TESTS++))
     fi
-    
+
     # Test action status
     if .aicheck/scripts/action.sh status "$test_action"; then
         echo -e "${GREEN}✓ Action status test passed${NC}"
@@ -75,7 +75,7 @@ test_action_management() {
         echo -e "${RED}✗ Action status test failed${NC}"
         ((FAILED_TESTS++))
     fi
-    
+
     # Test action switching
     if .aicheck/scripts/action.sh switch "$test_action"; then
         echo -e "${GREEN}✓ Action switching test passed${NC}"
@@ -84,7 +84,7 @@ test_action_management() {
         echo -e "${RED}✗ Action switching test failed${NC}"
         ((FAILED_TESTS++))
     fi
-    
+
     # Test switching to non-existent action (should fail)
     if ! .aicheck/scripts/action.sh switch "NonExistentAction"; then
         echo -e "${GREEN}✓ Non-existent action switch test passed${NC}"
@@ -93,7 +93,7 @@ test_action_management() {
         echo -e "${RED}✗ Non-existent action switch test failed${NC}"
         ((FAILED_TESTS++))
     fi
-    
+
     # Test multiple actions
     if .aicheck/scripts/action.sh create "$test_action2"; then
         echo -e "${GREEN}✓ Multiple action creation test passed${NC}"
@@ -102,7 +102,7 @@ test_action_management() {
         echo -e "${RED}✗ Multiple action creation test failed${NC}"
         ((FAILED_TESTS++))
     fi
-    
+
     # Test switching between multiple actions
     if .aicheck/scripts/action.sh switch "$test_action2" && \
        .aicheck/scripts/action.sh switch "$test_action"; then
@@ -112,18 +112,18 @@ test_action_management() {
         echo -e "${RED}✗ Multiple action switching test failed${NC}"
         ((FAILED_TESTS++))
     fi
-    
+
     # Cleanup test actions
     .aicheck/scripts/action.sh delete "$test_action"
     .aicheck/scripts/action.sh delete "$test_action2"
-    
+
     ((TOTAL_TESTS+=7))
 }
 
 # Function to test session management
 test_session_management() {
     echo -e "\n${YELLOW}Testing Session Management...${NC}"
-    
+
     # Test session creation
     local session_id=$(create_secure_session)
     if [ -n "$session_id" ]; then
@@ -133,7 +133,7 @@ test_session_management() {
         echo -e "${RED}✗ Session creation test failed${NC}"
         ((FAILED_TESTS++))
     fi
-    
+
     # Test session file permissions
     if [ -f ".aicheck/sessions/${session_id}.session" ]; then
         local perms=$(stat -f %Lp ".aicheck/sessions/${session_id}.session")
@@ -148,17 +148,17 @@ test_session_management() {
         echo -e "${RED}✗ Session file not found${NC}"
         ((FAILED_TESTS++))
     fi
-    
+
     # Cleanup
     rm -f ".aicheck/sessions/${session_id}.session"
-    
+
     ((TOTAL_TESTS+=2))
 }
 
 # Function to test error handling
 test_error_handling() {
     echo -e "\n${YELLOW}Testing Error Handling...${NC}"
-    
+
     # Test invalid action name
     if ! .aicheck/scripts/action.sh create "Invalid/Action"; then
         echo -e "${GREEN}✓ Invalid action name test passed${NC}"
@@ -167,7 +167,7 @@ test_error_handling() {
         echo -e "${RED}✗ Invalid action name test failed${NC}"
         ((FAILED_TESTS++))
     fi
-    
+
     # Test missing action name
     if ! .aicheck/scripts/action.sh create; then
         echo -e "${GREEN}✓ Missing action name test passed${NC}"
@@ -176,7 +176,7 @@ test_error_handling() {
         echo -e "${RED}✗ Missing action name test failed${NC}"
         ((FAILED_TESTS++))
     fi
-    
+
     # Test invalid command
     if ! .aicheck/scripts/action.sh invalid_command; then
         echo -e "${GREEN}✓ Invalid command test passed${NC}"
@@ -185,7 +185,7 @@ test_error_handling() {
         echo -e "${RED}✗ Invalid command test failed${NC}"
         ((FAILED_TESTS++))
     fi
-    
+
     ((TOTAL_TESTS+=3))
 }
 
@@ -346,4 +346,4 @@ if [ $FAILED_TESTS -eq 0 ]; then
 else
     echo -e "\n${RED}Some tests failed!${NC}"
     exit 1
-fi 
+fi

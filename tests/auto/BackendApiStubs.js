@@ -1,6 +1,6 @@
 /**
  * Backend API Stubs for Integration Tests
- * 
+ *
  * This file provides mock implementations of the API endpoints
  * for testing the AUTO and RANDOM selection features.
  */
@@ -42,10 +42,10 @@ const mockAnalyzeAPI = (request) => {
       // Generate model responses
       const modelResponses = {};
       request.selectedModels.forEach(model => {
-        modelResponses[model] = mockLLMResponses[model] || 
+        modelResponses[model] = mockLLMResponses[model] ||
           `Model ${model} has analyzed your prompt and found interesting insights.`;
       });
-      
+
       // Map from frontend pattern name to backend pattern key
       const patternMap = {
         'Confidence Analysis': 'confidence',
@@ -58,9 +58,9 @@ const mockAnalyzeAPI = (request) => {
         'Time Horizon': 'time_horizon',
         'Innovation Bridge': 'innovation'
       };
-      
+
       const patternKey = patternMap[request.pattern] || 'confidence';
-      
+
       // Generate result
       resolve({
         result: mockPatternResponses[patternKey],
@@ -91,7 +91,7 @@ const mockUploadDocumentsAPI = (files) => {
         totalChunks: 2,
         type: file.type
       }));
-      
+
       resolve({
         documents: processedDocuments,
         status: 'success'
@@ -119,4 +119,4 @@ module.exports = {
   mockAnalyzeAPI,
   mockUploadDocumentsAPI,
   mockAPIError
-}; 
+};

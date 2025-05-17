@@ -1,13 +1,10 @@
-""" test feather-format compat """
-import numpy as np
-import pytest
+"""test feather-format compat"""
 
+import numpy as np
 import pandas as pd
 import pandas._testing as tm
-from pandas.core.arrays import (
-    ArrowStringArray,
-    StringArray,
-)
+import pytest
+from pandas.core.arrays import ArrowStringArray, StringArray
 
 from pandas.io.feather_format import read_feather, to_feather  # isort:skip
 

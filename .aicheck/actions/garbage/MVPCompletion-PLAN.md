@@ -17,30 +17,35 @@ The Ultra system has been developed with multiple components including LLM integ
 ## Steps
 
 1. **Verify LLM Integration**
+
    - [ ] Confirm all LLM API clients are functioning
    - [ ] Test connection to OpenAI (GPT), Anthropic (Claude), and Google (Gemini) APIs
    - [ ] Ensure local model support (Ollama) is working
    - [ ] Validate API key management
 
 2. **Implement Core Comparison Flow**
+
    - [ ] Finalize the `/api/analyze` endpoint implementation
    - [ ] Ensure orchestrator properly routes requests to selected models
    - [ ] Implement proper error handling and fallbacks
    - [ ] Test parallel processing of requests to multiple LLMs
 
 3. **Complete Frontend Integration**
+
    - [ ] Connect model selection UI to API
    - [ ] Implement result comparison view with proper formatting
    - [ ] Add loading states and error handling
    - [ ] Test responsive design for various screen sizes
 
 4. **Configuration and Environment Setup**
+
    - [ ] Create sample environment configuration
    - [ ] Document required API keys
    - [ ] Create setup guide for local development
    - [ ] Add deployment instructions for basic hosting
 
 5. **End-to-End Testing**
+
    - [ ] Test full request flow from UI to API to LLMs and back
    - [ ] Validate error scenarios and recovery
    - [ ] Test performance with multiple concurrent requests

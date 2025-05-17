@@ -40,6 +40,7 @@ The integration uses a CLI adapter pattern that:
 1. **DockerModelRunnerCLIAdapter**: Implements the LLMAdapter interface and uses the `docker model` commands to interact with Docker Model Runner.
 
 2. **Configuration System**: Environment variables control the Docker Model Runner integration:
+
    - `USE_MODEL_RUNNER`: Enables/disables Docker Model Runner integration
    - `MODEL_RUNNER_TYPE`: Specifies the adapter type ("cli" for CLI adapter)
 
@@ -91,14 +92,14 @@ The Ultra backend is updated to create the appropriate adapter based on configur
 # In backend/services/llm_config_service.py
 if os.environ.get("USE_MODEL_RUNNER") == "true":
     model_runner_type = os.environ.get("MODEL_RUNNER_TYPE", "cli")
-    
+
     if model_runner_type == "cli":
         # Create CLI adapter
         adapter = await create_modelrunner_cli_adapter(model)
     else:
         # Create API adapter (legacy)
         adapter = await create_modelrunner_adapter(model)
-    
+
     return adapter
 ```
 
@@ -106,10 +107,10 @@ if os.environ.get("USE_MODEL_RUNNER") == "true":
 
 ### Environment Variables
 
-| Variable | Description | Default | Required |
-|----------|-------------|---------|----------|
-| USE_MODEL_RUNNER | Enable/disable Docker Model Runner | false | No |
-| MODEL_RUNNER_TYPE | Adapter type (cli) | cli | No |
+| Variable          | Description                        | Default | Required |
+| ----------------- | ---------------------------------- | ------- | -------- |
+| USE_MODEL_RUNNER  | Enable/disable Docker Model Runner | false   | No       |
+| MODEL_RUNNER_TYPE | Adapter type (cli)                 | cli     | No       |
 
 ### Example Configuration
 
@@ -126,6 +127,7 @@ export MODEL_RUNNER_TYPE=cli
 Two test scripts are provided to verify the integration:
 
 1. **test_modelrunner_cli.py**: Tests the CLI adapter functionality
+
    ```bash
    python3 scripts/test_modelrunner_cli.py
    ```
@@ -189,10 +191,12 @@ Docker Model Runner manages resources automatically, but consider:
 ### Common Issues
 
 1. **Docker Desktop Not Running**
+
    - Error: "Cannot connect to the Docker daemon"
    - Solution: Start Docker Desktop
 
 2. **Model Not Found**
+
    - Error: "Unknown model" or empty model list
    - Solution: Pull the model using `docker model pull ai/smollm2`
 

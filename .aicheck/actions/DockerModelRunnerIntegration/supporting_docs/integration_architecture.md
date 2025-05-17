@@ -87,14 +87,17 @@ Updates to the configuration system to:
 ## Request Flow
 
 1. **User Request**:
+
    - User submits a prompt to Ultra for analysis
    - User selects models to use (including local models)
 
 2. **Model Selection**:
+
    - Ultra determines which models to use
    - If local model is selected, routes to Docker Model Runner adapter
 
 3. **Adapter Processing**:
+
    - Adapter formats the request for Docker Model Runner
    - Sends request to Docker Model Runner service
    - Receives response and normalizes format
@@ -116,7 +119,7 @@ model-runner:
   volumes:
     - model-runner-data:/root/.cache/modelrunner
   ports:
-    - "${MODEL_RUNNER_PORT:-8080}:8080"
+    - '${MODEL_RUNNER_PORT:-8080}:8080'
   environment:
     - GPU_ENABLED=${GPU_ENABLED:-false}
     - DEFAULT_MODEL=${DEFAULT_MODEL:-llama3:8b}
@@ -124,7 +127,7 @@ model-runner:
   networks:
     - ultra-network
   healthcheck:
-    test: ["CMD", "curl", "-f", "http://localhost:8080/v1/models"]
+    test: ['CMD', 'curl', '-f', 'http://localhost:8080/v1/models']
     interval: 30s
     timeout: 10s
     retries: 3
@@ -137,9 +140,11 @@ model-runner:
 Docker Model Runner provides an OpenAI-compatible API, making integration straightforward. The key endpoints are:
 
 1. **Models endpoint**: `/v1/models`
+
    - Lists available models
 
 2. **Completion endpoint**: `/v1/chat/completions`
+
    - For chat completions (most common use case)
 
 3. **Embeddings endpoint**: `/v1/embeddings`
@@ -220,11 +225,13 @@ The integration will include:
 The integration will be tested with:
 
 1. **Unit tests**:
+
    - Adapter functionality
    - Request/response formatting
    - Error handling
 
 2. **Integration tests**:
+
    - End-to-end request flow
    - Docker Compose service interaction
    - Multiple model comparison

@@ -2,9 +2,8 @@
 ----------------------------
 """
 
-import pytest
-
 import networkx as nx
+import pytest
 from networkx.classes import Graph, MultiDiGraph
 from networkx.generators.directed import (
     gn_graph,

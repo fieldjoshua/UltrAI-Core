@@ -64,10 +64,13 @@ Implemented a `useOfflineCache` hook in `src/hooks/useOfflineCache.ts` that prov
 Example usage:
 
 ```typescript
-const { get, set, has } = useOfflineCache<ResponseType>({}, {
-  ttl: 3600000, // 1 hour
-  keyPrefix: 'user_data:'
-});
+const { get, set, has } = useOfflineCache<ResponseType>(
+  {},
+  {
+    ttl: 3600000, // 1 hour
+    keyPrefix: 'user_data:',
+  }
+);
 
 // Store data
 set('user-profile', userData);
@@ -104,12 +107,14 @@ The fallback mechanisms have been integrated in the following key areas:
 ## Fallback Behavior Examples
 
 1. **Primary Provider Failure**:
+
    - System detects errors from OpenAI API
    - Circuit breaker opens after threshold reached
    - Requests automatically routed to Anthropic API
    - Service degradation monitored but operation continues
 
 2. **Complete Provider Outage**:
+
    - All external LLM providers become unavailable
    - Circuit breakers open for all providers
    - System falls back to cached responses where available

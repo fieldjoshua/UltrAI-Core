@@ -11,7 +11,6 @@ import scipy
 from numpy.testing import assert_allclose
 from scipy import linalg
 from scipy.optimize import minimize, root
-
 from sklearn._loss import HalfBinomialLoss, HalfPoissonLoss, HalfTweedieLoss
 from sklearn._loss.link import IdentityLink, LogLink
 from sklearn.base import clone

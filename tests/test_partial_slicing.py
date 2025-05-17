@@ -1,10 +1,10 @@
-""" test partial slicing on Series/Frame """
+"""test partial slicing on Series/Frame"""
 
 from datetime import datetime
 
 import numpy as np
+import pandas._testing as tm
 import pytest
-
 from pandas import (
     DataFrame,
     DatetimeIndex,
@@ -15,7 +15,6 @@ from pandas import (
     Timestamp,
     date_range,
 )
-import pandas._testing as tm
 
 
 class TestSlicing:

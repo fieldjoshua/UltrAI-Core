@@ -1,8 +1,9 @@
-import os
-import pytest
 import asyncio
+import os
 import sys
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
+
+import pytest
 from fastapi.testclient import TestClient
 from httpx import AsyncClient
 
@@ -12,6 +13,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 # Import the FastAPI app and config
 import os
 from pathlib import Path
+
 from dotenv import load_dotenv
 
 # Load test environment variables
@@ -26,7 +28,7 @@ else:
     os.environ["MOCK_MODE"] = "true"
 
 # Now import the app and config
-from backend.app import app
+from app import app
 from backend.config import Config
 
 # For backward compatibility with existing tests
@@ -38,26 +40,22 @@ except ImportError:
 
 # Test data constants
 MOCK_PROVIDERS = {
-    "openai": {
-        "name": "OpenAI",
-        "models": ["gpt-3.5-turbo", "gpt-4"],
-        "enabled": True
-    },
+    "openai": {"name": "OpenAI", "models": ["gpt-3.5-turbo", "gpt-4"], "enabled": True},
     "anthropic": {
         "name": "Anthropic",
         "models": ["claude-2.1", "claude-3-opus"],
-        "enabled": True
+        "enabled": True,
     },
     "google": {
         "name": "Google",
         "models": ["gemini-pro", "gemini-1.5-pro"],
-        "enabled": False
+        "enabled": False,
     },
     "mistral": {
         "name": "Mistral AI",
         "models": ["mistral-small", "mistral-medium", "mistral-large"],
-        "enabled": True
-    }
+        "enabled": True,
+    },
 }
 
 MOCK_ANALYSIS_PATTERNS = [
@@ -65,30 +63,27 @@ MOCK_ANALYSIS_PATTERNS = [
         "id": "code_review",
         "name": "Code Review",
         "description": "Analyzes code for best practices, bugs, and readability",
-        "prompt_template": "Review this code: {content}. Identify potential bugs, style issues, and suggest improvements."
+        "prompt_template": "Review this code: {content}. Identify potential bugs, style issues, and suggest improvements.",
     },
     {
         "id": "security_audit",
         "name": "Security Audit",
         "description": "Checks code for security vulnerabilities",
-        "prompt_template": "Perform a security audit on this code: {content}. Identify potential vulnerabilities, insecure practices, and suggest fixes."
+        "prompt_template": "Perform a security audit on this code: {content}. Identify potential vulnerabilities, insecure practices, and suggest fixes.",
     },
     {
         "id": "documentation",
         "name": "Documentation Generator",
         "description": "Generates documentation for code",
-        "prompt_template": "Generate documentation for this code: {content}. Include function descriptions, parameter details, and usage examples."
-    }
+        "prompt_template": "Generate documentation for this code: {content}. Include function descriptions, parameter details, and usage examples.",
+    },
 ]
 
 MOCK_LLM_RESPONSE = {
     "text": "This is a mock response from the LLM service.",
-    "usage": {
-        "prompt_tokens": 10,
-        "completion_tokens": 15,
-        "total_tokens": 25
-    }
+    "usage": {"prompt_tokens": 10, "completion_tokens": 15, "total_tokens": 25},
 }
+
 
 # Setup test fixtures
 @pytest.fixture(scope="session")
@@ -97,6 +92,7 @@ def event_loop():
     loop = asyncio.get_event_loop_policy().new_event_loop()
     yield loop
     loop.close()
+
 
 @pytest.fixture(scope="module")
 def client():
@@ -112,13 +108,16 @@ def client():
     # Create test client
     with TestClient(main_app) as test_client:
         # Add authentication header to all requests
-        test_client.headers.update({
-            "Authorization": f"Bearer {test_token}",
-            "Content-Type": "application/json",
-            "X-Test-Client": "true"
-        })
+        test_client.headers.update(
+            {
+                "Authorization": f"Bearer {test_token}",
+                "Content-Type": "application/json",
+                "X-Test-Client": "true",
+            }
+        )
 
         yield test_client
+
 
 @pytest.fixture(scope="module")
 def test_client():
@@ -133,13 +132,16 @@ def test_client():
 
     with TestClient(app) as client:
         # Add authentication header to all requests
-        client.headers.update({
-            "Authorization": f"Bearer {test_token}",
-            "Content-Type": "application/json",
-            "X-Test-Client": "true"
-        })
+        client.headers.update(
+            {
+                "Authorization": f"Bearer {test_token}",
+                "Content-Type": "application/json",
+                "X-Test-Client": "true",
+            }
+        )
 
         yield client
+
 
 @pytest.fixture(scope="module")
 async def async_client():
@@ -155,13 +157,16 @@ async def async_client():
     # Create async test client
     async with AsyncClient(app=main_app, base_url="http://test") as ac:
         # Add authentication header to all requests
-        ac.headers.update({
-            "Authorization": f"Bearer {test_token}",
-            "Content-Type": "application/json",
-            "X-Test-Client": "true"
-        })
+        ac.headers.update(
+            {
+                "Authorization": f"Bearer {test_token}",
+                "Content-Type": "application/json",
+                "X-Test-Client": "true",
+            }
+        )
 
         yield ac
+
 
 @pytest.fixture(scope="function")
 def test_document_file(tmp_path):
@@ -171,23 +176,25 @@ def test_document_file(tmp_path):
         f.write("This is a test document content for document processing tests.")
     return file_path
 
+
 @pytest.fixture
 def mock_environment():
     """Set up environment variables for testing"""
     old_env = os.environ.copy()
-    
+
     # Set test environment variables
     os.environ["TEST_MODE"] = "True"
     os.environ["MOCK_MODE"] = "true"
     os.environ["SENTRY_ENVIRONMENT"] = "test"
     os.environ["ENVIRONMENT"] = "test"
     os.environ["DEBUG"] = "true"
-    
+
     yield
-    
+
     # Restore original environment
     os.environ.clear()
     os.environ.update(old_env)
+
 
 @pytest.fixture
 def mock_settings():
@@ -199,6 +206,7 @@ def mock_settings():
     settings.DEBUG = True
     return settings
 
+
 @pytest.fixture
 def mock_get_settings(mock_settings):
     """Override settings for testing"""
@@ -206,6 +214,7 @@ def mock_get_settings(mock_settings):
     Config.use_mock = True
     yield
     Config.use_mock = original_mock
+
 
 @pytest.fixture
 def mock_env_vars():
@@ -229,7 +238,7 @@ def mock_env_vars():
         "REDIS_URL": "redis://localhost:6379/1",
         "DATABASE_URL": "sqlite:///:memory:",
         "CORS_ORIGINS": "*",
-        "SENTRY_DSN": ""  # Empty to disable Sentry during tests
+        "SENTRY_DSN": "",  # Empty to disable Sentry during tests
     }
 
     os.environ.update(test_vars)
@@ -245,11 +254,15 @@ def mock_env_vars():
     os.environ.clear()
     os.environ.update(original_env)
 
+
 @pytest.fixture
 def mock_llm_service():
     """Mock the LLM service to return a predefined response"""
-    with patch('backend.services.llm_service.query_llm', return_value=MOCK_LLM_RESPONSE) as mock:
+    with patch(
+        "backend.services.llm_service.query_llm", return_value=MOCK_LLM_RESPONSE
+    ) as mock:
         yield mock
+
 
 @pytest.fixture
 def sample_content():
@@ -262,14 +275,14 @@ def add_numbers(a, b):
 def divide_numbers(a, b):
     \"\"\"Divide two numbers.\"\"\"
     return a / b  # Potential division by zero error
-    
+
 # Example credentials for testing
 API_KEY = "test_fake_key_for_demonstration"
 
 def main():
     print(add_numbers(5, 10))
     print(divide_numbers(10, 2))
-    
+
 if __name__ == "__main__":
     main()
 """

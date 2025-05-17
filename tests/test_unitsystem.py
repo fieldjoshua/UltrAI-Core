@@ -1,7 +1,6 @@
-from sympy.physics.units import DimensionSystem, joule, second, ampere
-
 from sympy.core.numbers import Rational
 from sympy.core.singleton import S
+from sympy.physics.units import DimensionSystem, ampere, joule, second
 from sympy.physics.units.definitions import c, kg, m, s
 from sympy.physics.units.definitions.dimension_definitions import length, time
 from sympy.physics.units.quantities import Quantity
@@ -66,7 +65,7 @@ def test_is_consistent():
 
 
 def test_get_units_non_prefixed():
-    from sympy.physics.units import volt, ohm
+    from sympy.physics.units import ohm, volt
     unit_system = UnitSystem.get_unit_system("SI")
     units = unit_system.get_units_non_prefixed()
     for prefix in ["giga", "tera", "peta", "exa", "zetta", "yotta", "kilo", "hecto", "deca", "deci", "centi", "milli", "micro", "nano", "pico", "femto", "atto", "zepto", "yocto"]:

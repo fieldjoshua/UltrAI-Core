@@ -9,12 +9,8 @@ import re
 
 import numpy as np
 import pytest
-
 from sklearn import config_context
-from sklearn.base import (
-    BaseEstimator,
-    clone,
-)
+from sklearn.base import BaseEstimator, clone
 from sklearn.exceptions import UnsetMetadataPassedError
 from sklearn.linear_model import LinearRegression
 from sklearn.pipeline import Pipeline

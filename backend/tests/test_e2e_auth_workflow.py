@@ -19,7 +19,7 @@ import pytest
 from fastapi import status
 from fastapi.testclient import TestClient
 
-from backend.app import app
+from app import app
 
 client = TestClient(app)
 
@@ -223,9 +223,7 @@ def test_token_validation():
     assert expired_token_response.status_code == status.HTTP_401_UNAUTHORIZED
     # Error message could be "expired" or "invalidated"
     error_message = expired_token_response.json()["message"].lower()
-    assert any(
-        word in error_message for word in ["expired", "invalid", "invalidated"]
-    )
+    assert any(word in error_message for word in ["expired", "invalid", "invalidated"])
 
 
 def test_multi_user_sessions():
@@ -248,7 +246,7 @@ def test_multi_user_sessions():
     )
     assert user2_register.status_code == status.HTTP_201_CREATED
 
-    # Login as test user - using predefined test credentials 
+    # Login as test user - using predefined test credentials
     login_response = client.post(
         "/api/auth/login",
         json={
@@ -280,6 +278,7 @@ def test_multi_user_sessions():
     # Test that a second token would work independently
     # We'll simulate by clearing the blacklist
     from backend.routes.auth_routes import mock_auth_token_blacklist
+
     mock_auth_token_blacklist.remove("mock_auth_token")  # Clear for test
 
     # Verify a new token would work

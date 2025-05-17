@@ -18,17 +18,17 @@ function TestApp() {
 
   // Handle model selection
   const toggleModel = (modelId) => {
-    setSelectedModels(prev => 
-      prev.includes(modelId) 
-        ? prev.filter(id => id !== modelId) 
+    setSelectedModels(prev =>
+      prev.includes(modelId)
+        ? prev.filter(id => id !== modelId)
         : [...prev, modelId]
     );
   };
 
   return (
-    <div style={{ 
-      padding: '2rem', 
-      maxWidth: '800px', 
+    <div style={{
+      padding: '2rem',
+      maxWidth: '800px',
       margin: '0 auto',
       backgroundColor: '#111',
       color: '#fff',
@@ -37,7 +37,7 @@ function TestApp() {
     }}>
       <h1>Dynamic Pricing Display Test</h1>
       <p>See how pricing changes in real-time based on your selections</p>
-      
+
       <div style={{ marginTop: '2rem' }}>
         <h2>1. Select Models</h2>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '10px' }}>
@@ -49,17 +49,17 @@ function TestApp() {
             { id: 'claude-3.5-sonnet', label: 'Claude 3.5 Sonnet (Premium)' },
             { id: 'gpt-4.5-128k', label: 'GPT-4.5 (Super Premium)' }
           ].map(model => (
-            <div key={model.id} style={{ 
-              padding: '10px', 
+            <div key={model.id} style={{
+              padding: '10px',
               border: `1px solid ${selectedModels.includes(model.id) ? '#0f0' : '#333'}`,
               borderRadius: '4px',
               cursor: 'pointer',
               backgroundColor: selectedModels.includes(model.id) ? '#143' : 'transparent'
             }} onClick={() => toggleModel(model.id)}>
-              <input 
-                type="checkbox" 
-                checked={selectedModels.includes(model.id)} 
-                onChange={() => {}} 
+              <input
+                type="checkbox"
+                checked={selectedModels.includes(model.id)}
+                onChange={() => {}}
                 id={`model-${model.id}`}
               />
               <label htmlFor={`model-${model.id}`}> {model.label}</label>
@@ -67,16 +67,16 @@ function TestApp() {
           ))}
         </div>
       </div>
-      
+
       <div style={{ marginTop: '2rem' }}>
         <h2>2. Enter Your Prompt</h2>
-        <textarea 
+        <textarea
           value={prompt}
           onChange={(e) => setPrompt(e.target.value)}
-          style={{ 
-            width: '100%', 
-            height: '100px', 
-            backgroundColor: '#222', 
+          style={{
+            width: '100%',
+            height: '100px',
+            backgroundColor: '#222',
             color: '#fff',
             border: '1px solid #333',
             borderRadius: '4px',
@@ -86,12 +86,12 @@ function TestApp() {
           placeholder="Enter a prompt... Longer prompts will increase pricing"
         />
       </div>
-      
+
       <div style={{ marginTop: '2rem' }}>
         <h2>3. Upload Attachments</h2>
-        <input 
-          type="file" 
-          multiple 
+        <input
+          type="file"
+          multiple
           onChange={handleFileChange}
           style={{ marginBottom: '10px' }}
         />
@@ -106,14 +106,14 @@ function TestApp() {
           </div>
         )}
       </div>
-      
+
       <div style={{ marginTop: '2rem' }}>
         <h2>4. Select Analysis Type</h2>
-        <select 
+        <select
           value={analysisType}
           onChange={(e) => setAnalysisType(e.target.value)}
-          style={{ 
-            padding: '8px', 
+          style={{
+            padding: '8px',
             backgroundColor: '#222',
             color: '#fff',
             border: '1px solid #333',
@@ -128,16 +128,16 @@ function TestApp() {
           <option value="scenario">Scenario Analysis (Complex)</option>
         </select>
       </div>
-      
-      <div style={{ 
-        marginTop: '3rem', 
-        padding: '1.5rem', 
-        border: '1px solid #0af', 
+
+      <div style={{
+        marginTop: '3rem',
+        padding: '1.5rem',
+        border: '1px solid #0af',
         borderRadius: '8px',
         backgroundColor: 'rgba(0,100,200,0.1)'
       }}>
         <h2>Real-Time Pricing</h2>
-        <PricingDisplay 
+        <PricingDisplay
           selectedModels={selectedModels}
           promptText={prompt}
           attachments={attachments}
@@ -163,4 +163,4 @@ ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <TestApp />
   </React.StrictMode>
-); 
+);

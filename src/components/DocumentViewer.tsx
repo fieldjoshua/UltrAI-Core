@@ -45,19 +45,19 @@ DocumentChunkItem.displayName = 'DocumentChunkItem';
 // Memoized Document Item component
 const DocumentItem = React.memo(({ document }: { document: ProcessedDocument }) => {
   const [isExpanded, setIsExpanded] = useState(false);
-  
+
   const toggleExpand = useCallback(() => {
     setIsExpanded(prev => !prev);
   }, []);
-  
+
   // Only render visible chunks to improve performance
   const visibleChunks = useMemo(() => {
     return isExpanded ? document.chunks : document.chunks.slice(0, 2);
   }, [isExpanded, document.chunks]);
-  
+
   return (
     <div className="mb-4 border border-gray-800 rounded-lg p-3 bg-gray-900/40">
-      <div 
+      <div
         className="flex items-center justify-between cursor-pointer"
         onClick={toggleExpand}
       >
@@ -75,15 +75,15 @@ const DocumentItem = React.memo(({ document }: { document: ProcessedDocument }) 
           )}
         </div>
       </div>
-      
+
       {visibleChunks.length > 0 && (
         <div className="mt-2">
           {visibleChunks.map((chunk, index) => (
             <DocumentChunkItem key={`${document.id}-chunk-${index}`} chunk={chunk} />
           ))}
-          
+
           {!isExpanded && document.chunks.length > 2 && (
-            <button 
+            <button
               className="w-full text-center text-xs text-cyan-500 hover:text-cyan-400 mt-1 p-1"
               onClick={toggleExpand}
             >
@@ -99,7 +99,7 @@ const DocumentItem = React.memo(({ document }: { document: ProcessedDocument }) 
 DocumentItem.displayName = 'DocumentItem';
 
 // Main component with memoization
-export const DocumentViewer = React.memo(({ 
+export const DocumentViewer = React.memo(({
   documents,
   isLoading = false,
   error = null
@@ -108,7 +108,7 @@ export const DocumentViewer = React.memo(({
   const totalChunks = useMemo(() => {
     return documents.reduce((acc, doc) => acc + doc.totalChunks, 0);
   }, [documents]);
-  
+
   // Empty state - no documents yet
   if (!isLoading && documents.length === 0 && !error) {
     return (
@@ -118,7 +118,7 @@ export const DocumentViewer = React.memo(({
       </div>
     );
   }
-  
+
   // Loading state
   if (isLoading) {
     return (
@@ -128,7 +128,7 @@ export const DocumentViewer = React.memo(({
       </div>
     );
   }
-  
+
   // Error state
   if (error) {
     return (
@@ -138,7 +138,7 @@ export const DocumentViewer = React.memo(({
       </div>
     );
   }
-  
+
   // Loaded state with documents
   return (
     <div>
@@ -146,7 +146,7 @@ export const DocumentViewer = React.memo(({
         <h3 className="font-bold text-cyan-400">Processed Documents</h3>
         <span className="text-xs text-gray-500">{documents.length} documents, {totalChunks} total chunks</span>
       </div>
-      
+
       <div className="space-y-2">
         {documents.map(document => (
           <DocumentItem key={document.id} document={document} />
@@ -156,4 +156,4 @@ export const DocumentViewer = React.memo(({
   );
 });
 
-DocumentViewer.displayName = 'DocumentViewer'; 
+DocumentViewer.displayName = 'DocumentViewer';

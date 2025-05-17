@@ -97,18 +97,20 @@ export const OfflineBanner: React.FC<OfflineBannerProps> = ({
   }
 
   return (
-    <div 
+    <div
       className={`fixed bottom-0 left-0 right-0 z-50 p-2 transition-transform duration-200 transform ${
         isVisible ? 'translate-y-0' : 'translate-y-full'
       }`}
     >
-      <div className={`w-full max-w-4xl mx-auto rounded-lg shadow-lg ${
-        !isOnline 
-          ? 'bg-red-600 text-white' 
-          : !apiAvailable 
-            ? 'bg-amber-500 text-amber-950' 
-            : 'bg-green-600 text-white'
-      }`}>
+      <div
+        className={`w-full max-w-4xl mx-auto rounded-lg shadow-lg ${
+          !isOnline
+            ? 'bg-red-600 text-white'
+            : !apiAvailable
+              ? 'bg-amber-500 text-amber-950'
+              : 'bg-green-600 text-white'
+        }`}
+      >
         <div className="p-3 flex items-center justify-between">
           <div className="flex items-center space-x-3">
             {!isOnline ? (
@@ -118,52 +120,61 @@ export const OfflineBanner: React.FC<OfflineBannerProps> = ({
             ) : (
               <Wifi className="h-5 w-5" />
             )}
-            
+
             <span className="font-medium">
-              {customMessage || (
-                !isOnline 
-                  ? 'You are offline. Some features may be unavailable.' 
-                  : !apiAvailable 
-                    ? 'Server connection issues. Limited functionality available.' 
-                    : 'Connected'
-              )}
+              {customMessage ||
+                (!isOnline
+                  ? 'You are offline. Some features may be unavailable.'
+                  : !apiAvailable
+                    ? 'Server connection issues. Limited functionality available.'
+                    : 'Connected')}
             </span>
           </div>
-          
+
           <div className="flex items-center space-x-2">
             {!isOnline ? (
-              <button 
+              <button
                 onClick={checkApiStatus}
                 className="px-3 py-1 text-sm bg-red-700 hover:bg-red-800 text-white rounded"
               >
                 Retry
               </button>
             ) : !apiAvailable ? (
-              <button 
+              <button
                 onClick={checkApiStatus}
                 className="px-3 py-1 text-sm bg-amber-600 hover:bg-amber-700 text-white rounded"
               >
                 Retry
               </button>
             ) : null}
-            
-            <button 
+
+            <button
               onClick={handleDismiss}
               className="p-1 rounded hover:bg-black/10"
               aria-label="Dismiss"
             >
-              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              <svg
+                className="h-4 w-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
               </svg>
             </button>
           </div>
         </div>
-        
+
         {(!isOnline || !apiAvailable) && (
           <div className="px-4 pb-3 text-sm">
             <p>
-              {!isOnline 
-                ? 'Local cached data is being used. Changes will sync when you reconnect.' 
+              {!isOnline
+                ? 'Local cached data is being used. Changes will sync when you reconnect.'
                 : 'Trying to reconnect to the server. Some operations are still available in offline mode.'}
             </p>
           </div>

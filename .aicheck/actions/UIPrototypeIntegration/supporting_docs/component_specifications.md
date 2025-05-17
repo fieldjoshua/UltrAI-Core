@@ -7,6 +7,7 @@ This document provides detailed specifications for each UI component to be imple
 ### Component Name: `PromptInput`
 
 ### Props:
+
 - `onSubmit: (prompt: string, options: AnalysisOptions) => void`
 - `isLoading: boolean`
 - `maxLength?: number` (default: 4000)
@@ -14,11 +15,13 @@ This document provides detailed specifications for each UI component to be imple
 - `initialValue?: string`
 
 ### State:
+
 - `prompt: string`
 - `errorMessage?: string`
 - `charCount: number`
 
 ### Functionality:
+
 - Auto-resizing textarea
 - Character counter with max limit
 - Submit button (disabled when empty or error)
@@ -28,6 +31,7 @@ This document provides detailed specifications for each UI component to be imple
 - Keyboard shortcut (Ctrl/Cmd + Enter) for submission
 
 ### Styling:
+
 - Light/dark mode compatible
 - Focus states
 - Error states
@@ -38,6 +42,7 @@ This document provides detailed specifications for each UI component to be imple
 ### Component Name: `ModelSelector`
 
 ### Props:
+
 - `availableModels: Model[]`
 - `selectedModels: string[]`
 - `onSelectionChange: (modelIds: string[]) => void`
@@ -46,11 +51,13 @@ This document provides detailed specifications for each UI component to be imple
 - `maxSelections?: number` (default: 5)
 
 ### State:
+
 - `groupedModels: Record<string, Model[]>` (grouped by provider)
 - `selections: string[]`
 - `expanded: Record<string, boolean>` (for provider groups)
 
 ### Model Interface:
+
 ```typescript
 interface Model {
   id: string;
@@ -63,6 +70,7 @@ interface Model {
 ```
 
 ### Functionality:
+
 - Group models by provider
 - Expandable/collapsible provider sections
 - Checkbox selection for each model
@@ -73,6 +81,7 @@ interface Model {
 - Loading state
 
 ### Styling:
+
 - Card-based design
 - Provider grouping with headers
 - Selection indicators
@@ -84,6 +93,7 @@ interface Model {
 ### Component Name: `PatternSelector`
 
 ### Props:
+
 - `availablePatterns: AnalysisPattern[]`
 - `selectedPattern: string`
 - `onPatternChange: (patternId: string) => void`
@@ -91,10 +101,12 @@ interface Model {
 - `error?: Error`
 
 ### State:
+
 - `selected: string`
 - `expandedDetail: string | null`
 
 ### Pattern Interface:
+
 ```typescript
 interface AnalysisPattern {
   id: string;
@@ -114,6 +126,7 @@ interface PatternConfigOption {
 ```
 
 ### Functionality:
+
 - Card-based pattern selection
 - Detailed information display
 - Configuration options for patterns that support it
@@ -121,6 +134,7 @@ interface PatternConfigOption {
 - Pattern comparison tooltip
 
 ### Styling:
+
 - Card design with hover effects
 - Selected state highlighting
 - Expandable details section
@@ -132,17 +146,20 @@ interface PatternConfigOption {
 ### Component Name: `ResultsDisplay`
 
 ### Props:
+
 - `results: AnalysisResult[]`
 - `isLoading: boolean`
 - `error?: Error`
 - `comparisonMode?: boolean`
 
 ### State:
+
 - `activeTab: string` (model ID or 'comparison')
 - `expandedSections: string[]`
 - `viewMode: 'standard' | 'compact' | 'detailed'`
 
 ### Result Interface:
+
 ```typescript
 interface AnalysisResult {
   modelId: string;
@@ -160,6 +177,7 @@ interface AnalysisResult {
 ```
 
 ### Functionality:
+
 - Tabbed interface for model results
 - Syntax highlighting for code blocks
 - Collapsible sections
@@ -171,6 +189,7 @@ interface AnalysisResult {
 - Empty state handling
 
 ### Styling:
+
 - Tabbed navigation
 - Code block formatting
 - Responsive design (stacked on mobile)
@@ -182,6 +201,7 @@ interface AnalysisResult {
 ### Component Name: `AnalysisProgress`
 
 ### Props:
+
 - `status: 'idle' | 'preparing' | 'analyzing' | 'complete' | 'error'`
 - `currentStep?: number`
 - `totalSteps?: number`
@@ -190,10 +210,12 @@ interface AnalysisResult {
 - `error?: Error`
 
 ### State:
+
 - `progress: number` (percentage)
 - `elapsedTime: number`
 
 ### Functionality:
+
 - Visual progress indicator (linear or circular)
 - Step indicator for multi-stage processes
 - Animated transitions
@@ -203,6 +225,7 @@ interface AnalysisResult {
 - Cancelation option (if supported)
 
 ### Styling:
+
 - Animated progress bar/spinner
 - Step indicators
 - Status message styling
@@ -214,16 +237,19 @@ interface AnalysisResult {
 ### Component Name: `AnalysisLayout`
 
 ### Props:
+
 - `children: React.ReactNode`
 - `navigationItems?: NavigationItem[]`
 - `theme?: 'light' | 'dark' | 'system'`
 - `onThemeChange?: (theme: 'light' | 'dark' | 'system') => void`
 
 ### State:
+
 - `isMobileMenuOpen: boolean`
 - `currentTheme: 'light' | 'dark'`
 
 ### Functionality:
+
 - Responsive layout with sidebar/header
 - Mobile menu toggle
 - Theme switching
@@ -232,6 +258,7 @@ interface AnalysisResult {
 - Footer with relevant links
 
 ### Styling:
+
 - Responsive grid layout
 - Header and sidebar styling
 - Mobile-friendly navigation
@@ -244,6 +271,7 @@ interface AnalysisResult {
 ### Component Name: `AnalysisInterface`
 
 ### State:
+
 - `prompt: string`
 - `selectedModels: string[]`
 - `selectedPattern: string`
@@ -253,6 +281,7 @@ interface AnalysisResult {
 - `analysisStatus: 'idle' | 'preparing' | 'analyzing' | 'complete' | 'error'`
 
 ### Functionality:
+
 - Manages overall state of the analysis interface
 - Coordinates between components
 - Handles API requests
@@ -261,6 +290,7 @@ interface AnalysisResult {
 - Provides functions for child components
 
 ### Integration:
+
 - Fetches available models and patterns on mount
 - Submits analysis requests
 - Polls for analysis status
@@ -271,6 +301,7 @@ interface AnalysisResult {
 ## Accessibility Requirements
 
 All components must:
+
 - Have proper ARIA attributes
 - Support keyboard navigation
 - Maintain sufficient color contrast
@@ -282,6 +313,7 @@ All components must:
 ## Browser Compatibility
 
 All components must function correctly in:
+
 - Chrome (last 2 versions)
 - Firefox (last 2 versions)
 - Safari (last 2 versions)

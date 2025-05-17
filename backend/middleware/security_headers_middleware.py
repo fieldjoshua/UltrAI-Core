@@ -77,7 +77,9 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
             "/api/openapi.json",
             "/swagger-ui",
         ]
-        logger.info(f"Initialized SecurityHeadersMiddleware with {len(self.csp_directives)} CSP directives")
+        logger.info(
+            f"Initialized SecurityHeadersMiddleware with {len(self.csp_directives)} CSP directives"
+        )
 
     async def dispatch(self, request: Request, call_next: Callable) -> Response:
         """
@@ -112,7 +114,9 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
             response: FastAPI response object
         """
         if self.csp_directives:
-            csp_value = "; ".join(f"{key} {value}" for key, value in self.csp_directives.items())
+            csp_value = "; ".join(
+                f"{key} {value}" for key, value in self.csp_directives.items()
+            )
             response.headers["Content-Security-Policy"] = csp_value
 
     def _add_hsts_header(self, response: Response) -> None:

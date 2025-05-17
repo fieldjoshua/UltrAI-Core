@@ -21,7 +21,7 @@ The system utilizes a PromptTemplate dataclass for dynamically generating subseq
 **Claims**
 
 1. A method for orchestrating responses from multiple artificial intelligence models, comprising steps of:
-   
+
    - Generating initial responses from a plurality of AI models based on a user-provided prompt.
    - Performing a meta-analysis by synthesizing initial responses and generating meta responses from the same or different AI models.
    - Creating an ultra-response based on the synthesized meta responses.

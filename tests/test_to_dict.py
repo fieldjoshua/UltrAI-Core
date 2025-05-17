@@ -1,13 +1,10 @@
-from collections import (
-    OrderedDict,
-    defaultdict,
-)
+from collections import OrderedDict, defaultdict
 from datetime import datetime
 
 import numpy as np
+import pandas._testing as tm
 import pytest
 import pytz
-
 from pandas import (
     NA,
     DataFrame,
@@ -19,7 +16,6 @@ from pandas import (
     Timedelta,
     Timestamp,
 )
-import pandas._testing as tm
 
 
 class TestDataFrameToDict:

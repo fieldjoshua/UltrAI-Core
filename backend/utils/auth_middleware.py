@@ -4,9 +4,9 @@ Authentication middleware for the Ultra backend.
 This module provides middleware for JWT-based authentication of API requests.
 """
 
-import os
 import logging
-from typing import Callable, List, Dict, Any, Optional
+import os
+from typing import Any, Callable, Dict, List, Optional
 
 from fastapi import Request, Response, status
 from fastapi.responses import JSONResponse
@@ -19,6 +19,7 @@ from backend.utils.logging import get_logger
 
 # Configure logging
 logger = get_logger("auth_middleware")
+
 
 class AuthMiddleware(BaseHTTPMiddleware):
     """Middleware for JWT-based authentication"""
@@ -37,7 +38,9 @@ class AuthMiddleware(BaseHTTPMiddleware):
         """
         super().__init__(app)
         self.public_paths = public_paths or Config.PUBLIC_PATHS
-        logger.info(f"Initialized AuthMiddleware with {len(self.public_paths)} public paths")
+        logger.info(
+            f"Initialized AuthMiddleware with {len(self.public_paths)} public paths"
+        )
 
     async def dispatch(self, request: Request, call_next: Callable) -> Response:
         """
@@ -67,7 +70,7 @@ class AuthMiddleware(BaseHTTPMiddleware):
                     "status": "error",
                     "message": "Missing or invalid authentication token",
                     "code": "auth_error",
-                }
+                },
             )
 
         token = auth_header.replace("Bearer ", "")
@@ -79,7 +82,7 @@ class AuthMiddleware(BaseHTTPMiddleware):
                 "id": "test_user_id",
                 "email": "test@example.com",
                 "name": "Test User",
-                "is_active": True
+                "is_active": True,
             }
             return await call_next(request)
 
@@ -91,7 +94,7 @@ class AuthMiddleware(BaseHTTPMiddleware):
                     "status": "error",
                     "message": "Authentication token has expired",
                     "code": "token_expired",
-                }
+                },
             )
 
         try:
@@ -106,7 +109,7 @@ class AuthMiddleware(BaseHTTPMiddleware):
                         "status": "error",
                         "message": "Invalid token type",
                         "code": "invalid_token_type",
-                    }
+                    },
                 )
 
             # Get user_id from token
@@ -118,7 +121,7 @@ class AuthMiddleware(BaseHTTPMiddleware):
                         "status": "error",
                         "message": "Invalid token payload",
                         "code": "invalid_token_payload",
-                    }
+                    },
                 )
 
             # Set user in request state
@@ -126,7 +129,7 @@ class AuthMiddleware(BaseHTTPMiddleware):
                 "id": user_id,
                 "email": payload.get("email", "unknown@example.com"),
                 "name": payload.get("name", "Unknown User"),
-                "is_active": True
+                "is_active": True,
             }
 
             # Continue with the request
@@ -140,11 +143,13 @@ class AuthMiddleware(BaseHTTPMiddleware):
                     "status": "error",
                     "message": "Authentication failed",
                     "code": "auth_error",
-                }
+                },
             )
 
 
-def setup_auth_middleware(app: ASGIApp, public_paths: Optional[List[str]] = None) -> None:
+def setup_auth_middleware(
+    app: ASGIApp, public_paths: Optional[List[str]] = None
+) -> None:
     """
     Set up authentication middleware for the application
 
@@ -154,8 +159,8 @@ def setup_auth_middleware(app: ASGIApp, public_paths: Optional[List[str]] = None
     """
     # Use configured public paths if not provided
     paths = public_paths or Config.PUBLIC_PATHS
-    
+
     # Add middleware
     app.add_middleware(AuthMiddleware, public_paths=paths)
-    
+
     logger.info("Authentication middleware added to application")

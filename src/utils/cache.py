@@ -6,7 +6,7 @@ redundant API calls and improve performance.
 """
 
 import time
-from typing import Dict, Any, Optional, Callable
+from typing import Any, Callable, Dict, Optional
 
 
 class SimpleCache:

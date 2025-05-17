@@ -67,7 +67,7 @@ console.error = (...args) => {
     'Warning: ReactDOM.render is no longer supported',
     'Warning: useLayoutEffect does nothing on the server',
   ];
-  
+
   const errorString = args.join(' ');
   if (!suppressedErrors.some(suppressed => errorString.includes(suppressed))) {
     originalConsoleError(...args);
@@ -92,10 +92,10 @@ expect.extend({
   },
   toMatchResponse(received, expected) {
     // Basic check if response has expected structure
-    const hasExpectedKeys = Object.keys(expected).every(key => 
+    const hasExpectedKeys = Object.keys(expected).every(key =>
       received.hasOwnProperty(key)
     );
-    
+
     if (hasExpectedKeys) {
       return {
         message: () => `expected response not to match structure`,
@@ -108,4 +108,4 @@ expect.extend({
       };
     }
   }
-}); 
+});

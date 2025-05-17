@@ -13,7 +13,7 @@ import secrets
 import time
 from datetime import datetime, timedelta
 from enum import Enum
-from typing import Dict, List, Optional, Set, Tuple, Any
+from typing import Any, Dict, List, Optional, Set, Tuple
 
 from cryptography.fernet import Fernet
 from cryptography.hazmat.primitives import hashes
@@ -26,7 +26,8 @@ logger = get_logger("api_key_manager", "logs/security.log")
 
 # Key for encrypting API keys in storage
 # In production, this key should be loaded from a secure location (e.g., environment variables, secrets manager)
-ENCRYPTION_KEY = os.getenv("API_KEY_ENCRYPTION_KEY", "")
+ENCRYPTION_KEY = os.getenv("API_KEY_ENCRYPTION_KEY", "default-dev-encryption-key")
+# Generate a proper Fernet key from the encryption key
 if not ENCRYPTION_KEY:
     # Generate a key if not provided
     salt = os.urandom(16)
@@ -37,7 +38,18 @@ if not ENCRYPTION_KEY:
         iterations=100000,
     )
     ENCRYPTION_KEY = base64.urlsafe_b64encode(kdf.derive(b"ultra-api-keys"))
-    logger.warning("Using generated API key encryption key. This should be set in environment variables for production.")
+    logger.warning(
+        "Using generated API key encryption key. This should be set in environment variables for production."
+    )
+else:
+    # Create a Fernet key from the encryption key
+    kdf = PBKDF2HMAC(
+        algorithm=hashes.SHA256(),
+        length=32,
+        salt=b"ultra-salt",  # Fixed salt for development
+        iterations=100000,
+    )
+    ENCRYPTION_KEY = base64.urlsafe_b64encode(kdf.derive(ENCRYPTION_KEY.encode()))
 
 # Initialize Fernet cipher for encryption/decryption
 cipher = Fernet(ENCRYPTION_KEY)
@@ -45,6 +57,7 @@ cipher = Fernet(ENCRYPTION_KEY)
 
 class ApiKeyScope(str, Enum):
     """Enum for API key scopes"""
+
     READ_ONLY = "read"
     READ_WRITE = "write"
     ADMIN = "admin"
@@ -106,7 +119,9 @@ class ApiKey:
             "scope": self.scope,
             "expires_at": self.expires_at.isoformat() if self.expires_at else None,
             "created_at": self.created_at.isoformat(),
-            "last_used_at": self.last_used_at.isoformat() if self.last_used_at else None,
+            "last_used_at": (
+                self.last_used_at.isoformat() if self.last_used_at else None
+            ),
             "rate_limit": self.rate_limit,
             "allowed_paths": self.allowed_paths,
             "allowed_ips": self.allowed_ips,
@@ -124,9 +139,21 @@ class ApiKey:
             API key object
         """
         # Parse datetime fields
-        expires_at = datetime.fromisoformat(data["expires_at"]) if data.get("expires_at") else None
-        created_at = datetime.fromisoformat(data["created_at"]) if data.get("created_at") else None
-        last_used_at = datetime.fromisoformat(data["last_used_at"]) if data.get("last_used_at") else None
+        expires_at = (
+            datetime.fromisoformat(data["expires_at"])
+            if data.get("expires_at")
+            else None
+        )
+        created_at = (
+            datetime.fromisoformat(data["created_at"])
+            if data.get("created_at")
+            else None
+        )
+        last_used_at = (
+            datetime.fromisoformat(data["last_used_at"])
+            if data.get("last_used_at")
+            else None
+        )
 
         return cls(
             key_id=data["key_id"],
@@ -217,24 +244,24 @@ class ApiKeyManager:
         """
         # Generate a random key
         key_bytes = secrets.token_bytes(32)
-        
+
         # Create a key ID
         key_id = secrets.token_hex(8)
-        
+
         # Create a prefix (first 8 chars) for key identification
         prefix = "uk_" + secrets.token_hex(4)
-        
+
         # Create the full key: prefix.base64_encoded_key
         full_key = f"{prefix}.{base64.urlsafe_b64encode(key_bytes).decode('ascii').rstrip('=')}"
-        
+
         # Hash the key for storage
         key_hash = self._hash_key(full_key)
-        
+
         # Create expiration date if specified
         expires_at = None
         if expires_in_days is not None:
             expires_at = datetime.now() + timedelta(days=expires_in_days)
-        
+
         # Create the API key object
         api_key = ApiKey(
             key_id=key_id,
@@ -247,12 +274,12 @@ class ApiKeyManager:
             allowed_paths=allowed_paths,
             allowed_ips=allowed_ips,
         )
-        
+
         # Store the API key
         self.api_keys[key_id] = api_key
         self.key_hashes[key_hash] = key_id
         self.prefix_map[prefix] = key_id
-        
+
         # Log the key generation
         log_audit(
             action="generate_api_key",
@@ -264,7 +291,7 @@ class ApiKeyManager:
                 "expires_at": expires_at.isoformat() if expires_at else None,
             },
         )
-        
+
         return full_key, api_key
 
     def validate_api_key(
@@ -284,48 +311,48 @@ class ApiKeyManager:
         try:
             # Hash the key
             key_hash = self._hash_key(api_key)
-            
+
             # Look up the key ID from the hash
             key_id = self.key_hashes.get(key_hash)
             if not key_id:
                 # If key ID is not found by hash, try to find it by prefix
                 prefix = api_key.split(".")[0]
                 key_id = self.prefix_map.get(prefix)
-                
+
                 if not key_id:
                     logger.warning(f"API key not found: {prefix}...")
                     return None
-                    
+
                 # If found by prefix but not by hash, the key is invalid
                 logger.warning(f"Invalid API key for prefix: {prefix}...")
                 return None
-            
+
             # Get the API key object
             api_key_obj = self.api_keys.get(key_id)
             if not api_key_obj:
                 logger.warning(f"API key object not found for ID: {key_id}")
                 return None
-            
+
             # Check if the key is expired
             if api_key_obj.is_expired():
                 logger.warning(f"Expired API key: {key_id}")
                 return None
-            
+
             # Check path access if specified
             if path and not api_key_obj.can_access_path(path):
                 logger.warning(f"API key {key_id} not authorized for path: {path}")
                 return None
-            
+
             # Check IP access if specified
             if ip_address and not api_key_obj.can_access_from_ip(ip_address):
                 logger.warning(f"API key {key_id} not authorized from IP: {ip_address}")
                 return None
-            
+
             # Update last used timestamp
             api_key_obj.last_used_at = datetime.now()
-            
+
             return api_key_obj
-            
+
         except Exception as e:
             logger.error(f"Error validating API key: {str(e)}")
             return None
@@ -346,43 +373,43 @@ class ApiKeyManager:
         if not api_key:
             logger.warning(f"API key not found for revocation: {key_id}")
             return False
-        
+
         # Check if the user owns the key
         if api_key.user_id != user_id:
             logger.warning(f"User {user_id} does not own API key {key_id}")
             return False
-        
+
         # Find the hash for this key
         hash_to_remove = None
         for key_hash, mapped_key_id in self.key_hashes.items():
             if mapped_key_id == key_id:
                 hash_to_remove = key_hash
                 break
-        
+
         # Find the prefix for this key
         prefix_to_remove = None
         for prefix, mapped_key_id in self.prefix_map.items():
             if mapped_key_id == key_id:
                 prefix_to_remove = prefix
                 break
-        
+
         # Remove the key
         if key_id in self.api_keys:
             del self.api_keys[key_id]
-        
+
         if hash_to_remove and hash_to_remove in self.key_hashes:
             del self.key_hashes[hash_to_remove]
-        
+
         if prefix_to_remove and prefix_to_remove in self.prefix_map:
             del self.prefix_map[prefix_to_remove]
-        
+
         # Log the revocation
         log_audit(
             action="revoke_api_key",
             user_id=user_id,
             resource=f"api_key:{key_id}",
         )
-        
+
         return True
 
     def get_user_api_keys(self, user_id: str) -> List[ApiKey]:
@@ -408,9 +435,7 @@ class ApiKeyManager:
             Hashed API key
         """
         return hmac.new(
-            ENCRYPTION_KEY,
-            api_key.encode("utf-8"),
-            hashlib.sha256
+            ENCRYPTION_KEY, api_key.encode("utf-8"), hashlib.sha256
         ).hexdigest()
 
     def encrypt_api_key(self, api_key: str) -> str:

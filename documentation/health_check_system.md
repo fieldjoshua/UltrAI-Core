@@ -25,6 +25,7 @@ GET /health
 This endpoint returns a minimal health check response, designed for load balancers and monitoring systems. It reports the overall status of critical components and the system uptime.
 
 **Example Response:**
+
 ```json
 {
   "status": "ok",
@@ -33,6 +34,7 @@ This endpoint returns a minimal health check response, designed for load balance
 ```
 
 Possible status values:
+
 - `ok`: All critical systems are functioning normally
 - `degraded`: Some non-critical systems are experiencing issues
 - `critical`: Critical systems are failing
@@ -46,12 +48,14 @@ GET /api/health
 This endpoint provides a more detailed health check response, including API version, environment, and instance ID.
 
 **Query Parameters:**
+
 - `detail`: Set to `true` to include detailed status of all services
 - `service`: Check only a specific service (e.g., `database`, `redis`, `openai`)
 - `type`: Filter services by type (e.g., `database`, `cache`, `llm_provider`)
 - `include_system`: Set to `true` to include system resource metrics
 
 **Example Response (Basic):**
+
 ```json
 {
   "status": "ok",
@@ -63,6 +67,7 @@ This endpoint provides a more detailed health check response, including API vers
 ```
 
 **Example Response (With Detail):**
+
 ```json
 {
   "status": "ok",
@@ -123,6 +128,7 @@ GET /api/health/system
 This endpoint provides detailed information about system resources such as memory, disk, and CPU usage.
 
 **Example Response:**
+
 ```json
 {
   "status": "ok",
@@ -159,6 +165,7 @@ GET /api/health/dependencies
 This endpoint provides detailed information about Python module dependencies.
 
 **Example Response:**
+
 ```json
 {
   "dependencies": {
@@ -199,10 +206,12 @@ GET /api/health/services
 This endpoint provides detailed information about all registered services.
 
 **Query Parameters:**
+
 - `service_type`: Filter services by type (e.g., `database`, `cache`, `llm_provider`)
 - `force_check`: Set to `true` to force a fresh health check, bypassing the cache
 
 **Example Response:**
+
 ```json
 {
   "services": {
@@ -238,10 +247,12 @@ GET /api/health/llm
 This endpoint provides detailed information about LLM provider connection status.
 
 **Query Parameters:**
+
 - `provider`: Check only a specific provider (e.g., `openai`, `anthropic`, `google`)
 - `force_check`: Set to `true` to force a fresh health check, bypassing the cache
 
 **Example Response:**
+
 ```json
 {
   "status": "ok",
@@ -284,6 +295,7 @@ GET /info
 This endpoint provides basic information about the API, including version, environment, and platform.
 
 **Example Response:**
+
 ```json
 {
   "api_version": "0.1.0",
@@ -303,6 +315,7 @@ GET /ping
 This endpoint provides a simple ping/pong response for load balancers and monitoring.
 
 **Example Response:**
+
 ```json
 {
   "message": "pong"

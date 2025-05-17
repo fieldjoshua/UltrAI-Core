@@ -1,6 +1,6 @@
 import numpy as np
+import pandas._testing as tm
 import pytest
-
 from pandas import (
     Categorical,
     DataFrame,
@@ -11,7 +11,6 @@ from pandas import (
     period_range,
     timedelta_range,
 )
-import pandas._testing as tm
 from pandas.core.arrays.categorical import CategoricalAccessor
 from pandas.core.indexes.accessors import Properties
 

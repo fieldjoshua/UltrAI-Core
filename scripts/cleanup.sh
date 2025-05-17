@@ -74,4 +74,4 @@ echo "Cleaning node_modules/.vite directory..."
 rm -rf node_modules/.vite/deps_temp_* 2>/dev/null || true
 
 echo "Cleanup complete! You should now restart your development server with 'npm run dev'"
-echo "Consider running 'git status' to see what files have been moved" 
+echo "Consider running 'git status' to see what files have been moved"

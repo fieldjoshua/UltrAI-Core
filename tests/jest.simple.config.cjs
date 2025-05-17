@@ -15,4 +15,4 @@ module.exports = {
   testPathIgnorePatterns: ['/node_modules/', '/dist/', '/archive/'],
   testMatch: ['**/src/tests/auto/simple.test.js'],
   moduleFileExtensions: ['js', 'jsx', 'cjs'],
-}; 
+};

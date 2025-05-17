@@ -3,7 +3,7 @@
  */
 
 // Default ports to try for API connection in order of preference
-const API_PORTS = [8088, 8087, 8085, 8086, 8089];
+const API_PORTS = [8087, 8088, 8085, 8086, 8089];
 
 // Default API base URL template
 const API_BASE_URL_TEMPLATE = 'http://localhost:PORT';
@@ -13,8 +13,8 @@ const SERVER_CACHE_TIME = 5000;
 
 // Cache for server availability
 let serverCache = {
-  port: null,
-  timestamp: 0,
+  port: 8087, // Force use of port 8087 initially
+  timestamp: 0, // Set to 0 to force a fresh check
 };
 
 // Create a custom event for API errors that components can listen to

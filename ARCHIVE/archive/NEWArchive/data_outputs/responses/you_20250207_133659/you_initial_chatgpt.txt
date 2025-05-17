@@ -4,10 +4,10 @@
 
 **Title:** System for Orchestrating Collaborative Analysis and Synthesis of Information by Multiple AI Models
 
-**Applicant:** [Applicant's Name or Company]  
+**Applicant:** [Applicant's Name or Company]
 **Address:** [Applicant's Address]
 
-**Inventors:** [Inventor(s) Name(s)]  
+**Inventors:** [Inventor(s) Name(s)]
 **Address:** Each inventor's address
 
 **Filed On:** [Filing Date]
@@ -59,7 +59,7 @@ This system enables:
    - An AI Models Repository,
    - A Task and Data Input Interface, and
    - An Output Integration and Synthesis Module.
-   
+
 2. The system of claim 1, wherein the AI Model Orchestrator dynamically selects and coordinates the execution of AI models based on task requirements and data characteristics.
 
 3. The system of claim 1, wherein the Output Integration and Synthesis Module synthesizes outputs from multiple AI models to provide comprehensive analysis or decision support.
@@ -72,6 +72,6 @@ A system and method for orchestrating multiple artificial intelligence (AI) mode
 
 **End of Application**
 
-**Dated:** [Date of Submission]  
+**Dated:** [Date of Submission]
 
 The above provisional patent application serves as an initial disclosure of the invention. Further specifics, development, and claims refinement are subject to subsequent non-provisional patent application filings.

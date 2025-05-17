@@ -82,7 +82,9 @@ class BaseRepository(Generic[T]):
                 details={"id": id, "error": str(e)},
             )
 
-    def get_by_id(self, db: Session, id: int, raise_if_not_found: bool = False) -> Optional[T]:
+    def get_by_id(
+        self, db: Session, id: int, raise_if_not_found: bool = False
+    ) -> Optional[T]:
         """
         Get a model instance by ID, with option to raise exception if not found
 

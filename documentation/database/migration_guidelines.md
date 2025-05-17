@@ -117,27 +117,27 @@ Data migrations can be slow and error-prone. Consider these guidelines:
 def upgrade():
     # Schema change
     op.add_column('users', sa.Column('full_name', sa.String(), nullable=True))
-    
+
     # Data migration with batching
     connection = op.get_bind()
     offset = 0
     batch_size = 1000
-    
+
     while True:
         users = connection.execute(
             sa.text(f"SELECT id, first_name, last_name FROM users LIMIT {batch_size} OFFSET {offset}")
         ).fetchall()
-        
+
         if not users:
             break
-            
+
         for user in users:
             full_name = f"{user.first_name or ''} {user.last_name or ''}".strip()
             connection.execute(
                 sa.text("UPDATE users SET full_name = :full_name WHERE id = :id"),
                 {"full_name": full_name, "id": user.id}
             )
-            
+
         offset += batch_size
 ```
 
@@ -186,6 +186,7 @@ op.add_column('users', sa.Column('is_active', sa.Boolean(), nullable=False))
 ### Common Issues
 
 1. **Migration conflicts**: If you get "Multiple head revisions", you need to merge the heads:
+
    ```bash
    alembic merge -m "Merge multiple heads" <revision1> <revision2>
    ```

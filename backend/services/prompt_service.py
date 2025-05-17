@@ -62,7 +62,7 @@ class PromptService:
                 collect_metrics=True,
                 max_retries=3,
                 retry_base_delay=0.5,
-                recovery_timeout=int(mode["timeout"] or 30.0)
+                recovery_timeout=int(mode["timeout"] or 30.0),
             )
             self.orchestrators[mode["name"]] = EnhancedOrchestrator(config)
 
@@ -543,7 +543,7 @@ class PromptService:
 
             # Import mock service
             try:
-                from backend.mock_llm_service import MOCK_RESPONSES, MockLLMService
+                from mock_llm_service import MOCK_RESPONSES, MockLLMService
 
                 mock_service = MockLLMService()
 

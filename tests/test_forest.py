@@ -17,9 +17,8 @@ from unittest.mock import patch
 import joblib
 import numpy as np
 import pytest
-from scipy.special import comb
-
 import sklearn
+from scipy.special import comb
 from sklearn import clone, datasets
 from sklearn.datasets import make_classification, make_hastie_10_2
 from sklearn.decomposition import TruncatedSVD

@@ -171,7 +171,7 @@ sequenceDiagram
     participant AuthAPI
     participant JWT
     participant UserDB
-    
+
     User->>Frontend: Enter credentials
     Frontend->>AuthAPI: POST /auth/login
     AuthAPI->>UserDB: Find user by email
@@ -278,22 +278,22 @@ class UserRepository:
         user = User(email=email, password_hash=password_hash, **kwargs)
         # Store user in database
         return user
-    
+
     async def find_user_by_email(self, email: str) -> Optional[User]:
         """Find a user by email."""
         # Query database for user with email
         return user if user_exists else None
-    
+
     async def find_user_by_id(self, user_id: str) -> Optional[User]:
         """Find a user by ID."""
         # Query database for user with ID
         return user if user_exists else None
-    
+
     async def update_user(self, user_id: str, **updates) -> User:
         """Update user details."""
         # Update user in database
         return updated_user
-    
+
     async def delete_user(self, user_id: str) -> bool:
         """Delete a user."""
         # Delete user from database
@@ -308,7 +308,7 @@ The authentication service will handle user authentication and token management:
 class AuthenticationService:
     def __init__(self, user_repository: UserRepository):
         self.user_repository = user_repository
-    
+
     async def register_user(self, email: str, password: str, **kwargs) -> Tuple[User, Tokens]:
         """Register a new user and return tokens."""
         # Validate email and password
@@ -316,43 +316,43 @@ class AuthenticationService:
         user = await self.user_repository.create_user(email, password, **kwargs)
         tokens = self._generate_tokens(user)
         return user, tokens
-    
+
     async def authenticate_user(self, email: str, password: str) -> Tuple[User, Tokens]:
         """Authenticate a user and return tokens."""
         user = await self.user_repository.find_user_by_email(email)
         if not user:
             raise AuthenticationError("Invalid credentials")
-        
+
         if not verify_password(password, user.password_hash):
             raise AuthenticationError("Invalid credentials")
-        
+
         # Update last login timestamp
         user = await self.user_repository.update_user(
             user.id, last_login=datetime.utcnow()
         )
-        
+
         tokens = self._generate_tokens(user)
         return user, tokens
-    
+
     def _generate_tokens(self, user: User) -> Tokens:
         """Generate access and refresh tokens for a user."""
         payload = {
             "sub": user.id,
             "email": user.email,
         }
-        
+
         access_token = create_jwt(
-            payload, 
+            payload,
             expires_in=timedelta(minutes=15)
         )
-        
+
         refresh_token = create_jwt(
-            payload, 
+            payload,
             expires_in=timedelta(days=7)
         )
-        
+
         return Tokens(access_token=access_token, refresh_token=refresh_token)
-    
+
     async def refresh_tokens(self, refresh_token: str) -> Tokens:
         """Refresh access token using refresh token."""
         # Validate refresh token
@@ -360,7 +360,7 @@ class AuthenticationService:
         user = await self.user_repository.find_user_by_id(payload["sub"])
         if not user:
             raise AuthenticationError("Invalid refresh token")
-        
+
         return self._generate_tokens(user)
 ```
 
@@ -374,7 +374,7 @@ class AuthenticationMiddleware:
         # Skip authentication for public routes
         if is_public_route(request.url.path):
             return await call_next(request)
-        
+
         # Get authorization header
         authorization = request.headers.get("Authorization")
         if not authorization or not authorization.startswith("Bearer "):
@@ -382,17 +382,17 @@ class AuthenticationMiddleware:
                 status_code=401,
                 content={"detail": "Not authenticated"}
             )
-        
+
         token = authorization.replace("Bearer ", "")
-        
+
         try:
             # Verify token
             payload = verify_jwt(token)
-            
+
             # Add user to request state
             request.state.user_id = payload["sub"]
             request.state.email = payload["email"]
-            
+
             # Continue to next middleware/handler
             return await call_next(request)
         except JWTError:

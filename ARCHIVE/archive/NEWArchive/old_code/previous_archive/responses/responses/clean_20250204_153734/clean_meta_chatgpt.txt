@@ -11,7 +11,7 @@ At the heart of Ultra is its unique capability to streamline the document creati
 **Key Features:**
 
 1. **Diverse LLM Integration:** Flexibility for users to select from a wide array of the latest language models, ensuring the platform meets a variety of needs and preferences.
-   
+
 2. **Collaborative Enhancement Cycle:** A unique iterative process that allows for the refinement of documents through successive rounds of AI-powered edits, enriching the content with each pass.
 
 3. **Unified Document Synthesis:** Ultra creates a synchronized space where AI bots collaboratively enhance the document, leading to a polished, comprehensive output.

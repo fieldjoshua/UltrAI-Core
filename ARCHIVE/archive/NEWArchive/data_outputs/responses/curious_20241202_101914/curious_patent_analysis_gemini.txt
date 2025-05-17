@@ -69,47 +69,47 @@ class RateLimits:
     gemini: int = 10
 
 class TriLLMOrchestrator:
-    def __init__(self, 
+    def __init__(self,
                  api_keys: Dict[str, str],
                  prompt_templates: Optional[PromptTemplate] = None,
                  rate_limits: Optional[RateLimits] = None,
                  output_format: str = "plain",
                  ultra_engine: str = "llama"):
-        
+
         print("Initializing TriLLMOrchestrator...")
-        
+
         # Setup logging
         self.logger = logging.getLogger(__name__)
-        
+
         # Store the prompt first so we can use it for the directory name
         self.prompt = None
         self.base_dir = os.path.join(os.getcwd(), 'responses')
-        
+
         print("\nChecking API keys...")
         self.api_keys = api_keys
         print(f"OpenAI: {api_keys.get('openai', '')[:5]}...{api_keys.get('openai', '')[-4:]}")
         print(f"Google: {api_keys.get('google', '')[:5]}...{api_keys.get('google', '')[-4:]}")
-        
+
         print("\nSetting up formatter...")
         self.output_format = output_format
-        
+
         print("\nInitializing API clients...")
         self._initialize_clients()
-        
+
         self.prompt_templates = prompt_templates or PromptTemplate()
         self.rate_limits = rate_limits or RateLimits()
         self.last_request_time = {"llama": 0, "chatgpt": 0, "gemini": 0}
         self.ultra_engine = ultra_engine
-        
+
         # Add hardware detection
         self.device = "mps" if torch.backends.mps.is_available() else "cpu"
         self.max_threads = psutil.cpu_count(logical=False)  # Physical cores only
         self.executor = ThreadPoolExecutor(max_workers=self.max_threads)
-        
+
         # Configure Metal backend
         if self.device == "mps":
             torch.backends.mps.enable_fallback_to_cpu = True
-            
+
         # Print hardware configuration
         print("\nHardware Configuration:")
         print(f"Device: {self.device}")
@@ -124,10 +124,10 @@ class TriLLMOrchestrator:
     def _get_keyword_from_prompt(self, prompt: str) -> str:
         """Extract a meaningful keyword from the prompt"""
         common_words = {'the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by', 'please', 'edit', 'following'}
-        
+
         words = prompt.lower().split()
         keyword = next((word for word in words if word not in common_words and len(word) > 2), 'task')
-        
+
         keyword = ''.join(c for c in keyword if c.isalnum())
         return keyword[:15]
 
@@ -136,11 +136,11 @@ class TriLLMOrchestrator:
         print("Initializing Llama...")
         # Llama uses local API, no initialization needed
         print("Llama initialized successfully")
-        
+
         print("Initializing OpenAI...")
         self.openai_client = OpenAI(api_key=self.api_keys["openai"])
         print("OpenAI initialized successfully")
-        
+
         print("Initializing Gemini...")
         genai.configure(api_key=self.api_keys["google"])
         self.gemini_model = genai.GenerativeModel('gemini-pro')
@@ -161,10 +161,10 @@ class TriLLMOrchestrator:
         """Ensure we don't exceed rate limits"""
         current_time = datetime.now().timestamp()
         time_since_last = current_time - self.last_request_time[service]
-        
+
         if time_since_last < self.rate_limits.__dict__[service]:
             await asyncio.sleep(self.rate_limits.__dict__[service] - time_since_last)
-        
+
         self.last_request_time[service] = current_time
 
     @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=4, max=10))

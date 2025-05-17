@@ -122,7 +122,7 @@ class AuthMiddleware(BaseHTTPMiddleware):
                     "invalid_payload",
                     status.HTTP_401_UNAUTHORIZED,
                 )
-                
+
             # Only verify user if we're not in test mode
             if not request.headers.get("X-Skip-DB-Check") == "true":
                 # Verify user exists in database
@@ -130,15 +130,17 @@ class AuthMiddleware(BaseHTTPMiddleware):
                     try:
                         user_id_int = int(user_id)
                         user = auth_service.get_user(db, user_id_int)
-                        
+
                         if not user:
-                            logger.warning(f"User with ID {user_id} not found in database")
+                            logger.warning(
+                                f"User with ID {user_id} not found in database"
+                            )
                             return self._create_auth_error_response(
                                 "User not found",
                                 "user_not_found",
                                 status.HTTP_401_UNAUTHORIZED,
                             )
-                            
+
                         if not user.is_active:
                             logger.warning(f"User with ID {user_id} is not active")
                             return self._create_auth_error_response(
@@ -146,7 +148,7 @@ class AuthMiddleware(BaseHTTPMiddleware):
                                 "account_disabled",
                                 status.HTTP_401_UNAUTHORIZED,
                             )
-                            
+
                         # Store full user in request state
                         request.state.user = user
                     except ValueError:
@@ -159,7 +161,7 @@ class AuthMiddleware(BaseHTTPMiddleware):
                     except Exception as e:
                         logger.error(f"Error verifying user: {str(e)}")
                         # We'll still continue but log the error
-            
+
             # Store user information in request state
             request.state.user_id = user_id
             request.state.token_payload = payload

@@ -103,30 +103,30 @@ run_test_category() {
   local test_pattern="${TEST_CATEGORIES[$category]}"
   local result_file="$REPORT_DIR/json/$category-results.json"
   local coverage_file="$REPORT_DIR/coverage-$category.xml"
-  
+
   echo -e "\n${BOLD}${BLUE}Running $category tests...${NC}"
-  
+
   # Update tracking file - mark category as running
   python scripts/track_test_progress.py --output "$TRACKING_FILE" --category "$category" --status "running"
-  
+
   # Prepare pytest arguments
   local pytest_args="-v --cov=. --cov-report=xml:$coverage_file --json-report --json-report-file=$result_file"
-  
+
   if [ "$FAIL_FAST" = true ]; then
     pytest_args="$pytest_args -x"
   fi
-  
+
   if [ "$PARALLEL" = true ]; then
     pytest_args="$pytest_args -n auto"
   fi
-  
+
   # Run the tests
   PYTHONPATH=. pytest $test_pattern $pytest_args
   local test_exit_code=$?
-  
+
   # Update tracking file with results
   python scripts/track_test_progress.py --output "$TRACKING_FILE" --import-results "$result_file" --category "$category"
-  
+
   if [ $test_exit_code -eq 0 ]; then
     echo -e "${GREEN}✓ $category tests completed successfully${NC}"
     return 0

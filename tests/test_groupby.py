@@ -1,6 +1,6 @@
 import numpy as np
+import pandas._testing as tm
 import pytest
-
 from pandas import (
     DataFrame,
     DatetimeIndex,
@@ -11,7 +11,6 @@ from pandas import (
     date_range,
     to_datetime,
 )
-import pandas._testing as tm
 from pandas.api.indexers import BaseIndexer
 from pandas.core.groupby.groupby import get_groupby
 

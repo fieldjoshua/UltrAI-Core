@@ -740,7 +740,7 @@ class PricingUpdater:
                 html += f"""
                 <h2>⚠️ Pricing Anomalies Detected ({len(self.anomalies)})</h2>
                 <p>The following unusual pricing changes were detected and should be validated:</p>
-                
+
                 <table>
                     <tr>
                         <th>Severity</th>

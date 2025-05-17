@@ -1,26 +1,14 @@
 import datetime
-from io import BytesIO
 import re
+from io import BytesIO
 
 import numpy as np
 import pytest
-
-from pandas import (
-    CategoricalIndex,
-    DataFrame,
-    HDFStore,
-    Index,
-    MultiIndex,
-    _testing as tm,
-    date_range,
-    read_hdf,
-)
+from pandas import CategoricalIndex, DataFrame, HDFStore, Index, MultiIndex
+from pandas import _testing as tm
+from pandas import date_range, read_hdf
+from pandas.io.pytables import Term, _maybe_adjust_name
 from pandas.tests.io.pytables.common import ensure_clean_store
-
-from pandas.io.pytables import (
-    Term,
-    _maybe_adjust_name,
-)
 
 pytestmark = pytest.mark.single_cpu
 
@@ -45,7 +33,7 @@ def test_pass_spec_to_storer(setup_path):
             "format store. this store must be selected in its entirety"
         )
         with pytest.raises(TypeError, match=msg):
-            store.select("df", where=[("columns=A")])
+            store.select("df", where=["columns=A"])
 
 
 def test_table_index_incompatible_dtypes(setup_path):

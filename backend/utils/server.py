@@ -1,6 +1,6 @@
+import logging
 import socket
 from typing import List
-import logging
 
 logger = logging.getLogger("server_utils")
 
@@ -26,6 +26,7 @@ def find_available_port(start_port: int) -> int:
 def cleanup_temp_files(file_paths: List[str]) -> None:
     """Clean up temporary files created during request processing"""
     import os
+
     for file_path in file_paths:
         try:
             if os.path.exists(file_path):

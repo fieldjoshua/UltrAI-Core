@@ -1,7 +1,7 @@
 """Gunicorn configuration file for Ultra API"""
 
-import os
 import multiprocessing
+import os
 
 # Worker configuration
 workers = int(os.getenv("GUNICORN_WORKERS", multiprocessing.cpu_count() * 2 + 1))

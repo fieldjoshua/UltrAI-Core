@@ -1,4 +1,4 @@
-FROM python:3.10-slim as base
+FROM python:3.10-slim-bullseye AS base
 
 # Set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1 \
@@ -15,7 +15,7 @@ RUN addgroup --system app && \
 WORKDIR /app
 
 # Install dependencies
-FROM base as dependencies
+FROM base AS dependencies
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -27,7 +27,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     git \
     gnupg2 \
     libpq-dev \
-    && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
 # Set up pip
@@ -37,20 +36,16 @@ RUN pip install --no-cache-dir --upgrade pip setuptools wheel
 COPY requirements.txt requirements-core.txt* requirements-optional.txt* ./
 ENV CMAKE_ARGS="-DLLAMA_F16C=OFF"
 RUN --mount=type=cache,target=/root/.cache/pip \
-    if [ -f requirements-core.txt ]; then \
-        pip install --no-cache-dir -r requirements-core.txt; \
-    else \
-        pip install --no-cache-dir -r requirements.txt; \
-    fi
+    pip install --no-cache-dir -r requirements-core.txt && \
+    pip install --no-cache-dir -r requirements.txt && \
+    pip install --no-cache-dir prometheus-client>=0.19.0 || echo "Warning: Could not install prometheus-client, will use stub implementation"
 
 # Install optional dependencies if present
 RUN --mount=type=cache,target=/root/.cache/pip \
-    if [ -f requirements-optional.txt ]; then \
-        pip install --no-cache-dir -r requirements-optional.txt || true; \
-    fi
+    [ -f requirements-optional.txt ] && pip install --no-cache-dir -r requirements-optional.txt || true
 
 # Copy the application code
-FROM dependencies as final
+FROM dependencies AS final
 
 # Create necessary directories
 RUN mkdir -p /app/logs /app/document_storage /app/temp_uploads /app/temp
@@ -85,5 +80,5 @@ LABEL maintainer="Ultra AI Team" \
       version="${ULTRA_VERSION}" \
       description="Ultra AI Orchestrator for LLM Integration"
 
-# Run the application with gunicorn
-CMD ["gunicorn", "--config", "gunicorn_conf.py", "backend.app:app"]
+# Run dependency check and then start the application with gunicorn
+CMD ["/bin/bash", "-c", "/app/scripts/check_dependencies.sh && gunicorn --config gunicorn_conf.py backend.app:app"]

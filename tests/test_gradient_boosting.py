@@ -8,10 +8,9 @@ from unittest.mock import Mock
 import joblib
 import numpy as np
 import pytest
+import sklearn
 from joblib.numpy_pickle import NumpyPickler
 from numpy.testing import assert_allclose, assert_array_equal
-
-import sklearn
 from sklearn._loss.loss import (
     AbsoluteError,
     HalfBinomialLoss,

@@ -4,18 +4,9 @@ from __future__ import annotations
 
 import unittest
 
-from mypyc.ir.rtypes import (
-    RUnion,
-    bit_rprimitive,
-    bool_rprimitive,
-    int16_rprimitive,
-    int32_rprimitive,
-    int64_rprimitive,
-    int_rprimitive,
-    object_rprimitive,
-    short_int_rprimitive,
-    str_rprimitive,
-)
+from mypyc.ir.rtypes import (RUnion, bit_rprimitive, bool_rprimitive, int16_rprimitive,
+                             int32_rprimitive, int64_rprimitive, int_rprimitive,
+                             object_rprimitive, short_int_rprimitive, str_rprimitive)
 from mypyc.rt_subtype import is_runtime_subtype
 from mypyc.subtype import is_subtype
 

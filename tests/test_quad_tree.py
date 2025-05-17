@@ -2,7 +2,6 @@ import pickle
 
 import numpy as np
 import pytest
-
 from sklearn.neighbors._quad_tree import _QuadTree
 from sklearn.utils import check_random_state
 

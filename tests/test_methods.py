@@ -1,9 +1,7 @@
 import numpy as np
-import pytest
-
-from pandas.errors import SettingWithCopyWarning
-
 import pandas as pd
+import pandas._testing as tm
+import pytest
 from pandas import (
     DataFrame,
     Index,
@@ -15,7 +13,7 @@ from pandas import (
     option_context,
     period_range,
 )
-import pandas._testing as tm
+from pandas.errors import SettingWithCopyWarning
 from pandas.tests.copy_view.util import get_array
 
 

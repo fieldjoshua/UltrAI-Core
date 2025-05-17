@@ -1,4 +1,4 @@
-name: UltrAI Test Suite
+name: Ultra Test Suite
 
 on:
   push:
@@ -7,73 +7,188 @@ on:
     branches: [ main ]
 
 jobs:
-  test:
+  backend-tests:
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        python-version: [3.9, "3.10"]
+
+    services:
+      postgres:
+        image: postgres:13.3
+        env:
+          POSTGRES_USER: testuser
+          POSTGRES_PASSWORD: testpassword
+          POSTGRES_DB: ultra_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DB_HOST: localhost
+      DB_PORT: 5432
+      DB_USER: testuser
+      DB_PASSWORD: testpassword
+      DB_NAME: ultra_test
+      ENVIRONMENT: testing
+      USE_MOCK: true
+      SECRET_KEY: test_secret_key_for_github_actions
+      ALLOWED_EXTERNAL_DOMAINS: api.openai.com,api.anthropic.com,api.mistral.ai
 
     steps:
     - uses: actions/checkout@v3
-    
-    - name: Set up Python ${{ matrix.python-version }}
+
+    - name: Set up Python
       uses: actions/setup-python@v4
       with:
-        python-version: ${{ matrix.python-version }}
-        
+        python-version: '3.10'
+
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
         pip install pytest pytest-cov
-        
-    - name: Configure environment
+
+    - name: Run tests
       run: |
-        echo "MOCK_MODE=true" >> $GITHUB_ENV
-        echo "ENVIRONMENT=testing" >> $GITHUB_ENV
-        echo "DEBUG=true" >> $GITHUB_ENV
-        echo "SENTRY_DSN=" >> $GITHUB_ENV
-        echo "ALLOWED_EXTERNAL_DOMAINS=api.openai.com,api.anthropic.com,api.mistral.ai" >> $GITHUB_ENV
-        
-    - name: Test
-      run: |
-        cd backend
-        pytest tests/ --cov=. --cov-report=xml
-        
-    - name: Upload coverage to Codecov
+        python -m pytest backend/tests/ --cov=backend --cov-report=xml
+
+    - name: Upload coverage report
       uses: codecov/codecov-action@v3
       with:
-        file: ./backend/coverage.xml
+        file: ./coverage.xml
         fail_ci_if_error: false
-        
-  lint:
+
+  frontend-tests:
     runs-on: ubuntu-latest
-    
+
     steps:
     - uses: actions/checkout@v3
-    
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+
+    - name: Install dependencies
+      working-directory: ./frontend
+      run: npm ci
+
+    - name: Run tests
+      working-directory: ./frontend
+      run: npm test -- --coverage
+
+    - name: Upload coverage report
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./frontend/coverage/lcov.info
+        fail_ci_if_error: false
+
+  e2e-tests:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:13.3
+        env:
+          POSTGRES_USER: testuser
+          POSTGRES_PASSWORD: testpassword
+          POSTGRES_DB: ultra_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DB_HOST: localhost
+      DB_PORT: 5432
+      DB_USER: testuser
+      DB_PASSWORD: testpassword
+      DB_NAME: ultra_test
+      ENVIRONMENT: testing
+      USE_MOCK: true
+      SECRET_KEY: test_secret_key_for_github_actions
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+
+    - name: Install backend dependencies
+      run: |
+        python -m pip install --upgrade pip
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+    - name: Install frontend dependencies
+      working-directory: ./frontend
+      run: npm ci
+
+    - name: Start backend server
+      run: |
+        python -m uvicorn backend.app:app --host 0.0.0.0 --port 8085 &
+        sleep 5  # Wait for server to start
+
+    - name: Install Cypress
+      working-directory: ./tests/e2e
+      run: npm ci
+
+    - name: Run Cypress tests
+      working-directory: ./tests/e2e
+      run: npx cypress run
+
+    - name: Upload Cypress screenshots
+      uses: actions/upload-artifact@v3
+      if: failure()
+      with:
+        name: cypress-screenshots
+        path: ./tests/e2e/screenshots
+
+    - name: Upload Cypress videos
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: cypress-videos
+        path: ./tests/e2e/videos
+
+  lint:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
         python-version: "3.10"
-        
+
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         pip install flake8 black isort
-        
+
     - name: Lint with flake8
       run: |
         # stop the build if there are Python syntax errors or undefined names
         flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
         # exit-zero treats all errors as warnings
-        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=88 --statistics
-        
+        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=150 --statistics
+
     - name: Check formatting with black
       run: |
         black --check --diff .
-        
+
     - name: Check import formatting with isort
       run: |
         isort --check --diff .

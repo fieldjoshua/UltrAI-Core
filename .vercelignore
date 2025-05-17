@@ -6,7 +6,7 @@ __pycache__
 *.pyc
 .swc
 
-# Large directories not needed for frontend 
+# Large directories not needed for frontend
 Nontechnical
 archive
 responses
@@ -43,4 +43,4 @@ temp_uploads
 *.gz
 *.rar
 *.log
-.DS_Store 
+.DS_Store

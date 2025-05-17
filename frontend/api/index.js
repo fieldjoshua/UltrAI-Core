@@ -265,8 +265,11 @@ const analyzeWithDocuments = async ({
 // Export all API functions
 export { analyzePrompt, uploadDocuments, analyzeWithDocuments };
 
-// API client functions
-export async function getStatus() {
+// Handle orchestrator exports
+export { getOrchestratorModels, processWithOrchestrator } from './orchestrator';
+
+// Additional client functions with different names to avoid conflicts
+export async function getApiStatus() {
   try {
     console.log('Using mock API status');
     return mockResponses.status;
@@ -276,7 +279,8 @@ export async function getStatus() {
   }
 }
 
-export async function analyzePrompt(prompt, models = []) {
+// Renamed to avoid conflict with the main analyzePrompt function
+export async function analyzePromptSimple(prompt, models = []) {
   try {
     console.log('Using mock API for analysis');
     return mockResponses.analyze(prompt, models);
@@ -321,3 +325,24 @@ export async function deleteDocument(documentId) {
     message: `Document ${documentId} deleted successfully (mock)`,
   };
 }
+
+// Import orchestrator functions for default export
+import {
+  getOrchestratorModels as importedGetOrchestratorModels,
+  processWithOrchestrator as importedProcessWithOrchestrator,
+} from './orchestrator';
+
+// Create a comprehensive default export with all API functions
+export default {
+  analyzePrompt,
+  uploadDocuments,
+  analyzeWithDocuments,
+  getApiStatus,
+  analyzePromptSimple,
+  uploadDocument,
+  getDocuments,
+  deleteDocument,
+  // Include the orchestrator functions
+  getOrchestratorModels: importedGetOrchestratorModels,
+  processWithOrchestrator: importedProcessWithOrchestrator,
+};

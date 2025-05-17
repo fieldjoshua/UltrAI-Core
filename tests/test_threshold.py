@@ -3,10 +3,9 @@ Threshold Graphs
 ================
 """
 
-import pytest
-
 import networkx as nx
 import networkx.algorithms.threshold as nxt
+import pytest
 from networkx.algorithms.isomorphism.isomorph import graph_could_be_isomorphic
 
 cnlti = nx.convert_node_labels_to_integers

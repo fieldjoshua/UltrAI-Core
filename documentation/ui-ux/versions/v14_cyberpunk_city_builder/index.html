@@ -1322,7 +1322,7 @@
 <body>
     <!-- Scanlines Overlay -->
     <div class="scanlines"></div>
-    
+
     <!-- City Background -->
     <div class="city-background"></div>
 
@@ -1357,7 +1357,7 @@
         <div class="data-particle"></div>
         <div class="data-particle"></div>
     </div>
-    
+
     <!-- Cost Estimator -->
     <div class="floating-costs">
         <div class="costs-title">COST ESTIMATOR</div>
@@ -1378,7 +1378,7 @@
             <div class="cost-value">$0.05</div>
         </div>
     </div>
-    
+
     <!-- Credits Display -->
     <div class="credits-container">
         <div class="credits-icon">⚡</div>
@@ -1387,7 +1387,7 @@
             <div class="credits-value">8,945</div>
         </div>
     </div>
-    
+
     <!-- Main Container -->
     <div class="container">
         <!-- Progress Steps -->
@@ -1423,7 +1423,7 @@
                 <div class="step-label">RESULTS</div>
             </div>
         </div>
-        
+
         <!-- Building Content -->
         <div class="building">
             <!-- Building Floor 1: Prompt (hidden) -->
@@ -1435,7 +1435,7 @@
                     <div class="window"></div>
                     <div class="window"></div>
                 </div>
-                
+
                 <form>
                     <div class="form-group">
                         <label for="prompt" class="input-label">WHAT WOULD YOU LIKE TO ANALYZE?</label>
@@ -1443,19 +1443,19 @@
                         <div class="input-description">Be specific for more accurate results. Include any key questions or aspects you want addressed.</div>
                     </div>
                 </form>
-                
+
                 <div class="building-floor-actions">
                     <button class="action-btn disabled">PREVIOUS</button>
                     <button class="action-btn primary">NEXT</button>
                 </div>
             </div>
-            
+
             <!-- Building Floor 2: Model Selection (active) -->
             <div class="building-floor">
                 <div class="suggestion-pill">
                     <span>⚡</span> Try selecting multiple models for better results
                 </div>
-                
+
                 <div class="building-windows">
                     <div class="window"></div>
                     <div class="window"></div>
@@ -1463,11 +1463,11 @@
                     <div class="window"></div>
                     <div class="window"></div>
                 </div>
-                
+
                 <div class="form-group">
                     <label class="input-label">SELECT AI MODELS</label>
                     <div class="input-description">Choose which AI models to include in your analysis. Each model contributes unique strengths.</div>
-                    
+
                     <div class="model-grid">
                         <!-- Model 1 -->
                         <div class="model-card selected">
@@ -1486,7 +1486,7 @@
                                 </div>
                             </div>
                         </div>
-                        
+
                         <!-- Model 2 -->
                         <div class="model-card">
                             <div class="model-header">
@@ -1504,7 +1504,7 @@
                                 </div>
                             </div>
                         </div>
-                        
+
                         <!-- Model 3 -->
                         <div class="model-card">
                             <div class="model-header">
@@ -1522,7 +1522,7 @@
                                 </div>
                             </div>
                         </div>
-                        
+
                         <!-- Model 4 -->
                         <div class="model-card">
                             <div class="model-header">
@@ -1542,7 +1542,7 @@
                         </div>
                     </div>
                 </div>
-                
+
                 <div class="building-floor-actions">
                     <button class="action-btn">PREVIOUS</button>
                     <button class="action-btn primary">NEXT</button>
@@ -1550,19 +1550,19 @@
             </div>
         </div>
     </div>
-    
+
     <!-- Back to UI/UX Overview Link -->
     <a href="../../index.html" class="back-link">← BACK TO UI/UX OVERVIEW</a>
-    
+
     <!-- Simple JavaScript for Interactions -->
     <script>
         // Model card selection
         const modelCards = document.querySelectorAll('.model-card');
-        
+
         modelCards.forEach(card => {
             card.addEventListener('click', () => {
                 card.classList.toggle('selected');
-                
+
                 // Set the radio button if the card is selected
                 if (card.classList.contains('selected')) {
                     const radio = card.querySelector('input[type="radio"]');
@@ -1570,15 +1570,15 @@
                         radio.checked = true;
                     }
                 }
-                
+
                 // Update cost estimator
                 updateCostEstimator();
             });
         });
-        
+
         // Radio button selection should also select the card
         const radioButtons = document.querySelectorAll('input[type="radio"]');
-        
+
         radioButtons.forEach(radio => {
             radio.addEventListener('change', () => {
                 // First remove selection from all cards
@@ -1590,15 +1590,15 @@
                 });
             });
         });
-        
+
         // Dynamic cost estimation
         function updateCostEstimator() {
             const selectedModels = document.querySelectorAll('.model-card.selected').length;
             const modelCost = selectedModels * 0.05;
-            
+
             document.querySelector('.cost-item:nth-child(1) .cost-label').textContent = `Models (${selectedModels})`;
             document.querySelector('.cost-item:nth-child(1) .cost-value').textContent = `$${modelCost.toFixed(2)}`;
-            
+
             document.querySelector('.total-cost .cost-value').textContent = `$${modelCost.toFixed(2)}`;
         }
     </script>

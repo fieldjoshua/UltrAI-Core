@@ -5,9 +5,9 @@ This module provides a FastAPI middleware that applies rate limits to API reques
 based on user subscription tier, path, and method.
 """
 
-from typing import Callable, Optional, Dict, Any, List
 import time
 import uuid
+from typing import Any, Callable, Dict, List, Optional
 
 from fastapi import FastAPI, Request, Response, status
 from fastapi.responses import JSONResponse
@@ -15,10 +15,10 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.types import ASGIApp
 
 from backend.database.models.user import User
-from backend.services.auth_service import auth_service
-from backend.utils.rate_limit_service import rate_limit_service
-from backend.utils.logging import get_logger
 from backend.models.base_models import ErrorResponse
+from backend.services.auth_service import auth_service
+from backend.utils.logging import get_logger
+from backend.utils.rate_limit_service import rate_limit_service
 
 # Set up logger
 logger = get_logger("rate_limit_middleware", "logs/rate_limit.log")
@@ -197,11 +197,15 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
             # Add rate limit headers to the response
             try:
                 if hasattr(response, "headers"):
-                    response.headers["X-RateLimit-Limit"] = str(rate_limit_info.get("limit", 0))
+                    response.headers["X-RateLimit-Limit"] = str(
+                        rate_limit_info.get("limit", 0)
+                    )
                     response.headers["X-RateLimit-Remaining"] = str(
                         rate_limit_info.get("remaining", 0)
                     )
-                    response.headers["X-RateLimit-Reset"] = str(rate_limit_info.get("reset", 0))
+                    response.headers["X-RateLimit-Reset"] = str(
+                        rate_limit_info.get("reset", 0)
+                    )
                     response.headers["X-Request-ID"] = request_id
             except Exception as e:
                 logger.error(f"Error adding rate limit headers: {str(e)}")
@@ -276,7 +280,9 @@ async def rate_limit_middleware(request: Request, call_next):
     """
     try:
         # Check if this is a health check or a path that should be excluded
-        if request.url.path.startswith("/health") or request.url.path.startswith("/api/docs"):
+        if request.url.path.startswith("/health") or request.url.path.startswith(
+            "/api/docs"
+        ):
             return await call_next(request)
 
         # Use the same middleware implementation with default settings

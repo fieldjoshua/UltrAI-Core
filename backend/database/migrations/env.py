@@ -11,11 +11,23 @@ from logging.config import fileConfig
 from alembic import context
 from sqlalchemy import engine_from_config, pool
 
-# Add the parent directory to the path so we can import models
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))))
+# Add the parent directory to the path so we can import backend.models as models
+sys.path.insert(
+    0,
+    os.path.dirname(
+        os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    ),
+)
 
 # Import database connection settings
-from backend.database.connection import DATABASE_URL, DB_HOST, DB_PORT, DB_USER, DB_PASSWORD, DB_NAME
+from backend.database.connection import (
+    DATABASE_URL,
+    DB_HOST,
+    DB_NAME,
+    DB_PASSWORD,
+    DB_PORT,
+    DB_USER,
+)
 
 # Import the SQLAlchemy base
 from backend.database.models.base import Base
@@ -30,10 +42,11 @@ config.set_main_option("sqlalchemy.url", DATABASE_URL)
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-# Import all models to ensure they're included in the migration
-from backend.database.models.user import User, ApiKey
-from backend.database.models.document import Document, DocumentChunk
 from backend.database.models.analysis import Analysis, AnalysisResult
+from backend.database.models.document import Document, DocumentChunk
+
+# Import all models to ensure they're included in the migration
+from backend.database.models.user import ApiKey, User
 
 # Set target metadata to Base.metadata
 target_metadata = Base.metadata
@@ -78,7 +91,7 @@ def run_migrations_online() -> None:
     # Use connection string from the config
     configuration = config.get_section(config.config_ini_section)
     configuration["sqlalchemy.url"] = get_url()
-    
+
     # Create the engine
     connectable = engine_from_config(
         configuration,
@@ -88,7 +101,7 @@ def run_migrations_online() -> None:
 
     with connectable.connect() as connection:
         context.configure(
-            connection=connection, 
+            connection=connection,
             target_metadata=target_metadata,
             # Use transaction per migration to ensure atomic upgrades
             transaction_per_migration=True,

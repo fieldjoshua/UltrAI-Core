@@ -60,15 +60,17 @@ The path handling in `config.py` has been improved to properly handle both relat
 ## Common Development Workflow
 
 1. **Before Starting a Server**:
+
    ```bash
    # Clear the required port
    ./scripts/clear_port.sh 8085
-   
+
    # Start the server
    python -m uvicorn backend.app:app --port 8085
    ```
 
 2. **Automated Workflow**:
+
    ```bash
    # Use start scripts with integrated port clearing
    ./scripts/start-dev.sh
@@ -87,10 +89,12 @@ The path handling in `config.py` has been improved to properly handle both relat
 ### Common Port Issues
 
 1. **Permission Denied**:
+
    - Make sure you have the necessary permissions to kill processes
    - Try running the script with sudo if needed
 
 2. **Port Still in Use After Clearing**:
+
    - Some processes may restart automatically
    - Check for supervisor or systemd services that may be restarting processes
    - Use `lsof -i :PORT` to manually inspect what's using the port
@@ -103,14 +107,17 @@ The path handling in `config.py` has been improved to properly handle both relat
 ## Best Practices
 
 1. **Port Standardization**:
+
    - Use consistent ports for specific services across development environments
    - Document standard ports in `.env.example` and documentation
 
 2. **Environment Variables**:
+
    - Use environment variables for port configuration
    - Allow overriding default ports through environment variables
 
 3. **Graceful Startup**:
+
    - Always clear ports before starting services
    - Include proper error handling for port conflicts
 
@@ -123,10 +130,12 @@ The path handling in `config.py` has been improved to properly handle both relat
 Potential enhancements to the port management system:
 
 1. **Port Reservation System**:
+
    - Implement a system to reserve ports for specific services
    - Prevent port conflicts by coordinating port usage
 
 2. **Dynamic Port Assignment**:
+
    - Fall back to alternative ports when a preferred port is unavailable
    - Communicate assigned ports to dependent services
 

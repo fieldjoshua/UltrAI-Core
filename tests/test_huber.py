@@ -4,7 +4,6 @@
 import numpy as np
 import pytest
 from scipy import optimize
-
 from sklearn.datasets import make_regression
 from sklearn.linear_model import HuberRegressor, LinearRegression, Ridge, SGDRegressor
 from sklearn.linear_model._huber import _huber_loss_and_gradient

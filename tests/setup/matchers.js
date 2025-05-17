@@ -19,10 +19,10 @@ function setupCustomMatchers() {
     },
     toMatchResponse(received, expected) {
       // Basic check if response has expected structure
-      const hasExpectedKeys = Object.keys(expected).every(key => 
+      const hasExpectedKeys = Object.keys(expected).every(key =>
         received.hasOwnProperty(key)
       );
-      
+
       if (hasExpectedKeys) {
         return {
           message: () => `expected response not to match structure`,
@@ -42,4 +42,4 @@ function setupCustomMatchers() {
 setupCustomMatchers();
 
 // Export the setup function in case it needs to be called explicitly
-export { setupCustomMatchers }; 
+export { setupCustomMatchers };

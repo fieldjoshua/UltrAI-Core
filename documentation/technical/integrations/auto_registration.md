@@ -100,6 +100,7 @@ export OPENAI_API_KEY=your_real_key
 ```
 
 In this configuration:
+
 - OpenAI models will work with real API calls
 - Anthropic and Google models will show as "unavailable" but be visible in the UI
 

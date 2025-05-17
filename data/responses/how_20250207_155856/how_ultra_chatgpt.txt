@@ -5,7 +5,7 @@ In the quest to create a robust multimodal AI model orchestrator, a harmonious b
 **Development Blueprint**
 
 - **Objective**: To architect a system that skillfully leverages an array of generative AI models specializing in different domains (text, images, audio, etc.) to produce integrated and contextually relevant outputs in response to varied user prompts.
-  
+
 - **Modular System Design**: Emphasizing a modular architecture enhances integration flexibility, enabling seamless scalability and efficient model management. This foundation supports the orchestration logic, facilitating dynamic model selection and interoperability.
 
 - **Model Selection and Integration**: A stringent process for model curation is critical, focusing on domain-specific performance and potential for seamless collaboration across models. This involves utilizing standardized APIs and microservices for effective communication and data exchange.

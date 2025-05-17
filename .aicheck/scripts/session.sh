@@ -103,4 +103,4 @@ EOC
     elif command -v xdg-open &> /dev/null; then
         xdg-open "$context_dir/next_chat_context.md"
     fi
-} 
+}

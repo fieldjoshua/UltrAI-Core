@@ -5,7 +5,6 @@ Tests for BLEU translation evaluation metric
 import unittest
 
 import numpy as np
-
 from nltk.data import find
 from nltk.translate.bleu_score import (
     SmoothingFunction,

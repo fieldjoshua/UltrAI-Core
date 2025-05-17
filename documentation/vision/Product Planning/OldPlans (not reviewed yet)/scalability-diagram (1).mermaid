@@ -4,58 +4,58 @@ flowchart TD
         ORC1 --> SS1[State Store Cluster]
         ORC1 --> MQ1[Message Queue Cluster]
         ORC1 --> MS1[Metrics Store]
-        
+
         subgraph "Orchestrator Cluster"
             ORC1 --> OI1[Instance 1]
             ORC1 --> OI2[Instance 2]
             ORC1 --> OI3[Instance N]
         end
-        
+
         subgraph "State Store Cluster"
             SS1 --> SS1_1[Primary]
             SS1 --> SS1_2[Replica 1]
             SS1 --> SS1_3[Replica N]
         end
-        
+
         subgraph "Message Queue Cluster"
             MQ1 --> MQ1_1[Broker 1]
             MQ1 --> MQ1_2[Broker 2]
             MQ1 --> MQ1_3[Broker N]
         end
     end
-    
+
     subgraph "Disaster Recovery Region"
         LB2[Load Balancer] --> ORC2[DR Orchestrator Cluster]
         ORC2 --> SS2[DR State Store]
         ORC2 --> MQ2[DR Message Queue]
         ORC2 --> MS2[DR Metrics Store]
     end
-    
+
     subgraph "Model Services"
         MS[Model Service Router]
         MS --> L1[Llama Pool]
         MS --> C1[ChatGPT Pool]
         MS --> G1[Gemini Pool]
-        
+
         subgraph "Llama Pool"
             L1 --> LL1[Llama 1]
             L1 --> LL2[Llama 2]
             L1 --> LL3[Llama N]
         end
-        
+
         subgraph "ChatGPT Pool"
             C1 --> CG1[ChatGPT 1]
             C1 --> CG2[ChatGPT 2]
             C1 --> CG3[ChatGPT N]
         end
-        
+
         subgraph "Gemini Pool"
             G1 --> GM1[Gemini 1]
             G1 --> GM2[Gemini 2]
             G1 --> GM3[Gemini N]
         end
     end
-    
+
     SS1 -.-> SS2
     MQ1 -.-> MQ2
     MS1 -.-> MS2

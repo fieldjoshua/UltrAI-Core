@@ -12,7 +12,6 @@ import numpy as np
 import pytest
 from numpy.testing import assert_allclose
 from scipy import sparse
-
 from sklearn import config_context
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.compose import (

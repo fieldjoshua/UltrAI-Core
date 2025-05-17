@@ -34,14 +34,14 @@ docker model pull <model_name>
 
 The following table provides compatibility information for common models used with Ultra:
 
-| Model Name | Size | Memory Required | GPU Support | Strengths | Limitations |
-|------------|------|-----------------|-------------|-----------|-------------|
-| ai/smollm2 | ~250MB | 1GB | Yes | Fast, minimal resources, good for testing | Limited reasoning, shorter responses |
-| ai/mistral | ~4GB | 8GB | Yes | Good reasoning, balanced performance | Moderate resource requirements |
-| ai/llama3 | ~8GB | 16GB | Yes | Strong reasoning, detailed responses | Higher resource requirements |
-| ai/phi3 | ~1.5GB | 4GB | Yes | Efficient, good instruction following | May struggle with complex tasks |
-| ai/gemma | ~3GB | 8GB | Yes | Google's efficient model, strong reasoning | Limited coding capabilities |
-| ai/falcon | ~5GB | 12GB | Yes | Strong factual knowledge | Higher resource requirements |
+| Model Name | Size   | Memory Required | GPU Support | Strengths                                  | Limitations                          |
+| ---------- | ------ | --------------- | ----------- | ------------------------------------------ | ------------------------------------ |
+| ai/smollm2 | ~250MB | 1GB             | Yes         | Fast, minimal resources, good for testing  | Limited reasoning, shorter responses |
+| ai/mistral | ~4GB   | 8GB             | Yes         | Good reasoning, balanced performance       | Moderate resource requirements       |
+| ai/llama3  | ~8GB   | 16GB            | Yes         | Strong reasoning, detailed responses       | Higher resource requirements         |
+| ai/phi3    | ~1.5GB | 4GB             | Yes         | Efficient, good instruction following      | May struggle with complex tasks      |
+| ai/gemma   | ~3GB   | 8GB             | Yes         | Google's efficient model, strong reasoning | Limited coding capabilities          |
+| ai/falcon  | ~5GB   | 12GB            | Yes         | Strong factual knowledge                   | Higher resource requirements         |
 
 ## Performance Characteristics
 
@@ -56,21 +56,21 @@ Response speed is affected by several factors:
 
 Approximate response times for "What is machine learning?" (GPU accelerated):
 
-| Model | Response Time |
-|-------|---------------|
-| ai/smollm2 | 1-2 seconds |
-| ai/mistral | 3-5 seconds |
-| ai/llama3 | 5-10 seconds |
+| Model      | Response Time |
+| ---------- | ------------- |
+| ai/smollm2 | 1-2 seconds   |
+| ai/mistral | 3-5 seconds   |
+| ai/llama3  | 5-10 seconds  |
 
 ### Memory Usage
 
 Memory requirements scale with model size:
 
-| Model Size | Minimum RAM | Recommended RAM |
-|------------|-------------|-----------------|
-| Small (<2GB) | 4GB | 8GB |
-| Medium (2-5GB) | 8GB | 16GB |
-| Large (>5GB) | 16GB | 32GB+ |
+| Model Size     | Minimum RAM | Recommended RAM |
+| -------------- | ----------- | --------------- |
+| Small (<2GB)   | 4GB         | 8GB             |
+| Medium (2-5GB) | 8GB         | 16GB            |
+| Large (>5GB)   | 16GB        | 32GB+           |
 
 ### GPU Acceleration
 
@@ -84,17 +84,18 @@ GPU acceleration is automatically used when available and provides:
 
 Different models have varying capabilities in these areas:
 
-| Feature | ai/smollm2 | ai/mistral | ai/llama3 | ai/phi3 |
-|---------|------------|------------|-----------|---------|
-| Text Generation | ✅ | ✅ | ✅ | ✅ |
-| Context Length | 4K | 8K | 8K | 4K |
-| Reasoning | ⚠️ | ✅ | ✅ | ✅ |
-| Code Generation | ⚠️ | ✅ | ✅ | ⚠️ |
-| Instruction Following | ✅ | ✅ | ✅ | ✅ |
-| Multilingual | ⚠️ | ✅ | ✅ | ⚠️ |
-| Factual Knowledge | ⚠️ | ✅ | ✅ | ✅ |
+| Feature               | ai/smollm2 | ai/mistral | ai/llama3 | ai/phi3 |
+| --------------------- | ---------- | ---------- | --------- | ------- |
+| Text Generation       | ✅         | ✅         | ✅        | ✅      |
+| Context Length        | 4K         | 8K         | 8K        | 4K      |
+| Reasoning             | ⚠️         | ✅         | ✅        | ✅      |
+| Code Generation       | ⚠️         | ✅         | ✅        | ⚠️      |
+| Instruction Following | ✅         | ✅         | ✅        | ✅      |
+| Multilingual          | ⚠️         | ✅         | ✅        | ⚠️      |
+| Factual Knowledge     | ⚠️         | ✅         | ✅        | ✅      |
 
 Legend:
+
 - ✅ Strong capability
 - ⚠️ Limited capability
 - ❌ Not supported
@@ -104,18 +105,21 @@ Legend:
 ### For Development
 
 For development work, use:
+
 - ai/smollm2: Fastest, minimal resources
 - ai/phi3: Good balance of quality and performance
 
 ### For Testing
 
 For comprehensive testing, use:
+
 - ai/mistral: Good general-purpose performance
 - ai/llama3: High-quality responses
 
 ### For Production
 
 For production-like environments, use:
+
 - ai/llama3: Best overall quality
 - ai/mistral: Good quality with lower resource requirements
 
@@ -124,6 +128,7 @@ For production-like environments, use:
 ### CPU
 
 Docker Model Runner uses CPU for inference when GPU is not available:
+
 - Small models: 2+ CPU cores
 - Medium models: 4+ CPU cores
 - Large models: 8+ CPU cores
@@ -131,6 +136,7 @@ Docker Model Runner uses CPU for inference when GPU is not available:
 ### Memory
 
 Memory requirements by model size:
+
 - Small models (<2GB): 4GB+ RAM
 - Medium models (2-5GB): 8GB+ RAM
 - Large models (>5GB): 16GB+ RAM
@@ -138,6 +144,7 @@ Memory requirements by model size:
 ### Storage
 
 Storage requirements include:
+
 - Docker Desktop installation: ~2GB
 - Each model: Size varies from 250MB to 10GB+
 - Model cache: Additional 50-100% of model size
@@ -153,11 +160,13 @@ Storage requirements include:
 ### Model-Specific Limitations
 
 1. **ai/smollm2**:
+
    - Limited context understanding
    - May generate incorrect information more frequently
    - Shorter responses
 
 2. **ai/mistral**:
+
    - Sometimes repetitive in longer generations
    - May have inconsistent coding abilities
 

@@ -28,7 +28,7 @@ The current docker-compose.yml already includes mapping for the src directory:
 volumes:
   - ./backend:/app/backend
   - ./scripts:/app/scripts
-  - ./src:/app/src  # Added src directory for LLM implementation
+  - ./src:/app/src # Added src directory for LLM implementation
   - ./logs:/app/logs
   - ./data:/app/data
 ```
@@ -72,15 +72,17 @@ All services are already on the same `ultra-network` bridge network, allowing th
 When developing and testing the orchestrator integration in Docker:
 
 1. Start the services with:
+
    ```bash
    docker compose up -d backend frontend
    ```
 
 2. For local development without Docker, use the existing commands:
+
    ```bash
    # Backend
    python3 -m uvicorn backend.app:app --reload
-   
+
    # Frontend
    cd frontend && npm run dev
    ```
@@ -108,6 +110,7 @@ DEFAULT_ANALYSIS_TYPE=comparative
 To verify that the orchestrator integration works correctly in Docker:
 
 1. Start the Docker services:
+
    ```bash
    docker compose up -d backend frontend
    ```
@@ -117,6 +120,7 @@ To verify that the orchestrator integration works correctly in Docker:
 3. Navigate to the Orchestrator page
 
 4. Test various combinations of:
+
    - Models
    - Analysis types
    - Prompts
@@ -131,16 +135,19 @@ To verify that the orchestrator integration works correctly in Docker:
 If issues arise with the Docker integration of the orchestrator:
 
 1. **Backend cannot find orchestrator modules**:
+
    - Verify that the src directory is properly mounted
    - Check that the ORCHESTRATOR_MODULE_PATH is correctly set
    - Ensure Python import paths are correctly configured
 
 2. **Frontend cannot connect to backend**:
+
    - Verify that the VITE_API_URL is correctly set
    - Check that the backend service is running
    - Ensure that port 8000 is exposed from the backend container
 
 3. **Changes to orchestrator code not reflected**:
+
    - Restart the backend service to pick up changes
    - Check that file permissions allow the container to read the files
 

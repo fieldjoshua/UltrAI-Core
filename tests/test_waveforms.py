@@ -1,11 +1,7 @@
 import numpy as np
-from pytest import raises as assert_raises
-from scipy._lib._array_api import (
-    assert_almost_equal, xp_assert_equal, xp_assert_close
-)
-
 import scipy.signal._waveforms as waveforms
-
+from pytest import raises as assert_raises
+from scipy._lib._array_api import assert_almost_equal, xp_assert_close, xp_assert_equal
 
 # These chirp_* functions are the instantaneous frequencies of the signals
 # returned by chirp().

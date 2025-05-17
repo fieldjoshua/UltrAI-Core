@@ -1,6 +1,6 @@
 import numpy as np
+import pandas._testing as tm
 import pytest
-
 from pandas import (
     DataFrame,
     Index,
@@ -10,7 +10,6 @@ from pandas import (
     period_range,
     timedelta_range,
 )
-import pandas._testing as tm
 
 
 def gen_obj(klass, index):

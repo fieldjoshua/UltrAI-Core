@@ -11,7 +11,7 @@ We've successfully tested multiple LLM models with Docker Model Runner and the U
 ### 1. ai/smollm2
 
 - **Size**: 361.82 MB parameters
-- **Quantization**: IQ2_XXS/Q4_K_M 
+- **Quantization**: IQ2_XXS/Q4_K_M
 - **Architecture**: Llama
 - **Download Size**: ~250 MB
 
@@ -48,7 +48,8 @@ We've successfully tested multiple LLM models with Docker Model Runner and the U
 
 **Query**: "Compare the differences between Docker Model Runner and traditional cloud-based LLM APIs in 3-4 paragraphs."
 
-**Response**: 
+**Response**:
+
 ```
 Docker Model Runner and traditional cloud-based Language Model APIs (LLM APIs) serve similar purposes, which is to provide access to machine learning models for various applications. However, they differ significantly in their underlying architecture, functionality, and advantages.
 
@@ -97,6 +98,7 @@ Our testing approach included:
 5. **Resource Monitoring**: Track memory and CPU usage during model operation
 
 All tests were conducted on a standard development machine with:
+
 - MacBook Pro with Apple Silicon
 - 16GB RAM
 - Docker Desktop 4.25+

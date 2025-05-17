@@ -3,7 +3,6 @@ from math import ceil
 import numpy as np
 import pytest
 from scipy.stats import expon, norm, randint
-
 from sklearn.datasets import make_classification
 from sklearn.dummy import DummyClassifier
 from sklearn.experimental import enable_halving_search_cv  # noqa

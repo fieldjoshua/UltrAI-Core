@@ -8,7 +8,7 @@ import os
 import subprocess
 import time
 from datetime import datetime
-from typing import Dict, Any, Optional
+from typing import Any, Dict, Optional
 
 from backend.utils.health_check import HealthStatus
 from backend.utils.logging import get_logger
@@ -17,8 +17,12 @@ from backend.utils.logging import get_logger
 logger = get_logger("migration_health", "logs/migration_health.log")
 
 # Constants
-ALEMBIC_CONFIG = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
-    os.path.dirname(os.path.abspath(__file__))))), 'alembic.ini')
+ALEMBIC_CONFIG = os.path.join(
+    os.path.dirname(
+        os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    ),
+    "alembic.ini",
+)
 
 
 def get_migration_info() -> Dict[str, Any]:
@@ -30,15 +34,15 @@ def get_migration_info() -> Dict[str, Any]:
     """
     try:
         start_time = time.time()
-        
+
         # Get current revision
-        cmd = ['alembic', '-c', ALEMBIC_CONFIG, 'current', '--verbose']
+        cmd = ["alembic", "-c", ALEMBIC_CONFIG, "current", "--verbose"]
         current_output = subprocess.check_output(cmd, universal_newlines=True)
-        
+
         # Get migration history
-        cmd = ['alembic', '-c', ALEMBIC_CONFIG, 'history', '--verbose']
+        cmd = ["alembic", "-c", ALEMBIC_CONFIG, "history", "--verbose"]
         history_output = subprocess.check_output(cmd, universal_newlines=True)
-        
+
         # Parse the outputs to extract information
         current_revision = None
         current_revision_date = None
@@ -53,17 +57,28 @@ def get_migration_info() -> Dict[str, Any]:
                     date_line = current_output.splitlines()[next_line_idx]
                     if "Create Date:" in date_line:
                         current_revision_date = date_line.split(":", 1)[1].strip()
-        
+
         # Count total migrations from history
-        migrations = [line for line in history_output.splitlines() if line.startswith("Rev: ")]
+        migrations = [
+            line for line in history_output.splitlines() if line.startswith("Rev: ")
+        ]
         total_migrations = len(migrations)
-        
+
         # Parse pending migrations
-        cmd = ['alembic', '-c', ALEMBIC_CONFIG, 'history', '--verbose', f"{current_revision or 'base'}:head"]
+        cmd = [
+            "alembic",
+            "-c",
+            ALEMBIC_CONFIG,
+            "history",
+            "--verbose",
+            f"{current_revision or 'base'}:head",
+        ]
         pending_output = subprocess.check_output(cmd, universal_newlines=True)
-        pending_lines = [line for line in pending_output.splitlines() if line.startswith("Rev: ")]
+        pending_lines = [
+            line for line in pending_output.splitlines() if line.startswith("Rev: ")
+        ]
         pending_migrations = max(0, len(pending_lines) - 1)  # Subtract 1 for current
-        
+
         # Get pending migration details
         pending_details = []
         if pending_migrations > 0:
@@ -74,10 +89,12 @@ def get_migration_info() -> Dict[str, Any]:
                     desc_line = pending_output.splitlines()[desc_idx]
                     if "Parent revision:" not in desc_line:
                         desc = desc_line.strip()
-                        pending_details.append({"revision": rev_id, "description": desc})
-        
+                        pending_details.append(
+                            {"revision": rev_id, "description": desc}
+                        )
+
         duration_ms = int((time.time() - start_time) * 1000)
-        
+
         return {
             "current_revision": current_revision,
             "current_revision_date": current_revision_date,
@@ -88,7 +105,9 @@ def get_migration_info() -> Dict[str, Any]:
             "timestamp": datetime.utcnow().isoformat(),
         }
     except subprocess.CalledProcessError as e:
-        logger.error(f"Error getting migration info: {e.output.decode('utf-8') if hasattr(e, 'output') else str(e)}")
+        logger.error(
+            f"Error getting migration info: {e.output.decode('utf-8') if hasattr(e, 'output') else str(e)}"
+        )
         return {
             "error": str(e),
             "duration_ms": 0,
@@ -106,16 +125,16 @@ def get_migration_info() -> Dict[str, Any]:
 def check_migration_health() -> Dict[str, Any]:
     """
     Check database migration health.
-    
+
     Returns:
         Health check result with migration status
     """
     try:
         start_time = time.time()
-        
+
         # Get migration information
         migration_info = get_migration_info()
-        
+
         # Check for errors in getting migration info
         if "error" in migration_info:
             return {
@@ -125,10 +144,10 @@ def check_migration_health() -> Dict[str, Any]:
                 "duration_ms": int((time.time() - start_time) * 1000),
                 "timestamp": datetime.utcnow().isoformat(),
             }
-        
+
         # Check for pending migrations
         pending_migrations = migration_info.get("pending_migrations", 0)
-        
+
         if pending_migrations > 0:
             # Migrations are pending - this is a degraded state
             return {
@@ -138,7 +157,7 @@ def check_migration_health() -> Dict[str, Any]:
                 "duration_ms": int((time.time() - start_time) * 1000),
                 "timestamp": datetime.utcnow().isoformat(),
             }
-        
+
         # No pending migrations - healthy state
         return {
             "status": HealthStatus.OK,
@@ -161,8 +180,12 @@ def register_migration_health_check():
     """
     Register the migration health check with the health check registry.
     """
-    from backend.utils.health_check import HealthCheck, ServiceType, health_check_registry
-    
+    from backend.utils.health_check import (
+        HealthCheck,
+        ServiceType,
+        health_check_registry,
+    )
+
     # Create migration health check
     migration_check = HealthCheck(
         name="database_migrations",
@@ -173,6 +196,6 @@ def register_migration_health_check():
         check_interval=300,  # Check every 5 minutes to reduce overhead
         dependent_services=["database"],
     )
-    
+
     # Register with health check registry
     health_check_registry.register(migration_check)

@@ -3,7 +3,6 @@ from inspect import signature
 from numbers import Integral, Real
 
 import pytest
-
 from sklearn.utils._param_validation import (
     Interval,
     InvalidParameterError,

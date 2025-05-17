@@ -93,7 +93,7 @@ Core Architecture
 Data Flow
 
 
-	
+
 
 	Input
 	Process
@@ -101,7 +101,7 @@ Data Flow
 	Output
 	Next Step
 	1
-	
+
 
 	User Query
 	Initial prompt parsing and keyword extraction
@@ -109,7 +109,7 @@ Data Flow
 	Parsed prompt
 	2
 	2
-	
+
 
 	Parsed prompt
 	Formulate initial prompt templates
@@ -117,7 +117,7 @@ Data Flow
 	Template: 'Please analyze the following: {prompt}'
 	3
 	3
-	
+
 
 	Initial prompt templates
 	Parallel dispatch to all configured models
@@ -125,7 +125,7 @@ Data Flow
 	API requests to all models
 	4
 	4
-	
+
 
 	API requests
 	Rate limiting and request management
@@ -133,7 +133,7 @@ Data Flow
 	Controlled API calls
 	5
 	5
-	
+
 
 	Controlled API calls
 	Initial response generation
@@ -141,7 +141,7 @@ Data Flow
 	Initial responses from each model
 	6
 	6
-	
+
 
 	Initial responses
 	Quality evaluation of responses
@@ -149,7 +149,7 @@ Data Flow
 	Quality scores: coherence, technical depth, strategic value, uniqueness
 	7
 	7
-	
+
 
 	Initial responses + quality scores
 	Meta-prompt template creation
@@ -157,7 +157,7 @@ Data Flow
 	Template: 'Analyze these model responses and identify: 1. Key technical insights...'
 	8
 	8
-	
+
 
 	Meta-prompt template + initial responses
 	Parallel dispatch to meta-analysis models
@@ -165,7 +165,7 @@ Data Flow
 	API requests for meta-analysis
 	9
 	9
-	
+
 
 	API requests
 	Rate limiting and request management
@@ -173,7 +173,7 @@ Data Flow
 	Controlled API calls
 	10
 	10
-	
+
 
 	Controlled API calls
 	Meta-analysis generation
@@ -181,7 +181,7 @@ Data Flow
 	Meta-analysis responses
 	11
 	11
-	
+
 
 	Meta-analysis responses
 	Quality evaluation of meta-responses
@@ -189,7 +189,7 @@ Data Flow
 	Quality scores for meta-analyses
 	12
 	12
-	
+
 
 	Initial + meta responses
 	Ultra-synthesis prompt creation
@@ -197,7 +197,7 @@ Data Flow
 	Template: 'Create a comprehensive synthesis including: 1. Technical implementation...'
 	13
 	13
-	
+
 
 	Ultra-synthesis prompt
 	Dispatch to designated ultra engine
@@ -205,7 +205,7 @@ Data Flow
 	API request to ultra engine
 	14
 	14
-	
+
 
 	API request
 	Rate limiting and request management
@@ -213,7 +213,7 @@ Data Flow
 	Controlled API call
 	15
 	15
-	
+
 
 	Controlled API call
 	Ultra-synthesis generation
@@ -221,7 +221,7 @@ Data Flow
 	Ultra-synthesis response
 	16
 	16
-	
+
 
 	All previous responses
 	Hyper-level analysis prompt creation
@@ -229,7 +229,7 @@ Data Flow
 	Template: 'Perform a hyper-level analysis of all previous responses: {responses}'
 	17
 	17
-	
+
 
 	Hyper-level prompt
 	Dispatch to ChatGPT
@@ -237,7 +237,7 @@ Data Flow
 	API request to ChatGPT
 	18
 	18
-	
+
 
 	API request
 	Rate limiting and request management
@@ -245,7 +245,7 @@ Data Flow
 	Controlled API call
 	19
 	19
-	
+
 
 	Controlled API call
 	Hyper-level analysis generation
@@ -253,7 +253,7 @@ Data Flow
 	Final hyper-level analysis
 	20
 	20
-	
+
 
 	Final analysis
 	Formatting according to output_format parameter
@@ -261,26 +261,26 @@ Data Flow
 	Formatted response (plain/markdown/JSON)
 	21
 	21
-	
+
 
 	Formatted response + performance metrics
 	Result packaging and saving
 	System
 	Complete response package with all stages and metrics
 	End
-	
 
-	
 
-	
 
-	
 
-	
 
-	
 
-	
+
+
+
+
+
+
+
 
 	Prompt Structure
 
@@ -344,7 +344,7 @@ Consumer-Friendly Name
 	Our Meta Analysis engine compares results across all models for each intelligence method, identifying patterns, contradictions, and unique insights.
 	Our Ultra Synthesis engine creates a fully-integrated intelligence synthesis that combines the outputs from all methods into a cohesive whole, with recommendations that benefit from multiple cognitive frameworks.
 	Maximizes intelligence multiplication by leveraging the complementary strengths of different analytical approaches, resulting in insights and recommendations that no single method could produce
-	
+
 
 Code Implementation Details
 The code implementation of the UltrLLMOrchestrator revolves around a central class, TriLLMOrchestrator, which orchestrates interactions between multiple AI models. Key components include:

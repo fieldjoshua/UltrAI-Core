@@ -1,24 +1,15 @@
-from collections import defaultdict
-from datetime import datetime
-from functools import partial
 import math
 import operator
 import re
+from collections import defaultdict
+from datetime import datetime
+from functools import partial
 
 import numpy as np
-import pytest
-
-from pandas.compat import IS64
-from pandas.errors import InvalidIndexError
-import pandas.util._test_decorators as td
-
-from pandas.core.dtypes.common import (
-    is_any_real_numeric_dtype,
-    is_numeric_dtype,
-    is_object_dtype,
-)
-
 import pandas as pd
+import pandas._testing as tm
+import pandas.util._test_decorators as td
+import pytest
 from pandas import (
     CategoricalIndex,
     DataFrame,
@@ -32,7 +23,12 @@ from pandas import (
     period_range,
     timedelta_range,
 )
-import pandas._testing as tm
+from pandas.compat import IS64
+from pandas.core.dtypes.common import (
+    is_any_real_numeric_dtype,
+    is_numeric_dtype,
+    is_object_dtype,
+)
 from pandas.core.indexes.api import (
     Index,
     MultiIndex,
@@ -40,6 +36,7 @@ from pandas.core.indexes.api import (
     ensure_index,
     ensure_index_from_sequences,
 )
+from pandas.errors import InvalidIndexError
 
 
 class TestIndex:

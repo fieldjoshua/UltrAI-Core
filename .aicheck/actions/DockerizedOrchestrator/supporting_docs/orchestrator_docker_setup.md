@@ -44,7 +44,7 @@ The existing docker-compose.yml already includes the necessary volume mappings:
 volumes:
   - ./backend:/app/backend
   - ./scripts:/app/scripts
-  - ./src:/app/src  # Contains orchestrator code
+  - ./src:/app/src # Contains orchestrator code
   - ./logs:/app/logs
   - ./data:/app/data
 ```
@@ -115,16 +115,19 @@ python -m src.cli.run_test --prompt "Explain quantum computing in simple terms" 
 ### Common Issues and Solutions
 
 1. **ImportError: No module named 'src'**
+
    - Ensure the src directory is properly mounted
    - Check that the Python path includes the project root
    - Try running `export PYTHONPATH=$PYTHONPATH:/app` in the container
 
 2. **API Key errors**
+
    - Verify that environment variables are correctly set in .env
    - Check that Docker Compose is using the .env file
    - Try setting the variables directly in docker-compose.yml for testing
 
 3. **Permission errors on mounted volumes**
+
    - Check file permissions in the host system
    - Run `chmod -R 755 ./src` to ensure files are readable
 
@@ -142,6 +145,7 @@ docker compose exec backend bash -c "python -m src.cli.run_test --prompt 'What i
 ```
 
 Expected output:
+
 ```
 Running comparative analysis with 2 models...
 Initial responses received
@@ -157,6 +161,7 @@ docker compose exec backend bash -c "export USE_MOCK=true && python -m src.cli.r
 ```
 
 Expected output:
+
 ```
 MOCK MODE ENABLED
 Running comparative analysis with 3 models...

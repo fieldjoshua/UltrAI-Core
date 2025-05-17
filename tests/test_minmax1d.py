@@ -1,13 +1,18 @@
 """Test of min-max 1D features of sparse array classes"""
 
-import pytest
-
 import numpy as np
-
-from numpy.testing import assert_equal, assert_array_equal
-
-from scipy.sparse import coo_array, csr_array, csc_array, bsr_array
-from scipy.sparse import coo_matrix, csr_matrix, csc_matrix, bsr_matrix
+import pytest
+from numpy.testing import assert_array_equal, assert_equal
+from scipy.sparse import (
+    bsr_array,
+    bsr_matrix,
+    coo_array,
+    coo_matrix,
+    csc_array,
+    csc_matrix,
+    csr_array,
+    csr_matrix,
+)
 from scipy.sparse._sputils import isscalarlike
 
 
@@ -55,7 +60,6 @@ class Test_MinMaxMixin1D:
         assert_array_equal(np.min(datsp), np.min(dat))
         assert_array_equal(np.max(datsp), np.max(dat))
 
-
     def test_argmax(self, spcreator):
         D1 = np.array([-1, 5, 2, 3])
         D2 = np.array([0, 0, -1, -2])
@@ -88,7 +92,7 @@ class Test_ShapeMinMax2DWithAxis:
         dat = np.array([[-1, 5, 0, 3], [0, 0, -1, -2], [0, 0, 1, 2]])
         datsp = spcreator(dat)
 
-        for (spminmax, npminmax) in [
+        for spminmax, npminmax in [
             (datsp.min, np.min),
             (datsp.max, np.max),
             (datsp.nanmin, np.nanmin),
@@ -105,10 +109,10 @@ class Test_ShapeMinMax2DWithAxis:
 
         # verify spmatrix behavior
         spmat_form = {
-            'coo': coo_matrix,
-            'csr': csr_matrix,
-            'csc': csc_matrix,
-            'bsr': bsr_matrix,
+            "coo": coo_matrix,
+            "csr": csr_matrix,
+            "csc": csc_matrix,
+            "bsr": bsr_matrix,
         }
         datspm = spmat_form[datsp.format](dat)
 

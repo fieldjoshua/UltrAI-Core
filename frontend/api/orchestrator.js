@@ -1,22 +1,29 @@
 /**
  * API client for UltrAI Orchestrator
- * 
- * This module provides functions to interact with the 
+ *
+ * This module provides functions to interact with the
  * modular orchestration system that was developed in the CLI.
  */
 
-// Base API URL - adjusted to use port 8085
-const API_BASE_URL = 'http://localhost:8085';
+import { getApiBaseUrl, reportApiError } from './config';
+
+// Base API URL - will be discovered dynamically
+let API_BASE_URL = 'http://localhost:8085';
 
 /**
  * Get available models for orchestration
  * @returns {Promise<Array<string>>} List of available model names
  */
-const getOrchestratorModels = async () => {
+export const getOrchestratorModels = async () => {
   try {
+    // Ensure API discovery has completed
+    if (!API_BASE_URL.includes('localhost')) {
+      API_BASE_URL = await getApiBaseUrl();
+    }
+
     const response = await fetch(`${API_BASE_URL}/api/orchestrator/models`);
     const data = await response.json();
-    
+
     if (data.status === 'success') {
       return data.models;
     } else {
@@ -25,17 +32,20 @@ const getOrchestratorModels = async () => {
         'openai-gpt4o',
         'anthropic-claude',
         'google-gemini',
-        'deepseek-chat'
+        'deepseek-chat',
       ];
     }
   } catch (error) {
-    console.error('Error fetching orchestrator models:', error);
+    const errorMessage = `Error fetching orchestrator models: ${error.message}`;
+    reportApiError(errorMessage, 'get-orchestrator-models');
+    console.error(errorMessage);
+
     // Return fallback models
     return [
       'openai-gpt4o',
       'anthropic-claude',
       'google-gemini',
-      'deepseek-chat'
+      'deepseek-chat',
     ];
   }
 };
@@ -50,43 +60,52 @@ const getOrchestratorModels = async () => {
  * @param {Object} [params.options] - Additional options
  * @returns {Promise<Object>} Orchestration results
  */
-const processWithOrchestrator = async ({
+export const processWithOrchestrator = async ({
   prompt,
   models = null,
   leadModel = null,
   analysisType = 'comparative',
-  options = {}
+  options = {},
 }) => {
   try {
+    // Ensure API discovery has completed
+    if (!API_BASE_URL.includes('localhost')) {
+      API_BASE_URL = await getApiBaseUrl();
+    }
+
     // Prepare the request payload
     const payload = {
       prompt,
       models,
       lead_model: leadModel,
       analysis_type: analysisType,
-      options
+      options,
     };
 
     // Call the API
     const response = await fetch(`${API_BASE_URL}/api/orchestrator/process`, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
       },
-      body: JSON.stringify(payload)
+      body: JSON.stringify(payload),
     });
 
     // Check for response errors
     if (!response.ok) {
       const errorText = await response.text();
-      throw new Error(`API error: ${response.status} - ${errorText}`);
+      const errorMessage = `API error: ${response.status} - ${errorText}`;
+      reportApiError(errorMessage, 'process-with-orchestrator');
+      throw new Error(errorMessage);
     }
 
     // Parse the response
     return await response.json();
   } catch (error) {
-    console.error('Error processing with orchestrator:', error);
-    
+    const errorMessage = `Error processing with orchestrator: ${error.message}`;
+    reportApiError(errorMessage, 'process-with-orchestrator-error');
+    console.error(errorMessage);
+
     // Create a fallback response
     return {
       status: 'error',
@@ -94,19 +113,19 @@ const processWithOrchestrator = async ({
       initial_responses: [],
       analysis_results: {
         type: analysisType,
-        summary: 'Error occurred during analysis'
+        summary: 'Error occurred during analysis',
       },
       synthesis: {
         model: leadModel || 'unknown',
         provider: 'error',
-        response: 'Failed to generate a response due to an error.'
-      }
+        response: 'Failed to generate a response due to an error.',
+      },
     };
   }
 };
 
-// Export the API functions
-module.exports = {
+// Default export for compatibility
+export default {
   getOrchestratorModels,
-  processWithOrchestrator
+  processWithOrchestrator,
 };

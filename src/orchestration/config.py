@@ -7,12 +7,14 @@ LLM providers, models, and orchestration parameters.
 """
 
 from enum import Enum
-from typing import Dict, List, Optional, Any, Union
+from typing import Any, Dict, List, Optional, Union
+
 from pydantic import BaseModel, Field
 
 
 class LLMProvider(str, Enum):
     """Enum representing supported LLM providers."""
+
     OPENAI = "openai"
     ANTHROPIC = "anthropic"
     GOOGLE = "google"
@@ -24,7 +26,7 @@ class LLMProvider(str, Enum):
 
 class ModelConfig(BaseModel):
     """Configuration for a single LLM model."""
-    
+
     provider: LLMProvider
     model_id: str
     api_key: Optional[str] = None
@@ -35,14 +37,14 @@ class ModelConfig(BaseModel):
     weight: float = 1.0
     is_primary: bool = False
     extra_params: Optional[Dict[str, Any]] = Field(default_factory=dict)
-    
+
     class Config:
         arbitrary_types_allowed = True
 
 
 class OrchestratorConfig(BaseModel):
     """Configuration for the BaseOrchestrator."""
-    
+
     models: List[ModelConfig]
     cache_enabled: bool = True
     cache_ttl: int = 3600  # seconds
@@ -52,17 +54,17 @@ class OrchestratorConfig(BaseModel):
     retry_delay: int = 2  # seconds
     log_level: str = "INFO"
     extra_config: Optional[Dict[str, Any]] = Field(default_factory=dict)
-    
+
     class Config:
         arbitrary_types_allowed = True
-    
+
     def get_primary_model(self) -> Optional[ModelConfig]:
         """Get the primary model configuration if defined."""
         for model in self.models:
             if model.is_primary:
                 return model
         return self.models[0] if self.models else None
-    
+
     def get_models_by_provider(self, provider: LLMProvider) -> List[ModelConfig]:
         """Get all models for a specific provider."""
         return [model for model in self.models if model.provider == provider]
@@ -70,13 +72,13 @@ class OrchestratorConfig(BaseModel):
 
 class RequestConfig(BaseModel):
     """Configuration for a single LLM request."""
-    
+
     prompt: str
     model_configs: Optional[List[ModelConfig]] = None
     max_tokens: Optional[int] = None
     temperature: Optional[float] = None
     timeout: Optional[int] = None
     extra_params: Optional[Dict[str, Any]] = Field(default_factory=dict)
-    
+
     class Config:
         arbitrary_types_allowed = True

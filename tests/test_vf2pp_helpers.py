@@ -1,23 +1,16 @@
 import itertools as it
 
-import pytest
-
 import networkx as nx
+import pytest
 from networkx import vf2pp_is_isomorphic, vf2pp_isomorphism
-from networkx.algorithms.isomorphism.vf2pp import (
-    _consistent_PT,
-    _cut_PT,
-    _feasibility,
-    _find_candidates,
-    _find_candidates_Di,
-    _GraphParameters,
-    _initialize_parameters,
-    _matching_order,
-    _restore_Tinout,
-    _restore_Tinout_Di,
-    _StateParameters,
-    _update_Tinout,
-)
+from networkx.algorithms.isomorphism.vf2pp import (_consistent_PT, _cut_PT,
+                                                   _feasibility, _find_candidates,
+                                                   _find_candidates_Di,
+                                                   _GraphParameters,
+                                                   _initialize_parameters,
+                                                   _matching_order, _restore_Tinout,
+                                                   _restore_Tinout_Di, _StateParameters,
+                                                   _update_Tinout)
 
 labels_same = ["blue"]
 

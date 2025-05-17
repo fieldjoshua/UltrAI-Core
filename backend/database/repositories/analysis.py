@@ -5,14 +5,15 @@ This module provides data access operations for analysis-related models.
 """
 
 import logging
-from typing import List, Optional, Dict, Any
 from datetime import datetime
+from typing import Any, Dict, List, Optional
+
+from sqlalchemy import func
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
-from sqlalchemy import func
 
-from backend.database.repositories.base import BaseRepository
 from backend.database.models.analysis import Analysis
+from backend.database.repositories.base import BaseRepository
 from backend.utils.exceptions import DatabaseException
 
 logger = logging.getLogger(__name__)
@@ -25,7 +26,9 @@ class AnalysisRepository(BaseRepository[Analysis]):
         """Initialize the analysis repository."""
         super().__init__(Analysis)
 
-    def get_by_user_id(self, db: Session, user_id: str, skip: int = 0, limit: int = 100) -> List[Analysis]:
+    def get_by_user_id(
+        self, db: Session, user_id: str, skip: int = 0, limit: int = 100
+    ) -> List[Analysis]:
         """Get all analyses for a specific user.
 
         Args:
@@ -38,14 +41,21 @@ class AnalysisRepository(BaseRepository[Analysis]):
             List of analyses performed by the user
         """
         try:
-            return db.query(Analysis).filter(
-                Analysis.user_id == user_id
-            ).order_by(Analysis.created_at.desc()).offset(skip).limit(limit).all()
+            return (
+                db.query(Analysis)
+                .filter(Analysis.user_id == user_id)
+                .order_by(Analysis.created_at.desc())
+                .offset(skip)
+                .limit(limit)
+                .all()
+            )
         except SQLAlchemyError as e:
             logger.error(f"Error retrieving user analyses: {e}")
             raise DatabaseException(f"Failed to retrieve user analyses: {str(e)}")
 
-    def get_by_document_id(self, db: Session, document_id: str, skip: int = 0, limit: int = 100) -> List[Analysis]:
+    def get_by_document_id(
+        self, db: Session, document_id: str, skip: int = 0, limit: int = 100
+    ) -> List[Analysis]:
         """Get all analyses for a specific document.
 
         Args:
@@ -58,14 +68,21 @@ class AnalysisRepository(BaseRepository[Analysis]):
             List of analyses performed on the document
         """
         try:
-            return db.query(Analysis).filter(
-                Analysis.document_id == document_id
-            ).order_by(Analysis.created_at.desc()).offset(skip).limit(limit).all()
+            return (
+                db.query(Analysis)
+                .filter(Analysis.document_id == document_id)
+                .order_by(Analysis.created_at.desc())
+                .offset(skip)
+                .limit(limit)
+                .all()
+            )
         except SQLAlchemyError as e:
             logger.error(f"Error retrieving document analyses: {e}")
             raise DatabaseException(f"Failed to retrieve document analyses: {str(e)}")
 
-    def get_by_pattern(self, db: Session, pattern: str, skip: int = 0, limit: int = 100) -> List[Analysis]:
+    def get_by_pattern(
+        self, db: Session, pattern: str, skip: int = 0, limit: int = 100
+    ) -> List[Analysis]:
         """Get all analyses using a specific pattern.
 
         Args:
@@ -78,9 +95,14 @@ class AnalysisRepository(BaseRepository[Analysis]):
             List of analyses using the specified pattern
         """
         try:
-            return db.query(Analysis).filter(
-                Analysis.pattern == pattern
-            ).order_by(Analysis.created_at.desc()).offset(skip).limit(limit).all()
+            return (
+                db.query(Analysis)
+                .filter(Analysis.pattern == pattern)
+                .order_by(Analysis.created_at.desc())
+                .offset(skip)
+                .limit(limit)
+                .all()
+            )
         except SQLAlchemyError as e:
             logger.error(f"Error retrieving analyses by pattern: {e}")
             raise DatabaseException(f"Failed to retrieve analyses by pattern: {str(e)}")
@@ -93,7 +115,7 @@ class AnalysisRepository(BaseRepository[Analysis]):
         pattern: str,
         prompt: str,
         models: List[str],
-        options: Dict[str, Any]
+        options: Dict[str, Any],
     ) -> Analysis:
         """Create a new analysis record.
 
@@ -117,7 +139,7 @@ class AnalysisRepository(BaseRepository[Analysis]):
             "models": models,
             "options": options,
             "created_at": datetime.utcnow(),
-            "status": "pending"
+            "status": "pending",
         }
 
         return self.create(db, analysis_data)
@@ -128,7 +150,7 @@ class AnalysisRepository(BaseRepository[Analysis]):
         analysis_id: int,
         status: str,
         result: Optional[Dict[str, Any]] = None,
-        error: Optional[str] = None
+        error: Optional[str] = None,
     ) -> Analysis:
         """Update the status of an analysis.
 
@@ -144,10 +166,7 @@ class AnalysisRepository(BaseRepository[Analysis]):
         """
         analysis = self.get_by_id(db, analysis_id, raise_if_not_found=True)
 
-        update_data = {
-            "status": status,
-            "completed_at": datetime.utcnow()
-        }
+        update_data = {"status": status, "completed_at": datetime.utcnow()}
 
         if result is not None:
             update_data["result"] = result
@@ -168,9 +187,12 @@ class AnalysisRepository(BaseRepository[Analysis]):
             List of recent analyses
         """
         try:
-            return db.query(Analysis).order_by(
-                Analysis.created_at.desc()
-            ).limit(limit).all()
+            return (
+                db.query(Analysis)
+                .order_by(Analysis.created_at.desc())
+                .limit(limit)
+                .all()
+            )
         except SQLAlchemyError as e:
             logger.error(f"Error retrieving recent analyses: {e}")
             raise DatabaseException(f"Failed to retrieve recent analyses: {str(e)}")
@@ -186,9 +208,11 @@ class AnalysisRepository(BaseRepository[Analysis]):
         """
         try:
             result = {}
-            patterns = db.query(Analysis.pattern, func.count(Analysis.id)).group_by(
-                Analysis.pattern
-            ).all()
+            patterns = (
+                db.query(Analysis.pattern, func.count(Analysis.id))
+                .group_by(Analysis.pattern)
+                .all()
+            )
 
             for pattern, count in patterns:
                 result[pattern] = count

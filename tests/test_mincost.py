@@ -3,9 +3,8 @@ import importlib.resources
 import os
 import pickle
 
-import pytest
-
 import networkx as nx
+import pytest
 
 
 class TestMinCostFlow:

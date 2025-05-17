@@ -9,6 +9,9 @@ for multi-level analysis of prompts using various patterns.
 # pylint: disable=line-too-long
 
 import asyncio
+import functools
+import hashlib
+import inspect
 import json
 import logging
 import os
@@ -18,35 +21,37 @@ import time
 import traceback
 from datetime import datetime, timedelta
 from string import Template
-from typing import Any, Dict, List, Optional, Union, Sized, Awaitable
-import functools
-import hashlib
-import inspect
-import google.generativeai as genai
-import anthropic
-import openai
-from openai import AsyncOpenAI
-from tenacity import (
-    retry,
-    stop_after_attempt,
-    wait_exponential,
-    retry_if_exception_type,
-)
+from typing import Any, Awaitable, Dict, List, Optional, Sized, Union
 
+import anthropic
 import cohere
+import google.generativeai as genai
 import httpx
+import openai
 from anthropic import AsyncAnthropic
 from dotenv import load_dotenv
 from mistralai.async_client import MistralAsyncClient
 from mistralai.client import MistralClient
-from tenacity import (retry, retry_if_exception_type, stop_after_attempt,
-                      wait_exponential)
+from openai import AsyncOpenAI
+from tenacity import (
+    retry,
+    retry_if_exception_type,
+    stop_after_attempt,
+    wait_exponential,
+)
 
-from src.core.ultra_error_handling import (APIError, ConfigurationError, RateLimitError,
-                                           ValidationError)
-from src.patterns.ultra_analysis_patterns import (PATTERN_METADATA, AnalysisPattern,
-                                                  get_pattern_config,
-                                                  get_pattern_mapping)
+from src.core.ultra_error_handling import (
+    APIError,
+    ConfigurationError,
+    RateLimitError,
+    ValidationError,
+)
+from src.patterns.ultra_analysis_patterns import (
+    PATTERN_METADATA,
+    AnalysisPattern,
+    get_pattern_config,
+    get_pattern_mapping,
+)
 
 # Load environment variables
 load_dotenv(override=True)

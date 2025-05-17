@@ -2,13 +2,7 @@ from textwrap import dedent
 
 import numpy as np
 import pytest
-
-from pandas import (
-    DataFrame,
-    MultiIndex,
-    Series,
-    option_context,
-)
+from pandas import DataFrame, MultiIndex, Series, option_context
 
 pytest.importorskip("jinja2")
 from pandas.io.formats.style import Styler

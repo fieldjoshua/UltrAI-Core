@@ -7,7 +7,7 @@ import os
 import sys
 
 # Add the current directory to the Python path
-sys.path.insert(0, os.path.abspath('.'))
+sys.path.insert(0, os.path.abspath("."))
 
 # Now we can import backend modules
 from backend.app import run_server

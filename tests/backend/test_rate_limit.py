@@ -5,8 +5,9 @@ This module tests the functionality of the rate limiting middleware and service.
 """
 
 import time
+
 import pytest
-from fastapi import FastAPI, Request, Response, Depends
+from fastapi import Depends, FastAPI, Request, Response
 from fastapi.testclient import TestClient
 
 from backend.services.rate_limit_service import RateLimitService

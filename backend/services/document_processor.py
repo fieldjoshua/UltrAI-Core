@@ -1,6 +1,6 @@
-import os
 import logging
-from typing import Dict, List, Any
+import os
+from typing import Any, Dict, List
 
 logger = logging.getLogger("document_processor")
 
@@ -13,6 +13,7 @@ class UltraDocumentsOptimized:
         self.cache_enabled = True
 
         from backend.utils.cache import CacheObject
+
         self.cache = CacheObject()
 
     def process_document(self, file_path: str) -> Dict[str, List[Dict[str, Any]]]:

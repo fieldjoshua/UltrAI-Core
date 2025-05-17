@@ -5,6 +5,7 @@ This guide covers running the Ultra system in production mode with real services
 ## Overview
 
 Ultra supports multiple environments:
+
 - **Development**: Uses mock LLM responses for rapid development (default)
 - **Production**: Connects to actual LLM providers via their APIs
 - **Testing**: Specific configuration for automated testing
@@ -14,6 +15,7 @@ Ultra supports multiple environments:
 ### 1. Prerequisites
 
 To run Ultra in production mode, you need:
+
 - Valid API keys for at least one LLM provider (OpenAI, Anthropic, or Google)
 - Proper environment configuration
 - Database and cache services (if using persistence features)
@@ -95,17 +97,17 @@ For detailed instructions, see [Real LLM Testing Guide](./documentation/testing/
 
 Key environment variables for production:
 
-| Variable | Description | Production Value |
-|----------|-------------|-----------------|
-| ENVIRONMENT | Current environment | production |
-| USE_MOCK | Use mock responses | false |
-| MOCK_MODE | Enable mock mode | false |
-| DEBUG | Enable debug mode | false |
-| LOG_LEVEL | Logging level | info |
-| API_HOST | API host | 0.0.0.0 |
-| API_PORT | API port | 8000 |
-| ENABLE_AUTH | Enable authentication | true |
-| ENABLE_RATE_LIMIT | Enable rate limiting | true |
+| Variable          | Description           | Production Value |
+| ----------------- | --------------------- | ---------------- |
+| ENVIRONMENT       | Current environment   | production       |
+| USE_MOCK          | Use mock responses    | false            |
+| MOCK_MODE         | Enable mock mode      | false            |
+| DEBUG             | Enable debug mode     | false            |
+| LOG_LEVEL         | Logging level         | info             |
+| API_HOST          | API host              | 0.0.0.0          |
+| API_PORT          | API port              | 8000             |
+| ENABLE_AUTH       | Enable authentication | true             |
+| ENABLE_RATE_LIMIT | Enable rate limiting  | true             |
 
 ## Authentication in Production
 
@@ -177,8 +179,9 @@ docker run -p 8085:8000 \
 ## Known Limitations
 
 1. Some endpoints are still under development:
+
    - `/api/available-models`: To be fixed
-   
+
 2. Authentication system needs comprehensive testing
 
 3. Error handling for production scenarios needs improvement
@@ -193,6 +196,7 @@ docker run -p 8085:8000 \
 ## Next Steps
 
 See the implementation plan for ongoing work:
+
 - [Implementation Plan](./documentation/implementation_plan.md)
 - [Production Readiness Documentation](./documentation/production_readiness.md)
 - [Testing Guide](./documentation/testing/production_testing.md)

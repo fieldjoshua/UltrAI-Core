@@ -1,7 +1,7 @@
 #!/bin/bash
 # Start Ultra with Docker Model Runner and cloud LLMs
 
-# Set environment variables for Docker Model Runner 
+# Set environment variables for Docker Model Runner
 export USE_MODEL_RUNNER=true
 export MODEL_RUNNER_TYPE=cli
 export DEFAULT_LOCAL_MODEL=ai/smollm2

@@ -11,6 +11,7 @@ Component theming enables consistent application of themes across the interface 
 ### 1. Separation of Concerns
 
 Components should separate:
+
 - **Structure**: HTML/JSX markup
 - **Behavior**: JavaScript/TypeScript functionality
 - **Appearance**: Theme-dependent styling
@@ -18,6 +19,7 @@ Components should separate:
 ### 2. Theme Consumption
 
 Components should consume theme properties through:
+
 - CSS variables for styling
 - Theme context for dynamic properties
 - Attribute-based variants for structural changes
@@ -25,6 +27,7 @@ Components should consume theme properties through:
 ### 3. Styling Approach
 
 Component styling should use:
+
 - Tailwind utility classes that reference theme variables
 - CSS modules with theme variable consumption
 - Inline styles only when dynamically computed
@@ -32,6 +35,7 @@ Component styling should use:
 ### 4. Backwards Compatibility
 
 Component updates should maintain:
+
 - Existing props and API
 - Default styling that matches current appearance
 - Graceful fallbacks for missing theme properties
@@ -43,6 +47,7 @@ Component updates should maintain:
 Before converting a component:
 
 1. **Identify Style Properties**:
+
    - Colors (background, text, borders)
    - Typography (font family, size, weight)
    - Spacing (margin, padding)
@@ -50,6 +55,7 @@ Before converting a component:
    - Shadows and effects
 
 2. **Identify Variants**:
+
    - Visual variants (primary, secondary, etc.)
    - Size variants (small, medium, large)
    - State variants (disabled, active, focused)
@@ -66,12 +72,14 @@ Before converting a component:
 Map component properties to theme tokens:
 
 1. **Color Mapping**:
+
    - Component background → theme background tokens
    - Component text → theme text tokens
    - Component borders → theme border tokens
    - Component accents → theme accent tokens
 
 2. **Typography Mapping**:
+
    - Component font family → theme typography tokens
    - Component font size → theme size tokens
    - Component font weight → theme weight tokens
@@ -117,14 +125,14 @@ function Button({ variant, size, children, ...props }) {
 ```jsx
 // Before
 const variantStyles = {
-  primary: "bg-blue-600 text-white",
-  secondary: "bg-gray-200 text-gray-800",
+  primary: 'bg-blue-600 text-white',
+  secondary: 'bg-gray-200 text-gray-800',
 };
 
 // After
 const variantStyles = {
-  primary: "bg-primary text-primary-foreground",
-  secondary: "bg-secondary text-secondary-foreground",
+  primary: 'bg-primary text-primary-foreground',
+  secondary: 'bg-secondary text-secondary-foreground',
 };
 ```
 
@@ -132,7 +140,8 @@ const variantStyles = {
 
 ```jsx
 // Component-specific overrides
-const componentStyles = activeTheme.components?.button?.[variant] || variantStyles[variant];
+const componentStyles =
+  activeTheme.components?.button?.[variant] || variantStyles[variant];
 ```
 
 ## Creating New Themed Components
@@ -142,11 +151,13 @@ const componentStyles = activeTheme.components?.button?.[variant] || variantStyl
 When creating new themed components:
 
 1. **Define Theme Requirements**:
+
    - Required theme tokens
    - Optional theme tokens with defaults
    - Component-specific theme properties
 
 2. **Define Component API**:
+
    - Props for variants and configuration
    - Theme override props
    - Default behaviors
@@ -173,7 +184,7 @@ export function ThemedComponent({
   // Other props with defaults
 }: ThemedComponentProps) {
   const { activeTheme } = useTheme();
-  
+
   // Component implementation
 }
 ```
@@ -183,7 +194,7 @@ export function ThemedComponent({
 ```jsx
 // Using CSS variables via Tailwind
 const containerClasses = classNames(
-  "rounded-md transition-colors",
+  'rounded-md transition-colors',
   {
     'bg-primary text-primary-foreground': variant === 'default',
     'bg-secondary text-secondary-foreground': variant === 'alternate',
@@ -195,11 +206,7 @@ const containerClasses = classNames(
   }
 );
 
-return (
-  <div className={containerClasses}>
-    {/* Component content */}
-  </div>
-);
+return <div className={containerClasses}>{/* Component content */}</div>;
 ```
 
 #### Step 3: Add Component-Specific Theme Overrides
@@ -209,11 +216,13 @@ return (
 const componentOverrides = activeTheme.components?.themedComponent;
 
 // Apply overrides if available
-const customStyles = componentOverrides?.[variant] ? {
-  backgroundColor: componentOverrides[variant].backgroundColor,
-  color: componentOverrides[variant].textColor,
-  // Other override properties
-} : {};
+const customStyles = componentOverrides?.[variant]
+  ? {
+      backgroundColor: componentOverrides[variant].backgroundColor,
+      color: componentOverrides[variant].textColor,
+      // Other override properties
+    }
+  : {};
 
 return (
   <div className={containerClasses} style={customStyles}>
@@ -232,7 +241,7 @@ Compound components maintain theme consistency across child components:
 // Compound component pattern
 function ThemedCard({ children, ...props }) {
   const { activeTheme } = useTheme();
-  
+
   return (
     <div className="bg-card text-card-foreground rounded-lg shadow">
       {children}
@@ -262,18 +271,16 @@ Render props provide theme values to child components:
 function WithTheme({ children, selector }) {
   const { activeTheme } = useTheme();
   const themeValue = selector ? selector(activeTheme) : activeTheme;
-  
+
   return children(themeValue);
 }
 
 // Usage
-<WithTheme selector={theme => theme.colors.primary}>
+<WithTheme selector={(theme) => theme.colors.primary}>
   {(primaryColor) => (
-    <div style={{ backgroundColor: primaryColor }}>
-      Themed content
-    </div>
+    <div style={{ backgroundColor: primaryColor }}>Themed content</div>
   )}
-</WithTheme>
+</WithTheme>;
 ```
 
 ### 3. Higher-Order Components
@@ -302,10 +309,10 @@ Custom hooks provide theme values to components:
 function useComponentTheme(componentName, variant) {
   const { activeTheme } = useTheme();
   const componentTheme = activeTheme.components?.[componentName]?.[variant];
-  
+
   return {
     componentTheme,
-    activeTheme
+    activeTheme,
   };
 }
 
@@ -325,9 +332,7 @@ Layout components require special considerations:
 ```jsx
 function ThemedContainer({ children }) {
   return (
-    <div className="bg-background text-foreground min-h-screen">
-      {children}
-    </div>
+    <div className="bg-background text-foreground min-h-screen">{children}</div>
   );
 }
 ```
@@ -337,7 +342,7 @@ function ThemedContainer({ children }) {
 ```jsx
 function ThemedNavigation() {
   const { activeTheme } = useTheme();
-  
+
   return (
     <nav className="bg-primary text-primary-foreground p-4">
       {/* Navigation content */}
@@ -350,11 +355,7 @@ function ThemedNavigation() {
 
 ```jsx
 function ThemedGrid({ columns, children }) {
-  return (
-    <div className={`grid grid-cols-${columns} gap-4`}>
-      {children}
-    </div>
-  );
+  return <div className={`grid grid-cols-${columns} gap-4`}>{children}</div>;
 }
 ```
 
@@ -390,17 +391,19 @@ interface ComponentOverrides {
 ```jsx
 function ThemedButton({ variant, ...props }) {
   const { activeTheme } = useTheme();
-  
+
   // Get component overrides
   const overrides = activeTheme.components?.button?.[variant];
-  
+
   // Create style object from overrides
-  const overrideStyles = overrides ? {
-    backgroundColor: overrides.backgroundColor,
-    color: overrides.textColor,
-    borderRadius: overrides.borderRadius,
-  } : {};
-  
+  const overrideStyles = overrides
+    ? {
+        backgroundColor: overrides.backgroundColor,
+        color: overrides.textColor,
+        borderRadius: overrides.borderRadius,
+      }
+    : {};
+
   return (
     <button
       className={`${baseClasses} ${variantClasses[variant]}`}
@@ -425,7 +428,7 @@ it('renders correctly with dark theme', () => {
       <Button variant="primary">Test Button</Button>
     </ThemeProvider>
   );
-  
+
   // Assert correct styling
 });
 ```
@@ -442,16 +445,16 @@ it('transitions smoothly between themes', async () => {
       <Button variant="primary">Test Button</Button>
     </ThemeProvider>
   );
-  
+
   // Check initial styling
-  
+
   // Change theme
   rerender(
     <ThemeProvider theme="dark">
       <Button variant="primary">Test Button</Button>
     </ThemeProvider>
   );
-  
+
   // Check transition and final styling
 });
 ```
@@ -468,13 +471,13 @@ it('applies correct theme tokens', () => {
       primary: '#0000ff',
     },
   };
-  
+
   render(
     <ThemeProvider theme={theme}>
       <Button variant="primary">Test Button</Button>
     </ThemeProvider>
   );
-  
+
   // Assert specific token values are applied
 });
 ```
@@ -530,6 +533,7 @@ Use this checklist when converting existing components:
 Convert components in the following order:
 
 1. **Core UI Components**
+
    - Button
    - Card
    - Input
@@ -537,12 +541,14 @@ Convert components in the following order:
    - Select
 
 2. **Layout Components**
+
    - Container
    - Navigation
    - Sidebar
    - Footer
 
 3. **Complex Components**
+
    - DataTable
    - Tabs
    - Modal

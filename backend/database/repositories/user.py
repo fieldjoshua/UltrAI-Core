@@ -113,7 +113,9 @@ class UserRepository(BaseRepository[User]):
         """
         return db.query(User).filter(User.role == UserRole.ADMIN).all()
 
-    def get_active_users(self, db: Session, skip: int = 0, limit: int = 100) -> List[User]:
+    def get_active_users(
+        self, db: Session, skip: int = 0, limit: int = 100
+    ) -> List[User]:
         """
         Get active users with pagination
 
@@ -178,7 +180,9 @@ class UserRepository(BaseRepository[User]):
         user = self.get_by_id(db, user_id, raise_if_not_found=True)
 
         # Update account balance, ensuring it's not None
-        current_balance = user.account_balance if user.account_balance is not None else 0.0
+        current_balance = (
+            user.account_balance if user.account_balance is not None else 0.0
+        )
         new_balance = current_balance + amount
         return self.update(db, db_obj=user, obj_in={"account_balance": new_balance})
 
@@ -200,6 +204,8 @@ class UserRepository(BaseRepository[User]):
         user = self.get_by_id(db, user_id, raise_if_not_found=True)
 
         # Update account balance, ensuring it's not None
-        current_balance = user.account_balance if user.account_balance is not None else 0.0
+        current_balance = (
+            user.account_balance if user.account_balance is not None else 0.0
+        )
         new_balance = max(0.0, current_balance - amount)
         return self.update(db, db_obj=user, obj_in={"account_balance": new_balance})

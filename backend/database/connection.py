@@ -8,10 +8,10 @@ when the database is not available by using an in-memory fallback.
 
 import os
 from contextlib import contextmanager
-from typing import Generator, Any
+from typing import Any, Generator
 
-from backend.utils.logging import get_logger
 from backend.utils.dependency_manager import sqlalchemy_dependency
+from backend.utils.logging import get_logger
 
 # Set up logger
 logger = get_logger("database", "logs/database.log")
@@ -27,7 +27,11 @@ DB_PASSWORD = os.environ.get("DB_PASSWORD", "ultrapassword")
 DATABASE_URL = f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
 
 # Configuration for fallback
-ENABLE_DB_FALLBACK = os.getenv("ENABLE_DB_FALLBACK", "true").lower() in ("true", "1", "yes")
+ENABLE_DB_FALLBACK = os.getenv("ENABLE_DB_FALLBACK", "true").lower() in (
+    "true",
+    "1",
+    "yes",
+)
 DB_CONNECTION_TIMEOUT = int(os.getenv("DB_CONNECTION_TIMEOUT", "5"))  # Seconds
 
 # Global engine instance
@@ -95,7 +99,9 @@ def get_engine():
             _use_fallback = True
             return None
         else:
-            logger.critical("Database fallback is disabled, cannot continue without database")
+            logger.critical(
+                "Database fallback is disabled, cannot continue without database"
+            )
             raise
 
 
@@ -115,6 +121,7 @@ def init_db() -> None:
         try:
             # Import fallback dynamically
             from backend.database.fallback import fallback_session
+
             SessionLocal = fallback_session
         except ImportError as e:
             logger.error(f"Error importing fallback database module: {str(e)}")
@@ -129,6 +136,7 @@ def init_db() -> None:
         if engine is None:
             # Using fallback
             from backend.database.fallback import fallback_session
+
             SessionLocal = fallback_session
             return
 
@@ -147,18 +155,23 @@ def init_db() -> None:
         logger.error(f"Error initializing database: {str(e)}")
 
         if ENABLE_DB_FALLBACK:
-            logger.warning("Using in-memory database fallback due to initialization error")
+            logger.warning(
+                "Using in-memory database fallback due to initialization error"
+            )
             _use_fallback = True
 
             try:
                 # Import fallback dynamically
                 from backend.database.fallback import fallback_session
+
                 SessionLocal = fallback_session
             except ImportError as e2:
                 logger.error(f"Error importing fallback database module: {str(e2)}")
                 raise e2
         else:
-            logger.critical("Database fallback is disabled, cannot continue without database")
+            logger.critical(
+                "Database fallback is disabled, cannot continue without database"
+            )
             raise
 
 
@@ -185,6 +198,7 @@ def create_tables() -> None:
     try:
         # Import Base and create tables
         from backend.database.models.base import Base
+
         Base.metadata.create_all(bind=engine)
         logger.info("Database tables created")
     except Exception as e:
@@ -209,7 +223,9 @@ def get_db_session() -> Generator[Any, None, None]:
         ```
     """
     if SessionLocal is None:
-        raise RuntimeError("Database session factory not initialized. Call init_db() first.")
+        raise RuntimeError(
+            "Database session factory not initialized. Call init_db() first."
+        )
 
     if _use_fallback:
         # Using fallback session
@@ -317,22 +333,29 @@ def get_database_status() -> dict:
 
     if not _use_fallback:
         # Add PostgreSQL-specific status
-        status.update({
-            "host": DB_HOST,
-            "port": DB_PORT,
-            "database": DB_NAME,
-            "user": DB_USER,
-        })
+        status.update(
+            {
+                "host": DB_HOST,
+                "port": DB_PORT,
+                "database": DB_NAME,
+                "user": DB_USER,
+            }
+        )
     else:
         # Add fallback-specific status
         try:
             from backend.database.memory_db import memory_db
-            status.update({
-                "memory_db_status": memory_db.get_status(),
-            })
+
+            status.update(
+                {
+                    "memory_db_status": memory_db.get_status(),
+                }
+            )
         except ImportError:
-            status.update({
-                "memory_db_status": "Not available",
-            })
+            status.update(
+                {
+                    "memory_db_status": "Not available",
+                }
+            )
 
     return status

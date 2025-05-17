@@ -4,14 +4,23 @@ import os
 import shutil
 import uuid
 from datetime import datetime
-from typing import Dict, List, Any, Optional
+from typing import Any, Dict, List, Optional
 
-from fastapi import APIRouter, BackgroundTasks, Depends, File, Form, HTTPException, Request, UploadFile
+from fastapi import (
+    APIRouter,
+    BackgroundTasks,
+    Depends,
+    File,
+    Form,
+    HTTPException,
+    Request,
+    UploadFile,
+)
 from fastapi.responses import JSONResponse
 
+from backend.config import Config
 from backend.models.document import DocumentUploadResponse
 from backend.services.document_processor import document_processor
-from backend.config import Config
 
 # Create a document router
 document_router = APIRouter(tags=["Documents"])
@@ -83,7 +92,9 @@ async def upload_document(file: UploadFile = File(...)):
         )
     except Exception as e:
         logger.error(f"Error uploading document: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Error uploading document: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Error uploading document: {str(e)}"
+        )
     finally:
         await file.close()
 
@@ -149,21 +160,25 @@ async def list_documents():
                 with open(metadata_path, "r") as f:
                     metadata = json.load(f)
 
-                documents.append({
-                    "id": metadata["id"],
-                    "name": metadata.get("original_filename", "Unknown"),
-                    "size": metadata.get("file_size", 0),
-                    "type": metadata.get("file_type", ""),
-                    "status": metadata.get("processing_status", "unknown"),
-                    "uploadDate": metadata.get("upload_timestamp", ""),
-                })
+                documents.append(
+                    {
+                        "id": metadata["id"],
+                        "name": metadata.get("original_filename", "Unknown"),
+                        "size": metadata.get("file_size", 0),
+                        "type": metadata.get("file_type", ""),
+                        "status": metadata.get("processing_status", "unknown"),
+                        "uploadDate": metadata.get("upload_timestamp", ""),
+                    }
+                )
             except Exception as e:
                 logger.error(f"Error reading document metadata: {str(e)}")
 
         return documents
     except Exception as e:
         logger.error(f"Error listing documents: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Error listing documents: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Error listing documents: {str(e)}"
+        )
 
 
 @document_router.post("/api/create-document-session")
@@ -376,7 +391,9 @@ async def finalize_document_upload(request: Request):
         )
     except Exception as e:
         logger.error(f"Error finalizing document upload: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Error finalizing document upload: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Error finalizing document upload: {str(e)}"
+        )
 
 
 # Use a dependency for processing document request
@@ -412,7 +429,9 @@ async def process_documents_with_pricing(
         raise
     except Exception as e:
         logger.error(f"Error processing documents: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Error processing documents: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Error processing documents: {str(e)}"
+        )
 
 
 async def process_document_context(document_ids: List[str], query: str) -> str:
@@ -436,17 +455,21 @@ async def process_document_context(document_ids: List[str], query: str) -> str:
             with open(metadata_path, "r") as f:
                 metadata = json.load(f)
 
-            document_data.append({
-                "id": doc_id,
-                "path": metadata.get("file_path"),
-                "name": metadata.get("original_filename"),
-                "type": metadata.get("file_type"),
-            })
+            document_data.append(
+                {
+                    "id": doc_id,
+                    "path": metadata.get("file_path"),
+                    "name": metadata.get("original_filename"),
+                    "type": metadata.get("file_type"),
+                }
+            )
 
         # Process documents with the document processor
         if document_data:
             result = document_processor.process_documents(document_data)
-            logger.info(f"Processed {result.get('chunks_processed', 0)} chunks from {len(document_data)} documents")
+            logger.info(
+                f"Processed {result.get('chunks_processed', 0)} chunks from {len(document_data)} documents"
+            )
             return f"Processed {result.get('chunks_processed', 0)} chunks"
         else:
             logger.warning("No valid documents found for processing")

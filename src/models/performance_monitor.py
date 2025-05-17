@@ -6,16 +6,17 @@ tracking performance metrics, resource usage, and system health.
 """
 
 import logging
-import platform
 import os
+import platform
+import secrets  # Use for secure random number generation
 import threading
 import traceback
-import psutil
+from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from enum import Enum, auto
-from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Any, Callable
-import secrets  # Use for secure random number generation
+from typing import Any, Callable, Dict, List, Optional
+
+import psutil
 
 
 class MetricLevel(Enum):

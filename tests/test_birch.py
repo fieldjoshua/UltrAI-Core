@@ -4,7 +4,6 @@ Tests for the birch clustering algorithm.
 
 import numpy as np
 import pytest
-
 from sklearn.cluster import AgglomerativeClustering, Birch
 from sklearn.cluster.tests.common import generate_clustered_data
 from sklearn.datasets import make_blobs

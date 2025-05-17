@@ -44,15 +44,15 @@ export const EnhancedPromptInput: React.FC<PromptInputProps> = ({
 
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const value = e.target.value;
-    
+
     // Check if exceeding maximum length
     if (value.length > maxLength) {
       return;
     }
-    
+
     setPrompt(value);
     setCharCount(value.length);
-    
+
     // Clear error when user starts typing
     if (errorMessage) {
       setErrorMessage(undefined);
@@ -68,7 +68,7 @@ export const EnhancedPromptInput: React.FC<PromptInputProps> = ({
 
     // Clear any errors
     setErrorMessage(undefined);
-    
+
     // Call the onSubmit prop with prompt
     onSubmit(prompt, {});
   };
@@ -88,24 +88,30 @@ export const EnhancedPromptInput: React.FC<PromptInputProps> = ({
         aria-invalid={!!errorMessage}
         aria-describedby={errorMessage ? 'prompt-error' : undefined}
       />
-      
+
       {/* Character counter and error message */}
       <div className="flex justify-between text-sm">
         <div>
           {errorMessage && (
-            <div id="prompt-error" className="flex items-center text-red-600" role="alert">
+            <div
+              id="prompt-error"
+              className="flex items-center text-red-600"
+              role="alert"
+            >
               <AlertCircle className="h-4 w-4 mr-1" />
               <span>{errorMessage}</span>
             </div>
           )}
         </div>
-        <div className={`text-right ${
-          charCount > maxLength * 0.9 ? 'text-amber-600' : 'text-gray-500'
-        }`}>
+        <div
+          className={`text-right ${
+            charCount > maxLength * 0.9 ? 'text-amber-600' : 'text-gray-500'
+          }`}
+        >
           {charCount}/{maxLength}
         </div>
       </div>
-      
+
       {/* Submit button */}
       <div className="flex justify-end">
         <Button

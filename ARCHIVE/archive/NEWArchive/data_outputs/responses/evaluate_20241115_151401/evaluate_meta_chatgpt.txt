@@ -6,10 +6,10 @@ Improved Version:
 
 **I. Introduction**
 
-**Title**:  
+**Title**:
 Enhanced Framework for Real-time Data Analysis and Visualization
 
-**Technical Field**:  
+**Technical Field**:
 The innovation resides in the software engineering domain, focusing on the development of an advanced system that facilitates the real-time processing, analysis, and visualization of data. This system caters to the growing needs of industries to interpret vast datasets rapidly.
 
 **II. Background**

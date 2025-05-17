@@ -6,12 +6,13 @@ This script tests the caching mechanism for the Ultra API to ensure
 responses are properly cached and retrieved from cache when appropriate.
 """
 
-import time
-import json
-import requests
 import argparse
-from typing import Dict, Any, List
+import json
+import time
 from datetime import datetime
+from typing import Any, Dict, List
+
+import requests
 
 # Configuration
 API_BASE_URL = "http://localhost:8000/api"

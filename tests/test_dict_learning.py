@@ -4,7 +4,6 @@ from functools import partial
 
 import numpy as np
 import pytest
-
 import sklearn
 from sklearn.base import clone
 from sklearn.decomposition import (

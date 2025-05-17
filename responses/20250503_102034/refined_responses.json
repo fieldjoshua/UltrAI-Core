@@ -1,5 +1,5 @@
 {
-    "chatgpt": "As an AI, I don't have an original prompt to revise. However, I'm here to help you revise any text you provide. Please share the text and I'll gladly assist you in improving its effectiveness and clarity.",
-    "gemini": "Error: Incorrect method or module usage",
-    "llama": "HTTP Error: 403 Client Error: Forbidden for url: http://localhost:5000/generate"
+  "chatgpt": "As an AI, I don't have an original prompt to revise. However, I'm here to help you revise any text you provide. Please share the text and I'll gladly assist you in improving its effectiveness and clarity.",
+  "gemini": "Error: Incorrect method or module usage",
+  "llama": "HTTP Error: 403 Client Error: Forbidden for url: http://localhost:5000/generate"
 }

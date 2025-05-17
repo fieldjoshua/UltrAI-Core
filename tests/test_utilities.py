@@ -1,15 +1,14 @@
 from sympy.abc import x
-from sympy.core.numbers import (I, Rational)
+from sympy.core.numbers import I, Rational
 from sympy.core.singleton import S
 from sympy.functions.elementary.miscellaneous import sqrt
 from sympy.polys import Poly, cyclotomic_poly
 from sympy.polys.domains import FF, QQ
-from sympy.polys.matrices import DomainMatrix, DM
+from sympy.polys.matrices import DM, DomainMatrix
 from sympy.polys.matrices.exceptions import DMRankError
-from sympy.polys.numberfields.utilities import (
-    AlgIntPowers, coeff_search, extract_fundamental_discriminant,
-    isolate, supplement_a_subspace,
-)
+from sympy.polys.numberfields.utilities import (AlgIntPowers, coeff_search,
+                                                extract_fundamental_discriminant,
+                                                isolate, supplement_a_subspace)
 from sympy.printing.lambdarepr import IntervalPrinter
 from sympy.testing.pytest import raises
 

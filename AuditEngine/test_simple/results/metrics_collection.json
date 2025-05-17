@@ -1,0 +1,45 @@
+{
+  "collection_timestamp": "2025-05-15T21:14:33.497957",
+  "repository_path": "/Users/joshuafield/Documents/Ultra/AuditEngine/test_simple",
+  "code_metrics": {
+    "total_lines": 2,
+    "code_lines": 2,
+    "comment_lines": 0,
+    "blank_lines": 0,
+    "language_breakdown": {
+      "Python": {
+        "files": 1,
+        "code": 2,
+        "comment": 0,
+        "blank": 0
+      }
+    },
+    "file_count_by_language": {
+      "Python": 1
+    }
+  },
+  "contributor_metrics": {
+    "total_contributors": 0,
+    "active_contributors_30d": 0,
+    "active_contributors_90d": 0,
+    "contributor_stats": [],
+    "commit_distribution": {},
+    "collaboration_score": 0.0
+  },
+  "commit_metrics": {
+    "total_commits": 0,
+    "commits_by_day": {},
+    "commits_by_hour": {},
+    "commits_by_month": {},
+    "average_commits_per_day": 0.0,
+    "busiest_day": "",
+    "busiest_hour": 0,
+    "commit_message_quality": {}
+  },
+  "activity_trends": {
+    "commit_frequency_trend": "stable",
+    "contributor_growth_trend": "stable",
+    "recent_activity_score": 0.0,
+    "project_health_indicators": {}
+  }
+}

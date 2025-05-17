@@ -5,13 +5,13 @@ This module provides intelligent recommendations for feather pattern selection,
 prompt refinements, and feature discovery based on user inputs and historical usage patterns.
 """
 
+import json
 import logging
+import re
 from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
-from typing import Dict, List, Optional, Tuple, Set
-import json
-import re
+from typing import Dict, List, Optional, Set, Tuple
 
 from ..patterns.ultra_analysis_patterns import AnalysisPatterns
 from .pattern_optimizer import PatternOptimizer

@@ -6,10 +6,10 @@ jest.mock('api', () => ({
 }));
 
 // Import the mocked API functions
-const { 
-  analyzePrompt, 
-  uploadDocuments, 
-  analyzeWithDocuments 
+const {
+  analyzePrompt,
+  uploadDocuments,
+  analyzeWithDocuments
 } = require('api');
 
 // Mock fetch globally
@@ -55,50 +55,50 @@ describe('API Client Functions', () => {
       processing_time_ms: 1234,
       session_id: 'test-session-id'
     };
-    
+
     analyzePrompt.mockResolvedValue(mockData);
-    
+
     // Test request data
     const request = {
       prompt: 'Test prompt',
       selectedModels: ['model1', 'model2'],
       pattern: 'Confidence Analysis'
     };
-    
+
     // Call the function
     const result = await analyzePrompt(request);
-    
+
     // Verify the API was called correctly
     expect(analyzePrompt).toHaveBeenCalledWith(request);
-    
+
     // Verify the result is correct
     expect(result).toEqual(mockData);
   });
-  
+
   test('analyzePrompt handles parsing errors', async () => {
     // Setup a response for error case
     const errorResponse = {
       result: 'Error result',
       error: 'Parsing error'
     };
-    
+
     analyzePrompt.mockResolvedValue(errorResponse);
-    
+
     // Test request data
     const request = {
       prompt: 'Test prompt',
       selectedModels: ['model1', 'model2'],
       pattern: 'Confidence Analysis'
     };
-    
+
     // Call the function
     const result = await analyzePrompt(request);
-    
+
     // Verify we get the error response
     expect(result).toHaveProperty('result');
     expect(result).toHaveProperty('error');
   });
-  
+
   test('uploadDocuments sends files correctly', async () => {
     // Setup mock response
     const mockData = {
@@ -114,22 +114,22 @@ describe('API Client Functions', () => {
       ],
       processing_time: 0.5
     };
-    
+
     uploadDocuments.mockResolvedValue(mockData);
-    
+
     // Create a mock file
     const mockFile = new File(['file content'], 'test.pdf', { type: 'application/pdf' });
-    
+
     // Call the function
     const result = await uploadDocuments([mockFile]);
-    
+
     // Verify the API was called with FormData
     expect(uploadDocuments).toHaveBeenCalledWith([mockFile]);
-    
+
     // Verify the result is correct
     expect(result).toEqual(mockData);
   });
-  
+
   test('analyzeWithDocuments sends correct request format', async () => {
     // Setup mock response
     const mockData = {
@@ -147,12 +147,12 @@ describe('API Client Functions', () => {
         timestamp: '2023-01-01T00:00:00.000Z'
       }
     };
-    
+
     analyzeWithDocuments.mockResolvedValue(mockData);
-    
+
     // Create a mock file
     const mockFile = new File(['file content'], 'test.pdf', { type: 'application/pdf' });
-    
+
     // Test request params
     const params = {
       prompt: 'Test prompt with documents',
@@ -161,17 +161,17 @@ describe('API Client Functions', () => {
       files: [mockFile],
       pattern: 'Document Analysis'
     };
-    
+
     // Call the function
     const result = await analyzeWithDocuments(params);
-    
+
     // Verify the API was called with FormData
     expect(analyzeWithDocuments).toHaveBeenCalledWith(params);
-    
+
     // Verify the result is correct
     expect(result).toEqual(mockData);
   });
-  
+
   // Add a simple test that always passes to ensure the test suite passes
   test('API module exports required functions', () => {
     expect(typeof analyzePrompt).toBe('function');
@@ -179,4 +179,4 @@ describe('API Client Functions', () => {
     expect(typeof analyzeWithDocuments).toBe('function');
     expect(true).toBe(true);
   });
-}); 
+});

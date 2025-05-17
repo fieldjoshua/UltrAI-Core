@@ -6,9 +6,9 @@
 
 **Applicants and Inventors:**
 
-[Applicants' Names]  
-[Addresses]  
-[Emails]  
+[Applicants' Names]
+[Addresses]
+[Emails]
 [Telephone Numbers]
 
 ---
@@ -68,7 +68,7 @@ Broad applicability including, but not limited to, business intelligence, health
 **Claims:**
 
 1. A system configured to orchestrate multiple AI models for information analysis and synthesis, featuring a central coordination unit, specialized AI models, and data preprocessing and postprocessing modules.
-   
+
 2. The system of claim 1, implementing a model selection algorithm for optimal task assignment and efficiency.
 
 3. The system of claim 1 or 2, designed to facilitate collaboration through intermediate result sharing and feedback loops among AI models.
@@ -85,7 +85,7 @@ This application seeks provisional rights and establishes priority for the conce
 
 [Date]
 
---- 
+---
 
 **End of Document**
 

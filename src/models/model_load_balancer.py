@@ -6,16 +6,16 @@ performance, health status, and current load patterns.
 """
 
 import logging
-import random
-import time
-from dataclasses import dataclass, field
-from enum import Enum, auto
-from typing import Any, Dict, List, Optional, Set, Tuple, Union, Callable
-from collections import defaultdict, deque
-import threading
-from datetime import datetime, timedelta
 import math
+import random
 import statistics
+import threading
+import time
+from collections import defaultdict, deque
+from dataclasses import dataclass, field
+from datetime import datetime, timedelta
+from enum import Enum, auto
+from typing import Any, Callable, Dict, List, Optional, Set, Tuple, Union
 
 
 class ModelHealth(Enum):

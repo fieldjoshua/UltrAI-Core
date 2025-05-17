@@ -7,11 +7,13 @@ This document outlines the specific implementation steps to prepare Ultra for pr
 The authentication system needs to be updated to properly handle both mock and real modes:
 
 1. **Update Auth Middleware**
+
    - Modify `/backend/utils/auth_middleware.py` to properly identify public paths
    - Fix token validation to handle test tokens in test environment
    - Ensure auth middleware is applied correctly in the FastAPI app
 
 2. **Update JWT Utilities**
+
    - Enhance `/backend/utils/jwt.py` to handle multiple environments
    - Add proper error handling for token validation
    - Ensure the get_user_from_token function exists and works correctly
@@ -25,11 +27,13 @@ The authentication system needs to be updated to properly handle both mock and r
 The following services need to be implemented or improved:
 
 1. **Health Service**
+
    - Create `/backend/services/health_service.py` if missing
    - Implement service status checks for dependencies
    - Add environment information to health response
 
 2. **Database Service**
+
    - Improve database connection error handling
    - Add connection pooling for performance
    - Implement fallback mechanisms for connection failures
@@ -44,11 +48,13 @@ The following services need to be implemented or improved:
 Implement proper environment configuration management:
 
 1. **Environment Variable Validation**
+
    - Create a configuration validation function at startup
    - Implement type checking and validation for critical values
    - Provide clear error messages for configuration issues
 
 2. **Environment Profiles**
+
    - Create development, testing, and production profiles
    - Document all required variables for each profile
    - Implement .env file loading with secure defaults
@@ -63,11 +69,13 @@ Implement proper environment configuration management:
 Update Docker configuration for production:
 
 1. **Dockerfile Improvements**
+
    - Enhance the existing Dockerfile with security improvements
    - Add multi-stage builds for smaller image size
    - Configure proper user permissions
 
 2. **Docker Compose Configuration**
+
    - Create production-ready docker-compose.yml
    - Add service dependencies
    - Configure volume mounts for persistent data
@@ -82,11 +90,13 @@ Update Docker configuration for production:
 Enhance tests to support both mock and real modes:
 
 1. **Test Configuration**
+
    - Update test fixtures to handle authentication
    - Add environment configuration for tests
    - Implement test database setup and teardown
 
 2. **Test Mocking**
+
    - Improve mocking of external services
    - Add LLM response mocks
    - Ensure tests are deterministic
@@ -101,11 +111,13 @@ Enhance tests to support both mock and real modes:
 Create comprehensive documentation for production deployment:
 
 1. **Deployment Guide**
+
    - Create step-by-step deployment instructions
    - Document environment configuration
    - Add troubleshooting guidance
 
 2. **Operation Guides**
+
    - Create runbooks for common operations
    - Document backup and recovery procedures
    - Add monitoring and alerting setup

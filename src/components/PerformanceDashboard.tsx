@@ -1,14 +1,14 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import axios from 'axios';
-import { 
-  BarChart3, 
-  Activity, 
-  HardDrive, 
-  Clock, 
-  FileText, 
-  Server, 
-  Layers, 
-  RefreshCw, 
+import {
+  BarChart3,
+  Activity,
+  HardDrive,
+  Clock,
+  FileText,
+  Server,
+  Layers,
+  RefreshCw,
   Database,
   Cpu,
   MemoryStick
@@ -49,26 +49,26 @@ const API_URL = 'http://localhost:8081';
 const HISTORY_LIMIT = 20; // Number of data points to keep in history
 
 // Simple mini chart component
-const MiniChart = React.memo(({ 
-  data, 
-  color = '#22d3ee', 
+const MiniChart = React.memo(({
+  data,
+  color = '#22d3ee',
   height = 40,
   width = 120,
   filled = false
-}: { 
-  data: number[], 
+}: {
+  data: number[],
   color?: string,
   height?: number,
   width?: number,
   filled?: boolean
 }) => {
   if (!data || data.length === 0) return null;
-  
+
   // Calculate min/max for scaling
   const minValue = Math.min(...data);
   const maxValue = Math.max(...data);
   const range = maxValue - minValue || 1; // Avoid division by zero
-  
+
   // Calculate points for the polyline
   const points = data.map((value, index) => {
     const x = (index / (data.length - 1)) * width;
@@ -76,19 +76,19 @@ const MiniChart = React.memo(({
     const y = height - (normalizedValue * height);
     return `${x},${y}`;
   }).join(' ');
-  
+
   // For filled chart, add bottom corners
-  const areaPoints = filled 
+  const areaPoints = filled
     ? `${points} ${width},${height} 0,${height}`
     : '';
-  
+
   return (
     <svg width={width} height={height} className="overflow-visible">
       {filled ? (
-        <polygon 
-          points={areaPoints} 
+        <polygon
+          points={areaPoints}
           fill={`${color}20`} // Semi-transparent fill
-          stroke="none" 
+          stroke="none"
         />
       ) : null}
       <polyline
@@ -106,17 +106,17 @@ const MiniChart = React.memo(({
 MiniChart.displayName = 'MiniChart';
 
 // Metric card component
-const MetricCard = React.memo(({ 
-  title, 
-  value, 
-  unit = '', 
+const MetricCard = React.memo(({
+  title,
+  value,
+  unit = '',
   icon: Icon,
   history = [],
   chartColor = '#22d3ee',
   trend = 0
-}: { 
-  title: string, 
-  value: number | string, 
+}: {
+  title: string,
+  value: number | string,
   unit?: string,
   icon: React.ElementType,
   history?: number[],
@@ -129,7 +129,7 @@ const MetricCard = React.memo(({
     if (trend < 0) return <span className="text-red-500">↓</span>;
     return null;
   }, [trend]);
-  
+
   return (
     <div className="bg-gray-900/40 border border-gray-800 rounded-lg p-3 flex flex-col">
       <div className="flex items-center justify-between mb-2">
@@ -139,18 +139,18 @@ const MetricCard = React.memo(({
         </div>
         <div className="text-xs text-gray-500">{trendIndicator}</div>
       </div>
-      
+
       <div className="flex items-center justify-between">
         <div className="text-xl font-medium text-cyan-300">
           {typeof value === 'number' ? value.toLocaleString() : value}
           <span className="text-xs text-gray-500 ml-1">{unit}</span>
         </div>
-        
+
         <div className="h-10">
           {history.length > 1 && (
-            <MiniChart 
-              data={history} 
-              color={chartColor} 
+            <MiniChart
+              data={history}
+              color={chartColor}
               filled={true}
               height={40}
               width={80}
@@ -180,36 +180,36 @@ export const PerformanceDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [autoRefresh, setAutoRefresh] = useState(true);
-  
+
   // Format time in a readable format
   const formatTime = useCallback((seconds: number): string => {
     const hrs = Math.floor(seconds / 3600);
     const mins = Math.floor((seconds % 3600) / 60);
     const secs = Math.floor(seconds % 60);
-    
+
     return [
       hrs > 0 ? `${hrs}h` : '',
       mins > 0 ? `${mins}m` : '',
       `${secs}s`
     ].filter(Boolean).join(' ');
   }, []);
-  
+
   // Calculate derived metrics
   const derivedMetrics = useMemo(() => {
     if (!metrics) return null;
-    
-    const avgDocumentTime = metrics.documents_processed > 0 
-      ? metrics.total_processing_time / metrics.documents_processed 
+
+    const avgDocumentTime = metrics.documents_processed > 0
+      ? metrics.total_processing_time / metrics.documents_processed
       : 0;
-      
+
     const chunksPerDocument = metrics.documents_processed > 0
       ? metrics.total_chunks_processed / metrics.documents_processed
       : 0;
-      
+
     const cacheHitRate = (metrics.requests_processed + metrics.documents_processed) > 0
       ? metrics.cache_hits / (metrics.requests_processed + metrics.documents_processed)
       : 0;
-      
+
     return {
       avgDocumentTime,
       chunksPerDocument,
@@ -217,12 +217,12 @@ export const PerformanceDashboard = () => {
       uptimeFormatted: formatTime(metrics.uptime_seconds)
     };
   }, [metrics, formatTime]);
-  
+
   // Add metrics to history
   const updateMetricsHistory = useCallback((newMetrics: PerformanceMetrics) => {
     setMetricsHistory(prev => {
       const now = new Date().toISOString();
-      
+
       // Add new data points
       const timestamps = [...prev.timestamps, now].slice(-HISTORY_LIMIT);
       const memory_usage = [...prev.memory_usage, newMetrics.current_memory_usage_mb].slice(-HISTORY_LIMIT);
@@ -230,7 +230,7 @@ export const PerformanceDashboard = () => {
       const requests_processed = [...prev.requests_processed, newMetrics.requests_processed].slice(-HISTORY_LIMIT);
       const documents_processed = [...prev.documents_processed, newMetrics.documents_processed].slice(-HISTORY_LIMIT);
       const chunks_processed = [...prev.chunks_processed, newMetrics.total_chunks_processed].slice(-HISTORY_LIMIT);
-      
+
       return {
         timestamps,
         memory_usage,
@@ -241,34 +241,34 @@ export const PerformanceDashboard = () => {
       };
     });
   }, []);
-  
+
   // Calculate trends (percentage change between most recent values)
   const calculateTrend = useCallback((data: number[]): number => {
     if (data.length < 2) return 0;
-    
+
     const current = data[data.length - 1];
     const previous = data[data.length - 2];
-    
+
     if (previous === 0) return 0;
     return ((current - previous) / previous) * 100;
   }, []);
-  
+
   // Fetch performance metrics
   const fetchMetrics = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
-      
+
       // Fetch from API
       const response = await axios.get(`${API_URL}/api/metrics`);
       const historyResponse = await axios.get(`${API_URL}/api/metrics/history`);
       const healthResp = await axios.get(`${API_URL}/health`);
-      
+
       // Update state
       setMetrics(response.data);
       setSystemMetrics(healthResp.data.metrics);
       setHealthResponse(healthResp.data);
-      
+
       // Update metrics history with data from history endpoint
       if (historyResponse.data) {
         setMetricsHistory({
@@ -290,27 +290,27 @@ export const PerformanceDashboard = () => {
       setLoading(false);
     }
   }, [updateMetricsHistory]);
-  
+
   // Initial fetch and auto-refresh setup
   useEffect(() => {
     fetchMetrics();
-    
+
     let intervalId: NodeJS.Timeout | null = null;
-    
+
     if (autoRefresh) {
       intervalId = setInterval(fetchMetrics, 5000);
     }
-    
+
     return () => {
       if (intervalId) clearInterval(intervalId);
     };
   }, [autoRefresh, fetchMetrics]);
-  
+
   // Toggle auto-refresh
   const toggleAutoRefresh = () => {
     setAutoRefresh(prev => !prev);
   };
-  
+
   // Dashboard layout
   return (
     <div className="min-h-screen bg-gray-900 text-gray-300 p-4">
@@ -320,7 +320,7 @@ export const PerformanceDashboard = () => {
             <BarChart3 className="w-6 h-6 text-cyan-500" />
             <h1 className="text-xl font-bold text-cyan-300">Performance Dashboard</h1>
           </div>
-          
+
           <div className="flex items-center gap-2">
             <button
               onClick={fetchMetrics}
@@ -329,13 +329,13 @@ export const PerformanceDashboard = () => {
               <RefreshCw className="w-4 h-4" />
               <span>Refresh</span>
             </button>
-            
+
             <button
               onClick={toggleAutoRefresh}
               className={`
                 flex items-center gap-1 px-3 py-1.5 rounded-md text-sm
-                ${autoRefresh 
-                  ? 'bg-cyan-900/50 text-cyan-300 hover:bg-cyan-900/70' 
+                ${autoRefresh
+                  ? 'bg-cyan-900/50 text-cyan-300 hover:bg-cyan-900/70'
                   : 'bg-gray-800 hover:bg-gray-700'}
               `}
             >
@@ -344,7 +344,7 @@ export const PerformanceDashboard = () => {
             </button>
           </div>
         </div>
-        
+
         {loading && !metrics ? (
           <div className="flex items-center justify-center h-64">
             <div className="flex flex-col items-center gap-3">
@@ -355,7 +355,7 @@ export const PerformanceDashboard = () => {
         ) : error ? (
           <div className="bg-red-950/20 border border-red-900 rounded-lg p-6 text-center">
             <p className="text-red-400">{error}</p>
-            <button 
+            <button
               onClick={fetchMetrics}
               className="mt-4 px-4 py-2 bg-red-900/30 hover:bg-red-900/50 rounded-md text-sm"
             >
@@ -367,7 +367,7 @@ export const PerformanceDashboard = () => {
             {/* System overview */}
             <div className="bg-black/20 border border-gray-800 rounded-lg p-4">
               <h2 className="text-lg font-semibold text-cyan-300 mb-4">System Overview</h2>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {systemMetrics && (
                   <>
@@ -380,7 +380,7 @@ export const PerformanceDashboard = () => {
                       chartColor="#22d3ee"
                       trend={calculateTrend(metricsHistory.processing_time)}
                     />
-                    
+
                     <MetricCard
                       title="Memory Usage"
                       value={systemMetrics.memory_usage_mb.toFixed(1)}
@@ -390,7 +390,7 @@ export const PerformanceDashboard = () => {
                       chartColor="#a855f7"
                       trend={calculateTrend(metricsHistory.memory_usage)}
                     />
-                    
+
                     <MetricCard
                       title="Disk Usage"
                       value={systemMetrics.disk_usage_percent.toFixed(1)}
@@ -402,12 +402,12 @@ export const PerformanceDashboard = () => {
                 )}
               </div>
             </div>
-            
+
             {/* Performance metrics */}
             {metrics && derivedMetrics && (
               <div className="bg-black/20 border border-gray-800 rounded-lg p-4">
                 <h2 className="text-lg font-semibold text-cyan-300 mb-4">Performance Metrics</h2>
-                
+
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <MetricCard
                     title="Requests Processed"
@@ -417,7 +417,7 @@ export const PerformanceDashboard = () => {
                     chartColor="#3b82f6"
                     trend={calculateTrend(metricsHistory.requests_processed)}
                   />
-                  
+
                   <MetricCard
                     title="Documents Processed"
                     value={metrics.documents_processed}
@@ -426,7 +426,7 @@ export const PerformanceDashboard = () => {
                     chartColor="#f97316"
                     trend={calculateTrend(metricsHistory.documents_processed)}
                   />
-                  
+
                   <MetricCard
                     title="Total Chunks"
                     value={metrics.total_chunks_processed}
@@ -435,7 +435,7 @@ export const PerformanceDashboard = () => {
                     chartColor="#84cc16"
                     trend={calculateTrend(metricsHistory.chunks_processed)}
                   />
-                  
+
                   <MetricCard
                     title="Avg Processing Time"
                     value={metrics.avg_processing_time.toFixed(2)}
@@ -444,7 +444,7 @@ export const PerformanceDashboard = () => {
                     history={metricsHistory.processing_time}
                     chartColor="#22d3ee"
                   />
-                  
+
                   <MetricCard
                     title="Memory Cache Size"
                     value={metrics.cache_stats?.memory_cache_size || 0}
@@ -452,7 +452,7 @@ export const PerformanceDashboard = () => {
                     icon={Database}
                     chartColor="#a855f7"
                   />
-                  
+
                   <MetricCard
                     title="Peak Memory Usage"
                     value={metrics.max_memory_usage.toFixed(1)}
@@ -463,13 +463,13 @@ export const PerformanceDashboard = () => {
                 </div>
               </div>
             )}
-            
+
             {/* Additional metrics */}
             {metrics && derivedMetrics && (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="bg-black/20 border border-gray-800 rounded-lg p-4">
                   <h2 className="text-lg font-semibold text-cyan-300 mb-4">Efficiency</h2>
-                  
+
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
@@ -480,7 +480,7 @@ export const PerformanceDashboard = () => {
                         {derivedMetrics.avgDocumentTime.toFixed(2)}s
                       </span>
                     </div>
-                    
+
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <Layers className="w-4 h-4 text-gray-400" />
@@ -490,7 +490,7 @@ export const PerformanceDashboard = () => {
                         {derivedMetrics.chunksPerDocument.toFixed(1)}
                       </span>
                     </div>
-                    
+
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <Database className="w-4 h-4 text-gray-400" />
@@ -502,10 +502,10 @@ export const PerformanceDashboard = () => {
                     </div>
                   </div>
                 </div>
-                
+
                 <div className="bg-black/20 border border-gray-800 rounded-lg p-4">
                   <h2 className="text-lg font-semibold text-cyan-300 mb-4">System Info</h2>
-                  
+
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
@@ -516,7 +516,7 @@ export const PerformanceDashboard = () => {
                         {derivedMetrics.uptimeFormatted}
                       </span>
                     </div>
-                    
+
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <Server className="w-4 h-4 text-gray-400" />
@@ -526,7 +526,7 @@ export const PerformanceDashboard = () => {
                         {new Date(metrics.start_time).toLocaleString()}
                       </span>
                     </div>
-                    
+
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <Activity className="w-4 h-4 text-gray-400" />
@@ -540,12 +540,12 @@ export const PerformanceDashboard = () => {
                 </div>
               </div>
             )}
-            
+
             {/* System information section */}
             {healthResponse && healthResponse.system_info && (
               <div className="bg-black/20 border border-gray-800 rounded-lg p-4 mt-6">
                 <h2 className="text-lg font-semibold text-cyan-300 mb-4">System Information</h2>
-                
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
@@ -557,7 +557,7 @@ export const PerformanceDashboard = () => {
                         {healthResponse.system_info.platform}
                       </span>
                     </div>
-                    
+
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <Cpu className="w-4 h-4 text-gray-400" />
@@ -568,7 +568,7 @@ export const PerformanceDashboard = () => {
                       </span>
                     </div>
                   </div>
-                  
+
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
@@ -579,7 +579,7 @@ export const PerformanceDashboard = () => {
                         {healthResponse.system_info.memory_total.toFixed(2)} GB
                       </span>
                     </div>
-                    
+
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <Activity className="w-4 h-4 text-gray-400" />
@@ -600,4 +600,4 @@ export const PerformanceDashboard = () => {
   );
 };
 
-export default PerformanceDashboard; 
+export default PerformanceDashboard;

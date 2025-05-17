@@ -11,11 +11,11 @@ It provides functions to:
 
 import os
 import time
-from typing import Dict, List, Optional, Any
+from typing import Any, Dict, List, Optional
 
 from backend.models.enhanced_orchestrator import (
-    OrchestratorConfig,
     EnhancedOrchestrator,
+    OrchestratorConfig,
 )
 from backend.utils.logging import get_logger
 
@@ -47,15 +47,23 @@ class LLMConfigService:
             anthropic_key = os.getenv("ANTHROPIC_API_KEY")
             google_key = os.getenv("GOOGLE_API_KEY")
             # Assuming OLLAMA_BASE_URL is read by the Ollama adapter internally
-            
+
             # Check if mock mode is enabled
             use_mock = os.getenv("USE_MOCK", "false").lower() in ("true", "1", "yes")
 
             # Check if we should automatically register models even without API keys
-            auto_register = os.getenv("AUTO_REGISTER_PROVIDERS", "true").lower() in ("true", "1", "yes")
-            
+            auto_register = os.getenv("AUTO_REGISTER_PROVIDERS", "true").lower() in (
+                "true",
+                "1",
+                "yes",
+            )
+
             # Import the adapter classes directly
-            from src.models.llm_adapter import OpenAIAdapter, AnthropicAdapter, GeminiAdapter
+            from backend.models.llm_adapter import (
+                AnthropicAdapter,
+                GeminiAdapter,
+                OpenAIAdapter,
+            )
 
             # Register OpenAI models
             try:
@@ -65,20 +73,27 @@ class LLMConfigService:
                     if not openai_key and (use_mock or auto_register):
                         openai_key = "sk-mock-key-for-openai"
                         logger.info("Using mock OpenAI key for auto-registration")
-                        
+
                     gpt4o_adapter = OpenAIAdapter(openai_key, model="gpt-4o")
-                    gpt4turbo_adapter = OpenAIAdapter(openai_key, model="gpt-4-turbo-preview")
-                    
+                    gpt4turbo_adapter = OpenAIAdapter(
+                        openai_key, model="gpt-4-turbo-preview"
+                    )
+
                     # Manually add to orchestrator.model_registry
-                    if hasattr(self.orchestrator, 'model_registry'):
+                    if hasattr(self.orchestrator, "model_registry"):
                         self.orchestrator.model_registry["gpt4o"] = {
                             "provider": "openai",
                             "model": "gpt-4o",
                             "weight": 1.0,
                             "capabilities": gpt4o_adapter.get_capabilities(),
                             "tags": ["premium", "reasoning"],
-                            "available": bool(openai_key) or use_mock,  # Only truly available with key or in mock mode
-                            "status": "ready" if (bool(openai_key) or use_mock) else "needs_key",
+                            "available": bool(openai_key)
+                            or use_mock,  # Only truly available with key or in mock mode
+                            "status": (
+                                "ready"
+                                if (bool(openai_key) or use_mock)
+                                else "needs_key"
+                            ),
                         }
                         self.orchestrator.model_registry["gpt4turbo"] = {
                             "provider": "openai",
@@ -86,10 +101,17 @@ class LLMConfigService:
                             "weight": 0.9,
                             "capabilities": gpt4turbo_adapter.get_capabilities(),
                             "tags": ["premium", "reasoning"],
-                            "available": bool(openai_key) or use_mock,  # Only truly available with key or in mock mode
-                            "status": "ready" if (bool(openai_key) or use_mock) else "needs_key",
+                            "available": bool(openai_key)
+                            or use_mock,  # Only truly available with key or in mock mode
+                            "status": (
+                                "ready"
+                                if (bool(openai_key) or use_mock)
+                                else "needs_key"
+                            ),
                         }
-                        logger.info("Registered OpenAI models directly to model_registry")
+                        logger.info(
+                            "Registered OpenAI models directly to model_registry"
+                        )
                     else:
                         logger.warning("No model_registry attribute in orchestrator")
                 else:
@@ -107,20 +129,29 @@ class LLMConfigService:
                     if not anthropic_key and (use_mock or auto_register):
                         anthropic_key = "sk-ant-mock-key-for-anthropic"
                         logger.info("Using mock Anthropic key for auto-registration")
-                        
-                    claude3opus_adapter = AnthropicAdapter(anthropic_key, model="claude-3-opus-20240229")
-                    claude3sonnet_adapter = AnthropicAdapter(anthropic_key, model="claude-3-sonnet-20240229")
-                    
+
+                    claude3opus_adapter = AnthropicAdapter(
+                        anthropic_key, model="claude-3-opus-20240229"
+                    )
+                    claude3sonnet_adapter = AnthropicAdapter(
+                        anthropic_key, model="claude-3-sonnet-20240229"
+                    )
+
                     # Manually add to orchestrator.model_registry
-                    if hasattr(self.orchestrator, 'model_registry'):
+                    if hasattr(self.orchestrator, "model_registry"):
                         self.orchestrator.model_registry["claude3opus"] = {
                             "provider": "anthropic",
                             "model": "claude-3-opus-20240229",
                             "weight": 1.0,
                             "capabilities": claude3opus_adapter.get_capabilities(),
                             "tags": ["premium", "reasoning"],
-                            "available": bool(anthropic_key) or use_mock,  # Only truly available with key or in mock mode
-                            "status": "ready" if (bool(anthropic_key) or use_mock) else "needs_key",
+                            "available": bool(anthropic_key)
+                            or use_mock,  # Only truly available with key or in mock mode
+                            "status": (
+                                "ready"
+                                if (bool(anthropic_key) or use_mock)
+                                else "needs_key"
+                            ),
                         }
                         self.orchestrator.model_registry["claude3sonnet"] = {
                             "provider": "anthropic",
@@ -128,10 +159,17 @@ class LLMConfigService:
                             "weight": 0.9,
                             "capabilities": claude3sonnet_adapter.get_capabilities(),
                             "tags": ["premium", "reasoning"],
-                            "available": bool(anthropic_key) or use_mock,  # Only truly available with key or in mock mode
-                            "status": "ready" if (bool(anthropic_key) or use_mock) else "needs_key",
+                            "available": bool(anthropic_key)
+                            or use_mock,  # Only truly available with key or in mock mode
+                            "status": (
+                                "ready"
+                                if (bool(anthropic_key) or use_mock)
+                                else "needs_key"
+                            ),
                         }
-                        logger.info("Registered Anthropic models directly to model_registry")
+                        logger.info(
+                            "Registered Anthropic models directly to model_registry"
+                        )
                     else:
                         logger.warning("No model_registry attribute in orchestrator")
                 else:
@@ -143,26 +181,35 @@ class LLMConfigService:
 
             # Register Google Gemini models
             try:
-                # Create Gemini adapters - will use mock mode if no key and USE_MOCK=true  
+                # Create Gemini adapters - will use mock mode if no key and USE_MOCK=true
                 if google_key or use_mock or auto_register:
                     # In mock mode or auto-register mode, we'll use a placeholder key if none is provided
                     if not google_key and (use_mock or auto_register):
                         google_key = "AIza-mock-key-for-google"
                         logger.info("Using mock Google key for auto-registration")
-                        
-                    gemini15_flash_adapter = GeminiAdapter(google_key, model="gemini-1.5-flash-latest")
-                    gemini15_pro_adapter = GeminiAdapter(google_key, model="gemini-1.5-pro-latest")
-                    
+
+                    gemini15_flash_adapter = GeminiAdapter(
+                        google_key, model="gemini-1.5-flash-latest"
+                    )
+                    gemini15_pro_adapter = GeminiAdapter(
+                        google_key, model="gemini-1.5-pro-latest"
+                    )
+
                     # Manually add to orchestrator.model_registry
-                    if hasattr(self.orchestrator, 'model_registry'):
+                    if hasattr(self.orchestrator, "model_registry"):
                         self.orchestrator.model_registry["gemini15flash"] = {
                             "provider": "gemini",
                             "model": "gemini-1.5-flash-latest",
                             "weight": 0.8,
                             "capabilities": gemini15_flash_adapter.get_capabilities(),
                             "tags": ["fast", "reasoning"],
-                            "available": bool(google_key) or use_mock,  # Only truly available with key or in mock mode
-                            "status": "ready" if (bool(google_key) or use_mock) else "needs_key",
+                            "available": bool(google_key)
+                            or use_mock,  # Only truly available with key or in mock mode
+                            "status": (
+                                "ready"
+                                if (bool(google_key) or use_mock)
+                                else "needs_key"
+                            ),
                         }
                         self.orchestrator.model_registry["gemini15pro"] = {
                             "provider": "gemini",
@@ -170,10 +217,17 @@ class LLMConfigService:
                             "weight": 0.9,
                             "capabilities": gemini15_pro_adapter.get_capabilities(),
                             "tags": ["premium", "reasoning"],
-                            "available": bool(google_key) or use_mock,  # Only truly available with key or in mock mode
-                            "status": "ready" if (bool(google_key) or use_mock) else "needs_key",
+                            "available": bool(google_key)
+                            or use_mock,  # Only truly available with key or in mock mode
+                            "status": (
+                                "ready"
+                                if (bool(google_key) or use_mock)
+                                else "needs_key"
+                            ),
                         }
-                        logger.info("Registered Google (Gemini) models directly to model_registry")
+                        logger.info(
+                            "Registered Google (Gemini) models directly to model_registry"
+                        )
                     else:
                         logger.warning("No model_registry attribute in orchestrator")
                 else:
@@ -184,43 +238,60 @@ class LLMConfigService:
                 logger.error(f"Failed to register Google (Gemini) models directly: {e}")
 
             # Register Docker Model Runner models if enabled
-            use_model_runner = os.getenv("USE_MODEL_RUNNER", "false").lower() in ("true", "1", "yes")
-            enable_model_runner = os.getenv("ENABLE_MODEL_RUNNER", "false").lower() in ("true", "1", "yes")
-            
+            use_model_runner = os.getenv("USE_MODEL_RUNNER", "false").lower() in (
+                "true",
+                "1",
+                "yes",
+            )
+            enable_model_runner = os.getenv("ENABLE_MODEL_RUNNER", "false").lower() in (
+                "true",
+                "1",
+                "yes",
+            )
+
             if use_model_runner or enable_model_runner:
                 try:
                     # Check which adapter to use (CLI or API)
                     model_runner_type = os.getenv("MODEL_RUNNER_TYPE", "cli").lower()
-                    
+
                     if model_runner_type == "cli":
                         # Import the CLI adapter
-                        from src.models.docker_modelrunner_cli_adapter import DockerModelRunnerCLIAdapter
-                        
+                        from backend.models.docker_modelrunner_cli_adapter import (
+                            DockerModelRunnerCLIAdapter,
+                        )
+
                         # Get available models
                         models = []
                         try:
                             # Use synchronous subprocess to get models
                             import subprocess
+
                             result = subprocess.run(
-                                ["docker", "model", "list"], 
-                                capture_output=True, 
+                                ["docker", "model", "list"],
+                                capture_output=True,
                                 text=True,
-                                check=False
+                                check=False,
                             )
                             if result.returncode == 0:
                                 # Parse output - skip header line
-                                lines = result.stdout.strip().split('\n')
+                                lines = result.stdout.strip().split("\n")
                                 if len(lines) > 1:
                                     for line in lines[1:]:  # Skip header
                                         parts = line.split()
                                         if parts:
-                                            models.append(parts[0])  # First column is model name
-                                logger.info(f"Found {len(models)} Docker Model Runner models via CLI")
+                                            models.append(
+                                                parts[0]
+                                            )  # First column is model name
+                                logger.info(
+                                    f"Found {len(models)} Docker Model Runner models via CLI"
+                                )
                         except Exception as e:
-                            logger.error(f"Failed to get Docker Model Runner models via CLI: {e}")
-                        
+                            logger.error(
+                                f"Failed to get Docker Model Runner models via CLI: {e}"
+                            )
+
                         # Register models
-                        if models and hasattr(self.orchestrator, 'model_registry'):
+                        if models and hasattr(self.orchestrator, "model_registry"):
                             for model in models:
                                 model_id = f"local-{model}"
                                 self.orchestrator.model_registry[model_id] = {
@@ -236,12 +307,14 @@ class LLMConfigService:
                                     "available": True,
                                     "status": "ready",
                                 }
-                            logger.info(f"Registered {len(models)} Docker Model Runner models via CLI")
+                            logger.info(
+                                f"Registered {len(models)} Docker Model Runner models via CLI"
+                            )
                         else:
                             # Add default model as fallback
                             default_model = os.getenv("DEFAULT_MODEL", "ai/smollm2")
                             model_id = f"local-{default_model}"
-                            if hasattr(self.orchestrator, 'model_registry'):
+                            if hasattr(self.orchestrator, "model_registry"):
                                 self.orchestrator.model_registry[model_id] = {
                                     "provider": "docker_modelrunner",
                                     "model": default_model,
@@ -255,19 +328,26 @@ class LLMConfigService:
                                     "available": True,
                                     "status": "ready",
                                 }
-                                logger.info(f"Registered default Docker Model Runner model {default_model} via CLI")
+                                logger.info(
+                                    f"Registered default Docker Model Runner model {default_model} via CLI"
+                                )
                     else:
                         # Import the API adapter
-                        from src.models.docker_modelrunner_adapter import DockerModelRunnerAdapter, get_available_models
-                        
+                        from backend.models.docker_modelrunner_adapter import (
+                            DockerModelRunnerAdapter,
+                            get_available_models,
+                        )
+
                         # Get default model from environment
                         default_model = os.getenv("DEFAULT_MODEL", "phi3:mini")
-                        
+
                         # Create adapter for the default model
-                        modelrunner_adapter = DockerModelRunnerAdapter(model=default_model)
-                        
+                        modelrunner_adapter = DockerModelRunnerAdapter(
+                            model=default_model
+                        )
+
                         # Manually add to orchestrator.model_registry
-                        if hasattr(self.orchestrator, 'model_registry'):
+                        if hasattr(self.orchestrator, "model_registry"):
                             model_id = f"local-{default_model}"
                             self.orchestrator.model_registry[model_id] = {
                                 "provider": "docker_modelrunner",
@@ -278,18 +358,26 @@ class LLMConfigService:
                                 "available": True,
                                 "status": "ready",
                             }
-                            logger.info(f"Registered Docker Model Runner model {default_model} directly to model_registry")
-                            
+                            logger.info(
+                                f"Registered Docker Model Runner model {default_model} directly to model_registry"
+                            )
+
                             # Try to register additional models asynchronously
                             async def register_additional_models():
                                 try:
                                     # Get available models from Docker Model Runner
                                     models = await get_available_models()
                                     for model in models:
-                                        if model != default_model and hasattr(self.orchestrator, 'model_registry'):
-                                            model_adapter = DockerModelRunnerAdapter(model=model)
+                                        if model != default_model and hasattr(
+                                            self.orchestrator, "model_registry"
+                                        ):
+                                            model_adapter = DockerModelRunnerAdapter(
+                                                model=model
+                                            )
                                             model_id = f"local-{model}"
-                                            self.orchestrator.model_registry[model_id] = {
+                                            self.orchestrator.model_registry[
+                                                model_id
+                                            ] = {
                                                 "provider": "docker_modelrunner",
                                                 "model": model,
                                                 "weight": 0.8,
@@ -298,12 +386,17 @@ class LLMConfigService:
                                                 "available": True,
                                                 "status": "ready",
                                             }
-                                    logger.info(f"Registered {len(models)} Docker Model Runner models")
+                                    logger.info(
+                                        f"Registered {len(models)} Docker Model Runner models"
+                                    )
                                 except Exception as e:
-                                    logger.error(f"Failed to register additional Docker Model Runner models: {e}")
-                            
+                                    logger.error(
+                                        f"Failed to register additional Docker Model Runner models: {e}"
+                                    )
+
                             # Start asynchronous task to register models
                             import asyncio
+
                             try:
                                 loop = asyncio.get_event_loop()
                                 if loop.is_running():
@@ -312,16 +405,20 @@ class LLMConfigService:
                                     # If no loop is running, don't attempt to register additional models
                                     pass
                             except Exception as e:
-                                logger.error(f"Failed to start async task for model registration: {e}")
+                                logger.error(
+                                    f"Failed to start async task for model registration: {e}"
+                                )
                         else:
-                            logger.warning("No model_registry attribute in orchestrator")
+                            logger.warning(
+                                "No model_registry attribute in orchestrator"
+                            )
                 except Exception as e:
                     logger.error(f"Failed to register Docker Model Runner models: {e}")
             else:
                 logger.info(
                     "Neither USE_MODEL_RUNNER nor ENABLE_MODEL_RUNNER is set to true, skipping Docker Model Runner registration."
                 )
-                
+
             # REMOVED Ollama registration attempt as no adapter exists
             # # Register Ollama models
             # try:
@@ -548,7 +645,7 @@ class LLMConfigService:
             List of available pattern names
         """
         return self.get_available_analysis_patterns()
-        
+
     def get_available_analysis_patterns(self) -> List[str]:
         """
         Get all available analysis patterns

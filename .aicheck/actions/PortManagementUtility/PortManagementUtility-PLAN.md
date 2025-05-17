@@ -22,22 +22,26 @@ The Port Management Utility Action is aimed at creating tools for resolving port
 ## Implementation Steps
 
 1. **Create Port Clearing Utility**
+
    - Develop a `clear_port.sh` bash script that can detect and kill processes on a given port
    - Ensure the script can be used both standalone and sourced by other scripts
    - Include verbose output for clarity and error handling
 
 2. **Enhance Configuration Path Handling**
+
    - Modify `config.py` to properly handle both relative and absolute paths
    - Ensure paths work correctly in both local and Docker environments
    - Implement graceful fallbacks for directory creation failures
 
 3. **Integrate Port Clearing in Scripts**
+
    - Update `start-dev.sh` to clear port before starting
    - Update `start-ultra-with-modelrunner.sh` to clear port before starting
    - Update `test_production.sh` to include port clearing in cleanup
    - Create a comprehensive port management approach
 
 4. **Create Import Fix Utility**
+
    - Develop a `fix_imports.py` script to automatically add 'backend.' prefix to imports
    - Use regular expressions for reliability without external dependencies
    - Ensure the script handles different import patterns correctly
@@ -77,11 +81,11 @@ The Port Management Utility Action is aimed at creating tools for resolving port
 
 ## Risks and Mitigations
 
-| Risk | Probability | Impact | Mitigation |
-|------|------------|--------|------------|
-| Port clearing fails on some platforms | Medium | Medium | Implement fallback mechanisms and clear error messages |
-| Docker environment differences cause path issues | Medium | High | Extensive testing in both local and Docker environments |
-| Script permissions issues | Low | Medium | Document proper permission settings in documentation |
+| Risk                                             | Probability | Impact | Mitigation                                              |
+| ------------------------------------------------ | ----------- | ------ | ------------------------------------------------------- |
+| Port clearing fails on some platforms            | Medium      | Medium | Implement fallback mechanisms and clear error messages  |
+| Docker environment differences cause path issues | Medium      | High   | Extensive testing in both local and Docker environments |
+| Script permissions issues                        | Low         | Medium | Document proper permission settings in documentation    |
 
 ## Dependencies on Other Actions
 
@@ -96,6 +100,7 @@ The Port Management Utility Action is aimed at creating tools for resolving port
 ## Documentation
 
 Documentation with enduring value will be migrated to:
+
 - `/documentation/technical/setup/port_management.md`
 - Port management section in README.md
 - Port conflict resolution in local development guide

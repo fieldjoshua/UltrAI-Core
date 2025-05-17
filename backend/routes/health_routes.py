@@ -4,14 +4,14 @@ Health check endpoints for the Ultra backend.
 This module provides endpoints for checking the health of the application and its services.
 """
 
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, HTTPException, Query, status
 
-from config import Config
-from services.health_service import health_service
-from utils.health_check import check_llm_provider_health, HealthStatus, ServiceType, health_check_registry
-from utils.logging import get_logger
+from backend.config import Config
+from backend.services.health_service import health_service
+from backend.utils.health_check import health_check_registry
+from backend.utils.logging import get_logger
 
 # Configure router - use prefix for direct inclusion in app
 router = APIRouter(tags=["health"])
@@ -93,27 +93,30 @@ async def check_service_health(service_name: str):
 async def check_llm_providers_health():
     """
     Check the health of all configured LLM providers.
-    
+
     Returns detailed health status for each provider including:
     - OpenAI (if configured)
     - Anthropic (if configured)
     - Google/Gemini (if configured)
     - Docker Model Runner (if enabled)
-    
+
     For each provider, returns connectivity status, API key validity,
     and any error information if applicable.
     """
     try:
         # Log the LLM providers health check
         logger.info("LLM providers health check requested")
-        
+
         # Get provider details from health service
         providers_status = health_service._check_llm_provider_connectivity()
-        
+
         # Count available providers
-        available_count = sum(1 for _, status in providers_status.items()
-                            if status.get("status") == "healthy")
-        
+        available_count = sum(
+            1
+            for _, status in providers_status.items()
+            if status.get("status") == "healthy"
+        )
+
         # Determine overall status
         if available_count > 0:
             overall_status = "healthy"
@@ -124,7 +127,7 @@ async def check_llm_providers_health():
         else:
             overall_status = "unavailable"
             status_message = "No LLM providers configured"
-        
+
         # Return comprehensive status
         return {
             "status": overall_status,
@@ -151,11 +154,11 @@ async def check_llm_providers_health():
 async def check_circuit_breakers():
     """
     Get the status of all circuit breakers in the system.
-    
-    Circuit breakers prevent cascading failures by temporarily disabling 
-    services that are failing repeatedly. This endpoint shows the status 
+
+    Circuit breakers prevent cascading failures by temporarily disabling
+    services that are failing repeatedly. This endpoint shows the status
     of all circuit breakers and their configuration.
-    
+
     Returns:
     - List of all circuit breakers
     - Their current state (closed, open, half-open)
@@ -165,14 +168,15 @@ async def check_circuit_breakers():
     try:
         # Log the circuit breaker status check
         logger.info("Circuit breaker status check requested")
-        
+
         # Get circuit breaker status from registry
         circuit_breakers = health_check_registry.get_circuit_breakers()
-        
+
         # Count open circuits
-        open_circuits = sum(1 for _, cb in circuit_breakers.items() 
-                         if cb.get("state") != "closed")
-        
+        open_circuits = sum(
+            1 for _, cb in circuit_breakers.items() if cb.get("state") != "closed"
+        )
+
         # Determine overall status
         if not circuit_breakers:
             overall_status = "unavailable"
@@ -183,7 +187,7 @@ async def check_circuit_breakers():
         else:
             overall_status = "healthy"
             status_message = "All circuit breakers are closed"
-            
+
         # Return comprehensive status
         return {
             "status": overall_status,

@@ -11,6 +11,7 @@ This document outlines the issues identified when running Ultra in real mode (no
 **Analysis**: The health endpoint should be accessible without authentication. In the current implementation, it's likely that the auth middleware is not properly configured to bypass authentication for public endpoints in real mode.
 
 **Evidence**:
+
 ```
 HTTP Request: GET http://testserver/api/health "HTTP/1.1 401 Unauthorized"
 ```
@@ -28,6 +29,7 @@ HTTP Request: GET http://testserver/api/health "HTTP/1.1 401 Unauthorized"
 **Problem**: The `health_service` module is referenced but not found.
 
 **Error**:
+
 ```
 AttributeError: module 'backend.services' has no attribute 'health_service'
 ```
@@ -39,6 +41,7 @@ AttributeError: module 'backend.services' has no attribute 'health_service'
 **Problem**: The `database_service` module is referenced but not found.
 
 **Error**:
+
 ```
 AttributeError: module 'backend.services' has no attribute 'database_service'
 ```
@@ -50,6 +53,7 @@ AttributeError: module 'backend.services' has no attribute 'database_service'
 **Problem**: Database connection fails in real mode, falling back to in-memory.
 
 **Error**:
+
 ```
 Error creating database engine: (psycopg2.OperationalError) connection to server at "localhost" (::1), port 5432 failed: FATAL: password authentication failed for user "ultrauser"
 ```
@@ -61,6 +65,7 @@ Error creating database engine: (psycopg2.OperationalError) connection to server
 **Problem**: The current Dockerfile is well-structured but needs adjustments for production readiness.
 
 **Analysis**: While the Dockerfile follows best practices, it needs improvements for production:
+
 - Better handling of dependencies
 - More comprehensive health checks
 - Volume management for persistent data

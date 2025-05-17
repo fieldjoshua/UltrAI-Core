@@ -56,13 +56,13 @@ class NewProviderAdapter(BaseAdapter):
     def __init__(self, model_config: ModelConfig):
         super().__init__(model_config)
         # Initialize provider-specific client
-        
+
     async def generate(self, prompt, **kwargs):
         # Implement provider-specific generation
-        
+
     async def get_embedding(self, text, **kwargs):
         # Implement provider-specific embedding
-        
+
     def is_available(self):
         # Check if provider is available
 ```

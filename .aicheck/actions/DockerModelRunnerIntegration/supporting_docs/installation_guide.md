@@ -46,11 +46,13 @@ Docker Model Runner is available as an extension for Docker Desktop:
 If you've allowed installation from Docker Hub:
 
 For Apple Silicon Macs:
+
 ```bash
 docker extension install docker/modelrunner-metal:latest
 ```
 
 For Windows with NVIDIA GPUs:
+
 ```bash
 docker extension install docker/modelrunner-cuda:latest
 ```
@@ -65,6 +67,7 @@ After installation, verify that Docker Model Runner is working:
 4. You should see the Model Runner dashboard
 
 Alternatively, verify from the command line:
+
 ```bash
 docker extension ls
 ```
@@ -81,6 +84,7 @@ Let's test if Docker Model Runner is working properly:
 4. Click "Submit" and verify you get a response
 
 Or test via command line API:
+
 ```bash
 # Check available models
 curl http://localhost:8080/v1/models
@@ -102,7 +106,7 @@ curl -X POST http://localhost:8080/v1/chat/completions \
 Docker Model Runner works out of the box, but you can configure it in Docker Desktop:
 
 1. Go to the Model Runner extension interface
-2. Click on "Settings" 
+2. Click on "Settings"
 3. Configure options like:
    - Default model
    - Maximum memory usage
@@ -115,10 +119,10 @@ For more advanced configuration, you can set environment variables when using Do
 ```yaml
 model-runner:
   environment:
-    - GPU_ENABLED=true  # For GPU acceleration
-    - DEFAULT_MODEL=llama3:8b  # Default model to load
-    - MODELS=llama3:8b,phi3:mini,mistral:7b  # Models to make available
-    - CACHE_DIR=/modelrunner/cache  # Cache directory for models
+    - GPU_ENABLED=true # For GPU acceleration
+    - DEFAULT_MODEL=llama3:8b # Default model to load
+    - MODELS=llama3:8b,phi3:mini,mistral:7b # Models to make available
+    - CACHE_DIR=/modelrunner/cache # Cache directory for models
 ```
 
 ## Troubleshooting
@@ -192,6 +196,7 @@ python3 scripts/pull_modelrunner_models.py --models phi3:mini,llama3:8b
 ```
 
 This script will:
+
 - Connect to Docker Model Runner
 - Check which models are already available
 - Pull any requested models that aren't already downloaded

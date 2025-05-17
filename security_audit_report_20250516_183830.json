@@ -1,0 +1,109 @@
+{
+  "timestamp": "2025-05-16T18:38:30.538784",
+  "summary": {
+    "total": 16,
+    "passed": 0,
+    "failed": 0,
+    "errors": 14,
+    "warnings": 0,
+    "skipped": 2
+  },
+  "results": {
+    "Authentication Security": [
+      [
+        "User Registration",
+        "ERROR",
+        "HTTPConnectionPool(host='localhost', port=8085): Max retries exceeded with url: /api/v1/auth/register (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x104e21880>: Failed to establish a new connection: [Errno 61] Connection refused'))"
+      ],
+      [
+        "User Login",
+        "ERROR",
+        "HTTPConnectionPool(host='localhost', port=8085): Max retries exceeded with url: /api/v1/auth/login (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x104e43620>: Failed to establish a new connection: [Errno 61] Connection refused'))"
+      ],
+      [
+        "Protected Endpoint Auth",
+        "ERROR",
+        "HTTPConnectionPool(host='localhost', port=8085): Max retries exceeded with url: /api/v1/analyze (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x104e23f80>: Failed to establish a new connection: [Errno 61] Connection refused'))"
+      ]
+    ],
+    "JWT Security": [
+      [
+        "Invalid JWT Format",
+        "ERROR",
+        "HTTPConnectionPool(host='localhost', port=8085): Max retries exceeded with url: /api/v1/analyze (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x104e43b00>: Failed to establish a new connection: [Errno 61] Connection refused'))"
+      ],
+      [
+        "Expired Token",
+        "SKIP",
+        "Requires time delay for expiration"
+      ],
+      [
+        "Algorithm Validation",
+        "SKIP",
+        "Requires JWT library for testing"
+      ]
+    ],
+    "API Key Security": [
+      [
+        "Invalid API Key",
+        "ERROR",
+        "HTTPConnectionPool(host='localhost', port=8085): Max retries exceeded with url: /api/v1/analyze (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x104e42e70>: Failed to establish a new connection: [Errno 61] Connection refused'))"
+      ]
+    ],
+    "CORS Security": [
+      [
+        "Allowed Origin",
+        "ERROR",
+        "HTTPConnectionPool(host='localhost', port=8085): Max retries exceeded with url: /api/v1/health (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x104e43e30>: Failed to establish a new connection: [Errno 61] Connection refused'))"
+      ],
+      [
+        "Disallowed Origin",
+        "ERROR",
+        "HTTPConnectionPool(host='localhost', port=8085): Max retries exceeded with url: /api/v1/health (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x104e8c140>: Failed to establish a new connection: [Errno 61] Connection refused'))"
+      ]
+    ],
+    "Rate Limiting": [
+      [
+        "Rate Limiting",
+        "ERROR",
+        "HTTPConnectionPool(host='localhost', port=8085): Max retries exceeded with url: /api/v1/health (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x104e8c560>: Failed to establish a new connection: [Errno 61] Connection refused'))"
+      ]
+    ],
+    "Security Headers": [
+      [
+        "Security Headers",
+        "ERROR",
+        "HTTPConnectionPool(host='localhost', port=8085): Max retries exceeded with url: /api/v1/health (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x104e8c8c0>: Failed to establish a new connection: [Errno 61] Connection refused'))"
+      ]
+    ],
+    "Injection Protection": [
+      [
+        "SQL Injection ('; DROP TABLE users;...)",
+        "ERROR",
+        "HTTPConnectionPool(host='localhost', port=8085): Max retries exceeded with url: /api/v1/analyze (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x104e8cce0>: Failed to establish a new connection: [Errno 61] Connection refused'))"
+      ],
+      [
+        "SQL Injection (1' OR '1'='1...)",
+        "ERROR",
+        "HTTPConnectionPool(host='localhost', port=8085): Max retries exceeded with url: /api/v1/analyze (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x104e8d070>: Failed to establish a new connection: [Errno 61] Connection refused'))"
+      ],
+      [
+        "SQL Injection (1 UNION SELECT * FRO...)",
+        "ERROR",
+        "HTTPConnectionPool(host='localhost', port=8085): Max retries exceeded with url: /api/v1/analyze (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x104e8d430>: Failed to establish a new connection: [Errno 61] Connection refused'))"
+      ]
+    ],
+    "Error Handling": [
+      [
+        "Stack Trace Exposure",
+        "ERROR",
+        "HTTPConnectionPool(host='localhost', port=8085): Max retries exceeded with url: /api/v1/nonexistent (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x104e43e90>: Failed to establish a new connection: [Errno 61] Connection refused'))"
+      ],
+      [
+        "Internal Error Exposure",
+        "ERROR",
+        "HTTPConnectionPool(host='localhost', port=8085): Max retries exceeded with url: /api/v1/analyze (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x104e439e0>: Failed to establish a new connection: [Errno 61] Connection refused'))"
+      ]
+    ]
+  }
+}

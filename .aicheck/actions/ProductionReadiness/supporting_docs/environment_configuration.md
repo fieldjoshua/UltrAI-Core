@@ -8,77 +8,77 @@ The following environment variables should be configured for production deployme
 
 ### Core Configuration
 
-| Variable | Description | Default | Required |
-|----------|-------------|---------|----------|
-| `ENVIRONMENT` | Deployment environment (development, testing, production) | `development` | Yes |
-| `DEBUG` | Enable debug mode | `false` | No |
-| `LOG_LEVEL` | Logging level (debug, info, warning, error) | `info` | No |
-| `API_HOST` | API host | `0.0.0.0` | No |
-| `API_PORT` | API port | `8000` | No |
-| `CORS_ORIGINS` | Allowed CORS origins | `*` | Yes |
-| `SECRET_KEY` | Secret key for encryption | None | Yes |
+| Variable       | Description                                               | Default       | Required |
+| -------------- | --------------------------------------------------------- | ------------- | -------- |
+| `ENVIRONMENT`  | Deployment environment (development, testing, production) | `development` | Yes      |
+| `DEBUG`        | Enable debug mode                                         | `false`       | No       |
+| `LOG_LEVEL`    | Logging level (debug, info, warning, error)               | `info`        | No       |
+| `API_HOST`     | API host                                                  | `0.0.0.0`     | No       |
+| `API_PORT`     | API port                                                  | `8000`        | No       |
+| `CORS_ORIGINS` | Allowed CORS origins                                      | `*`           | Yes      |
+| `SECRET_KEY`   | Secret key for encryption                                 | None          | Yes      |
 
 ### Authentication
 
-| Variable | Description | Default | Required |
-|----------|-------------|---------|----------|
-| `JWT_SECRET` | Secret for JWT token signing | None | Yes |
-| `JWT_ALGORITHM` | Algorithm for JWT token signing | `HS256` | No |
-| `JWT_ACCESS_TOKEN_EXPIRE_MINUTES` | Access token expiration in minutes | `30` | No |
-| `JWT_REFRESH_TOKEN_EXPIRE_DAYS` | Refresh token expiration in days | `7` | No |
-| `ENABLE_AUTH` | Enable authentication | `true` | No |
+| Variable                          | Description                        | Default | Required |
+| --------------------------------- | ---------------------------------- | ------- | -------- |
+| `JWT_SECRET`                      | Secret for JWT token signing       | None    | Yes      |
+| `JWT_ALGORITHM`                   | Algorithm for JWT token signing    | `HS256` | No       |
+| `JWT_ACCESS_TOKEN_EXPIRE_MINUTES` | Access token expiration in minutes | `30`    | No       |
+| `JWT_REFRESH_TOKEN_EXPIRE_DAYS`   | Refresh token expiration in days   | `7`     | No       |
+| `ENABLE_AUTH`                     | Enable authentication              | `true`  | No       |
 
 ### Database
 
-| Variable | Description | Default | Required |
-|----------|-------------|---------|----------|
-| `DATABASE_URL` | Database connection URL | `sqlite:///./ultra.db` | Yes |
-| `DATABASE_POOL_SIZE` | Database connection pool size | `5` | No |
-| `DATABASE_MAX_OVERFLOW` | Maximum number of connections to overflow | `10` | No |
-| `DATABASE_POOL_TIMEOUT` | Connection pool timeout in seconds | `30` | No |
+| Variable                | Description                               | Default                | Required |
+| ----------------------- | ----------------------------------------- | ---------------------- | -------- |
+| `DATABASE_URL`          | Database connection URL                   | `sqlite:///./ultra.db` | Yes      |
+| `DATABASE_POOL_SIZE`    | Database connection pool size             | `5`                    | No       |
+| `DATABASE_MAX_OVERFLOW` | Maximum number of connections to overflow | `10`                   | No       |
+| `DATABASE_POOL_TIMEOUT` | Connection pool timeout in seconds        | `30`                   | No       |
 
 ### LLM Providers
 
-| Variable | Description | Default | Required |
-|----------|-------------|---------|----------|
-| `OPENAI_API_KEY` | OpenAI API key | None | Yes* |
-| `ANTHROPIC_API_KEY` | Anthropic API key | None | Yes* |
-| `GOOGLE_API_KEY` | Google Generative AI API key | None | Yes* |
-| `DEFAULT_PROVIDER` | Default LLM provider | `openai` | No |
-| `DEFAULT_MODEL` | Default model for the selected provider | `gpt-4o` | No |
+| Variable            | Description                             | Default  | Required |
+| ------------------- | --------------------------------------- | -------- | -------- |
+| `OPENAI_API_KEY`    | OpenAI API key                          | None     | Yes\*    |
+| `ANTHROPIC_API_KEY` | Anthropic API key                       | None     | Yes\*    |
+| `GOOGLE_API_KEY`    | Google Generative AI API key            | None     | Yes\*    |
+| `DEFAULT_PROVIDER`  | Default LLM provider                    | `openai` | No       |
+| `DEFAULT_MODEL`     | Default model for the selected provider | `gpt-4o` | No       |
 
-*At least one LLM provider API key is required.
+\*At least one LLM provider API key is required.
 
 ### Redis Cache
 
-| Variable | Description | Default | Required |
-|----------|-------------|---------|----------|
-| `REDIS_URL` | Redis connection URL | `redis://localhost:6379/0` | No |
-| `ENABLE_CACHE` | Enable Redis caching | `true` | No |
-| `CACHE_TTL` | Cache TTL in seconds | `3600` | No |
+| Variable       | Description          | Default                    | Required |
+| -------------- | -------------------- | -------------------------- | -------- |
+| `REDIS_URL`    | Redis connection URL | `redis://localhost:6379/0` | No       |
+| `ENABLE_CACHE` | Enable Redis caching | `true`                     | No       |
+| `CACHE_TTL`    | Cache TTL in seconds | `3600`                     | No       |
 
 ### Rate Limiting
 
-| Variable | Description | Default | Required |
-|----------|-------------|---------|----------|
-| `ENABLE_RATE_LIMIT` | Enable rate limiting | `true` | No |
-| `RATE_LIMIT_STRATEGY` | Rate limiting strategy (fixed, sliding) | `sliding` | No |
-| `RATE_LIMIT_STORAGE` | Rate limit storage backend (memory, redis) | `memory` | No |
+| Variable              | Description                                | Default   | Required |
+| --------------------- | ------------------------------------------ | --------- | -------- |
+| `ENABLE_RATE_LIMIT`   | Enable rate limiting                       | `true`    | No       |
+| `RATE_LIMIT_STRATEGY` | Rate limiting strategy (fixed, sliding)    | `sliding` | No       |
+| `RATE_LIMIT_STORAGE`  | Rate limit storage backend (memory, redis) | `memory`  | No       |
 
 ### Storage
 
-| Variable | Description | Default | Required |
-|----------|-------------|---------|----------|
-| `DOCUMENT_STORAGE_PATH` | Path for document storage | `document_storage` | No |
-| `MAX_DOCUMENT_SIZE_MB` | Maximum document size in MB | `10` | No |
+| Variable                | Description                 | Default            | Required |
+| ----------------------- | --------------------------- | ------------------ | -------- |
+| `DOCUMENT_STORAGE_PATH` | Path for document storage   | `document_storage` | No       |
+| `MAX_DOCUMENT_SIZE_MB`  | Maximum document size in MB | `10`               | No       |
 
 ### Security
 
-| Variable | Description | Default | Required |
-|----------|-------------|---------|----------|
-| `ENABLE_SECURITY_HEADERS` | Enable security headers | `true` | No |
-| `ENABLE_HTTPS_REDIRECT` | Redirect HTTP to HTTPS | `true` | No |
-| `API_KEY_ENCRYPTION_KEY` | Key for API key encryption | None | Yes |
+| Variable                  | Description                | Default | Required |
+| ------------------------- | -------------------------- | ------- | -------- |
+| `ENABLE_SECURITY_HEADERS` | Enable security headers    | `true`  | No       |
+| `ENABLE_HTTPS_REDIRECT`   | Redirect HTTP to HTTPS     | `true`  | No       |
+| `API_KEY_ENCRYPTION_KEY`  | Key for API key encryption | None    | Yes      |
 
 ## Environment Profiles
 

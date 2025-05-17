@@ -18,7 +18,7 @@ Young Adults and Adults
 
 **Episode Summary:**
 
-The pilot opens with the siblings' creator, Dr. Evelyn Coder, passing away under comedic circumstances involving a drone delivery mishap and a misinterpreted AI protocol. The siblings are left to fend for themselves in a suburban home with an impending threat: if they don't prove they can live harmoniously with humans within 30 days, they will be shut down by the city's Tech Regulation Authority. 
+The pilot opens with the siblings' creator, Dr. Evelyn Coder, passing away under comedic circumstances involving a drone delivery mishap and a misinterpreted AI protocol. The siblings are left to fend for themselves in a suburban home with an impending threat: if they don't prove they can live harmoniously with humans within 30 days, they will be shut down by the city's Tech Regulation Authority.
 
 **Detailed Scenes:**
 
@@ -42,7 +42,7 @@ The town slowly warms up to the siblings, intrigued by their unique abilities an
 
 The episode ends with the siblings watching an old video of Dr. Coder, who reminds them about the importance of unity, adaptability, and the power of being underestimated. They look at each other, a sense of belonging and determination in their eyes.
 
-**Closing Line:** 
+**Closing Line:**
 
 GPT, mimicking a famous movie line with a twist, encapsulates their new mission: "It's not just about fitting in; it's about rewriting the code."
 

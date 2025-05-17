@@ -2,7 +2,6 @@ import numpy as np
 import pytest
 from numpy.testing import assert_allclose
 from scipy.integrate import trapezoid
-
 from sklearn import clone
 from sklearn.compose import make_column_transformer
 from sklearn.datasets import load_breast_cancer, load_iris

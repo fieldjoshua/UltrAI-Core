@@ -616,21 +616,21 @@ def generate_html_interface(output_path: Path) -> None:
     <div class="search-container">
         <input type="text" id="search-input" class="search-input" placeholder="Search parameters..." oninput="filterParameters()">
     </div>
-    
+
     <div class="nav">
         <div class="nav-item active" data-tab="by-file">By File</div>
         <div class="nav-item" data-tab="by-category">By Category</div>
     </div>
-    
+
     <div id="by-file" class="tab-content active">
         <div class="toggle-all" onclick="toggleAllSections()">Expand/Collapse All</div>
         <div id="file-container"></div>
     </div>
-    
+
     <div id="by-category" class="tab-content">
         <div id="category-container"></div>
     </div>
-    
+
     <div style="margin-top: 20px; text-align: right;">
         <button id="save-button" class="save-button" onclick="saveParameters()">Save Changes</button>
     </div>
@@ -638,7 +638,7 @@ def generate_html_interface(output_path: Path) -> None:
     <script>
         let glossaryData = {};
         let expandedSections = new Set();
-        
+
         // Fetch the parameter data
         async function loadParameterData() {
             try {
@@ -648,30 +648,30 @@ def generate_html_interface(output_path: Path) -> None:
                 renderCategoryView();
             } catch (error) {
                 console.error("Error loading parameter data:", error);
-                document.getElementById('file-container').innerHTML = 
+                document.getElementById('file-container').innerHTML =
                     '<div class="no-results">Error loading parameter data. Make sure parameters.json exists.</div>';
             }
         }
-        
+
         // Render the file-based view
         function renderFileView() {
             const container = document.getElementById('file-container');
             container.innerHTML = '';
-            
+
             const files = Object.entries(glossaryData.files);
             if (files.length === 0) {
                 container.innerHTML = '<div class="no-results">No parameters found</div>';
                 return;
             }
-            
+
             files.sort((a, b) => a[0].localeCompare(b[0])).forEach(([filePath, fileData]) => {
                 const parameters = fileData.parameters;
                 if (parameters.length === 0) return;
-                
+
                 const fileSection = document.createElement('div');
                 fileSection.className = 'file-section';
                 fileSection.id = `file-${encodeURIComponent(filePath)}`;
-                
+
                 const fileHeader = document.createElement('div');
                 fileHeader.className = 'file-header';
                 fileHeader.innerHTML = `
@@ -679,11 +679,11 @@ def generate_html_interface(output_path: Path) -> None:
                     <div class="parameter-count">${parameters.length} parameters</div>
                 `;
                 fileSection.appendChild(fileHeader);
-                
+
                 const tableContainer = document.createElement('div');
                 tableContainer.id = `section-${encodeURIComponent(filePath)}`;
                 tableContainer.style.display = expandedSections.has(filePath) ? 'block' : 'none';
-                
+
                 const table = document.createElement('table');
                 table.className = 'parameter-table';
                 table.innerHTML = `
@@ -699,30 +699,30 @@ def generate_html_interface(output_path: Path) -> None:
                         ${parameters.map(param => createParameterRow(param)).join('')}
                     </tbody>
                 `;
-                
+
                 tableContainer.appendChild(table);
                 fileSection.appendChild(tableContainer);
                 container.appendChild(fileSection);
             });
         }
-        
+
         // Render the category-based view
         function renderCategoryView() {
             const container = document.getElementById('category-container');
             container.innerHTML = '';
-            
+
             const categories = {
                 'Environment Variables': glossaryData.categories.environment_variables,
                 'Constants': glossaryData.categories.constants,
                 'Class Constants': glossaryData.categories.class_constants
             };
-            
+
             Object.entries(categories).forEach(([categoryName, parameters]) => {
                 if (parameters.length === 0) return;
-                
+
                 const categorySection = document.createElement('div');
                 categorySection.className = 'file-section';
-                
+
                 const categoryHeader = document.createElement('div');
                 categoryHeader.className = 'file-header';
                 categoryHeader.innerHTML = `
@@ -730,7 +730,7 @@ def generate_html_interface(output_path: Path) -> None:
                     <div class="parameter-count">${parameters.length} parameters</div>
                 `;
                 categorySection.appendChild(categoryHeader);
-                
+
                 const table = document.createElement('table');
                 table.className = 'parameter-table';
                 table.innerHTML = `
@@ -747,18 +747,18 @@ def generate_html_interface(output_path: Path) -> None:
                         ${parameters.map(param => createCategoryParameterRow(param)).join('')}
                     </tbody>
                 `;
-                
+
                 categorySection.appendChild(table);
                 container.appendChild(categorySection);
             });
         }
-        
+
         // Create a table row for a parameter in file view
         function createParameterRow(param) {
-            const valueInput = param.editable 
+            const valueInput = param.editable
                 ? `<input type="text" id="input-${param.name}" class="parameter-value-input" value="${param.raw_value}" data-original="${param.raw_value}" data-param-name="${param.name}" data-file-path="${param.file_path}">`
                 : param.value;
-                
+
             return `
                 <tr class="parameter-row" data-name="${param.name.toLowerCase()}" data-doc="${(param.doc_string || '').toLowerCase()}">
                     <td class="parameter-name">${param.name}</td>
@@ -768,13 +768,13 @@ def generate_html_interface(output_path: Path) -> None:
                 </tr>
             `;
         }
-        
+
         // Create a table row for a parameter in category view
         function createCategoryParameterRow(param) {
-            const valueInput = param.editable 
+            const valueInput = param.editable
                 ? `<input type="text" id="cat-input-${param.name}" class="parameter-value-input" value="${param.raw_value}" data-original="${param.raw_value}" data-param-name="${param.name}" data-file-path="${param.file_path}">`
                 : param.value;
-                
+
             return `
                 <tr class="parameter-row" data-name="${param.name.toLowerCase()}" data-doc="${(param.doc_string || '').toLowerCase()}">
                     <td class="parameter-name">${param.name}</td>
@@ -785,19 +785,19 @@ def generate_html_interface(output_path: Path) -> None:
                 </tr>
             `;
         }
-        
+
         // Filter parameters based on search input
         function filterParameters() {
             const searchText = document.getElementById('search-input').value.toLowerCase();
             const rows = document.querySelectorAll('.parameter-row');
             let visibleFiles = new Set();
-            
+
             rows.forEach(row => {
                 const name = row.getAttribute('data-name');
                 const doc = row.getAttribute('data-doc');
                 const visible = name.includes(searchText) || doc.includes(searchText);
                 row.style.display = visible ? '' : 'none';
-                
+
                 if (visible) {
                     // Find the parent file section
                     const fileSection = row.closest('.file-section');
@@ -812,21 +812,21 @@ def generate_html_interface(output_path: Path) -> None:
                     }
                 }
             });
-            
+
             // Hide file sections with no visible parameters
             const fileSections = document.querySelectorAll('.file-section');
             fileSections.forEach(section => {
                 section.style.display = visibleFiles.has(section.id) || searchText === '' ? '' : 'none';
             });
         }
-        
+
         // Toggle a file section
         function toggleSection(filePath) {
             const section = document.getElementById(`section-${filePath}`);
             if (section) {
                 const isVisible = section.style.display !== 'none';
                 section.style.display = isVisible ? 'none' : 'block';
-                
+
                 if (isVisible) {
                     expandedSections.delete(decodeURIComponent(filePath));
                 } else {
@@ -834,12 +834,12 @@ def generate_html_interface(output_path: Path) -> None:
                 }
             }
         }
-        
+
         // Toggle all file sections
         function toggleAllSections() {
             const allSections = document.querySelectorAll('[id^="section-"]');
             const allExpanded = Array.from(allSections).every(s => s.style.display !== 'none');
-            
+
             allSections.forEach(section => {
                 section.style.display = allExpanded ? 'none' : 'block';
                 const filePath = section.id.replace('section-', '');
@@ -850,7 +850,7 @@ def generate_html_interface(output_path: Path) -> None:
                 }
             });
         }
-        
+
         // Tab navigation
         document.querySelectorAll('.nav-item').forEach(item => {
             item.addEventListener('click', () => {
@@ -859,7 +859,7 @@ def generate_html_interface(output_path: Path) -> None:
                     navItem.classList.remove('active');
                 });
                 item.classList.add('active');
-                
+
                 // Show associated content
                 document.querySelectorAll('.tab-content').forEach(content => {
                     content.classList.remove('active');
@@ -867,16 +867,16 @@ def generate_html_interface(output_path: Path) -> None:
                 document.getElementById(item.getAttribute('data-tab')).classList.add('active');
             });
         });
-        
+
         // Save parameter changes
         function saveParameters() {
             const changedInputs = document.querySelectorAll('.parameter-value-input');
             const changes = [];
-            
+
             changedInputs.forEach(input => {
                 const originalValue = input.getAttribute('data-original');
                 const currentValue = input.value;
-                
+
                 if (originalValue !== currentValue) {
                     changes.push({
                         name: input.getAttribute('data-param-name'),
@@ -886,21 +886,21 @@ def generate_html_interface(output_path: Path) -> None:
                     });
                 }
             });
-            
+
             if (changes.length === 0) {
                 alert("No changes to save.");
                 return;
             }
-            
+
             // In a real application, this would send the changes to a backend
             // For this demo, we'll just show what would be saved
             console.log("Changes to save:", changes);
             alert(`Would save ${changes.length} parameter changes. Check the console for details.`);
-            
+
             // Here you would typically send these changes to a server endpoint
             // that would update the actual files in the codebase
         }
-        
+
         // Load data when page loads
         window.addEventListener('DOMContentLoaded', loadParameterData);
     </script>

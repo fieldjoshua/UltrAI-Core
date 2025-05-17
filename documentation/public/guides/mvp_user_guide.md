@@ -9,6 +9,7 @@ Ultra provides a simple interface to compare how different AI models respond to 
 ### Accessing the Interface
 
 1. Open your web browser and navigate to:
+
    - Local development: http://localhost:3009
    - Production deployment: https://your-ultra-deployment.com
 
@@ -24,6 +25,7 @@ Ultra provides a simple interface to compare how different AI models respond to 
 4. Click "Next" to proceed
 
 Example prompts that work well:
+
 - "Compare the environmental impact of electric vehicles vs. gasoline vehicles"
 - "Explain quantum computing to a high school student"
 - "What are the ethical considerations for AI in healthcare?"
@@ -36,6 +38,7 @@ Example prompts that work well:
 4. Click "Next" to proceed
 
 Available models typically include:
+
 - GPT-4o (OpenAI)
 - Claude 3.7 (Anthropic)
 - Gemini 1.5 Pro (Google)
@@ -48,6 +51,7 @@ Available models typically include:
 3. Click "Run Analysis" to start the process
 
 Available patterns:
+
 - **Gut Check Analysis**: Rapid evaluation of different perspectives
 - **Confidence Analysis**: Evaluates response strength with confidence scoring
 - **Critique Analysis**: Models critically evaluate each other's reasoning
@@ -63,6 +67,7 @@ Once the analysis completes, you'll see:
 3. **Ultra Analysis**: A synthesized response that combines insights
 
 Available views:
+
 - **Side by Side**: View all model responses next to each other
 - **Combined View**: Stack model responses vertically
 
@@ -99,15 +104,18 @@ Choose the right pattern for your needs:
 
 ### Common Issues
 
-1. **No models available**: 
+1. **No models available**:
+
    - Check if the backend server is running
    - Verify API keys are configured correctly
 
 2. **Analysis timeouts**:
+
    - Try reducing the number of models in your analysis
    - Break complex prompts into simpler ones
 
 3. **Inconsistent results**:
+
    - Different models have different training cutoff dates
    - Models may have varying levels of knowledge in specific domains
 

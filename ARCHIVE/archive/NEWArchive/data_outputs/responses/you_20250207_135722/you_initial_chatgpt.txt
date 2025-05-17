@@ -15,7 +15,7 @@ The advancement in artificial intelligence has allowed for improved efficiency i
 **Summary of the Invention**
 The invention provides a system and method for orchestrating collaborative analysis and synthesis of information by multiple AI models. This system enables the coordination of different AI models, each specialized in distinct aspects of data analysis or possessing expertise in varied data domains, to work together seamlessly. The orchestrated system enhances analytical capabilities, data insights, and decision-making processes by aggregating, analyzing, and synthesizing data from diverse sources in a collaborative manner.
 
-**Brief Description of the Drawings** 
+**Brief Description of the Drawings**
 Not applicable for this provisional application but may include flowcharts and system architecture diagrams in the non-provisional application.
 
 **Detailed Description**

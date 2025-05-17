@@ -17,12 +17,14 @@ The Ultra system relies on several external services such as LLM APIs, databases
 ## Steps
 
 1. **Audit External Service Dependencies**
+
    - [ ] Identify all external services used by Ultra (LLM APIs, database, Redis, etc.)
    - [ ] Document connectivity requirements for each service
    - [ ] Define criteria for "healthy" status for each service
    - [ ] Determine appropriate timeout values for health checks
 
 2. **Design Health Check Architecture**
+
    - [ ] Define health check endpoint structure
    - [ ] Design standardized response format
    - [ ] Create health status schema with appropriate detail levels
@@ -30,12 +32,14 @@ The Ultra system relies on several external services such as LLM APIs, databases
    - [ ] Determine caching strategy for health check results
 
 3. **Implement Core Health Check Framework**
+
    - [ ] Create base health check controller
    - [ ] Implement overall system health endpoint
    - [ ] Develop health check registry for service registration
    - [ ] Add logging and metrics collection
 
 4. **Implement Service-Specific Health Checks**
+
    - [ ] Create database connectivity check
    - [ ] Implement Redis connection verification
    - [ ] Add LLM API connectivity checks for each provider
@@ -43,12 +47,14 @@ The Ultra system relies on several external services such as LLM APIs, databases
    - [ ] Add network service dependency checks
 
 5. **Add Detailed Diagnostics**
+
    - [ ] Implement detailed diagnostics mode for troubleshooting
    - [ ] Add response time measurements for each service
    - [ ] Create configuration validation checks
    - [ ] Implement system resource verification
 
 6. **Documentation and Integration**
+
    - [ ] Document all health check endpoints
    - [ ] Create troubleshooting guide based on health check results
    - [ ] Add health check URLs to monitoring documentation

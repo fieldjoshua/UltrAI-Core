@@ -1,25 +1,27 @@
 # Test Matrix/DomainMatrix interaction.
 
 
-from sympy import GF, ZZ, QQ, EXRAW
-from sympy.polys.matrices import DomainMatrix, DM
-
 from sympy import (
-    Matrix,
-    MutableMatrix,
-    ImmutableMatrix,
-    SparseMatrix,
-    MutableDenseMatrix,
+    EXRAW,
+    GF,
+    QQ,
+    ZZ,
     ImmutableDenseMatrix,
-    MutableSparseMatrix,
+    ImmutableMatrix,
     ImmutableSparseMatrix,
+    Matrix,
+    MutableDenseMatrix,
+    MutableMatrix,
+    MutableSparseMatrix,
+    S,
+    SparseMatrix,
+    sqrt,
+    symbols,
 )
-from sympy import symbols, S, sqrt
-
+from sympy.polys.matrices import DM, DomainMatrix
 from sympy.testing.pytest import raises
 
-
-x, y = symbols('x y')
+x, y = symbols("x y")
 
 
 MATRIX_TYPES = (
@@ -49,13 +51,13 @@ def test_Matrix_rep_domain():
 
         M = Mat([[1, 2], [3, 4]])
         assert M._rep == DMs([[1, 2], [3, 4]], ZZ)
-        assert (M / 2)._rep == DMs([[(1,2), 1], [(3,2), 2]], QQ)
+        assert (M / 2)._rep == DMs([[(1, 2), 1], [(3, 2), 2]], QQ)
         if not isinstance(M, IMMUTABLE):
             M[0, 0] = x
             assert M._rep == DMs([[x, 2], [3, 4]], EXRAW)
 
-        M = Mat([[S(1)/2, 2], [3, 4]])
-        assert M._rep == DMs([[(1,2), 2], [3, 4]], QQ)
+        M = Mat([[S(1) / 2, 2], [3, 4]])
+        assert M._rep == DMs([[(1, 2), 2], [3, 4]], QQ)
         if not isinstance(M, IMMUTABLE):
             M[0, 0] = x
             assert M._rep == DMs([[x, 2], [3, 4]], EXRAW)
@@ -91,19 +93,19 @@ def test_Matrix_to_DM():
     M[0, 0] = 1
     assert M.to_DM() == DMs([[1, 2], [3, 4]], ZZ)
 
-    M = Matrix([[S(1)/2, 2], [3, 4]])
-    assert M.to_DM() == DMs([[QQ(1,2), 2], [3, 4]], QQ)
+    M = Matrix([[S(1) / 2, 2], [3, 4]])
+    assert M.to_DM() == DMs([[QQ(1, 2), 2], [3, 4]], QQ)
 
     M = Matrix([[x, 2], [3, 4]])
     assert M.to_DM() == DMs([[x, 2], [3, 4]], ZZ[x])
     assert M.to_DM(field=True) == DMs([[x, 2], [3, 4]], ZZ.frac_field(x))
 
-    M = Matrix([[1/x, 2], [3, 4]])
-    assert M.to_DM() == DMs([[1/x, 2], [3, 4]], ZZ.frac_field(x))
+    M = Matrix([[1 / x, 2], [3, 4]])
+    assert M.to_DM() == DMs([[1 / x, 2], [3, 4]], ZZ.frac_field(x))
 
     M = Matrix([[1, sqrt(2)], [3, 4]])
     K = QQ.algebraic_field(sqrt(2))
-    sqrt2 = K.from_sympy(sqrt(2)) # XXX: Maybe K(sqrt(2)) should work
+    sqrt2 = K.from_sympy(sqrt(2))  # XXX: Maybe K(sqrt(2)) should work
     M_K = DomainMatrix([[K(1), sqrt2], [K(3), K(4)]], (2, 2), K)
     assert M.to_DM() == DMs([[1, sqrt(2)], [3, 4]], EXRAW)
     assert M.to_DM(extension=True) == M_K.to_sparse()

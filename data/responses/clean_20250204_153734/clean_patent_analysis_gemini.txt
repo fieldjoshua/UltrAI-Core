@@ -64,7 +64,7 @@ from dataclasses import dataclass
 from dotenv import load_dotenv
 
 # Load environment variables
-load_dotenv()  
+load_dotenv()
 
 # Define data classes
 @dataclass
@@ -82,44 +82,44 @@ class RateLimits:
 
 # Define the TriLLM Orchestrator class
 class TriLLMOrchestrator:
-    def __init__(self, 
+    def __init__(self,
                  api_keys: Dict[str, str],
                  prompt_templates: Optional[PromptTemplate] = None,
                  rate_limits: Optional[RateLimits] = None,
                  output_format: str = "plain",
                  ultra_engine: str = "llama"):
-        
+
         # Initialize logger
         self.logger = logging.getLogger(__name__)
-        
+
         # Store the prompt first so we can use it for the directory name
         self.prompt = None
         self.base_dir = os.path.join(os.getcwd(), 'responses')
-        
+
         # Check and store API keys
         self.api_keys = api_keys
-        
+
         # Set output format
         self.output_format = output_format
-        
+
         # Initialize API clients
         self._initialize_clients()
-        
+
         # Set Prompt Templates
         self.prompt_templates = prompt_templates or PromptTemplate()
-        
+
         # Set Rate Limits
         self.rate_limits = rate_limits or RateLimits()
-        
+
         # Initialize last request time dictionary
         self.last_request_time = {"llama": 0, "chatgpt": 0, "gemini": 0}
-        
+
         # Set the ultra engine
         self.ultra_engine = ultra_engine
-        
+
         # Add hardware detection
         self.device = "mps" if torch.backends.mps.is_available() else "cpu"
-        
+
         # Print hardware configuration
         print(f"\nHardware Configuration:")
         print(f"Device: {self.device}")
@@ -141,18 +141,18 @@ class TriLLMOrchestrator:
     # Helper function to initialize API clients
     def _initialize_clients(self):
         # Initialize Llama (local API)
-        
+
         # Initialize OpenAI
         self.openai_client = OpenAI(api_key=self.api_keys["openai"])
-        
+
         # Initialize Gemini
         genai.configure(api_key=self.api_keys["google"])
         self.gemini_model = genai.GenerativeModel('gemini-pro')
-    
+
     # Helper function to create the directory for this run
     def _setup_directory(self):
         os.makedirs(self.run_dir, exist_ok=True)
-    
+
     # Helper function to format the output based on specified format
     def formatter(self, text: str) -> str:
         if self.output_format == "plain":

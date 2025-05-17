@@ -161,7 +161,7 @@ Detailed Description of the Invention
       3. Supports configuration via environment variables/files and scalable deployment (Docker, Vercel, etc.).
 
 
-4. Enablement Details 
+4. Enablement Details
 
 
    4.1. Dynamic Model Registry Implementation: The dynamic model registry is implemented through an abstraction layer that:
@@ -254,7 +254,7 @@ FIGURE 1
 Generalized Directory Structure: The UltraLLMOrchestrator (UltrAI) follows a comprehensive directory structure that emphasizes modularity, separation of concerns, and clear organization of functionality:
 
 
-  
+
 
   /
 
@@ -269,7 +269,7 @@ Dynamic Model Registration Flowchart: Sequence of steps for adding a new LLM at 
 
 
 "
-  
+
 
 ________________
 
@@ -277,11 +277,11 @@ ________________
 FIGURE 3
 Analysis Stage Pipeline Flowchart: Internal orchestration loop that executes a multi-stage analysis pattern—preparing prompts, querying models, validating responses, tracking metrics, and performing final synthesis.
 ________________
-  
+
 
 FIGURE 4
 Model Quality Evaluation Flowchart: Process for scoring model responses across multiple quality dimensions, normalizing and aggregating the scores, updating historical metrics, and returning a comprehensive assessment.
-  
+
 
 
 
@@ -292,7 +292,7 @@ FIGURE 5
 End-to-End Analysis Workflow Flowchart: High-level view of the complete user journey: from submitting an analysis request and (optionally) processing documents, through staged orchestration and synthesis, to result delivery, caching, and usage-metric recording.
 
 
-  
+
 
 
 
@@ -413,7 +413,7 @@ Claims
 
 
 
-  
+
 
 
 

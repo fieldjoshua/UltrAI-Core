@@ -9,36 +9,43 @@ This document analyzes the current LLM orchestration system in the Ultra project
 ### Source Code Components
 
 1. **src/core/ultra_hyper.py**
+
    - Original implementation of LLM orchestration
    - Contains core functionality for multi-LLM analysis
    - Implements basic response synthesis
 
 2. **src/models/enhanced_orchestrator.py**
+
    - Extended orchestration with additional features
    - More complex synthesis options
    - Handles document processing
 
 3. **src/models/llm_adapter.py**
+
    - Provider-specific adapters for different LLMs
    - Handles request formatting and response parsing
    - Implements authentication and rate limiting
 
 4. **backend/services/llm_config_service.py**
+
    - Manages configuration for available LLMs
    - Handles API key validation and storage
    - Provides model selection options
 
 5. **backend/services/mock_llm_service.py**
+
    - Simulates LLM responses for testing
    - Used when API keys are not available
    - Helps with development and testing
 
 6. **backend/services/prompt_service.py**
+
    - Manages prompt templates and formatting
    - Handles dynamic prompt generation
    - Supports different analysis patterns
 
 7. **backend/routes/analyze_routes.py**
+
    - API endpoints for analysis requests
    - Connects web interface to orchestration system
    - Handles request validation and response formatting

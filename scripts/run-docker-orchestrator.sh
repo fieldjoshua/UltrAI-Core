@@ -34,10 +34,10 @@ fi
 if ! docker compose ps | grep -q "backend.*Up"; then
     echo -e "${YELLOW}Backend container is not running. Starting it now...${NC}"
     docker compose up -d backend
-    
+
     # Wait for container to be ready
     echo -e "${YELLOW}Waiting for container to be ready...${NC}"
-    
+
     # Wait for the health check to pass, with a timeout
     TIMEOUT=60
     start_time=$(date +%s)
@@ -46,16 +46,16 @@ if ! docker compose ps | grep -q "backend.*Up"; then
             echo -e "${GREEN}Backend is healthy and ready!${NC}"
             break
         fi
-        
+
         current_time=$(date +%s)
         elapsed=$((current_time - start_time))
-        
+
         if [ $elapsed -gt $TIMEOUT ]; then
             echo -e "${RED}Timeout waiting for backend to be ready. Check container logs:${NC}"
             echo -e "${YELLOW}docker compose logs backend${NC}"
             exit 1
         fi
-        
+
         echo -e "${YELLOW}Waiting for backend to be ready... ($elapsed seconds elapsed)${NC}"
         sleep 5
     done
@@ -64,17 +64,17 @@ fi
 # Check if Docker Model Runner models are requested and available
 if [[ "$MODELS" == *"docker_modelrunner"* ]]; then
     echo -e "${BLUE}Docker Model Runner requested, checking if it's enabled...${NC}"
-    
+
     # Check if model-runner service is running
     if ! docker compose ps | grep -q "model-runner.*Up"; then
         echo -e "${YELLOW}Model Runner container is not running. Starting it now...${NC}"
         docker compose --profile with-model-runner up -d model-runner
-        
+
         # Wait for container to be ready
         echo -e "${YELLOW}Waiting for Model Runner to be ready...${NC}"
         sleep 10
     fi
-    
+
     # Enable model runner in the environment
     docker compose exec -e ENABLE_MODEL_RUNNER=true backend bash -c "export ENABLE_MODEL_RUNNER=true"
 fi

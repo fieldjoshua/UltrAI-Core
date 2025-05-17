@@ -28,15 +28,15 @@ from typing import List
 class GenerativeEngine:
     def __init__(self, strength):
         self.strength = strength
-    
+
     def generate(self, user_input):
         # Implement engine-specific logic here
         return "Engine " + str(self.id) + ": " + user_input
-    
+
 class Orchestrator:
     def __init__(self, engines):
         self.engines = engines
-    
+
     def orchestrate(self, user_input):
         # Implement orchestration logic here
         outputs = []
@@ -52,7 +52,7 @@ class GenerativeEngine {
     constructor(strength) {
         this.strength = strength;
     }
-    
+
     generate(userInput) {
         // Implement engine-specific logic here
         return `Engine ${this.id}: ${userInput}`;
@@ -63,7 +63,7 @@ class Orchestrator {
     constructor(engines) {
         this.engines = engines;
     }
-    
+
     orchestrate(userInput) {
         // Implement orchestration logic here
         const outputs = [];

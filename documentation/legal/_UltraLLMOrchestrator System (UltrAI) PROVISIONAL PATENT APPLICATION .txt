@@ -162,7 +162,7 @@ Detailed Description of the Invention
       3.  Supports configuration via environment variables/files and scalable deployment (Docker, Vercel, etc.).
 
 
-4. Enablement Details 
+4. Enablement Details
 
 
    16. Dynamic Model Registry Implementation: The dynamic model registry is implemented through an abstraction layer that:
@@ -256,7 +256,7 @@ FIGURE 1
 Generalized Directory Structure: The UltraLLMOrchestrator (UltrAI) follows a comprehensive directory structure that emphasizes modularity, separation of concerns, and clear organization of functionality:
 
 
-  
+
 
   /
 
@@ -271,7 +271,7 @@ Dynamic Model Registration Flowchart: Sequence of steps for adding a new LLM at 
 
 
 ”
-  
+
 
 ________________
 
@@ -279,11 +279,11 @@ ________________
 FIGURE 3
 Analysis Stage Pipeline Flowchart: Internal orchestration loop that executes a multi-stage analysis pattern—preparing prompts, querying models, validating responses, tracking metrics, and performing final synthesis.
 ________________
-  
+
 
 FIGURE 4
 Model Quality Evaluation Flowchart: Process for scoring model responses across multiple quality dimensions, normalizing and aggregating the scores, updating historical metrics, and returning a comprehensive assessment.”
-  
+
 
 
 
@@ -294,7 +294,7 @@ FIGURE 5
 End-to-End Analysis Workflow Flowchart: High-level view of the complete user journey: from submitting an analysis request and (optionally) processing documents, through staged orchestration and synthesis, to result delivery, caching, and usage-metric recording.
 
 
-  
+
 
 
 
@@ -310,7 +310,7 @@ Core System Claims
    1. a dynamic model registry configured to register and deregister LLM models at runtime;
    2. a configurable orchestration pipeline supporting multi-stage analysis workflows;
    3. an extensible pattern framework defining structured analytical processes;
-   4. a quality evaluation module for automated assessment of model outputs; and 
+   4. a quality evaluation module for automated assessment of model outputs; and
    5. a synthesis engine for combining results from multiple models.
 2. The system of claim 1, wherein the dynamic model registry supports adding new LLM providers without requiring code modifications.
 3. The system of claim 1, wherein the configurable orchestration pipeline supports both parallel and sequential execution of LLM queries.
@@ -396,7 +396,7 @@ Pattern Extension Claims
    2. implementing a pattern registration mechanism;
    3. providing a template system for stage-specific prompt generation;
    4. enabling pattern composition through an inheritance mechanism; and
-   5. supporting runtime pattern parameter configuration.  
+   5. supporting runtime pattern parameter configuration.
    26. The method of claim 25, wherein patterns can define custom quality evaluation criteria specific to the analytical workflow.
 
 

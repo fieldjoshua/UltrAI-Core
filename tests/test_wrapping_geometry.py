@@ -1,28 +1,11 @@
 """Tests for the ``sympy.physics.mechanics.wrapping_geometry.py`` module."""
 
 import pytest
-
-from sympy import (
-    Integer,
-    Rational,
-    S,
-    Symbol,
-    acos,
-    cos,
-    pi,
-    sin,
-    sqrt,
-)
+from sympy import Integer, Rational, S, Symbol, acos, cos, pi, sin, sqrt
 from sympy.core.relational import Eq
-from sympy.physics.mechanics import (
-    Point,
-    ReferenceFrame,
-    WrappingCylinder,
-    WrappingSphere,
-    dynamicsymbols,
-)
+from sympy.physics.mechanics import (Point, ReferenceFrame, WrappingCylinder,
+                                     WrappingSphere, dynamicsymbols)
 from sympy.simplify.simplify import simplify
-
 
 r = Symbol('r', positive=True)
 x = Symbol('x')

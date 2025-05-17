@@ -31,14 +31,14 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
   componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
     // Capture error details for logging and debugging
     this.setState({ errorInfo });
-    
+
     // Report to Sentry
     Sentry.withScope((scope) => {
       scope.setExtras(errorInfo);
       const eventId = Sentry.captureException(error);
       this.setState({ eventId });
     });
-    
+
     // You could also log to an error reporting service here
     console.error('Error caught by ErrorBoundary:', error, errorInfo);
   }
@@ -63,22 +63,22 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
           <p style={styles.message}>
             We're sorry, but an unexpected error occurred. Our team has been notified.
           </p>
-          
+
           {this.state.error && (
             <div className="error-details" style={styles.details}>
               <p style={styles.detailsHeading}>Error details:</p>
               <pre style={styles.code}>{this.state.error.toString()}</pre>
             </div>
           )}
-          
+
           <div className="error-actions" style={styles.actions}>
-            <button 
+            <button
               onClick={this.handleRetry}
               style={styles.retryButton}
             >
               Try Again
             </button>
-            <button 
+            <button
               onClick={this.handleReportFeedback}
               style={styles.reportButton}
             >
@@ -177,4 +177,4 @@ const SentryErrorBoundary = Sentry.withErrorBoundary(ErrorBoundary, {
   showDialog: false, // We'll control this manually with the "Report Feedback" button
 });
 
-export default SentryErrorBoundary; 
+export default SentryErrorBoundary;

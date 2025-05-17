@@ -1,0 +1,343 @@
+{
+  "scan_timestamp": "2025-05-15T21:27:58.380332",
+  "repository_path": "/Users/joshuafield/Documents/Ultra/AuditEngine",
+  "metadata": {},
+  "file_structure": {
+    "total_files": 39,
+    "total_directories": 9,
+    "file_types": {
+      ".py": 14,
+      ".txt": 3,
+      ".md": 2,
+      ".json": 20
+    },
+    "largest_files": [
+      {
+        "path": "discovery/metrics_collector_optimized.py",
+        "size": 29855
+      },
+      {
+        "path": "discovery/metrics_collector.py",
+        "size": 26561
+      },
+      {
+        "path": "discovery/orchestrator_parallel.py",
+        "size": 17159
+      },
+      {
+        "path": "discovery/dependency_mapper.py",
+        "size": 17026
+      },
+      {
+        "path": "discovery/repository_scanner.py",
+        "size": 15082
+      },
+      {
+        "path": "discovery/orchestrator.py",
+        "size": 14974
+      },
+      {
+        "path": "discovery/repository_scanner_thread_safe.py",
+        "size": 14780
+      },
+      {
+        "path": "test_results/parallel/parallel_discovery_latest.json",
+        "size": 12573
+      },
+      {
+        "path": "test_results/parallel/parallel_discovery_20250515_212220.json",
+        "size": 12573
+      },
+      {
+        "path": "test_results/serial/discovery_latest.json",
+        "size": 11527
+      }
+    ],
+    "directory_tree": {
+      "name": "AuditEngine",
+      "type": "directory",
+      "children": [
+        {
+          "name": "__init__.py",
+          "type": "file",
+          "size": 645
+        },
+        {
+          "name": "analysis",
+          "type": "directory",
+          "children": []
+        },
+        {
+          "name": "discovery",
+          "type": "directory",
+          "children": [
+            {
+              "name": "README.md",
+              "type": "file",
+              "size": 4010
+            },
+            {
+              "name": "__init__.py",
+              "type": "file",
+              "size": 358
+            },
+            {
+              "name": "dependency_mapper.py",
+              "type": "file",
+              "size": 17026
+            },
+            {
+              "name": "metrics_collector.py",
+              "type": "file",
+              "size": 26561
+            },
+            {
+              "name": "metrics_collector_optimized.py",
+              "type": "file",
+              "size": 29855
+            },
+            {
+              "name": "orchestrator.py",
+              "type": "file",
+              "size": 14974
+            },
+            {
+              "name": "orchestrator_parallel.py",
+              "type": "file",
+              "size": 17159
+            },
+            {
+              "name": "repository_scanner.py",
+              "type": "file",
+              "size": 15082
+            },
+            {
+              "name": "repository_scanner_thread_safe.py",
+              "type": "file",
+              "size": 14780
+            }
+          ]
+        },
+        {
+          "name": "export",
+          "type": "directory",
+          "children": []
+        },
+        {
+          "name": "reporting",
+          "type": "directory",
+          "children": []
+        },
+        {
+          "name": "requirements-optional.txt",
+          "type": "file",
+          "size": 861
+        },
+        {
+          "name": "requirements.txt",
+          "type": "file",
+          "size": 508
+        },
+        {
+          "name": "test_all_optimizations.py",
+          "type": "file",
+          "size": 8457
+        },
+        {
+          "name": "test_discovery.py",
+          "type": "file",
+          "size": 2901
+        },
+        {
+          "name": "test_discovery_quick.py",
+          "type": "file",
+          "size": 4393
+        },
+        {
+          "name": "test_performance_comparison.py",
+          "type": "file",
+          "size": 4025
+        },
+        {
+          "name": "test_results",
+          "type": "directory",
+          "children": [
+            {
+              "name": "dependency_analysis.json",
+              "type": "file",
+              "size": 1018
+            },
+            {
+              "name": "discovery_complete_20250515_211433.json",
+              "type": "file",
+              "size": 9046
+            },
+            {
+              "name": "discovery_latest.json",
+              "type": "file",
+              "size": 9046
+            },
+            {
+              "name": "metrics_collection.json",
+              "type": "file",
+              "size": 1104
+            },
+            {
+              "name": "parallel",
+              "type": "directory",
+              "children": [
+                {
+                  "name": "dependency_analysis.json",
+                  "type": "file",
+                  "size": 1018
+                },
+                {
+                  "name": "metrics_collection.json",
+                  "type": "file",
+                  "size": 1106
+                },
+                {
+                  "name": "parallel_discovery_20250515_212220.json",
+                  "type": "file",
+                  "size": 12573
+                },
+                {
+                  "name": "parallel_discovery_latest.json",
+                  "type": "file",
+                  "size": 12573
+                },
+                {
+                  "name": "repository_scan.json",
+                  "type": "file",
+                  "size": 7449
+                }
+              ]
+            },
+            {
+              "name": "repository_scan.json",
+              "type": "file",
+              "size": 4190
+            },
+            {
+              "name": "serial",
+              "type": "directory",
+              "children": [
+                {
+                  "name": "dependency_analysis.json",
+                  "type": "file",
+                  "size": 1018
+                },
+                {
+                  "name": "discovery_complete_20250515_212219.json",
+                  "type": "file",
+                  "size": 11527
+                },
+                {
+                  "name": "discovery_latest.json",
+                  "type": "file",
+                  "size": 11527
+                },
+                {
+                  "name": "metrics_collection.json",
+                  "type": "file",
+                  "size": 1106
+                },
+                {
+                  "name": "repository_scan.json",
+                  "type": "file",
+                  "size": 6503
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "test_simple",
+          "type": "directory",
+          "children": [
+            {
+              "name": "README.md",
+              "type": "file",
+              "size": 31
+            },
+            {
+              "name": "requirements.txt",
+              "type": "file",
+              "size": 33
+            },
+            {
+              "name": "results",
+              "type": "directory",
+              "children": [
+                {
+                  "name": "dependency_analysis.json",
+                  "type": "file",
+                  "size": 740
+                },
+                {
+                  "name": "discovery_complete_20250515_211433.json",
+                  "type": "file",
+                  "size": 6069
+                },
+                {
+                  "name": "discovery_latest.json",
+                  "type": "file",
+                  "size": 6069
+                },
+                {
+                  "name": "metrics_collection.json",
+                  "type": "file",
+                  "size": 1099
+                },
+                {
+                  "name": "repository_scan.json",
+                  "type": "file",
+                  "size": 1711
+                }
+              ]
+            },
+            {
+              "name": "test.py",
+              "type": "file",
+              "size": 32
+            }
+          ]
+        }
+      ]
+    },
+    "ignored_patterns": []
+  },
+  "language_composition": {
+    "languages": {
+      "Python": {
+        "count": 14,
+        "percentage": 35.9
+      },
+      "Other": {
+        "count": 3,
+        "percentage": 7.69
+      },
+      "Markdown": {
+        "count": 2,
+        "percentage": 5.13
+      },
+      "JSON": {
+        "count": 20,
+        "percentage": 51.28
+      }
+    },
+    "primary_language": "JSON",
+    "total_files_analyzed": 39
+  },
+  "directory_analysis": {
+    "has_tests": false,
+    "has_docs": false,
+    "has_ci": false,
+    "has_docker": false,
+    "has_frontend": false,
+    "has_backend": false,
+    "package_managers": ["pip", "pip"],
+    "build_tools": [],
+    "architecture_style": "unknown"
+  }
+}

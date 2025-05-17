@@ -106,7 +106,7 @@ class AuthService:
         self.access_token_expire_minutes = int(os.getenv("JWT_ACCESS_TOKEN_EXPIRE_MINUTES", "30"))
         self.refresh_token_expire_days = int(os.getenv("JWT_REFRESH_TOKEN_EXPIRE_DAYS", "7"))
         self.enable_auth = os.getenv("ENABLE_AUTH", "true").lower() == "true"
-        
+
         # Set a warning if using default secret key
         if self.jwt_secret == "default-secret-key":
             logger.warning("Using default JWT secret key, this is insecure for production")
@@ -114,35 +114,35 @@ class AuthService:
     async def get_user_from_token(self, token: str) -> Optional[dict]:
         """
         Get a user from a JWT token
-        
+
         Args:
             token: The JWT token
-            
+
         Returns:
             The user object if the token is valid, None otherwise
         """
         # Skip auth if disabled
         if not self.enable_auth:
             return {"id": "anonymous", "email": "anonymous@example.com"}
-            
+
         try:
             # Handle test tokens in test environment
             if os.getenv("TESTING", "false").lower() == "true":
                 if token.startswith("test_token_"):
                     return {"id": "test_user_id", "email": "test@example.com"}
-            
+
             # Decode token
             payload = jwt.decode(token, self.jwt_secret, algorithms=[self.jwt_algorithm])
-            
+
             # Verify token type
             if payload.get("type") != "access":
                 return None
-                
+
             # Get user from database
             user_id = payload.get("sub")
             if not user_id:
                 return None
-                
+
             # If database is unavailable, return the user from the token
             if not self.db or not self.db.is_connected():
                 logger.warning("Database unavailable, using token data for user")
@@ -152,7 +152,7 @@ class AuthService:
                     "name": payload.get("name", "Unknown User"),
                     "is_active": True
                 }
-                
+
             # Get user from database
             user = await self.db.get_user(user_id)
             return user
@@ -170,16 +170,16 @@ class AuthService:
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
     """
     Create a new JWT access token
-    
+
     Args:
         data: The data to encode in the token
         expires_delta: Custom expiration time
-        
+
     Returns:
         The encoded JWT token
     """
     to_encode = data.copy()
-    
+
     # Set expiration
     if expires_delta:
         expire = datetime.utcnow() + expires_delta
@@ -187,29 +187,29 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -
         expire = datetime.utcnow() + timedelta(
             minutes=int(os.getenv("JWT_ACCESS_TOKEN_EXPIRE_MINUTES", "30"))
         )
-        
+
     # Add standard claims
     to_encode.update({
         "exp": expire,
         "iat": datetime.utcnow(),
         "type": "access"
     })
-    
+
     # Encode token
     jwt_secret = os.getenv("JWT_SECRET", "default-secret-key")
     jwt_algorithm = os.getenv("JWT_ALGORITHM", "HS256")
     encoded_jwt = jwt.encode(to_encode, jwt_secret, algorithm=jwt_algorithm)
-    
+
     return encoded_jwt
 
 def validate_token(token: str, token_type: str = "access") -> Tuple[bool, Optional[dict]]:
     """
     Validate a JWT token
-    
+
     Args:
         token: The token to validate
         token_type: The expected token type
-        
+
     Returns:
         A tuple of (is_valid, payload)
     """
@@ -218,11 +218,11 @@ def validate_token(token: str, token_type: str = "access") -> Tuple[bool, Option
         jwt_secret = os.getenv("JWT_SECRET", "default-secret-key")
         jwt_algorithm = os.getenv("JWT_ALGORITHM", "HS256")
         payload = jwt.decode(token, jwt_secret, algorithms=[jwt_algorithm])
-        
+
         # Verify token type
         if payload.get("type") != token_type:
             return False, None
-            
+
         return True, payload
     except jwt.ExpiredSignatureError:
         return False, {"error": "Token has expired"}

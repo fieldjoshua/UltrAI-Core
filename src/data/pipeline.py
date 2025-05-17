@@ -12,7 +12,7 @@ import os
 import time
 from dataclasses import dataclass, field
 from functools import partial
-from typing import Any, Callable, Dict, List, Optional, Union, Literal
+from typing import Any, Callable, Dict, List, Literal, Optional, Union
 
 import pandas as pd
 

@@ -594,10 +594,10 @@ async def create_user(request: CreateUserRequest):
         tier=request.tier,
         initial_balance=request.initial_balance
     )
-    
+
     if "error" in result:
         raise HTTPException(status_code=400, detail=result["error"])
-    
+
     return result
 
 class AddFundsRequest(BaseModel):
@@ -612,36 +612,36 @@ async def add_funds(request: AddFundsRequest):
         amount=request.amount,
         description=request.description
     )
-    
+
     if "error" in result:
         raise HTTPException(status_code=400, detail=result["error"])
-    
+
     return result
 
 @app.get("/api/user/{user_id}/balance")
 async def get_balance(user_id: str):
     result = pricing_integration.check_balance(user_id)
-    
+
     if "error" in result:
         raise HTTPException(status_code=404, detail=result["error"])
-    
+
     return result
 
 @app.get("/api/user/{user_id}/usage")
 async def get_user_usage(user_id: str):
     result = pricing_integration.get_user_usage_summary(user_id)
-    
+
     if "error" in result:
         raise HTTPException(status_code=404, detail=result["error"])
-    
+
     return result
 
 @app.get("/api/session/{session_id}")
 async def get_session(session_id: str):
     result = pricing_integration.get_session_summary(session_id)
-    
+
     if "error" in result:
         raise HTTPException(status_code=404, detail=result["error"])
-    
+
     return result
 """

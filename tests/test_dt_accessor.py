@@ -1,25 +1,13 @@
 import calendar
-from datetime import (
-    date,
-    datetime,
-    time,
-)
 import locale
 import unicodedata
+from datetime import date, datetime, time
 
 import numpy as np
+import pandas as pd
+import pandas._testing as tm
 import pytest
 import pytz
-
-from pandas._libs.tslibs.timezones import maybe_get_tz
-from pandas.errors import SettingWithCopyError
-
-from pandas.core.dtypes.common import (
-    is_integer_dtype,
-    is_list_like,
-)
-
-import pandas as pd
 from pandas import (
     DataFrame,
     DatetimeIndex,
@@ -32,12 +20,10 @@ from pandas import (
     period_range,
     timedelta_range,
 )
-import pandas._testing as tm
-from pandas.core.arrays import (
-    DatetimeArray,
-    PeriodArray,
-    TimedeltaArray,
-)
+from pandas._libs.tslibs.timezones import maybe_get_tz
+from pandas.core.arrays import DatetimeArray, PeriodArray, TimedeltaArray
+from pandas.core.dtypes.common import is_integer_dtype, is_list_like
+from pandas.errors import SettingWithCopyError
 
 ok_for_period = PeriodArray._datetimelike_ops
 ok_for_period_methods = ["strftime", "to_timestamp", "asfreq"]

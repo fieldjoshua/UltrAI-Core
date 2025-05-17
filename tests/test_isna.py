@@ -1,13 +1,10 @@
 """
 We also test Series.notna in this file.
 """
-import numpy as np
 
-from pandas import (
-    Period,
-    Series,
-)
+import numpy as np
 import pandas._testing as tm
+from pandas import Period, Series
 
 
 class TestIsna:

@@ -8,20 +8,20 @@
 
 **Applicant:**
 
-[Applicant's Name]  
-[Applicant's Address]  
-[City, State, Zip Code]  
-[Country]  
-[Email Address]  
+[Applicant's Name]
+[Applicant's Address]
+[City, State, Zip Code]
+[Country]
+[Email Address]
 [Phone Number]
 
 ---
 
 **Inventors:**
 
-[Inventor's Name]  
-[Inventor's Address]  
-[City, State, Zip Code]  
+[Inventor's Name]
+[Inventor's Address]
+[City, State, Zip Code]
 [Country]
 
 ---

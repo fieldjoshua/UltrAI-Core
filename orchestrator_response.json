@@ -13,16 +13,8 @@
   },
   "metadata": {
     "time": 6.968502044677734,
-    "models_used": [
-      "google-gemini",
-      "anthropic-claude",
-      "openai-gpt4o"
-    ],
-    "successful_models": [
-      "google-gemini",
-      "anthropic-claude",
-      "openai-gpt4o"
-    ],
+    "models_used": ["google-gemini", "anthropic-claude", "openai-gpt4o"],
+    "successful_models": ["google-gemini", "anthropic-claude", "openai-gpt4o"],
     "primary_model": "google-gemini"
   }
 }

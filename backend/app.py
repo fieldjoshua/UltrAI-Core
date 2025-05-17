@@ -9,6 +9,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 # Import configuration
 from backend.config import Config
+from backend.config_cors import get_cors_config
 
 # Import database
 from backend.database import check_database_connection, init_db
@@ -16,6 +17,7 @@ from backend.middleware.api_key_middleware import setup_api_key_middleware
 
 # Import security middleware
 from backend.middleware.auth_middleware import setup_auth_middleware
+from backend.config_security import get_security_config
 from backend.middleware.csrf_middleware import setup_csrf_middleware
 from backend.middleware.locale_middleware import setup_locale_middleware
 from backend.middleware.security_headers_middleware import (
@@ -36,6 +38,8 @@ from backend.routes.metrics import metrics_router
 from backend.routes.oauth_routes import oauth_router
 from backend.routes.orchestrator_routes import orchestrator_router
 from backend.routes.pricing_routes import pricing_router
+# from backend.routes.recovery_routes import router as recovery_router
+# from backend.routes.resilient_orchestrator_routes import resilient_orchestrator_router
 from backend.routes.user_routes import user_router
 from backend.utils.cookie_security_middleware import setup_cookie_security_middleware
 from backend.utils.error_handler import (
@@ -80,11 +84,7 @@ async def lifespan(app: FastAPI):
     Lifespan context manager for FastAPI application
     Handles startup and shutdown events
     """
-    # Initialize monitoring system
-    setup_monitoring(app)
-
-    # Initialize metrics collection
-    setup_metrics(app)
+    # Note: monitoring and metrics will be set up after middleware
 
     # Startup: Create necessary directories
     Config.create_directories()
@@ -192,20 +192,27 @@ app = FastAPI(
 )
 
 # Configure CORS
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000",
-        *[f"http://localhost:{i}" for i in range(3000, 3020)],
-        "https://ultrai.app",
-        "https://api.ultrai.app",
-        "http://frontend:3009",  # Docker container hostname
-        "*",  # Allow all origins for testing
-    ],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+if Config.ENVIRONMENT == "production":
+    # Use production CORS configuration
+    cors_config = get_cors_config()
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=cors_config["allow_origins"],
+        allow_credentials=cors_config["allow_credentials"],
+        allow_methods=cors_config["allow_methods"],
+        allow_headers=cors_config["allow_headers"],
+        expose_headers=cors_config["expose_headers"],
+        max_age=cors_config["max_age"],
+    )
+else:
+    # Development CORS configuration (more permissive)
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["*"],  # Allow all origins for development
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
 
 # Register exception handlers
 register_exception_handlers(app)
@@ -214,11 +221,29 @@ register_exception_handlers(app)
 app.middleware("http")(error_handling_middleware)
 
 # Set up security middleware
-setup_security_headers_middleware(app)
+if Config.ENVIRONMENT == "production":
+    # Use production security configuration from environment
+    security_config = get_security_config()
+    setup_security_headers_middleware(
+        app,
+        csp_directives=security_config["csp_directives"],
+        hsts_max_age=security_config["hsts_max_age"],
+        hsts_include_subdomains=security_config["hsts_include_subdomains"],
+        hsts_preload=security_config["hsts_preload"],
+    )
+else:
+    # Use default configuration for development
+    setup_security_headers_middleware(app)
 setup_csrf_middleware(app)
 setup_validation_middleware(app)
-setup_auth_middleware(app)
-setup_api_key_middleware(app)
+
+# Only set up auth and API key middleware if enabled
+if Config.ENABLE_AUTH:
+    setup_auth_middleware(app)
+    setup_api_key_middleware(app)
+else:
+    logger.info("Authentication disabled - auth middleware skipped")
+
 setup_middleware(app)
 setup_locale_middleware(app)
 
@@ -228,6 +253,9 @@ apply_structured_logging_middleware(app)
 # Set up rate limiting
 app.middleware("http")(rate_limit_middleware)
 
+# Set up monitoring and metrics after all middleware
+setup_monitoring(app)
+setup_metrics(app)
 
 # --- END ADDED ROUTE --- #
 
@@ -249,6 +277,10 @@ app.include_router(
     modelrunner_router
 )  # Already has /api prefix in its route definitions
 app.include_router(orchestrator_router, prefix="/api")  # New orchestrator routes
+# app.include_router(
+#     resilient_orchestrator_router, prefix="/api"
+# )  # Resilient orchestrator routes
+# app.include_router(recovery_router)  # Recovery routes (already has /api prefix)
 
 
 def run_server():

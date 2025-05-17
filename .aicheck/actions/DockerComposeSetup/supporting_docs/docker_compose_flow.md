@@ -30,6 +30,7 @@ cp env.example .env
 ```
 
 At minimum, you should configure:
+
 - Database credentials
 - Redis configuration
 - JWT secret (for authentication)
@@ -50,6 +51,7 @@ docker-compose up -d
 ```
 
 The first time you run this command, Docker will:
+
 1. Build the backend image
 2. Pull the Redis and PostgreSQL images
 3. Create volumes for data persistence

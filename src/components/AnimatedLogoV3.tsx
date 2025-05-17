@@ -8,8 +8,8 @@ interface AnimatedLogoProps {
   color?: 'orange' | 'blue' | 'purple' | 'rainbow';
 }
 
-const AnimatedLogoV3: React.FC<AnimatedLogoProps> = ({ 
-  isProcessing = false, 
+const AnimatedLogoV3: React.FC<AnimatedLogoProps> = ({
+  isProcessing = false,
   size = 'medium',
   theme = 'dark',
   color = 'orange'
@@ -30,7 +30,7 @@ const AnimatedLogoV3: React.FC<AnimatedLogoProps> = ({
 
     interval = setInterval(() => {
       currentIntensity += 0.05 * direction;
-      
+
       if (currentIntensity >= 1) {
         currentIntensity = 1;
         direction = -1;
@@ -38,7 +38,7 @@ const AnimatedLogoV3: React.FC<AnimatedLogoProps> = ({
         currentIntensity = 0.2;
         direction = 1;
       }
-      
+
       setIntensity(currentIntensity);
     }, 50);
 
@@ -67,9 +67,9 @@ const AnimatedLogoV3: React.FC<AnimatedLogoProps> = ({
   ].filter(Boolean).join(' ');
 
   return (
-    <div 
+    <div
       className={logoClasses}
-      style={{ 
+      style={{
         '--intensity': intensity,
         '--angle': `${angle}deg`,
       } as React.CSSProperties}
@@ -79,9 +79,9 @@ const AnimatedLogoV3: React.FC<AnimatedLogoProps> = ({
         <div className="ultra-logo-v3__wireframe ultra-logo-v3__wireframe--outer">
           {/* Generate outer wireframe lines */}
           {Array.from({ length: 16 }).map((_, i) => (
-            <div 
+            <div
               key={`outer-${i}`}
-              className="ultra-logo-v3__wireframe-line" 
+              className="ultra-logo-v3__wireframe-line"
               style={{ transform: `rotate(${i * 22.5}deg)` }}
             />
           ))}
@@ -89,9 +89,9 @@ const AnimatedLogoV3: React.FC<AnimatedLogoProps> = ({
         <div className="ultra-logo-v3__wireframe ultra-logo-v3__wireframe--inner">
           {/* Generate inner wireframe lines */}
           {Array.from({ length: 12 }).map((_, i) => (
-            <div 
+            <div
               key={`inner-${i}`}
-              className="ultra-logo-v3__wireframe-line" 
+              className="ultra-logo-v3__wireframe-line"
               style={{ transform: `rotate(${i * 30}deg)` }}
             />
           ))}
@@ -112,7 +112,7 @@ const AnimatedLogoV3: React.FC<AnimatedLogoProps> = ({
             <svg viewBox="0 0 100 100" className="ultra-logo-v3__l-shape">
               <polygon points="20,20 40,20 40,60 80,60 80,80 20,80" />
             </svg>
-            
+
             {/* Right part (Angled shape) */}
             <svg viewBox="0 0 100 100" className="ultra-logo-v3__angled-shape">
               <polygon points="50,20 80,50 50,80 35,65 50,50 35,35" fill="#aaa" stroke="#888" strokeWidth="1"/>
@@ -120,7 +120,7 @@ const AnimatedLogoV3: React.FC<AnimatedLogoProps> = ({
           </div>
         </div>
       </div>
-      
+
       {/* Processing glow effect */}
       {isProcessing && (
         <div className="ultra-logo-v3__glow" style={{ opacity: intensity * 0.6 }} />
@@ -129,4 +129,4 @@ const AnimatedLogoV3: React.FC<AnimatedLogoProps> = ({
   );
 };
 
-export default AnimatedLogoV3; 
+export default AnimatedLogoV3;

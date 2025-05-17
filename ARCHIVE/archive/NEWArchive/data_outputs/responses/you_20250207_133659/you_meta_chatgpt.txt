@@ -4,10 +4,10 @@
 
 **Title:** System for Enhanced Collaborative Analysis and Synthesis by Multiple AI Models
 
-**Applicant:** [Applicant's Name or Company]  
-**Inventor(s):** [Inventor(s) Name(s)]  
-**Address(es):** [Address(es) of Applicant and Inventors]  
-**Filed On:** [Filing Date]  
+**Applicant:** [Applicant's Name or Company]
+**Inventor(s):** [Inventor(s) Name(s)]
+**Address(es):** [Address(es) of Applicant and Inventors]
+**Filed On:** [Filing Date]
 
 ---
 

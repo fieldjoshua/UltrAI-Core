@@ -5,7 +5,7 @@ This module provides integration with external pricing services and APIs.
 For the sake of simplicity, this is just a wrapper around our mock pricing service.
 """
 
-from typing import Dict, Any, Optional
+from typing import Any, Dict, Optional
 
 # Import the mock service for development
 from backend.services.mock_pricing_service import MockPricingService
@@ -21,10 +21,7 @@ class PricingIntegration:
         self.pricing_enabled = True
 
     def authorize_request(
-        self,
-        user_id: str,
-        request_type: str,
-        details: Optional[Dict[str, Any]] = None
+        self, user_id: str, request_type: str, details: Optional[Dict[str, Any]] = None
     ) -> Dict[str, Any]:
         """
         Authorize a request based on user's tier and balance
@@ -42,17 +39,14 @@ class PricingIntegration:
                 "authorized": True,
                 "message": "Pricing is disabled",
                 "user_id": user_id,
-                "request_type": request_type
+                "request_type": request_type,
             }
 
         # Call the service
         return self.service.authorize_request(user_id, request_type, details)
 
     def record_usage(
-        self,
-        user_id: str,
-        request_type: str,
-        details: Optional[Dict[str, Any]] = None
+        self, user_id: str, request_type: str, details: Optional[Dict[str, Any]] = None
     ) -> Dict[str, Any]:
         """
         Record usage and charge the user
@@ -71,7 +65,7 @@ class PricingIntegration:
                 "message": "Pricing is disabled",
                 "user_id": user_id,
                 "request_type": request_type,
-                "amount_charged": 0.0
+                "amount_charged": 0.0,
             }
 
         # Call the service

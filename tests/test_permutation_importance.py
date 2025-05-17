@@ -2,7 +2,6 @@ import numpy as np
 import pytest
 from joblib import parallel_backend
 from numpy.testing import assert_allclose
-
 from sklearn.compose import ColumnTransformer
 from sklearn.datasets import (
     load_diabetes,
@@ -15,11 +14,7 @@ from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 from sklearn.impute import SimpleImputer
 from sklearn.inspection import permutation_importance
 from sklearn.linear_model import LinearRegression, LogisticRegression
-from sklearn.metrics import (
-    get_scorer,
-    mean_squared_error,
-    r2_score,
-)
+from sklearn.metrics import get_scorer, mean_squared_error, r2_score
 from sklearn.model_selection import train_test_split
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import KBinsDiscretizer, OneHotEncoder, StandardScaler, scale

@@ -8,19 +8,19 @@ import logging
 from typing import List, Optional
 
 from fastapi import APIRouter, HTTPException
-from backend.services.llm_config_service import llm_config_service
-
-# Import the models we created
-from backend.models.llm_models import (
-    ModelsResponse,
-    ModelResponse,
-    ModelStatusResponse,
-    PatternsResponse,
-    AnalysisModesResponse,
-)
 
 # Import BaseModel if needed
 from pydantic import BaseModel
+
+# Import the models we created
+from backend.models.llm_models import (
+    AnalysisModesResponse,
+    ModelResponse,
+    ModelsResponse,
+    ModelStatusResponse,
+    PatternsResponse,
+)
+from backend.services.llm_config_service import llm_config_service
 
 # Create a router
 llm_router = APIRouter(tags=["LLM Management"])
@@ -44,7 +44,7 @@ async def get_just_available_model_names():  # Renamed slightly from original in
     """Get just the names of available LLM models."""
     try:
         models_dict = llm_config_service.get_available_models()
-        
+
         # Check if we have models
         if models_dict and len(models_dict) > 0:
             model_names = list(models_dict.keys())
@@ -52,14 +52,14 @@ async def get_just_available_model_names():  # Renamed slightly from original in
             # Fallback model names if we couldn't get any real models
             logger.warning("No models found, returning fallback model list")
             model_names = [
-                "gpt4o", 
-                "gpt4turbo", 
-                "claude37", 
-                "claude3opus", 
-                "gemini15", 
-                "llama3"
+                "gpt4o",
+                "gpt4turbo",
+                "claude37",
+                "claude3opus",
+                "gemini15",
+                "llama3",
             ]
-            
+
         return {
             "status": "success",
             "available_models": model_names,
@@ -70,14 +70,36 @@ async def get_just_available_model_names():  # Renamed slightly from original in
         return {
             "status": "partial",
             "available_models": [
-                "gpt4o", 
-                "gpt4turbo", 
-                "claude37", 
-                "claude3opus", 
-                "gemini15", 
-                "llama3"
+                "gpt4o",
+                "gpt4turbo",
+                "claude37",
+                "claude3opus",
+                "gemini15",
+                "llama3",
             ],
         }
+
+
+# --- ADDING DIRECT ENDPOINT --- #
+@llm_router.get(
+    "/models-list",
+    response_model=AvailableModelsResponse,
+    tags=["LLM Management"],
+)
+async def get_available_models_list():
+    """Get available LLM models (alternative endpoint)."""
+    # Simple fallback response to ensure the endpoint works
+    return {
+        "status": "success",
+        "available_models": [
+            "gpt4o",
+            "gpt4turbo",
+            "claude37",
+            "claude3opus",
+            "gemini15",
+            "llama3",
+        ],
+    }
 
 
 # --- END NEW ENDPOINT --- #

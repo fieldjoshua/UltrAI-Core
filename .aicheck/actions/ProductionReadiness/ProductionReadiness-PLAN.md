@@ -27,31 +27,37 @@ This action is critical for moving Ultra from development to production. It ensu
 ## Implementation Steps
 
 1. **Authentication Configuration**
+
    - Update auth middleware to properly handle test tokens
    - Fix health endpoint authentication bypass
    - Implement proper token validation in real mode
 
 2. **Service Initialization**
+
    - Create missing services detected in testing
    - Ensure services gracefully handle initialization failures
    - Implement proper dependency injection for services
 
 3. **Environment Management**
+
    - Create comprehensive environment variable documentation
    - Implement environment variable validation at startup
    - Set up environment profiles (dev, test, prod)
 
 4. **Database Connection**
+
    - Implement robust database connection error handling
    - Create proper migration procedures for production
    - Document database backup and recovery procedures
 
 5. **API Key Management**
+
    - Create secure storage for LLM provider API keys
    - Implement key rotation mechanisms
    - Add monitoring for API key usage and quotas
 
 6. **Docker Configuration**
+
    - Update Dockerfile for production use
    - Create multi-stage build process
    - Configure proper health checks and resource limits
@@ -83,13 +89,13 @@ Estimated completion: 2 weeks
 
 ## Risks and Mitigations
 
-| Risk | Impact | Likelihood | Mitigation |
-|------|--------|------------|------------|
-| API Key Security Breach | High | Medium | Implement secure storage, key rotation, and access controls |
-| Database Connection Failures | High | Medium | Implement connection pooling, retries, and fallback mechanisms |
-| Authentication Failures | High | Low | Comprehensive testing of auth flows and proper error handling |
-| Resource Exhaustion | Medium | Medium | Implement rate limiting, monitoring, and auto-scaling |
-| Configuration Errors | Medium | High | Validate configurations at startup and provide clear error messages |
+| Risk                         | Impact | Likelihood | Mitigation                                                          |
+| ---------------------------- | ------ | ---------- | ------------------------------------------------------------------- |
+| API Key Security Breach      | High   | Medium     | Implement secure storage, key rotation, and access controls         |
+| Database Connection Failures | High   | Medium     | Implement connection pooling, retries, and fallback mechanisms      |
+| Authentication Failures      | High   | Low        | Comprehensive testing of auth flows and proper error handling       |
+| Resource Exhaustion          | Medium | Medium     | Implement rate limiting, monitoring, and auto-scaling               |
+| Configuration Errors         | Medium | High       | Validate configurations at startup and provide clear error messages |
 
 ## Completion Checklist
 

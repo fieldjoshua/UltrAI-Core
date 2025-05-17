@@ -1,11 +1,19 @@
-from sympy.core.singleton import S
-from sympy.strategies.rl import (
-    rm_id, glom, flatten, unpack, sort, distribute, subs, rebuild)
-from sympy.core.basic import Basic
-from sympy.core.add import Add
-from sympy.core.mul import Mul
-from sympy.core.symbol import symbols
 from sympy.abc import x
+from sympy.core.add import Add
+from sympy.core.basic import Basic
+from sympy.core.mul import Mul
+from sympy.core.singleton import S
+from sympy.core.symbol import symbols
+from sympy.strategies.rl import (
+    distribute,
+    flatten,
+    glom,
+    rebuild,
+    rm_id,
+    sort,
+    subs,
+    unpack,
+)
 
 
 def test_rm_id():
@@ -33,8 +41,9 @@ def test_glom():
 
 
 def test_flatten():
-    assert flatten(Basic(S(1), S(2), Basic(S(3), S(4)))) == \
-        Basic(S(1), S(2), S(3), S(4))
+    assert flatten(Basic(S(1), S(2), Basic(S(3), S(4)))) == Basic(
+        S(1), S(2), S(3), S(4)
+    )
 
 
 def test_unpack():
@@ -54,13 +63,14 @@ def test_distribute():
         pass
 
     distribute_t12 = distribute(T1, T2)
-    assert distribute_t12(T1(S(1), S(2), T2(S(3), S(4)), S(5))) == \
-        T2(T1(S(1), S(2), S(3), S(5)), T1(S(1), S(2), S(4), S(5)))
+    assert distribute_t12(T1(S(1), S(2), T2(S(3), S(4)), S(5))) == T2(
+        T1(S(1), S(2), S(3), S(5)), T1(S(1), S(2), S(4), S(5))
+    )
     assert distribute_t12(T1(S(1), S(2), S(3))) == T1(S(1), S(2), S(3))
 
 
 def test_distribute_add_mul():
-    x, y = symbols('x, y')
+    x, y = symbols("x, y")
     expr = Mul(2, Add(x, y), evaluate=False)
     expected = Add(Mul(2, x), Mul(2, y))
     distribute_mul = distribute(Mul, Add)

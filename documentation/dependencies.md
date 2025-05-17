@@ -33,13 +33,13 @@ These dependencies are essential for the core functionality of the application:
 
 These dependencies enhance functionality but are not required for the core application to run:
 
-| Dependency                             | Purpose                | Affected Features                       | Graceful Degradation Path                     |
-| -------------------------------------- | ---------------------- | --------------------------------------- | --------------------------------------------- |
-| PyJWT                                  | JWT token handling     | Authentication                          | Simplified JWT implementation                 |
-| passlib                                | Password hashing       | User authentication                     | Use simplified auth in development            |
-| redis                                  | Caching, rate limiting | Performance optimization, Rate limiting | In-memory cache and rate limiting             |
-| sentry_sdk                             | Error tracking         | Production monitoring                   | Disable Sentry integration                    |
-| anthropic, openai, google-generativeai | LLM integrations       | Multi-model analysis                    | Use mock LLM service                          |
+| Dependency                             | Purpose                | Affected Features                       | Graceful Degradation Path          |
+| -------------------------------------- | ---------------------- | --------------------------------------- | ---------------------------------- |
+| PyJWT                                  | JWT token handling     | Authentication                          | Simplified JWT implementation      |
+| passlib                                | Password hashing       | User authentication                     | Use simplified auth in development |
+| redis                                  | Caching, rate limiting | Performance optimization, Rate limiting | In-memory cache and rate limiting  |
+| sentry_sdk                             | Error tracking         | Production monitoring                   | Disable Sentry integration         |
+| anthropic, openai, google-generativeai | LLM integrations       | Multi-model analysis                    | Use mock LLM service               |
 
 ## Configuration Options
 
@@ -47,15 +47,15 @@ These dependencies enhance functionality but are not required for the core appli
 
 The following environment variables control dependency behavior:
 
-| Variable             | Purpose                                 | Default   |
-| -------------------- | --------------------------------------- | --------- |
-| `ENABLE_DB_FALLBACK` | Enable fallback for database            | `true`    |
+| Variable                | Purpose                                   | Default |
+| ----------------------- | ----------------------------------------- | ------- |
+| `ENABLE_DB_FALLBACK`    | Enable fallback for database              | `true`  |
 | `DB_CONNECTION_TIMEOUT` | Timeout for database connection (seconds) | `5`     |
-| `CACHE_ENABLED`      | Enable caching                          | `true`    |
-| `ENABLE_REDIS_CACHE` | Enable Redis for caching (vs in-memory) | `true`    |
-| `ENABLE_JWT_AUTH`    | Enable JWT authentication               | `true`    |
-| `USE_MOCK`           | Use mock LLM services                   | `false`   |
-| `SENTRY_DSN`         | Sentry DSN for error tracking           | (empty)   |
+| `CACHE_ENABLED`         | Enable caching                            | `true`  |
+| `ENABLE_REDIS_CACHE`    | Enable Redis for caching (vs in-memory)   | `true`  |
+| `ENABLE_JWT_AUTH`       | Enable JWT authentication                 | `true`  |
+| `USE_MOCK`              | Use mock LLM services                     | `false` |
+| `SENTRY_DSN`            | Sentry DSN for error tracking             | (empty) |
 
 ### Runtime Status Check
 
@@ -76,6 +76,7 @@ When PostgreSQL is not available, the system falls back to an in-memory database
 - Data is lost on application restart
 
 Configure with:
+
 ```
 ENABLE_DB_FALLBACK=true
 ```
@@ -90,6 +91,7 @@ When Redis is not available, the system falls back to an in-memory cache:
 - Thread-safe for concurrent access
 
 Configure with:
+
 ```
 ENABLE_REDIS_CACHE=true
 CACHE_ENABLED=true

@@ -1,9 +1,10 @@
+import json
+from datetime import datetime
+from typing import List, Optional
+
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from typing import List, Optional
-from datetime import datetime
-import json
 
 app = FastAPI(title="UltraAI Cloud API")
 
@@ -16,6 +17,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 # Models for request validation
 class ProcessRequest(BaseModel):
     prompt: str
@@ -24,14 +26,17 @@ class ProcessRequest(BaseModel):
     alacarteOptions: List[str] = []
     outputFormat: str
 
+
 # Basic routes
 @app.get("/")
 def read_root():
     return {"message": "UltraAI Cloud API is running"}
 
+
 @app.get("/api/health")
 def health_check():
     return {"status": "healthy", "timestamp": datetime.now().isoformat()}
+
 
 # Data routes
 @app.get("/api/models")
@@ -42,28 +47,29 @@ def get_models():
             "id": "gpt4o",
             "name": "GPT-4o",
             "provider": "OpenAI",
-            "description": "OpenAI's most advanced multimodal model."
+            "description": "OpenAI's most advanced multimodal model.",
         },
         {
             "id": "claude37",
             "name": "Claude 3.7 Sonnet",
             "provider": "Anthropic",
-            "description": "High-performance AI model with excellent reasoning capabilities."
+            "description": "High-performance AI model with excellent reasoning capabilities.",
         },
         {
             "id": "gemini15",
             "name": "Gemini 1.5 Pro",
             "provider": "Google",
-            "description": "Multimodal model with strong coding and reasoning skills."
+            "description": "Multimodal model with strong coding and reasoning skills.",
         },
         {
             "id": "mistral",
             "name": "Mistral Large",
             "provider": "Mistral AI",
-            "description": "Powerful open-weight model with strong reasoning capabilities."
-        }
+            "description": "Powerful open-weight model with strong reasoning capabilities.",
+        },
     ]
     return models
+
 
 @app.get("/api/analysis-types")
 def get_analysis_types():
@@ -72,25 +78,26 @@ def get_analysis_types():
         {
             "id": "confidence",
             "name": "Confidence Analysis",
-            "description": "Analyzes how confident each model is about its answers and highlights areas of disagreement."
+            "description": "Analyzes how confident each model is about its answers and highlights areas of disagreement.",
         },
         {
             "id": "critique",
             "name": "Critique",
-            "description": "Models critique each other's responses to find potential flaws or improvements."
+            "description": "Models critique each other's responses to find potential flaws or improvements.",
         },
         {
             "id": "gut_check",
             "name": "Gut Check",
-            "description": "Quick instinctive responses from models to get directional guidance."
+            "description": "Quick instinctive responses from models to get directional guidance.",
         },
         {
             "id": "scenarios",
             "name": "Scenario Analysis",
-            "description": "Explore multiple potential outcomes and perspectives for deeper understanding."
-        }
+            "description": "Explore multiple potential outcomes and perspectives for deeper understanding.",
+        },
     ]
     return analysis_types
+
 
 @app.get("/api/alacarte-options")
 def get_alacarte_options():
@@ -99,25 +106,26 @@ def get_alacarte_options():
         {
             "id": "citations",
             "name": "Include Citations",
-            "description": "Add citations to sources when models reference external information."
+            "description": "Add citations to sources when models reference external information.",
         },
         {
             "id": "uncertainty",
             "name": "Highlight Uncertainty",
-            "description": "Explicitly highlight areas where models express uncertainty or conflicting views."
+            "description": "Explicitly highlight areas where models express uncertainty or conflicting views.",
         },
         {
             "id": "extremes",
             "name": "Explore Extremes",
-            "description": "Include extreme or edge-case perspectives in the analysis."
+            "description": "Include extreme or edge-case perspectives in the analysis.",
         },
         {
             "id": "alternatives",
             "name": "Alternative Viewpoints",
-            "description": "Actively seek contrasting perspectives on the topic."
-        }
+            "description": "Actively seek contrasting perspectives on the topic.",
+        },
     ]
     return options
+
 
 @app.get("/api/output-formats")
 def get_output_formats():
@@ -126,25 +134,26 @@ def get_output_formats():
         {
             "id": "concise",
             "name": "Concise Summary",
-            "description": "Brief, to-the-point summary focusing on key insights."
+            "description": "Brief, to-the-point summary focusing on key insights.",
         },
         {
             "id": "detailed",
             "name": "Detailed Analysis",
-            "description": "Comprehensive analysis with all supporting details and reasoning."
+            "description": "Comprehensive analysis with all supporting details and reasoning.",
         },
         {
             "id": "bullet",
             "name": "Bullet Points",
-            "description": "Key findings presented as easy-to-scan bullet points."
+            "description": "Key findings presented as easy-to-scan bullet points.",
         },
         {
             "id": "pros_cons",
             "name": "Pros and Cons",
-            "description": "Analysis organized into advantages and disadvantages."
-        }
+            "description": "Analysis organized into advantages and disadvantages.",
+        },
     ]
     return formats
+
 
 @app.post("/api/process")
 async def process(request: ProcessRequest):
@@ -183,12 +192,11 @@ Each model would provide its own perspective, and those would be synthesized her
 This demonstrates successful processing through all 7 steps of the UltraAI analysis pipeline.
 """
 
-    return {
-        "status": "success",
-        "content": content
-    }
+    return {"status": "success", "content": content}
+
 
 # For local testing
 if __name__ == "__main__":
     import uvicorn
+
     uvicorn.run(app, host="127.0.0.1", port=8000)

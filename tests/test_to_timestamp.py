@@ -1,8 +1,8 @@
 from datetime import datetime
 
 import numpy as np
+import pandas._testing as tm
 import pytest
-
 from pandas import (
     DatetimeIndex,
     NaT,
@@ -12,7 +12,6 @@ from pandas import (
     date_range,
     period_range,
 )
-import pandas._testing as tm
 
 
 class TestToTimestamp:

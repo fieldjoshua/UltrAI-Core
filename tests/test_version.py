@@ -15,11 +15,9 @@
 
 import itertools
 
-from testtools import matchers
-
-from pbr.tests import base
 from pbr import version
-
+from pbr.tests import base
+from testtools import matchers
 
 from_pip_string = version.SemanticVersion.from_pip_string
 

@@ -2,15 +2,12 @@
 Tests that work on both the Python and C engines but do not have a
 specific classification into the other test modules.
 """
+
 from io import StringIO
 
-import pytest
-
-from pandas import (
-    DataFrame,
-    concat,
-)
 import pandas._testing as tm
+import pytest
+from pandas import DataFrame, concat
 
 pytestmark = pytest.mark.filterwarnings(
     "ignore:Passing a BlockManager to DataFrame:DeprecationWarning"

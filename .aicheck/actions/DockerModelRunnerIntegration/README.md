@@ -15,6 +15,7 @@ python3 scripts/verify_modelrunner_mvp.py
 ```
 
 This script will:
+
 1. Check if Docker Desktop is running
 2. Verify Model Runner extension is installed
 3. Check Model Runner API connectivity
@@ -50,14 +51,14 @@ The Docker Model Runner integration consists of the following key files:
 
 The following environment variables control Docker Model Runner integration:
 
-| Variable | Description | Default |
-|----------|-------------|---------|
-| USE_MODEL_RUNNER | Enable/disable Docker Model Runner | false |
-| MODEL_RUNNER_URL | URL for Docker Model Runner API | http://localhost:8080 |
-| MODEL_RUNNER_PORT | Port for Docker Model Runner service | 8080 |
-| DEFAULT_MODEL | Default model to use | phi3:mini |
-| AVAILABLE_MODELS | Comma-separated list of models to make available | phi3:mini,llama3:8b,mistral:7b |
-| GPU_ENABLED | Enable/disable GPU acceleration | false |
+| Variable          | Description                                      | Default                        |
+| ----------------- | ------------------------------------------------ | ------------------------------ |
+| USE_MODEL_RUNNER  | Enable/disable Docker Model Runner               | false                          |
+| MODEL_RUNNER_URL  | URL for Docker Model Runner API                  | http://localhost:8080          |
+| MODEL_RUNNER_PORT | Port for Docker Model Runner service             | 8080                           |
+| DEFAULT_MODEL     | Default model to use                             | phi3:mini                      |
+| AVAILABLE_MODELS  | Comma-separated list of models to make available | phi3:mini,llama3:8b,mistral:7b |
+| GPU_ENABLED       | Enable/disable GPU acceleration                  | false                          |
 
 ## Usage
 
@@ -74,7 +75,7 @@ To use Docker Model Runner with Ultra:
    {
      "prompt": "What is machine learning?",
      "models": ["phi3:mini"],
-     "options": {"context": ""}
+     "options": { "context": "" }
    }
    ```
 

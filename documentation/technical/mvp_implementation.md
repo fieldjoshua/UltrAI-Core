@@ -59,23 +59,27 @@ For a complete list of environment variables, see the `env.example` file.
 ### Installation Steps
 
 1. **Clone the repository**:
+
    ```bash
    git clone https://github.com/your-org/ultra.git
    cd ultra
    ```
 
 2. **Backend setup**:
+
    ```bash
    pip install -r requirements.txt
    ```
 
 3. **Frontend setup**:
+
    ```bash
    cd frontend
    npm install
    ```
 
 4. **Start the backend**:
+
    ```bash
    python -m uvicorn backend.app:app --reload
    ```
@@ -95,6 +99,7 @@ For a complete list of environment variables, see the `env.example` file.
 Analyze a prompt using multiple LLMs.
 
 **Request Body**:
+
 ```json
 {
   "prompt": "What is artificial intelligence?",
@@ -106,6 +111,7 @@ Analyze a prompt using multiple LLMs.
 ```
 
 **Response**:
+
 ```json
 {
   "status": "success",
@@ -134,6 +140,7 @@ Analyze a prompt using multiple LLMs.
 Get the list of available models.
 
 **Response**:
+
 ```json
 {
   "available_models": [
@@ -164,10 +171,10 @@ Ultra supports different analysis patterns to compare model responses:
 ```javascript
 // Frontend example
 const response = await analyzePrompt({
-  prompt: "Explain the concept of blockchain",
-  selected_models: ["gpt4o", "claude37"],
-  ultra_model: "gpt4o",
-  pattern: "comparison"
+  prompt: 'Explain the concept of blockchain',
+  selected_models: ['gpt4o', 'claude37'],
+  ultra_model: 'gpt4o',
+  pattern: 'comparison',
 });
 
 // Display the results

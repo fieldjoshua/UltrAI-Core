@@ -1,0 +1,84 @@
+{
+  "scan_timestamp": "2025-05-15T21:14:33.316026",
+  "repository_path": "/Users/joshuafield/Documents/Ultra/AuditEngine/test_simple",
+  "metadata": {},
+  "file_structure": {
+    "total_files": 3,
+    "total_directories": 1,
+    "file_types": {
+      ".txt": 1,
+      ".py": 1,
+      ".md": 1
+    },
+    "largest_files": [
+      {
+        "path": "requirements.txt",
+        "size": 33
+      },
+      {
+        "path": "test.py",
+        "size": 32
+      },
+      {
+        "path": "README.md",
+        "size": 31
+      }
+    ],
+    "directory_tree": {
+      "name": "test_simple",
+      "type": "directory",
+      "children": [
+        {
+          "name": "README.md",
+          "type": "file",
+          "size": 31
+        },
+        {
+          "name": "requirements.txt",
+          "type": "file",
+          "size": 33
+        },
+        {
+          "name": "results",
+          "type": "directory",
+          "children": []
+        },
+        {
+          "name": "test.py",
+          "type": "file",
+          "size": 32
+        }
+      ]
+    },
+    "ignored_patterns": []
+  },
+  "language_composition": {
+    "languages": {
+      "Other": {
+        "count": 1,
+        "percentage": 33.33
+      },
+      "Python": {
+        "count": 1,
+        "percentage": 33.33
+      },
+      "Markdown": {
+        "count": 1,
+        "percentage": 33.33
+      }
+    },
+    "primary_language": "Other",
+    "total_files_analyzed": 3
+  },
+  "directory_analysis": {
+    "has_tests": false,
+    "has_docs": false,
+    "has_ci": false,
+    "has_docker": false,
+    "has_frontend": false,
+    "has_backend": false,
+    "package_managers": ["pip"],
+    "build_tools": [],
+    "architecture_style": "unknown"
+  }
+}

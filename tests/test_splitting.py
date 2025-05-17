@@ -1,7 +1,6 @@
 import numpy as np
 import pytest
 from numpy.testing import assert_array_equal
-
 from sklearn.ensemble._hist_gradient_boosting.common import (
     G_H_DTYPE,
     HISTOGRAM_DTYPE,

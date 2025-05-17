@@ -25,9 +25,7 @@
       "anthropic-claude",
       "openai-gpt4o"
     ],
-    "successful_models": [
-      "openai-gpt4o"
-    ],
+    "successful_models": ["openai-gpt4o"],
     "primary_model": "openai-gpt4o"
   }
 }

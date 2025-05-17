@@ -1,12 +1,13 @@
-import os
 import json
+import os
+from uuid import uuid4
+
 import pytest
 from fastapi.testclient import TestClient
-from uuid import uuid4
 
 # Import app
 from backend.app import app
-from backend.services.auth_service import auth_service, JWT_SECRET
+from backend.services.auth_service import JWT_SECRET, auth_service
 from backend.services.pricing_integration import pricing_integration
 
 # Initialize test client
@@ -51,7 +52,7 @@ class TestUserAPI:
             "email": "test@example.com",
             "password": "securepassword",
             "name": "Test User",
-            "tier": "basic"
+            "tier": "basic",
         }
 
         # Make request
@@ -79,7 +80,7 @@ class TestUserAPI:
             "user_id": str(uuid4()),
             "email": "duplicate@example.com",
             "password": "securepassword",
-            "name": "Duplicate User"
+            "name": "Duplicate User",
         }
 
         client.post("/api/register", json=user_data)
@@ -99,16 +100,13 @@ class TestUserAPI:
             "user_id": user_id,
             "email": "login@example.com",
             "password": "loginpassword",
-            "name": "Login User"
+            "name": "Login User",
         }
 
         client.post("/api/register", json=user_data)
 
         # Try to login
-        login_data = {
-            "email": "login@example.com",
-            "password": "loginpassword"
-        }
+        login_data = {"email": "login@example.com", "password": "loginpassword"}
 
         response = client.post("/api/login", json=login_data)
 
@@ -121,10 +119,7 @@ class TestUserAPI:
     def test_login_failure(self):
         """Test login with invalid credentials"""
         # Try to login with invalid credentials
-        login_data = {
-            "email": "nonexistent@example.com",
-            "password": "wrongpassword"
-        }
+        login_data = {"email": "nonexistent@example.com", "password": "wrongpassword"}
 
         response = client.post("/api/login", json=login_data)
 
@@ -140,24 +135,20 @@ class TestUserAPI:
             "user_id": user_id,
             "email": "profile@example.com",
             "password": "profilepassword",
-            "name": "Profile User"
+            "name": "Profile User",
         }
 
         client.post("/api/register", json=user_data)
 
         # Login to get token
-        login_data = {
-            "email": "profile@example.com",
-            "password": "profilepassword"
-        }
+        login_data = {"email": "profile@example.com", "password": "profilepassword"}
 
         login_response = client.post("/api/login", json=login_data)
         token = login_response.json()["access_token"]
 
         # Get user profile with token
         response = client.get(
-            "/api/user/me",
-            headers={"Authorization": f"Bearer {token}"}
+            "/api/user/me", headers={"Authorization": f"Bearer {token}"}
         )
 
         # Should return user profile
@@ -175,30 +166,24 @@ class TestUserAPI:
             "user_id": user_id,
             "email": "update@example.com",
             "password": "updatepassword",
-            "name": "Update User"
+            "name": "Update User",
         }
 
         client.post("/api/register", json=user_data)
 
         # Login to get token
-        login_data = {
-            "email": "update@example.com",
-            "password": "updatepassword"
-        }
+        login_data = {"email": "update@example.com", "password": "updatepassword"}
 
         login_response = client.post("/api/login", json=login_data)
         token = login_response.json()["access_token"]
 
         # Update user profile
-        update_data = {
-            "name": "Updated Name",
-            "email": "updated@example.com"
-        }
+        update_data = {"name": "Updated Name", "email": "updated@example.com"}
 
         response = client.put(
             "/api/user/me",
             json=update_data,
-            headers={"Authorization": f"Bearer {token}"}
+            headers={"Authorization": f"Bearer {token}"},
         )
 
         # Should return updated profile
@@ -222,7 +207,7 @@ class TestPricingAPI:
             "prompt": "This is a test prompt for token estimation",
             "model": "gpt4o",
             "requestType": "completion",
-            "userId": "test123"
+            "userId": "test123",
         }
 
         # Make request
@@ -244,7 +229,7 @@ class TestPricingAPI:
             # Prepare test data
             toggle_data = {
                 "enabled": not original_state,
-                "reason": "Testing pricing toggle"
+                "reason": "Testing pricing toggle",
             }
 
             # Make request
@@ -267,11 +252,7 @@ class TestPricingAPI:
     def test_create_user_account(self):
         """Test creating a user account with pricing integration"""
         # Prepare test data
-        user_data = {
-            "userId": str(uuid4()),
-            "tier": "premium",
-            "initialBalance": 100.0
-        }
+        user_data = {"userId": str(uuid4()), "tier": "premium", "initialBalance": 100.0}
 
         # Make request
         response = client.post("/api/user/create", json=user_data)
@@ -292,20 +273,12 @@ class TestPricingAPI:
         """Test adding funds to a user account"""
         # Create a user first
         user_id = str(uuid4())
-        user_data = {
-            "userId": user_id,
-            "tier": "basic",
-            "initialBalance": 50.0
-        }
+        user_data = {"userId": user_id, "tier": "basic", "initialBalance": 50.0}
 
         client.post("/api/user/create", json=user_data)
 
         # Add funds
-        funds_data = {
-            "userId": user_id,
-            "amount": 25.0,
-            "description": "Test deposit"
-        }
+        funds_data = {"userId": user_id, "amount": 25.0, "description": "Test deposit"}
 
         response = client.post("/api/user/add-funds", json=funds_data)
 
@@ -320,4 +293,6 @@ class TestPricingAPI:
         balance_data = balance_response.json()
         assert balance_data["status"] == "success"
         # The initial balance was 50, we added 25
-        assert balance_data["balance"]["balance"] >= 50.0  # May include additional details
+        assert (
+            balance_data["balance"]["balance"] >= 50.0
+        )  # May include additional details

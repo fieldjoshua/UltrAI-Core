@@ -5,17 +5,18 @@ This module provides a service for enforcing rate limits based on IP address,
 user ID, subscription tier, path, and method.
 """
 
-import time
-import redis
-from typing import Dict, Optional, Tuple, List, Any
-from datetime import datetime, timedelta
 import hashlib
-import os
 import json
+import os
+import time
 import uuid
+from datetime import datetime, timedelta
+from typing import Any, Dict, List, Optional, Tuple
 
-from backend.utils.logging import get_logger
+import redis
+
 from backend.database.models.user import User
+from backend.utils.logging import get_logger
 
 # Configure logging
 logger = get_logger("rate_limit_service", "logs/rate_limit.log")
@@ -85,7 +86,9 @@ class RateLimitService:
         self.internal_service_tokens = {}  # token -> {service_name, expiry}
         self.bypass_keys = set()  # Special keys that bypass rate limits
         self.telemetry_enabled = True
-        self.telemetry_sample_rate = 0.1  # Sample 10% of requests for detailed telemetry
+        self.telemetry_sample_rate = (
+            0.1  # Sample 10% of requests for detailed telemetry
+        )
 
         # Load internal service tokens from environment or config
         self._load_internal_service_tokens()
@@ -103,7 +106,7 @@ class RateLimitService:
                         service, token = service_token.split(":", 1)
                         self.internal_service_tokens[token] = {
                             "service_name": service,
-                            "expiry": None  # No expiry for environment-defined tokens
+                            "expiry": None,  # No expiry for environment-defined tokens
                         }
                         logger.info(f"Loaded internal service token for: {service}")
             except Exception as e:
@@ -126,7 +129,9 @@ class RateLimitService:
                 logger.info("Falling back to in-memory rate limiting")
         return None
 
-    def register_internal_service(self, service_name: str, secret_key: str, ttl_hours: int = 24) -> str:
+    def register_internal_service(
+        self, service_name: str, secret_key: str, ttl_hours: int = 24
+    ) -> str:
         """
         Register an internal service that bypasses rate limiting
 
@@ -204,7 +209,9 @@ class RateLimitService:
                 expiry_time = datetime.fromisoformat(service_info["expiry"])
                 if datetime.now() > expiry_time:
                     # Token has expired, remove it
-                    logger.warning(f"Internal service token expired: {service_info['service_name']}")
+                    logger.warning(
+                        f"Internal service token expired: {service_info['service_name']}"
+                    )
                     del self.internal_service_tokens[token]
                     return False
 
@@ -212,11 +219,13 @@ class RateLimitService:
 
         return False
 
-    def get_rate_limit(self,
-                      user: Optional[User] = None,
-                      path: Optional[str] = None,
-                      method: Optional[str] = None,
-                      path_quota: Optional[int] = None) -> int:
+    def get_rate_limit(
+        self,
+        user: Optional[User] = None,
+        path: Optional[str] = None,
+        method: Optional[str] = None,
+        path_quota: Optional[int] = None,
+    ) -> int:
         """
         Get the rate limit for a user based on their subscription tier, path, and method
 
@@ -316,13 +325,22 @@ class RateLimitService:
 
         # Use Redis for rate limiting if available
         if self.redis:
-            return self._check_rate_limit_redis(primary_key, limit, current_time, path, method, request_id)
+            return self._check_rate_limit_redis(
+                primary_key, limit, current_time, path, method, request_id
+            )
         else:
-            return self._check_rate_limit_memory(primary_key, limit, current_time, window_start, path, method, request_id)
+            return self._check_rate_limit_memory(
+                primary_key, limit, current_time, window_start, path, method, request_id
+            )
 
     def _check_rate_limit_redis(
-        self, key: str, limit: int, current_time: int, path: Optional[str] = None,
-        method: Optional[str] = None, request_id: Optional[str] = None
+        self,
+        key: str,
+        limit: int,
+        current_time: int,
+        path: Optional[str] = None,
+        method: Optional[str] = None,
+        request_id: Optional[str] = None,
     ) -> Tuple[bool, Dict[str, Any]]:
         """
         Check rate limit using Redis
@@ -374,7 +392,7 @@ class RateLimitService:
                 self.redis.setex(
                     telemetry_key,
                     300,  # 5 minutes retention
-                    json.dumps(telemetry_data)
+                    json.dumps(telemetry_data),
                 )
 
         # Add to path-specific counters if path is provided
@@ -400,9 +418,14 @@ class RateLimitService:
         }
 
     def _check_rate_limit_memory(
-        self, key: str, limit: int, current_time: int, window_start: int,
-        path: Optional[str] = None, method: Optional[str] = None,
-        request_id: Optional[str] = None
+        self,
+        key: str,
+        limit: int,
+        current_time: int,
+        window_start: int,
+        path: Optional[str] = None,
+        method: Optional[str] = None,
+        request_id: Optional[str] = None,
     ) -> Tuple[bool, Dict[str, Any]]:
         """
         Check rate limit using in-memory storage
@@ -450,6 +473,7 @@ class RateLimitService:
         # Store telemetry if enabled and sampled
         if self.telemetry_enabled and path and method and request_id:
             import random
+
             if random.random() < self.telemetry_sample_rate:
                 if not hasattr(self, "telemetry_store"):
                     self.telemetry_store = {}
@@ -567,15 +591,23 @@ class RateLimitService:
                 try:
                     user_key = f"stats:user:{user_id}:{date}"
                     if self.redis.exists(user_key):
-                        report[date]["count"] = int(self.redis.hget(user_key, "requests") or 0)
+                        report[date]["count"] = int(
+                            self.redis.hget(user_key, "requests") or 0
+                        )
 
                         # Add path breakdown if available
-                        path_keys = [k.decode('utf-8') for k in self.redis.hkeys(user_key) if k.decode('utf-8').startswith("path:")]
+                        path_keys = [
+                            k.decode("utf-8")
+                            for k in self.redis.hkeys(user_key)
+                            if k.decode("utf-8").startswith("path:")
+                        ]
                         if path_keys:
                             report[date]["paths"] = {}
                             for path_key in path_keys:
                                 path = path_key.split(":", 1)[1]
-                                report[date]["paths"][path] = int(self.redis.hget(user_key, path_key) or 0)
+                                report[date]["paths"][path] = int(
+                                    self.redis.hget(user_key, path_key) or 0
+                                )
 
                         continue
                 except Exception as e:
@@ -584,7 +616,9 @@ class RateLimitService:
             # Fall back to old format if needed
             key = f"user:{user_id}"
             for date, (start, end) in ranges.items():
-                if report[date]["count"] == 0:  # Only check old format if new format had no data
+                if (
+                    report[date]["count"] == 0
+                ):  # Only check old format if new format had no data
                     try:
                         count = self.redis.zcount(key, start, end)
                         report[date]["count"] = count
@@ -624,7 +658,7 @@ class RateLimitService:
                 for i in range(days):
                     date_str = (now - timedelta(days=i)).strftime("%Y-%m-%d")
                     keys = self.redis.keys(f"stats:path:*:{date_str}")
-                    path_keys.extend([k.decode('utf-8') for k in keys])
+                    path_keys.extend([k.decode("utf-8") for k in keys])
 
                 # Process each path key
                 for path_key in path_keys:
@@ -640,7 +674,11 @@ class RateLimitService:
                         report["paths"][path]["count"] += count
 
                         # Get tier breakdown
-                        tier_keys = [k.decode('utf-8') for k in self.redis.hkeys(path_key) if k.decode('utf-8').startswith("tier:")]
+                        tier_keys = [
+                            k.decode("utf-8")
+                            for k in self.redis.hkeys(path_key)
+                            if k.decode("utf-8").startswith("tier:")
+                        ]
                         for tier_key in tier_keys:
                             tier = tier_key.split(":", 1)[1]
                             tier_count = int(self.redis.hget(path_key, tier_key) or 0)

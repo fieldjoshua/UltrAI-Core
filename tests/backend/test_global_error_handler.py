@@ -5,14 +5,14 @@ This module tests the functionality of the global error handling system.
 """
 
 import pytest
-from fastapi import FastAPI, status, HTTPException
+from fastapi import FastAPI, HTTPException, status
 from fastapi.testclient import TestClient
 
 from backend.utils.global_error_handler import (
-    setup_error_handling,
-    UltraBaseException,
-    ErrorCode,
     CircuitBreaker,
+    ErrorCode,
+    UltraBaseException,
+    setup_error_handling,
     with_retry,
 )
 

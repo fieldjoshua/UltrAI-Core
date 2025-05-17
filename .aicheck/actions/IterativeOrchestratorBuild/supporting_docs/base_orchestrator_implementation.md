@@ -16,9 +16,9 @@ from typing import Dict, List, Optional, Any, Union, Tuple
 
 # Adapter imports would be here
 from src.models.llm_adapter import (
-    OpenAIAdapter, 
-    AnthropicAdapter, 
-    GeminiAdapter, 
+    OpenAIAdapter,
+    AnthropicAdapter,
+    GeminiAdapter,
     BaseLLMAdapter
 )
 from backend.services.mock_llm_service import MockLLMService
@@ -28,18 +28,18 @@ logger = logging.getLogger(__name__)
 class BaseOrchestrator:
     """
     Core orchestration system for managing LLM requests and responses.
-    
+
     Handles:
     - Sending prompts to multiple LLMs in parallel
     - Error handling and retries
     - Basic response synthesis
     - Mock mode support
     """
-    
+
     def __init__(self, config: Optional[Dict[str, Any]] = None, mock_mode: bool = False):
         """
         Initialize the BaseOrchestrator.
-        
+
         Args:
             config (dict, optional): Configuration for LLMs
             mock_mode (bool): Whether to use mock responses
@@ -48,11 +48,11 @@ class BaseOrchestrator:
         self.mock_mode = mock_mode
         self.mock_service = MockLLMService() if mock_mode else None
         self.adapters = self._initialize_adapters()
-        
+
     def _initialize_adapters(self) -> Dict[str, BaseLLMAdapter]:
         """
         Initialize LLM adapters from configuration.
-        
+
         Returns:
             dict: Mapping of model names to adapters
         """
@@ -61,11 +61,11 @@ class BaseOrchestrator:
             provider = model_config.get("provider", "").lower()
             api_key = model_config.get("api_key", "")
             parameters = model_config.get("parameters", {})
-            
+
             if not api_key and not self.mock_mode:
                 logger.warning(f"No API key for {model_name}, skipping")
                 continue
-                
+
             try:
                 if provider == "openai":
                     adapters[model_name] = OpenAIAdapter(
@@ -89,47 +89,47 @@ class BaseOrchestrator:
                     logger.warning(f"Unsupported provider {provider} for {model_name}")
             except Exception as e:
                 logger.error(f"Failed to initialize adapter for {model_name}: {e}")
-                
+
         return adapters
-        
+
     async def check_models_availability(self) -> Dict[str, bool]:
         """
         Check which models are available and responsive.
-        
+
         Returns:
             Dict[str, bool]: Mapping of model names to availability status
         """
         availability = {}
         check_tasks = []
-        
+
         for model_name, adapter in self.adapters.items():
             check_tasks.append(self._check_model_availability(model_name, adapter))
-            
+
         results = await asyncio.gather(*check_tasks, return_exceptions=True)
-        
+
         for model_name, result in zip(self.adapters.keys(), results):
             if isinstance(result, Exception):
                 logger.warning(f"Error checking availability for {model_name}: {result}")
                 availability[model_name] = False
             else:
                 availability[model_name] = result
-                
+
         return availability
-        
+
     async def _check_model_availability(self, model_name: str, adapter: BaseLLMAdapter) -> bool:
         """
         Check if a specific model is available.
-        
+
         Args:
             model_name (str): Name of the model
             adapter (BaseLLMAdapter): Adapter for the model
-            
+
         Returns:
             bool: True if available, False otherwise
         """
         if self.mock_mode:
             return True
-            
+
         try:
             # Simple prompt to check availability
             test_prompt = "Hello, are you available? Please respond with a single word: Yes."
@@ -138,24 +138,24 @@ class BaseOrchestrator:
         except Exception as e:
             logger.warning(f"Model {model_name} availability check failed: {e}")
             return False
-        
-    async def process(self, 
-                     prompt: str, 
+
+    async def process(self,
+                     prompt: str,
                      selected_models: Optional[List[str]] = None,
                      ultra_model: Optional[str] = None) -> Dict[str, Any]:
         """
         Process a prompt using multiple LLMs and synthesize the results.
-        
+
         Args:
             prompt (str): The prompt to analyze
             selected_models (list, optional): Models to use for analysis
             ultra_model (str, optional): Model to use for synthesis
-            
+
         Returns:
             dict: The orchestrated response
         """
         start_time = time.time()
-        
+
         # Determine which models to use
         if selected_models:
             models_to_use = {
@@ -164,39 +164,39 @@ class BaseOrchestrator:
             }
         else:
             models_to_use = self.adapters
-            
+
         if not models_to_use:
             return {
                 "error": "No valid models available",
                 "status": "failed",
                 "elapsed_time": time.time() - start_time
             }
-            
+
         # Determine ultra model
         if ultra_model and ultra_model in models_to_use:
             synthesis_model = ultra_model
         else:
             # Use first available model as fallback
             synthesis_model = next(iter(models_to_use.keys()))
-            
+
         # Process with all models
         llm_tasks = []
         for model_name, adapter in models_to_use.items():
             llm_tasks.append(self._send_to_llm(model_name, adapter, prompt))
-            
+
         llm_results = await asyncio.gather(*llm_tasks, return_exceptions=True)
-        
+
         # Organize results
         responses = {}
         errors = {}
-        
+
         for model_name, result in zip(models_to_use.keys(), llm_results):
             if isinstance(result, Exception):
                 logger.error(f"Error processing with {model_name}: {result}")
                 errors[model_name] = str(result)
             else:
                 responses[model_name] = result
-                
+
         # If no successful responses, return error
         if not responses:
             return {
@@ -205,14 +205,14 @@ class BaseOrchestrator:
                 "model_errors": errors,
                 "elapsed_time": time.time() - start_time
             }
-            
+
         # Synthesize responses
         synthesis_result = await self._synthesize_responses(
             prompt=prompt,
             responses=responses,
             ultra_model=synthesis_model
         )
-        
+
         # Return final result
         return {
             "status": "success",
@@ -222,35 +222,35 @@ class BaseOrchestrator:
             "ultra_model": synthesis_model,
             "elapsed_time": time.time() - start_time
         }
-        
-    async def _send_to_llm(self, 
-                          model_name: str, 
-                          adapter: BaseLLMAdapter, 
+
+    async def _send_to_llm(self,
+                          model_name: str,
+                          adapter: BaseLLMAdapter,
                           prompt: str) -> Dict[str, Any]:
         """
         Send prompt to a specific LLM and handle errors.
-        
+
         Args:
             model_name (str): Name of the model
             adapter (BaseLLMAdapter): Adapter for the model
             prompt (str): The prompt to send
-            
+
         Returns:
             dict: The LLM response
         """
         if self.mock_mode and self.mock_service:
             provider = adapter.get_provider()
             return await self.mock_service.generate_mock_response(prompt, model_name, provider)
-            
+
         max_retries = 3
         retry_delay = 1.0
-        
+
         for retry in range(max_retries):
             try:
                 start_time = time.time()
                 response = await adapter.generate(prompt)
                 elapsed_time = time.time() - start_time
-                
+
                 return {
                     "model": model_name,
                     "provider": adapter.get_provider(),
@@ -264,19 +264,19 @@ class BaseOrchestrator:
                     retry_delay *= 2  # Exponential backoff
                 else:
                     raise
-        
-    async def _synthesize_responses(self, 
+
+    async def _synthesize_responses(self,
                                    prompt: str,
                                    responses: Dict[str, Dict[str, Any]],
                                    ultra_model: str) -> Dict[str, Any]:
         """
         Combine multiple LLM responses into a single result.
-        
+
         Args:
             prompt (str): The original prompt
             responses (dict): Responses from multiple LLMs
             ultra_model (str): Model to use for synthesis
-            
+
         Returns:
             dict: Synthesized response
         """
@@ -288,16 +288,16 @@ class BaseOrchestrator:
                 "source_model": model_name,
                 "is_synthesized": False
             }
-            
+
         # For multiple responses, create a synthesis prompt
         synthesis_prompt = self._create_synthesis_prompt(prompt, responses)
-        
+
         # Use the ultra model to synthesize
         ultra_adapter = self.adapters.get(ultra_model)
         if not ultra_adapter:
             # Fallback to first available
             ultra_model, ultra_adapter = next(iter(self.adapters.items()))
-            
+
         try:
             if self.mock_mode and self.mock_service:
                 provider = ultra_adapter.get_provider()
@@ -310,7 +310,7 @@ class BaseOrchestrator:
                 synthesis_result = await ultra_adapter.generate(synthesis_prompt)
                 elapsed_time = time.time() - start_time
                 synthesis_text = synthesis_result
-                
+
             return {
                 "summary": synthesis_text,
                 "source_model": ultra_model,
@@ -330,47 +330,47 @@ class BaseOrchestrator:
                 "is_synthesized": False,
                 "synthesis_error": str(e)
             }
-            
-    def _create_synthesis_prompt(self, 
-                                original_prompt: str, 
+
+    def _create_synthesis_prompt(self,
+                                original_prompt: str,
                                 responses: Dict[str, Dict[str, Any]]) -> str:
         """
         Create a prompt for synthesizing multiple responses.
-        
+
         Args:
             original_prompt (str): The original prompt
             responses (dict): Responses from multiple LLMs
-            
+
         Returns:
             str: Synthesis prompt
         """
         synthesis_prompt = f"""
         You are an expert at synthesizing responses from multiple AI models.
-        
+
         The original question/prompt was:
         "{original_prompt}"
-        
+
         The following AI models have provided responses:
-        
+
         """
-        
+
         for model_name, response_data in responses.items():
             response_text = response_data.get("response", "")
             provider = response_data.get("provider", "unknown")
-            
+
             synthesis_prompt += f"""
             --- {model_name} ({provider}) response ---
             {response_text}
             -----------------------------
             """
-            
+
         synthesis_prompt += """
         Synthesize these responses into a single, comprehensive answer.
-        Focus on the most valuable insights from each model while avoiding 
-        repetition. Ensure the final response is well-structured and 
+        Focus on the most valuable insights from each model while avoiding
+        repetition. Ensure the final response is well-structured and
         provides a complete answer to the original prompt.
         """
-        
+
         return synthesis_prompt
 ```
 
@@ -398,18 +398,18 @@ async def main():
             }
         }
     }
-    
+
     # Create orchestrator
     use_mock = not (os.environ.get("OPENAI_API_KEY") and os.environ.get("ANTHROPIC_API_KEY"))
     orchestrator = BaseOrchestrator(config=config, mock_mode=use_mock)
-    
+
     # Check availability
     availability = await orchestrator.check_models_availability()
     print("Model availability:")
     for model, available in availability.items():
         status = "Available" if available else "Unavailable"
         print(f"  - {model}: {status}")
-    
+
     # Process a prompt
     prompt = "Explain the concept of multimodal AI in simple terms."
     result = await orchestrator.process(
@@ -417,12 +417,12 @@ async def main():
         selected_models=["gpt4", "claude3"],
         ultra_model="claude3"
     )
-    
+
     # Print results
     if result["status"] == "success":
         print("\nSynthesized Response:")
         print(result["synthesis"]["summary"])
-        
+
         print("\nIndividual Responses:")
         for model, response in result["responses"].items():
             print(f"\n--- {model} ---")

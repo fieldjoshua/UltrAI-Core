@@ -8,7 +8,6 @@ import pytest
 from scipy import linalg
 from scipy.spatial.distance import hamming as sp_hamming
 from scipy.stats import bernoulli
-
 from sklearn import datasets, svm
 from sklearn.datasets import make_multilabel_classification
 from sklearn.exceptions import UndefinedMetricWarning

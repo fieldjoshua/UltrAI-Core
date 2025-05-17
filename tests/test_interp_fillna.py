@@ -1,6 +1,6 @@
 import numpy as np
+import pandas._testing as tm
 import pytest
-
 from pandas import (
     NA,
     ArrowDtype,
@@ -12,7 +12,6 @@ from pandas import (
     interval_range,
     option_context,
 )
-import pandas._testing as tm
 from pandas.tests.copy_view.util import get_array
 
 

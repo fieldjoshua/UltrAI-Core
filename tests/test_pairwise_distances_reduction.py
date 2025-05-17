@@ -6,7 +6,6 @@ from functools import partial
 import numpy as np
 import pytest
 from scipy.spatial.distance import cdist
-
 from sklearn.metrics import euclidean_distances, pairwise_distances
 from sklearn.metrics._pairwise_distances_reduction import (
     ArgKmin,

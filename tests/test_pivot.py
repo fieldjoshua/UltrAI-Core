@@ -1,19 +1,11 @@
-from datetime import (
-    date,
-    datetime,
-    timedelta,
-)
-from itertools import product
 import re
+from datetime import date, datetime, timedelta
+from itertools import product
 
 import numpy as np
-import pytest
-
-from pandas._config import using_pyarrow_string_dtype
-
-from pandas.errors import PerformanceWarning
-
 import pandas as pd
+import pandas._testing as tm
+import pytest
 from pandas import (
     Categorical,
     DataFrame,
@@ -24,10 +16,11 @@ from pandas import (
     concat,
     date_range,
 )
-import pandas._testing as tm
+from pandas._config import using_pyarrow_string_dtype
 from pandas.api.types import CategoricalDtype
 from pandas.core.reshape import reshape as reshape_lib
 from pandas.core.reshape.pivot import pivot_table
+from pandas.errors import PerformanceWarning
 
 
 @pytest.fixture(params=[True, False])

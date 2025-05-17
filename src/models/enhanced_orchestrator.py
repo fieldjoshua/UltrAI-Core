@@ -7,20 +7,20 @@ for fault tolerance.
 """
 
 import asyncio
+import hashlib
 import json
 import logging
 import time
-import hashlib
 from dataclasses import dataclass, field
 from string import Template
-from typing import Any, Callable, Dict, List, Optional, AsyncGenerator
+from typing import Any, AsyncGenerator, Callable, Dict, List, Optional
 
+from src.models import ModelResponse, QualityMetrics, ResponseCache
 from src.models.circuit_breaker import CircuitBreakerRegistry
 from src.models.llm_adapter import LLMAdapter, create_adapter
 from src.models.progress_tracker import ProgressStatus, ProgressTracker, ProgressUpdate
+from src.models.resource_optimizer import OptimizationAction, ResourceOptimizer
 from src.patterns.ultra_analysis_patterns import get_pattern_mapping
-from src.models import ModelResponse, QualityMetrics, ResponseCache
-from src.models.resource_optimizer import ResourceOptimizer, OptimizationAction
 
 
 @dataclass
@@ -805,7 +805,7 @@ class EnhancedOrchestrator:
 
         # Split into batches
         batches = [
-            all_tasks[i:i + batch_size] for i in range(0, len(all_tasks), batch_size)
+            all_tasks[i : i + batch_size] for i in range(0, len(all_tasks), batch_size)
         ]
         results = []
 
@@ -821,7 +821,7 @@ class EnhancedOrchestrator:
 
         # Process batches with concurrency control
         for i in range(0, len(batches), max_concurrent_batches):
-            current_batches = batches[i:i + max_concurrent_batches]
+            current_batches = batches[i : i + max_concurrent_batches]
             batch_tasks = []
 
             for batch in current_batches:

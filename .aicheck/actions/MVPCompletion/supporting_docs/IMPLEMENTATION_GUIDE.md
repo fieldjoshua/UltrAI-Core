@@ -9,6 +9,7 @@ Based on a comprehensive code audit, here's the current status of key MVP compon
 ### LLM Adapters (90% Complete)
 
 ✅ **Implemented:**
+
 - OpenAI adapter with streaming and error handling
 - Claude (Anthropic) adapter with streaming and error handling
 - Gemini (Google) adapter with proper integration
@@ -17,6 +18,7 @@ Based on a comprehensive code audit, here's the current status of key MVP compon
 - Docker Model Runner adapters (both API and CLI versions)
 
 ⚠️ **Needs Improvement:**
+
 - More consistent error handling across adapters
 - Better handling of rate limits and retries
 - Enhanced logging for debugging
@@ -24,11 +26,13 @@ Based on a comprehensive code audit, here's the current status of key MVP compon
 ### Backend API (80% Complete)
 
 ✅ **Implemented:**
+
 - `/api/analyze` endpoint for multi-model comparison
 - Model selection and configuration
 - Basic response handling and storage
 
 ⚠️ **Needs Improvement:**
+
 - More robust input validation
 - Better error handling for edge cases
 - Improved response format standardization
@@ -37,11 +41,13 @@ Based on a comprehensive code audit, here's the current status of key MVP compon
 ### Frontend Components (70% Complete)
 
 ✅ **Implemented:**
+
 - Model selection interface
 - Basic results display
 - Analysis pattern selection
 
 ⚠️ **Needs Improvement:**
+
 - Side-by-side comparison view enhancement
 - Better loading states and error handling
 - Improved mobile responsiveness
@@ -50,10 +56,12 @@ Based on a comprehensive code audit, here's the current status of key MVP compon
 ### Testing (50% Complete)
 
 ✅ **Implemented:**
+
 - Basic end-to-end tests
 - Mock service for offline testing
 
 ⚠️ **Needs Improvement:**
+
 - More comprehensive test coverage
 - Tests for error scenarios
 - Performance benchmark tests
@@ -76,13 +84,14 @@ async def analyze(
 ):
     """
     Process an analysis request across multiple LLM providers.
-    
+
     Returns a unique analysis_id that can be used to track progress
     and retrieve results.
     """
 ```
 
 **Input Schema:**
+
 ```python
 class AnalysisRequest(BaseModel):
     prompt: str
@@ -95,6 +104,7 @@ class AnalysisRequest(BaseModel):
 ```
 
 **Response Schema:**
+
 ```python
 class AnalysisResponse(BaseModel):
     analysis_id: str
@@ -111,27 +121,27 @@ class CacheService:
     def __init__(self, redis_client=None):
         self.redis = redis_client
         self.use_cache = redis_client is not None
-        
+
     async def get_cached_response(self, model: str, prompt: str, params: Dict[str, Any]):
         """Get cached response if available"""
         if not self.use_cache:
             return None
-            
+
         cache_key = self._generate_cache_key(model, prompt, params)
         cached_data = await self.redis.get(cache_key)
-        
+
         if cached_data:
             return json.loads(cached_data)
         return None
-        
+
     async def cache_response(self, model: str, prompt: str, params: Dict[str, Any], response: Dict[str, Any], ttl: int = 3600):
         """Cache a response with TTL"""
         if not self.use_cache:
             return
-            
+
         cache_key = self._generate_cache_key(model, prompt, params)
         await self.redis.set(cache_key, json.dumps(response), ex=ttl)
-        
+
     def _generate_cache_key(self, model: str, prompt: str, params: Dict[str, Any]):
         """Generate a unique cache key"""
         params_str = json.dumps(params, sort_keys=True)
@@ -162,23 +172,26 @@ const ModelSelection: React.FC<ModelSelectionProps> = ({
   onPrimaryModelChange,
 }) => {
   // Group models by provider
-  const modelsByProvider = availableModels.reduce((acc, model) => {
-    if (!acc[model.provider]) {
-      acc[model.provider] = [];
-    }
-    acc[model.provider].push(model);
-    return acc;
-  }, {} as Record<string, Model[]>);
+  const modelsByProvider = availableModels.reduce(
+    (acc, model) => {
+      if (!acc[model.provider]) {
+        acc[model.provider] = [];
+      }
+      acc[model.provider].push(model);
+      return acc;
+    },
+    {} as Record<string, Model[]>
+  );
 
   return (
     <div className="model-selection">
       <h3 className="text-lg font-medium mb-4">Select Models to Compare</h3>
-      
+
       {Object.entries(modelsByProvider).map(([provider, models]) => (
         <div key={provider} className="mb-4">
           <h4 className="text-md font-medium mb-2">{provider}</h4>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
-            {models.map(model => (
+            {models.map((model) => (
               <ModelCard
                 key={model.id}
                 model={model}
@@ -186,12 +199,15 @@ const ModelSelection: React.FC<ModelSelectionProps> = ({
                 isPrimary={primaryModel === model.id}
                 onSelect={() => {
                   const newSelection = selectedModels.includes(model.id)
-                    ? selectedModels.filter(id => id !== model.id)
+                    ? selectedModels.filter((id) => id !== model.id)
                     : [...selectedModels, model.id];
                   onModelSelectionChange(newSelection);
-                  
+
                   // If this was the primary and is being deselected, clear primary
-                  if (primaryModel === model.id && !newSelection.includes(model.id)) {
+                  if (
+                    primaryModel === model.id &&
+                    !newSelection.includes(model.id)
+                  ) {
                     onPrimaryModelChange('');
                   }
                 }}
@@ -201,11 +217,12 @@ const ModelSelection: React.FC<ModelSelectionProps> = ({
           </div>
         </div>
       ))}
-      
+
       <div className="mt-4 p-3 bg-blue-50 rounded-md">
         <p className="text-sm text-blue-700">
-          <span className="font-medium">Tip:</span> Select multiple models to compare their responses.
-          Designate one as the "Primary" model for synthesized analysis.
+          <span className="font-medium">Tip:</span> Select multiple models to
+          compare their responses. Designate one as the "Primary" model for
+          synthesized analysis.
         </p>
       </div>
     </div>
@@ -223,9 +240,12 @@ interface ComparisonViewProps {
   primaryResult?: AnalysisResult;
 }
 
-const ComparisonView: React.FC<ComparisonViewProps> = ({ results, primaryResult }) => {
+const ComparisonView: React.FC<ComparisonViewProps> = ({
+  results,
+  primaryResult,
+}) => {
   const [viewMode, setViewMode] = useState<'cards' | 'table'>('cards');
-  
+
   return (
     <div className="comparison-view">
       <div className="mb-4 flex justify-between items-center">
@@ -245,10 +265,12 @@ const ComparisonView: React.FC<ComparisonViewProps> = ({ results, primaryResult 
           </button>
         </div>
       </div>
-      
+
       {primaryResult && (
         <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-          <h4 className="text-md font-medium mb-2">Primary Analysis (Synthesized)</h4>
+          <h4 className="text-md font-medium mb-2">
+            Primary Analysis (Synthesized)
+          </h4>
           <div className="prose max-w-none">
             <ReactMarkdown>{primaryResult.content}</ReactMarkdown>
           </div>
@@ -260,10 +282,10 @@ const ComparisonView: React.FC<ComparisonViewProps> = ({ results, primaryResult 
           </div>
         </div>
       )}
-      
+
       {viewMode === 'cards' ? (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {results.map(result => (
+          {results.map((result) => (
             <ResultCard key={result.modelId} result={result} />
           ))}
         </div>
@@ -286,14 +308,14 @@ def test_complete_analysis_flow(client, mock_llm_service):
     """Test the complete analysis flow from request to results retrieval."""
     # Setup mock responses
     mock_llm_service.add_mock_response(
-        "gpt-4", "What is machine learning?", 
+        "gpt-4", "What is machine learning?",
         {"content": "Machine learning is a field of AI...", "model": "gpt-4"}
     )
     mock_llm_service.add_mock_response(
-        "claude-3-opus", "What is machine learning?", 
+        "claude-3-opus", "What is machine learning?",
         {"content": "Machine learning is a branch of artificial intelligence...", "model": "claude-3-opus"}
     )
-    
+
     # Submit analysis request
     request_data = {
         "prompt": "What is machine learning?",
@@ -301,41 +323,41 @@ def test_complete_analysis_flow(client, mock_llm_service):
         "primary_model": "gpt-4",
         "analysis_pattern": "compare_and_contrast"
     }
-    
+
     response = client.post("/api/analyze", json=request_data)
     assert response.status_code == 200
     result = response.json()
     assert "analysis_id" in result
     analysis_id = result["analysis_id"]
-    
+
     # Poll for results
     max_attempts = 10
     attempts = 0
     complete = False
-    
+
     while attempts < max_attempts and not complete:
         response = client.get(f"/api/analyze/{analysis_id}/progress")
         assert response.status_code == 200
         progress_data = response.json()
-        
+
         if progress_data["status"] == "completed":
             complete = True
         else:
             time.sleep(0.5)
             attempts += 1
-    
+
     assert complete, "Analysis did not complete in time"
-    
+
     # Get final results
     response = client.get(f"/api/analyze/{analysis_id}/results")
     assert response.status_code == 200
     results = response.json()
-    
+
     # Verify results structure
     assert "model_responses" in results
     assert len(results["model_responses"]) == 2
     assert "synthesized_response" in results
-    
+
     # Verify metrics
     for response in results["model_responses"]:
         assert "modelId" in response
@@ -354,32 +376,32 @@ def test_handle_unavailable_model(client, mock_llm_service):
     """Test handling of unavailable models."""
     # Setup mock to simulate unavailable model
     mock_llm_service.set_model_unavailable("gpt-4")
-    
+
     # Submit analysis request with mix of available and unavailable models
     request_data = {
         "prompt": "What is machine learning?",
         "models": ["gpt-4", "claude-3-opus"],
         "primary_model": "claude-3-opus"
     }
-    
+
     response = client.post("/api/analyze", json=request_data)
     assert response.status_code == 200
     result = response.json()
     assert "analysis_id" in result
     analysis_id = result["analysis_id"]
-    
+
     # Wait for analysis to complete
     wait_for_completion(client, analysis_id)
-    
+
     # Get results
     response = client.get(f"/api/analyze/{analysis_id}/results")
     assert response.status_code == 200
     results = response.json()
-    
+
     # Verify that unavailable model is marked as failed but others proceed
     found_error = False
     found_success = False
-    
+
     for response in results["model_responses"]:
         if response["modelId"] == "gpt-4":
             assert response["status"] == "failed"
@@ -389,9 +411,9 @@ def test_handle_unavailable_model(client, mock_llm_service):
             assert response["status"] == "completed"
             assert "content" in response
             found_success = True
-    
+
     assert found_error and found_success
-    
+
     # Verify that synthesized response still works with available model
     assert "synthesized_response" in results
     assert results["synthesized_response"]["modelId"] == "claude-3-opus"
@@ -408,10 +430,10 @@ async def process_analysis(analysis_id: str, request: AnalysisRequest):
     """Process an analysis request with multiple models in parallel."""
     # Update analysis status
     await update_analysis_status(analysis_id, "in_progress")
-    
+
     # Get LLM service
     llm_service = get_llm_service()
-    
+
     # Process models in parallel
     tasks = []
     for model_id in request.models:
@@ -426,10 +448,10 @@ async def process_analysis(analysis_id: str, request: AnalysisRequest):
             )
         )
         tasks.append(task)
-    
+
     # Wait for all model processing to complete
     model_results = await asyncio.gather(*tasks, return_exceptions=True)
-    
+
     # Process results
     processed_results = []
     for i, result in enumerate(model_results):
@@ -447,7 +469,7 @@ async def process_analysis(analysis_id: str, request: AnalysisRequest):
             })
         else:
             processed_results.append(result)
-    
+
     # Generate synthesized response if a primary model is specified
     synthesized_response = None
     if request.primary_model and request.primary_model in request.models:
@@ -456,7 +478,7 @@ async def process_analysis(analysis_id: str, request: AnalysisRequest):
             (r for r in processed_results if r["modelId"] == request.primary_model and r["status"] == "completed"),
             None
         )
-        
+
         if primary_result:
             synthesized_response = await generate_synthesized_response(
                 request.prompt,
@@ -464,25 +486,25 @@ async def process_analysis(analysis_id: str, request: AnalysisRequest):
                 [r for r in processed_results if r["status"] == "completed" and r["modelId"] != request.primary_model],
                 request.analysis_pattern
             )
-    
+
     # Store final results
     await store_analysis_results(
         analysis_id=analysis_id,
         model_responses=processed_results,
         synthesized_response=synthesized_response
     )
-    
+
     # Update analysis status
     await update_analysis_status(analysis_id, "completed")
 ```
 
 ## Timeline and Milestones
 
-| Week | Phase | Milestones |
-|------|-------|------------|
-| Week 1 | Backend API Refinement | - Standardized API endpoints<br>- Enhanced caching<br>- Model integration tests |
-| Week 2 | Frontend Enhancement | - Improved model selection UI<br>- Enhanced results comparison<br>- Responsive UI for all devices |
-| Week 3 | Testing and Optimization | - End-to-end test suite<br>- Performance optimization<br>- Documentation completion |
+| Week   | Phase                    | Milestones                                                                                        |
+| ------ | ------------------------ | ------------------------------------------------------------------------------------------------- |
+| Week 1 | Backend API Refinement   | - Standardized API endpoints<br>- Enhanced caching<br>- Model integration tests                   |
+| Week 2 | Frontend Enhancement     | - Improved model selection UI<br>- Enhanced results comparison<br>- Responsive UI for all devices |
+| Week 3 | Testing and Optimization | - End-to-end test suite<br>- Performance optimization<br>- Documentation completion               |
 
 ## Next Steps
 

@@ -1,0 +1,14 @@
+{
+  "repository": "/Users/joshuafield/Documents/Ultra/AuditEngine",
+  "timestamp": "2025-05-15 21:28:05",
+  "performance_metrics": {
+    "serial_orchestrator": 3.480448007583618,
+    "parallel_orchestrator": 1.0478830337524414,
+    "metrics_original": 0.013864994049072266,
+    "metrics_optimized": 2.7069430351257324
+  },
+  "speedups": {
+    "orchestrator": 3.3214088743475747,
+    "metrics": 0.005122011756124104
+  }
+}

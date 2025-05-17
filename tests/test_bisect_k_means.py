@@ -1,6 +1,5 @@
 import numpy as np
 import pytest
-
 from sklearn.cluster import BisectingKMeans
 from sklearn.metrics import v_measure_score
 from sklearn.utils._testing import assert_allclose, assert_array_equal

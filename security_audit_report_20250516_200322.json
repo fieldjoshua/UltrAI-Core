@@ -1,0 +1,124 @@
+{
+  "timestamp": "2025-05-16T20:03:22.594358",
+  "summary": {
+    "total": 19,
+    "passed": 11,
+    "failed": 5,
+    "errors": 0,
+    "warnings": 1,
+    "skipped": 2
+  },
+  "results": {
+    "Authentication Security": [
+      [
+        "User Registration",
+        "PASS",
+        "User created successfully"
+      ],
+      [
+        "User Login",
+        "FAIL",
+        "Status: 500, Response: {\"error\":{\"code\":\"SYS_001\",\"message\":\"Something went wrong on our end. Please try again later.\",\"details\":{\"original_error\":\"Object of type bytes is not JSON serializable\"},\"timestamp\":\"2025-05-17T03:03:20.582265\",\"request_id\":null,\"debug\":{\"category\":\"SYS\",\"severity\":\"critical\",\"context\":{\"method\":\"POST\",\"path\":\"/api/auth/login\",\"client\":\"127.0.0.1\",\"headers\":{\"host\":\"localhost:8085\",\"user-agent\":\"python-requests/2.32.3\",\"accept-encoding\":\"gzip, deflate, zstd\",\"accept\":\"*/*\",\"connection\":\"keep-alive\",\"content-type\":\"application/x-www-form-urlencoded\",\"content-length\":\"52\"},\"locale\":\"en_US\"},\"traceback\":\"Traceback (most recent call last):\\n  File \\\"/Users/joshuafield/Documents/Ultra/.venv/lib/python3.12/site-packages/anyio/streams/memory.py\\\", line 111, in receive\\n    return self.receive_nowait()\\n           ^^^^^^^^^^^^^^^^^^^^^\\n  File \\\"/Users/joshuafield/Documents/Ultra/.venv/lib/python3.12/site-packages/anyio/streams/memory.py\\\", line 106, in receive_nowait\\n    raise WouldBlock\\nanyio.WouldBlock\\n\\nDuring handling of the above exception, another exception occurred:\\n\\nTraceback (most recent call last):\\n  File \\\"/Users/joshuafield/Documents/Ultra/.venv/lib/python3.12/site-packages/anyio/streams/memory.py\\\", line 124, in receive\\n    return receiver.item\\n           ^^^^^^^^^^^^^\\nAttributeError: 'MemoryObjectItemReceiver' object has no attribute 'item'\\n\\nDuring handling of the above exception, another exception occurred:\\n\\nTraceback (most recent call last):\\n  File \\\"/Users/joshuafield/Documents/Ultra/.venv/lib/python3.12/site-packages/starlette/middleware/base.py\\\", line 148, in call_next\\n    message = await recv_stream.receive()\\n              ^^^^^^^^^^^^^^^^^^^^^^^^^^^\\n  File \\\"/Users/joshuafield/Documents/Ultra/.venv/lib/python3.12/site-packages/anyio/streams/memory.py\\\", line 126, in receive\\n    raise EndOfStream\\nanyio.EndOfStream\\n\\nDuring handling of the above exception, another exception occurred:\\n\\nTraceback (most recent call last):\\n  File \\\"/Users/joshuafield/Documents/Ultra/backend/utils/error_handler.py\\\", line 272, in error_handling_middleware\\n    response = await call_next(request)\\n               ^^^^^^^^^^^^^^^^^^^^^^^^\\n  File \\\"/Users/joshuafield/Documents/Ultra/.venv/lib/python3.12/site-packages/starlette/middleware/base.py\\\", line 154, in call_next\\n    raise app_exc\\n  File \\\"/Users/joshuafield/Documents/Ultra/.venv/lib/python3.12/site-packages/starlette/middleware/base.py\\\", line 141, in coro\\n    await self.app(scope, receive_or_disconnect, send_no_error)\\n  File \\\"/Users/joshuafield/Documents/Ultra/.venv/lib/python3.12/site-packages/starlette/middleware/cors.py\\\", line 85, in __call__\\n    await self.app(scope, receive, send)\\n  File \\\"/Users/joshuafield/Documents/Ultra/.venv/lib/python3.12/site-packages/starlette/middleware/exceptions.py\\\", line 62, in __call__\\n    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)\\n  File \\\"/Users/joshuafield/Documents/Ultra/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py\\\", line 53, in wrapped_app\\n    raise exc\\n  File \\\"/Users/joshuafield/Documents/Ultra/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py\\\", line 42, in wrapped_app\\n    await app(scope, receive, sender)\\n  File \\\"/Users/joshuafield/Documents/Ultra/.venv/lib/python3.12/site-packages/starlette/routing.py\\\", line 715, in __call__\\n    await self.middleware_stack(scope, receive, send)\\n  File \\\"/Users/joshuafield/Documents/Ultra/.venv/lib/python3.12/site-packages/starlette/routing.py\\\", line 735, in app\\n    await route.handle(scope, receive, send)\\n  File \\\"/Users/joshuafield/Documents/Ultra/.venv/lib/python3.12/site-packages/starlette/routing.py\\\", line 288, in handle\\n    await self.app(scope, receive, send)\\n  File \\\"/Users/joshuafield/Documents/Ultra/.venv/lib/python3.12/site-packages/starlette/routing.py\\\", line 76, in app\\n    await wrap_app_handling_exceptions(app, request)(scope, receive, send)\\n  File \\\"/Users/joshuafield/Documents/Ultra/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py\\\", line 59, in wrapped_app\\n    response = await handler(conn, exc)\\n               ^^^^^^^^^^^^^^^^^^^^^^^^\\n  File \\\"/Users/joshuafield/Documents/Ultra/backend/utils/error_handler.py\\\", line 237, in validation_exception_handler\\n    return error_handler.handle_error(validation_error, request)\\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\n  File \\\"/Users/joshuafield/Documents/Ultra/backend/utils/error_handler.py\\\", line 58, in handle_error\\n    return self._handle_base_error(error, context)\\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\n  File \\\"/Users/joshuafield/Documents/Ultra/backend/utils/error_handler.py\\\", line 96, in _handle_base_error\\n    return JSONResponse(status_code=error.status_code, content=response_data)\\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\n  File \\\"/Users/joshuafield/Documents/Ultra/.venv/lib/python3.12/site-packages/starlette/responses.py\\\", line 181, in __init__\\n    super().__init__(content, status_code, headers, media_type, background)\\n  File \\\"/Users/joshuafield/Documents/Ultra/.venv/lib/python3.12/site-packages/starlette/responses.py\\\", line 44, in __init__\\n    self.body = self.render(content)\\n                ^^^^^^^^^^^^^^^^^^^^\\n  File \\\"/Users/joshuafield/Documents/Ultra/.venv/lib/python3.12/site-packages/starlette/responses.py\\\", line 184, in render\\n    return json.dumps(\\n           ^^^^^^^^^^^\\n  File \\\"/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/json/__init__.py\\\", line 238, in dumps\\n    **kw).encode(obj)\\n          ^^^^^^^^^^^\\n  File \\\"/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/json/encoder.py\\\", line 200, in encode\\n    chunks = self.iterencode(o, _one_shot=True)\\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\n  File \\\"/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/json/encoder.py\\\", line 258, in iterencode\\n    return _iterencode(o, 0)\\n           ^^^^^^^^^^^^^^^^^\\n  File \\\"/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/json/encoder.py\\\", line 180, in default\\n    raise TypeError(f'Object of type {o.__class__.__name__} '\\nTypeError: Object of type bytes is not JSON serializable\\n\"}}}"
+      ],
+      [
+        "Protected Endpoint Auth",
+        "FAIL",
+        "Expected 401, got 405"
+      ]
+    ],
+    "JWT Security": [
+      [
+        "Invalid JWT Format",
+        "FAIL",
+        "Expected 401, got 400"
+      ],
+      [
+        "Expired Token",
+        "SKIP",
+        "Requires time delay for expiration"
+      ],
+      [
+        "Algorithm Validation",
+        "SKIP",
+        "Requires JWT library for testing"
+      ]
+    ],
+    "API Key Security": [
+      [
+        "Invalid API Key",
+        "FAIL",
+        "Expected 401, got 400"
+      ]
+    ],
+    "CORS Security": [
+      [
+        "Allowed Origin",
+        "PASS",
+        "Origin allowed: http://localhost:3009"
+      ],
+      [
+        "Disallowed Origin",
+        "FAIL",
+        "Evil origin was allowed"
+      ]
+    ],
+    "Rate Limiting": [
+      [
+        "Rate Limiting",
+        "WARN",
+        "No rate limiting detected in 10 requests"
+      ]
+    ],
+    "Security Headers": [
+      [
+        "X-Content-Type-Options",
+        "PASS",
+        "Value: nosniff"
+      ],
+      [
+        "X-Frame-Options",
+        "PASS",
+        "Value: DENY"
+      ],
+      [
+        "X-XSS-Protection",
+        "PASS",
+        "Value: 1; mode=block"
+      ],
+      [
+        "Strict-Transport-Security",
+        "PASS",
+        "Value: max-age=31536000; includeSubDomains; preload"
+      ]
+    ],
+    "Injection Protection": [
+      [
+        "SQL Injection ('; DROP TABLE users;...)",
+        "PASS",
+        "Payload rejected"
+      ],
+      [
+        "SQL Injection (1' OR '1'='1...)",
+        "PASS",
+        "Payload rejected"
+      ],
+      [
+        "SQL Injection (1 UNION SELECT * FRO...)",
+        "PASS",
+        "Payload rejected"
+      ]
+    ],
+    "Error Handling": [
+      [
+        "Stack Trace Exposure",
+        "PASS",
+        "No stack trace in error response"
+      ],
+      [
+        "Internal Error Exposure",
+        "PASS",
+        "No internal details exposed"
+      ]
+    ]
+  }
+}

@@ -5,9 +5,9 @@ import './index.css';
 // Simple test component
 function SimpleApp() {
   return (
-    <div style={{ 
-      padding: '2rem', 
-      maxWidth: '800px', 
+    <div style={{
+      padding: '2rem',
+      maxWidth: '800px',
       margin: '0 auto',
       backgroundColor: '#111',
       color: '#fff',
@@ -17,7 +17,7 @@ function SimpleApp() {
       <h1>Simple Test App</h1>
       <p>If you can see this, React is rendering correctly.</p>
       <p>The main application may have an error in the components.</p>
-      
+
       <div style={{ marginTop: '2rem' }}>
         <p>Try these steps to troubleshoot:</p>
         <ol>
@@ -35,4 +35,4 @@ ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <SimpleApp />
   </React.StrictMode>
-); 
+);

@@ -1,23 +1,23 @@
 stateDiagram-v2
     [*] --> MonitoringSystem
-    
+
     MonitoringSystem --> ScalingManager: Metrics
     ScalingManager --> ResourcePool: Scale Decision
     ResourcePool --> LoadBalancer: Update Config
     LoadBalancer --> MonitoringSystem: Request Metrics
-    
+
     state MonitoringSystem {
         [*] --> MetricsCollector
         MetricsCollector --> ThresholdAnalyzer
         ThresholdAnalyzer --> AlertGenerator
     }
-    
+
     state ScalingManager {
         [*] --> ScalingPolicy
         ScalingPolicy --> ResourceCalculator
         ResourceCalculator --> ScalingDecision
     }
-    
+
     state ResourcePool {
         [*] --> ComputeResources
         [*] --> MemoryResources
@@ -26,29 +26,29 @@ stateDiagram-v2
         MemoryResources --> ResourceAllocation
         NetworkResources --> ResourceAllocation
     }
-    
+
     state LoadBalancer {
         [*] --> HealthChecker
         HealthChecker --> ConfigManager
         ConfigManager --> TrafficRouter
     }
-    
+
     ResourcePool --> InstanceManager: Provision
     InstanceManager --> ModelManager: Configure
     ModelManager --> OrchestrationEngine: Deploy
-    
+
     state InstanceManager {
         [*] --> InstanceProvisioner
         InstanceProvisioner --> ConfigurationManager
         ConfigurationManager --> HealthMonitor
     }
-    
+
     state ModelManager {
         [*] --> ModelRegistry
         ModelRegistry --> CapabilityManager
         CapabilityManager --> ResourceAssignment
     }
-    
+
     state OrchestrationEngine {
         [*] --> RequestRouter
         RequestRouter --> LoadBalancer

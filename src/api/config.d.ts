@@ -41,4 +41,4 @@ declare const _default: {
   API_ERROR_EVENT: string;
 };
 
-export default _default; 
+export default _default;

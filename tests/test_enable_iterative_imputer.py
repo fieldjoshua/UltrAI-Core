@@ -3,7 +3,6 @@
 import textwrap
 
 import pytest
-
 from sklearn.utils._testing import assert_run_python_script_without_output
 from sklearn.utils.fixes import _IS_WASM
 

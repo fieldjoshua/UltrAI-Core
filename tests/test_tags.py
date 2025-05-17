@@ -2,7 +2,6 @@ from dataclasses import dataclass, fields
 
 import numpy as np
 import pytest
-
 from sklearn.base import (
     BaseEstimator,
     ClassifierMixin,

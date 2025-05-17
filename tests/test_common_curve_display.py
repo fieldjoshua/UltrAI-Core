@@ -1,6 +1,5 @@
 import numpy as np
 import pytest
-
 from sklearn.base import BaseEstimator, ClassifierMixin, clone
 from sklearn.calibration import CalibrationDisplay
 from sklearn.compose import make_column_transformer

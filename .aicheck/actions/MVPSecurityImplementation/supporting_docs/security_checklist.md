@@ -5,12 +5,14 @@ This checklist tracks the implementation of security features for the Ultra MVP.
 ## Authentication System
 
 - [x] **JWT-based Authentication**
+
   - [x] Implement JWT token generation and validation
   - [x] Store JWT secret securely in environment variables
   - [x] Set appropriate token expiration time
   - [x] Implement token refresh mechanism
 
 - [x] **Password Security**
+
   - [x] Implement PBKDF2 with high iteration count (600,000)
   - [x] Never store plaintext passwords
   - [x] Validate password strength (length, complexity)
@@ -25,6 +27,7 @@ This checklist tracks the implementation of security features for the Ultra MVP.
 ## API Protection
 
 - [x] **API Key Management**
+
   - [x] Generate secure API keys with proper entropy
   - [x] Implement scoped access (read, write, admin)
   - [x] Support path-specific permissions
@@ -32,6 +35,7 @@ This checklist tracks the implementation of security features for the Ultra MVP.
   - [x] Implement key rotation
 
 - [x] **API Key Middleware**
+
   - [x] Validate API keys on protected endpoints
   - [x] Enforce scope-based permissions
   - [x] Support IP-based restrictions
@@ -47,6 +51,7 @@ This checklist tracks the implementation of security features for the Ultra MVP.
 ## Web Security
 
 - [x] **Security Headers**
+
   - [x] Content-Security-Policy
   - [x] Strict-Transport-Security (HSTS)
   - [x] X-Frame-Options (clickjacking protection)
@@ -56,6 +61,7 @@ This checklist tracks the implementation of security features for the Ultra MVP.
   - [x] Permissions-Policy
 
 - [x] **CSRF Protection**
+
   - [x] Implement token-based CSRF protection
   - [x] Validate tokens for state-changing operations
   - [x] Use double-submit cookie pattern
@@ -72,12 +78,14 @@ This checklist tracks the implementation of security features for the Ultra MVP.
 ## Secure Data Handling
 
 - [x] **Error Handling**
+
   - [x] Use generic error messages for clients
   - [x] Log detailed errors internally
   - [x] Prevent stack trace exposure
   - [x] Implement structured error responses
 
 - [x] **Environment Security**
+
   - [x] Store secrets in environment variables
   - [x] Validate required environment variables
   - [x] Provide secure defaults for development
@@ -91,6 +99,7 @@ This checklist tracks the implementation of security features for the Ultra MVP.
 ## Integration and Testing
 
 - [x] **Middleware Integration**
+
   - [x] Integrate all security middleware with FastAPI
   - [x] Configure middleware in correct order
   - [x] Test middleware chain

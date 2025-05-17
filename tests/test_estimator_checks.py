@@ -13,14 +13,10 @@ from numbers import Integral, Real
 import joblib
 import numpy as np
 import scipy.sparse as sp
-
 from sklearn import config_context, get_config
 from sklearn.base import BaseEstimator, ClassifierMixin, OutlierMixin, TransformerMixin
 from sklearn.cluster import MiniBatchKMeans
-from sklearn.datasets import (
-    load_iris,
-    make_multilabel_classification,
-)
+from sklearn.datasets import load_iris, make_multilabel_classification
 from sklearn.decomposition import PCA
 from sklearn.exceptions import (
     ConvergenceWarning,

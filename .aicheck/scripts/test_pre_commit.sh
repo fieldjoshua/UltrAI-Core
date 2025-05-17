@@ -63,13 +63,13 @@ run_tests() {
 
     # Check if pre-commit hook exists
     check_file ".aicheck/hooks/pre-commit"
-    
+
     # Check if pre-commit hook is executable
     check_executable ".aicheck/hooks/pre-commit"
-    
+
     # Check if style script exists
     check_file ".aicheck/scripts/aicheck_style.sh"
-    
+
     # Check if style script is executable
     check_executable ".aicheck/scripts/aicheck_style.sh"
 
@@ -78,4 +78,4 @@ run_tests() {
 }
 
 # Run the tests
-run_tests 
+run_tests

@@ -4,7 +4,6 @@ from io import StringIO
 
 import numpy as np
 import pytest
-
 from sklearn.datasets import load_digits
 from sklearn.neural_network import BernoulliRBM
 from sklearn.utils._testing import (

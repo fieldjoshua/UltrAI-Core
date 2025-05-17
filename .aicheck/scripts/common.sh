@@ -1,6 +1,6 @@
 #!/bin/bash
 # .aicheck/scripts/common.sh
-# Placeholder stub for compatibility with ai script. 
+# Placeholder stub for compatibility with ai script.
 
 # Generate a prompt based on current action and session
 generate_prompt() {
@@ -162,4 +162,4 @@ check_action_plan_compliance() {
         fi
     done
     echo "\nCompliance summary: $compliant compliant, $noncompliant noncompliant."
-} 
+}

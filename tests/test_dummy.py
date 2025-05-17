@@ -3,7 +3,6 @@ import warnings
 import numpy as np
 import pytest
 import scipy.sparse as sp
-
 from sklearn.base import clone
 from sklearn.dummy import DummyClassifier, DummyRegressor
 from sklearn.exceptions import NotFittedError

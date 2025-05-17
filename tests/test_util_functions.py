@@ -4,13 +4,9 @@
 
 from __future__ import unicode_literals
 
-from imapclient.imapclient import (
-    join_message_ids,
-    _normalise_search_criteria,
-    normalise_text_list,
-    seq_to_parenstr,
-    seq_to_parenstr_upper,
-)
+from imapclient.imapclient import (_normalise_search_criteria, join_message_ids,
+                                   normalise_text_list, seq_to_parenstr,
+                                   seq_to_parenstr_upper)
 from imapclient.test.util import unittest
 
 

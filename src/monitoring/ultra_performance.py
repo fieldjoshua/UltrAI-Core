@@ -9,9 +9,8 @@ from typing import Any, Dict, List, Optional
 
 import psutil
 import torch
-from ultra_config import UltraConfig
-
 from ultra_base import UltraBase
+from ultra_config import UltraConfig
 
 
 @dataclass

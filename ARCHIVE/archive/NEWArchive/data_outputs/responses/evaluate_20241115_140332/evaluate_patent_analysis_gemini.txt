@@ -191,11 +191,11 @@ class ResponseFormatter:
     @staticmethod
     def format_markdown(response: str) -> str:
         return f"```markdown\n{response}\n```"
-    
+
     @staticmethod
     def format_json(response: str) -> str:
         return json.dumps({"response": response}, indent=2)
-    
+
     @staticmethod
     def format_plain(response: str) -> str:
         return response

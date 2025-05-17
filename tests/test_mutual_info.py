@@ -1,14 +1,10 @@
 import numpy as np
 import pytest
-
 from sklearn.datasets import make_classification, make_regression
 from sklearn.feature_selection import mutual_info_classif, mutual_info_regression
 from sklearn.feature_selection._mutual_info import _compute_mi
 from sklearn.utils import check_random_state
-from sklearn.utils._testing import (
-    assert_allclose,
-    assert_array_equal,
-)
+from sklearn.utils._testing import assert_allclose, assert_array_equal
 from sklearn.utils.fixes import CSR_CONTAINERS
 
 

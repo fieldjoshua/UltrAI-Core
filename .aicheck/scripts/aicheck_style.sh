@@ -21,18 +21,18 @@ setup_style() {
     mkdir -p .aicheck/actions
     mkdir -p .aicheck/templates
     mkdir -p .aicheck/docs
-    
+
     # Set up Git hooks
     if [ -d ".git" ]; then
         if [ ! -f ".git/hooks/pre-commit" ]; then
             ln -s ../../.aicheck/hooks/pre-commit .git/hooks/pre-commit
         fi
     fi
-    
+
     echo -e "${GREEN}AICheck directory styling has been set up.${NC}"
     echo "Please add the following line to your shell's configuration file:"
     echo "source ~/.aicheck/scripts/aicheck_style.sh"
 }
 
 # Main script
-setup_style 
+setup_style

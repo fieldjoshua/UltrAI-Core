@@ -1,8 +1,7 @@
 import random
 
-import pytest
-
 import networkx as nx
+import pytest
 from networkx.classes.tests import dispatch_interface
 
 np = pytest.importorskip("numpy")

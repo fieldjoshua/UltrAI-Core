@@ -11,6 +11,7 @@ This document outlines the integration points between the UI prototype and the b
 **Purpose:** Retrieve a list of available language models for analysis.
 
 **Response Format:**
+
 ```json
 {
   "models": [
@@ -35,6 +36,7 @@ This document outlines the integration points between the UI prototype and the b
 ```
 
 **Integration Notes:**
+
 - Cache this response to avoid repeated fetching
 - Handle unavailable models appropriately in the UI
 - Refresh data when user initiates a new session or manually refreshes
@@ -46,6 +48,7 @@ This document outlines the integration points between the UI prototype and the b
 **Purpose:** Retrieve available analysis patterns.
 
 **Response Format:**
+
 ```json
 {
   "patterns": [
@@ -53,7 +56,11 @@ This document outlines the integration points between the UI prototype and the b
       "id": "fact-check",
       "name": "Fact Checking",
       "description": "Analyze content for factual accuracy",
-      "useCases": ["News validation", "Research verification", "Source analysis"],
+      "useCases": [
+        "News validation",
+        "Research verification",
+        "Source analysis"
+      ],
       "configOptions": [
         {
           "id": "depth",
@@ -76,6 +83,7 @@ This document outlines the integration points between the UI prototype and the b
 ```
 
 **Integration Notes:**
+
 - Cache this response
 - Support custom configuration options when present
 - Display relevant usage examples for each pattern
@@ -85,6 +93,7 @@ This document outlines the integration points between the UI prototype and the b
 **Endpoint:** `POST /api/analyze`
 
 **Request Format:**
+
 ```json
 {
   "prompt": "The text to analyze",
@@ -97,6 +106,7 @@ This document outlines the integration points between the UI prototype and the b
 ```
 
 **Response Format:**
+
 ```json
 {
   "analysisId": "a1b2c3d4-e5f6",
@@ -106,6 +116,7 @@ This document outlines the integration points between the UI prototype and the b
 ```
 
 **Integration Notes:**
+
 - Send proper headers (Content-Type: application/json)
 - Implement request timeout handling
 - Store analysisId for subsequent status checks
@@ -116,6 +127,7 @@ This document outlines the integration points between the UI prototype and the b
 **Endpoint:** `GET /api/status/:analysisId`
 
 **Response Format:**
+
 ```json
 {
   "analysisId": "a1b2c3d4-e5f6",
@@ -127,12 +139,14 @@ This document outlines the integration points between the UI prototype and the b
 ```
 
 **Possible Status Values:**
+
 - `queued` - Analysis is in queue
 - `processing` - Analysis is actively running
 - `complete` - Analysis is complete
 - `failed` - Analysis encountered an error
 
 **Integration Notes:**
+
 - Implement polling with exponential backoff
 - Update progress indicators based on response
 - Transition to results fetching when status is "complete"
@@ -143,6 +157,7 @@ This document outlines the integration points between the UI prototype and the b
 **Endpoint:** `GET /api/results/:analysisId`
 
 **Response Format:**
+
 ```json
 {
   "analysisId": "a1b2c3d4-e5f6",
@@ -175,6 +190,7 @@ This document outlines the integration points between the UI prototype and the b
 ```
 
 **Integration Notes:**
+
 - Handle structured and unstructured responses appropriately
 - Implement proper error handling for missing results
 - Support displaying different section formats (text, lists, tables)
@@ -221,13 +237,14 @@ For this prototype, we'll use a simple API key approach:
 ### API Key Header
 
 Include this header with all requests:
+
 ```
 X-API-Key: your_api_key_here
 ```
 
 ### Error Handling for Authentication
 
-- `401` responses should prompt for API key reauthentication 
+- `401` responses should prompt for API key reauthentication
 - Store API key securely (preferably in sessionStorage, not localStorage)
 - Provide clear messaging when authentication fails
 
@@ -244,8 +261,8 @@ export async function fetchAvailableModels() {
   try {
     const response = await axios.get(`${API_BASE_URL}/models`, {
       headers: {
-        'X-API-Key': getApiKey()
-      }
+        'X-API-Key': getApiKey(),
+      },
     });
     return response.data.models;
   } catch (error) {
@@ -260,17 +277,21 @@ export async function fetchAvailableModels() {
 ```typescript
 export async function submitAnalysis(prompt, modelIds, patternId, config = {}) {
   try {
-    const response = await axios.post(`${API_BASE_URL}/analyze`, {
-      prompt,
-      modelIds,
-      patternId,
-      config
-    }, {
-      headers: {
-        'Content-Type': 'application/json',
-        'X-API-Key': getApiKey()
+    const response = await axios.post(
+      `${API_BASE_URL}/analyze`,
+      {
+        prompt,
+        modelIds,
+        patternId,
+        config,
+      },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          'X-API-Key': getApiKey(),
+        },
       }
-    });
+    );
     return response.data;
   } catch (error) {
     handleApiError(error);
@@ -285,40 +306,40 @@ export async function pollAnalysisStatus(analysisId, onProgress) {
   let attempts = 0;
   const maxAttempts = 30;
   const initialDelay = 1000;
-  
+
   const poll = async () => {
     if (attempts >= maxAttempts) {
       throw new Error('Analysis timed out');
     }
-    
+
     try {
       const response = await axios.get(`${API_BASE_URL}/status/${analysisId}`, {
         headers: {
-          'X-API-Key': getApiKey()
-        }
+          'X-API-Key': getApiKey(),
+        },
       });
-      
+
       const data = response.data;
       onProgress(data);
-      
+
       if (data.status === 'complete') {
         return data;
       } else if (data.status === 'failed') {
         throw new Error('Analysis failed: ' + (data.error || 'Unknown error'));
       }
-      
+
       // Exponential backoff with max of 5 seconds
       const delay = Math.min(initialDelay * Math.pow(1.5, attempts), 5000);
       attempts++;
-      
-      return new Promise(resolve => {
+
+      return new Promise((resolve) => {
         setTimeout(() => resolve(poll()), delay);
       });
     } catch (error) {
       handleApiError(error);
     }
   };
-  
+
   return poll();
 }
 ```
@@ -335,12 +356,12 @@ const apiClient = axios.create({
   baseURL: '/api',
   timeout: 30000,
   headers: {
-    'Content-Type': 'application/json'
-  }
+    'Content-Type': 'application/json',
+  },
 });
 
 // Request interceptor
-apiClient.interceptors.request.use(config => {
+apiClient.interceptors.request.use((config) => {
   const apiKey = localStorage.getItem('api_key');
   if (apiKey) {
     config.headers['X-API-Key'] = apiKey;
@@ -350,8 +371,8 @@ apiClient.interceptors.request.use(config => {
 
 // Response interceptor
 apiClient.interceptors.response.use(
-  response => response,
-  error => {
+  (response) => response,
+  (error) => {
     // Handle common errors
     if (error.response) {
       switch (error.response.status) {
@@ -380,14 +401,18 @@ import { useQuery } from 'react-query';
 import apiClient from '../api/client';
 
 export function useModels() {
-  return useQuery('models', async () => {
-    const { data } = await apiClient.get('/models');
-    return data.models;
-  }, {
-    staleTime: 5 * 60 * 1000, // Consider data fresh for 5 minutes
-    retry: 3,
-    refetchOnWindowFocus: false
-  });
+  return useQuery(
+    'models',
+    async () => {
+      const { data } = await apiClient.get('/models');
+      return data.models;
+    },
+    {
+      staleTime: 5 * 60 * 1000, // Consider data fresh for 5 minutes
+      retry: 3,
+      refetchOnWindowFocus: false,
+    }
+  );
 }
 ```
 
@@ -397,11 +422,13 @@ Map technical error codes to user-friendly messages:
 
 ```typescript
 const errorMessages = {
-  'invalid_request': 'There was a problem with your request. Please check and try again.',
-  'unauthorized': 'Your session has expired. Please log in again.',
-  'rate_limited': 'You\'ve reached the request limit. Please try again later.',
-  'service_unavailable': 'The service is temporarily unavailable. Please try again later.',
-  'default': 'An unexpected error occurred. Please try again later.'
+  invalid_request:
+    'There was a problem with your request. Please check and try again.',
+  unauthorized: 'Your session has expired. Please log in again.',
+  rate_limited: "You've reached the request limit. Please try again later.",
+  service_unavailable:
+    'The service is temporarily unavailable. Please try again later.',
+  default: 'An unexpected error occurred. Please try again later.',
 };
 
 export function getUserFriendlyErrorMessage(errorCode) {
@@ -429,19 +456,19 @@ export const handlers = [
       ctx.json({
         models: [
           {
-            id: "gpt-4o",
-            name: "GPT-4o",
-            provider: "OpenAI",
-            description: "Advanced model with vision capabilities",
-            capabilities: ["text", "code", "reasoning"],
-            isAvailable: true
+            id: 'gpt-4o',
+            name: 'GPT-4o',
+            provider: 'OpenAI',
+            description: 'Advanced model with vision capabilities',
+            capabilities: ['text', 'code', 'reasoning'],
+            isAvailable: true,
           },
           // More mock models...
-        ]
+        ],
       })
     );
   }),
-  
+
   // More API route handlers...
 ];
 ```

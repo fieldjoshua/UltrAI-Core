@@ -5,7 +5,6 @@ import pytest
 from scipy import sparse
 from scipy.linalg import eigh
 from scipy.sparse.linalg import eigsh, lobpcg
-
 from sklearn.cluster import KMeans
 from sklearn.datasets import make_blobs
 from sklearn.manifold import SpectralEmbedding, _spectral_embedding, spectral_embedding
@@ -18,14 +17,9 @@ from sklearn.metrics.pairwise import rbf_kernel
 from sklearn.neighbors import NearestNeighbors
 from sklearn.utils._testing import assert_array_almost_equal, assert_array_equal
 from sklearn.utils.extmath import _deterministic_vector_sign_flip
-from sklearn.utils.fixes import (
-    COO_CONTAINERS,
-    CSC_CONTAINERS,
-    CSR_CONTAINERS,
-    parse_version,
-    sp_version,
-)
+from sklearn.utils.fixes import COO_CONTAINERS, CSC_CONTAINERS, CSR_CONTAINERS
 from sklearn.utils.fixes import laplacian as csgraph_laplacian
+from sklearn.utils.fixes import parse_version, sp_version
 
 try:
     from pyamg import smoothed_aggregation_solver  # noqa

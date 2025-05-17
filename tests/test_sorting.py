@@ -1,11 +1,6 @@
 import numpy as np
+import pandas._testing as tm
 import pytest
-
-from pandas.errors import (
-    PerformanceWarning,
-    UnsortedIndexError,
-)
-
 from pandas import (
     CategoricalIndex,
     DataFrame,
@@ -15,8 +10,8 @@ from pandas import (
     Series,
     Timestamp,
 )
-import pandas._testing as tm
 from pandas.core.indexes.frozen import FrozenList
+from pandas.errors import PerformanceWarning, UnsortedIndexError
 
 
 def test_sortlevel(idx):

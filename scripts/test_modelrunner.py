@@ -14,12 +14,12 @@ Options:
   --prompt    Specify prompt to use (default: "Explain what Docker Model Runner is in one sentence")
 """
 
+import argparse
+import asyncio
+import json
 import os
 import sys
-import asyncio
-import argparse
-import json
-from typing import List, Dict, Any, Optional
+from typing import Any, Dict, List, Optional
 
 # Add project root to path
 sys.path.append(os.path.abspath(os.path.dirname(os.path.dirname(__file__))))
@@ -27,11 +27,13 @@ sys.path.append(os.path.abspath(os.path.dirname(os.path.dirname(__file__))))
 # Import the adapter module
 try:
     from src.models.docker_modelrunner_adapter import (
+        DockerModelRunnerAdapter,
         get_available_models,
-        DockerModelRunnerAdapter
     )
 except ImportError:
-    print("Error: Could not import Docker Model Runner adapter. Make sure you're running from the project root.")
+    print(
+        "Error: Could not import Docker Model Runner adapter. Make sure you're running from the project root."
+    )
     sys.exit(1)
 
 
@@ -39,7 +41,7 @@ async def check_modelrunner_connection(base_url: str = "http://localhost:8080") 
     """Check connection to Docker Model Runner."""
     try:
         print(f"Checking connection to Docker Model Runner at {base_url}...")
-        
+
         # First check if the server is reachable
         try:
             async with aiohttp.ClientSession() as session:
@@ -48,17 +50,21 @@ async def check_modelrunner_connection(base_url: str = "http://localhost:8080") 
                         data = await response.json()
                         models = [model["id"] for model in data.get("data", [])]
                         print("✅ Connection successful!")
-                        print(f"Available models: {', '.join(models) if models else 'No models available yet'}")
+                        print(
+                            f"Available models: {', '.join(models) if models else 'No models available yet'}"
+                        )
                         return True
                     else:
-                        print(f"❌ Connection failed with status code: {response.status}")
+                        print(
+                            f"❌ Connection failed with status code: {response.status}"
+                        )
                         response_text = await response.text()
                         print(f"Response: {response_text[:200]}...")
         except aiohttp.ClientConnectorError:
             print("❌ Cannot connect to Docker Model Runner API")
         except asyncio.TimeoutError:
             print("❌ Connection timed out")
-            
+
         print("\nTroubleshooting tips:")
         print("1. Make sure Docker Desktop is running")
         print("2. Check that the Model Runner extension is installed and enabled")
@@ -76,7 +82,7 @@ async def check_modelrunner_connection(base_url: str = "http://localhost:8080") 
 async def test_generate_response(
     model: str = "phi3:mini",
     prompt: str = "Explain what Docker Model Runner is in one sentence",
-    base_url: str = "http://localhost:8080"
+    base_url: str = "http://localhost:8080",
 ) -> Optional[str]:
     """Generate a test response from Docker Model Runner."""
     try:
@@ -84,9 +90,9 @@ async def test_generate_response(
         adapter = DockerModelRunnerAdapter(
             model=model,
             base_url=base_url,
-            model_mapping={model: model}  # Simple 1:1 mapping for testing
+            model_mapping={model: model},  # Simple 1:1 mapping for testing
         )
-        
+
         response = await adapter.generate(prompt)
         print("\n--- Generated Response ---")
         print(response)
@@ -100,28 +106,34 @@ async def test_generate_response(
 async def main():
     """Run the main script logic."""
     parser = argparse.ArgumentParser(description="Test Docker Model Runner integration")
-    parser.add_argument("--generate", action="store_true", help="Generate a test response")
-    parser.add_argument("--model", default="phi3:mini", help="Model to use for generation")
     parser.add_argument(
-        "--prompt", 
+        "--generate", action="store_true", help="Generate a test response"
+    )
+    parser.add_argument(
+        "--model", default="phi3:mini", help="Model to use for generation"
+    )
+    parser.add_argument(
+        "--prompt",
         default="Explain what Docker Model Runner is in one sentence",
-        help="Prompt to use for generation"
+        help="Prompt to use for generation",
     )
     parser.add_argument(
-        "--url", 
+        "--url",
         default="http://localhost:8080",
-        help="Base URL for Docker Model Runner API"
+        help="Base URL for Docker Model Runner API",
     )
-    
+
     args = parser.parse_args()
-    
+
     # Check connection
     connection_ok = await check_modelrunner_connection(args.url)
-    
+
     if not connection_ok:
-        print("Could not connect to Docker Model Runner. Please check the installation.")
+        print(
+            "Could not connect to Docker Model Runner. Please check the installation."
+        )
         return
-    
+
     # Generate test response if requested
     if args.generate:
         await test_generate_response(args.model, args.prompt, args.url)

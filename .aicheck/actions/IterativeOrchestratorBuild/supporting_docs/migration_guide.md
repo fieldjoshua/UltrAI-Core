@@ -85,15 +85,15 @@ Services that depend on orchestration will be updated to use the new system:
 class AnalysisService:
     def __init__(self):
         self.orchestrator = legacy_orchestrator
-        
+
     async def analyze(self, data):
         # Use legacy orchestrator
-        
+
 # After
 class AnalysisService:
     def __init__(self, orchestrator=None):
         self.orchestrator = orchestrator or new_orchestrator
-        
+
     async def analyze(self, data):
         # Use new orchestrator
 ```

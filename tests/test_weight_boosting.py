@@ -4,7 +4,6 @@ import re
 
 import numpy as np
 import pytest
-
 from sklearn import datasets
 from sklearn.base import BaseEstimator, clone
 from sklearn.dummy import DummyClassifier, DummyRegressor
@@ -16,18 +15,10 @@ from sklearn.svm import SVC, SVR
 from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
 from sklearn.utils import shuffle
 from sklearn.utils._mocking import NoSampleWeightWrapper
-from sklearn.utils._testing import (
-    assert_allclose,
-    assert_array_almost_equal,
-    assert_array_equal,
-)
-from sklearn.utils.fixes import (
-    COO_CONTAINERS,
-    CSC_CONTAINERS,
-    CSR_CONTAINERS,
-    DOK_CONTAINERS,
-    LIL_CONTAINERS,
-)
+from sklearn.utils._testing import (assert_allclose, assert_array_almost_equal,
+                                    assert_array_equal)
+from sklearn.utils.fixes import (COO_CONTAINERS, CSC_CONTAINERS, CSR_CONTAINERS,
+                                 DOK_CONTAINERS, LIL_CONTAINERS)
 
 # Common random state
 rng = np.random.RandomState(0)

@@ -3,7 +3,6 @@ import re
 import numpy as np
 import pytest
 from joblib import cpu_count
-
 from sklearn import datasets
 from sklearn.base import ClassifierMixin, clone
 from sklearn.datasets import (

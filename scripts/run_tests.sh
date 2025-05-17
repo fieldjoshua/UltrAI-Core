@@ -28,12 +28,12 @@ fi
 run_test() {
     TEST_TYPE=$1
     TEST_CMD=$2
-    
+
     echo -e "\n${YELLOW}Running $TEST_TYPE Tests...${NC}"
     echo "----------------------------------------"
-    
+
     eval $TEST_CMD
-    
+
     if [ $? -eq 0 ]; then
         echo -e "${GREEN}✓ $TEST_TYPE Tests Passed${NC}"
         return 0
@@ -78,4 +78,4 @@ if $TESTS_PASSED; then
 else
     echo -e "${RED}Some tests failed. Please fix the issues before deploying.${NC}"
     exit 1
-fi 
+fi

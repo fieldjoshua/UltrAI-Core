@@ -4,7 +4,7 @@ on:
   # Run on a schedule to regularly check for vulnerable dependencies
   schedule:
     - cron: '0 0 * * 1' # Run every Monday at midnight UTC
-  
+
   # Allow manual triggers
   workflow_dispatch:
 
@@ -24,22 +24,22 @@ jobs:
         with:
           node-version: '18'
           cache: 'npm'
-      
+
       - name: Setup Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.9'
-      
+
       # Check npm dependencies for vulnerabilities
       - name: Check npm vulnerabilities
         run: npm audit --json || true
-      
+
       # Check Python dependencies for vulnerabilities
       - name: Check Python vulnerabilities
         run: |
           pip install safety
           safety check --full-report -r backend/requirements.txt || true
-      
+
       # Create GitHub App token for Dependabot automation
       - name: Create GitHub App Token
         id: create-app-token
@@ -49,14 +49,14 @@ jobs:
           private-key: ${{ secrets.DEPENDABOT_PRIVATE_KEY }}
           owner: ${{ github.repository_owner }}
           repositories: ${{ github.event.repository.name }}
-      
+
       # Run Dependabot to create PRs for vulnerable dependencies
       - name: Run Dependabot
         uses: dependabot/fetch-metadata@v1
         id: dependabot-metadata
         with:
           github-token: ${{ steps.create-app-token.outputs.token }}
-      
+
       # Auto-merge non-major updates (minor and patch)
       - name: Enable auto-merge for Dependabot PRs
         env:
@@ -65,4 +65,4 @@ jobs:
           gh auth status
           gh pr list --repo ${{ github.repository }} --author app/dependabot --json number,title | \
           jq -r '.[] | select(.title | contains("bump") and (contains("minor") or contains("patch"))) | .number' | \
-          xargs -I{} gh pr merge --auto --rebase {} || true 
+          xargs -I{} gh pr merge --auto --rebase {} || true

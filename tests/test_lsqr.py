@@ -1,8 +1,8 @@
 import numpy as np
-from numpy.testing import assert_allclose, assert_array_equal, assert_equal
 import pytest
 import scipy.sparse
 import scipy.sparse.linalg
+from numpy.testing import assert_allclose, assert_array_equal, assert_equal
 from scipy.sparse.linalg import lsqr
 
 # Set up a test problem
@@ -42,8 +42,7 @@ def test_lsqr_basic():
     # ( G      ) @ x = ( b )
     # ( damp*I )       ( 0 )
     damp = 1.5
-    xo, *_ = lsqr(
-        G, b, damp=damp, show=show, atol=tol, btol=tol, iter_lim=maxit)
+    xo, *_ = lsqr(G, b, damp=damp, show=show, atol=tol, btol=tol, iter_lim=maxit)
 
     Gext = np.r_[G, damp * np.eye(G.shape[1])]
     bext = np.r_[b, np.zeros(G.shape[1])]
@@ -69,7 +68,7 @@ def test_well_conditioned_problems():
     A_sparse = scipy.sparse.eye_array(n, n)
     A_dense = A_sparse.toarray()
 
-    with np.errstate(invalid='raise'):
+    with np.errstate(invalid="raise"):
         for seed in range(30):
             rng = np.random.RandomState(seed + 10)
             beta = rng.rand(n)

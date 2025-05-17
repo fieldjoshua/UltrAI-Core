@@ -60,4 +60,4 @@ echo "- Backend: http://localhost:8080"
 echo "Press Ctrl+C to stop both servers."
 
 # Wait for both processes
-wait $FRONTEND_PID $BACKEND_PID 
+wait $FRONTEND_PID $BACKEND_PID

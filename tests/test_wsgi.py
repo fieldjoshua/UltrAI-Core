@@ -16,6 +16,7 @@ import os
 import re
 import subprocess
 import sys
+
 try:
     # python 2
     from urllib2 import urlopen

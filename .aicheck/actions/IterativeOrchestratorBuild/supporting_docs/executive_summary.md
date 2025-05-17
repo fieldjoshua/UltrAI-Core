@@ -30,15 +30,18 @@ The Iterative Orchestrator Build action will create a modular, unified LLM orche
 Key components of the new architecture:
 
 1. **Core Orchestration Layer**:
+
    - `BaseOrchestrator`: Fundamental LLM orchestration capabilities
    - `EnhancedOrchestrator`: Advanced features building on the base functionality
 
 2. **Provider Abstraction Layer**:
+
    - Unified adapter interface for all LLM providers
    - Provider-specific implementations
    - Mock adapter for testing
 
 3. **Service Layer**:
+
    - Configuration management
    - Orchestration lifecycle
    - Caching and resource optimization
@@ -53,16 +56,19 @@ Key components of the new architecture:
 The implementation will follow an **iterative**, phased approach to minimize disruption:
 
 1. **Foundation Phase (Days 1-3)**:
+
    - Create new directory structure
    - Implement core adapters and BaseOrchestrator
    - Add basic CLI for testing
 
 2. **Enhancement Phase (Days 4-5)**:
+
    - Add advanced features to EnhancedOrchestrator
    - Implement service layer
    - Update CLI interface
 
 3. **Integration Phase (Days 6-7)**:
+
    - Update API routes
    - Migrate existing code
    - Create comprehensive documentation

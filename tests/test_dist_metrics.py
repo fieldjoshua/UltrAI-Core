@@ -5,7 +5,6 @@ import pickle
 import numpy as np
 import pytest
 from scipy.spatial.distance import cdist
-
 from sklearn.metrics import DistanceMetric
 from sklearn.metrics._dist_metrics import (
     BOOL_METRICS,

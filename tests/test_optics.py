@@ -5,7 +5,6 @@ import warnings
 
 import numpy as np
 import pytest
-
 from sklearn.cluster import DBSCAN, OPTICS
 from sklearn.cluster._optics import _extend_region, _extract_xi_labels
 from sklearn.cluster.tests.common import generate_clustered_data

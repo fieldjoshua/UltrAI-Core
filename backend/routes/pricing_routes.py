@@ -1,10 +1,15 @@
 import logging
-from typing import Optional, Dict, Any
+from typing import Any, Dict, Optional
 
 from fastapi import APIRouter
 from fastapi.responses import JSONResponse
 
-from backend.models.pricing import TokenEstimateRequest, PricingToggleRequest, UserAccountRequest, AddFundsRequest
+from backend.models.pricing import (
+    AddFundsRequest,
+    PricingToggleRequest,
+    TokenEstimateRequest,
+    UserAccountRequest,
+)
 
 # Create a pricing router
 pricing_router = APIRouter(tags=["Pricing"])
@@ -15,11 +20,16 @@ logger = logging.getLogger("pricing_routes")
 # Import pricing integration
 try:
     from backend.services.pricing_integration import PricingIntegration
+
     pricing_integration = PricingIntegration()
-    from backend.services.pricing_integration import check_request_authorization, track_request_cost
+    from backend.services.pricing_integration import (
+        check_request_authorization,
+        track_request_cost,
+    )
 
 except ImportError:
     logger.warning("PricingIntegration not available, using mock")
+
     # Create a mock pricing integration
     class MockPricingIntegration:
         def __init__(self):
@@ -38,36 +48,36 @@ except ImportError:
                 },
             }
 
-        def create_user_account(self, user_id: str, tier: str = "basic", initial_balance: float = 0.0) -> Dict[str, Any]:
+        def create_user_account(
+            self, user_id: str, tier: str = "basic", initial_balance: float = 0.0
+        ) -> Dict[str, Any]:
             return {
                 "id": user_id,
                 "tier": tier,
                 "balance": initial_balance,
-                "created_at": "mock-timestamp"
+                "created_at": "mock-timestamp",
             }
 
-        def add_funds(self, user_id: str, amount: float, description: str = "Deposit") -> Dict[str, Any]:
+        def add_funds(
+            self, user_id: str, amount: float, description: str = "Deposit"
+        ) -> Dict[str, Any]:
             return {
                 "user_id": user_id,
                 "amount": amount,
                 "description": description,
                 "transaction_id": "mock-transaction",
-                "timestamp": "mock-timestamp"
+                "timestamp": "mock-timestamp",
             }
 
         def check_balance(self, user_id: str) -> Dict[str, Any]:
-            return {
-                "user_id": user_id,
-                "balance": 100.0,
-                "tier": "basic"
-            }
+            return {"user_id": user_id, "balance": 100.0, "tier": "basic"}
 
         def get_user_usage_summary(self, user_id: str) -> Dict[str, Any]:
             return {
                 "user_id": user_id,
                 "total_tokens": 0,
                 "total_cost": 0.0,
-                "usage_by_model": {}
+                "usage_by_model": {},
             }
 
         def get_session_summary(self, session_id: str) -> Dict[str, Any]:
@@ -75,7 +85,7 @@ except ImportError:
                 "session_id": session_id,
                 "start_time": "mock-timestamp",
                 "total_tokens": 0,
-                "total_cost": 0.0
+                "total_cost": 0.0,
             }
 
     pricing_integration = MockPricingIntegration()

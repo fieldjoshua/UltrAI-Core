@@ -14,8 +14,8 @@ from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.types import ASGIApp
 
-from backend.utils.logging import get_logger
 from backend.models.base_models import ErrorResponse
+from backend.utils.logging import get_logger
 
 # Set up logger
 logger = get_logger("csrf_middleware", "logs/security.log")
@@ -65,7 +65,9 @@ class CSRFMiddleware(BaseHTTPMiddleware):
             "/api/auth/reset-password",
         ]
         self.exempt_methods = exempt_methods or {"GET", "HEAD", "OPTIONS"}
-        logger.info(f"Initialized CSRFMiddleware with {len(self.exempt_paths)} exempt paths")
+        logger.info(
+            f"Initialized CSRFMiddleware with {len(self.exempt_paths)} exempt paths"
+        )
 
     async def dispatch(self, request: Request, call_next: Callable) -> Response:
         """
@@ -78,6 +80,11 @@ class CSRFMiddleware(BaseHTTPMiddleware):
         Returns:
             Response
         """
+        # Skip CSRF protection if auth is disabled
+        from backend.config import Config
+        if not Config.ENABLE_AUTH:
+            return await call_next(request)
+            
         # Skip CSRF protection for safe methods
         if request.method in self.exempt_methods:
             response = await call_next(request)
@@ -91,12 +98,12 @@ class CSRFMiddleware(BaseHTTPMiddleware):
         # Check if the request is from a safe origin
         origin = request.headers.get("Origin", "")
         referer = request.headers.get("Referer", "")
-        
+
         # If request is from a safe origin, skip CSRF check
         if origin and any(origin.startswith(safe) for safe in self.safe_origins):
             response = await call_next(request)
             return self._set_csrf_cookie(request, response)
-            
+
         if referer and any(referer.startswith(safe) for safe in self.safe_origins):
             response = await call_next(request)
             return self._set_csrf_cookie(request, response)
@@ -105,21 +112,20 @@ class CSRFMiddleware(BaseHTTPMiddleware):
         if request.method in UNSAFE_METHODS:
             # Get CSRF token from header
             csrf_token = request.headers.get(self.token_header)
-            
+
             # If no token in header, check cookie
             if not csrf_token:
                 csrf_token = request.cookies.get(self.cookie_name)
-            
+
             # Validate CSRF token
             if not self._validate_csrf_token(csrf_token, request):
                 return self._create_csrf_error_response(
-                    "Invalid or missing CSRF token", 
-                    "invalid_csrf_token"
+                    "Invalid or missing CSRF token", "invalid_csrf_token"
                 )
 
         # Process the request
         response = await call_next(request)
-        
+
         # Set CSRF cookie for next request
         return self._set_csrf_cookie(request, response)
 
@@ -151,7 +157,7 @@ class CSRFMiddleware(BaseHTTPMiddleware):
         # If the token is associated with a user, check if it matches the current user
         user_id = token_info.get("user_id")
         current_user_id = getattr(request.state, "user_id", None)
-        
+
         if user_id and current_user_id and user_id != current_user_id:
             return False
 
@@ -169,16 +175,16 @@ class CSRFMiddleware(BaseHTTPMiddleware):
         """
         token = secrets.token_hex(32)
         user_id = getattr(request.state, "user_id", None)
-        
+
         # Store token with expiry
         csrf_tokens[token] = {
             "user_id": user_id,
             "expiry": time.time() + self.token_expiry,
         }
-        
+
         # Clean up expired tokens (periodically)
         self._cleanup_expired_tokens()
-        
+
         return token
 
     def _cleanup_expired_tokens(self) -> None:
@@ -186,16 +192,17 @@ class CSRFMiddleware(BaseHTTPMiddleware):
         # Only clean up tokens occasionally (1% chance per request)
         if secrets.randbelow(100) != 0:
             return
-            
+
         current_time = time.time()
         expired_tokens = [
-            token for token, info in csrf_tokens.items() 
+            token
+            for token, info in csrf_tokens.items()
             if info.get("expiry", 0) < current_time
         ]
-        
+
         for token in expired_tokens:
             del csrf_tokens[token]
-            
+
         if expired_tokens:
             logger.info(f"Cleaned up {len(expired_tokens)} expired CSRF tokens")
 
@@ -213,10 +220,10 @@ class CSRFMiddleware(BaseHTTPMiddleware):
         # Check if response already has CSRF cookie
         if self.cookie_name in response.cookies:
             return response
-            
+
         # Generate new CSRF token
         token = self._generate_csrf_token(request)
-        
+
         # Set cookie with appropriate security flags
         response.set_cookie(
             key=self.cookie_name,
@@ -227,10 +234,10 @@ class CSRFMiddleware(BaseHTTPMiddleware):
             samesite="lax",
             path="/",
         )
-        
+
         # Also set the token in a header for single-page applications
         response.headers[self.token_header] = token
-        
+
         return response
 
     def _create_csrf_error_response(self, message: str, code: str) -> JSONResponse:

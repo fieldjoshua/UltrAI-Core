@@ -4,9 +4,9 @@
 
 **Title:** System for Orchestrating Collaborative Analysis and Synthesis Among Multiple AI Models
 
-**Applicants/Inventors:** [Your Name(s)]  
-**Contact Information:** [Your Contact Information]  
-**Address:** [Your Address]  
+**Applicants/Inventors:** [Your Name(s)]
+**Contact Information:** [Your Contact Information]
+**Address:** [Your Address]
 **Filed Date:** [Filing Date]
 
 ---

@@ -23,4 +23,4 @@ orchestrator:
   max_retries: 3
   max_cache_age_hours: 24
   log_level: "INFO"
-  quality_evaluation_enabled: true 
+  quality_evaluation_enabled: true

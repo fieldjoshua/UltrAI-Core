@@ -107,7 +107,7 @@ jobs:
       run: |
         # Install Sentry CLI
         curl -sL https://sentry.io/get-cli/ | bash
-        
+
         # Create release
         export SENTRY_RELEASE="ultra@$(git rev-parse --short HEAD)"
         sentry-cli releases new $SENTRY_RELEASE
@@ -159,4 +159,4 @@ jobs:
               "text": "❌ Deployment failed! See GitHub Actions for details: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
             }
         env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }} 
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}

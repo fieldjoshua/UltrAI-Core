@@ -1,4 +1,4 @@
-Please edit the following passage to be most effective for a VC audience: 
+Please edit the following passage to be most effective for a VC audience:
 
 GIDEON stands at a pivotal moment, ready to transform from concept to reality. After months of careful development and validation, we've created a solution that promises to revolutionize criminal defense practice. With our new CTO, Brig, joining the team, we're poised to refine our technical roadmap and begin implementation.
 

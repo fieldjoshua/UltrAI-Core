@@ -17,18 +17,21 @@ The Ultra project uses various environment variables for configuration, but thei
 ## Steps
 
 1. **Audit Current Environment Variables**
+
    - [ ] Review all code files to identify environment variable usage
    - [ ] Document current env.example file contents
    - [ ] Check configuration loading mechanisms in the codebase
    - [ ] Identify inconsistencies or undocumented variables
 
 2. **Categorize Environment Variables**
+
    - [ ] Group variables by component (backend, frontend, services)
    - [ ] Identify required vs. optional variables
    - [ ] Categorize by functionality (database, API keys, feature flags, etc.)
    - [ ] Note environment-specific variables (dev, test, prod)
 
 3. **Document Variable Details**
+
    - [ ] Create standardized documentation format for each variable
    - [ ] Document purpose, expected format, and default values
    - [ ] Include examples of valid values
@@ -36,18 +39,21 @@ The Ultra project uses various environment variables for configuration, but thei
    - [ ] Document security implications of each variable
 
 4. **Create Comprehensive Environment Templates**
+
    - [ ] Create updated env.example with all variables
    - [ ] Add detailed comments for each variable in the template
    - [ ] Develop environment templates for different deployment scenarios
    - [ ] Include validation rules where applicable
 
 5. **Develop Configuration Validation**
+
    - [ ] Create a script to validate environment configuration
    - [ ] Implement checks for required variables
    - [ ] Add format validation for critical variables
    - [ ] Develop warnings for potentially problematic configurations
 
 6. **Update Documentation**
+
    - [ ] Create a dedicated environment variable section in project documentation
    - [ ] Add quick reference guide for common configurations
    - [ ] Document troubleshooting steps for environment-related issues

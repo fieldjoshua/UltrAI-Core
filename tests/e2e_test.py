@@ -6,14 +6,15 @@ This script performs comprehensive end-to-end testing of the Ultra MVP,
 validating the full request flow from UI to API to LLMs and back.
 """
 
+import argparse
+import asyncio
+import json
 import sys
 import time
-import json
-import asyncio
-import requests
-import argparse
-from typing import Dict, List, Any, Optional
 from datetime import datetime
+from typing import Any, Dict, List, Optional
+
+import requests
 
 # Configure test parameters
 API_BASE_URL = "http://localhost:8000/api"

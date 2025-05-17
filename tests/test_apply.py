@@ -1,6 +1,6 @@
 import numpy as np
+import pandas._testing as tm
 import pytest
-
 from pandas import (
     DataFrame,
     Index,
@@ -12,8 +12,6 @@ from pandas import (
     isna,
     notna,
 )
-import pandas._testing as tm
-
 from pandas.tseries import offsets
 
 # suppress warnings about empty slices, as we are deliberately testing

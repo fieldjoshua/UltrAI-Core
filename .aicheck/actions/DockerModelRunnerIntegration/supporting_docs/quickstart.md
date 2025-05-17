@@ -32,6 +32,7 @@ docker model status
 ```
 
 You should see a message like:
+
 ```
 Docker Model Runner is running
 
@@ -60,8 +61,9 @@ docker model list
 ```
 
 You should see something like:
+
 ```
-MODEL NAME  PARAMETERS  QUANTIZATION    ARCHITECTURE  MODEL ID      CREATED      SIZE       
+MODEL NAME  PARAMETERS  QUANTIZATION    ARCHITECTURE  MODEL ID      CREATED      SIZE
 ai/smollm2  361.82 M    IQ2_XXS/Q4_K_M  llama         354bf30d0aa3  5 weeks ago  256.35 MiB
 ```
 
@@ -84,6 +86,7 @@ python3 scripts/test_modelrunner_cli.py
 ```
 
 This will:
+
 1. Check if Docker Model Runner is running
 2. List available models
 3. Test generation with a simple prompt

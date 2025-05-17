@@ -1,6 +1,6 @@
 import numpy as np
 import pytest
-
+from pandas import Categorical, Index
 from pandas.core.dtypes.cast import find_common_type
 from pandas.core.dtypes.common import pandas_dtype
 from pandas.core.dtypes.dtypes import (
@@ -8,11 +8,6 @@ from pandas.core.dtypes.dtypes import (
     DatetimeTZDtype,
     IntervalDtype,
     PeriodDtype,
-)
-
-from pandas import (
-    Categorical,
-    Index,
 )
 
 

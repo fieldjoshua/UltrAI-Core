@@ -9,7 +9,6 @@ from tempfile import NamedTemporaryFile
 import numpy as np
 import pytest
 import scipy.sparse as sp
-
 import sklearn
 from sklearn.datasets import dump_svmlight_file, load_svmlight_file, load_svmlight_files
 from sklearn.utils._testing import (

@@ -5,9 +5,9 @@ import tempfile
 import time
 
 import numpy as np
-import pytest
-
 import pandas as pd
+import pandas._testing as tm
+import pytest
 from pandas import (
     DataFrame,
     DatetimeIndex,
@@ -20,16 +20,8 @@ from pandas import (
     period_range,
     timedelta_range,
 )
-import pandas._testing as tm
-from pandas.tests.io.pytables.common import (
-    _maybe_remove,
-    ensure_clean_store,
-)
-
-from pandas.io.pytables import (
-    HDFStore,
-    read_hdf,
-)
+from pandas.io.pytables import HDFStore, read_hdf
+from pandas.tests.io.pytables.common import _maybe_remove, ensure_clean_store
 
 pytestmark = pytest.mark.single_cpu
 

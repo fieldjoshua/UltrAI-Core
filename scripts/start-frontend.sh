@@ -8,4 +8,4 @@ echo "The frontend will be available at http://localhost:3009"
 
 npm run dev
 
-echo "Frontend server stopped." 
+echo "Frontend server stopped."

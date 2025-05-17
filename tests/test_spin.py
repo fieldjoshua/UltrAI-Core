@@ -1,26 +1,21 @@
+from sympy.abc import alpha, beta, gamma, j, m
 from sympy.concrete.summations import Sum
 from sympy.core.function import expand
-from sympy.core.numbers import (I, Rational, pi)
+from sympy.core.numbers import I, Rational, pi
 from sympy.core.singleton import S
 from sympy.core.symbol import symbols
 from sympy.functions.elementary.exponential import exp
 from sympy.functions.elementary.miscellaneous import sqrt
-from sympy.functions.elementary.trigonometric import (cos, sin)
+from sympy.functions.elementary.trigonometric import cos, sin
 from sympy.matrices.dense import Matrix
-from sympy.abc import alpha, beta, gamma, j, m
-from sympy.physics.quantum import hbar, represent, Commutator, InnerProduct
-from sympy.physics.quantum.qapply import qapply
-from sympy.physics.quantum.tensorproduct import TensorProduct
+from sympy.physics.quantum import Commutator, InnerProduct, hbar, represent
 from sympy.physics.quantum.cg import CG
-from sympy.physics.quantum.spin import (
-    Jx, Jy, Jz, Jplus, Jminus, J2,
-    JxBra, JyBra, JzBra,
-    JxKet, JyKet, JzKet,
-    JxKetCoupled, JyKetCoupled, JzKetCoupled,
-    couple, uncouple,
-    Rotation, WignerD
-)
-
+from sympy.physics.quantum.qapply import qapply
+from sympy.physics.quantum.spin import (J2, Jminus, Jplus, Jx, JxBra, JxKet,
+                                        JxKetCoupled, Jy, JyBra, JyKet, JyKetCoupled,
+                                        Jz, JzBra, JzKet, JzKetCoupled, Rotation,
+                                        WignerD, couple, uncouple)
+from sympy.physics.quantum.tensorproduct import TensorProduct
 from sympy.testing.pytest import raises, slow
 
 j1, j2, j3, j4, m1, m2, m3, m4 = symbols('j1:5 m1:5')

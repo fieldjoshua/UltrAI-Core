@@ -1,6 +1,7 @@
+from sympy.core.backend import S
 from sympy.liealgebras.cartan_type import CartanType
 from sympy.matrices import Matrix
-from sympy.core.backend import S
+
 
 def test_type_F():
     c = CartanType("F4")

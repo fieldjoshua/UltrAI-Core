@@ -5,7 +5,7 @@ This module provides improved validation error handling for FastAPI applications
 with better error messages, logging, and response formatting.
 """
 
-from typing import Any, Dict, List, Optional, Union, Type
+from typing import Any, Dict, List, Optional, Type, Union
 
 from fastapi import FastAPI, Request, status
 from fastapi.exceptions import RequestValidationError

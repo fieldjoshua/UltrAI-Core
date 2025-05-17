@@ -231,14 +231,14 @@ class ThemeRegistry {
     // Initialize with default theme
     this.register('default', defaultThemeDefinition);
     this.setActiveTheme('default');
-    
+
     // Add dark mode theme as a built-in option
     this.register('dark', darkThemeDefinition);
-    
+
     // Load user preference if available
     this.loadSavedTheme();
   }
-  
+
   // Load saved theme preference from localStorage
   private loadSavedTheme(): void {
     try {
@@ -255,10 +255,10 @@ class ThemeRegistry {
   public register(id: string, definition: ThemeDefinition): void {
     // Validate theme definition
     this.validateThemeDefinition(definition);
-    
+
     // Store theme
     this.themes.set(id, definition);
-    
+
     // Notify subscribers if this is the active theme
     if (this.activeTheme === id) {
       this.notifySubscribers();
@@ -271,12 +271,12 @@ class ThemeRegistry {
     if (id === 'default') {
       return false;
     }
-    
+
     // If removing active theme, switch to default
     if (this.activeTheme === id) {
       this.setActiveTheme('default');
     }
-    
+
     return this.themes.delete(id);
   }
 
@@ -285,16 +285,16 @@ class ThemeRegistry {
     if (!this.themes.has(id)) {
       return false;
     }
-    
+
     this.activeTheme = id;
-    
+
     // Save preference to localStorage
     try {
       localStorage.setItem('ultra_theme', id);
     } catch (e) {
       console.warn('Failed to save theme preference', e);
     }
-    
+
     this.notifySubscribers();
     return true;
   }
@@ -307,10 +307,10 @@ class ThemeRegistry {
   // Subscribe to theme changes
   public subscribe(callback: (theme: ThemeDefinition) => void): () => void {
     this.subscribers.add(callback);
-    
+
     // Initial call with current theme
     callback(this.getActiveTheme());
-    
+
     // Return unsubscribe function
     return () => {
       this.subscribers.delete(callback);
@@ -331,7 +331,7 @@ class ThemeRegistry {
     if (!definition.name || !definition.colors || !definition.typography) {
       throw new Error('Invalid theme definition');
     }
-    
+
     // Ensure required color tokens exist
     const requiredColors = ['primary', 'secondary', 'background', 'text', 'error'];
     for (const color of requiredColors) {
@@ -351,43 +351,43 @@ class ThemeRegistry {
 function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [themeVars, setThemeVars] = useState<Record<string, string>>({});
   const themeRegistry = useThemeRegistry();
-  
+
   useEffect(() => {
     // Subscribe to theme changes
     const unsubscribe = themeRegistry.subscribe((theme) => {
       // Convert theme definition to CSS variables
       const vars: Record<string, string> = {};
-      
+
       // Process colors
       Object.entries(theme.colors).forEach(([key, value]) => {
         vars[`--color-${key}`] = value;
       });
-      
+
       // Process typography
       Object.entries(theme.typography).forEach(([key, value]) => {
         vars[`--font-${key}`] = value.fontFamily;
         vars[`--font-size-${key}`] = value.fontSize;
         vars[`--font-weight-${key}`] = value.fontWeight;
       });
-      
+
       // Process spacing
       Object.entries(theme.spacing || {}).forEach(([key, value]) => {
         vars[`--spacing-${key}`] = value;
       });
-      
+
       setThemeVars(vars);
     });
-    
+
     return unsubscribe;
   }, [themeRegistry]);
-  
+
   // Apply CSS variables to document root
   useEffect(() => {
     Object.entries(themeVars).forEach(([key, value]) => {
       document.documentElement.style.setProperty(key, value);
     });
   }, [themeVars]);
-  
+
   return <>{children}</>;
 }
 
@@ -406,7 +406,7 @@ function AdaptiveAnalysisPanel({ analysisResults, userExpertiseLevel = 'beginner
             <RawResponseViewer responses={analysisResults.rawResponses} />
           </div>
         );
-        
+
       case 'intermediate':
         // Show moderate level of detail
         return (
@@ -416,7 +416,7 @@ function AdaptiveAnalysisPanel({ analysisResults, userExpertiseLevel = 'beginner
             <SummaryResponseViewer responses={analysisResults.rawResponses} />
           </div>
         );
-        
+
       case 'beginner':
       default:
         // Show simplified view with explanations
@@ -429,7 +429,7 @@ function AdaptiveAnalysisPanel({ analysisResults, userExpertiseLevel = 'beginner
         );
     }
   };
-  
+
   return (
     <div className="adaptive-analysis-container">
       {renderAnalysisDetails()}

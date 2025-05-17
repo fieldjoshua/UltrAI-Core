@@ -10,11 +10,10 @@ import asyncio
 import logging
 import os
 from dataclasses import dataclass
-from typing import Dict, List, Any, Optional, Union, Tuple
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 from src.orchestration.base_orchestrator import BaseOrchestrator
 from src.orchestration.config import LLMProvider
-
 
 logger = logging.getLogger(__name__)
 
@@ -22,6 +21,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class OrchestratorResponse:
     """Standard response format for the orchestrator."""
+
     initial_responses: List[Dict[str, Any]]
     analysis_results: Dict[str, Any]
     synthesis: Dict[str, Any]
@@ -44,7 +44,7 @@ class SimpleOrchestrator(BaseOrchestrator):
         max_retries: int = 3,
         parallel_requests: bool = True,
         timeout_seconds: int = 30,
-        analysis_type: str = "comparative"
+        analysis_type: str = "comparative",
     ):
         """
         Initialize the simple orchestrator.
@@ -58,7 +58,7 @@ class SimpleOrchestrator(BaseOrchestrator):
         super().__init__(
             max_retries=max_retries,
             parallel_requests=parallel_requests,
-            timeout_seconds=timeout_seconds
+            timeout_seconds=timeout_seconds,
         )
         self.analysis_type = analysis_type
         self.lead_provider_id: Optional[str] = None
@@ -75,7 +75,9 @@ class SimpleOrchestrator(BaseOrchestrator):
             True if successful, False if provider not registered
         """
         if provider_id not in self.providers:
-            self.logger.warning(f"Cannot set lead provider '{provider_id}': not registered")
+            self.logger.warning(
+                f"Cannot set lead provider '{provider_id}': not registered"
+            )
             return False
 
         self.lead_provider_id = provider_id
@@ -92,9 +94,7 @@ class SimpleOrchestrator(BaseOrchestrator):
         return self.lead_provider_id
 
     async def _analyze_responses(
-        self,
-        prompt: str,
-        responses: Dict[str, Dict[str, Any]]
+        self, prompt: str, responses: Dict[str, Dict[str, Any]]
     ) -> Dict[str, Any]:
         """
         Analyze the responses from multiple providers.
@@ -108,7 +108,8 @@ class SimpleOrchestrator(BaseOrchestrator):
         """
         # Skip analysis if there's only one or zero responses
         successful_responses = {
-            provider_id: info for provider_id, info in responses.items()
+            provider_id: info
+            for provider_id, info in responses.items()
             if info.get("success", False)
         }
 
@@ -117,7 +118,7 @@ class SimpleOrchestrator(BaseOrchestrator):
             return {
                 "type": self.analysis_type,
                 "summary": "No analysis performed (insufficient successful responses)",
-                "combined_summary": "Only one or fewer models provided successful responses, so no comparative analysis is available."
+                "combined_summary": "Only one or fewer models provided successful responses, so no comparative analysis is available.",
             }
 
         # Determine which provider to use for analysis
@@ -158,23 +159,25 @@ class SimpleOrchestrator(BaseOrchestrator):
                 "type": self.analysis_type,
                 "analyzer_id": analyzer_id,
                 "combined_summary": analysis_response,
-                "metadata": metadata
+                "metadata": metadata,
             }
         except Exception as e:
-            self.logger.error(f"Error during analysis with provider '{analyzer_id}': {e}")
+            self.logger.error(
+                f"Error during analysis with provider '{analyzer_id}': {e}"
+            )
 
             return {
                 "type": self.analysis_type,
                 "error": str(e),
                 "combined_summary": f"Analysis failed: {str(e)}",
-                "analyzer_id": analyzer_id
+                "analyzer_id": analyzer_id,
             }
 
     async def _synthesize_response(
         self,
         prompt: str,
         responses: Dict[str, Dict[str, Any]],
-        analysis: Dict[str, Any]
+        analysis: Dict[str, Any],
     ) -> Dict[str, Any]:
         """
         Synthesize a final response using the lead provider.
@@ -195,9 +198,13 @@ class SimpleOrchestrator(BaseOrchestrator):
             self.logger.info(f"Using '{synthesizer_id}' as fallback synthesizer")
 
         # Create synthesis prompt
-        synthesis_prompt = f"Based on the following analysis of multiple responses to this prompt:\n\n"
+        synthesis_prompt = (
+            f"Based on the following analysis of multiple responses to this prompt:\n\n"
+        )
         synthesis_prompt += f"PROMPT: {prompt}\n\n"
-        synthesis_prompt += f"ANALYSIS: {analysis.get('combined_summary', 'No analysis available')}\n\n"
+        synthesis_prompt += (
+            f"ANALYSIS: {analysis.get('combined_summary', 'No analysis available')}\n\n"
+        )
         synthesis_prompt += "Please provide a comprehensive response that synthesizes the best information from all sources."
 
         # Send synthesis request to the synthesizer provider
@@ -209,22 +216,21 @@ class SimpleOrchestrator(BaseOrchestrator):
             return {
                 "synthesizer_id": synthesizer_id,
                 "response": synthesis_response,
-                "metadata": metadata
+                "metadata": metadata,
             }
         except Exception as e:
-            self.logger.error(f"Error during synthesis with provider '{synthesizer_id}': {e}")
+            self.logger.error(
+                f"Error during synthesis with provider '{synthesizer_id}': {e}"
+            )
 
             return {
                 "synthesizer_id": synthesizer_id,
                 "error": str(e),
-                "response": f"Synthesis failed: {str(e)}"
+                "response": f"Synthesis failed: {str(e)}",
             }
 
     async def process(
-        self,
-        prompt: str,
-        provider_ids: Optional[List[str]] = None,
-        **options
+        self, prompt: str, provider_ids: Optional[List[str]] = None, **options
     ) -> Dict[str, Any]:
         """
         Process a prompt using the simple orchestration workflow.
@@ -246,7 +252,9 @@ class SimpleOrchestrator(BaseOrchestrator):
         # Validate provider IDs
         invalid_providers = [pid for pid in provider_ids if pid not in self.providers]
         if invalid_providers:
-            self.logger.warning(f"Ignoring invalid providers: {', '.join(invalid_providers)}")
+            self.logger.warning(
+                f"Ignoring invalid providers: {', '.join(invalid_providers)}"
+            )
             provider_ids = [pid for pid in provider_ids if pid in self.providers]
 
         if not provider_ids:
@@ -257,7 +265,7 @@ class SimpleOrchestrator(BaseOrchestrator):
                 "initial_responses": [],
                 "analysis_results": {
                     "type": self.analysis_type,
-                    "summary": "No analysis performed (no valid providers)"
+                    "summary": "No analysis performed (no valid providers)",
                 },
                 "synthesis": {
                     "response": "No synthesis available (no valid providers)"
@@ -265,13 +273,15 @@ class SimpleOrchestrator(BaseOrchestrator):
                 "metadata": {
                     "processing_time": asyncio.get_event_loop().time() - start_time,
                     "providers_requested": len(provider_ids) if provider_ids else 0,
-                    "providers_successful": 0
-                }
+                    "providers_successful": 0,
+                },
             }
 
         # Step 1: Get responses from all providers
         self.logger.info(f"Processing prompt with {len(provider_ids)} providers")
-        provider_responses = await self.process_with_providers(prompt, provider_ids, **options)
+        provider_responses = await self.process_with_providers(
+            prompt, provider_ids, **options
+        )
 
         # Count successful responses
         successful_responses = sum(
@@ -289,13 +299,13 @@ class SimpleOrchestrator(BaseOrchestrator):
                         "provider_id": provider_id,
                         "success": info.get("success", False),
                         "error": info.get("error", "Unknown error"),
-                        "error_type": info.get("error_type", "Unknown")
+                        "error_type": info.get("error_type", "Unknown"),
                     }
                     for provider_id, info in provider_responses.items()
                 ],
                 "analysis_results": {
                     "type": self.analysis_type,
-                    "summary": "No analysis performed (no successful responses)"
+                    "summary": "No analysis performed (no successful responses)",
                 },
                 "synthesis": {
                     "response": "No synthesis available (no successful responses)"
@@ -303,15 +313,17 @@ class SimpleOrchestrator(BaseOrchestrator):
                 "metadata": {
                     "processing_time": asyncio.get_event_loop().time() - start_time,
                     "providers_requested": len(provider_ids),
-                    "providers_successful": 0
-                }
+                    "providers_successful": 0,
+                },
             }
 
         # Step 2: Analyze responses
         analysis_results = await self._analyze_responses(prompt, provider_responses)
 
         # Step 3: Synthesize response
-        synthesis = await self._synthesize_response(prompt, provider_responses, analysis_results)
+        synthesis = await self._synthesize_response(
+            prompt, provider_responses, analysis_results
+        )
 
         # Return consolidated results
         return {
@@ -319,9 +331,17 @@ class SimpleOrchestrator(BaseOrchestrator):
                 {
                     "provider_id": provider_id,
                     "success": info.get("success", False),
-                    "response": info.get("response", "") if info.get("success", False) else None,
-                    "error": info.get("error", None) if not info.get("success", False) else None,
-                    "metadata": info.get("metadata", {}) if info.get("success", False) else None
+                    "response": (
+                        info.get("response", "") if info.get("success", False) else None
+                    ),
+                    "error": (
+                        info.get("error", None)
+                        if not info.get("success", False)
+                        else None
+                    ),
+                    "metadata": (
+                        info.get("metadata", {}) if info.get("success", False) else None
+                    ),
                 }
                 for provider_id, info in provider_responses.items()
             ],
@@ -331,6 +351,6 @@ class SimpleOrchestrator(BaseOrchestrator):
                 "processing_time": asyncio.get_event_loop().time() - start_time,
                 "providers_requested": len(provider_ids),
                 "providers_successful": successful_responses,
-                "analysis_type": self.analysis_type
-            }
+                "analysis_type": self.analysis_type,
+            },
         }

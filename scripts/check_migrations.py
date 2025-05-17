@@ -11,17 +11,18 @@ Exit codes:
 - 2: Error checking migration status
 """
 
-import os
-import sys
-import json
 import argparse
+import json
+import os
 import subprocess
-from typing import Dict, Any, Tuple, Optional
+import sys
+from typing import Any, Dict, Optional, Tuple
+
 
 def check_migration_status() -> Tuple[int, Optional[Dict[str, Any]]]:
     """
     Check for pending database migrations.
-    
+
     Returns:
         Tuple of (exit_code, status_data)
     """
@@ -32,26 +33,26 @@ def check_migration_status() -> Tuple[int, Optional[Dict[str, Any]]]:
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             universal_newlines=True,
-            check=False  # Don't raise exception on non-zero exit
+            check=False,  # Don't raise exception on non-zero exit
         )
-        
+
         # Check for errors
         if result.returncode != 0:
             print(f"Error running migration status: {result.stderr}")
             return 2, None
-            
+
         # Parse output to extract migration status
         output_lines = result.stdout.splitlines()
         status_data = {}
-        
+
         for line in output_lines:
             if ":" in line:
                 key, value = line.split(":", 1)
                 status_data[key.strip()] = value.strip()
-                
+
         # Check if there are pending migrations
         pending_migrations = int(status_data.get("Pending Migrations", "0"))
-        
+
         if pending_migrations > 0:
             return 1, status_data
         else:
@@ -64,19 +65,24 @@ def check_migration_status() -> Tuple[int, Optional[Dict[str, Any]]]:
 def main() -> int:
     """
     Main function.
-    
+
     Returns:
         Exit code (0: success, 1: pending migrations, 2: error)
     """
-    parser = argparse.ArgumentParser(description="Check for pending database migrations")
+    parser = argparse.ArgumentParser(
+        description="Check for pending database migrations"
+    )
     parser.add_argument("--json", action="store_true", help="Output in JSON format")
-    parser.add_argument("--fail-on-pending", action="store_true", 
-                      help="Exit with non-zero code if pending migrations exist")
+    parser.add_argument(
+        "--fail-on-pending",
+        action="store_true",
+        help="Exit with non-zero code if pending migrations exist",
+    )
     args = parser.parse_args()
-    
+
     # Check migration status
     exit_code, status_data = check_migration_status()
-    
+
     # Output in JSON format if requested
     if args.json and status_data:
         print(json.dumps(status_data, indent=2))
@@ -84,7 +90,7 @@ def main() -> int:
         print("=== Database Migration Status ===")
         for key, value in status_data.items():
             print(f"{key}: {value}")
-            
+
     # Determine exit code
     if args.fail_on_pending and exit_code == 1:
         print("Error: Pending migrations must be applied before deployment")

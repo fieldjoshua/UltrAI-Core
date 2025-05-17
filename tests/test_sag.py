@@ -6,7 +6,6 @@ import re
 
 import numpy as np
 import pytest
-
 from sklearn.base import clone
 from sklearn.datasets import load_iris, make_blobs, make_classification
 from sklearn.linear_model import LogisticRegression, Ridge

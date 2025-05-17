@@ -5,7 +5,7 @@ This module provides middleware that adds security headers to all API responses 
 enhance the security posture of the application.
 """
 
-from typing import Callable, Dict, Optional, List
+from typing import Callable, Dict, List, Optional
 
 from fastapi import FastAPI, Request
 from starlette.middleware.base import BaseHTTPMiddleware

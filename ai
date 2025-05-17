@@ -84,7 +84,7 @@ case "$command" in
         echo "3. Update existing actions"
         echo "4. Ensure compliance with RULES.md"
         echo ""
-        
+
         # Check if AdminAudit exists
         if [ ! -d ".aicheck/actions/AdminAudit" ]; then
             echo "Creating new AdminAudit action..."
@@ -103,7 +103,7 @@ case "$command" in
         echo "3. Update existing actions"
         echo "4. Ensure compliance with RULES.md"
         echo ""
-        
+
         # Check if AdminAudit exists
         if [ ! -d ".aicheck/actions/AdminAudit" ]; then
             echo "Creating new AdminAudit action..."
@@ -116,15 +116,15 @@ case "$command" in
     cursor)
         # Prepare for Cursor chat
         echo "=== Preparing for Cursor Chat ==="
-        
+
         # Get current action and session
         current_action=$(cat .aicheck/current_action 2>/dev/null || echo "None")
         current_session=$(cat .aicheck/current_session 2>/dev/null || echo "None")
-        
+
         # Create context file
         context_file=".aicheck/cursor/chat_context_$(date +%Y%m%d%H%M%S).md"
         mkdir -p .aicheck/cursor
-        
+
         # Generate context
         cat > "$context_file" << EOC
 # Cursor Chat Context - $(date +"%Y-%m-%d %H:%M:%S")
@@ -164,7 +164,7 @@ EOC
 
         echo "Context file created: $context_file"
         echo "Use this context in your Cursor chat"
-        
+
         # Copy to clipboard if available
         if command -v pbcopy &> /dev/null; then
             cat "$context_file" | pbcopy
@@ -177,11 +177,11 @@ EOC
     "check!")
         # Generate a quick check prompt for AI editors
         echo "=== Generating AI Editor Check Prompt ==="
-        
+
         # Get current action and session
         current_action=$(cat .aicheck/current_action 2>/dev/null || echo "None")
         current_session=$(cat .aicheck/current_session 2>/dev/null || echo "None")
-        
+
         # Create check prompt
         check_prompt="⚠️ AI Editor Check ⚠️
 
@@ -200,7 +200,7 @@ Please confirm you have reviewed:
 4. Supporting documentation
 
 You can proceed with implementation if your work complies with RULES.md and falls within the ActiveAction scope."
-        
+
         # Copy to clipboard
         if command -v pbcopy &> /dev/null; then
             echo "$check_prompt" | pbcopy
@@ -217,11 +217,11 @@ You can proceed with implementation if your work complies with RULES.md and fall
         # Generate comprehensive project overview for new editors
         echo "=== AICheck Project Overview ==="
         echo "This overview is designed for editors who are new to the project."
-        
+
         # Get current action and session
         current_action=$(cat .aicheck/current_action 2>/dev/null || echo "None")
         current_session=$(cat .aicheck/current_session 2>/dev/null || echo "None")
-        
+
         # Create catchup overview
         catchup_overview="# AICheck Project Overview
 
@@ -264,10 +264,10 @@ The following ALWAYS require human manager approval:
 ## Current State
 - ActiveAction: $current_action
 - Current Session: $current_session"
-        
+
         # Output the overview
         echo "$catchup_overview"
-        
+
         # Copy to clipboard if available
         if command -v pbcopy &> /dev/null; then
             echo "$catchup_overview" | pbcopy
@@ -280,7 +280,7 @@ The following ALWAYS require human manager approval:
     update)
         # Update AICheck to the latest version
         echo "=== Updating AICheck to the latest version ==="
-        
+
         # Check if we're in a git repository
         if [ ! -d ".git" ]; then
             echo "Error: Not in a git repository. Update requires a git repository."
@@ -288,26 +288,26 @@ The following ALWAYS require human manager approval:
             echo "curl -s https://raw.githubusercontent.com/fieldjoshua/AICheck/main/aicheck.sh | bash"
             exit 1
         fi
-        
+
         # Store current branch
         current_branch=$(git rev-parse --abbrev-ref HEAD)
-        
+
         # Stash any changes
         echo "Stashing any local changes..."
         git stash
-        
+
         # Pull the latest version
         echo "Pulling the latest version..."
         git pull origin $current_branch
-        
+
         # Apply stashed changes if any
         echo "Applying stashed changes if any..."
         git stash pop 2>/dev/null || true
-        
+
         # Make scripts executable
         echo "Making scripts executable..."
         chmod +x .aicheck/scripts/*.sh .aicheck/hooks/* ai
-        
+
         echo "Update complete. AICheck has been updated to the latest version."
         echo "New features:"
         echo "- catchup: Generate project overview for new editors (./ai catchup)"
@@ -315,42 +315,42 @@ The following ALWAYS require human manager approval:
     list)
         # List all actions with their statuses
         echo "=== AICheck Actions ==="
-        
+
         # Create actions directory if it doesn't exist
         mkdir -p ".aicheck/actions"
-        
+
         # Get current action
         current_action=$(cat .aicheck/current_action 2>/dev/null || echo "None")
-        
+
         # List all actions
         echo "Current ActiveAction: $current_action"
         echo ""
         echo "All Actions:"
         echo "-------------"
-        
+
         # Check if there are any actions
         action_count=$(find .aicheck/actions -mindepth 1 -maxdepth 1 -type d | wc -l)
         if [ "$action_count" -eq 0 ]; then
             echo "No actions found. Create one with './ai new ActionName'"
             exit 0
         fi
-        
+
         # Print a formatted list of actions with their status and progress
         printf "%-20s %-15s %-10s\n" "Action Name" "Status" "Progress"
         printf "%-20s %-15s %-10s\n" "------------" "------" "--------"
-        
+
         for action_dir in .aicheck/actions/*; do
             if [ -d "$action_dir" ]; then
                 action_name=$(basename "$action_dir")
                 status_file="$action_dir/status.md"
                 progress_file="$action_dir/progress.md"
-                
+
                 status="Unknown"
                 progress="Unknown"
-                
+
                 [ -f "$status_file" ] && status=$(cat "$status_file")
                 [ -f "$progress_file" ] && progress=$(cat "$progress_file")
-                
+
                 # Add an indicator for current action
                 if [ "$action_name" = "$current_action" ]; then
                     printf "%-20s %-15s %-10s %s\n" "$action_name" "$status" "$progress" "← ActiveAction"
@@ -373,16 +373,16 @@ The following ALWAYS require human manager approval:
     summary)
         # Generate a summary of the project state
         echo "=== AICheck Project Summary ==="
-        
+
         # Get current action and session
         current_action=$(cat .aicheck/current_action 2>/dev/null || echo "None")
         current_session=$(cat .aicheck/current_session 2>/dev/null || echo "None")
-        
+
         # Count actions by status
         echo "Current Active Action: $current_action"
         echo "Current Session: $current_session"
         echo ""
-        
+
         # Count actions by status
         echo "Action Status Summary:"
         echo "----------------------"
@@ -392,7 +392,7 @@ The following ALWAYS require human manager approval:
         completed=0
         blocked=0
         on_hold=0
-        
+
         for status_file in .aicheck/actions/*/status.md; do
             if [ -f "$status_file" ]; then
                 total_actions=$((total_actions + 1))
@@ -406,14 +406,14 @@ The following ALWAYS require human manager approval:
                 esac
             fi
         done
-        
+
         echo "Total Actions: $total_actions"
         echo "Not Started: $not_started"
         echo "In Progress: $in_progress"
         echo "Completed: $completed"
         echo "Blocked: $blocked"
         echo "On Hold: $on_hold"
-        
+
         # Show project objective if available
         project_objective_file=".aicheck/docs/project_objective.md"
         if [ -f "$project_objective_file" ]; then
@@ -423,7 +423,7 @@ The following ALWAYS require human manager approval:
             cat "$project_objective_file" | head -n 5
             echo "..."
         fi
-        
+
         # Show recent activity
         echo ""
         echo "Recent Activity:"

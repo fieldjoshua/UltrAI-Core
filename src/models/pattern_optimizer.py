@@ -6,17 +6,18 @@ implementing optimized matching algorithms and usage analytics.
 """
 
 import logging
+import math
+import re
 from collections import Counter
 from typing import Dict, List, Tuple
-import re
-import math
+
+from src.patterns.collaborative_feather import CollaborativeFeather
+from src.patterns.educational_feather import EducationalFeather
+from src.patterns.feedback_feather import FeedbackFeather
+from src.patterns.synthesis_feather import SynthesisFeather
 
 # These imports are for loading the patterns when needed
 from src.patterns.ultra_analysis_patterns import get_pattern_mapping
-from src.patterns.educational_feather import EducationalFeather
-from src.patterns.collaborative_feather import CollaborativeFeather
-from src.patterns.synthesis_feather import SynthesisFeather
-from src.patterns.feedback_feather import FeedbackFeather
 
 
 class PatternOptimizer:

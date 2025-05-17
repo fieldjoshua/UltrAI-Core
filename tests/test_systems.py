@@ -1,28 +1,27 @@
-from sympy.core.function import (Derivative, Function, diff)
+from sympy.core.containers import Tuple
+from sympy.core.function import Derivative, Function, diff
 from sympy.core.mul import Mul
-from sympy.core.numbers import (I, Rational, pi)
+from sympy.core.numbers import I, Rational, pi
 from sympy.core.relational import Eq
 from sympy.core.singleton import S
-from sympy.core.symbol import (Symbol, symbols)
+from sympy.core.symbol import Symbol, symbols
+from sympy.functions import Ci, Si, airyai, airybi, cos, erf, erfi, exp, log, sin
 from sympy.functions.elementary.hyperbolic import sinh
 from sympy.functions.elementary.miscellaneous import sqrt
+from sympy.integrals.integrals import Integral
+from sympy.matrices import NonSquareMatrixError, dotprodsimp
 from sympy.matrices.dense import Matrix
-from sympy.core.containers import Tuple
-from sympy.functions import exp, cos, sin, log, Ci, Si, erf, erfi
-from sympy.matrices import dotprodsimp, NonSquareMatrixError
+from sympy.simplify.ratsimp import ratsimp
 from sympy.solvers.ode import dsolve
 from sympy.solvers.ode.ode import constant_renumber
 from sympy.solvers.ode.subscheck import checksysodesol
-from sympy.solvers.ode.systems import (_classify_linear_system, linear_ode_to_matrix,
-                                       ODEOrderError, ODENonlinearError, _simpsol,
-                                       _is_commutative_anti_derivative, linodesolve,
-                                       canonical_odes, dsolve_system, _component_division,
-                                       _eqs2dict, _dict2graph)
-from sympy.functions import airyai, airybi
-from sympy.integrals.integrals import Integral
-from sympy.simplify.ratsimp import ratsimp
-from sympy.testing.pytest import raises, slow, tooslow, XFAIL
-
+from sympy.solvers.ode.systems import (ODENonlinearError, ODEOrderError,
+                                       _classify_linear_system, _component_division,
+                                       _dict2graph, _eqs2dict,
+                                       _is_commutative_anti_derivative, _simpsol,
+                                       canonical_odes, dsolve_system,
+                                       linear_ode_to_matrix, linodesolve)
+from sympy.testing.pytest import XFAIL, raises, slow, tooslow
 
 C0, C1, C2, C3, C4, C5, C6, C7, C8, C9, C10 = symbols('C0:11')
 x = symbols('x')

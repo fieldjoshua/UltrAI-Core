@@ -12,9 +12,9 @@ echo -e "${YELLOW}Starting dependency security updates...${NC}"
 update_package() {
   local package=$1
   echo -e "${YELLOW}Updating ${package}...${NC}"
-  
+
   npm install --save $package@latest
-  
+
   if [ $? -eq 0 ]; then
     echo -e "${GREEN}✓ Successfully updated ${package}${NC}"
     return 0
@@ -46,4 +46,4 @@ echo -e "\n${YELLOW}Checking for remaining vulnerabilities...${NC}"
 npm audit
 
 echo -e "\n${GREEN}Dependency updates complete!${NC}"
-echo -e "${YELLOW}Please review any remaining vulnerabilities and test your application.${NC}" 
+echo -e "${YELLOW}Please review any remaining vulnerabilities and test your application.${NC}"

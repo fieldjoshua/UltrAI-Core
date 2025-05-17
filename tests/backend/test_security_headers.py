@@ -9,11 +9,11 @@ from fastapi import FastAPI
 from fastapi.responses import JSONResponse
 from fastapi.testclient import TestClient
 
-from backend.utils.security_headers_middleware import (
-    setup_security_headers_middleware,
-    DEFAULT_SECURITY_HEADERS,
-)
 from backend.utils.cookie_security_middleware import setup_cookie_security_middleware
+from backend.utils.security_headers_middleware import (
+    DEFAULT_SECURITY_HEADERS,
+    setup_security_headers_middleware,
+)
 
 
 @pytest.fixture

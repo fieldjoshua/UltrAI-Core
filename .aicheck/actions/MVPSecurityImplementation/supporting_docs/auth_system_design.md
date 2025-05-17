@@ -31,6 +31,7 @@ class User(BaseModel):
 ### 2. Authentication Flow
 
 #### Registration
+
 1. User submits registration form with username, email, and password
 2. Server validates input (email format, username uniqueness)
 3. Password is hashed with bcrypt
@@ -38,6 +39,7 @@ class User(BaseModel):
 5. JWT is generated and returned to client
 
 #### Login
+
 1. User submits login form with username/email and password
 2. Server retrieves user record
 3. Password is verified against stored hash
@@ -45,6 +47,7 @@ class User(BaseModel):
 5. Last login timestamp is updated
 
 #### Logout
+
 1. Client calls logout endpoint
 2. Token is added to blacklist (if implemented)
 3. Client removes token from storage
@@ -82,19 +85,19 @@ class User(BaseModel):
 ```python
 async def auth_middleware(request: Request, call_next):
     auth_header = request.headers.get("Authorization")
-    
+
     if not auth_header or not auth_header.startswith("Bearer "):
         return JSONResponse(
             status_code=401,
             content={"detail": "Authentication required"}
         )
-    
+
     token = auth_header.split(" ")[1]
-    
+
     try:
         payload = jwt.decode(
-            token, 
-            settings.JWT_SECRET_KEY, 
+            token,
+            settings.JWT_SECRET_KEY,
             algorithms=[settings.JWT_ALGORITHM]
         )
         request.state.user_id = payload.get("sub")
@@ -104,7 +107,7 @@ async def auth_middleware(request: Request, call_next):
             status_code=401,
             content={"detail": "Invalid authentication token"}
         )
-    
+
     return await call_next(request)
 ```
 

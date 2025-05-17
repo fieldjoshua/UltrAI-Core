@@ -63,16 +63,16 @@ models = {
 def preprocess_user_input(text):
     # Tokenize the text
     tokens = spacy.tokenizer.tokenize(text)
-    
+
     # Perform named entity recognition
     entities = spacy.recognizer.recognize_entities(tokens)
-    
+
     return entities
 
 def select_most_appropriate_model(models, user_input):
     # Sort the models based on their relevance to the user input
     relevant_models = sorted(models, key=lambda x: x["relevance"]())
-    
+
     # Return the most appropriate model based on the user input
     return relevant_models[0] if any(relevant_models) else None
 
@@ -80,7 +80,7 @@ def select_most_appropriate_model(models, user_input):
 def generate_response(model, user_input):
     # Interact with the chosen model to generate a response
     response = displacy.generate(model, user_input)
-    
+
     return response
 ```
 This code structure illustrates how the orchestrator can be designed to interact with various AI models and NLP techniques to generate informative and engaging patent applications. Of course, this is just one possible implementation, and the specifics of the code will depend on the chosen programming language, libraries, and models.

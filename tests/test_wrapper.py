@@ -1,8 +1,7 @@
 from sympy.assumptions.ask import Q
-from sympy.assumptions.wrapper import (AssumptionsWrapper, is_infinite,
-    is_extended_real)
-from sympy.core.symbol import Symbol
+from sympy.assumptions.wrapper import AssumptionsWrapper, is_extended_real, is_infinite
 from sympy.core.assumptions import _assume_defined
+from sympy.core.symbol import Symbol
 
 
 def test_all_predicates():

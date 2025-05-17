@@ -87,14 +87,14 @@ function ModelComparisonComponent() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    
+
     try {
       const response = await analyzePrompt({
         prompt,
         selected_models: ['llama3:8b', 'gpt4o', 'claude37'],
-        pattern: 'confidence'
+        pattern: 'confidence',
       });
-      
+
       setResults(response.data);
     } catch (error) {
       console.error('Error analyzing prompt:', error);
@@ -115,7 +115,7 @@ function ModelComparisonComponent() {
           {loading ? 'Analyzing...' : 'Compare Models'}
         </button>
       </form>
-      
+
       {results && (
         <div className="results">
           {Object.entries(results.responses).map(([model, response]) => (
@@ -269,7 +269,7 @@ curl -X POST http://localhost:8000/api/analyze \
           "creativity": 9
         },
         "comments": "..."
-      },
+      }
       // ... other critiques
     ],
     "summary": "..."
@@ -301,36 +301,36 @@ async function streamResponse() {
   const response = await fetch('http://localhost:8000/api/analyze/stream', {
     method: 'POST',
     headers: {
-      'Content-Type': 'application/json'
+      'Content-Type': 'application/json',
     },
     body: JSON.stringify({
       prompt: 'Write a story about a robot learning to paint',
       selected_models: ['llama3:8b'],
       pattern: 'simple',
-      stream: true
-    })
+      stream: true,
+    }),
   });
 
   const reader = response.body.getReader();
   const decoder = new TextDecoder();
-  
+
   const responseContainer = document.getElementById('response');
   responseContainer.textContent = '';
-  
+
   while (true) {
     const { done, value } = await reader.read();
-    
+
     if (done) {
       break;
     }
-    
+
     const chunk = decoder.decode(value);
-    const lines = chunk.split('\n').filter(line => line.trim() !== '');
-    
+    const lines = chunk.split('\n').filter((line) => line.trim() !== '');
+
     for (const line of lines) {
       if (line.startsWith('data: ')) {
         const data = JSON.parse(line.slice(6));
-        
+
         if (data.type === 'content') {
           responseContainer.textContent += data.content;
         }
@@ -363,19 +363,19 @@ import time
 class ModelClient:
     def __init__(self, local_timeout=10):
         self.local_timeout = local_timeout  # seconds
-        
+
     def query_with_fallback(self, prompt, preferred_model="llama3:8b", fallback_model="gpt3.5"):
         """Try local model first, fall back to cloud if timeout or error occurs."""
         try:
             # First attempt with local model
             local_start = time.time()
-            
+
             response = requests.post(
                 "http://localhost:8000/api/query",
                 json={"prompt": prompt, "model": preferred_model},
                 timeout=self.local_timeout
             )
-            
+
             if response.status_code == 200:
                 return {
                     "model_used": preferred_model,
@@ -383,18 +383,18 @@ class ModelClient:
                     "source": "local",
                     "response_time": time.time() - local_start
                 }
-                
+
         except (requests.Timeout, requests.ConnectionError) as e:
             print(f"Local model timed out or failed: {e}")
-            
+
         # Fallback to cloud model
         cloud_start = time.time()
-        
+
         response = requests.post(
             "http://localhost:8000/api/query",
             json={"prompt": prompt, "model": fallback_model}
         )
-        
+
         if response.status_code == 200:
             return {
                 "model_used": fallback_model,
@@ -402,7 +402,7 @@ class ModelClient:
                 "source": "cloud",
                 "response_time": time.time() - cloud_start
             }
-        
+
         # Both failed
         return {"error": "All models failed to respond"}
 ```
@@ -424,10 +424,10 @@ def benchmark_model(model_id, prompt, runs=3):
     response_times = []
     token_counts = []
     first_token_times = []
-    
+
     for i in range(runs):
         print(f"Run {i+1}/{runs} for model {model_id}")
-        
+
         start_time = time.time()
         response = requests.post(
             "http://localhost:8080/v1/chat/completions",
@@ -438,20 +438,20 @@ def benchmark_model(model_id, prompt, runs=3):
             }
         )
         end_time = time.time()
-        
+
         if response.status_code == 200:
             data = response.json()
             total_time = end_time - start_time
             response_times.append(total_time)
-            
+
             # Extract token count if available
             if "usage" in data:
                 token_counts.append(data["usage"]["completion_tokens"])
-            
+
             print(f"  Time: {total_time:.2f}s")
         else:
             print(f"  Error: {response.status_code}")
-    
+
     return {
         "model": model_id,
         "avg_response_time": statistics.mean(response_times) if response_times else None,
@@ -486,7 +486,7 @@ class MockLLMService:
         self.use_model_runner = config.get("USE_MODEL_RUNNER_FOR_MOCK", False)
         self.model_runner_url = config.get("MODEL_RUNNER_URL", "http://model-runner:8080")
         self.default_mock_model = config.get("DEFAULT_LOCAL_MODEL", "phi3:mini")
-        
+
     async def generate_response(self, prompt, model_config):
         if self.use_model_runner:
             # Use Docker Model Runner for more realistic mock responses
@@ -500,20 +500,20 @@ class MockLLMService:
             except Exception as e:
                 print(f"Error using Model Runner as mock: {e}")
                 # Fall back to static mock response
-        
+
         # Default static mock response
         return {
             "content": f"This is a mock response for model {model_config.get('model_id', 'unknown')}",
             "model": model_config.get("model_id", "unknown"),
             "source": "static_mock"
         }
-        
+
     async def _query_model_runner(self, prompt, model_config):
         """Query Docker Model Runner for response."""
         import aiohttp
-        
+
         model_id = self.default_mock_model
-        
+
         async with aiohttp.ClientSession() as session:
             async with session.post(
                 f"{self.model_runner_url}/v1/chat/completions",
@@ -542,23 +542,23 @@ import { getAvailableModels } from '../services/api';
 function ModelSelection({ onModelSelect }) {
   const [availableModels, setAvailableModels] = useState({
     local: [],
-    cloud: []
+    cloud: [],
   });
   const [selectedModels, setSelectedModels] = useState([]);
   const [loading, setLoading] = useState(true);
-  
+
   useEffect(() => {
     async function fetchModels() {
       try {
         const response = await getAvailableModels();
-        
+
         // Separate models into local and cloud categories
-        const local = response.models.filter(m => m.source === 'local');
-        const cloud = response.models.filter(m => m.source === 'cloud');
-        
+        const local = response.models.filter((m) => m.source === 'local');
+        const cloud = response.models.filter((m) => m.source === 'cloud');
+
         setAvailableModels({
           local,
-          cloud
+          cloud,
         });
       } catch (error) {
         console.error('Error fetching models:', error);
@@ -566,32 +566,32 @@ function ModelSelection({ onModelSelect }) {
         setLoading(false);
       }
     }
-    
+
     fetchModels();
   }, []);
-  
+
   const handleModelToggle = (modelId) => {
-    setSelectedModels(prev => {
+    setSelectedModels((prev) => {
       if (prev.includes(modelId)) {
-        return prev.filter(id => id !== modelId);
+        return prev.filter((id) => id !== modelId);
       } else {
         return [...prev, modelId];
       }
     });
   };
-  
+
   const handleSubmit = () => {
     onModelSelect(selectedModels);
   };
-  
+
   if (loading) {
     return <div>Loading available models...</div>;
   }
-  
+
   return (
     <div className="model-selection">
       <h3>Select Models to Compare</h3>
-      
+
       <div className="model-categories">
         <div className="local-models">
           <h4>Local Models (Docker Model Runner)</h4>
@@ -599,7 +599,7 @@ function ModelSelection({ onModelSelect }) {
             <p>No local models available</p>
           ) : (
             <ul>
-              {availableModels.local.map(model => (
+              {availableModels.local.map((model) => (
                 <li key={model.id}>
                   <label>
                     <input
@@ -614,11 +614,11 @@ function ModelSelection({ onModelSelect }) {
             </ul>
           )}
         </div>
-        
+
         <div className="cloud-models">
           <h4>Cloud Models</h4>
           <ul>
-            {availableModels.cloud.map(model => (
+            {availableModels.cloud.map((model) => (
               <li key={model.id}>
                 <label>
                   <input
@@ -633,11 +633,8 @@ function ModelSelection({ onModelSelect }) {
           </ul>
         </div>
       </div>
-      
-      <button 
-        onClick={handleSubmit}
-        disabled={selectedModels.length === 0}
-      >
+
+      <button onClick={handleSubmit} disabled={selectedModels.length === 0}>
         Compare Selected Models
       </button>
     </div>

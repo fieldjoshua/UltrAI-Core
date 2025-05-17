@@ -7,12 +7,12 @@ and maintains relationships between tables.
 """
 
 import json
+import logging
+import threading
 import time
 import uuid
-import threading
-import logging
-from typing import Dict, List, Any, Optional, Callable, Set, Union, Tuple
 from datetime import datetime
+from typing import Any, Callable, Dict, List, Optional, Set, Tuple, Union
 
 from backend.utils.logging import get_logger
 
@@ -26,7 +26,7 @@ class MemoryTable:
     def __init__(self, name: str):
         """
         Initialize memory table
-        
+
         Args:
             name: Table name
         """
@@ -39,7 +39,7 @@ class MemoryTable:
     def create_index(self, column: str) -> None:
         """
         Create an index on a column
-        
+
         Args:
             column: Column name to index
         """
@@ -57,7 +57,7 @@ class MemoryTable:
     def _add_to_indexes(self, record_id: str, record: Dict[str, Any]) -> None:
         """
         Add record to indexes
-        
+
         Args:
             record_id: Record ID
             record: Record data
@@ -72,7 +72,7 @@ class MemoryTable:
     def _remove_from_indexes(self, record_id: str, record: Dict[str, Any]) -> None:
         """
         Remove record from indexes
-        
+
         Args:
             record_id: Record ID
             record: Record data
@@ -88,11 +88,11 @@ class MemoryTable:
     def insert(self, record: Dict[str, Any], record_id: Optional[str] = None) -> str:
         """
         Insert a record into the table
-        
+
         Args:
             record: Record data
             record_id: Optional record ID (generated if not provided)
-            
+
         Returns:
             Record ID
         """
@@ -104,29 +104,29 @@ class MemoryTable:
                 else:
                     record_id = str(uuid.uuid4())
                     record["id"] = record_id
-            
+
             # Add created_at if not present
             if "created_at" not in record:
                 record["created_at"] = datetime.now().isoformat()
-                
+
             # Add updated_at
             record["updated_at"] = datetime.now().isoformat()
-            
+
             # Store record
             self.records[record_id] = record.copy()
-            
+
             # Update indexes
             self._add_to_indexes(record_id, record)
-            
+
             return record_id
 
     def get(self, record_id: str) -> Optional[Dict[str, Any]]:
         """
         Get a record by ID
-        
+
         Args:
             record_id: Record ID
-            
+
         Returns:
             Record data or None if not found
         """
@@ -137,69 +137,69 @@ class MemoryTable:
     def update(self, record_id: str, record: Dict[str, Any]) -> bool:
         """
         Update a record
-        
+
         Args:
             record_id: Record ID
             record: New record data
-            
+
         Returns:
             True if updated, False if record not found
         """
         with self.lock:
             if record_id not in self.records:
                 return False
-                
+
             # Get existing record
             existing = self.records[record_id]
-            
+
             # Remove from indexes
             self._remove_from_indexes(record_id, existing)
-            
+
             # Update record
             updated = existing.copy()
             updated.update(record)
             updated["updated_at"] = datetime.now().isoformat()
-            
+
             # Store updated record
             self.records[record_id] = updated
-            
+
             # Add to indexes
             self._add_to_indexes(record_id, updated)
-            
+
             return True
 
     def delete(self, record_id: str) -> bool:
         """
         Delete a record
-        
+
         Args:
             record_id: Record ID
-            
+
         Returns:
             True if deleted, False if record not found
         """
         with self.lock:
             if record_id not in self.records:
                 return False
-                
+
             # Get existing record
             existing = self.records[record_id]
-            
+
             # Remove from indexes
             self._remove_from_indexes(record_id, existing)
-            
+
             # Delete record
             del self.records[record_id]
-            
+
             return True
 
     def query(self, conditions: Dict[str, Any] = None) -> List[Dict[str, Any]]:
         """
         Query records by conditions
-        
+
         Args:
             conditions: Column-value conditions (e.g., {"name": "John"})
-            
+
         Returns:
             List of matching records
         """
@@ -207,30 +207,30 @@ class MemoryTable:
             if not conditions:
                 # Return all records
                 return [record.copy() for record in self.records.values()]
-                
+
             # Find matching records using indexes where possible
             candidate_ids: Optional[Set[str]] = None
-            
+
             # First pass: use indexes to narrow down candidates
             for column, value in conditions.items():
                 if column in self.indexes and value in self.indexes[column]:
                     # Get IDs from index
                     index_ids = self.indexes[column][value]
-                    
+
                     if candidate_ids is None:
                         # First condition, set initial candidates
                         candidate_ids = index_ids.copy()
                     else:
                         # Subsequent condition, intersect with current candidates
                         candidate_ids &= index_ids
-                        
+
                     # Optimization: if no candidates left, return early
                     if not candidate_ids:
                         return []
-            
+
             # Second pass: filter by all conditions
             results = []
-            
+
             if candidate_ids is not None:
                 # We have candidate IDs from indexes
                 for record_id in candidate_ids:
@@ -242,17 +242,19 @@ class MemoryTable:
                 for record in self.records.values():
                     if self._matches_conditions(record, conditions):
                         results.append(record.copy())
-            
+
             return results
 
-    def _matches_conditions(self, record: Dict[str, Any], conditions: Dict[str, Any]) -> bool:
+    def _matches_conditions(
+        self, record: Dict[str, Any], conditions: Dict[str, Any]
+    ) -> bool:
         """
         Check if a record matches conditions
-        
+
         Args:
             record: Record to check
             conditions: Conditions to match
-            
+
         Returns:
             True if record matches all conditions
         """
@@ -274,10 +276,10 @@ class MemoryDB:
     def create_table(self, name: str) -> MemoryTable:
         """
         Create a new table
-        
+
         Args:
             name: Table name
-            
+
         Returns:
             Memory table instance
         """
@@ -290,10 +292,10 @@ class MemoryDB:
     def get_table(self, name: str) -> Optional[MemoryTable]:
         """
         Get a table by name
-        
+
         Args:
             name: Table name
-            
+
         Returns:
             Memory table instance or None if not found
         """
@@ -302,10 +304,10 @@ class MemoryDB:
     def table_exists(self, name: str) -> bool:
         """
         Check if a table exists
-        
+
         Args:
             name: Table name
-            
+
         Returns:
             True if table exists, False otherwise
         """
@@ -314,10 +316,10 @@ class MemoryDB:
     def drop_table(self, name: str) -> bool:
         """
         Drop a table
-        
+
         Args:
             name: Table name
-            
+
         Returns:
             True if dropped, False if table not found
         """
@@ -331,7 +333,7 @@ class MemoryDB:
     def get_tables(self) -> List[str]:
         """
         Get names of all tables
-        
+
         Returns:
             List of table names
         """
@@ -346,59 +348,59 @@ class MemoryDB:
     def get_status(self) -> Dict[str, Any]:
         """
         Get database status
-        
+
         Returns:
             Dictionary with status information
         """
         with self.lock:
             table_stats = {}
             total_records = 0
-            
+
             for name, table in self.tables.items():
                 record_count = len(table.records)
                 table_stats[name] = {
                     "records": record_count,
-                    "indexes": list(table.indexes.keys())
+                    "indexes": list(table.indexes.keys()),
                 }
                 total_records += record_count
-            
+
             return {
                 "tables_count": len(self.tables),
                 "total_records": total_records,
-                "tables": table_stats
+                "tables": table_stats,
             }
 
     def export_data(self) -> Dict[str, List[Dict[str, Any]]]:
         """
         Export all data as a dictionary
-        
+
         Returns:
             Dictionary with table data
         """
         with self.lock:
             result = {}
-            
+
             for name, table in self.tables.items():
                 result[name] = [record.copy() for record in table.records.values()]
-                
+
             return result
 
     def import_data(self, data: Dict[str, List[Dict[str, Any]]]) -> None:
         """
         Import data into the database
-        
+
         Args:
             data: Data to import
         """
         with self.lock:
             for table_name, records in data.items():
                 table = self.create_table(table_name)
-                
+
                 for record in records:
                     # If record has an ID, use it
                     record_id = str(record.get("id")) if "id" in record else None
                     table.insert(record, record_id)
-                    
+
             logger.info(f"Imported data into {len(data)} tables")
 
 

@@ -1,6 +1,5 @@
 import numpy as np
 import pytest
-
 from sklearn.datasets import make_classification, make_regression
 from sklearn.ensemble import (
     HistGradientBoostingClassifier,

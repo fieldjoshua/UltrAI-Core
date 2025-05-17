@@ -15,9 +15,9 @@ from typing import Any, Dict, List, Optional, Tuple
 
 import psutil
 
-from config import Config
-from services.cache_service import cache_service
-from services.llm_config_service import llm_config_service
+from backend.config import Config
+from backend.services.cache_service import cache_service
+from backend.services.llm_config_service import llm_config_service
 
 # Configure logging
 logger = logging.getLogger("health_service")
@@ -155,7 +155,7 @@ class HealthService:
         """Check database connection"""
         try:
             # Import here to avoid circular imports
-            from database.connection import get_db_connection
+            from backend.database.connection import get_db_connection
 
             conn = get_db_connection()
             if conn:
@@ -215,8 +215,11 @@ class HealthService:
                     if models:
                         # Check individual provider connectivity
                         providers_status = self._check_llm_provider_connectivity()
-                        available_providers = [p for p, status in providers_status.items()
-                                             if status["status"] == "healthy"]
+                        available_providers = [
+                            p
+                            for p, status in providers_status.items()
+                            if status["status"] == "healthy"
+                        ]
 
                         if available_providers:
                             self.service_status["llm"] = {
@@ -224,7 +227,7 @@ class HealthService:
                                 "message": f"LLM services are available ({len(models)} models, {len(available_providers)} providers)",
                                 "providers": [model["provider"] for model in models],
                                 "last_checked": datetime.datetime.now().isoformat(),
-                                "provider_details": providers_status
+                                "provider_details": providers_status,
                             }
                         else:
                             self.service_status["llm"] = {
@@ -232,7 +235,7 @@ class HealthService:
                                 "message": "Models configured but no providers are reachable",
                                 "providers": [model["provider"] for model in models],
                                 "last_checked": datetime.datetime.now().isoformat(),
-                                "provider_details": providers_status
+                                "provider_details": providers_status,
                             }
                     else:
                         self.service_status["llm"] = {
@@ -267,19 +270,21 @@ class HealthService:
         Returns:
             Dictionary of provider status information
         """
-        from utils.health_check import check_llm_provider_health
-        from utils.dependency_manager import (
-            openai_dependency,
+        from backend.utils.dependency_manager import (
             anthropic_dependency,
-            google_ai_dependency
+            google_ai_dependency,
+            openai_dependency,
         )
+        from backend.utils.health_check import check_llm_provider_health
 
         results = {}
 
         # Check OpenAI connectivity
         if openai_dependency.is_available():
             try:
-                results["openai"] = check_llm_provider_health("openai", "OPENAI_API_KEY")
+                results["openai"] = check_llm_provider_health(
+                    "openai", "OPENAI_API_KEY"
+                )
             except Exception as e:
                 logger.error(f"OpenAI health check failed: {str(e)}")
                 results["openai"] = {
@@ -291,7 +296,9 @@ class HealthService:
         # Check Anthropic connectivity
         if anthropic_dependency.is_available():
             try:
-                results["anthropic"] = check_llm_provider_health("anthropic", "ANTHROPIC_API_KEY")
+                results["anthropic"] = check_llm_provider_health(
+                    "anthropic", "ANTHROPIC_API_KEY"
+                )
             except Exception as e:
                 logger.error(f"Anthropic health check failed: {str(e)}")
                 results["anthropic"] = {
@@ -303,7 +310,9 @@ class HealthService:
         # Check Google Gemini connectivity
         if google_ai_dependency.is_available():
             try:
-                results["google"] = check_llm_provider_health("google", "GOOGLE_API_KEY")
+                results["google"] = check_llm_provider_health(
+                    "google", "GOOGLE_API_KEY"
+                )
             except Exception as e:
                 logger.error(f"Google Gemini health check failed: {str(e)}")
                 results["google"] = {
@@ -317,6 +326,7 @@ class HealthService:
             if os.getenv("USE_MODEL_RUNNER", "false").lower() in ("true", "1", "yes"):
                 # For model runner, we'll use a simpler check since it's local
                 import subprocess
+
                 try:
                     # Use a quick command to check if Docker Model Runner is responsive
                     result = subprocess.run(
@@ -324,7 +334,7 @@ class HealthService:
                         capture_output=True,
                         text=True,
                         check=False,
-                        timeout=5  # Short timeout
+                        timeout=5,  # Short timeout
                     )
 
                     if result.returncode == 0:
@@ -364,7 +374,7 @@ class HealthService:
     def _check_mock_services(self) -> None:
         """Check mock services"""
         try:
-            from services.mock_llm_service import mock_llm_service
+            from backend.services.mock_llm_service import mock_llm_service
 
             if mock_llm_service:
                 self.service_status["mock_llm"] = {

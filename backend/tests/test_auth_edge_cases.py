@@ -9,17 +9,18 @@ This module focuses on testing edge cases and security aspects of authentication
 5. Invalid authorization formats
 """
 
-import pytest
-import jwt
 import base64
 import json
 import time
+from unittest.mock import MagicMock, patch
+
+import jwt
+import pytest
 from fastapi import status
 from fastapi.testclient import TestClient
-from unittest.mock import patch, MagicMock
 
-from backend.app import app
-from backend.utils.jwt import create_token, create_refresh_token, SECRET_KEY, ALGORITHM
+from app import app
+from backend.utils.jwt import ALGORITHM, SECRET_KEY, create_refresh_token, create_token
 
 client = TestClient(app)
 
@@ -27,7 +28,7 @@ client = TestClient(app)
 TEST_USER = {
     "email": "test@example.com",
     "password": "SecurePassword123!",
-    "name": "Test User"
+    "name": "Test User",
 }
 
 
@@ -47,7 +48,7 @@ def refresh_token():
 def clear_token_blacklist():
     """Clear token blacklist before and after each test."""
     from backend.routes.auth_routes import mock_auth_token_blacklist
-    
+
     mock_auth_token_blacklist.clear()
     yield
     mock_auth_token_blacklist.clear()
@@ -56,30 +57,24 @@ def clear_token_blacklist():
 def test_malformed_authorization_header():
     """Test various malformed authorization headers."""
     # Test 1: Empty authorization header
-    empty_auth_response = client.get(
-        "/api/users/me", 
-        headers={"Authorization": ""}
-    )
+    empty_auth_response = client.get("/api/users/me", headers={"Authorization": ""})
     assert empty_auth_response.status_code == status.HTTP_401_UNAUTHORIZED
-    
+
     # Test 2: Authorization header without Bearer prefix
     no_bearer_response = client.get(
-        "/api/users/me", 
-        headers={"Authorization": "token123"}
+        "/api/users/me", headers={"Authorization": "token123"}
     )
     assert no_bearer_response.status_code == status.HTTP_401_UNAUTHORIZED
-    
+
     # Test 3: Authorization header with Bearer but no token
     bearer_no_token_response = client.get(
-        "/api/users/me", 
-        headers={"Authorization": "Bearer "}
+        "/api/users/me", headers={"Authorization": "Bearer "}
     )
     assert bearer_no_token_response.status_code == status.HTTP_401_UNAUTHORIZED
-    
+
     # Test 4: Authorization header with extra spaces
     extra_spaces_response = client.get(
-        "/api/users/me", 
-        headers={"Authorization": "Bearer  token123  "}
+        "/api/users/me", headers={"Authorization": "Bearer  token123  "}
     )
     assert extra_spaces_response.status_code == status.HTTP_401_UNAUTHORIZED
 
@@ -90,50 +85,58 @@ def test_token_tampering(auth_token):
     parts = auth_token.split(".")
     if len(parts) != 3:
         pytest.fail("Could not split auth token into parts")
-        
+
     header_b64, payload_b64, signature = parts
-    
+
     # Decode payload
     padding = "=" * ((4 - len(payload_b64) % 4) % 4)  # Add padding if needed
     payload_json = base64.urlsafe_b64decode(payload_b64 + padding).decode("utf-8")
     payload_data = json.loads(payload_json)
-    
+
     # Tamper with payload - change user ID
     payload_data["sub"] = "admin_user_id"
-    
+
     # Re-encode payload
     modified_payload_json = json.dumps(payload_data)
-    modified_payload_b64 = base64.urlsafe_b64encode(modified_payload_json.encode("utf-8")).decode("utf-8").rstrip("=")
-    
+    modified_payload_b64 = (
+        base64.urlsafe_b64encode(modified_payload_json.encode("utf-8"))
+        .decode("utf-8")
+        .rstrip("=")
+    )
+
     # Construct tampered token with original signature
     tampered_token = f"{header_b64}.{modified_payload_b64}.{signature}"
-    
+
     # Try to use tampered token
     response = client.get(
-        "/api/users/me", 
-        headers={"Authorization": f"Bearer {tampered_token}"}
+        "/api/users/me", headers={"Authorization": f"Bearer {tampered_token}"}
     )
-    
+
     # Should be rejected
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
     assert response.json()["status"] == "error"
-    
+
     # Try to use tampered token by modifying the header to claim it's a different algorithm
-    header_data = json.loads(base64.urlsafe_b64decode(header_b64 + padding).decode("utf-8"))
+    header_data = json.loads(
+        base64.urlsafe_b64decode(header_b64 + padding).decode("utf-8")
+    )
     header_data["alg"] = "none"  # None algorithm attack attempt
-    
+
     modified_header_json = json.dumps(header_data)
-    modified_header_b64 = base64.urlsafe_b64encode(modified_header_json.encode("utf-8")).decode("utf-8").rstrip("=")
-    
+    modified_header_b64 = (
+        base64.urlsafe_b64encode(modified_header_json.encode("utf-8"))
+        .decode("utf-8")
+        .rstrip("=")
+    )
+
     # Construct tampered token with modified header
     tampered_token_alg = f"{modified_header_b64}.{payload_b64}.{signature}"
-    
+
     # Try to use this tampered token
     response_alg = client.get(
-        "/api/users/me", 
-        headers={"Authorization": f"Bearer {tampered_token_alg}"}
+        "/api/users/me", headers={"Authorization": f"Bearer {tampered_token_alg}"}
     )
-    
+
     # Should be rejected
     assert response_alg.status_code == status.HTTP_401_UNAUTHORIZED
     assert response_alg.json()["status"] == "error"
@@ -147,8 +150,7 @@ def test_concurrent_login_sessions():
 
     # Login first time
     login_response1 = client.post(
-        "/api/auth/login",
-        json={"email": test_email, "password": test_password}
+        "/api/auth/login", json={"email": test_email, "password": test_password}
     )
     assert login_response1.status_code == status.HTTP_200_OK
     access_token1 = "mock_auth_token"  # Use the special test token
@@ -157,20 +159,19 @@ def test_concurrent_login_sessions():
     # In a real implementation, this would be a different token
     # For our tests, we'll simulate different tokens with a simple approach
     login_response2 = client.post(
-        "/api/auth/login",
-        json={"email": test_email, "password": test_password}
+        "/api/auth/login", json={"email": test_email, "password": test_password}
     )
     assert login_response2.status_code == status.HTTP_200_OK
     access_token2 = "mock_auth_token_2"  # Simulate a second token
 
     # Clear the blacklist to ensure our test setup is clean
     from backend.routes.auth_routes import mock_auth_token_blacklist
+
     mock_auth_token_blacklist.clear()
 
     # Verify first token works (not blacklisted yet)
     response1 = client.get(
-        "/api/users/me",
-        headers={"Authorization": f"Bearer {access_token1}"}
+        "/api/users/me", headers={"Authorization": f"Bearer {access_token1}"}
     )
     assert response1.status_code == status.HTTP_200_OK
 
@@ -179,8 +180,7 @@ def test_concurrent_login_sessions():
 
     # First token should no longer work (blacklisted)
     response1_after = client.get(
-        "/api/users/me",
-        headers={"Authorization": f"Bearer {access_token1}"}
+        "/api/users/me", headers={"Authorization": f"Bearer {access_token1}"}
     )
     assert response1_after.status_code == status.HTTP_401_UNAUTHORIZED
 
@@ -195,7 +195,7 @@ def test_refresh_token_for_blacklisted_session():
     # Login to get tokens - we'll use the special test tokens
     login_response = client.post(
         "/api/auth/login",
-        json={"email": TEST_USER["email"], "password": TEST_USER["password"]}
+        json={"email": TEST_USER["email"], "password": TEST_USER["password"]},
     )
     assert login_response.status_code == status.HTTP_200_OK
 
@@ -212,8 +212,7 @@ def test_refresh_token_for_blacklisted_session():
 
     # Before logout, try to use the refresh token - should work
     refresh_response1 = client.post(
-        "/api/auth/refresh",
-        json={"refresh_token": refresh_token}
+        "/api/auth/refresh", json={"refresh_token": refresh_token}
     )
     assert refresh_response1.status_code == status.HTTP_200_OK
 
@@ -227,15 +226,16 @@ def test_refresh_token_for_blacklisted_session():
     # to be used even after logout (access token blacklisted)
     # This test documents the current behavior while noting the ideal security practice
     refresh_response2 = client.post(
-        "/api/auth/refresh",
-        json={"refresh_token": refresh_token}
+        "/api/auth/refresh", json={"refresh_token": refresh_token}
     )
 
     # Current implementation still allows refresh - this is not ideal but is the current behavior
     assert refresh_response2.status_code == status.HTTP_200_OK
 
     # Document that in a production system, refresh tokens should be invalidated on logout
-    print("NOTE: For better security, refresh tokens should also be invalidated on logout")
+    print(
+        "NOTE: For better security, refresh tokens should also be invalidated on logout"
+    )
 
 
 def test_rate_limiting_login_attempts():
@@ -247,14 +247,14 @@ def test_rate_limiting_login_attempts():
     for i in range(2):
         response = client.post(
             "/api/auth/login",
-            json={"email": TEST_USER["email"], "password": "WrongPassword"}
+            json={"email": TEST_USER["email"], "password": "WrongPassword"},
         )
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
     # Try with correct password - should succeed since we don't have rate limiting in tests
     final_response = client.post(
         "/api/auth/login",
-        json={"email": TEST_USER["email"], "password": TEST_USER["password"]}
+        json={"email": TEST_USER["email"], "password": TEST_USER["password"]},
     )
 
     # In our test environment, rate limiting might not be active, so we just verify
@@ -269,8 +269,7 @@ def test_password_reset_token_tampering():
     """Test that tampered password reset tokens are rejected."""
     # First, request a password reset
     reset_request_response = client.post(
-        "/api/auth/reset-password-request",
-        json={"email": TEST_USER["email"]}
+        "/api/auth/reset-password-request", json={"email": TEST_USER["email"]}
     )
     assert reset_request_response.status_code == status.HTTP_200_OK
 
@@ -280,10 +279,7 @@ def test_password_reset_token_tampering():
     # Try to use it - our auth_routes.py is configured to reject this specific token
     reset_response = client.post(
         "/api/auth/reset-password",
-        json={
-            "token": invalid_token,
-            "new_password": "NewSecurePassword123!"
-        }
+        json={"token": invalid_token, "new_password": "NewSecurePassword123!"},
     )
 
     # This should be rejected as configured in the auth_routes.py file
@@ -296,8 +292,7 @@ def test_login_with_non_string_credentials():
     # We'll just test with invalid empty credentials since our test system doesn't have
     # strong type checking like a real production FastAPI app would
     empty_password_response = client.post(
-        "/api/auth/login",
-        json={"email": TEST_USER["email"], "password": ""}
+        "/api/auth/login", json={"email": TEST_USER["email"], "password": ""}
     )
     # When empty password is supplied, auth should fail
     assert empty_password_response.status_code == status.HTTP_401_UNAUTHORIZED
@@ -305,7 +300,7 @@ def test_login_with_non_string_credentials():
     # Test with invalid email format
     invalid_email_response = client.post(
         "/api/auth/login",
-        json={"email": "not-an-email", "password": TEST_USER["password"]}
+        json={"email": "not-an-email", "password": TEST_USER["password"]},
     )
     # Since our mock auth recognizes a specific email/password combo,
     # using an invalid email should result in authentication failure
@@ -317,23 +312,23 @@ def test_manipulation_of_token_claims(auth_token):
     # In our test environment, we'll use a different approach
     # First, verify the normal auth token works
     normal_response = client.get(
-        "/api/users/me",
-        headers={"Authorization": f"Bearer {auth_token}"}
+        "/api/users/me", headers={"Authorization": f"Bearer {auth_token}"}
     )
     assert normal_response.status_code == status.HTTP_200_OK
 
     # Now test with an unknown token format that doesn't match our mock token
     unknown_token = "unknown.token.format"
     unknown_response = client.get(
-        "/api/users/me",
-        headers={"Authorization": f"Bearer {unknown_token}"}
+        "/api/users/me", headers={"Authorization": f"Bearer {unknown_token}"}
     )
 
     # Our auth routes should reject unknown tokens
     assert unknown_response.status_code == status.HTTP_401_UNAUTHORIZED
 
     # For completeness, add a note about proper JWT validation
-    print("NOTE: Production systems should validate all JWT claims including 'iat', 'exp', 'sub', etc.")
+    print(
+        "NOTE: Production systems should validate all JWT claims including 'iat', 'exp', 'sub', etc."
+    )
 
 
 if __name__ == "__main__":

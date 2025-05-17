@@ -7,7 +7,6 @@ import numpy as np
 import pytest
 from scipy import stats
 from scipy.spatial import distance
-
 from sklearn.cluster import HDBSCAN
 from sklearn.cluster._hdbscan._tree import (
     CONDENSED_dtype,

@@ -196,11 +196,11 @@
   width: 60%;
   height: 60%;
   clip-path: polygon(
-    0% 0%, 
-    40% 0%, 
-    40% 60%, 
+    0% 0%,
+    40% 0%,
+    40% 60%,
     100% 60%,
-    100% 100%, 
+    100% 100%,
     0% 100%
   );
   transform: rotate(-15deg);
@@ -240,4 +240,4 @@
 /* Apply animations for processing state */
 .ultra-logo--processing .ultra-logo__wireframe {
   animation: rotateSlow 120s linear infinite;
-} 
+}

@@ -33,6 +33,7 @@ The Ultra system integrates with multiple external LLM providers and services. W
 ### Current State
 
 The system currently:
+
 - Has basic error handling for dependencies through the ErrorHandlingImprovement action
 - Includes in-memory fallbacks for Redis and database services
 - Lacks systematic fallbacks for LLM providers
@@ -42,6 +43,7 @@ The system currently:
 ### Desired Future State
 
 The system will:
+
 - Automatically switch between LLM providers when failures occur
 - Use cached results when appropriate
 - Provide graceful UI degradation during service disruptions
@@ -54,6 +56,7 @@ The system will:
 ### Phase 1: LLM Provider Fallbacks
 
 1. **Provider Priority System**
+
    - Implement priority-based provider selection
    - Create configuration for provider preferences
    - Develop automatic provider switching on failure
@@ -66,6 +69,7 @@ The system will:
 ### Phase 2: UI and Client Fallbacks
 
 3. **Offline Mode Support**
+
    - Implement client-side detection of connectivity issues
    - Develop offline indicator components
    - Create local storage mechanism for pending operations
@@ -78,6 +82,7 @@ The system will:
 ### Phase 3: Resilience Patterns
 
 5. **Cache-Based Fallbacks**
+
    - Enhance caching system with fallback capabilities
    - Implement cache warming for critical operations
    - Create time-based cache expiration policies
@@ -90,6 +95,7 @@ The system will:
 ### Phase 4: Monitoring and Documentation
 
 7. **Fallback Monitoring**
+
    - Create logging for fallback activations
    - Implement metrics collection for fallback usage
    - Develop dashboard for fallback visualization
@@ -135,18 +141,18 @@ The system will:
 
 ## Risks and Mitigations
 
-| Risk | Impact | Mitigation |
-|------|--------|------------|
-| Fallbacks could create inconsistent user experiences | Medium | Document fallback behaviors in UI and provide clear indicators |
-| Cached responses may become stale | Medium | Implement time-based expiration and cache refresh strategies |
-| Excessive retries could overload recovering services | High | Use exponential backoff and circuit breakers to prevent thundering herd problem |
-| Fallback logic adds complexity | Medium | Thorough documentation and testing, with clear separation of concerns |
+| Risk                                                 | Impact | Mitigation                                                                      |
+| ---------------------------------------------------- | ------ | ------------------------------------------------------------------------------- |
+| Fallbacks could create inconsistent user experiences | Medium | Document fallback behaviors in UI and provide clear indicators                  |
+| Cached responses may become stale                    | Medium | Implement time-based expiration and cache refresh strategies                    |
+| Excessive retries could overload recovering services | High   | Use exponential backoff and circuit breakers to prevent thundering herd problem |
+| Fallback logic adds complexity                       | Medium | Thorough documentation and testing, with clear separation of concerns           |
 
 ## Timeline
 
-| Timeframe | Focus | Key Deliverables |
-|-----------|-------|------------------|
-| Days 1-2 | LLM Provider Fallbacks | Provider priority system, Mock LLM enhancements |
-| Days 3-4 | UI and Client Fallbacks | Offline mode, UI degradation components |
-| Days 5-6 | Resilience Patterns | Cache-based fallbacks, Network resilience |
-| Day 7 | Monitoring and Documentation | Fallback monitoring, Documentation completion |
+| Timeframe | Focus                        | Key Deliverables                                |
+| --------- | ---------------------------- | ----------------------------------------------- |
+| Days 1-2  | LLM Provider Fallbacks       | Provider priority system, Mock LLM enhancements |
+| Days 3-4  | UI and Client Fallbacks      | Offline mode, UI degradation components         |
+| Days 5-6  | Resilience Patterns          | Cache-based fallbacks, Network resilience       |
+| Day 7     | Monitoring and Documentation | Fallback monitoring, Documentation completion   |

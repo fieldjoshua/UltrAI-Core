@@ -1,6 +1,6 @@
 import numpy as np
+import pandas._testing as tm
 import pytest
-
 from pandas import (
     CategoricalIndex,
     DatetimeIndex,
@@ -9,11 +9,7 @@ from pandas import (
     TimedeltaIndex,
     isna,
 )
-import pandas._testing as tm
-from pandas.api.types import (
-    is_complex_dtype,
-    is_numeric_dtype,
-)
+from pandas.api.types import is_complex_dtype, is_numeric_dtype
 from pandas.core.arrays import BooleanArray
 from pandas.core.indexes.datetimelike import DatetimeIndexOpsMixin
 

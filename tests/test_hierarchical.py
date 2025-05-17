@@ -15,7 +15,6 @@ import numpy as np
 import pytest
 from scipy.cluster import hierarchy
 from scipy.sparse.csgraph import connected_components
-
 from sklearn.cluster import AgglomerativeClustering, FeatureAgglomeration, ward_tree
 from sklearn.cluster._agglomerative import (
     _TREE_BUILDERS,

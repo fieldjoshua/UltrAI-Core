@@ -32,8 +32,8 @@ services:
   nginx:
     image: nginx:alpine
     ports:
-      - "80:80"
-      - "443:443"
+      - '80:80'
+      - '443:443'
     volumes:
       - ./nginx/conf:/etc/nginx/conf.d
       - ./nginx/ssl:/etc/nginx/ssl
@@ -44,7 +44,7 @@ services:
       - frontend-network
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:80/health"]
+      test: ['CMD', 'curl', '-f', 'http://localhost:80/health']
       interval: 30s
       timeout: 10s
       retries: 3
@@ -72,7 +72,7 @@ services:
           cpus: '2'
           memory: 4G
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/api/health"]
+      test: ['CMD', 'curl', '-f', 'http://localhost:8000/api/health']
       interval: 30s
       timeout: 10s
       retries: 3
@@ -88,7 +88,7 @@ services:
       - backend-network
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: ['CMD-SHELL', 'pg_isready -U postgres']
       interval: 10s
       timeout: 5s
       retries: 5
@@ -102,7 +102,7 @@ services:
       - backend-network
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: ['CMD', 'redis-cli', 'ping']
       interval: 10s
       timeout: 5s
       retries: 3
@@ -128,7 +128,7 @@ services:
     env_file:
       - .env.monitoring
     ports:
-      - "3000:3000"
+      - '3000:3000'
     networks:
       - monitoring-network
     restart: unless-stopped
@@ -155,7 +155,7 @@ For production, we recommend using Nginx as a reverse proxy:
 server {
     listen 80;
     server_name ultra.example.com;
-    
+
     # Redirect to HTTPS
     location / {
         return 301 https://$host$request_uri;
@@ -165,32 +165,32 @@ server {
 server {
     listen 443 ssl;
     server_name ultra.example.com;
-    
+
     # SSL Configuration
     ssl_certificate /etc/nginx/ssl/cert.pem;
     ssl_certificate_key /etc/nginx/ssl/key.pem;
     ssl_protocols TLSv1.2 TLSv1.3;
     ssl_ciphers HIGH:!aNULL:!MD5;
-    
+
     # Security Headers
     add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
     add_header X-Content-Type-Options "nosniff" always;
     add_header X-Frame-Options "SAMEORIGIN" always;
     add_header X-XSS-Protection "1; mode=block" always;
     add_header Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'" always;
-    
+
     # Proxy Frontend
     location / {
         root /usr/share/nginx/html;
         try_files $uri $uri/ /index.html;
-        
+
         # Cache static assets
         location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$ {
             expires 30d;
             add_header Cache-Control "public, no-transform";
         }
     }
-    
+
     # Proxy API Requests to Backend
     location /api/ {
         proxy_pass http://backend:8000;
@@ -202,17 +202,17 @@ server {
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
         proxy_cache_bypass $http_upgrade;
-        
+
         # Rate limiting
         limit_req zone=api burst=20 nodelay;
         limit_req_status 429;
-        
+
         # Timeouts
         proxy_connect_timeout 60s;
         proxy_send_timeout 60s;
         proxy_read_timeout 60s;
     }
-    
+
     # Health Check
     location /health {
         proxy_pass http://backend:8000/api/health;
@@ -220,11 +220,11 @@ server {
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
-        
+
         # Do not rate limit health checks
         limit_req_status 200;
     }
-    
+
     # Error Pages
     error_page 404 /404.html;
     error_page 500 502 503 504 /50x.html;
@@ -309,7 +309,7 @@ GF_USERS_ALLOW_SIGN_UP=false
 For a production deployment, we recommend the following minimum resources:
 
 | Component | CPU | Memory | Disk |
-|-----------|-----|--------|------|
+| --------- | --- | ------ | ---- |
 | Backend   | 2   | 4GB    | 20GB |
 | Database  | 2   | 4GB    | 50GB |
 | Redis     | 1   | 2GB    | 10GB |

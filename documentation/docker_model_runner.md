@@ -38,6 +38,7 @@ The Docker-based orchestration system consists of the following components:
 ### Backend Container
 
 The backend container runs the FastAPI application along with the orchestration system. It:
+
 - Handles API requests
 - Manages LLM interactions through adapters
 - Executes the orchestration logic
@@ -46,6 +47,7 @@ The backend container runs the FastAPI application along with the orchestration 
 ### Redis Container
 
 Redis provides:
+
 - Caching for LLM responses
 - Message queuing for asynchronous tasks
 - State management for multi-step orchestration
@@ -53,6 +55,7 @@ Redis provides:
 ### Worker Container (Optional)
 
 The worker container can handle background tasks such as:
+
 - Long-running analysis processes
 - Batch processing of multiple prompts
 - Scheduled tasks and retries
@@ -62,19 +65,20 @@ The worker container can handle background tasks such as:
 ### Environment Variables
 
 The orchestration system in Docker is configured through environment variables defined in:
+
 - `.env` file (for local development)
 - `docker-compose.yml` file (for service configuration)
 - Environment-specific `.env.{environment}` files (for different deployments)
 
 Key environment variables include:
 
-| Variable | Purpose | Example Value |
-|----------|---------|--------------|
-| `USE_MOCK` | Enable mock mode for testing | `true` |
-| `OPENAI_API_KEY` | API key for OpenAI | `sk-...` |
-| `ANTHROPIC_API_KEY` | API key for Anthropic | `sk-ant-...` |
-| `ORCHESTRATOR_ENABLE` | Enable orchestrator functionality | `true` |
-| `ORCHESTRATOR_DEFAULT_ANALYSIS` | Default analysis type | `comparative` |
+| Variable                        | Purpose                           | Example Value |
+| ------------------------------- | --------------------------------- | ------------- |
+| `USE_MOCK`                      | Enable mock mode for testing      | `true`        |
+| `OPENAI_API_KEY`                | API key for OpenAI                | `sk-...`      |
+| `ANTHROPIC_API_KEY`             | API key for Anthropic             | `sk-ant-...`  |
+| `ORCHESTRATOR_ENABLE`           | Enable orchestrator functionality | `true`        |
+| `ORCHESTRATOR_DEFAULT_ANALYSIS` | Default analysis type             | `comparative` |
 
 For a full list of environment variables, see the Environment Variables Reference in the .aicheck directory.
 
@@ -82,13 +86,13 @@ For a full list of environment variables, see the Environment Variables Referenc
 
 The Docker Compose configuration maps local directories to container paths to enable development:
 
-| Local Path | Container Path | Purpose |
-|------------|---------------|---------|
-| `./backend` | `/app/backend` | Backend API code |
-| `./src` | `/app/src` | Orchestrator source code |
-| `./scripts` | `/app/scripts` | Utility scripts |
-| `./logs` | `/app/logs` | Log storage |
-| `./data` | `/app/data` | Data files |
+| Local Path  | Container Path | Purpose                  |
+| ----------- | -------------- | ------------------------ |
+| `./backend` | `/app/backend` | Backend API code         |
+| `./src`     | `/app/src`     | Orchestrator source code |
+| `./scripts` | `/app/scripts` | Utility scripts          |
+| `./logs`    | `/app/logs`    | Log storage              |
+| `./data`    | `/app/data`    | Data files               |
 
 ## Usage
 
@@ -135,10 +139,12 @@ docker compose exec backend python -m src.tests.test_orchestrator
 ### Common Issues
 
 1. **ImportError for orchestrator modules**
+
    - Ensure the source code is properly mounted
    - Check the `PYTHONPATH` environment variable in the container
 
 2. **API Authentication Failures**
+
    - Verify that API keys are correctly set in environment variables
    - Check if mock mode is enabled when keys are not available
 
@@ -162,11 +168,13 @@ docker compose exec backend cat /app/logs/orchestrator.log
 ## Security Considerations
 
 1. **API Keys**
+
    - Never commit API keys to the repository
    - Always use environment variables for sensitive data
    - Consider using Docker secrets for production deployments
 
 2. **Network Security**
+
    - The Docker network is isolated by default
    - Expose only necessary ports to the host machine
    - Consider using a VPN for remote development
@@ -190,4 +198,4 @@ For production deployment:
 - [Docker Compose Documentation](https://docs.docker.com/compose/)
 - [FastAPI Docker Deployment](https://fastapi.tiangolo.com/deployment/docker/)
 - [Redis Docker Documentation](https://hub.docker.com/_/redis)
-EOL < /dev/null
+  EOL < /dev/null

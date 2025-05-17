@@ -36,4 +36,4 @@ services:
 
 networks:
   ultra-network:
-    driver: bridge 
+    driver: bridge

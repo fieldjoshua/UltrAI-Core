@@ -1,7 +1,8 @@
 import numpy as np
-import pytest
-
 import pandas as pd
+import pandas._testing as tm
+import pandas.core.reshape.tile as tmod
+import pytest
 from pandas import (
     Categorical,
     DataFrame,
@@ -20,9 +21,7 @@ from pandas import (
     timedelta_range,
     to_datetime,
 )
-import pandas._testing as tm
 from pandas.api.types import CategoricalDtype
-import pandas.core.reshape.tile as tmod
 
 
 def test_simple():

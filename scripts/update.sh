@@ -23,7 +23,7 @@ if [ -f ".aicheck/current_action" ]; then
         echo -e "${YELLOW}Status:${NC} Ready for new action selection"
     else
         echo -e "${GREEN}Current Action:${NC} ${CURRENT_ACTION}"
-        
+
         # Check if there's an active plan
         if [ -f ".aicheck/actions/${CURRENT_ACTION}/${CURRENT_ACTION}-PLAN.md" ]; then
             echo -e "${YELLOW}Status:${NC} Active plan exists"
@@ -56,7 +56,7 @@ echo -e "${PURPLE}${BOLD}Project Insights:${NC}"
 check_directory_status() {
     local dir=$1
     local description=$2
-    
+
     if [ -d "$dir" ]; then
         local file_count=$(find "$dir" -type f | wc -l | tr -d ' ')
         echo -e "  - ${YELLOW}${description}${NC}: ${file_count} files"

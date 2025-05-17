@@ -1,14 +1,13 @@
 import os
 import sys
-from io import BytesIO
 import threading
+from io import BytesIO
 
 import numpy as np
-from numpy.testing import (assert_equal, assert_, assert_array_equal,
-                           break_cycles, suppress_warnings, IS_PYPY)
 import pytest
+from numpy.testing import (IS_PYPY, assert_, assert_array_equal, assert_equal,
+                           break_cycles, suppress_warnings)
 from pytest import raises, warns
-
 from scipy.io import wavfile
 
 

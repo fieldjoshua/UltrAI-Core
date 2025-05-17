@@ -24,6 +24,7 @@ The following environment variables control the environment:
 ### Development Environment Testing
 
 Development environment testing (with mock services) is ideal for:
+
 - Rapid development and debugging
 - Deterministic testing with consistent responses
 - Testing without incurring API costs
@@ -46,6 +47,7 @@ python -m pytest backend/tests/
 ### Production Environment Testing
 
 Production environment testing (with real services) is essential for:
+
 - Validating actual integrations with LLM providers
 - Testing authentication and API key management
 - Verifying the system's behavior with real responses
@@ -77,6 +79,7 @@ The standard test script that runs tests in mock mode. This is ideal for develop
 A specialized script for testing in real mode with actual LLM providers. This should be run before deploying to production to validate the system's ability to work with real services.
 
 Key features:
+
 - Creates a temporary test environment
 - Configures necessary settings for real mode
 - Runs critical tests against real services
@@ -95,14 +98,17 @@ python test_api.py --base-url http://localhost:8085 --models gpt4o,claude3opus
 ## Recommended Testing Workflow
 
 1. **Development Testing**:
+
    - Use mock mode for rapid iteration
    - Run `./scripts/run_tests.sh` regularly
 
 2. **Integration Testing**:
+
    - Use real mode with test API keys
    - Run `./scripts/test_real_mode.sh` to validate real service integration
 
 3. **Pre-Production Validation**:
+
    - Use real mode with production API keys
    - Test critical workflows with actual LLM responses
    - Validate performance and reliability
@@ -117,6 +123,7 @@ python test_api.py --base-url http://localhost:8085 --models gpt4o,claude3opus
 ### Mock Mode Issues
 
 If tests fail in mock mode:
+
 1. Verify `USE_MOCK` and `MOCK_MODE` are set to `true`
 2. Check that all mock services are properly configured
 3. Ensure the test environment is properly isolated
@@ -124,6 +131,7 @@ If tests fail in mock mode:
 ### Real Mode Issues
 
 If tests fail in real mode:
+
 1. Verify API keys are valid and properly configured
 2. Check network connectivity to LLM providers
 3. Ensure authentication middleware is correctly configured
@@ -157,6 +165,7 @@ You can switch between environments using:
 ## Security Considerations
 
 When testing in real mode:
+
 - Never commit real API keys to the repository
 - Use the minimum permission level required for testing
 - Consider using testing-specific API keys with usage limits

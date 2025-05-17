@@ -16,4 +16,4 @@ test('multiplication', () => {
 
 test('division', () => {
   assert.strictEqual(10 / 2, 5);
-}); 
+});

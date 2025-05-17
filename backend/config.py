@@ -55,7 +55,7 @@ class Config:
     TEMP_UPLOADS_PATH = os.getenv("TEMP_UPLOADS_PATH", "temp_uploads")
     TEMP_PATH = os.getenv("TEMP_PATH", "temp")
     LOGS_PATH = os.getenv("LOGS_PATH", "logs")
-    
+
     # Convert relative paths to absolute paths
     if not os.path.isabs(DOCUMENT_STORAGE_PATH):
         DOCUMENT_STORAGE_PATH = os.path.join(BASE_PATH, DOCUMENT_STORAGE_PATH)
@@ -107,6 +107,11 @@ class Config:
     ENABLE_HTTPS_REDIRECT = (
         os.getenv("ENABLE_HTTPS_REDIRECT", "false").lower() == "true"
     )
+
+    # Monitoring and metrics
+    METRICS_ENABLED = os.getenv("ENABLE_METRICS", "true").lower() == "true"
+    METRICS_PORT = int(os.getenv("METRICS_PORT", "8081"))
+    SYSTEM_METRICS_INTERVAL = int(os.getenv("SYSTEM_METRICS_INTERVAL", "15"))
 
     # Security
     API_KEY_ENCRYPTION_KEY = os.getenv(

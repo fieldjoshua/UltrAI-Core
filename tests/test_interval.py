@@ -1,10 +1,11 @@
-from itertools import permutations
 import re
+from itertools import permutations
 
 import numpy as np
-import pytest
-
 import pandas as pd
+import pandas._testing as tm
+import pandas.core.common as com
+import pytest
 from pandas import (
     Index,
     Interval,
@@ -17,8 +18,6 @@ from pandas import (
     notna,
     timedelta_range,
 )
-import pandas._testing as tm
-import pandas.core.common as com
 
 
 @pytest.fixture(params=[None, "foo"])

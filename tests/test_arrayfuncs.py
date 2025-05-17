@@ -1,6 +1,5 @@
 import numpy as np
 import pytest
-
 from sklearn.utils._testing import assert_allclose
 from sklearn.utils.arrayfuncs import _all_with_any_reduction_axis_1, min_pos
 

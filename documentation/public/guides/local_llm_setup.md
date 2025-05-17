@@ -97,7 +97,7 @@ When making requests to Ultra, include your local model in the models array:
 {
   "prompt": "What is machine learning?",
   "models": ["ai/smollm2"],
-  "options": {"context": ""}
+  "options": { "context": "" }
 }
 ```
 
@@ -112,6 +112,7 @@ python3 scripts/test_modelrunner_cli.py
 ```
 
 This script checks:
+
 - Docker Model Runner status
 - Available models
 - Text generation
@@ -121,11 +122,11 @@ This script checks:
 
 Docker Model Runner supports a variety of open-source models. Some recommended models include:
 
-| Model | Size | Description | Command |
-|-------|------|-------------|---------|
-| ai/smollm2 | ~250MB | Small, fast model good for testing | `docker model pull ai/smollm2` |
-| ai/mistral | ~4GB | Mid-sized, good general performance | `docker model pull ai/mistral` |
-| ai/llama3 | ~8GB | Larger model with better quality | `docker model pull ai/llama3` |
+| Model      | Size   | Description                         | Command                        |
+| ---------- | ------ | ----------------------------------- | ------------------------------ |
+| ai/smollm2 | ~250MB | Small, fast model good for testing  | `docker model pull ai/smollm2` |
+| ai/mistral | ~4GB   | Mid-sized, good general performance | `docker model pull ai/mistral` |
+| ai/llama3  | ~8GB   | Larger model with better quality    | `docker model pull ai/llama3`  |
 
 To see all available models:
 
@@ -154,6 +155,7 @@ docker model list
 **Symptoms:** Error connecting to Docker Model Runner, "Docker Model Runner is not running" message
 
 **Solutions:**
+
 1. Ensure Docker Desktop is running
 2. Restart Docker Desktop
 3. Run `docker model status` to check status
@@ -163,6 +165,7 @@ docker model list
 **Symptoms:** Empty model list, "model not found" errors
 
 **Solutions:**
+
 1. Pull the model again: `docker model pull ai/smollm2`
 2. Check available models: `docker model list`
 3. Verify disk space for model downloads
@@ -172,6 +175,7 @@ docker model list
 **Symptoms:** Error messages during text generation, timeouts
 
 **Solutions:**
+
 1. Try a smaller model
 2. Restart Docker Model Runner
 3. Check system resources (memory, CPU usage)
@@ -182,6 +186,7 @@ docker model list
 **Symptoms:** Ultra doesn't use local models despite configuration
 
 **Solutions:**
+
 1. Verify environment variables:
    ```bash
    echo $USE_MODEL_RUNNER
@@ -216,7 +221,7 @@ You can use multiple local models in the same request:
 {
   "prompt": "What is machine learning?",
   "models": ["ai/smollm2", "ai/mistral"],
-  "options": {"context": ""}
+  "options": { "context": "" }
 }
 ```
 

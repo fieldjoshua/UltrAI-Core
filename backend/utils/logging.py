@@ -36,9 +36,11 @@ MAX_LOG_SIZE = 10 * 1024 * 1024
 # Number of backup files to keep
 BACKUP_COUNT = 5
 
+
 # Correlation ID context
 class CorrelationContext:
     """Thread-local storage for correlation IDs"""
+
     _context = {}
 
     @classmethod
@@ -70,7 +72,9 @@ class StructuredLogFormatter(logging.Formatter):
             "level": record.levelname,
             "logger": record.name,
             "message": record.getMessage(),
-            "correlation_id": getattr(record, "correlation_id", CorrelationContext.get_correlation_id()),
+            "correlation_id": getattr(
+                record, "correlation_id", CorrelationContext.get_correlation_id()
+            ),
             "module": record.module,
             "function": record.funcName,
             "line": record.lineno,
@@ -160,7 +164,11 @@ def log_request(request_data: Dict[str, Any]) -> None:
     request_logger.info("API Request", extra={"request": request_data})
 
 
-def log_error(message: str, error: Optional[Exception] = None, extra: Optional[Dict[str, Any]] = None) -> None:
+def log_error(
+    message: str,
+    error: Optional[Exception] = None,
+    extra: Optional[Dict[str, Any]] = None,
+) -> None:
     """
     Log an error with standardized format
 
@@ -178,8 +186,13 @@ def log_error(message: str, error: Optional[Exception] = None, extra: Optional[D
         error_logger.error(message, extra=log_data)
 
 
-def log_audit(action: str, user_id: Optional[str] = None, resource: Optional[str] = None,
-              status: str = "success", details: Optional[Dict[str, Any]] = None) -> None:
+def log_audit(
+    action: str,
+    user_id: Optional[str] = None,
+    resource: Optional[str] = None,
+    status: str = "success",
+    details: Optional[Dict[str, Any]] = None,
+) -> None:
     """
     Log an audit event with standardized format
 
@@ -207,7 +220,9 @@ def log_audit(action: str, user_id: Optional[str] = None, resource: Optional[str
     audit_logger.info(f"Audit: {action}", extra=log_data)
 
 
-def log_performance(operation: str, duration_ms: float, metadata: Optional[Dict[str, Any]] = None) -> None:
+def log_performance(
+    operation: str, duration_ms: float, metadata: Optional[Dict[str, Any]] = None
+) -> None:
     """
     Log performance metrics with standardized format
 
@@ -224,7 +239,9 @@ def log_performance(operation: str, duration_ms: float, metadata: Optional[Dict[
     if metadata:
         log_data["metadata"] = metadata
 
-    performance_logger.info(f"Performance: {operation} took {duration_ms:.2f}ms", extra=log_data)
+    performance_logger.info(
+        f"Performance: {operation} took {duration_ms:.2f}ms", extra=log_data
+    )
 
 
 def with_performance_logging(operation: str = None):
@@ -234,6 +251,7 @@ def with_performance_logging(operation: str = None):
     Args:
         operation: Optional name for the operation (defaults to function name)
     """
+
     def decorator(func: Callable) -> Callable:
         @wraps(func)
         def wrapper(*args, **kwargs):
@@ -248,7 +266,9 @@ def with_performance_logging(operation: str = None):
                 duration_ms = (time.time() - start_time) * 1000
                 log_performance(operation_name, duration_ms, {"error": str(e)})
                 raise
+
         return wrapper
+
     return decorator
 
 
@@ -259,11 +279,16 @@ def with_correlation_id(correlation_id: Optional[str] = None):
     Args:
         correlation_id: Optional correlation ID to use (generates new one if not provided)
     """
+
     def decorator(func: Callable) -> Callable:
         @wraps(func)
         def wrapper(*args, **kwargs):
             current_id = correlation_id or str(uuid.uuid4())
-            previous_id = CorrelationContext.get_correlation_id() if "correlation_id" in CorrelationContext._context else None
+            previous_id = (
+                CorrelationContext.get_correlation_id()
+                if "correlation_id" in CorrelationContext._context
+                else None
+            )
             try:
                 CorrelationContext.set_correlation_id(current_id)
                 return func(*args, **kwargs)
@@ -272,5 +297,7 @@ def with_correlation_id(correlation_id: Optional[str] = None):
                     CorrelationContext.set_correlation_id(previous_id)
                 else:
                     CorrelationContext.clear_correlation_id()
+
         return wrapper
+
     return decorator

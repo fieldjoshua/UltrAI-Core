@@ -22,7 +22,7 @@ print_info() {
 # Check for script dependencies
 check_dependencies() {
   print_step "Checking dependencies..."
-  
+
   local missing=0
   for cmd in python3 pip3 npm node; do
     if ! command -v $cmd &> /dev/null; then
@@ -30,28 +30,28 @@ check_dependencies() {
       missing=1
     fi
   done
-  
+
   if [ $missing -eq 1 ]; then
     print_error "Please install missing dependencies and try again"
     exit 1
   fi
-  
+
   print_success "All dependencies found"
 }
 
 # Set up environment variables
 setup_env() {
   print_step "Setting up environment..."
-  
+
   if [ ! -f .env ]; then
     cp env.example .env
     print_success "Created .env file from env.example"
-    
+
     # Set default values for mock mode
     sed -i.bak 's/USE_MOCK=.*/USE_MOCK=true/' .env
     sed -i.bak 's/AUTO_REGISTER_PROVIDERS=.*/AUTO_REGISTER_PROVIDERS=true/' .env
     rm -f .env.bak
-    
+
     print_success "Configured environment for mock mode"
   else
     print_info ".env file already exists. Skipping."
@@ -61,20 +61,20 @@ setup_env() {
 # Install backend dependencies
 install_backend_deps() {
   print_step "Installing backend dependencies..."
-  
+
   pip3 install -r requirements.txt
   if [ $? -ne 0 ]; then
     print_error "Failed to install backend dependencies"
     exit 1
   fi
-  
+
   print_success "Backend dependencies installed"
 }
 
 # Install frontend dependencies
 install_frontend_deps() {
   print_step "Installing frontend dependencies..."
-  
+
   cd frontend
   npm install
   if [ $? -ne 0 ]; then
@@ -82,28 +82,28 @@ install_frontend_deps() {
     exit 1
   fi
   cd ..
-  
+
   print_success "Frontend dependencies installed"
 }
 
 # Start backend in development mode
 start_backend() {
   print_step "Starting backend server..."
-  
+
   cd "$(dirname "$0")"
   cd ..
-  
+
   # Export needed environment variables
   export USE_MOCK=true
   export AUTO_REGISTER_PROVIDERS=true
-  
+
   # Start the backend server
   python3 backend/app.py &
   BACKEND_PID=$!
-  
+
   # Wait for backend to start
   sleep 3
-  
+
   # Check if backend started successfully
   if kill -0 $BACKEND_PID 2>/dev/null; then
     print_success "Backend server started successfully on http://localhost:8000"
@@ -116,16 +116,16 @@ start_backend() {
 # Start frontend in development mode
 start_frontend() {
   print_step "Starting frontend server..."
-  
+
   cd frontend
-  
+
   # Start frontend in background
   npm run dev &
   FRONTEND_PID=$!
-  
+
   # Wait for frontend to start
   sleep 5
-  
+
   # Check if frontend started successfully
   if kill -0 $FRONTEND_PID 2>/dev/null; then
     print_success "Frontend server started successfully"
@@ -135,7 +135,7 @@ start_frontend() {
     print_error "Failed to start frontend server"
     exit 1
   fi
-  
+
   cd ..
 }
 
@@ -160,7 +160,7 @@ show_instructions() {
   echo "└─────────────────────────────────────────────────────────┘"
   echo ""
   echo "Press Ctrl+C to stop the servers when done"
-  
+
   # Keep script running to maintain the background processes
   wait $BACKEND_PID $FRONTEND_PID
 }
@@ -171,7 +171,7 @@ main() {
   echo "║         ULTRA QUICK SETUP          ║"
   echo "╚════════════════════════════════════╝"
   echo ""
-  
+
   check_dependencies
   setup_env
   install_backend_deps

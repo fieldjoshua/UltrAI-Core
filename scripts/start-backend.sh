@@ -21,12 +21,12 @@ MOCK_FLAG=""
 if [[ "$*" == *"--mock"* ]]; then
     MOCK_FLAG="--mock"
     echo "Starting server in MOCK MODE..."
-    
+
     # Check if mock_llm_service.py exists
     if [ ! -f "backend/mock_llm_service.py" ]; then
         echo "ERROR: mock_llm_service.py not found in backend directory."
         echo "Creating mock_llm_service.py now..."
-        
+
         cat > backend/mock_llm_service.py << 'EOF'
 # backend/mock_llm_service.py
 import random
@@ -44,7 +44,7 @@ MOCK_RESPONSES = {
 
 class MockLLMService:
     """Mock implementation of LLM service that returns predefined responses"""
-    
+
     @staticmethod
     async def get_available_models():
         """Return all models as available in mock mode"""
@@ -52,18 +52,18 @@ class MockLLMService:
             "status": "success",
             "available_models": [
                 "gpt4o", "gpto1", "gpto3mini", "gpt4turbo",
-                "claude37", "claude3opus", 
+                "claude37", "claude3opus",
                 "gemini15", "llama3"
             ],
             "errors": {}
         }
-    
+
     @staticmethod
     async def analyze_prompt(prompt, models, ultra_model, pattern):
         """Return mock analysis data"""
         # Add slight delay to simulate API call
         await asyncio.sleep(1)
-        
+
         results = {}
         for model in models:
             # Random timing between 2-5 seconds
@@ -72,13 +72,13 @@ class MockLLMService:
                 "response": MOCK_RESPONSES.get(model, f"Mock response from {model}"),
                 "time_taken": time_taken
             }
-        
+
         # Mock ultra analysis
         ultra_response = f"ULTRA ANALYSIS using {ultra_model} as the base model:\n\nThis is a synthesized view of all model responses for your prompt: '{prompt[:50]}...'"
-        
+
         # Add more realistic delay for Ultra processing
         await asyncio.sleep(2)
-        
+
         return {
             "results": results,
             "ultra_response": ultra_response,
@@ -93,7 +93,8 @@ else
     echo "Starting server in NORMAL mode..."
 fi
 
-# Start the server
-cd backend && python main.py --port $PORT $MOCK_FLAG
+# Start the server using uvicorn
+echo "Starting server with uvicorn..."
+python3 -m uvicorn backend.app:app --reload --port $PORT
 
-echo "Server stopped." 
+echo "Server stopped."

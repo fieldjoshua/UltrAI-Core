@@ -23,7 +23,7 @@ export default function ErrorTest() {
       timestamp: new Date(),
       type
     };
-    
+
     console.log('Adding error:', newError);
     setErrors(prev => [...prev, newError]);
   };
@@ -66,23 +66,23 @@ export default function ErrorTest() {
   return (
     <div className="p-6 max-w-4xl mx-auto bg-gray-100 rounded-lg">
       <h1 className="text-2xl font-bold mb-4">Error Handling Test</h1>
-      
+
       <div className="flex flex-col gap-4 mb-6">
-        <Button 
+        <Button
           onClick={triggerApiError}
           variant="destructive"
         >
           Trigger API Error
         </Button>
-        
-        <Button 
+
+        <Button
           onClick={triggerGeneralError}
           variant="destructive"
         >
           Trigger General Error
         </Button>
-        
-        <Button 
+
+        <Button
           onClick={triggerNetworkError}
           variant="destructive"
         >
@@ -95,4 +95,4 @@ export default function ErrorTest() {
       </div>
     </div>
   )
-} 
+}

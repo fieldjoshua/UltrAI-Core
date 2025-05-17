@@ -13,6 +13,7 @@ This document details the security vulnerabilities identified during the code au
 **Risk:** The credentials are exposed in the codebase, potentially leading to unauthorized access to error monitoring data. Additionally, credential rotation requires code changes.
 
 **Fix:**
+
 ```python
 # Before
 sentry_dsn = "https://abcdef123456@sentry.io/123456"
@@ -35,6 +36,7 @@ else:
 **Risk:** The application might not recognize the correct environment, potentially exposing sensitive error details in production.
 
 **Fix:**
+
 ```python
 # Before
 if sys.env.get("ENVIRONMENT") != "production":
@@ -54,6 +56,7 @@ if os.environ.get("ENVIRONMENT", "development") != "production":
 **Risk:** An attacker could manipulate the application to make requests to internal services or arbitrary external endpoints.
 
 **Fix:**
+
 ```python
 # Create a URL validation utility
 def is_url_allowed(url):
@@ -63,7 +66,7 @@ def is_url_allowed(url):
         "generativelanguage.googleapis.com"
         # Add other legitimate domains
     ]
-    
+
     parsed_url = urlparse(url)
     return any(parsed_url.netloc.endswith(domain) for domain in allowed_domains)
 
@@ -81,6 +84,7 @@ if not is_url_allowed(api_url):
 **Risk:** Information disclosure could help attackers understand the application structure and find additional vulnerabilities.
 
 **Fix:**
+
 ```python
 # Before
 if environment != "production":

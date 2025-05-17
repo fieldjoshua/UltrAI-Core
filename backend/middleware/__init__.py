@@ -4,11 +4,14 @@ Middleware package for the Ultra backend.
 This package contains middleware components for security, authentication, and request handling.
 """
 
-from .auth_middleware import setup_auth_middleware, AuthMiddleware
-from .api_key_middleware import setup_api_key_middleware, ApiKeyMiddleware
-from .csrf_middleware import setup_csrf_middleware, CSRFMiddleware
-from .security_headers_middleware import setup_security_headers_middleware, SecurityHeadersMiddleware
-from .validation_middleware import setup_validation_middleware, ValidationMiddleware
+from .api_key_middleware import ApiKeyMiddleware, setup_api_key_middleware
+from .auth_middleware import AuthMiddleware, setup_auth_middleware
+from .csrf_middleware import CSRFMiddleware, setup_csrf_middleware
+from .security_headers_middleware import (
+    SecurityHeadersMiddleware,
+    setup_security_headers_middleware,
+)
+from .validation_middleware import ValidationMiddleware, setup_validation_middleware
 
 __all__ = [
     "setup_auth_middleware",

@@ -2,7 +2,6 @@ import warnings
 
 import numpy as np
 import pytest
-
 import sklearn
 from sklearn.datasets import load_iris, make_blobs, make_circles
 from sklearn.decomposition import PCA, KernelPCA
