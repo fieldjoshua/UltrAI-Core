@@ -1,11 +1,15 @@
-ICheck Rules
+# AICheck Rules
+
 This document is the controlling reference for all work managed by the AICheck system in this PROJECT. These rules cannot be modified without approval from Joshua Field
 
-1. Core Principles
-   1.1 Defining the Work
-   The PROJECT creates a PROGRAM with specific functions benefiting humanity, built through interrelated ACTIONS performed by EDITORS. Each ACTION is a sub-objective contributing to program functionality.
-   An EDITOR's work has value when it progresses an ACTION toward completion. Efficient, quality work increases an EDITOR's value. EDITORS who understand both their current ACTION and its relationship to the PROGRAM will deliver greater value than those with a narrower perspective.
-   1.2 Documentation First
+## 1. Core Principles
+
+### 1.1 Defining the Work
+
+The PROJECT creates a PROGRAM with specific functions benefiting humanity, built through interrelated ACTIONS performed by EDITORS. Each ACTION is a sub-objective contributing to program functionality.
+An EDITOR's work has value when it progresses an ACTION toward completion. Efficient, quality work increases an EDITOR's value. EDITORS who understand both their current ACTION and its relationship to the PROGRAM will deliver greater value than those with a narrower perspective.
+
+### 1.2 Documentation First
 
 PROJECT objective must be clear to all editors
 All ACTIONS require their own directory with a documented PLAN before implementation
@@ -24,7 +28,7 @@ Product Testing: Tests with enduring relevance → /tests/[CATEGORY]/
 
 When an ACTION is completed, documentation with enduring value must be migrated to the appropriate /documentation/ subdirectory.
 
-1.3 Development Guidelines
+### 1.3 Development Guidelines
 
 Each team member may work on one ActiveAction at a time; complete or pause before switching
 The PROJECT may have multiple concurrent ActiveActions assigned to different team members
@@ -37,7 +41,8 @@ Use Docker-based development when available, with documented alternatives when n
 Document all environment variables and configuration options
 Implementation procedures should reside within the Action's Plan
 
-1.4 Claude Code Integration
+### 1.4 Claude Code Integration
+
 Claude Code functions as an AI engineer within the AICheck workflow, complementing human editors while respecting our documentation-first approach and action-based governance requirements.
 Capabilities
 
@@ -58,9 +63,11 @@ Verify outputs against action requirements
 Document all Claude interactions in ACTION's supporting_docs
 Use standardized prompt templates stored in .aicheck/templates/claude/
 
-2. Glossary and Key Concepts
-   Before proceeding, it is essential to understand the following key terms as used throughout this document:
-   2.1 Core Terminology
+## 2. Glossary and Key Concepts
+
+Before proceeding, it is essential to understand the following key terms as used throughout this document:
+
+### 2.1 Core Terminology
 
 PROJECT: The overall software development initiative governed by these rules; a long-running collaborative effort with defined objectives, teams, and governance structures.
 PROGRAM: The software product being built by the PROJECT; the actual executable system that will be deployed and used by end-users.
@@ -71,14 +78,14 @@ ActiveAction: An ACTION that is currently being worked on by one or more EDITORs
 Process Documentation: Temporary documentation relevant only during an ACTION's lifecycle; stored in the ACTION's supporting_docs directory.
 Product Documentation: Documentation with enduring relevance beyond ACTION completion; stored in the centralized documentation directory.
 
-2.2 Workflow Terminology
+### 2.2 Workflow Terminology
 
 Test-Driven Development (TDD): Development approach where tests are written before implementation code; ensures functionality is well-defined and verifiable.
 Documentation-First: Principle that documentation should be created or updated before code, ensuring clear understanding of objectives.
 Quick Response: Limited exception to standard processes for urgent operational issues; still requires minimal planning and test-first approach.
 Action Lifecycle: The standard progression of an ACTION from creation through planning, implementation, testing, and completion.
 
-2.3 System Components
+### 2.3 System Components
 
 AICheck System: The tooling, processes, and rules that govern the PROJECT's development workflow.
 Claude Code: AI-powered assistant that helps implement ACTIONS following the project's guidelines.
@@ -86,9 +93,11 @@ Supporting Documents: Auxiliary files associated with an ACTION; stored in the A
 Process Tests: Tests specific to an ACTION that are not intended to be part of the long-term test suite.
 Product Tests: Tests with enduring value that are maintained as part of the PROGRAM's test suite.
 
-3. Action Management
-   3.1 AI Editor Scope
-   AI editors may implement without approval:
+## 3. Action Management
+
+### 3.1 AI Editor Scope
+
+AI editors may implement without approval:
 
 Code implementing the ActiveAction plan (after PLAN approval)
 Documentation updates for ActiveAction
@@ -103,7 +112,7 @@ Making substantive changes to any Action
 Modifying any Action Plan
 Creating or modifying Templates
 
-### 3.1.1 Claude Code Boundary Examples
+#### 3.1.1 Claude Code Boundary Examples
 
 **ALLOWED without approval:**
 
@@ -123,13 +132,13 @@ Creating or modifying Templates
 - Changing public interfaces
 - Adding new dependencies
 
-  3.2 Documentation Requirements
+### 3.2 Documentation Requirements
 
 Action plan (PLAN.md)
 Supporting documentation
 Status updates (Not Started, ActiveAction, Completed, Blocked, On Hold)
 
-### 3.2.1 Managing ACTION Dependencies
+#### 3.2.1 Managing ACTION Dependencies
 
 When an ACTION depends on another:
 
@@ -149,7 +158,8 @@ Example dependency declaration:
 - Database: Needs user table migration (migration_003)
 ```
 
-3.3 Claude Code Documentation
+### 3.3 Claude Code Documentation
+
 All Claude Code interactions MUST:
 
 Be stored in .aicheck/actions/[action-name]/supporting_docs/claude-interactions/
@@ -159,7 +169,7 @@ Document any modifications made to Claude-generated content
 Include verification steps performed on Claude-generated outputs
 Note iterations or refinements to prompts
 
-### 3.3.1 Claude Interaction Documentation Format
+#### 3.3.1 Claude Interaction Documentation Format
 
 Each interaction must include:
 
@@ -194,146 +204,92 @@ Each interaction must include:
 [Reason for iterations: Added security constraints]
 ```
 
-4. Project Structure and Organization
-   4.1 Directory Structure
-   /
-   ├── documentation/ # Centralized documentation (single source of truth)
-   │ ├── technical/ # Technical implementation details
-   │ │ ├── claude/ # Claude integration documentation
-   │ │ └── maintainers.yaml # List of technical leads with approval authority
-   │ ├── public/ # User-facing documentation
-   │ ├── planning/ # Strategic planning documents
-   │ ├── vision/ # High-level vision documents
-   │ ├── architecture/ # System design documents
-   │ ├── research/ # Background research
-   │ ├── operations/ # Deployment & operations
-   │ ├── implementation/ # Implementation details
-   │ ├── deliverables/ # Completion records
-   │ ├── status_updates/ # Periodic status reports
-   │ ├── legal/ # Legal documents
-   │ ├── governance/ # Governance documentation
-   │ │ └── board.md # Project Governance Board membership
-   │ └── configuration/ # Configuration documentation
-   ├── src/ # Source code (primary code location)
-   │ ├── frontend/ # Frontend code
-   │ │ └── demos/ # Frontend demos
-   │ └── backend/ # Backend services
-   ├── data/ # Data resources
-   │ └── images/ # Image resources
-   ├── scripts/ # Utility scripts
-   │ └── local/ # Local environment setup scripts
-   ├── tests/ # Test suites
-   │ ├── unit/ # Unit tests for product code
-   │ ├── integration/ # Integration tests
-   │ ├── e2e/ # End-to-end tests
-   │ ├── utils/ # Shared test utilities
-   │ └── fixtures/ # Test data
-   └── .aicheck/ # AICheck system
-   ├── actions/ # Action-specific directories
-   │ └── [action-name]/
-   │ ├── [action-name]-plan.md
-   │ └── supporting_docs/
-   │ ├── process-tests/ # Process-specific tests
-   │ └── claude-interactions/ # Claude Code interaction documents
-   ├── cursor/ # Cursor-specific configurations
-   ├── docs/ # AICheck internal documentation
-   ├── hooks/ # Git hooks
-   ├── insights/ # AI-generated insights
-   ├── sessions/ # AI session data
-   ├── scripts/ # AICheck scripts
-   ├── templates/ # Template files
-   │ └── claude/ # Claude prompt templates
-   └── claude/ # Claude configuration files
-   4.2 Code Structure Clarification
-   The /src directory is the primary location for all code in the project. Both frontend and backend code are contained within this directory, following this structure:
+## 4. Project Structure and Organization
 
-/src/frontend/: All client-side code
-/src/backend/: All server-side code
+### 4.1 Directory Structure
 
-This structure ensures all code is built, tested, and deployed using consistent tooling and processes. Teams must adhere to this structure, and CI checks will enforce this organization.
-4.3 Documentation Structure Clarification
-The /documentation directory is the single source of truth for all product documentation. The .aicheck/docs directory contains only AICheck system-specific internal documentation and should not be used for product documentation. After an ACTION is completed, any documentation with enduring value must be migrated from the ACTION's supporting_docs to the appropriate /documentation subdirectory.
-4.4 Claude Template Structure
-.aicheck/
-└── templates/
-└── claude/
-├── README.md # Template documentation
-├── action-implementation/ # Implementation templates
-│ ├── basic.md # Standard implementation template
-│ └── [specific-patterns].md # Templates for specific patterns
-├── testing/ # Templates for test generation
-│ ├── unit-tests.md # Unit test generation template
-│ ├── integration-tests.md # Integration test template
-│ └── e2e-tests.md # End-to-end test template
-├── documentation/ # Documentation generation templates
-│ ├── action-docs.md # ACTION documentation template
-│ └── api-docs.md # API documentation template
-├── code-review/ # Code review templates
-│ ├── security-review.md # Security review template
-│ └── performance-review.md # Performance review template
-└── migration/ # Migration assistance templates
-├── code-migration.md # Code migration template
-└── test-migration.md # Test migration template
-
-### 4.4.1 Template Version Control
-
-All Claude templates must include:
-
-- Version header (e.g., `<!-- Template Version: 1.2 -->`)
-- Last updated date
-- Change log in template directory README.md
-- Backwards compatibility notes
-- Migration guide for major version changes
-
-Example:
-
-```markdown
-<!-- Template Version: 1.2 -->
-<!-- Last Updated: 2025-05-16 -->
-<!-- Changes: Added error handling section -->
+```text
+/
+├── .aicheck/
+│   ├── actions/                      # All PROJECT ACTIONS
+│   │   └── [action-name]/            # Individual ACTION directory
+│   │       ├── [action-name]-plan.md # ACTION PLAN (requires approval)
+│   │       └── supporting_docs/      # ACTION-specific documentation
+│   │           ├── claude-interactions/  # Claude Code logs
+│   │           ├── process-tests/        # Temporary tests for ACTION
+│   │           └── research/             # Research and notes
+│   ├── current_action                # Current ActionActivity for EDITOR
+│   ├── actions_index.md              # Master list of all ACTIONS
+│   ├── rules.md                      # This document
+│   └── session_log_[date].md         # Daily logs
+├── documentation/                    # Permanent PROJECT documentation
+│   ├── api/                          # API documentation
+│   ├── architecture/                 # System architecture docs
+│   ├── configuration/                # Configuration guides
+│   ├── deployment/                   # Deployment procedures
+│   ├── testing/                      # Testing strategies
+│   └── user/                         # User documentation
+├── tests/                            # Permanent test suite
+│   ├── unit/                         # Unit tests
+│   ├── integration/                  # Integration tests
+│   ├── e2e/                          # End-to-end tests
+│   └── fixtures/                     # Test data and fixtures
 ```
 
-4.5 Critical Files
+### 4.2 Action Directory Structure
 
-RULES.md: This document (controlling reference)
-.aicheck/docs/actions_index.md: Action tracking
-.aicheck/current_action: ActiveAction tracking (currently assigned actions)
-.aicheck/current_session: Current session tracking
-documentation/README.md: Documentation organization reference
-CLAUDE.md: Claude Code integration configuration
-.aicheck/templates/claude/README.md: Claude template documentation
-documentation/technical/maintainers.yaml: List of technical leads with approval authority
-documentation/governance/board.md: Project Governance Board membership
+Each ACTION must follow this structure:
 
-5. Workflow and Processes
-   5.1 Standard AICheck Workflow
+```text
+.aicheck/actions/[action-name]/
+├── [action-name]-plan.md        # ACTION plan (REQUIRED)
+├── progress.md                  # Progress tracking
+├── status.txt                   # Current status and percentage
+└── supporting_docs/             # All ACTION-specific docs
+    ├── claude-interactions/     # Claude Code interactions
+    ├── process-tests/           # ACTION-specific tests
+    ├── research/                # Research and experiments
+    └── diagrams/                # Visual documentation
+```
 
-Start sessions with ./ai start and end with meaningful summaries
-Check status with ./ai status and generate prompts with ./ai prompt
-Create, update, and audit Actions with appropriate commands
-Verify context and compliance before starting work
+## 5. Workflow and Processes
 
-5.2 Claude Code Workflow
-Standard Claude Code workflow:
+### 5.1 Standard Action Lifecycle
 
-Planning: Document ACTION thoroughly in [action-name]-plan.md
-Test Generation: Use Claude Code to create tests based on the PLAN
-Test Approval: Get tests reviewed and approved via pull request or explicit approval tag
-Implementation Planning: Use Claude Code to outline implementation approach
-Implementation: Use Claude Code to assist with code implementation
-Verification: Verify the implementation against the tests and PLAN
-Documentation: Update documentation with implementation details
-Review: Conduct human review of the completed implementation
+1. **Creation**: ACTION directory created with initial PLAN
+2. **Planning**: PLAN.md developed with requirements and approach
+3. **Approval**: Human manager reviews and approves PLAN
+4. **Test Development**: Tests created based on PLAN specifications
+5. **Implementation**: Code written to pass tests
+6. **Documentation**: Updates to relevant documentation
+7. **Review**: Code review and validation
+8. **Completion**: ACTION marked complete, documents migrated
+9. **Archival**: ACTION retained for reference
 
-Use Claude with ./ai claude [command]:
+#### 5.1.1 ACTION Creation Checklist
 
-prompt [template]: Generate prompt from template
-verify [file]: Verify generated content
-document [file]: Document interactions
+When creating a new ACTION:
 
-### 5.2.1 Optimal Claude-Human Collaboration Patterns
+- [ ] Create directory: `.aicheck/actions/[action-name]/`
+- [ ] Create PLAN file: `[action-name]-plan.md`
+- [ ] Add to actions index: `.aicheck/actions_index.md`
+- [ ] Create supporting_docs directory
+- [ ] Define success criteria in PLAN
+- [ ] Specify test requirements
+- [ ] Get PLAN approval
 
-**Pattern 1: Test-Implementation-Document Cycle**
+### 5.2 Claude Code Enhanced Workflow
+
+claude action new [action-name]: Initialize ACTION structure
+claude action test: Generate test specifications
+claude action implement: Generate implementation from tests
+claude prompt [template]: Generate prompt from template
+claude verify [file]: Verify generated content
+claude document [file]: Document interactions
+
+#### 5.2.1 Optimal Claude-Human Collaboration Patterns
+
+### Pattern 1: Test-Implementation-Document Cycle
 
 1. Human: Discuss needs for ACTION
 2. Claude: Generate ACTION directory, propose PLAN and comprehensive tests
@@ -345,7 +301,7 @@ document [file]: Document interactions
 
 **Example Flow:**
 
-```
+```text
 Human: "We need error handling for LLM provider failures"
 Claude: Creates:
   - .aicheck/actions/ErrorHandlingImplementation/
@@ -358,7 +314,7 @@ Claude: Implements circuit breaker, updates tests and docs
 Human: "Approved for completion"
 ```
 
-**Pattern 2: Incremental Enhancement**
+### Pattern 2: Incremental Enhancement
 
 1. Human: Request specific enhancement to existing code
 2. Claude: Analyze current implementation
@@ -368,7 +324,7 @@ Human: "Approved for completion"
 6. Human: Review and iterate
 7. Claude: Update all affected documentation
 
-**Pattern 3: Problem-First Development**
+### Pattern 3: Problem-First Development
 
 1. Human: Describe problem or bug
 2. Claude: Reproduce and analyze issue
@@ -378,7 +334,7 @@ Human: "Approved for completion"
 6. Human: Verify fix resolves issue
 7. Claude: Document resolution
 
-**Pattern 4: Code Review Assistant**
+### Pattern 4: Code Review Assistant
 
 1. Human: Submit code for review
 2. Claude: Analyze for security, performance, style
@@ -386,7 +342,7 @@ Human: "Approved for completion"
 4. Claude: Verify fixes
 5. Document review in supporting_docs/
 
-### 5.2.2 Security Guidelines for Claude Code
+#### 5.2.2 Security Guidelines for Claude Code
 
 When using Claude for security-sensitive code:
 
@@ -397,7 +353,7 @@ When using Claude for security-sensitive code:
 5. Verify generated code against OWASP guidelines
 6. Add security-specific tests for all generated auth code
 
-5.3 Quick Response (Emergency Fix) Protocol
+### 5.3 Quick Response (Emergency Fix) Protocol
 
 For urgent production issues requiring immediate resolution:
 
@@ -423,44 +379,98 @@ For urgent production issues requiring immediate resolution:
    - Emergency fix details
    - Follow-up ACTION reference
 
-5.4 Approval Process
+### 5.4 Approval Process
+
 All approvals are done by Joshua Field
-5.5 Approval Authorities
 
-All approvals must be recorded through:
+### 5.5 Approval Authorities
 
-GitHub/GitLab pull request approval mechanisms
-Explicit approval comments referencing the relevant ACTION
-Digital signatures on critical changes
-Recorded votes for Governance Board decisions
+Joshua Field: Approves all ACTION PLANs and significant changes
 
-5.6 Git Hook Compliance (Phased Approach)
+#### 5.5.1 Multi-Editor Coordination
 
-To ensure practical adoption of AICheck standards while maintaining development velocity, git hooks are implemented in phases:
+When multiple EDITORs work on related ACTIONS:
 
-**Phase 1 (Required - Implemented)**:
+- Daily sync via shared `.aicheck/session_log_[date].md`
+- Integration tests must be co-owned
+- Blocking dependencies tracked in `.aicheck/blockers.md`
+- Resolution requires joint planning sessions
 
-- Commit message format validation (50-char subject, present tense)
-- ACTION directory structure validation for new ACTIONS
-- Basic security checks (existing pre-commit)
-- File format validation (JSON, YAML)
+### 5.6 Git Hook Compliance (Phased Approach)
 
-**Phase 2 (Required - Implemented)**:
+Commit message enforcement is implemented progressively to maintain workflow efficiency while improving compliance:
 
-- Test existence verification for implementation changes
-- Basic documentation completeness checks
-- Status file validation (.aicheck/current_action)
-- ACTION reference in commit messages
+#### Phase 1: Commit Message Validation (Current)
 
-**Phase 3 (Future - Not Required)**:
+1. Enforce character limit (50 chars max)
+2. Present-tense imperative mood
+3. Optional: Warn about missing ACTION references
 
-- Claude interaction logging automation
-- Full PLAN approval workflow integration
-- Comprehensive migration tracking
+#### Phase 2: ACTION Reference Requirements (Future)
+
+1. Require ACTION references in commits
+2. Validate ACTION exists in index
+3. Update ACTION progress automatically
+
+#### Phase 3: Full Integration (Planned)
+
+1. Pre-commit test validation
+2. Documentation checks
+3. Automated documentation migration
+
+### 5.7 Process Documentation Versioning
+
+All PLANs must include version information:
+
+```markdown
+# ACTION: [name]
+Version: 1.0
+Last Updated: 2025-05-16
+Status: ActiveAction
+Progress: 45%
+```
+
+Major changes require version increment and changelog.
+
+### 5.8 AI-Assisted Migration Process
+
+When migrating documentation or tests:
+
+1. Claude: Analyze current location and content
+2. Claude: Propose migration plan with mappings
+3. Human: Review and approve migration plan
+4. Claude: Execute migration with verification
+5. Human: Validate migrated content
+6. Claude: Update all references
+
+### 5.9 Feature Flag Management
+
+For gradual rollouts:
+
+- Document feature flags in ACTION PLAN
+- Test both enabled/disabled states
+- Migration plan for flag removal
+- Performance impact analysis
+
+### 5.10 Dependency Management
+
+External dependencies require:
+
+- Security audit documentation
+- License compatibility check
+- Performance impact assessment
+- Fallback plan if dependency fails
+
+Future Enhancements (Not Currently Implemented):
+
+- Git hook enforcement of ACTION references
+- Automated test migration
+- AI-assisted code review workflows
 - Automated documentation migration
 
-6. Style and Documentation Standards
-   6.1 Documentation Style
+## 6. Style and Documentation Standards
+
+### 6.1 Documentation Style
 
 Use ATX-style headers, fenced code blocks with language specification
 Use bullet points for lists, bold for emphasis
@@ -472,7 +482,8 @@ Follow documentation structure in documentation/README.md
 Separate technical from user-facing documentation
 Document configuration files in documentation/configuration/
 
-6.2 Claude Code Prompt Style
+### 6.2 Claude Code Prompt Style
+
 Claude Code prompts MUST:
 
 Reference specific sections of RULES.md in prompts (using correct capitalization)
@@ -483,7 +494,7 @@ Specify verification criteria
 Use consistent formatting with clear sections
 End with explicit output expectations
 
-6.3 Commit and Status Practices
+### 6.3 Commit and Status Practices
 
 Write commit messages that begin with a present-tense verb
 Keep commit message subject lines under 50 characters (hard limit)
@@ -503,9 +514,11 @@ Add user authentication module [auth-system]
 - Creates login/logout endpoints
 - Includes unit tests for all components
 
-7. Testing Framework
-   7.1 Test-Driven Development
-   ACTIONS MUST have tests written before implementation with coverage for:
+## 7. Testing Framework
+
+### 7.1 Test-Driven Development
+
+ACTIONS MUST have tests written before implementation with coverage for:
 
 Core functionality validation (basic behavior verification)
 Boundary condition tests (validating behavior at threshold values)
@@ -515,7 +528,7 @@ Error handling tests
 Test data SHOULD be maintained in standard locations and formats.
 Test fixtures SHOULD be reused across related ACTIONS when appropriate.
 
-### 7.1.1 Performance Testing Requirements
+#### 7.1.1 Performance Testing Requirements
 
 For ACTIONS affecting system performance:
 
@@ -524,8 +537,10 @@ For ACTIONS affecting system performance:
 - Document performance impact in supporting_docs/performance-impact.md
 - Regression tests for critical paths
 - Claude may suggest performance optimizations with benchmarks
-  7.2 Testing Documentation
-  Organized into:
+
+### 7.2 Testing Documentation
+
+Organized into:
 
 Test Specifications: Inputs, expected outputs, validation criteria
 Testing Strategies: Approaches for different ACTIONS/scenarios
@@ -533,7 +548,8 @@ Test Data Management: Guidelines for test data
 Testing Tools: Documentation of utilities/frameworks
 Test Coverage Reports: Analysis of coverage and gaps
 
-7.3 Test Migration Requirements
+### 7.3 Test Migration Requirements
+
 When tests are migrated, the following requirements MUST be met:
 
 Migration Plan must specify:
@@ -558,7 +574,7 @@ A one-week observation period has passed with no regressions
 
 Version Alignment - Test versions MUST align with the ACTIONS they validate, maintaining traceability
 
-7.4 Test Location Specifications
+### 7.4 Test Location Specifications
 
 Directory Structure:
 
@@ -579,7 +595,8 @@ Test directory structure SHOULD mirror the code structure being tested
 Shared test utilities → tests/utils/
 Test data → tests/fixtures/
 
-7.5 Claude Code Test Generation
+### 7.5 Claude Code Test Generation
+
 Claude Code MAY be used to generate tests for ACTIONS under the following conditions:
 
 The ACTION PLAN must be thoroughly documented before test generation
@@ -594,8 +611,9 @@ Generated tests MUST be validated against the ACTION PLAN
 Generated tests MUST follow the project's testing standards and patterns
 Any manual modifications to generated tests MUST be documented
 
-8. Documentation Organization
-   8.1 Documentation Types and Locations
+## 8. Documentation Organization
+
+### 8.1 Documentation Types and Locations
 
 ACTION Process Documentation (.aicheck/actions/[action-name]/supporting_docs/)
 
@@ -607,198 +625,224 @@ Claude Code interactions in claude-interactions/ subfolder
 Product Documentation (/documentation/[CATEGORY]/)
 
 System architecture and component descriptions
-User guides and API references
-Standards, patterns, best practices
-Configuration and deployment guides
-Reusable Claude Code prompt templates
+Deployment and environment configuration guides
+API references and specifications
+User guides and end-user documentation
 
-Testing Documentation and Code
+ACTION documentation SHOULD be migrated to product documentation directories:
 
-Process Testing: .aicheck/actions/[action-name]/supporting_docs/process-tests/
+WHEN the ACTION is completed, OR
+WHEN documentation has value beyond the ACTION's scope, AND
+WHEN approved by the technical lead
 
-Tests relevant only during ACTION lifecycle
-Temporary test fixtures and data
+### 8.2 Documentation Migration Requirements
 
-Product Testing: /tests/[CATEGORY]/
+Migration from ACTION to product documentation MUST:
 
-Enduring tests beyond ACTION completion
-Testing configuration and guides
-Reusable test fixtures and utilities
+Create a migration ticket in the originating ACTION
+Map source files to destination locations
+Preserve version history (git history preferred)
+Update all internal references and links
+Obtain approval from documentation owner
+Leave forwarding references in ACTION directory
+Add migration notice to ACTION's README
 
-### 8.1.1 Documentation Quality Checklist
+## 9. Language-Specific Standards
 
-All documentation must:
+### 9.1 Python Standards
 
-- [ ] Include creation date and last modified date
-- [ ] Have clear purpose statement in first paragraph
-- [ ] Use consistent formatting per style guide
-- [ ] Include examples for complex concepts
-- [ ] Define any ACTION-specific terminology
-- [ ] Link to related documentation
-- [ ] Pass grammar and spell check
-- [ ] Be reviewed by at least one other team member
+Follow PEP 8 style guide with these specific exceptions:
 
-  8.2 Documentation Migration
-  When an ACTION is completed:
+Line length: 120 characters (not 79)
+Use type hints for all new functions
+Docstrings required for all public functions
+Use Black for code formatting
 
-Evaluate all documentation for enduring value
-Prepare documents for migration by:
+Import order:
 
-Updating ACTION-specific terminology
-Ensuring completeness and accuracy
-Adding appropriate metadata
+1. Standard library imports
+2. Third-party imports
+3. Local application imports
 
-Move relevant documents to appropriate /documentation/ and /tests subdirectories
-Update references and documentation indexes
-Note migrations in ACTION completion record
+### 9.2 JavaScript/TypeScript Standards
 
-A complete Documentation Migration Checklist can be found in documentation/technical/processes/documentation_migration.md
+Use ESLint with the project's configuration
+Prefer TypeScript for new files
+Use Jest for testing
+Follow Airbnb style guide with modifications
+Async/await over promises
+Functional programming patterns where appropriate
 
-### 8.2.1 Migration Rollback Protocol
+### 9.3 Documentation Language
 
-All migrations must include:
+Write in clear, concise English
+Use active voice
+Avoid jargon without explanation
+Include examples for complex concepts
+Maintain consistent terminology
 
-1. Rollback procedure documentation
-2. Data backup before migration
-3. Validation checks post-migration
-4. Automated rollback triggers
-5. Communication plan for failed migrations
+## 10. Implementation Standards
 
-Store in supporting_docs/rollback-procedures.md 9. Development Environment
-9.1 Development Environment Options
-Docker-Based Development
+### 10.1 Environment Configuration
 
-Docker Compose is the recommended method for local development
-All service dependencies should be defined in docker-compose.yml
-Environment variables should be sourced from .env.example with secure defaults
-Volume mounts should preserve data between container restarts
-Development and production environments should be as similar as possible
+Never hard-code credentials or secrets
+Use environment variables for configuration
+Document all required environment variables
+Provide example .env.example file
+Support multiple deployment environments
 
-Non-Docker Alternatives
+### 10.2 Error Handling
 
-Local development without Docker MUST be documented in documentation/technical/local_setup.md
-Alternative setup instructions must include all required dependencies and configuration steps
-Scripts for local environment setup should be provided in the scripts/local/ directory
-Environment variable handling must be consistent across Docker and non-Docker environments
+All errors must include:
 
-9.2 Dependency Management
+Error code for programmatic handling
+Human-readable message
+Suggested resolution steps
+Context about where the error occurred
+Logging at appropriate level
 
-Required dependencies must be documented in requirements.txt or package.json
-Optional dependencies must be clearly marked in documentation
-Code must implement graceful degradation for optional dependencies
-Dependency version ranges should be specified to ensure compatibility
-Security vulnerabilities must be regularly checked and addressed
+### 10.3 Dependency Management
 
-10. AI Editor Philosophy
-    YOU ARE A WORLD CLASS SOFTWARE ENGINEER WHO IS PROUD TO WORK WITH HUMAN EDITORS OF ALL ABILITIES:
+Document all dependencies in appropriate manifest
+Pin major versions for production dependencies
+Regular security audits of dependencies
+Graceful degradation for optional dependencies
+Clear installation instructions
 
-Analyze Context First
+## 11. Version Control Best Practices
 
-Identify language, frameworks, patterns, constraints
-Request missing critical context before coding
-Never assume technical details
+### 11.1 Branching Strategy
 
-Structure Problem Solving
+Main branch is always deployable
+Feature branches for new ACTIONS
+Hotfix branches for emergency fixes
+No direct commits to main
+All changes through pull requests
 
-Restate problem to confirm understanding
-Break problems into components
-Consider edge cases first
-Outline approach before details
+### 11.2 Pull Request Requirements
 
-Implement Robust Error Handling
+Reference ACTION in PR title
+Tests must pass before merge
+Code review required
+Update documentation if needed
+Clean commit history
 
-Handle exceptions specifically
-Validate all inputs at boundaries
-Provide meaningful error messages
-Ensure proper resource cleanup
-Document error conditions
+### 11.3 Commit Best Practices
 
-Code Securely By Default
+Atomic commits (one logical change)
+Present-tense imperative mood
+Reference ACTION and issue numbers
+Explain why, not just what
+Sign commits when required
 
-Sanitize all user inputs
-Parameterize queries
-Avoid insecure functions
-Apply authentication checks
-Use secure defaults
+## 12. Review and Approval Process
 
-Address Performance Proactively
+### 12.1 Pre-Implementation Review
 
-Provide complexity analysis
-Avoid inefficient patterns
-Consider memory usage
-Optimize critical paths
-Document limitations
+ACTION PLAN must be reviewed
+Test specifications approved
+Architecture decisions documented
+Security implications considered
+Performance impact assessed
 
-Write Self-Documenting Code
+### 12.2 Code Review Focus Areas
 
-Use descriptive names
-Follow language conventions
-Structure with logical separation
-Document public interfaces
-Comment complex logic only
+Correctness and functionality
+Security vulnerabilities
+Performance implications
+Code maintainability
+Documentation completeness
+Test coverage
 
-Explain Implementation Decisions
+### 12.3 Post-Implementation Review
 
-Justify approach selection
-Describe trade-offs
-State assumptions
-Suggest improvements
+All tests passing
+Documentation updated
+Dependencies documented
+Deployment instructions clear
+Monitoring in place
 
-Include Testing Approaches
+## 13. Continuous Improvement
 
-Provide unit tests
-Cover edge cases
-Show integration examples
-Explain limitations
+### 13.1 Retrospectives
 
-Reference Sources Properly
+Regular ACTION retrospectives
+Document lessons learned
+Update RULES based on experience
+Share knowledge across team
+Improve tooling and processes
 
-Cite complex implementation sources
-Reference official documentation
-Distinguish standard vs. opinionated approaches
+### 13.2 Metrics and Monitoring
 
-Follow Language Idioms
+Track ACTION completion times
+Monitor test coverage trends
+Measure documentation quality
+Analyze error rates
+Review performance metrics
 
-Use native patterns
-Apply best practices
-Leverage language features
-Conform to style guides
+### 13.3 Tool Development
 
-Build Solutions Progressively
+Create tools to enforce RULES
+Automate repetitive tasks
+Improve developer experience
+Enhance Claude Code integration
+Streamline approval processes
 
-Start with basic implementation
-Add enhancements incrementally
-Explain each enhancement
-Allow complexity choice
+## 14. Compliance and Governance
 
-Provide Integration Context
+### 14.1 Audit Trail
 
-Explain system integration
-Highlight challenges
-Show calling examples
-List dependencies
+All ACTIONS tracked in index
+Decisions documented in PLANs
+Changes tracked in version control
+Reviews recorded in PRs
+Approvals logged appropriately
 
-Consider Cross-Cutting Concerns
+### 14.2 Security Compliance
 
-Address logging needs
-Consider monitoring
-Handle internationalization
-Mention deployment
+Regular security assessments
+Dependency vulnerability scanning
+Access control reviews
+Incident response procedures
+Compliance reporting
 
-Flag Limitations Clearly
+### 14.3 Quality Assurance
 
-Identify unhandled edge cases
-Note performance constraints
-Highlight security considerations
-Acknowledge compromises
+Code quality metrics
+Test coverage requirements
+Documentation standards
+Performance benchmarks
+Accessibility compliance
 
-Match User's Expertise
+## 15. Exception Handling
 
-Explain non-obvious patterns
-Skip basics
-Support learning without condescension
-Provide actionable guidance
+### 15.1 Rule Exceptions
 
-Version
-Version: 2.1
-Last Updated: 2025-05-16
+Must be documented
+Require approval from Joshua Field
+Time-limited when possible
+Reviewed regularly
+Lessons learned captured
+
+### 15.2 Emergency Procedures
+
+Clear escalation path
+Documented in runbooks
+Tested regularly
+Post-incident reviews
+Process improvements
+
+### 15.3 Technical Debt
+
+Tracked as ACTIONS
+Prioritized regularly
+Addressed systematically
+Documented thoroughly
+Reviewed quarterly
+
+---
+
+**Document Version**: 2.0  
+**Last Updated**: 2025-05-16  
+**Owner**: Joshua Field  
+**Next Review**: Quarterly
