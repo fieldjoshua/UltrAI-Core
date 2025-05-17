@@ -2,26 +2,11 @@ services:
   - type: web
     name: ultra-api-v2
     runtime: python
-    buildCommand: "pip install -r requirements-render.txt"
-    startCommand: "gunicorn backend.app_minimal:app"
+    buildCommand: "pip install -r requirements-ultra-minimal.txt"
+    startCommand: "gunicorn app_health_only:app --workers 1 --worker-class uvicorn.workers.UvicornWorker --bind 0.0.0.0:$PORT"
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.0
-      - key: GUNICORN_WORKERS
-        value: 1
-      - key: GUNICORN_BIND
-        value: 0.0.0.0:$PORT
-      - key: GUNICORN_TIMEOUT
-        value: 120
-      - key: GUNICORN_WORKER_CLASS
-        value: uvicorn.workers.UvicornWorker
-      - key: USE_MOCK_REDIS
-        value: true
-      - key: PYTHONPATH
-        value: /opt/render/project/src
-      - key: WEB_CONCURRENCY
-        value: 1
-      - fromGroup: ultra-production-env
 
 envVarGroups:
   - name: ultra-production-env
