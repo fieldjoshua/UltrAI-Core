@@ -1,5 +1,8 @@
 FROM python:3.10-slim-bullseye AS base
 
+# Cache busting - Render deployment
+ARG CACHE_BUST=1737109060
+
 # Set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
@@ -38,7 +41,8 @@ ENV CMAKE_ARGS="-DLLAMA_F16C=OFF"
 RUN --mount=type=cache,target=/root/.cache/pip \
     pip install --no-cache-dir -r requirements-core.txt && \
     pip install --no-cache-dir -r requirements.txt && \
-    pip install --no-cache-dir prometheus-client>=0.19.0 || echo "Warning: Could not install prometheus-client, will use stub implementation"
+    pip install --no-cache-dir prometheus-client>=0.19.0 || echo "Warning: Could not install prometheus-client, will use stub implementation" && \
+    pip install --no-cache-dir gunicorn>=23.0.0
 
 # Install optional dependencies if present
 RUN --mount=type=cache,target=/root/.cache/pip \
@@ -75,10 +79,11 @@ VOLUME ["/app/logs", "/app/document_storage"]
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
     CMD curl --fail http://localhost:8000/api/health || exit 1
 
+
 # Add metadata
 LABEL maintainer="Ultra AI Team" \
       version="${ULTRA_VERSION}" \
       description="Ultra AI Orchestrator for LLM Integration"
 
-# Run dependency check and then start the application with gunicorn
-CMD ["/bin/bash", "-c", "/app/scripts/check_dependencies.sh && gunicorn --config gunicorn_conf.py backend.app:app"]
+# Run the application directly with gunicorn
+CMD ["gunicorn", "--config", "gunicorn_conf.py", "backend.app:app"]
