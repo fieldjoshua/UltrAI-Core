@@ -1,0 +1,40 @@
+services:
+  - type: web
+    name: ultra-api-v2
+    runtime: python
+    buildCommand: "pip install -r requirements-render.txt"
+    startCommand: "gunicorn backend.app:app"
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0
+      - key: GUNICORN_WORKERS
+        value: 1
+      - key: GUNICORN_BIND
+        value: 0.0.0.0:$PORT
+      - key: GUNICORN_TIMEOUT
+        value: 120
+      - key: GUNICORN_WORKER_CLASS
+        value: uvicorn.workers.UvicornWorker
+      - key: USE_MOCK_REDIS
+        value: true
+      - key: PYTHONPATH
+        value: /opt/render/project/src
+      - key: WEB_CONCURRENCY
+        value: 1
+      - fromGroup: ultra-production-env
+
+envVarGroups:
+  - name: ultra-production-env
+    envVars:
+      - key: OPENAI_API_KEY
+        value: # Add your OpenAI API key here
+      - key: ANTHROPIC_API_KEY
+        value: # Add your Anthropic API key here
+      - key: GOOGLE_API_KEY
+        value: # Add your Google API key here
+      - key: JWT_SECRET
+        value: # Add your JWT secret here
+      - key: USE_MOCK
+        value: false
+      - key: ENVIRONMENT
+        value: production
