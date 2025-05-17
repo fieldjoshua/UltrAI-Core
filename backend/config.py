@@ -47,7 +47,7 @@ class Config:
     API_HOST = os.getenv("API_HOST", "0.0.0.0")
     API_PORT = int(os.getenv("API_PORT", "8000"))
     CORS_ORIGINS = os.getenv("CORS_ORIGINS", "*").split(",")
-    SECRET_KEY = os.getenv("SECRET_KEY", "default-dev-secret-key")
+    SECRET_KEY = os.getenv("SECRET_KEY")
 
     # Application paths
     BASE_PATH = str(base_path)
@@ -80,7 +80,7 @@ class Config:
 
     # Authentication
     ENABLE_AUTH = os.getenv("ENABLE_AUTH", "true").lower() == "true"
-    JWT_SECRET = os.getenv("JWT_SECRET", "default-dev-jwt-secret")
+    JWT_SECRET = os.getenv("JWT_SECRET")
     JWT_ALGORITHM = os.getenv("JWT_ALGORITHM", "HS256")
     JWT_ACCESS_TOKEN_EXPIRE_MINUTES = int(
         os.getenv("JWT_ACCESS_TOKEN_EXPIRE_MINUTES", "30")
@@ -114,9 +114,7 @@ class Config:
     SYSTEM_METRICS_INTERVAL = int(os.getenv("SYSTEM_METRICS_INTERVAL", "15"))
 
     # Security
-    API_KEY_ENCRYPTION_KEY = os.getenv(
-        "API_KEY_ENCRYPTION_KEY", "default-dev-encryption-key"
-    )
+    API_KEY_ENCRYPTION_KEY = os.getenv("API_KEY_ENCRYPTION_KEY")
 
     # LLM API Keys (loaded if not in mock mode)
     OPENAI_API_KEY: Optional[str] = None
@@ -155,17 +153,17 @@ class Config:
         """Validate the configuration and load sensitive values"""
         errors = []
 
-        # Check for development secrets in production
+        # Check for required secrets
+        if not cls.SECRET_KEY:
+            errors.append("SECRET_KEY environment variable is required")
+
+        if not cls.JWT_SECRET:
+            errors.append("JWT_SECRET environment variable is required")
+
         if cls.ENVIRONMENT == "production":
-            if cls.SECRET_KEY == "default-dev-secret-key":
-                errors.append("Production environment must have a secure SECRET_KEY")
-
-            if cls.JWT_SECRET == "default-dev-jwt-secret":
-                errors.append("Production environment must have a secure JWT_SECRET")
-
-            if cls.API_KEY_ENCRYPTION_KEY == "default-dev-encryption-key":
+            if not cls.API_KEY_ENCRYPTION_KEY:
                 errors.append(
-                    "Production environment must have a secure API_KEY_ENCRYPTION_KEY"
+                    "API_KEY_ENCRYPTION_KEY is required in production"
                 )
 
             if "*" in cls.CORS_ORIGINS:

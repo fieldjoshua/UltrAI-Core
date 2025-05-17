@@ -38,13 +38,7 @@ logger = logging.getLogger("auth_routes")
 # OAuth2 password bearer for token validation
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
 
-# Test tokens (used for testing only, not for production)
-# Note: These are intentionally not sensitive despite bandit warnings
-TEST_REFRESH_TOKEN = "mock_refresh_token"  # nosec
-TEST_ACCESS_TOKEN = "mock_auth_token"  # nosec
-TEST_USER_ID = "test_user_id"
-TEST_USER_EMAIL = "test@example.com"
-TEST_USER_NAME = "Test User"
+# Test constants should be defined in test files, not in production code
 
 # Common dependencies
 db_dependency = Depends(get_db)
@@ -155,14 +149,7 @@ async def refresh_token(
         TokenResponse with new access and refresh tokens
     """
     try:
-        # Special case for tests
-        if refresh_request.refresh_token == TEST_REFRESH_TOKEN:
-            return {
-                "status": "success",
-                "access_token": "new_" + TEST_ACCESS_TOKEN,
-                "refresh_token": "new_" + TEST_REFRESH_TOKEN,
-                "token_type": "bearer",
-            }
+        # Remove test logic - should be handled in test environment config
 
         # Check if token is blacklisted
         if refresh_request.refresh_token in token_blacklist:
@@ -359,23 +346,7 @@ async def get_current_user(
 
         token = authorization.replace("Bearer ", "")
 
-        # For test_auth_endpoints.py, accept the mock token (if not blacklisted)
-        if token == TEST_ACCESS_TOKEN:
-            # Check if token is blacklisted (for test_logout)
-            if token in token_blacklist:
-                return JSONResponse(
-                    status_code=status.HTTP_401_UNAUTHORIZED,
-                    content={
-                        "status": "error",
-                        "message": "Token has been invalidated",
-                    },
-                    headers={"WWW-Authenticate": "Bearer"},
-                )
-            return {
-                "user_id": TEST_USER_ID,
-                "email": TEST_USER_EMAIL,
-                "name": TEST_USER_NAME,
-            }
+        # Remove test logic - should be handled in test environment config
 
         # Check if token is blacklisted
         if token in token_blacklist:
