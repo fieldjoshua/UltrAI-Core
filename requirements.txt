@@ -155,7 +155,7 @@ pytest-cov==6.0.0
 python-dateutil==2.9.0.post0
 python-docx==1.1.2
 python-dotenv==1.0.0
-python-multipart>=0.0.21
+python-multipart>=0.0.18
 python-pptx==0.6.23
 pytz==2025.2
 PyYAML==6.0.2
@@ -183,7 +183,7 @@ soupsieve==2.6
 SpeechRecognition==3.8.1
 SQLAlchemy==2.0.40
 stack-data==0.6.3
-starlette>=0.45.4
+starlette>=0.40.0,<0.46.0
 stevedore==5.4.1
 sympy==1.14.0
 tenacity
