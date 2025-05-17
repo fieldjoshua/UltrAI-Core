@@ -39,3 +39,19 @@
 - Deploy to Render using render-minimal.yaml
 - Verify health check works in production
 - Document any deployment issues
+
+### Deployment Issues Found
+
+1. **Multiple render config files exist**:
+
+   - `render.yaml` (might be the default)
+   - `render-prod.yaml` (updated but still loading wrong requirements)
+   - `render-minimal.yaml` (our intended minimal config)
+
+2. **Deploy still uses full backend.app**:
+
+   - Despite updating render-prod.yaml
+   - Still installing all dependencies (sqlalchemy, redis, etc.)
+   - Still running `gunicorn backend.app:app`
+
+3. **Solution**: Need to ensure Render uses the correct config file

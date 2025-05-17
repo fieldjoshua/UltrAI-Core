@@ -1,5 +1,5 @@
 services:
-  # Backend API (Minimal)
+  # Backend API (Ultra Minimal - Health Check Only)
   - type: web
     name: ultra-backend
     runtime: python
@@ -11,51 +11,3 @@ services:
       - key: PORT
         value: 10000
     healthCheckPath: /health
-    domains:
-      - api.ultrai.app
-
-  # Frontend
-  - type: web
-    name: ultra-frontend
-    runtime: docker
-    dockerfilePath: ./frontend/Dockerfile
-    envVars:
-      - key: PORT
-        value: 3000
-    domains:
-      - app.ultrai.app
-
-  # PostgreSQL Database
-  - type: pserv
-    name: ultra-postgres
-    runtime: docker
-    dockerImage: postgres:16-alpine
-    envVars:
-      - key: POSTGRES_USER
-        value: ultrauser
-      - key: POSTGRES_DB
-        value: ultra
-      - key: POSTGRES_PASSWORD
-        generateValue: true
-    disk:
-      name: postgres-data
-      mountPath: /var/lib/postgresql/data
-      sizeGB: 10
-
-  # Redis
-  - type: pserv
-    name: ultra-redis
-    runtime: docker
-    dockerImage: redis:7-alpine
-    disk:
-      name: redis-data
-      mountPath: /data
-      sizeGB: 1
-
-envVarGroups:
-  - name: ultra-env
-    envVars:
-      - key: DATABASE_URL
-        value: postgresql://ultrauser:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:5432/ultra
-      - key: REDIS_URL
-        value: redis://${REDIS_HOST}:6379
