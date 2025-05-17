@@ -1,0 +1,29 @@
+FROM python:3.10-slim
+
+# Keep it minimal
+WORKDIR /app
+
+# Install only essential system dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gcc \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy minimal requirements
+COPY requirements-minimal.txt .
+RUN pip install --no-cache-dir -r requirements-minimal.txt
+
+# Copy only essential code
+COPY backend /app/backend
+COPY gunicorn_conf_minimal.py /app/
+
+# Set environment variables
+ENV PYTHONPATH=/app
+ENV USE_MOCK=false
+ENV USE_DOCKER_MODELRUNNER=false
+ENV USE_MOCK_REDIS=true
+
+# Create minimal directories
+RUN mkdir -p /app/logs
+
+# Use single worker with minimal memory
+CMD ["gunicorn", "--workers", "1", "--worker-class", "uvicorn.workers.UvicornWorker", "--bind", "0.0.0.0:10000", "--timeout", "120", "--max-requests", "50", "--max-requests-jitter", "10", "backend.app:app"]
