@@ -37,6 +37,8 @@ All tasks are tracked within this ACTION PLAN only. No external TODO lists are m
 - [ ] Get ACTION plan approved by Joshua Field
 - [x] Create ultra-minimal app.py with no backend dependencies (app_health_only.py created)
 - [x] Test minimal app locally
+- [x] Fix render.yaml to use Python runtime instead of Docker
+- [x] Fix syntax error in base_orchestrator.py
 - [ ] Deploy minimal app to Render
 - [x] Document working configuration (deployment_strategy.md created)
 

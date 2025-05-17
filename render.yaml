@@ -1,17 +1,16 @@
 services:
-  # Backend API
+  # Backend API (Minimal)
   - type: web
     name: ultra-backend
-    runtime: docker
-    dockerfilePath: ./Dockerfile.render-minimal
-    buildCommand: "docker build --no-cache --pull --file Dockerfile.render-minimal . --build-arg CACHEBUST=$(date +%s)"
+    runtime: python
+    buildCommand: "pip install -r requirements-ultra-minimal.txt"
+    startCommand: "gunicorn app_health_only:app --workers 1 --worker-class uvicorn.workers.UvicornWorker --bind 0.0.0.0:$PORT"
     envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0
       - key: PORT
         value: 10000
-      - key: ENVIRONMENT
-        value: production
-      - fromGroup: ultra-env
-    healthCheckPath: /api/health
+    healthCheckPath: /health
     domains:
       - api.ultrai.app
 
