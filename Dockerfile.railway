@@ -37,5 +37,9 @@ USER app
 # Expose port
 EXPOSE 8000
 
-# Use gunicorn for production
-CMD ["gunicorn", "backend.app:app", "--bind", "0.0.0.0:8000", "--workers", "1", "--timeout", "120", "--log-level", "info"]
+# Copy entrypoint
+COPY entrypoint.sh ./
+RUN chmod +x entrypoint.sh
+
+# Use entrypoint script
+ENTRYPOINT ["./entrypoint.sh"]
