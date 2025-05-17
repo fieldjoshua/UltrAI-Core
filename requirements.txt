@@ -43,7 +43,7 @@ email_validator==2.2.0
 eval_type_backport==0.2.0
 executing==2.1.0
 extract-msg==0.28.7
-faiss-cpu==1.10.0
+faiss-cpu==1.11.0
 fastapi==0.115.8
 fastavro==1.10.0
 fastjsonschema==2.20.0
