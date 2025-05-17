@@ -143,7 +143,7 @@ class BaseOrchestrator(ABC):
             "stats": stats,
             "config": {
                 k: v for k, v in self.provider_configs[provider_id].items()
-                if k \!= "api_key"  # Don't include the API key in the returned info
+                if k != "api_key"  # Don't include the API key in the returned info
             }
         }
 
@@ -492,4 +492,3 @@ class BaseOrchestrator(ABC):
             "success_rate": success_rate,
             "error_counts": error_counts,
         }
-EOF < /dev/null
