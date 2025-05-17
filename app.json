@@ -1,0 +1,36 @@
+{
+  "name": "Ultra AI MVP",
+  "description": "Multi-LLM Orchestration Platform",
+  "repository": "https://github.com/fieldjoshua/UltrAI-Core",
+  "logo": "https://raw.githubusercontent.com/fieldjoshua/UltrAI-Core/main/frontend/public/logo.svg",
+  "keywords": ["ai", "llm", "orchestration"],
+  "stack": "container",
+  "env": {
+    "OPENAI_API_KEY": {
+      "description": "Your OpenAI API key",
+      "required": true
+    },
+    "ANTHROPIC_API_KEY": {
+      "description": "Your Anthropic API key",
+      "required": true
+    },
+    "GOOGLE_API_KEY": {
+      "description": "Your Google AI API key",
+      "required": true
+    },
+    "JWT_SECRET": {
+      "description": "Secret for JWT tokens",
+      "generator": "secret"
+    }
+  },
+  "formation": {
+    "web": {
+      "quantity": 1,
+      "size": "basic"
+    }
+  },
+  "addons": [
+    "heroku-postgresql:mini",
+    "heroku-redis:mini"
+  ]
+}
