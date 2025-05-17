@@ -1,0 +1,41 @@
+# Core Web Framework
+fastapi>=0.100.0
+uvicorn[standard]>=0.23.0
+gunicorn>=20.1.0
+starlette>=0.40.0
+python-multipart>=0.0.18
+
+# API Clients & SDKs
+openai>=1.0.0
+anthropic>=0.40.0
+google-generativeai>=0.8.0
+cohere>=5.0.0
+httpx>=0.25.0
+aiohttp>=3.8.0
+requests>=2.32.0
+
+# Database
+sqlalchemy>=2.0.0
+alembic>=1.12.0
+psycopg2-binary>=2.9.0
+
+# Authentication & Security
+PyJWT>=2.8.0
+passlib>=1.7.4
+bcrypt>=4.0.0
+python-jose>=3.3.0
+
+# Core Utilities
+pydantic>=2.3.0
+python-dotenv>=1.0.0
+redis>=5.0.0
+email-validator>=2.0.0
+
+# Monitoring & Logging
+sentry-sdk>=2.0.0
+
+# Basic Dependencies
+certifi>=2024.0.0
+urllib3>=2.0.0
+charset-normalizer>=3.0.0
+click>=8.1.0
