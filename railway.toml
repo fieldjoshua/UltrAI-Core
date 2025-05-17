@@ -1,9 +1,2 @@
-[deploy]
-startCommand = "./entrypoint.sh"
-
 [build]
-dockerfilePath = "Dockerfile.railway"
-
-[[statics]]
-localDir = "frontend/dist"
-urlPath = "/"
+dockerfilePath = "Dockerfile.simple"
