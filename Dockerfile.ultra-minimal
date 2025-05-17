@@ -4,27 +4,14 @@ RUN apk add --no-cache gcc musl-dev libpq-dev
 
 WORKDIR /app
 
-# Copy and install minimal requirements only
-RUN echo "fastapi==0.109.0" > requirements.txt && \
-    echo "uvicorn[standard]==0.27.0" >> requirements.txt && \
-    echo "gunicorn==23.0.0" >> requirements.txt && \
-    echo "httpx==0.25.2" >> requirements.txt && \
-    echo "pydantic==2.5.3" >> requirements.txt && \
-    echo "python-dotenv==1.0.0" >> requirements.txt && \
-    echo "openai==1.6.1" >> requirements.txt && \
-    echo "anthropic==0.40.0" >> requirements.txt && \
-    echo "google-generativeai==0.3.2" >> requirements.txt && \
-    echo "redis==5.0.1" >> requirements.txt && \
-    echo "sqlalchemy==2.0.0" >> requirements.txt && \
-    echo "psycopg2-binary==2.9.0" >> requirements.txt && \
-    echo "PyJWT==2.8.0" >> requirements.txt && \
-    echo "passlib==1.7.4" >> requirements.txt && \
-    echo "email-validator==2.0.0" >> requirements.txt && \
-    pip install -r requirements.txt
+# Copy requirements-minimal.txt and install dependencies
+COPY requirements-minimal.txt /app/
+RUN pip install -r requirements-minimal.txt
 
+# Copy backend code
 COPY backend /app/backend
 
 ENV PYTHONPATH=/app
 ENV GUNICORN_CMD_ARGS="--bind=0.0.0.0:10000 --workers=1 --timeout=120 --worker-class=uvicorn.workers.UvicornWorker"
 
-CMD ["gunicorn", "backend.app:app"]
+CMD ["gunicorn", "backend.app_minimal:app"]
