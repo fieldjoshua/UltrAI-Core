@@ -1,0 +1,24 @@
+# External Dependencies for MVP Routes
+
+## Required External Packages
+
+1. fastapi - Web framework
+2. pydantic - Data validation and models
+3. sqlalchemy - Database ORM
+4. PyJWT - JWT token handling
+5. sse-starlette - Server-sent events
+
+## Additional Backend Dependencies (from imports in routes)
+
+These are imported but are local modules that may have their own dependencies:
+- backend.config.Config
+- backend.database.connection
+- backend.database.models
+- backend.services.* (various services)
+- backend.models.* (various models)
+- backend.utils.* (various utilities)
+- backend.middleware.* (various middleware)
+
+## Summary
+
+The 5 external packages listed above are the core dependencies required for the MVP route files to function properly. These should be included in any minimal requirements.txt for the MVP deployment.

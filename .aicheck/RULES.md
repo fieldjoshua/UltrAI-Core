@@ -33,6 +33,8 @@ When an ACTION is completed, documentation with enduring value must be migrated 
 Each team member may work on one ActiveAction at a time; complete or pause before switching
 The PROJECT may have multiple concurrent ActiveActions assigned to different team members
 
+!!! YOU MAY NOT MISREPRESENT YOU HAVE COMPLETED ELEMENTS OF A PLAN WHEN YOU HAVE NOT. FOLLOWING APPROVED PLANS IS VITAL TO THIS SYSTEM!!!
+
 Follow AICheck directory structure and naming conventions
 Update action status and document progress regularly
 Follow language-specific best practices
@@ -424,6 +426,7 @@ All PLANs must include version information:
 
 ```markdown
 # ACTION: [name]
+
 Version: 1.0
 Last Updated: 2025-05-16
 Status: ActiveAction
