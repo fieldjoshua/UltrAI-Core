@@ -45,6 +45,8 @@ wheels/
 .env.production.local
 *.env
 !.env.example
+.env.production
+.env.render
 
 # Debug logs
 npm-debug.log*
