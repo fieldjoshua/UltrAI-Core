@@ -4,7 +4,7 @@ services:
     name: ultra-backend
     runtime: python
     buildCommand: "pip install -r requirements-ultra-minimal.txt"
-    startCommand: "gunicorn app_health_only:app --workers 1 --worker-class uvicorn.workers.UvicornWorker --bind 0.0.0.0:$PORT"
+    startCommand: "chmod +x scripts/start-render-minimal.sh && ./scripts/start-render-minimal.sh"
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.0
