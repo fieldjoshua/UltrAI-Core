@@ -1,0 +1,39 @@
+{
+  "$schema": "https://railway.app/railway.schema.json",
+  "build": {
+    "builder": "DOCKERFILE",
+    "dockerfilePath": "Dockerfile"
+  },
+  "deploy": {
+    "numReplicas": 1,
+    "restartPolicyType": "ON_FAILURE",
+    "restartPolicyMaxRetries": 10
+  },
+  "services": {
+    "backend": {
+      "build": {
+        "builder": "DOCKERFILE",
+        "dockerfilePath": "Dockerfile"
+      },
+      "deploy": {
+        "numReplicas": 1,
+        "startCommand": "gunicorn backend.app:app -c gunicorn_conf.py"
+      },
+      "envVars": {
+        "PORT": "8000"
+      }
+    },
+    "frontend": {
+      "build": {
+        "builder": "DOCKERFILE",
+        "dockerfilePath": "frontend/Dockerfile"
+      },
+      "deploy": {
+        "numReplicas": 1
+      },
+      "envVars": {
+        "PORT": "3000"
+      }
+    }
+  }
+}
