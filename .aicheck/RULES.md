@@ -842,7 +842,8 @@ Reviewed quarterly
 
 ---
 
-**Document Version**: 2.0  
-**Last Updated**: 2025-05-16  
-**Owner**: Joshua Field  
+**Document Version**: 2.0
+**Last Updated**: 2025-05-16
+**Owner**: Joshua Field
 **Next Review**: Quarterly
+2
