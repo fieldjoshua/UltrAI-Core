@@ -3,8 +3,8 @@ services:
   - type: web
     name: ultra-backend
     runtime: docker
-    dockerfilePath: ./Dockerfile.render-minimal
-    buildCommand: "docker build --no-cache --pull --file Dockerfile.render-minimal ."
+    dockerfilePath: ./Dockerfile.render-clean
+    buildCommand: "docker build --no-cache --pull --file Dockerfile.render-clean ."
     envVars:
       - key: PORT
         value: 10000
