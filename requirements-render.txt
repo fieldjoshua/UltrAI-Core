@@ -50,3 +50,6 @@ diskcache==5.6.3
 # Basic Document Processing
 python-magic==0.4.27
 chardet==5.2.0
+
+# System Monitoring
+psutil==6.1.0
