@@ -1,7 +1,10 @@
-FROM python:3.11-slim
+FROM python:3.11-alpine
 
 # Completely new setup to avoid any caching
 WORKDIR /ultra-app
+
+# Install build dependencies for Alpine
+RUN apk add --no-cache gcc musl-dev libpq-dev
 
 # Copy only our production requirements
 COPY requirements-production.txt ./requirements.txt
