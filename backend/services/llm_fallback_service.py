@@ -13,7 +13,24 @@ from typing import Any, AsyncGenerator, Callable, Dict, List, Optional, Set, Tup
 
 from backend.services.cache_service import cache_service
 from backend.utils.logging import get_logger
-from src.models.circuit_breaker import CircuitBreaker, CircuitBreakerRegistry
+
+# Try importing circuit breaker from various locations
+try:
+    from models.circuit_breaker import CircuitBreaker, CircuitBreakerRegistry
+except ImportError:
+    try:
+        from backend.models.circuit_breaker import CircuitBreaker, CircuitBreakerRegistry
+    except ImportError:
+        # Provide stub implementations if circuit breaker is not available
+        class CircuitBreaker:
+            def __init__(self, *args, **kwargs):
+                pass
+            async def call(self, func):
+                return await func()
+        
+        class CircuitBreakerRegistry:
+            def get_breaker(self, name):
+                return CircuitBreaker()
 
 # Set up logger
 logger = get_logger("llm_fallback", "logs/llm_fallback.log")

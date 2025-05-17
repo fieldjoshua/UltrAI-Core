@@ -28,9 +28,14 @@ class MockLLMService:
         self.use_model_runner = self.config.get("USE_MODEL_RUNNER_FOR_MOCK", False)
         if self.use_model_runner:
             try:
-                from src.models.docker_modelrunner_adapter import (
-                    DockerModelRunnerAdapter,
-                )
+                try:
+                    from models.docker_modelrunner_adapter import (
+                        DockerModelRunnerAdapter,
+                    )
+                except ImportError:
+                    from backend.models.docker_modelrunner_adapter import (
+                        DockerModelRunnerAdapter,
+                    )
 
                 # Create an adapter for the default model
                 default_model = self.config.get("DEFAULT_LOCAL_MODEL", "phi3:mini")
