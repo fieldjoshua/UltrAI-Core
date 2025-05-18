@@ -1,0 +1,23 @@
+# Phase 3 requirements - minimal + database + authentication
+# Based on working phase 2 configuration
+fastapi==0.109.0
+uvicorn[standard]==0.27.0
+gunicorn==23.0.0
+
+# Database dependencies (from phase 2)
+sqlalchemy==2.0.23
+psycopg2-binary==2.9.9
+alembic==1.13.1
+
+# Authentication dependencies (new in phase 3)
+PyJWT==2.8.0
+passlib[bcrypt]==1.7.4
+bcrypt==4.1.2
+email-validator==2.1.0
+
+# Environment management
+python-dotenv==1.0.0
+
+# Core utilities
+pydantic==2.5.3
+pydantic-settings==2.1.0
