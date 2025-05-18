@@ -1,15 +1,13 @@
 services:
-  # Backend API (Phase 3 - Authentication Support)
+  # Backend API (Production - Phase 4/5 Combined)
   - type: web
-    name: ultra-backend
+    name: ultrai-core
     runtime: python
-    buildCommand: "pip install -r requirements-phase3.txt"
-    startCommand: "gunicorn --workers 1 --worker-class uvicorn.workers.UvicornWorker --bind 0.0.0.0:${PORT:-10000} app_with_auth:app"
+    buildCommand: "pip install -r requirements-production.txt"
+    startCommand: "uvicorn app_production:app --host 0.0.0.0 --port $PORT"
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.0
-      - key: PORT
-        value: 10000
       - key: JWT_SECRET
-        value: your-secure-jwt-secret-please-change-in-production
+        generateValue: true
     healthCheckPath: /health
