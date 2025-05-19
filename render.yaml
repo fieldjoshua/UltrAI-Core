@@ -1,5 +1,5 @@
 services:
-  # Backend API (Production - Phase 4/5 Combined)
+  # Backend API (Already deployed)
   - type: web
     name: ultrai-core
     runtime: python
@@ -11,3 +11,27 @@ services:
       - key: JWT_SECRET
         generateValue: true
     healthCheckPath: /health
+    
+  # Frontend Static Site
+  - type: web
+    name: ultrai-frontend
+    runtime: static
+    buildCommand: "cd frontend && npm install && npm run build"
+    staticPublishPath: frontend/dist
+    headers:
+      - path: /*
+        name: X-Frame-Options
+        value: SAMEORIGIN
+      - path: /*
+        name: X-Content-Type-Options
+        value: nosniff
+      - path: /*
+        name: X-XSS-Protection
+        value: 1; mode=block
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    envVars:
+      - key: VITE_API_URL
+        value: https://ultrai-core.onrender.com
