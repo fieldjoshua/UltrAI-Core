@@ -19,6 +19,7 @@ from sqlalchemy import (
     String,
     Text,
     create_engine,
+    text,
 )
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import Session, relationship, sessionmaker
@@ -210,12 +211,12 @@ class UserResponse(BaseModel):
 
 # Endpoints
 @app.get("/")
-@cache_result(expire_time=3600)
 async def root():
     return {
         "status": "production",
         "phase": "4-5",
         "features": ["auth", "database", "cache"],
+        "docs": "/docs",
     }
 
 
@@ -226,7 +227,7 @@ async def health():
     # Check database
     try:
         db = SessionLocal()
-        db.execute("SELECT 1")
+        db.execute(text("SELECT 1"))
         checks["database"] = "connected"
     except Exception as e:
         checks["database"] = f"error: {str(e)}"
@@ -234,14 +235,14 @@ async def health():
         db.close()
 
     # Check Redis
-    try:
-        if redis_available:
+    if redis_available:
+        try:
             redis_client.ping()
             checks["cache"] = "connected"
-        else:
-            checks["cache"] = "not configured"
-    except Exception as e:
-        checks["cache"] = f"error: {str(e)}"
+        except Exception as e:
+            checks["cache"] = f"error: {str(e)}"
+    else:
+        checks["cache"] = "not configured"
 
     return {"status": "ok", "services": checks}
 
