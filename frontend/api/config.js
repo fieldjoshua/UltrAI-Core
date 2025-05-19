@@ -8,6 +8,12 @@ const API_PORTS = [8087, 8088, 8085, 8086, 8089];
 // Default API base URL template
 const API_BASE_URL_TEMPLATE = 'http://localhost:PORT';
 
+// Production API URL
+const PRODUCTION_API_URL = 'https://ultrai-core.onrender.com';
+
+// Check if running in production
+const isProduction = import.meta?.env?.PROD || process.env.NODE_ENV === 'production';
+
 // Time to cache server availability check (5 seconds)
 const SERVER_CACHE_TIME = 5000;
 
@@ -92,6 +98,12 @@ export const findAvailableServer = async () => {
  * @returns {Promise<string>} The base URL for the API
  */
 export const getApiBaseUrl = async () => {
+  // In production, always use the production URL
+  if (isProduction) {
+    return PRODUCTION_API_URL;
+  }
+  
+  // In development, try to find an available local server
   try {
     return await findAvailableServer();
   } catch (error) {
