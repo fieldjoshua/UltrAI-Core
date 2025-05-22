@@ -1,5 +1,5 @@
 services:
-  # Backend API with integrated frontend
+  # Backend API with integrated frontend (no frontend build needed)
   - type: web
     name: ultrai-core
     runtime: python
@@ -10,4 +10,10 @@ services:
         value: 3.11.0
       - key: JWT_SECRET
         generateValue: true
+      - key: NODE_ENV
+        value: production
     healthCheckPath: /health
+    # Disable automatic Node.js detection
+    ignoredPaths:
+      - frontend/
+      - frontend/**
