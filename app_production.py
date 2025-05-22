@@ -211,14 +211,9 @@ class UserResponse(BaseModel):
 
 
 # Endpoints
-@app.get("/")
-async def root():
-    return {
-        "status": "production",
-        "phase": "4-5",
-        "features": ["auth", "database", "cache"],
-        "docs": "/docs",
-    }
+# Root route removed to allow frontend static files to be served
+# The frontend is now served at the root URL
+# API documentation available at /docs
 
 
 @app.get("/health")

@@ -6,11 +6,11 @@ This document tracks all ACTIONS in the PROJECT. All ACTIONS must be registered 
 
 | ACTION | Owner | Status | Progress | Description |
 |--------|-------|--------|----------|-------------|
-| action-directory-cleanup | | In Progress | 50% | Consolidate and archive legacy actions, update index to reflect MVP priorities |
-| full-stack-documentation | | In Progress | 20% | Create comprehensive documentation for UltraAI Core MVP production system |
-| frontend-deployment-fix | | Not Started | 0% | **URGENT**: Fix non-functional frontend deployment at ultrai-frontend.onrender.com |
-| deep-debugging-frontend-issue | | Not Started | 0% | Debug and resolve frontend connectivity issues |
-| frontend-backend-connectivity-fix | | Not Started | 0% | Fix frontend-backend communication for full MVP functionality |
+| frontend-deployment-fix | | In Progress | 0% | **PRIORITY #1**: Fix non-functional frontend deployment at ultrai-frontend.onrender.com |
+| frontend-backend-connectivity-fix | | Not Started | 0% | **PRIORITY #2**: Fix frontend-backend communication for full MVP functionality |
+| security-vulnerability-fix | | Not Started | 0% | **PRIORITY #3**: Fix 33 security vulnerabilities (4 critical, 14 high) |
+| full-stack-documentation | | On Hold | 20% | Create comprehensive documentation for UltraAI Core MVP production system |
+| deep-debugging-frontend-issue | | Not Started | 0% | Debug and resolve frontend connectivity issues (may be covered by above) |
 
 ## Completed Actions
 
@@ -18,6 +18,7 @@ This document tracks all ACTIONS in the PROJECT. All ACTIONS must be registered 
 |--------|-------|-----------------|-------------|
 | mvp-minimal-deployment | | 2025-05-17 | Created minimal deployment configuration for Render (100% complete) |
 | production-validation-tests | | 2025-05-22 | Validated MVP production readiness with 100% test success rate |
+| action-directory-cleanup | | 2025-05-22 | Reduced actions from 96 to 10, established clear MVP priorities |
 
 ## Enhancement Actions (Future Roadmap)
 
@@ -43,5 +44,10 @@ Last Updated: 2025-05-22
 ## Notes
 
 - **MVP Status**: Backend is production-ready at `https://ultrai-core.onrender.com/`
-- **Critical Issue**: Frontend deployment needs immediate attention
-- **Priority Focus**: Fix frontend, complete documentation, then consider enhancements
+- **Security Alert**: 33 vulnerabilities identified - will address after frontend is functional
+- **Priority Order**:
+  1. Frontend deployment fix (users can't access system)
+  2. Frontend-backend connectivity
+  3. Security vulnerability fixes
+  4. Documentation completion
+- **Rationale**: Working frontend needed to properly test security updates
