@@ -217,6 +217,19 @@ class UserResponse(BaseModel):
 # API documentation available at /docs
 
 
+@app.get("/debug/frontend-path")
+async def debug_frontend_path():
+    """Debug endpoint to check frontend path resolution"""
+    import os
+    current_dir = os.path.dirname(__file__)
+    frontend_dist = os.path.join(current_dir, "frontend", "dist")
+    return {
+        "current_dir": current_dir,
+        "frontend_dist_path": frontend_dist,
+        "exists": os.path.exists(frontend_dist),
+        "contents": os.listdir(frontend_dist) if os.path.exists(frontend_dist) else "Not found"
+    }
+
 @app.get("/health")
 async def health():
     checks = {"api": "ok", "database": "checking", "cache": "checking"}
