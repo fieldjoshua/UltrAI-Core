@@ -1,0 +1,12 @@
+{
+  "timestamp": "2025-05-22T02:13:53.930910",
+  "base_url": "https://ultrai-core.onrender.com",
+  "tests_passed": 14,
+  "tests_failed": 0,
+  "errors": [],
+  "performance": {
+    "health_endpoint": 0.11744999885559082,
+    "user_registration": 0.46640992164611816,
+    "user_login": 0.5545699596405029
+  }
+}
