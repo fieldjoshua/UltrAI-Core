@@ -3,7 +3,7 @@ services:
   - type: web
     name: ultrai-core
     runtime: python
-    buildCommand: "pip install -r requirements-minimal-frontend.txt"
+    buildCommand: "pip install fastapi uvicorn python-multipart"
     startCommand: "uvicorn app_minimal_frontend:app --host 0.0.0.0 --port $PORT"
     envVars:
       - key: PYTHON_VERSION
