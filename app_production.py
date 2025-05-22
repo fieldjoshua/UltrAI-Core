@@ -9,6 +9,7 @@ import redis
 from fastapi import Depends, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from fastapi.staticfiles import StaticFiles
 from passlib.context import CryptContext
 from pydantic import BaseModel, EmailStr
 from sqlalchemy import (
@@ -524,3 +525,11 @@ async def get_available_models():
             "claude-3-haiku",
         ],
     }
+
+
+# Mount frontend static files at the end (after all API routes)
+try:
+    app.mount("/", StaticFiles(directory="frontend/dist", html=True), name="frontend")
+except (RuntimeError, FileNotFoundError):
+    # Frontend dist not found, continue without it
+    pass
