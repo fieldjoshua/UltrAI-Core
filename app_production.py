@@ -494,12 +494,8 @@ class OrchestratorRequest(BaseModel):
 @app.post("/api/orchestrator/execute")
 async def execute_orchestrator(
     request: OrchestratorRequest,
-    credentials: HTTPAuthorizationCredentials = Depends(security),
-    db: Session = Depends(get_db),
 ):
     """Execute orchestrator request"""
-    user = verify_user(credentials, db)
-
     # In production, this would call actual orchestrator
     result = {
         "status": "success",
@@ -511,14 +507,6 @@ async def execute_orchestrator(
             "response": f"Mock orchestrator response for prompt: {request.prompt}",
         },
     }
-
-    # Cache result if Redis available
-    if redis_available:
-        cache_key = f"orchestrator:{user.id}:{request.prompt}"
-        try:
-            redis_client.setex(cache_key, 300, json.dumps(result))
-        except Exception as e:
-            print(f"Cache error: {e}")
 
     return result
 

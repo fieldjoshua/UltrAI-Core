@@ -36,8 +36,8 @@ const SimpleAnalysis: React.FC = () => {
 
   // Models state
   const [availableModels, setAvailableModels] = useState<string[]>([]);
-  const [selectedModels, setSelectedModels] = useState<string[]>(['gpt4o']);
-  const [primaryModel, setPrimaryModel] = useState<string>('gpt4o');
+  const [selectedModels, setSelectedModels] = useState<string[]>(['gpt-4']);
+  const [primaryModel, setPrimaryModel] = useState<string>('gpt-4');
 
   // Analysis patterns from documentation
   const [patterns, setPatterns] = useState<AnalysisPattern[]>([
@@ -130,9 +130,9 @@ const SimpleAnalysis: React.FC = () => {
         setAvailableModels(models);
 
         // Set default selections if available in the fetched models
-        if (models.includes('gpt4o')) {
-          setSelectedModels(['gpt4o']);
-          setPrimaryModel('gpt4o');
+        if (models.includes('gpt-4')) {
+          setSelectedModels(['gpt-4']);
+          setPrimaryModel('gpt-4');
         } else if (models.length > 0) {
           setSelectedModels([models[0]]);
           setPrimaryModel(models[0]);
@@ -140,7 +140,7 @@ const SimpleAnalysis: React.FC = () => {
       } catch (err) {
         console.error('Failed to fetch models:', err);
         // Fallback to some default models
-        setAvailableModels(['gpt4o', 'claude37', 'gemini15', 'llama3']);
+        setAvailableModels(['gpt-4', 'gpt-3.5-turbo', 'claude-3-opus', 'claude-3-sonnet', 'claude-3-haiku']);
       } finally {
         setModelsLoading(false);
       }
@@ -218,12 +218,28 @@ const SimpleAnalysis: React.FC = () => {
       if (result.model_responses) {
         for (const model in result.model_responses) {
           // Handle both string and object formats for backwards compatibility
-          const response =
-            typeof result.model_responses[model] === 'string'
-              ? result.model_responses[model]
-              : result.model_responses[model]?.content ||
-                result.model_responses[model]?.response ||
-                JSON.stringify(result.model_responses[model]);
+          let response: string;
+          const modelResponseData = result.model_responses[model];
+          
+          if (typeof modelResponseData === 'string') {
+            response = modelResponseData;
+          } else if (modelResponseData && typeof modelResponseData === 'object') {
+            // Try common response fields
+            response = modelResponseData.content ||
+                      modelResponseData.response ||
+                      modelResponseData.text ||
+                      modelResponseData.message ||
+                      'Response format not recognized';
+            
+            // If still object, stringify it properly
+            if (typeof response === 'object') {
+              response = JSON.stringify(response, null, 2);
+            }
+          } else {
+            response = `No response from ${model}`;
+          }
+          
+          console.log(`Response from ${model}:`, response);
 
           individualResponses.push({
             model,

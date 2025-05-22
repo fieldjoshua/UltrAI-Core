@@ -22,12 +22,12 @@ def available_models():
         {
             "status": "success",
             "available_models": [
-                "gpt-4o",
-                "gpt-4-turbo",
-                "gpt-3.5-turbo",
-                "claude-3-opus",
-                "claude-3-sonnet",
-                "gemini-pro",
+                "gpt4o",
+                "gpt4turbo",
+                "claude3opus",
+                "claude3sonnet",
+                "gemini15flash",
+                "gemini15pro",
             ],
         }
     )
@@ -44,25 +44,18 @@ def analyze():
 
         logger.debug(f"Request data: {request_data}")
 
-        # Create response data
+        # Create response data matching frontend expectations
         response_data = {
             "status": "success",
-            "analysis_id": "analysis_123456789",
-            "results": {
-                "model_responses": {
-                    model: {
-                        "response": f"Mock response from {model} for prompt: {prompt[:50]}...",
-                        "time_taken": 2.5,
-                        "tokens_used": 150,
-                    }
-                    for model in selected_models
-                },
-                "ultra_response": f"Ultra analysis using {ultra_model} model for prompt: {prompt[:50]}...\n\nThis is a combined view of all model responses.",
-                "performance": {
-                    "total_time_seconds": 5.0,
-                    "model_times": {model: 2.5 for model in selected_models},
-                    "token_counts": {model: 150 for model in selected_models},
-                },
+            "model_responses": {
+                model: f"Mock response from {model} for prompt: '{prompt[:50]}{'...' if len(prompt) > 50 else ''}'\n\nThis is a simulated response that would normally come from the {model} AI model. In a real scenario, this would contain the actual analysis, insights, and answers provided by the model."
+                for model in selected_models
+            },
+            "ultra_response": f"Ultra Analysis Summary\n{'='*50}\n\nPrompt: {prompt}\nModels Used: {', '.join(selected_models)}\nPrimary Model: {ultra_model}\n\nCombined Analysis:\nThis is the Ultra AI synthesis that combines insights from all selected models. It would normally provide a comprehensive analysis that leverages the strengths of each model to give you the best possible response.\n\nKey Points:\n- Mock response from {len(selected_models)} model(s)\n- Using {ultra_model} as the primary reasoning model\n- This demonstrates the multi-model analysis capability",
+            "performance": {
+                "total_time_seconds": 3.2,
+                "model_times": {model: 1.5 for model in selected_models},
+                "token_counts": {model: {"prompt_tokens": 25, "completion_tokens": 150, "total_tokens": 175} for model in selected_models},
             },
         }
 

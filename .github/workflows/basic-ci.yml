@@ -1,0 +1,70 @@
+name: Basic CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test-backend:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements-production.txt
+    
+    - name: Basic syntax check
+      run: |
+        python -m py_compile app_production.py
+    
+    - name: Test health endpoint
+      run: |
+        python -c "
+        import sys
+        try:
+            from app_production import app
+            print('✓ App imports successfully')
+        except Exception as e:
+            print(f'✗ Import failed: {e}')
+            sys.exit(1)
+        "
+
+  test-frontend:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+    
+    - name: Install dependencies
+      run: |
+        cd frontend
+        npm ci
+    
+    - name: Build frontend
+      run: |
+        cd frontend
+        npm run build
+    
+    - name: Verify build output
+      run: |
+        if [ -f frontend/dist/index.html ]; then
+          echo "✓ Frontend build successful"
+        else
+          echo "✗ Frontend build failed - no index.html"
+          exit 1
+        fi

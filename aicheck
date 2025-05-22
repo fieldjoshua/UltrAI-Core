@@ -1,0 +1,587 @@
+#!/bin/bash
+
+# AICheck command script
+# Provides the core functionality for AICheck MCP
+
+set -e
+
+CMD=$1
+shift
+ARGS=$@
+
+GREEN="\033[0;32m"
+NEON_BLURPLE="\033[38;5;99m"      # Neon blurple highlight color
+BRIGHT_BLURPLE="\033[38;5;135m"   # Bright blurple for text
+YELLOW="\033[0;33m"
+RED="\033[0;31m"
+CYAN="\033[0;36m"
+NC="\033[0m" # No Color
+
+# Function to create a new action
+function create_action() {
+  local action_name=$1
+  
+  if [ -z "$action_name" ]; then
+    echo -e "${RED}Error: Action name is required${NC}"
+    echo "Usage: ./aicheck action new ACTION_NAME"
+    exit 1
+  fi
+  
+  # Convert PascalCase to kebab-case for directories (compatible with macOS)
+  local dir_name=$(echo "$action_name" | sed 's/\([a-z0-9]\)\([A-Z]\)/\1-\2/g' | tr '[:upper:]' '[:lower:]')
+  
+  # Create action directory
+  mkdir -p ".aicheck/actions/$dir_name"
+  mkdir -p ".aicheck/actions/$dir_name/supporting_docs/claude-interactions"
+  mkdir -p ".aicheck/actions/$dir_name/supporting_docs/process-tests"
+  mkdir -p ".aicheck/actions/$dir_name/supporting_docs/research"
+  
+  # Create plan file
+  cat > ".aicheck/actions/$dir_name/$dir_name-plan.md" << PLAN
+# ACTION: $action_name
+
+Version: 1.0
+Last Updated: $(date +"%Y-%m-%d")
+Status: Not Started
+Progress: 0%
+
+## Purpose
+
+[Describe the purpose of this ACTION and its value to the PROGRAM]
+
+## Requirements
+
+- [Requirement 1]
+- [Requirement 2]
+
+## Dependencies
+
+- [Dependency 1, if any]
+
+## Implementation Approach
+
+### Phase 1: Research
+
+- [Research task 1]
+- [Research task 2]
+
+### Phase 2: Design
+
+- [Design task 1]
+- [Design task 2]
+
+### Phase 3: Implementation
+
+- [Implementation task 1]
+- [Implementation task 2]
+
+### Phase 4: Testing
+
+- [Test case 1]
+- [Test case 2]
+
+## Success Criteria
+
+- [Criterion 1]
+- [Criterion 2]
+
+## Estimated Timeline
+
+- Research: [X days]
+- Design: [X days]
+- Implementation: [X days]
+- Testing: [X days]
+- Total: [X days]
+
+## Notes
+
+[Any additional notes or considerations]
+PLAN
+  
+  # Create status file
+  echo "Not Started" > ".aicheck/actions/$dir_name/status.txt"
+  
+  # Create progress file
+  echo "# $action_name Progress
+
+## Updates
+
+$(date +"%Y-%m-%d") - Action created
+
+## Tasks
+
+- [ ] Research phase
+- [ ] Design phase
+- [ ] Implementation phase
+- [ ] Testing phase
+- [ ] Documentation
+" > ".aicheck/actions/$dir_name/progress.md"
+  
+  # Update actions_index.md
+  # Get the line number of the "Active Actions" table's end
+  line_num=$(grep -n "\| \*None yet\* \| \| \| \| \|" .aicheck/actions_index.md | cut -d':' -f1)
+  
+  if [ -n "$line_num" ]; then
+    # Replace the "None yet" line with the new action
+    sed -i "" "$line_num s/| \*None yet\* | | | | |/| $action_name | | Not Started | 0% | |\n| \*None yet\* | | | | |/" .aicheck/actions_index.md
+  else
+    # Append to the Active Actions table
+    line_num=$(grep -n "## Active Actions" .aicheck/actions_index.md | cut -d':' -f1)
+    if [ -n "$line_num" ]; then
+      awk -v line="$line_num" -v action="| $action_name | | Not Started | 0% | |" 'NR==line+4{print action}1' .aicheck/actions_index.md > .aicheck/actions_index.md.tmp
+      mv .aicheck/actions_index.md.tmp .aicheck/actions_index.md
+    fi
+  fi
+  
+  # Update last updated date
+  sed -i "" "s/\*Last Updated: .*\*/\*Last Updated: $(date +"%Y-%m-%d")\*/" .aicheck/actions_index.md
+  
+  echo -e "${GREEN}✓ Created new ACTION: $action_name${NC}"
+  echo -e "${BRIGHT_BLURPLE}Directory: .aicheck/actions/$dir_name${NC}"
+  echo -e "${YELLOW}NOTE: This ACTION requires planning and approval before implementation${NC}"
+}
+
+# Function to set the active action
+function set_active_action() {
+  local action_name=$1
+  
+  if [ -z "$action_name" ]; then
+    echo -e "${RED}Error: Action name is required${NC}"
+    echo "Usage: ./aicheck action set ACTION_NAME"
+    exit 1
+  fi
+  
+  # Convert PascalCase to kebab-case for directories (compatible with macOS)
+  local dir_name=$(echo "$action_name" | sed 's/\([a-z0-9]\)\([A-Z]\)/\1-\2/g' | tr '[:upper:]' '[:lower:]')
+  
+  # Check if action exists
+  if [ ! -d ".aicheck/actions/$dir_name" ]; then
+    echo -e "${RED}Error: Action '$action_name' does not exist${NC}"
+    echo "Available actions:"
+    ls -1 .aicheck/actions/ | grep -v "README"
+    exit 1
+  fi
+  
+  # Set as current action
+  echo "$action_name" > .aicheck/current_action
+  
+  # Update status to ActiveAction if not already
+  if [ "$(cat ".aicheck/actions/$dir_name/status.txt")" != "ActiveAction" ]; then
+    echo "ActiveAction" > ".aicheck/actions/$dir_name/status.txt"
+    
+    # Update actions_index.md
+    sed -i "" "s/| $action_name | .* | [^|]* | [^|]* | /| $action_name | | ActiveAction | 0% | /" .aicheck/actions_index.md
+    
+    # Update last updated date
+    sed -i "" "s/\*Last Updated: .*\*/\*Last Updated: $(date +"%Y-%m-%d")\*/" .aicheck/actions_index.md
+  fi
+  
+  echo -e "${GREEN}✓ Set current action to: $action_name${NC}"
+}
+
+# Function to complete an action
+function complete_action() {
+  local action_name=$1
+  
+  # If no action name is provided, use the current action
+  if [ -z "$action_name" ]; then
+    if [ -f ".aicheck/current_action" ]; then
+      action_name=$(cat .aicheck/current_action)
+    fi
+  fi
+  
+  if [ -z "$action_name" ] || [ "$action_name" = "None" ] || [ "$action_name" = "AICheckExec" ]; then
+    echo -e "${RED}Error: No action specified and no current action set${NC}"
+    echo "Usage: ./aicheck action complete [ACTION_NAME]"
+    exit 1
+  fi
+  
+  # Convert PascalCase to kebab-case for directories (compatible with macOS)
+  local dir_name=$(echo "$action_name" | sed 's/\([a-z0-9]\)\([A-Z]\)/\1-\2/g' | tr '[:upper:]' '[:lower:]')
+  
+  # Check if action exists
+  if [ ! -d ".aicheck/actions/$dir_name" ]; then
+    echo -e "${RED}Error: Action '$action_name' does not exist${NC}"
+    echo "Available actions:"
+    ls -1 .aicheck/actions/ | grep -v "README"
+    exit 1
+  fi
+  
+  # Verify dependencies
+  echo -e "${BRIGHT_BLURPLE}Verifying dependencies for $action_name...${NC}"
+  
+  local has_dependencies=0
+  if [ -f "documentation/dependencies/dependency_index.md" ]; then
+    # Check for dependencies in the dependency index
+    if grep -q "$action_name" documentation/dependencies/dependency_index.md; then
+      has_dependencies=1
+      echo -e "${GREEN}✓ Dependencies documented for $action_name${NC}"
+      
+      # Display documented dependencies
+      echo -e "${BRIGHT_BLURPLE}Dependencies documented:${NC}"
+      grep -A 1 -B 1 "$action_name" documentation/dependencies/dependency_index.md
+    fi
+  fi
+  
+  # Check for imports in code files
+  local imports_found=0
+  local deps_dir=".aicheck/actions/$dir_name"
+  
+  if [ -d "$deps_dir" ]; then
+    # Look for Python imports
+    if find "$deps_dir" -type f -name "*.py" | xargs grep -l "^import\|^from .* import" 2>/dev/null; then
+      imports_found=1
+    fi
+    
+    # Look for JS/TS imports
+    if find "$deps_dir" -type f -name "*.js" -o -name "*.ts" -o -name "*.jsx" -o -name "*.tsx" | xargs grep -l "^import\|require(" 2>/dev/null; then
+      imports_found=1
+    fi
+  fi
+  
+  if [ $imports_found -eq 1 ] && [ $has_dependencies -eq 0 ]; then
+    echo -e "${YELLOW}WARNING: Code imports found but no dependencies documented.${NC}"
+    echo -e "${YELLOW}Please document dependencies with:${NC}"
+    echo -e "${YELLOW}./aicheck dependency add NAME VERSION JUSTIFICATION $action_name${NC}"
+    echo -e "${YELLOW}Continue anyway? (y/n)${NC}"
+    read -r continue_anyway
+    
+    if [[ $continue_anyway != "y" && $continue_anyway != "Y" ]]; then
+      echo -e "${YELLOW}Action completion aborted. Please document dependencies first.${NC}"
+      exit 0
+    fi
+  fi
+  
+  # Update action status
+  echo "Completed" > ".aicheck/actions/$dir_name/status.txt"
+  
+  # Update progress to 100%
+  sed -i "" "s/Progress: .*%/Progress: 100%/" ".aicheck/actions/$dir_name/$dir_name-plan.md"
+  
+  # Update actions_index.md
+  # First, remove from Active Actions
+  sed -i "" "/| $action_name | .* | [^|]* | [^|]* | .*|/d" .aicheck/actions_index.md
+  
+  # Then, add to Completed Actions
+  # Get the line number of the "Completed Actions" table's end
+  line_num=$(grep -n "\| \*None yet\* \| \| \| \|" .aicheck/actions_index.md | sed -n '2p' | cut -d':' -f1)
+  
+  if [ -n "$line_num" ]; then
+    # Replace the "None yet" line with the new action
+    sed -i "" "$line_num s/| \*None yet\* | | | |/| $action_name | | $(date +"%Y-%m-%d") | |\n| \*None yet\* | | | |/" .aicheck/actions_index.md
+  else
+    # Append to the Completed Actions table
+    line_num=$(grep -n "## Completed Actions" .aicheck/actions_index.md | cut -d':' -f1)
+    if [ -n "$line_num" ]; then
+      awk -v line="$line_num" -v action="| $action_name | | $(date +"%Y-%m-%d") | |" 'NR==line+4{print action}1' .aicheck/actions_index.md > .aicheck/actions_index.md.tmp
+      mv .aicheck/actions_index.md.tmp .aicheck/actions_index.md
+    fi
+  fi
+  
+  # Update last updated date
+  sed -i "" "s/\*Last Updated: .*\*/\*Last Updated: $(date +"%Y-%m-%d")\*/" .aicheck/actions_index.md
+  
+  # If this was the current action, set current action to None
+  if [ -f ".aicheck/current_action" ] && [ "$(cat .aicheck/current_action)" = "$action_name" ]; then
+    echo "None" > .aicheck/current_action
+    echo -e "${BRIGHT_BLURPLE}Current action reset to None${NC}"
+  fi
+  
+  echo -e "${GREEN}✓ Completed ACTION: $action_name${NC}"
+  echo -e "${BRIGHT_BLURPLE}Updated status, progress, and actions index${NC}"
+}
+
+# Function to toggle exec mode
+function exec_mode() {
+  # Save current action
+  local current_action=$(cat .aicheck/current_action)
+  
+  if [ "$current_action" = "AICheckExec" ]; then
+    # Exit exec mode, return to previous action
+    if [ -f .aicheck/previous_action ]; then
+      local previous_action=$(cat .aicheck/previous_action)
+      echo "$previous_action" > .aicheck/current_action
+      rm .aicheck/previous_action
+      echo -e "${GREEN}✓ Exited Exec Mode${NC}"
+      echo -e "${BRIGHT_BLURPLE}Returned to action: $previous_action${NC}"
+    else
+      echo "None" > .aicheck/current_action
+      echo -e "${GREEN}✓ Exited Exec Mode${NC}"
+      echo -e "${BRIGHT_BLURPLE}No previous action found${NC}"
+    fi
+  else
+    # Enter exec mode, save current action
+    echo "$current_action" > .aicheck/previous_action
+    echo "AICheckExec" > .aicheck/current_action
+    echo -e "${GREEN}✓ Entered AICheck Exec Mode${NC}"
+    echo -e "${YELLOW}NOTE: Exec Mode is for system maintenance only${NC}"
+    echo -e "${YELLOW}No substantive code changes should be made in this mode${NC}"
+  fi
+}
+
+# Function to add an external dependency
+function add_dependency() {
+  local name=$1
+  local version=$2
+  local justification=$3
+  local action=$4
+  
+  if [ -z "$name" ] || [ -z "$version" ] || [ -z "$justification" ]; then
+    echo -e "${RED}Error: Missing required arguments${NC}"
+    echo "Usage: ./aicheck dependency add NAME VERSION JUSTIFICATION [ACTION]"
+    exit 1
+  fi
+  
+  # If no action is provided, use the current action
+  if [ -z "$action" ]; then
+    if [ -f ".aicheck/current_action" ]; then
+      action=$(cat .aicheck/current_action)
+    fi
+  fi
+  
+  if [ -z "$action" ] || [ "$action" = "None" ] || [ "$action" = "AICheckExec" ]; then
+    echo -e "${YELLOW}Warning: No action specified or current action set.${NC}"
+    echo -e "${YELLOW}Dependency will be added without associating with an action.${NC}"
+    action=""
+  fi
+  
+  # Create dependency index if it doesn't exist
+  mkdir -p documentation/dependencies
+  if [ ! -f "documentation/dependencies/dependency_index.md" ]; then
+    cat > documentation/dependencies/dependency_index.md << 'EODOC'
+# Dependency Index
+
+This document tracks all dependencies in the PROJECT. All dependencies must be registered here.
+
+## External Dependencies
+
+| Dependency | Version | Added By | Date Added | Justification | Actions Using |
+|------------|---------|----------|------------|---------------|---------------|
+| *None yet* | | | | | |
+
+## Internal Dependencies
+
+| Dependency Action | Dependent Action | Type | Date Added | Description |
+|-------------------|------------------|------|------------|-------------|
+| *None yet* | | | | |
+
+---
+*Last Updated: $(date +"%Y-%m-%d")*
+EODOC
+  fi
+  
+  # Check if dependency already exists
+  if grep -q "| $name | $version |" documentation/dependencies/dependency_index.md; then
+    echo -e "${YELLOW}Dependency $name@$version already exists.${NC}"
+    echo -e "${YELLOW}Updating to add this action as a user.${NC}"
+    
+    # Extract existing actions using this dependency
+    local existing_actions=$(grep "| $name | $version |" documentation/dependencies/dependency_index.md | awk -F '|' '{print $6}' | xargs)
+    
+    # Add the current action if not already included
+    if [ -n "$action" ] && ! echo "$existing_actions" | grep -q "$action"; then
+      local new_actions="$existing_actions, $action"
+      # Update the dependency entry
+      sed -i "" "s/| $name | $version |.*|.*|.*|.*|/| $name | $version | | $(date +"%Y-%m-%d") | $justification | $new_actions |/" documentation/dependencies/dependency_index.md
+    fi
+  else
+    # Get the line number of the "External Dependencies" table's "None yet" row
+    line_num=$(grep -n "\| \*None yet\* \| \| \| \| \| \|" documentation/dependencies/dependency_index.md | cut -d':' -f1)
+    
+    if [ -n "$line_num" ]; then
+      # Replace the "None yet" line with the new dependency
+      sed -i "" "$line_num s/| \*None yet\* | | | | | |/| $name | $version | | $(date +"%Y-%m-%d") | $justification | $action |\n| \*None yet\* | | | | | |/" documentation/dependencies/dependency_index.md
+    else
+      # Append to the External Dependencies table
+      line_num=$(grep -n "## External Dependencies" documentation/dependencies/dependency_index.md | cut -d':' -f1)
+      if [ -n "$line_num" ]; then
+        let line_num+=4  # Move to after the header row
+        awk -v line="$line_num" -v dep="| $name | $version | | $(date +"%Y-%m-%d") | $justification | $action |" 'NR==line{print dep}1' documentation/dependencies/dependency_index.md > documentation/dependencies/dependency_index.md.tmp
+        mv documentation/dependencies/dependency_index.md.tmp documentation/dependencies/dependency_index.md
+      fi
+    fi
+  fi
+  
+  # Update last updated date
+  sed -i "" "s/\*Last Updated: .*\*/\*Last Updated: $(date +"%Y-%m-%d")\*/" documentation/dependencies/dependency_index.md
+  
+  echo -e "${GREEN}✓ Added external dependency: $name@$version${NC}"
+  if [ -n "$action" ]; then
+    echo -e "${BRIGHT_BLURPLE}Associated with action: $action${NC}"
+  fi
+}
+
+# Function to add an internal dependency
+function add_internal_dependency() {
+  local dep_action=$1
+  local action=$2
+  local type=$3
+  local description=$4
+  
+  if [ -z "$dep_action" ] || [ -z "$action" ] || [ -z "$type" ]; then
+    echo -e "${RED}Error: Missing required arguments${NC}"
+    echo "Usage: ./aicheck dependency internal DEP_ACTION ACTION TYPE [DESCRIPTION]"
+    exit 1
+  fi
+  
+  # Create dependency index if it doesn't exist
+  mkdir -p documentation/dependencies
+  if [ ! -f "documentation/dependencies/dependency_index.md" ]; then
+    cat > documentation/dependencies/dependency_index.md << 'EODOC2'
+# Dependency Index
+
+This document tracks all dependencies in the PROJECT. All dependencies must be registered here.
+
+## External Dependencies
+
+| Dependency | Version | Added By | Date Added | Justification | Actions Using |
+|------------|---------|----------|------------|---------------|---------------|
+| *None yet* | | | | | |
+
+## Internal Dependencies
+
+| Dependency Action | Dependent Action | Type | Date Added | Description |
+|-------------------|------------------|------|------------|-------------|
+| *None yet* | | | | |
+
+---
+*Last Updated: $(date +"%Y-%m-%d")*
+EODOC2
+  fi
+  
+  # Check if both actions exist
+  local dep_dir_name=$(echo "$dep_action" | sed -r 's/([a-z0-9])([A-Z])/\1-\2/g' | tr '[:upper:]' '[:lower:]')
+  local action_dir_name=$(echo "$action" | sed -r 's/([a-z0-9])([A-Z])/\1-\2/g' | tr '[:upper:]' '[:lower:]')
+  
+  if [ ! -d ".aicheck/actions/$dep_dir_name" ]; then
+    echo -e "${YELLOW}Warning: Dependency action '$dep_action' does not exist.${NC}"
+  fi
+  
+  if [ ! -d ".aicheck/actions/$action_dir_name" ]; then
+    echo -e "${YELLOW}Warning: Dependent action '$action' does not exist.${NC}"
+  fi
+  
+  # Get the line number of the "Internal Dependencies" table's "None yet" row
+  line_num=$(grep -n "\| \*None yet\* \| \| \| \| \|" documentation/dependencies/dependency_index.md | sed -n '2p' | cut -d':' -f1)
+  
+  if [ -n "$line_num" ]; then
+    # Replace the "None yet" line with the new dependency
+    sed -i "" "$line_num s/| \*None yet\* | | | | |/| $dep_action | $action | $type | $(date +"%Y-%m-%d") | ${description:-\"\"} |\n| \*None yet\* | | | | |/" documentation/dependencies/dependency_index.md
+  else
+    # Append to the Internal Dependencies table
+    line_num=$(grep -n "## Internal Dependencies" documentation/dependencies/dependency_index.md | cut -d':' -f1)
+    if [ -n "$line_num" ]; then
+      let line_num+=4  # Move to after the header row
+      awk -v line="$line_num" -v dep="| $dep_action | $action | $type | $(date +"%Y-%m-%d") | ${description:-\"\"} |" 'NR==line{print dep}1' documentation/dependencies/dependency_index.md > documentation/dependencies/dependency_index.md.tmp
+      mv documentation/dependencies/dependency_index.md.tmp documentation/dependencies/dependency_index.md
+    fi
+  fi
+  
+  # Update last updated date
+  sed -i "" "s/\*Last Updated: .*\*/\*Last Updated: $(date +"%Y-%m-%d")\*/" documentation/dependencies/dependency_index.md
+  
+  echo -e "${GREEN}✓ Added internal dependency${NC}"
+  echo -e "${BRIGHT_BLURPLE}$action depends on $dep_action ($type)${NC}"
+}
+
+# Function to show the current status
+function show_status() {
+  local current_action=$(cat .aicheck/current_action 2>/dev/null || echo "None")
+  
+  echo -e "${BRIGHT_BLURPLE}AICheck Status${NC}"
+  echo -e "-------------------"
+  echo -e "Current Action: ${GREEN}$current_action${NC}"
+  
+  if [ "$current_action" != "None" ] && [ "$current_action" != "AICheckExec" ]; then
+    # Convert PascalCase to kebab-case for directories
+    local dir_name=$(echo "$current_action" | sed -r 's/([a-z0-9])([A-Z])/\1-\2/g' | tr '[:upper:]' '[:lower:]')
+    
+    if [ -d ".aicheck/actions/$dir_name" ]; then
+      local status=$(cat ".aicheck/actions/$dir_name/status.txt" 2>/dev/null || echo "Unknown")
+      local progress=$(grep "Progress:" ".aicheck/actions/$dir_name/$dir_name-plan.md" 2>/dev/null | cut -d':' -f2 | tr -d ' %' || echo "0")
+      
+      echo -e "Status: ${GREEN}$status${NC}"
+      echo -e "Progress: ${GREEN}$progress%${NC}"
+      echo -e "Plan: ${BRIGHT_BLURPLE}.aicheck/actions/$dir_name/$dir_name-plan.md${NC}"
+      
+      # Show dependencies
+      if [ -f "documentation/dependencies/dependency_index.md" ]; then
+        local deps=$(grep -c "$current_action" documentation/dependencies/dependency_index.md || echo "0")
+        if [ "$deps" -gt "0" ]; then
+          echo -e "\nDependencies for $current_action:"
+          grep "$current_action" documentation/dependencies/dependency_index.md
+        fi
+      fi
+    else
+      echo -e "${YELLOW}Warning: Action directory not found for $current_action${NC}"
+    fi
+  elif [ "$current_action" = "AICheckExec" ]; then
+    echo -e "${YELLOW}SYSTEM IS IN EXEC MODE${NC}"
+    echo -e "${YELLOW}For system maintenance only${NC}"
+    if [ -f .aicheck/previous_action ]; then
+      local previous_action=$(cat .aicheck/previous_action)
+      echo -e "Previous action: ${BRIGHT_BLURPLE}$previous_action${NC} (will be restored on exec mode exit)"
+    fi
+  fi
+  
+  # Show active actions
+  echo -e "\nActive Actions:"
+  if [ -f ".aicheck/actions_index.md" ]; then
+    grep -A 5 "## Active Actions" .aicheck/actions_index.md | tail -n +4 | grep -v "\*None yet\*" | grep -v "^$" || echo "No active actions"
+  else
+    echo "No action index found"
+  fi
+  
+  # Show git status if in a git repo
+  if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+    echo -e "\nGit Status:"
+    echo -e "Branch: $(git branch --show-current 2>/dev/null)"
+    echo -e "Changes: $(git status --porcelain 2>/dev/null | wc -l | tr -d ' ')"
+    echo -e "Last commit: $(git log -1 --oneline 2>/dev/null || echo "No commits yet")"
+  fi
+}
+
+# Main command handling
+case "$CMD" in
+  "action")
+    case "$1" in
+      "new")
+        create_action "$2"
+        ;;
+      "set")
+        set_active_action "$2"
+        ;;
+      "complete")
+        complete_action "$2"
+        ;;
+      *)
+        echo -e "${RED}Unknown action command: $1${NC}"
+        echo "Available commands: new, set, complete"
+        ;;
+    esac
+    ;;
+  "dependency")
+    case "$1" in
+      "add")
+        add_dependency "$2" "$3" "$4" "$5"
+        ;;
+      "internal")
+        add_internal_dependency "$2" "$3" "$4" "$5"
+        ;;
+      *)
+        echo -e "${RED}Unknown dependency command: $1${NC}"
+        echo "Available commands: add, internal"
+        ;;
+    esac
+    ;;
+  "exec")
+    exec_mode
+    ;;
+  "status")
+    show_status
+    ;;
+  *)
+    echo -e "${RED}Unknown command: $CMD${NC}"
+    echo "Available commands: action, dependency, exec, status"
+    ;;
+esac
