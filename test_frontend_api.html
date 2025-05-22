@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UltrAI API Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .test-result { margin: 10px 0; padding: 10px; border-radius: 5px; }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+        .info { background: #d1ecf1; color: #0c5460; }
+        pre { background: #f8f9fa; padding: 10px; border-radius: 5px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <h1>🧪 UltrAI API Connection Test</h1>
+    
+    <div id="results"></div>
+    
+    <button onclick="testAPI()">🔄 Test API Connection</button>
+    
+    <script>
+        const API_BASE = 'https://ultrai-core.onrender.com';
+        const results = document.getElementById('results');
+        
+        function addResult(type, title, content) {
+            const div = document.createElement('div');
+            div.className = `test-result ${type}`;
+            div.innerHTML = `<strong>${title}</strong><br>${content}`;
+            results.appendChild(div);
+        }
+        
+        async function testAPI() {
+            results.innerHTML = '';
+            addResult('info', '🚀 Starting API Tests', 'Testing connection to backend...');
+            
+            try {
+                // Test 1: Health Check
+                addResult('info', '📋 Test 1: Health Check', 'Testing /health endpoint...');
+                const healthResponse = await fetch(`${API_BASE}/health`);
+                const healthData = await healthResponse.json();
+                
+                if (healthResponse.ok) {
+                    addResult('success', '✅ Health Check Success', 
+                        `Status: ${healthResponse.status}<br>Response: <pre>${JSON.stringify(healthData, null, 2)}</pre>`);
+                } else {
+                    addResult('error', '❌ Health Check Failed', 
+                        `Status: ${healthResponse.status}<br>Response: ${JSON.stringify(healthData)}`);
+                }
+                
+                // Test 2: Available Models
+                addResult('info', '📋 Test 2: Available Models', 'Testing /api/available-models endpoint...');
+                const modelsResponse = await fetch(`${API_BASE}/api/available-models`);
+                const modelsData = await modelsResponse.json();
+                
+                if (modelsResponse.ok) {
+                    addResult('success', '✅ Available Models Success', 
+                        `Status: ${modelsResponse.status}<br>Response: <pre>${JSON.stringify(modelsData, null, 2)}</pre>`);
+                    
+                    if (modelsData.available_models && modelsData.available_models.length > 0) {
+                        addResult('success', '🎯 Models Found', 
+                            `Found ${modelsData.available_models.length} models:<br>• ${modelsData.available_models.join('<br>• ')}`);
+                    } else {
+                        addResult('error', '⚠️ No Models in Response', 
+                            'API responded but no models found in available_models array');
+                    }
+                } else {
+                    addResult('error', '❌ Available Models Failed', 
+                        `Status: ${modelsResponse.status}<br>Response: ${JSON.stringify(modelsData)}`);
+                }
+                
+                // Test 3: CORS Check
+                addResult('info', '📋 Test 3: CORS Check', 'Checking CORS headers...');
+                const corsHeaders = modelsResponse.headers;
+                const corsInfo = [];
+                corsHeaders.forEach((value, key) => {
+                    if (key.toLowerCase().includes('cors') || key.toLowerCase().includes('access-control')) {
+                        corsInfo.push(`${key}: ${value}`);
+                    }
+                });
+                
+                if (corsInfo.length > 0) {
+                    addResult('success', '✅ CORS Headers Present', corsInfo.join('<br>'));
+                } else {
+                    addResult('info', 'ℹ️ CORS Headers', 'No explicit CORS headers found, but requests succeeded');
+                }
+                
+            } catch (error) {
+                addResult('error', '💥 Connection Error', 
+                    `Network error: ${error.message}<br>This could be a CORS issue, network problem, or server down.`);
+                console.error('API Test Error:', error);
+            }
+        }
+        
+        // Auto-run test on page load
+        window.onload = () => {
+            addResult('info', '🎯 Ready', 'Click the button to test API connection');
+        };
+    </script>
+</body>
+</html>

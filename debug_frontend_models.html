@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug Frontend Models Issue</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .result { margin: 10px 0; padding: 10px; border-radius: 5px; }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+        .info { background: #d1ecf1; color: #0c5460; }
+        pre { background: #f8f9fa; padding: 10px; border-radius: 5px; overflow-x: auto; }
+        button { padding: 10px 20px; margin: 5px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h1>🔍 Debug Frontend Models Loading</h1>
+    
+    <div id="results"></div>
+    
+    <button onclick="testDirectAPI()">Test Direct API Call</button>
+    <button onclick="testFrontendLogic()">Test Frontend Logic</button>
+    <button onclick="checkConsoleErrors()">Check for Errors</button>
+    
+    <script>
+        const results = document.getElementById('results');
+        
+        function addResult(type, title, content) {
+            const div = document.createElement('div');
+            div.className = `result ${type}`;
+            div.innerHTML = `<strong>${title}</strong><br>${content}`;
+            results.appendChild(div);
+        }
+        
+        // Test 1: Direct API call (mimicking frontend)
+        async function testDirectAPI() {
+            results.innerHTML = '';
+            addResult('info', '🧪 Testing Direct API Call', 'Mimicking frontend fetchAvailableModels...');
+            
+            try {
+                const API_URL = 'https://ultrai-core.onrender.com';
+                const endpoint = '/api/available-models';
+                
+                addResult('info', '📡 Making Request', `URL: ${API_URL}${endpoint}`);
+                
+                const response = await fetch(`${API_URL}${endpoint}`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json'
+                        // Intentionally NOT adding Authorization header (testing public endpoint)
+                    }
+                });
+                
+                addResult('info', '📊 Response Status', `Status: ${response.status} ${response.statusText}`);
+                
+                const data = await response.json();
+                addResult('success', '✅ Raw Response', `<pre>${JSON.stringify(data, null, 2)}</pre>`);
+                
+                // Test frontend logic
+                if (data && data.available_models) {
+                    addResult('success', '🎯 Frontend Logic Test', 
+                        `✅ data exists: ${!!data}<br>✅ available_models exists: ${!!data.available_models}<br>✅ Models array length: ${data.available_models.length}<br>✅ Models: ${data.available_models.join(', ')}`);
+                } else {
+                    addResult('error', '❌ Frontend Logic Problem', 
+                        `The response structure doesn't match what frontend expects:<br>Expected: data.available_models<br>Got: ${Object.keys(data).join(', ')}`);
+                }
+                
+            } catch (error) {
+                addResult('error', '💥 Request Failed', `Error: ${error.message}`);
+                console.error('Direct API test error:', error);
+            }
+        }
+        
+        // Test 2: Simulate frontend axios logic
+        async function testFrontendLogic() {
+            addResult('info', '🔬 Testing Frontend Logic', 'Simulating exact frontend code...');
+            
+            try {
+                // Simulate the exact frontend fetchAvailableModels function
+                const API_URL = 'https://ultrai-core.onrender.com';
+                const endpoint = '/api/available-models';
+                
+                console.log('Fetching available models from:', endpoint);
+                
+                const response = await fetch(`${API_URL}${endpoint}`);
+                const responseData = await response.json();
+                
+                console.log('Response from available-models endpoint:', responseData);
+                
+                // Exact frontend logic
+                if (responseData && responseData.available_models) {
+                    console.log('Found available models:', responseData.available_models);
+                    addResult('success', '✅ Frontend Logic Success', 
+                        `Models successfully extracted:<br>${responseData.available_models.map(m => `• ${m}`).join('<br>')}`);
+                    return responseData.available_models;
+                } else {
+                    console.error('Unexpected response format from available-models endpoint:', responseData);
+                    addResult('error', '❌ Frontend Logic Failed', 
+                        `Response format not as expected:<br><pre>${JSON.stringify(responseData, null, 2)}</pre>`);
+                    throw new Error('Invalid response format from server');
+                }
+                
+            } catch (error) {
+                console.error('Failed to fetch available models:', error);
+                addResult('error', '💥 Frontend Logic Error', `Error: ${error.message}`);
+            }
+        }
+        
+        // Test 3: Check for console errors
+        function checkConsoleErrors() {
+            addResult('info', '🔍 Console Check', 'Check browser console (F12) for errors...');
+            
+            // Override console.error to capture errors
+            const originalError = console.error;
+            const errors = [];
+            
+            console.error = function(...args) {
+                errors.push(args.join(' '));
+                originalError.apply(console, args);
+            };
+            
+            setTimeout(() => {
+                console.error = originalError;
+                if (errors.length > 0) {
+                    addResult('error', '❌ Console Errors Found', 
+                        `Found ${errors.length} errors:<br>• ${errors.join('<br>• ')}`);
+                } else {
+                    addResult('success', '✅ No Console Errors', 'No JavaScript errors detected');
+                }
+            }, 1000);
+        }
+        
+        // Auto-run on load
+        window.onload = () => {
+            addResult('info', '🎯 Ready to Debug', 'Click buttons to test different aspects of the models loading issue');
+        };
+    </script>
+</body>
+</html>

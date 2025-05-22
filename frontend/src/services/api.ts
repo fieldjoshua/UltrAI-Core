@@ -52,15 +52,27 @@ apiClient.interceptors.response.use(undefined, async (error) => {
   return apiClient(config);
 });
 
+// List of public endpoints that don't need authentication
+const PUBLIC_ENDPOINTS = [
+  '/api/available-models',
+  '/health',
+  '/api/orchestrator/execute' // May need auth later, but test without first
+];
+
 // Request interceptor (keep existing)
 apiClient.interceptors.request.use(
   (config) => {
-    // Get token from storage
-    const token = localStorage.getItem('authToken');
+    // Check if this is a public endpoint
+    const isPublicEndpoint = PUBLIC_ENDPOINTS.some(endpoint => 
+      config.url?.includes(endpoint)
+    );
 
-    // If token exists, add to headers
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+    // Only add auth token for non-public endpoints
+    if (!isPublicEndpoint) {
+      const token = localStorage.getItem('authToken');
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
     }
 
     return config;
@@ -156,11 +168,11 @@ export const endpoints = {
 
   // Analysis endpoints
   analysis: {
-    analyze: '/analyze',
+    analyze: '/api/orchestrator/execute', // Production endpoint
     analyzeWithDocs: '/analyze-with-docs',
     getById: (id: string) => `/analysis/${id}`,
     getHistory: '/analysis/history',
-    availableModels: '/available-models', // Added endpoint definition
+    availableModels: '/api/available-models', // Fixed to match backend
   },
 };
 
@@ -273,15 +285,16 @@ export const analyzePrompt = async (
   payload: AnalysisPayload
 ): Promise<AnalysisResponse> => {
   try {
-    // Format the payload to match the backend's expected format
+    // Format the payload to match the production backend's expected format
     const formattedPayload = {
       prompt: payload.prompt,
-      selected_models: payload.selected_models, // CORRECT: Match backend expected field name
-      ultra_model: payload.ultra_model, // CORRECT: Match backend expected field name
-      pattern: payload.pattern,
-      options: payload.options || {},
-      output_format: payload.output_format || 'txt',
-      userId: payload.userId || null,
+      models: payload.selected_models, // Production app expects "models"
+      args: {
+        pattern: payload.pattern,
+        ultra_model: payload.ultra_model,
+        output_format: payload.output_format || 'txt',
+      },
+      kwargs: payload.options || {},
     };
 
     console.log('Sending analysis request with payload:', formattedPayload);
@@ -292,6 +305,7 @@ export const analyzePrompt = async (
     );
 
     console.log('Received analysis response:', response.data);
+    console.log('Model responses structure:', response.data.model_responses);
 
     // Handle successful but error-containing responses
     if (response.data.status === 'error') {

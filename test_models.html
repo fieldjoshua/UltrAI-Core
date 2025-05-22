@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Models Loading</title>
+</head>
+<body>
+    <h1>Testing Model Loading</h1>
+    <div id="result">Loading models...</div>
+    
+    <script>
+        async function testModels() {
+            try {
+                const response = await fetch('https://ultrai-core.onrender.com/api/available-models');
+                const data = await response.json();
+                
+                if (data.available_models) {
+                    document.getElementById('result').innerHTML = 
+                        '<h2>✅ SUCCESS!</h2>' +
+                        '<p>Models loaded:</p>' +
+                        '<ul>' + data.available_models.map(model => `<li>${model}</li>`).join('') + '</ul>';
+                } else {
+                    document.getElementById('result').innerHTML = '❌ No models found';
+                }
+            } catch (error) {
+                document.getElementById('result').innerHTML = '❌ Error: ' + error.message;
+            }
+        }
+        
+        testModels();
+    </script>
+</body>
+</html>
