@@ -34,4 +34,4 @@ services:
         destination: /index.html
     envVars:
       - key: VITE_API_URL
-        value: https://ultrai-core.onrender.com
+        value: https://ultrai-core.onrender.com/api
