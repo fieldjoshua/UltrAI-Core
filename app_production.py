@@ -217,17 +217,16 @@ class UserResponse(BaseModel):
 # API documentation available at /docs
 
 
-@app.get("/debug/frontend-path")
-async def debug_frontend_path():
-    """Debug endpoint to check frontend path resolution"""
+@app.get("/debug/files")
+async def debug_files():
+    """Debug endpoint to check what files exist"""
     import os
     current_dir = os.path.dirname(__file__)
-    frontend_dist = os.path.join(current_dir, "frontend", "dist")
     return {
         "current_dir": current_dir,
-        "frontend_dist_path": frontend_dist,
-        "exists": os.path.exists(frontend_dist),
-        "contents": os.listdir(frontend_dist) if os.path.exists(frontend_dist) else "Not found"
+        "root_files": os.listdir(current_dir),
+        "frontend_exists": os.path.exists(os.path.join(current_dir, "frontend")),
+        "frontend_contents": os.listdir(os.path.join(current_dir, "frontend")) if os.path.exists(os.path.join(current_dir, "frontend")) else None
     }
 
 @app.get("/health")
@@ -536,14 +535,71 @@ async def get_available_models():
     }
 
 
-# Mount frontend static files at the end (after all API routes)
+# Serve simple frontend for testing
+@app.get("/")
+async def serve_frontend():
+    """Serve a simple frontend for testing"""
+    from fastapi.responses import HTMLResponse
+    html_content = """
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Ultra AI - Test</title>
+        <style>
+            body { 
+                margin: 0; 
+                font-family: 'Arial', sans-serif; 
+                background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+                color: #00FFFF;
+                min-height: 100vh;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            .container {
+                text-align: center;
+                padding: 2rem;
+            }
+            h1 {
+                font-size: 4rem;
+                text-shadow: 0 0 20px #00FFFF;
+                margin-bottom: 1rem;
+            }
+            .tagline {
+                font-size: 1.5rem;
+                color: #FF6B35;
+                text-shadow: 0 0 10px #FF6B35;
+                margin-bottom: 2rem;
+            }
+            .status {
+                color: #00FF00;
+                font-size: 1.2rem;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1>ULTRA AI</h1>
+            <div class="tagline">MULTIPLY YOUR AI!</div>
+            <div class="status">✅ Frontend Successfully Deployed</div>
+            <p>Backend API: <a href="/health" style="color: #00FFFF;">/health</a></p>
+            <p>API Docs: <a href="/docs" style="color: #00FFFF;">/docs</a></p>
+        </div>
+    </body>
+    </html>
+    """
+    return HTMLResponse(content=html_content)
+
+# Try to mount static files if available
 frontend_dist_path = os.path.join(os.path.dirname(__file__), "frontend", "dist")
-try:
-    if os.path.exists(frontend_dist_path):
-        app.mount("/", StaticFiles(directory=frontend_dist_path, html=True), name="frontend")
-        print(f"Frontend mounted from: {frontend_dist_path}")
-    else:
-        print(f"Frontend dist not found at: {frontend_dist_path}")
-except (RuntimeError, FileNotFoundError) as e:
-    print(f"Could not mount frontend: {e}")
-    pass
+if os.path.exists(frontend_dist_path):
+    try:
+        # Mount static assets at /assets
+        app.mount("/assets", StaticFiles(directory=os.path.join(frontend_dist_path, "assets")), name="assets")
+        print(f"Frontend assets mounted from: {frontend_dist_path}/assets")
+    except (RuntimeError, FileNotFoundError) as e:
+        print(f"Could not mount frontend assets: {e}")
+else:
+    print(f"Frontend dist not found at: {frontend_dist_path}")
