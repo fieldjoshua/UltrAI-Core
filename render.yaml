@@ -3,7 +3,7 @@ services:
   - type: web
     name: ultrai-core
     runtime: python
-    buildCommand: "cd frontend && npm install && npm run build --config vite.config.production.ts && cd .. && pip install -r requirements-production.txt"
+    buildCommand: "pip install -r requirements-production.txt"
     startCommand: "uvicorn app_production:app --host 0.0.0.0 --port $PORT"
     envVars:
       - key: PYTHON_VERSION
