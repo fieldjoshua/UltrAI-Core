@@ -99,6 +99,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 # Password hashing
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 security = HTTPBearer()
@@ -523,8 +524,13 @@ async def get_available_models():
 
 
 # Mount frontend static files at the end (after all API routes)
+frontend_dist_path = os.path.join(os.path.dirname(__file__), "frontend", "dist")
 try:
-    app.mount("/", StaticFiles(directory="frontend/dist", html=True), name="frontend")
-except (RuntimeError, FileNotFoundError):
-    # Frontend dist not found, continue without it
+    if os.path.exists(frontend_dist_path):
+        app.mount("/", StaticFiles(directory=frontend_dist_path, html=True), name="frontend")
+        print(f"Frontend mounted from: {frontend_dist_path}")
+    else:
+        print(f"Frontend dist not found at: {frontend_dist_path}")
+except (RuntimeError, FileNotFoundError) as e:
+    print(f"Could not mount frontend: {e}")
     pass
