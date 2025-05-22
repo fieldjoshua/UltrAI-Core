@@ -22,6 +22,8 @@ htmlcov/
 # Build outputs
 /dist
 /build
+# Allow frontend build output
+!frontend/dist
 *.so
 .Python
 develop-eggs/
@@ -115,6 +117,8 @@ __pycache__/
 # Distribution / packaging
 build/
 dist/
+# Allow frontend build output
+!frontend/dist/
 parts/
 var/
 wheels/
