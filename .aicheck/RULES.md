@@ -12,6 +12,7 @@ This document is the controlling reference for all work managed by the AICheck s
 - All ACTIONS require their own directory with a documented PLAN before implementation
 - PLANs require approval and must detail the ACTION's value to the PROGRAM
 - ACTIONS must be TEST-Driven: tests must be created before implementation
+- Each ACTION directory MUST contain a todo.md file for task tracking and progress management
 
 ### 1.2 Language-Specific Best Practices
 - Python: Follow PEP 8 style guidelines with 150 max line length
@@ -38,6 +39,7 @@ AI editors may implement without approval:
 - Documentation updates for ActiveAction
 - Bug fixes and tests within ActiveAction scope
 - Refactoring within ActiveAction scope
+- Managing todo.md files within ActiveAction scope (creating, updating task status, marking complete)
 
 The following ALWAYS require human manager approval:
 - Changing the ActiveAction
@@ -54,6 +56,7 @@ The following ALWAYS require human manager approval:
 │   ├── actions/                      # All PROJECT ACTIONS
 │   │   └── [action-name]/            # Individual ACTION directory
 │   │       ├── [action-name]-plan.md # ACTION PLAN (requires approval)
+│   │       ├── todo.md               # ACTION TODO tracking (required)
 │   │       └── supporting_docs/      # ACTION-specific documentation
 │   │           ├── claude-interactions/  # Claude Code logs
 │   │           ├── process-tests/        # Temporary tests for ACTION
@@ -77,21 +80,50 @@ The following ALWAYS require human manager approval:
 │   └── fixtures/                     # Test data and fixtures
 ```
 
-## 4. Dependency Management
+## 4. Todo Management
 
-### 4.1 External Dependencies
+### 4.1 Todo File Requirements
+- Every ACTION directory MUST contain a todo.md file
+- Todo files track task progress, priorities, and completion status
+- Claude Code will automatically manage todo.md files using native todo functions
+- Todo items should align with the ACTION plan and success criteria
+
+### 4.2 Todo File Format
+Todo files use structured markdown with the following format:
+```markdown
+# TODO: [Action Name]
+
+## Active Tasks
+- [ ] Task description (priority: high/medium/low, status: pending/in_progress/completed)
+
+## Completed Tasks
+- [x] Completed task description
+
+## Notes
+Additional context or dependencies for tasks
+```
+
+### 4.3 Todo Management Workflow
+- Claude Code automatically creates todo.md when starting an ACTION
+- Tasks are derived from the ACTION plan phases and requirements
+- Progress is tracked in real-time as tasks are completed
+- Todo status integrates with overall ACTION progress tracking
+
+## 5. Dependency Management
+
+### 5.1 External Dependencies
 - All external dependencies must be documented in /documentation/dependencies/dependency_index.md
 - Include justification for every new dependency added
 - Document specific version requirements
 - Note which ACTIONS depend on each dependency
 
-### 4.2 Internal Dependencies
+### 5.2 Internal Dependencies
 - Document dependencies between ACTIONS
 - Track which ACTIONS depend on others' functionality
 - Document the type of dependency (data, function, service)
 - Always verify dependencies before completing an ACTION
 
-## 5. AICheck Commands
+## 6. AICheck Commands
 
 Claude Code supports these AICheck slash commands:
 - `./aicheck status` - Show current action status

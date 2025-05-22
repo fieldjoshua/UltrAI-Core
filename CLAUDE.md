@@ -27,6 +27,23 @@ Claude should follow the rules specified in `.aicheck/RULES.md` with focus on do
 5. Only work within the scope of the active action
 6. Document all dependencies before completing an action
 7. Immediately respond to git hook suggestions before continuing work
+8. Manage todo.md files in action directories using native todo functions
+
+## Todo Management Integration
+
+### Todo File Requirements
+- Every action directory MUST contain a todo.md file for task tracking
+- Use TodoWrite/TodoRead functions to manage action-specific todo files
+- Tasks should align with action plan phases and success criteria
+- Todo status integrates with overall action progress tracking
+
+### Todo Workflow
+- Create todo.md when starting a new action (use TODO_TEMPLATE.md)
+- Derive tasks from action plan phases and requirements
+- Use TodoWrite to update task status as work progresses
+- Mark tasks as in_progress when actively working on them
+- Complete tasks immediately after finishing work
+- Keep comprehensive notes about dependencies and progress
 
 ## Dependency Management
 
