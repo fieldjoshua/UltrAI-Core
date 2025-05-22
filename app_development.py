@@ -1,11 +1,12 @@
-"""Minimal app focused on serving frontend"""
+"""Development app with minimal dependencies and fast startup"""
 
+import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
 
 # FastAPI app
-app = FastAPI(title="UltraAI Frontend", version="1.0.0")
+app = FastAPI(title="UltraAI Development", version="1.0.0-dev")
 
 # CORS
 app.add_middleware(
@@ -18,18 +19,27 @@ app.add_middleware(
 
 @app.get("/health")
 async def health():
-    return {"status": "ok", "frontend": "active"}
+    return {
+        "status": "ok", 
+        "environment": "development",
+        "features": {
+            "database": False,
+            "auth": False,
+            "caching": False,
+            "frontend": True
+        }
+    }
 
 @app.get("/")
 async def serve_frontend():
-    """Serve cyberpunk-styled frontend"""
+    """Serve development frontend with enhanced cyberpunk styling"""
     html_content = """
     <!DOCTYPE html>
     <html lang="en">
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Ultra AI</title>
+        <title>Ultra AI - Development</title>
         <style>
             body { 
                 margin: 0; 
@@ -97,10 +107,18 @@ async def serve_frontend():
                 letter-spacing: 0.05em;
             }
             .status {
-                color: #00FF00;
+                color: #FFA500;
                 font-size: 1.2rem;
                 margin-bottom: 2rem;
-                text-shadow: 0 0 10px #00FF00;
+                text-shadow: 0 0 10px #FFA500;
+            }
+            .env-badge {
+                background: rgba(255, 165, 0, 0.2);
+                border: 2px solid #FFA500;
+                padding: 0.5rem 1rem;
+                border-radius: 8px;
+                margin-bottom: 2rem;
+                display: inline-block;
             }
             .links {
                 display: flex;
@@ -136,7 +154,8 @@ async def serve_frontend():
         <div class="container">
             <h1>ULTRA AI</h1>
             <div class="tagline">MULTIPLY YOUR AI!</div>
-            <div class="status">✅ Frontend Successfully Deployed</div>
+            <div class="env-badge">🚀 DEVELOPMENT MODE</div>
+            <div class="status">⚡ Fast Development Server</div>
             <div class="links">
                 <a href="/health" class="link">Health Check</a>
                 <a href="/docs" class="link">API Documentation</a>
@@ -146,3 +165,13 @@ async def serve_frontend():
     </html>
     """
     return HTMLResponse(content=html_content)
+
+@app.get("/api/mock")
+async def mock_endpoint():
+    """Mock API endpoint for development testing"""
+    return {
+        "message": "Development API endpoint",
+        "environment": "development",
+        "features": ["frontend", "basic_api"],
+        "note": "Database and auth disabled for faster startup"
+    }
