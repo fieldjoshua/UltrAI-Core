@@ -3,8 +3,8 @@ services:
   - type: web
     name: ultrai-core
     runtime: python
-    buildCommand: "pip install -r requirements-production.txt"
-    startCommand: "uvicorn app_production:app --host 0.0.0.0 --port $PORT"
+    buildCommand: "pip install -r requirements-minimal-frontend.txt"
+    startCommand: "uvicorn app_minimal_frontend:app --host 0.0.0.0 --port $PORT"
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.0
