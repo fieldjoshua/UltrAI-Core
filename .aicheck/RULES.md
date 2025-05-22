@@ -45,32 +45,6 @@ The following ALWAYS require human manager approval:
 - Making substantive changes to any Action
 - Modifying any Action Plan
 
-### 2.2 Failure Pattern Recognition and Critical Analysis
-
-#### 2.2.1 Three-Strike Rule
-- If the same action is attempted 3 times with variable changes but no improvement, **STOP immediately**
-- Do not proceed with further iterations of the same approach
-- Document the failure pattern and underlying assumptions
-
-#### 2.2.2 Mandatory Root Cause Analysis
-When the three-strike rule is triggered:
-1. **Identify the core problem** - What is actually failing vs. what appears to be failing?
-2. **Challenge assumptions** - Are we solving the right problem?
-3. **Research thoroughly** - Use documentation, code analysis, or external resources
-4. **Propose alternative approaches** - Don't just vary the same solution
-
-#### 2.2.3 System Compatibility Analysis
-Before attempting integrations:
-- **Verify API contracts** - Do request/response formats match?
-- **Check authentication requirements** - Are security models compatible?
-- **Validate data flows** - Does the data transformation make sense?
-- **Document incompatibilities** - Clearly state what needs to change where
-
-#### 2.2.4 Documentation Requirement
-- Log all failed approaches with reasons for failure
-- Document the decision-making process for switching approaches
-- Provide clear justification for the chosen solution path
-
 ## 3. Project Structure and Organization
 
 ### 3.1 Directory Structure
