@@ -44,6 +44,38 @@
             opacity: 0.9;
         }
 
+        .config-status {
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 30px;
+            border-left: 4px solid var(--accent-blue);
+        }
+
+        .config-status.demo-mode {
+            border-left-color: var(--warning-color);
+            background: #fff3cd;
+        }
+
+        .config-status.production-mode {
+            border-left-color: var(--success-color);
+            background: #d4edda;
+        }
+
+        .config-status h3 {
+            margin-bottom: 10px;
+            color: var(--text-primary);
+        }
+
+        .config-instructions {
+            margin-top: 15px;
+            padding: 15px;
+            background: var(--bg-primary);
+            border-radius: 6px;
+            font-family: monospace;
+            font-size: 0.9rem;
+        }
+
         .orchestrator-panel {
             background: white;
             border-radius: 12px;
@@ -285,6 +317,13 @@
             <p>Advanced analysis patterns across multiple LLM providers • Intelligence multiplication through structured collaboration</p>
         </div>
 
+        <!-- Configuration Status -->
+        <div id="configStatus" class="config-status">
+            <h3>System Configuration</h3>
+            <div id="configStatusContent">Loading configuration status...</div>
+            <div id="configInstructions" class="config-instructions" style="display: none;"></div>
+        </div>
+
         <div class="orchestrator-panel">
             <div id="apiStatus" class="api-status error" style="display: none;">
                 ⚠️ API Keys not configured. The system will return demo responses showing API key errors. This is normal for the demo environment.
@@ -363,6 +402,7 @@
                 this.selectedModels = new Set();
                 this.selectedPattern = 'gut'; // Default to Gut Analysis
                 this.initializeEventListeners();
+                this.loadConfigurationStatus();
             }
 
             initializeEventListeners() {
@@ -564,6 +604,43 @@
             displayResults(results) {
                 // Legacy method - keep for backwards compatibility
                 this.displayFeatherResults({stages: results.map(r => ({result: r.response, models: [r.model]}))});
+            }
+
+            async loadConfigurationStatus() {
+                try {
+                    const response = await fetch('/config/status');
+                    const config = await response.json();
+                    
+                    const statusElement = document.getElementById('configStatus');
+                    const contentElement = document.getElementById('configStatusContent');
+                    const instructionsElement = document.getElementById('configInstructions');
+                    
+                    // Update status display
+                    if (config.configured) {
+                        statusElement.className = 'config-status production-mode';
+                        contentElement.innerHTML = `
+                            <strong>✅ PRODUCTION MODE</strong><br>
+                            API Keys configured for: ${Object.entries(config.providers)
+                                .filter(([name, provider]) => provider.configured)
+                                .map(([name]) => name.toUpperCase())
+                                .join(', ')}
+                        `;
+                        instructionsElement.style.display = 'none';
+                    } else {
+                        statusElement.className = 'config-status demo-mode';
+                        contentElement.innerHTML = `
+                            <strong>⚠️ DEMO MODE</strong><br>
+                            ${config.error}<br>
+                            The system will return placeholder responses until API keys are configured.
+                        `;
+                        instructionsElement.innerHTML = config.instructions.join('<br>');
+                        instructionsElement.style.display = 'block';
+                    }
+                } catch (error) {
+                    console.error('Failed to load configuration status:', error);
+                    const contentElement = document.getElementById('configStatusContent');
+                    contentElement.innerHTML = '❌ Failed to load configuration status';
+                }
             }
         }
 
