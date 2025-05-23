@@ -6,6 +6,7 @@ from contextlib import asynccontextmanager
 import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 
 # Import configuration
 from backend.config import Config
@@ -281,6 +282,14 @@ app.include_router(orchestrator_router, prefix="/api")  # New orchestrator route
 #     resilient_orchestrator_router, prefix="/api"
 # )  # Resilient orchestrator routes
 # app.include_router(recovery_router)  # Recovery routes (already has /api prefix)
+
+# Mount static files for frontend (must be last to avoid conflicts)
+static_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "static")
+if os.path.exists(static_path):
+    app.mount("/", StaticFiles(directory=static_path, html=True), name="static")
+    logger.info(f"✅ Static frontend mounted from: {static_path}")
+else:
+    logger.warning(f"⚠️ Static directory not found: {static_path}")
 
 
 def run_server():
