@@ -6,6 +6,9 @@ This document tracks all ACTIONS in the PROJECT. All ACTIONS must be registered 
 
 | ACTION | Owner | Status | Progress | Description |
 |--------|-------|--------|----------|-------------|
+| integrated-frontend-implementation | | Not Started | 0% | |
+| comprehensive-system-audit | | Not Started | 0% | |
+| eliminate-frontend-service | | Not Started | 0% | |
 | frontend-deployment-fix | | In Progress | 0% | **PRIORITY #1**: Fix non-functional frontend deployment at ultrai-frontend.onrender.com |
 | frontend-backend-connectivity-fix | | Not Started | 0% | **PRIORITY #2**: Fix frontend-backend communication for full MVP functionality |
 | security-vulnerability-fix | | Not Started | 0% | **PRIORITY #3**: Fix 33 security vulnerabilities (4 critical, 14 high) |
@@ -16,6 +19,8 @@ This document tracks all ACTIONS in the PROJECT. All ACTIONS must be registered 
 
 | ACTION | Owner | Completion Date | Description |
 |--------|-------|-----------------|-------------|
+| action-directory-cleanup | | 2025-05-22 | |
+| frontend-backend-connectivity-fix | | 2025-05-22 | |
 | mvp-minimal-deployment | | 2025-05-17 | Created minimal deployment configuration for Render (100% complete) |
 | production-validation-tests | | 2025-05-22 | Validated MVP production readiness with 100% test success rate |
 | action-directory-cleanup | | 2025-05-22 | Reduced actions from 96 to 10, established clear MVP priorities |
