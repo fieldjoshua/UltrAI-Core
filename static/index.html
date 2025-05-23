@@ -3,188 +3,431 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>UltraAI - Intelligence Multiplication Platform</title>
-    <link rel="icon" type="image/svg+xml" href="/assets/favicon.ico">
-    <link rel="stylesheet" href="/css/main.css">
-    <link rel="stylesheet" href="/css/components.css">
+    <title>UltraAI - Multi-LLM Orchestrator</title>
     <link rel="stylesheet" href="/css/themes.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 40px 0;
+            background: linear-gradient(135deg, var(--primary-blue), var(--accent-purple));
+            color: white;
+            border-radius: 12px;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .orchestrator-panel {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: var(--shadow-lg);
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .model-selection {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 10px;
+        }
+
+        .model-card {
+            border: 2px solid var(--border-light);
+            border-radius: 8px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: var(--bg-secondary);
+        }
+
+        .model-card:hover {
+            border-color: var(--primary-blue);
+            background: var(--bg-primary);
+        }
+
+        .model-card.selected {
+            border-color: var(--primary-blue);
+            background: var(--primary-blue);
+            color: white;
+        }
+
+        .model-card input[type="checkbox"] {
+            margin-right: 10px;
+        }
+
+        .prompt-textarea {
+            width: 100%;
+            min-height: 120px;
+            padding: 15px;
+            border: 2px solid var(--border-light);
+            border-radius: 8px;
+            font-size: 16px;
+            font-family: inherit;
+            resize: vertical;
+            transition: border-color 0.3s ease;
+        }
+
+        .prompt-textarea:focus {
+            outline: none;
+            border-color: var(--primary-blue);
+        }
+
+        .execute-btn {
+            background: var(--primary-blue);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+
+        .execute-btn:hover:not(:disabled) {
+            background: var(--primary-dark);
+            transform: translateY(-1px);
+        }
+
+        .execute-btn:disabled {
+            background: var(--gray-400);
+            cursor: not-allowed;
+        }
+
+        .results-section {
+            margin-top: 30px;
+        }
+
+        .result-card {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: var(--shadow-md);
+            border-left: 4px solid var(--primary-blue);
+        }
+
+        .result-header {
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border-light);
+        }
+
+        .model-name {
+            font-weight: 700;
+            color: var(--primary-blue);
+            font-size: 1.1rem;
+        }
+
+        .result-content {
+            line-height: 1.7;
+            white-space: pre-wrap;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+        }
+
+        .spinner {
+            border: 4px solid var(--border-light);
+            border-left: 4px solid var(--primary-blue);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error {
+            color: var(--error);
+            background: #fee;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid var(--error);
+        }
+
+        .model-count {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-top: 10px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .model-selection {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
 </head>
 <body>
-    <div id="app">
-        <!-- Navigation Header -->
-        <header class="navbar">
-            <div class="navbar-container">
-                <div class="navbar-brand">
-                    <h1>UltraAI</h1>
-                </div>
-                <nav class="navbar-nav">
-                    <a href="#dashboard" class="nav-link">Dashboard</a>
-                    <a href="#documents" class="nav-link">Documents</a>
-                    <a href="#analysis" class="nav-link">Analysis</a>
-                </nav>
-                <div class="navbar-user">
-                    <span id="user-status">Not logged in</span>
-                    <button id="auth-button" class="btn btn-primary">Login</button>
-                </div>
-            </div>
-        </header>
+    <div class="container">
+        <div class="header">
+            <h1>UltraAI Orchestrator</h1>
+            <p>Execute prompts across multiple LLM providers simultaneously</p>
+        </div>
 
-        <!-- Main Content -->
-        <main class="main-content">
-            <!-- Landing Page (shown to unauthenticated users) -->
-            <section id="landing-page" class="landing">
-                <div class="hero">
-                    <h1>UltraAI Intelligence Platform</h1>
-                    <p>Multiply your intelligence with advanced document analysis and LLM orchestration.</p>
-                    <div class="hero-actions">
-                        <button id="get-started-btn" class="btn btn-primary btn-large">Get Started</button>
-                        <button id="learn-more-btn" class="btn btn-secondary btn-large">Learn More</button>
+        <div class="orchestrator-panel">
+            <h2>Multi-LLM Execution</h2>
+            
+            <div class="form-group">
+                <label>Select LLM Models:</label>
+                <div class="model-selection" id="modelSelection">
+                    <div class="model-card" data-model="gpt-4">
+                        <input type="checkbox" value="gpt-4" id="gpt-4">
+                        <label for="gpt-4">GPT-4</label>
+                        <div style="font-size: 0.8rem; color: #666;">OpenAI's most capable model</div>
+                    </div>
+                    <div class="model-card" data-model="gpt-3.5-turbo">
+                        <input type="checkbox" value="gpt-3.5-turbo" id="gpt-3.5-turbo">
+                        <label for="gpt-3.5-turbo">GPT-3.5 Turbo</label>
+                        <div style="font-size: 0.8rem; color: #666;">Fast and cost-effective</div>
+                    </div>
+                    <div class="model-card" data-model="claude-3-opus">
+                        <input type="checkbox" value="claude-3-opus" id="claude-3-opus">
+                        <label for="claude-3-opus">Claude 3 Opus</label>
+                        <div style="font-size: 0.8rem; color: #666;">Anthropic's most powerful model</div>
+                    </div>
+                    <div class="model-card" data-model="claude-3-sonnet">
+                        <input type="checkbox" value="claude-3-sonnet" id="claude-3-sonnet">
+                        <label for="claude-3-sonnet">Claude 3 Sonnet</label>
+                        <div style="font-size: 0.8rem; color: #666;">Balanced performance</div>
+                    </div>
+                    <div class="model-card" data-model="claude-3-haiku">
+                        <input type="checkbox" value="claude-3-haiku" id="claude-3-haiku">
+                        <label for="claude-3-haiku">Claude 3 Haiku</label>
+                        <div style="font-size: 0.8rem; color: #666;">Fastest Claude model</div>
                     </div>
                 </div>
-                <div class="features">
-                    <div class="feature-card">
-                        <h3>📄 Document Upload</h3>
-                        <p>Upload and manage documents with advanced processing capabilities.</p>
-                    </div>
-                    <div class="feature-card">
-                        <h3>🧠 Advanced Analysis</h3>
-                        <p>Leverage multiple LLM providers for comprehensive document analysis.</p>
-                    </div>
-                    <div class="feature-card">
-                        <h3>🔒 Enterprise Ready</h3>
-                        <p>Secure, scalable, and built for professional workflows.</p>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Dashboard (shown to authenticated users) -->
-            <section id="dashboard" class="dashboard hidden">
-                <div class="dashboard-container">
-                    <!-- Document Management -->
-                    <div class="panel documents-panel">
-                        <h2>Documents</h2>
-                        <div class="upload-area" id="upload-area">
-                            <div class="upload-zone">
-                                <p>Drag and drop files here or</p>
-                                <button id="file-select-btn" class="btn btn-secondary">Select Files</button>
-                                <input type="file" id="file-input" multiple accept=".txt,.pdf,.doc,.docx,.md" hidden>
-                            </div>
-                            <div id="upload-progress" class="progress-container hidden">
-                                <div class="progress-bar">
-                                    <div class="progress-fill" id="progress-fill"></div>
-                                </div>
-                                <span id="progress-text">Uploading...</span>
-                            </div>
-                        </div>
-                        <div id="documents-list" class="documents-list">
-                            <p class="empty-state">No documents uploaded yet.</p>
-                        </div>
-                    </div>
-
-                    <!-- Analysis Interface -->
-                    <div class="panel analysis-panel">
-                        <h2>Analysis</h2>
-                        <form id="analysis-form" class="analysis-form">
-                            <div class="form-group">
-                                <label for="document-select">Select Document:</label>
-                                <select id="document-select" class="form-select" required>
-                                    <option value="">Choose a document...</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label for="prompt-input">Analysis Prompt:</label>
-                                <textarea id="prompt-input" class="form-textarea" rows="4" 
-                                    placeholder="Describe what you want to analyze about the document..." required></textarea>
-                            </div>
-                            <div class="form-group">
-                                <label for="model-select">LLM Provider:</label>
-                                <select id="model-select" class="form-select">
-                                    <option value="openai">OpenAI GPT</option>
-                                    <option value="anthropic">Claude</option>
-                                    <option value="google">Google Gemini</option>
-                                </select>
-                            </div>
-                            <button type="submit" class="btn btn-primary" id="analyze-btn">
-                                <span id="analyze-text">Analyze Document</span>
-                                <div id="analyze-spinner" class="spinner hidden"></div>
-                            </button>
-                        </form>
-                    </div>
-                </div>
-
-                <!-- Results Area -->
-                <div class="results-container" id="results-container">
-                    <div class="panel results-panel">
-                        <h2>Analysis Results</h2>
-                        <div id="results-content" class="results-content">
-                            <p class="empty-state">Run an analysis to see results here.</p>
-                        </div>
-                        <div id="results-actions" class="results-actions hidden">
-                            <button class="btn btn-secondary" id="export-btn">Export</button>
-                            <button class="btn btn-secondary" id="share-btn">Share</button>
-                            <button class="btn btn-secondary" id="save-btn">Save</button>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Authentication Modal -->
-            <div id="auth-modal" class="modal hidden">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h2 id="auth-title">Login</h2>
-                        <button class="modal-close" id="modal-close">&times;</button>
-                    </div>
-                    <div class="modal-body">
-                        <div class="auth-tabs">
-                            <button class="tab-btn active" data-tab="login">Login</button>
-                            <button class="tab-btn" data-tab="register">Register</button>
-                        </div>
-                        
-                        <!-- Login Form -->
-                        <form id="login-form" class="auth-form">
-                            <div class="form-group">
-                                <label for="login-email">Email:</label>
-                                <input type="email" id="login-email" class="form-input" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="login-password">Password:</label>
-                                <input type="password" id="login-password" class="form-input" required>
-                            </div>
-                            <button type="submit" class="btn btn-primary btn-full">Login</button>
-                        </form>
-
-                        <!-- Register Form -->
-                        <form id="register-form" class="auth-form hidden">
-                            <div class="form-group">
-                                <label for="register-email">Email:</label>
-                                <input type="email" id="register-email" class="form-input" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="register-username">Username:</label>
-                                <input type="text" id="register-username" class="form-input" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="register-password">Password:</label>
-                                <input type="password" id="register-password" class="form-input" required>
-                            </div>
-                            <button type="submit" class="btn btn-primary btn-full">Register</button>
-                        </form>
-                    </div>
-                </div>
+                <div class="model-count" id="modelCount">0 models selected</div>
             </div>
 
-            <!-- Notification Container -->
-            <div id="notifications" class="notifications-container"></div>
-        </main>
+            <div class="form-group">
+                <label for="promptInput">Enter your prompt:</label>
+                <textarea id="promptInput" class="prompt-textarea" 
+                    placeholder="Enter your prompt here. No document upload required - just ask your question and see how different LLMs respond..."></textarea>
+            </div>
+
+            <button id="executeBtn" class="execute-btn">
+                Execute Across Selected Models
+            </button>
+        </div>
+
+        <div id="resultsSection" class="results-section" style="display: none;">
+            <h2>Results</h2>
+            <div id="resultsContainer"></div>
+        </div>
     </div>
 
-    <!-- JavaScript -->
-    <script src="/js/utils.js"></script>
-    <script src="/js/api.js"></script>
-    <script src="/js/auth.js"></script>
-    <script src="/js/upload.js"></script>
-    <script src="/js/analysis.js"></script>
-    <script src="/js/app.js"></script>
+    <script>
+        class OrchestratorApp {
+            constructor() {
+                this.selectedModels = new Set();
+                this.initializeEventListeners();
+            }
+
+            initializeEventListeners() {
+                // Model selection
+                document.querySelectorAll('.model-card').forEach(card => {
+                    card.addEventListener('click', (e) => {
+                        if (e.target.type !== 'checkbox') {
+                            const checkbox = card.querySelector('input[type="checkbox"]');
+                            checkbox.checked = !checkbox.checked;
+                        }
+                        this.updateSelectedModels();
+                    });
+                });
+
+                document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+                    checkbox.addEventListener('change', () => this.updateSelectedModels());
+                });
+
+                // Execute button
+                document.getElementById('executeBtn').addEventListener('click', () => this.executeOrchestrator());
+                
+                // Enter key in textarea
+                document.getElementById('promptInput').addEventListener('keydown', (e) => {
+                    if (e.ctrlKey && e.key === 'Enter') {
+                        this.executeOrchestrator();
+                    }
+                });
+            }
+
+            updateSelectedModels() {
+                this.selectedModels.clear();
+                
+                document.querySelectorAll('input[type="checkbox"]:checked').forEach(checkbox => {
+                    this.selectedModels.add(checkbox.value);
+                    checkbox.closest('.model-card').classList.add('selected');
+                });
+
+                document.querySelectorAll('input[type="checkbox"]:not(:checked)').forEach(checkbox => {
+                    checkbox.closest('.model-card').classList.remove('selected');
+                });
+
+                const count = this.selectedModels.size;
+                document.getElementById('modelCount').textContent = 
+                    count === 0 ? '0 models selected' :
+                    count === 1 ? '1 model selected' :
+                    `${count} models selected`;
+
+                document.getElementById('executeBtn').disabled = count === 0;
+            }
+
+            async executeOrchestrator() {
+                const prompt = document.getElementById('promptInput').value.trim();
+                if (!prompt) {
+                    alert('Please enter a prompt');
+                    return;
+                }
+
+                if (this.selectedModels.size === 0) {
+                    alert('Please select at least one model');
+                    return;
+                }
+
+                const executeBtn = document.getElementById('executeBtn');
+                const resultsSection = document.getElementById('resultsSection');
+                const resultsContainer = document.getElementById('resultsContainer');
+
+                executeBtn.disabled = true;
+                executeBtn.textContent = 'Executing...';
+                
+                resultsSection.style.display = 'block';
+                resultsContainer.innerHTML = '<div class="loading"><div class="spinner"></div><p>Executing across selected models...</p></div>';
+
+                try {
+                    // Execute for each selected model
+                    const results = [];
+                    for (const model of this.selectedModels) {
+                        try {
+                            const response = await fetch('/api/orchestrator/execute', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                },
+                                body: JSON.stringify({
+                                    prompt: prompt,
+                                    models: [model],
+                                    args: {},
+                                    kwargs: {}
+                                })
+                            });
+
+                            const data = await response.json();
+                            results.push({
+                                model: model,
+                                success: true,
+                                response: data.result.response
+                            });
+                        } catch (error) {
+                            results.push({
+                                model: model,
+                                success: false,
+                                error: error.message
+                            });
+                        }
+                    }
+
+                    this.displayResults(results);
+
+                } catch (error) {
+                    resultsContainer.innerHTML = `<div class="error">Error: ${error.message}</div>`;
+                } finally {
+                    executeBtn.disabled = false;
+                    executeBtn.textContent = 'Execute Across Selected Models';
+                }
+            }
+
+            displayResults(results) {
+                const resultsContainer = document.getElementById('resultsContainer');
+                resultsContainer.innerHTML = '';
+
+                results.forEach(result => {
+                    const resultCard = document.createElement('div');
+                    resultCard.className = 'result-card';
+                    
+                    if (result.success) {
+                        resultCard.innerHTML = `
+                            <div class="result-header">
+                                <div class="model-name">${result.model}</div>
+                            </div>
+                            <div class="result-content">${result.response}</div>
+                        `;
+                    } else {
+                        resultCard.innerHTML = `
+                            <div class="result-header">
+                                <div class="model-name">${result.model}</div>
+                            </div>
+                            <div class="error">Error: ${result.error}</div>
+                        `;
+                    }
+                    
+                    resultsContainer.appendChild(resultCard);
+                });
+            }
+        }
+
+        // Initialize the app
+        document.addEventListener('DOMContentLoaded', () => {
+            new OrchestratorApp();
+        });
+    </script>
 </body>
 </html>
