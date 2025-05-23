@@ -427,8 +427,44 @@ async def create_analysis(
     if cached_response:
         response = cached_response
     else:
-        # In production, call actual LLM here
-        response = f"Mock response for {analysis.llm_provider} analyzing document {analysis.document_id}"
+        # Call actual LLM
+        try:
+            if analysis.llm_provider.startswith("gpt"):
+                import openai
+                openai.api_key = os.getenv("OPENAI_API_KEY", "")
+                if not openai.api_key:
+                    response = "Error: OpenAI API key not configured"
+                else:
+                    client = openai.OpenAI(api_key=openai.api_key)
+                    completion = client.chat.completions.create(
+                        model=analysis.llm_provider,
+                        messages=[
+                            {"role": "system", "content": "You are a helpful AI assistant that analyzes documents."},
+                            {"role": "user", "content": f"{analysis.prompt}\n\nDocument content:\n{document.content}"}
+                        ],
+                        max_tokens=1000
+                    )
+                    response = completion.choices[0].message.content
+            elif analysis.llm_provider.startswith("claude"):
+                import anthropic
+                api_key = os.getenv("ANTHROPIC_API_KEY", "")
+                if not api_key:
+                    response = "Error: Anthropic API key not configured"
+                else:
+                    client = anthropic.Anthropic(api_key=api_key)
+                    message = client.messages.create(
+                        model=analysis.llm_provider,
+                        max_tokens=1000,
+                        messages=[
+                            {"role": "user", "content": f"{analysis.prompt}\n\nDocument content:\n{document.content}"}
+                        ]
+                    )
+                    response = message.content[0].text
+            else:
+                response = f"Error: Unsupported LLM provider: {analysis.llm_provider}"
+        except Exception as e:
+            response = f"Error calling {analysis.llm_provider}: {str(e)}"
+        
         if redis_available:
             try:
                 redis_client.setex(cache_key, 3600, response)
@@ -505,7 +541,46 @@ async def execute_orchestrator(
     request: OrchestratorRequest,
 ):
     """Execute orchestrator request"""
-    # In production, this would call actual orchestrator
+    try:
+        model = request.models[0] if request.models else "gpt-3.5-turbo"
+        
+        if model.startswith("gpt"):
+            import openai
+            api_key = os.getenv("OPENAI_API_KEY", "")
+            if not api_key:
+                response = "Error: OpenAI API key not configured"
+            else:
+                client = openai.OpenAI(api_key=api_key)
+                completion = client.chat.completions.create(
+                    model=model,
+                    messages=[
+                        {"role": "system", "content": "You are a helpful AI assistant."},
+                        {"role": "user", "content": request.prompt}
+                    ],
+                    max_tokens=1000
+                )
+                response = completion.choices[0].message.content
+        elif model.startswith("claude"):
+            import anthropic
+            api_key = os.getenv("ANTHROPIC_API_KEY", "")
+            if not api_key:
+                response = "Error: Anthropic API key not configured"
+            else:
+                client = anthropic.Anthropic(api_key=api_key)
+                message = client.messages.create(
+                    model=model,
+                    max_tokens=1000,
+                    messages=[
+                        {"role": "user", "content": request.prompt}
+                    ]
+                )
+                response = message.content[0].text
+        else:
+            response = f"Error: Unsupported model: {model}"
+            
+    except Exception as e:
+        response = f"Error: {str(e)}"
+    
     result = {
         "status": "success",
         "result": {
@@ -513,7 +588,7 @@ async def execute_orchestrator(
             "models": request.models,
             "args": request.args,
             "kwargs": request.kwargs,
-            "response": f"Mock orchestrator response for prompt: {request.prompt}",
+            "response": response,
         },
     }
 

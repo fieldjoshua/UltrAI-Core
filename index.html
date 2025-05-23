@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UltrAI - Document Analysis Platform</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .logo {
+            font-size: 2rem;
+            font-weight: bold;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+        
+        .hidden {
+            display: none !important;
+        }
+        
+        .tabs {
+            display: flex;
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 5px;
+            margin-bottom: 30px;
+            overflow-x: auto;
+        }
+        
+        .tab {
+            padding: 12px 24px;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+            font-weight: 500;
+        }
+        
+        .tab.active {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .tab:hover:not(.active) {
+            background: #e9ecef;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #495057;
+        }
+        
+        input, textarea, select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+            background: #fff;
+        }
+        
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        button {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        button:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+        }
+        
+        .btn-danger {
+            background: linear-gradient(45deg, #dc3545, #c82333);
+        }
+        
+        .btn-success {
+            background: linear-gradient(45deg, #28a745, #20c997);
+        }
+        
+        .alert {
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin: 15px 0;
+            font-weight: 500;
+        }
+        
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+        }
+        
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .document-item {
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 15px;
+            transition: all 0.3s ease;
+        }
+        
+        .document-item:hover {
+            border-color: #667eea;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.1);
+        }
+        
+        .document-title {
+            font-weight: bold;
+            color: #495057;
+            margin-bottom: 8px;
+        }
+        
+        .document-date {
+            color: #6c757d;
+            font-size: 0.9em;
+            margin-bottom: 15px;
+        }
+        
+        .results {
+            background: linear-gradient(45deg, #f8f9fa, #e9ecef);
+            border-radius: 10px;
+            padding: 25px;
+            margin-top: 20px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .results h3 {
+            color: #495057;
+            margin-bottom: 15px;
+        }
+        
+        .results-content {
+            line-height: 1.6;
+            color: #495057;
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            display: block;
+        }
+        
+        .stat-label {
+            opacity: 0.9;
+            margin-top: 5px;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .header {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+            
+            .tabs {
+                flex-direction: column;
+            }
+            
+            .tab {
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="logo">🚀 UltrAI</div>
+            <div id="userInfo" class="user-info hidden">
+                <span>Welcome, <strong id="username"></strong>!</span>
+                <button onclick="logout()" class="btn-danger">Logout</button>
+            </div>
+        </div>
+
+        <!-- Authentication Section -->
+        <div id="authSection" class="card">
+            <div class="tabs">
+                <div class="tab active" onclick="switchAuthTab('login')">Login</div>
+                <div class="tab" onclick="switchAuthTab('register')">Register</div>
+            </div>
+
+            <!-- Login Form -->
+            <div id="loginForm">
+                <h2 style="margin-bottom: 20px;">Welcome Back</h2>
+                <form onsubmit="login(event)">
+                    <div class="form-group">
+                        <label for="loginEmail">Email Address</label>
+                        <input type="email" id="loginEmail" required placeholder="Enter your email">
+                    </div>
+                    <div class="form-group">
+                        <label for="loginPassword">Password</label>
+                        <input type="password" id="loginPassword" required placeholder="Enter your password">
+                    </div>
+                    <button type="submit">
+                        <span>🔑</span> Login
+                    </button>
+                </form>
+            </div>
+
+            <!-- Register Form -->
+            <div id="registerForm" class="hidden">
+                <h2 style="margin-bottom: 20px;">Create Account</h2>
+                <form onsubmit="register(event)">
+                    <div class="form-group">
+                        <label for="registerEmail">Email Address</label>
+                        <input type="email" id="registerEmail" required placeholder="Enter your email">
+                    </div>
+                    <div class="form-group">
+                        <label for="registerUsername">Username</label>
+                        <input type="text" id="registerUsername" required placeholder="Choose a username">
+                    </div>
+                    <div class="form-group">
+                        <label for="registerPassword">Password</label>
+                        <input type="password" id="registerPassword" required placeholder="Create a password">
+                    </div>
+                    <button type="submit">
+                        <span>✨</span> Create Account
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Main Application -->
+        <div id="mainSection" class="hidden">
+            <!-- Stats Dashboard -->
+            <div class="stats">
+                <div class="stat-card">
+                    <span class="stat-number" id="docCount">0</span>
+                    <div class="stat-label">Documents</div>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-number" id="analysisCount">0</span>
+                    <div class="stat-label">Analyses</div>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-number">✅</span>
+                    <div class="stat-label">API Status</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="tabs">
+                    <div class="tab active" onclick="switchMainTab('upload')">📄 Upload Document</div>
+                    <div class="tab" onclick="switchMainTab('documents')">📚 My Documents</div>
+                    <div class="tab" onclick="switchMainTab('analyze')">🧠 Quick Analysis</div>
+                </div>
+
+                <!-- Upload Tab -->
+                <div id="uploadTab">
+                    <h2>Upload Document for Analysis</h2>
+                    <form onsubmit="uploadDocument(event)">
+                        <div class="form-group">
+                            <label for="filename">Document Name</label>
+                            <input type="text" id="filename" required placeholder="e.g., Contract Analysis, Research Paper">
+                        </div>
+                        <div class="form-group">
+                            <label for="content">Document Content</label>
+                            <textarea id="content" rows="12" required placeholder="Paste your document content here..."></textarea>
+                        </div>
+                        <button type="submit">
+                            <span>📤</span> Upload Document
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Documents Tab -->
+                <div id="documentsTab" class="hidden">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h2>Your Documents</h2>
+                        <button onclick="loadDocuments()" class="btn-secondary">
+                            <span>🔄</span> Refresh
+                        </button>
+                    </div>
+                    <div id="documentsList"></div>
+                </div>
+
+                <!-- Analysis Tab -->
+                <div id="analyzeTab" class="hidden">
+                    <h2>Quick Text Analysis</h2>
+                    <form onsubmit="quickAnalysis(event)">
+                        <div class="form-group">
+                            <label for="quickText">Text to Analyze</label>
+                            <textarea id="quickText" rows="8" required placeholder="Enter text for quick analysis..."></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="analysisModel">AI Model</label>
+                            <select id="analysisModel">
+                                <option value="gpt-3.5-turbo">GPT-3.5 Turbo (Fast)</option>
+                                <option value="gpt-4">GPT-4 (Advanced)</option>
+                                <option value="claude-3-sonnet">Claude 3 Sonnet</option>
+                                <option value="claude-3-opus">Claude 3 Opus</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="analysisPrompt">Analysis Instructions</label>
+                            <input type="text" id="analysisPrompt" value="Analyze this text and provide key insights, main themes, and a summary" required>
+                        </div>
+                        <button type="submit">
+                            <span>🔬</span> Analyze Text
+                        </button>
+                    </form>
+                </div>
+
+                <div id="results"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'https://ultrai-core.onrender.com';
+        let authToken = localStorage.getItem('authToken');
+        let currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
+        let userStats = { documents: 0, analyses: 0 };
+
+        // Initialize app
+        window.addEventListener('load', async () => {
+            if (authToken && currentUser) {
+                await showMainSection();
+            }
+            await checkApiHealth();
+        });
+
+        async function checkApiHealth() {
+            try {
+                const response = await fetch(`${API_BASE}/health`);
+                if (response.ok) {
+                    console.log('API is healthy');
+                } else {
+                    showMessage('API health check failed', 'error');
+                }
+            } catch (error) {
+                showMessage('Cannot connect to API: ' + error.message, 'error');
+            }
+        }
+
+        function switchAuthTab(tab) {
+            document.querySelectorAll('#authSection .tab').forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            document.getElementById('loginForm').classList.toggle('hidden', tab !== 'login');
+            document.getElementById('registerForm').classList.toggle('hidden', tab !== 'register');
+        }
+
+        function switchMainTab(tab) {
+            document.querySelectorAll('#mainSection .tab').forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            document.getElementById('uploadTab').classList.toggle('hidden', tab !== 'upload');
+            document.getElementById('documentsTab').classList.toggle('hidden', tab !== 'documents');
+            document.getElementById('analyzeTab').classList.toggle('hidden', tab !== 'analyze');
+            
+            if (tab === 'documents') {
+                loadDocuments();
+            }
+        }
+
+        async function register(event) {
+            event.preventDefault();
+            const email = document.getElementById('registerEmail').value;
+            const username = document.getElementById('registerUsername').value;
+            const password = document.getElementById('registerPassword').value;
+
+            const button = event.target.querySelector('button');
+            button.disabled = true;
+            button.innerHTML = '<span>⏳</span> Creating Account...';
+
+            try {
+                const response = await fetch(`${API_BASE}/auth/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, username, password })
+                });
+
+                if (response.ok) {
+                    showMessage('🎉 Registration successful! Please login.', 'success');
+                    switchAuthTab('login');
+                    document.getElementById('loginEmail').value = email;
+                } else {
+                    const error = await response.json();
+                    showMessage('❌ ' + (error.detail || 'Registration failed'), 'error');
+                }
+            } catch (error) {
+                showMessage('❌ Network error: ' + error.message, 'error');
+            } finally {
+                button.disabled = false;
+                button.innerHTML = '<span>✨</span> Create Account';
+            }
+        }
+
+        async function login(event) {
+            event.preventDefault();
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+
+            const button = event.target.querySelector('button');
+            button.disabled = true;
+            button.innerHTML = '<span>⏳</span> Logging in...';
+
+            try {
+                const response = await fetch(`${API_BASE}/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    authToken = data.access_token;
+                    currentUser = { email };
+                    
+                    localStorage.setItem('authToken', authToken);
+                    localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                    
+                    showMessage('🎉 Login successful!', 'success');
+                    await showMainSection();
+                } else {
+                    const error = await response.json();
+                    showMessage('❌ ' + (error.detail || 'Login failed'), 'error');
+                }
+            } catch (error) {
+                showMessage('❌ Network error: ' + error.message, 'error');
+            } finally {
+                button.disabled = false;
+                button.innerHTML = '<span>🔑</span> Login';
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('authToken');
+            localStorage.removeItem('currentUser');
+            authToken = null;
+            currentUser = null;
+            
+            document.getElementById('authSection').classList.remove('hidden');
+            document.getElementById('mainSection').classList.add('hidden');
+            document.getElementById('userInfo').classList.add('hidden');
+            document.getElementById('results').innerHTML = '';
+            showMessage('👋 Logged out successfully', 'success');
+        }
+
+        async function showMainSection() {
+            document.getElementById('authSection').classList.add('hidden');
+            document.getElementById('mainSection').classList.remove('hidden');
+            document.getElementById('userInfo').classList.remove('hidden');
+            document.getElementById('username').textContent = currentUser.email;
+            
+            await updateStats();
+        }
+
+        async function updateStats() {
+            try {
+                const response = await fetch(`${API_BASE}/documents`, {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+
+                if (response.ok) {
+                    const documents = await response.json();
+                    userStats.documents = documents.length;
+                    document.getElementById('docCount').textContent = userStats.documents;
+                }
+            } catch (error) {
+                console.log('Could not load stats:', error);
+            }
+        }
+
+        async function uploadDocument(event) {
+            event.preventDefault();
+            const filename = document.getElementById('filename').value;
+            const content = document.getElementById('content').value;
+
+            const button = event.target.querySelector('button');
+            button.disabled = true;
+            button.innerHTML = '<span>⏳</span> Uploading...';
+
+            try {
+                const response = await fetch(`${API_BASE}/documents`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify({ filename, content })
+                });
+
+                if (response.ok) {
+                    showMessage('🎉 Document uploaded successfully!', 'success');
+                    document.getElementById('filename').value = '';
+                    document.getElementById('content').value = '';
+                    await updateStats();
+                } else {
+                    const error = await response.json();
+                    showMessage('❌ ' + (error.detail || 'Upload failed'), 'error');
+                }
+            } catch (error) {
+                showMessage('❌ Network error: ' + error.message, 'error');
+            } finally {
+                button.disabled = false;
+                button.innerHTML = '<span>📤</span> Upload Document';
+            }
+        }
+
+        async function loadDocuments() {
+            const container = document.getElementById('documentsList');
+            container.innerHTML = '<div class="loading"><div class="spinner"></div><p>Loading documents...</p></div>';
+
+            try {
+                const response = await fetch(`${API_BASE}/documents`, {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+
+                if (response.ok) {
+                    const documents = await response.json();
+                    displayDocuments(documents);
+                } else {
+                    const error = await response.json();
+                    container.innerHTML = `<p>❌ ${error.detail || 'Failed to load documents'}</p>`;
+                }
+            } catch (error) {
+                container.innerHTML = `<p>❌ Network error: ${error.message}</p>`;
+            }
+        }
+
+        function displayDocuments(documents) {
+            const container = document.getElementById('documentsList');
+            
+            if (documents.length === 0) {
+                container.innerHTML = '<p>📭 No documents uploaded yet. Use the Upload tab to add your first document!</p>';
+                return;
+            }
+
+            container.innerHTML = documents.map(doc => `
+                <div class="document-item">
+                    <div class="document-title">📄 ${doc.filename}</div>
+                    <div class="document-date">Uploaded: ${new Date(doc.created_at).toLocaleString()}</div>
+                    <button class="btn-success" onclick="analyzeDocument(${doc.id}, '${doc.filename.replace(/'/g, "\\'")}')">
+                        <span>🧠</span> Analyze with AI
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        async function analyzeDocument(documentId, filename) {
+            const prompt = "Analyze this document thoroughly. Provide: 1) Key insights and main themes, 2) Summary of important points, 3) Any recommendations or conclusions you can draw from the content.";
+            const llmProvider = "gpt-3.5-turbo";
+
+            showLoading(`🔬 Analyzing "${filename}"...`);
+
+            try {
+                const response = await fetch(`${API_BASE}/analyses`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify({ document_id: documentId, llm_provider: llmProvider, prompt })
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    showResults(`Analysis of "${filename}"`, result.response, result.cached);
+                    userStats.analyses++;
+                    document.getElementById('analysisCount').textContent = userStats.analyses;
+                } else {
+                    const error = await response.json();
+                    showMessage('❌ ' + (error.detail || 'Analysis failed'), 'error');
+                    document.getElementById('results').innerHTML = '';
+                }
+            } catch (error) {
+                showMessage('❌ Network error: ' + error.message, 'error');
+                document.getElementById('results').innerHTML = '';
+            }
+        }
+
+        async function quickAnalysis(event) {
+            event.preventDefault();
+            const text = document.getElementById('quickText').value;
+            const model = document.getElementById('analysisModel').value;
+            const prompt = document.getElementById('analysisPrompt').value;
+
+            const button = event.target.querySelector('button');
+            button.disabled = true;
+            button.innerHTML = '<span>⏳</span> Analyzing...';
+
+            showLoading('🔬 Analyzing your text...');
+
+            try {
+                const response = await fetch(`${API_BASE}/api/orchestrator/execute`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        prompt: `${prompt}\n\nText to analyze:\n${text}`,
+                        models: [model]
+                    })
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    showResults('Quick Analysis Results', result.result.response, false);
+                    userStats.analyses++;
+                    document.getElementById('analysisCount').textContent = userStats.analyses;
+                } else {
+                    const error = await response.json();
+                    showMessage('❌ ' + (error.detail || 'Analysis failed'), 'error');
+                    document.getElementById('results').innerHTML = '';
+                }
+            } catch (error) {
+                showMessage('❌ Network error: ' + error.message, 'error');
+                document.getElementById('results').innerHTML = '';
+            } finally {
+                button.disabled = false;
+                button.innerHTML = '<span>🔬</span> Analyze Text';
+            }
+        }
+
+        function showLoading(message) {
+            document.getElementById('results').innerHTML = `
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>${message}</p>
+                </div>
+            `;
+        }
+
+        function showResults(title, content, cached) {
+            const cacheInfo = cached ? ' (from cache ⚡)' : '';
+            document.getElementById('results').innerHTML = `
+                <div class="results">
+                    <h3>🎯 ${title}${cacheInfo}</h3>
+                    <div class="results-content">${content}</div>
+                </div>
+            `;
+        }
+
+        function showMessage(message, type) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `alert alert-${type}`;
+            messageDiv.innerHTML = message;
+            
+            document.body.appendChild(messageDiv);
+            
+            setTimeout(() => {
+                messageDiv.remove();
+            }, 5000);
+        }
+    </script>
+</body>
+</html>
