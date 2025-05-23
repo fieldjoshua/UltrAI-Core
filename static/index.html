@@ -550,8 +550,37 @@
                 const resultsContainer = document.getElementById('resultsContainer');
                 resultsContainer.innerHTML = '';
 
-                // Display Feather analysis stages
-                if (data.stages) {
+                // Handle new multi-model response format
+                if (data.result && data.result.responses) {
+                    // Multi-model responses
+                    data.result.responses.forEach((response, index) => {
+                        const resultCard = document.createElement('div');
+                        resultCard.className = 'result-card';
+                        
+                        // Check for API key errors
+                        let isApiError = response.response && (response.response.includes('API key') || response.response.includes('Error:'));
+                        
+                        if (isApiError) {
+                            resultCard.innerHTML = `
+                                <div class="result-header">
+                                    <div class="model-name">⚠️ ${response.model}</div>
+                                </div>
+                                <div class="api-status error">${response.response}</div>
+                            `;
+                        } else {
+                            resultCard.innerHTML = `
+                                <div class="result-header">
+                                    <div class="model-name">🤖 ${response.model}</div>
+                                </div>
+                                <div class="result-content">${response.response}</div>
+                            `;
+                        }
+                        
+                        resultsContainer.appendChild(resultCard);
+                    });
+                }
+                // Display Feather analysis stages (for future UltraAI patterns)
+                else if (data.stages) {
                     data.stages.forEach((stage, index) => {
                         const stageCard = document.createElement('div');
                         stageCard.className = 'result-card feather-stage';
