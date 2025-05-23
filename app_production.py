@@ -610,71 +610,17 @@ async def get_available_models():
     }
 
 
-# Serve simple frontend for testing
-@app.get("/")
-async def serve_frontend():
-    """Serve a simple frontend for testing"""
-    from fastapi.responses import HTMLResponse
-    html_content = """
-    <!DOCTYPE html>
-    <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Ultra AI - Test</title>
-        <style>
-            body { 
-                margin: 0; 
-                font-family: 'Arial', sans-serif; 
-                background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-                color: #00FFFF;
-                min-height: 100vh;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-            }
-            .container {
-                text-align: center;
-                padding: 2rem;
-            }
-            h1 {
-                font-size: 4rem;
-                text-shadow: 0 0 20px #00FFFF;
-                margin-bottom: 1rem;
-            }
-            .tagline {
-                font-size: 1.5rem;
-                color: #FF6B35;
-                text-shadow: 0 0 10px #FF6B35;
-                margin-bottom: 2rem;
-            }
-            .status {
-                color: #00FF00;
-                font-size: 1.2rem;
-            }
-        </style>
-    </head>
-    <body>
-        <div class="container">
-            <h1>ULTRA AI</h1>
-            <div class="tagline">MULTIPLY YOUR AI!</div>
-            <div class="status">✅ Frontend Successfully Deployed</div>
-            <p>Backend API: <a href="/health" style="color: #00FFFF;">/health</a></p>
-            <p>API Docs: <a href="/docs" style="color: #00FFFF;">/docs</a></p>
-        </div>
-    </body>
-    </html>
-    """
-    return HTMLResponse(content=html_content)
 
-# Try to mount static files if available
-frontend_dist_path = os.path.join(os.path.dirname(__file__), "frontend", "dist")
-if os.path.exists(frontend_dist_path):
+# Mount static files for integrated frontend
+static_dir = os.path.join(os.path.dirname(__file__), "static")
+if os.path.exists(static_dir):
     try:
-        # Mount static assets at /assets
-        app.mount("/assets", StaticFiles(directory=os.path.join(frontend_dist_path, "assets")), name="assets")
-        print(f"Frontend assets mounted from: {frontend_dist_path}/assets")
+        # Mount static files at root with HTML fallback for SPA routing
+        app.mount("/", StaticFiles(directory=static_dir, html=True), name="static")
+        print(f"✅ Static frontend mounted from: {static_dir}")
     except (RuntimeError, FileNotFoundError) as e:
-        print(f"Could not mount frontend assets: {e}")
+        print(f"❌ Could not mount static frontend: {e}")
 else:
-    print(f"Frontend dist not found at: {frontend_dist_path}")
+    print(f"⚠️ Static directory not found at: {static_dir}")
+    print("Creating static directory...")
+    os.makedirs(static_dir, exist_ok=True)
