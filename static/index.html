@@ -474,7 +474,7 @@
 
                 try {
                     // Execute UltraAI Feather analysis with all selected models
-                    const response = await fetch('/api/orchestrator/process', {
+                    const response = await fetch('/api/orchestrator/execute', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
@@ -482,8 +482,8 @@
                         body: JSON.stringify({
                             prompt: prompt,
                             models: Array.from(this.selectedModels),
-                            analysis_type: this.selectedPattern,
-                            options: {}
+                            args: {},
+                            kwargs: {}
                         })
                     });
 
@@ -530,15 +530,30 @@
                         resultsContainer.appendChild(stageCard);
                     });
                 } else if (data.result) {
-                    // Fallback for simple result format
+                    // Fallback for simple result format from old orchestrator
                     const resultCard = document.createElement('div');
                     resultCard.className = 'result-card';
-                    resultCard.innerHTML = `
-                        <div class="result-header">
-                            <div class="model-name">🎯 UltraAI Feather Analysis</div>
-                        </div>
-                        <div class="result-content">${data.result}</div>
-                    `;
+                    
+                    // Check for API key errors
+                    let responseText = data.result.response || data.result;
+                    let isApiError = responseText && (responseText.includes('API key') || responseText.includes('invalid_request_error'));
+                    
+                    if (isApiError) {
+                        document.getElementById('apiStatus').style.display = 'block';
+                        resultCard.innerHTML = `
+                            <div class="result-header">
+                                <div class="model-name">⚠️ API Configuration</div>
+                            </div>
+                            <div class="api-status error">API keys are configured but there may be an issue. The system returned: ${responseText}</div>
+                        `;
+                    } else {
+                        resultCard.innerHTML = `
+                            <div class="result-header">
+                                <div class="model-name">🎯 UltraAI Analysis Result</div>
+                            </div>
+                            <div class="result-content">${responseText}</div>
+                        `;
+                    }
                     resultsContainer.appendChild(resultCard);
                 } else {
                     // Error case
