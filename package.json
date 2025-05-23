@@ -1,9 +1,0 @@
-{
-  "name": "ultrai-frontend",
-  "version": "1.0.0",
-  "description": "UltrAI MVP Frontend - Static HTML",
-  "scripts": {
-    "build": "echo 'No build needed - static HTML'",
-    "start": "echo 'Static HTML - open index.html'"
-  }
-}
