@@ -202,21 +202,22 @@
         }
 
         .analysis-presets {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin-top: 10px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
+            margin-top: 15px;
         }
 
         .preset-btn {
             background: var(--bg-secondary);
             border: 1px solid var(--border-light);
-            border-radius: 6px;
-            padding: 8px 12px;
+            border-radius: 8px;
+            padding: 12px 16px;
             font-size: 0.9rem;
             cursor: pointer;
             transition: all 0.3s ease;
-            white-space: nowrap;
+            text-align: left;
+            position: relative;
         }
 
         .preset-btn:hover {
@@ -258,8 +259,8 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>UltraAI Orchestrator</h1>
-            <p>Execute prompts across multiple LLM providers simultaneously</p>
+            <h1>UltraAI Feather Orchestrator</h1>
+            <p>Advanced analysis patterns across multiple LLM providers • Intelligence multiplication through structured collaboration</p>
         </div>
 
         <div class="orchestrator-panel">
@@ -302,14 +303,18 @@
             </div>
 
             <div class="form-group">
-                <label>Analysis Type (Optional):</label>
+                <label>UltraAI Feather Analysis Patterns:</label>
                 <div class="analysis-presets" id="analysisPresets">
-                    <button type="button" class="preset-btn" data-prompt="Summarize the key points of: ">📝 Summarize</button>
-                    <button type="button" class="preset-btn" data-prompt="Analyze and critique: ">🔍 Analyze</button>
-                    <button type="button" class="preset-btn" data-prompt="Extract the main arguments from: ">📋 Extract Key Points</button>
-                    <button type="button" class="preset-btn" data-prompt="Explain in simple terms: ">💡 Explain Simply</button>
-                    <button type="button" class="preset-btn" data-prompt="Find potential problems or issues with: ">⚠️ Find Issues</button>
-                    <button type="button" class="preset-btn" data-prompt="Compare different perspectives on: ">⚖️ Compare Views</button>
+                    <button type="button" class="preset-btn" data-prompt="Perform a Gut Analysis on: " title="Quick intuitive assessment of core issues">🧠 Gut Analysis</button>
+                    <button type="button" class="preset-btn" data-prompt="Perform a Confidence Analysis on: " title="Quantify certainty in conclusions">📊 Confidence Analysis</button>
+                    <button type="button" class="preset-btn" data-prompt="Perform a Critique Analysis on: " title="Identify flaws and weaknesses">🔍 Critique Analysis</button>
+                    <button type="button" class="preset-btn" data-prompt="Perform a Fact Check Analysis on: " title="Verify factual accuracy">✅ Fact Check</button>
+                    <button type="button" class="preset-btn" data-prompt="Perform a Perspective Analysis on: " title="Surface diverse viewpoints">👥 Perspective Analysis</button>
+                    <button type="button" class="preset-btn" data-prompt="Perform a Scenario Analysis on: " title="Explore potential futures">🔮 Scenario Analysis</button>
+                    <button type="button" class="preset-btn" data-prompt="Perform a Stakeholder Vision analysis on: " title="Map impact across stakeholders">🎯 Stakeholder Vision</button>
+                    <button type="button" class="preset-btn" data-prompt="Perform a Systems Mapper analysis on: " title="Model complex system interactions">🗺️ Systems Mapper</button>
+                    <button type="button" class="preset-btn" data-prompt="Perform a Time Horizon analysis on: " title="Analyze short/medium/long-term implications">⏰ Time Horizon</button>
+                    <button type="button" class="preset-btn" data-prompt="Perform an Innovation Bridge analysis on: " title="Connect disparate fields for novel insights">💡 Innovation Bridge</button>
                 </div>
             </div>
 
