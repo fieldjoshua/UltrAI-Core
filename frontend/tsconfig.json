@@ -9,7 +9,7 @@
     "paths": {
       "@/*": ["./src/*"]
     },
-    "types": ["vite/client", "node", "jest"],
+    "types": ["vite/client"],
     "moduleResolution": "bundler",
     "allowImportingTsExtensions": true,
     "resolveJsonModule": true,
@@ -27,5 +27,6 @@
     "plugins": [{ "name": "typescript-plugin-css-modules" }]
   },
   "include": ["src", "**/*.d.ts"],
+  "exclude": ["src/**/__tests__/**/*", "src/tests/**/*", "**/*.test.*", "**/*.spec.*"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }
