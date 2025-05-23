@@ -606,73 +606,122 @@ class OrchestratorRequest(BaseModel):
 async def execute_orchestrator(
     request: OrchestratorRequest,
 ):
-    """Execute orchestrator request"""
-    try:
-        model = request.models[0] if request.models else "gpt-3.5-turbo"
-        
-        if model.startswith("gpt"):
-            import openai
-            api_key = os.getenv("OPENAI_API_KEY", "")
-            if not api_key or api_key.startswith("your_ope"):
-                response = f"Error: OpenAI API key not configured. Found: {api_key[:20] if api_key else 'None'}..."
-            else:
+    """Execute orchestrator request with multiple models"""
+    import asyncio
+    
+    async def call_model(model: str, prompt: str):
+        """Call a single model"""
+        try:
+            if model.startswith("gpt"):
+                import openai
+                api_key = os.getenv("OPENAI_API_KEY", "")
+                if not api_key or api_key.startswith("your_"):
+                    return f"Error: OpenAI API key not configured"
+                
                 client = openai.OpenAI(api_key=api_key)
                 completion = client.chat.completions.create(
                     model=model,
                     messages=[
-                        {"role": "system", "content": "You are a helpful AI assistant."},
-                        {"role": "user", "content": request.prompt}
+                        {"role": "system", "content": "You are a helpful AI assistant providing detailed analysis."},
+                        {"role": "user", "content": prompt}
                     ],
                     max_tokens=1000
                 )
-                response = completion.choices[0].message.content
-        elif model.startswith("claude"):
-            import anthropic
-            api_key = os.getenv("ANTHROPIC_API_KEY", "")
-            if not api_key or len(api_key) < 10:
-                response = f"Error: Anthropic API key not configured. Found: {api_key[:20] if api_key else 'None'}..."
-            else:
+                return completion.choices[0].message.content
+                
+            elif model.startswith("claude"):
+                import anthropic
+                api_key = os.getenv("ANTHROPIC_API_KEY", "")
+                if not api_key or api_key.startswith("your_"):
+                    return f"Error: Anthropic API key not configured"
+                
                 client = anthropic.Anthropic(api_key=api_key)
                 message = client.messages.create(
                     model=model,
                     max_tokens=1000,
                     messages=[
-                        {"role": "user", "content": request.prompt}
+                        {"role": "user", "content": prompt}
                     ]
                 )
-                response = message.content[0].text
-        else:
-            response = f"Error: Unsupported model: {model}"
-            
-    except Exception as e:
-        response = f"Error: {str(e)}"
+                return message.content[0].text
+                
+            elif model.startswith("gemini"):
+                import google.generativeai as genai
+                api_key = os.getenv("GOOGLE_API_KEY", "")
+                if not api_key or api_key.startswith("your_"):
+                    return f"Error: Google API key not configured"
+                
+                genai.configure(api_key=api_key)
+                model_obj = genai.GenerativeModel(model)
+                response = model_obj.generate_content(prompt)
+                return response.text
+                
+            else:
+                return f"Error: Unsupported model: {model}"
+                
+        except Exception as e:
+            return f"Error calling {model}: {str(e)}"
     
-    result = {
+    # Use first model if none specified
+    models_to_use = request.models if request.models else ["gpt-3.5-turbo"]
+    
+    # Call all models in parallel
+    tasks = [call_model(model, request.prompt) for model in models_to_use]
+    responses = await asyncio.gather(*tasks)
+    
+    # Format results
+    results = []
+    for model, response in zip(models_to_use, responses):
+        results.append({
+            "model": model,
+            "response": response
+        })
+    
+    return {
         "status": "success",
         "result": {
             "prompt": request.prompt,
-            "models": request.models,
+            "models": models_to_use,
             "args": request.args,
             "kwargs": request.kwargs,
-            "response": response,
+            "responses": results,
+            "summary": f"Analysis completed using {len(models_to_use)} model(s)"
         },
     }
-
-    return result
 
 
 @app.get("/api/available-models")
 async def get_available_models():
     """Get list of available LLM models"""
+    import os
+    
+    # Check which providers have real API keys
+    openai_key = os.getenv("OPENAI_API_KEY", "")
+    anthropic_key = os.getenv("ANTHROPIC_API_KEY", "")
+    google_key = os.getenv("GOOGLE_API_KEY", "")
+    
+    openai_available = openai_key and not openai_key.startswith("your_") and len(openai_key) > 20
+    anthropic_available = anthropic_key and not anthropic_key.startswith("your_") and len(anthropic_key) > 20
+    google_available = google_key and not google_key.startswith("your_") and len(google_key) > 20
+    
+    models = []
+    
+    if openai_available:
+        models.extend(["gpt-4", "gpt-3.5-turbo"])
+    
+    if anthropic_available:
+        models.extend(["claude-3-opus", "claude-3-sonnet", "claude-3-haiku"])
+    
+    if google_available:
+        models.extend(["gemini-1.5-pro", "gemini-1.5-flash"])
+    
+    # Always include at least basic models for demo
+    if not models:
+        models = ["gpt-4", "gpt-3.5-turbo", "claude-3-opus", "claude-3-sonnet", "claude-3-haiku", "gemini-1.5-pro"]
+    
     return {
         "status": "ok",
-        "available_models": [
-            "gpt-4",
-            "gpt-3.5-turbo",
-            "claude-3-opus",
-            "claude-3-sonnet",
-            "claude-3-haiku",
-        ],
+        "available_models": models,
     }
 
 
