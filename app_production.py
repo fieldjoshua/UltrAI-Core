@@ -233,14 +233,67 @@ async def debug_files():
 async def debug_env():
     """Debug endpoint to check environment variables"""
     import os
+    openai_key = os.getenv("OPENAI_API_KEY", "")
+    anthropic_key = os.getenv("ANTHROPIC_API_KEY", "")
+    google_key = os.getenv("GOOGLE_API_KEY", "")
+    
+    # Check if keys are real or placeholders
+    openai_is_real = openai_key and not openai_key.startswith("your_") and len(openai_key) > 20
+    anthropic_is_real = anthropic_key and not anthropic_key.startswith("your_") and len(anthropic_key) > 20
+    google_is_real = google_key and not google_key.startswith("your_") and len(google_key) > 20
+    
     return {
-        "openai_key_set": bool(os.getenv("OPENAI_API_KEY")),
-        "openai_key_prefix": os.getenv("OPENAI_API_KEY", "")[:10] if os.getenv("OPENAI_API_KEY") else "None",
-        "anthropic_key_set": bool(os.getenv("ANTHROPIC_API_KEY")),
-        "anthropic_key_prefix": os.getenv("ANTHROPIC_API_KEY", "")[:10] if os.getenv("ANTHROPIC_API_KEY") else "None",
+        "status": "DEMO MODE - API KEYS NOT CONFIGURED" if not (openai_is_real or anthropic_is_real) else "PRODUCTION MODE",
+        "openai_key_set": bool(openai_key),
+        "openai_key_prefix": openai_key[:15] + "..." if openai_key else "None",
+        "openai_is_real": openai_is_real,
+        "anthropic_key_set": bool(anthropic_key),
+        "anthropic_key_prefix": anthropic_key[:15] + "..." if anthropic_key else "None", 
+        "anthropic_is_real": anthropic_is_real,
+        "google_key_set": bool(google_key),
+        "google_is_real": google_is_real,
         "environment": os.getenv("ENVIRONMENT", "not_set"),
         "use_mock": os.getenv("USE_MOCK", "not_set"),
+        "render_instructions": "Set API keys in Render dashboard Environment tab using values from .env.render file"
     }
+
+@app.get("/config/status")
+async def config_status():
+    """Check configuration status and provide guidance"""
+    import os
+    openai_key = os.getenv("OPENAI_API_KEY", "")
+    anthropic_key = os.getenv("ANTHROPIC_API_KEY", "")
+    google_key = os.getenv("GOOGLE_API_KEY", "")
+    
+    # Check if keys are real or placeholders
+    openai_is_real = openai_key and not openai_key.startswith("your_") and len(openai_key) > 20
+    anthropic_is_real = anthropic_key and not anthropic_key.startswith("your_") and len(anthropic_key) > 20
+    google_is_real = google_key and not google_key.startswith("your_") and len(google_key) > 20
+    
+    any_real_keys = openai_is_real or anthropic_is_real or google_is_real
+    
+    status = {
+        "configured": any_real_keys,
+        "mode": "PRODUCTION" if any_real_keys else "DEMO",
+        "providers": {
+            "openai": {"configured": openai_is_real, "available": openai_is_real},
+            "anthropic": {"configured": anthropic_is_real, "available": anthropic_is_real},
+            "google": {"configured": google_is_real, "available": google_is_real}
+        }
+    }
+    
+    if not any_real_keys:
+        status["error"] = "⚠️ API Keys not configured - Running in DEMO mode"
+        status["instructions"] = [
+            "1. Go to Render Dashboard: https://dashboard.render.com/",
+            "2. Select your ultrai-core service",
+            "3. Go to Environment tab",
+            "4. Copy API keys from your local .env.render file",
+            "5. Add them as environment variables in Render",
+            "6. Deploy the service"
+        ]
+    
+    return status
 
 @app.get("/health")
 async def health():
