@@ -229,6 +229,19 @@ async def debug_files():
         "frontend_contents": os.listdir(os.path.join(current_dir, "frontend")) if os.path.exists(os.path.join(current_dir, "frontend")) else None
     }
 
+@app.get("/debug/env")
+async def debug_env():
+    """Debug endpoint to check environment variables"""
+    import os
+    return {
+        "openai_key_set": bool(os.getenv("OPENAI_API_KEY")),
+        "openai_key_prefix": os.getenv("OPENAI_API_KEY", "")[:10] if os.getenv("OPENAI_API_KEY") else "None",
+        "anthropic_key_set": bool(os.getenv("ANTHROPIC_API_KEY")),
+        "anthropic_key_prefix": os.getenv("ANTHROPIC_API_KEY", "")[:10] if os.getenv("ANTHROPIC_API_KEY") else "None",
+        "environment": os.getenv("ENVIRONMENT", "not_set"),
+        "use_mock": os.getenv("USE_MOCK", "not_set"),
+    }
+
 @app.get("/health")
 async def health():
     checks = {"api": "ok", "database": "checking", "cache": "checking"}
@@ -547,8 +560,8 @@ async def execute_orchestrator(
         if model.startswith("gpt"):
             import openai
             api_key = os.getenv("OPENAI_API_KEY", "")
-            if not api_key:
-                response = "Error: OpenAI API key not configured"
+            if not api_key or api_key.startswith("your_ope"):
+                response = f"Error: OpenAI API key not configured. Found: {api_key[:20] if api_key else 'None'}..."
             else:
                 client = openai.OpenAI(api_key=api_key)
                 completion = client.chat.completions.create(
@@ -563,8 +576,8 @@ async def execute_orchestrator(
         elif model.startswith("claude"):
             import anthropic
             api_key = os.getenv("ANTHROPIC_API_KEY", "")
-            if not api_key:
-                response = "Error: Anthropic API key not configured"
+            if not api_key or len(api_key) < 10:
+                response = f"Error: Anthropic API key not configured. Found: {api_key[:20] if api_key else 'None'}..."
             else:
                 client = anthropic.Anthropic(api_key=api_key)
                 message = client.messages.create(
