@@ -226,6 +226,12 @@
             border-color: var(--primary-blue);
         }
 
+        .preset-btn.active {
+            background: var(--primary-blue);
+            color: white;
+            border-color: var(--primary-blue);
+        }
+
         .api-status {
             background: #fff3cd;
             border: 1px solid #ffeaa7;
@@ -239,6 +245,22 @@
             background: #f8d7da;
             border-color: #f5c6cb;
             color: #721c24;
+        }
+
+        .feather-stage {
+            border-left-width: 6px;
+            position: relative;
+        }
+
+        .feather-stage:nth-child(1) { border-left-color: #10b981; }
+        .feather-stage:nth-child(2) { border-left-color: #3b82f6; }
+        .feather-stage:nth-child(3) { border-left-color: #8b5cf6; }
+        .feather-stage:nth-child(4) { border-left-color: #f59e0b; }
+
+        .stage-info {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            font-weight: normal;
         }
 
         @media (max-width: 768px) {
@@ -339,6 +361,7 @@
         class OrchestratorApp {
             constructor() {
                 this.selectedModels = new Set();
+                this.selectedPattern = 'gut'; // Default to Gut Analysis
                 this.initializeEventListeners();
             }
 
@@ -361,6 +384,25 @@
                 // Analysis preset buttons
                 document.querySelectorAll('.preset-btn').forEach(btn => {
                     btn.addEventListener('click', () => {
+                        // Remove active class from all buttons
+                        document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+                        // Add active class to clicked button
+                        btn.classList.add('active');
+                        
+                        // Extract pattern name and set it
+                        const buttonText = btn.textContent;
+                        if (buttonText.includes('Gut')) this.selectedPattern = 'gut';
+                        else if (buttonText.includes('Confidence')) this.selectedPattern = 'confidence';
+                        else if (buttonText.includes('Critique')) this.selectedPattern = 'critique';
+                        else if (buttonText.includes('Fact Check')) this.selectedPattern = 'fact_check';
+                        else if (buttonText.includes('Perspective')) this.selectedPattern = 'perspective';
+                        else if (buttonText.includes('Scenario')) this.selectedPattern = 'scenario';
+                        else if (buttonText.includes('Stakeholder')) this.selectedPattern = 'stakeholder';
+                        else if (buttonText.includes('Systems')) this.selectedPattern = 'systems';
+                        else if (buttonText.includes('Time Horizon')) this.selectedPattern = 'time_horizon';
+                        else if (buttonText.includes('Innovation')) this.selectedPattern = 'innovation';
+                        
+                        // Update prompt with template
                         const promptTemplate = btn.dataset.prompt;
                         const promptInput = document.getElementById('promptInput');
                         const currentValue = promptInput.value.trim();
@@ -431,94 +473,82 @@
                 resultsContainer.innerHTML = '<div class="loading"><div class="spinner"></div><p>Executing across selected models...</p></div>';
 
                 try {
-                    // Execute for each selected model
-                    const results = [];
-                    for (const model of this.selectedModels) {
-                        try {
-                            const response = await fetch('/api/orchestrator/execute', {
-                                method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                },
-                                body: JSON.stringify({
-                                    prompt: prompt,
-                                    models: [model],
-                                    args: {},
-                                    kwargs: {}
-                                })
-                            });
+                    // Execute UltraAI Feather analysis with all selected models
+                    const response = await fetch('/api/orchestrator/process', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            prompt: prompt,
+                            models: Array.from(this.selectedModels),
+                            analysis_type: this.selectedPattern,
+                            options: {}
+                        })
+                    });
 
-                            const data = await response.json();
-                            
-                            // Check if response contains API key error
-                            let responseText = data.result.response;
-                            let isApiError = false;
-                            
-                            if (responseText.includes('API key') || responseText.includes('invalid_request_error')) {
-                                isApiError = true;
-                                responseText = `❌ API Key Error: ${model} API key not configured in production environment.\n\nThis would normally return a real response from ${model}, but requires valid API keys to be set in the environment variables.`;
-                                // Show API status warning
-                                document.getElementById('apiStatus').style.display = 'block';
-                            }
-                            
-                            results.push({
-                                model: model,
-                                success: !isApiError,
-                                response: responseText,
-                                isApiError: isApiError
-                            });
-                        } catch (error) {
-                            results.push({
-                                model: model,
-                                success: false,
-                                error: error.message
-                            });
-                        }
+                    const data = await response.json();
+                    
+                    if (response.ok) {
+                        this.displayFeatherResults(data);
+                    } else {
+                        throw new Error(data.detail || 'Unknown error occurred');
                     }
-
-                    this.displayResults(results);
 
                 } catch (error) {
                     resultsContainer.innerHTML = `<div class="error">Error: ${error.message}</div>`;
+                    if (error.message.includes('API key') || error.message.includes('401')) {
+                        document.getElementById('apiStatus').style.display = 'block';
+                    }
                 } finally {
                     executeBtn.disabled = false;
                     executeBtn.textContent = 'Execute Across Selected Models';
                 }
             }
 
-            displayResults(results) {
+            displayFeatherResults(data) {
                 const resultsContainer = document.getElementById('resultsContainer');
                 resultsContainer.innerHTML = '';
 
-                results.forEach(result => {
+                // Display Feather analysis stages
+                if (data.stages) {
+                    data.stages.forEach((stage, index) => {
+                        const stageCard = document.createElement('div');
+                        stageCard.className = 'result-card feather-stage';
+                        
+                        const stageNames = ['Initial', 'Meta', 'Hyper', 'Ultra'];
+                        const stageIcons = ['🌱', '🔄', '⚡', '🎯'];
+                        
+                        stageCard.innerHTML = `
+                            <div class="result-header">
+                                <div class="model-name">${stageIcons[index]} ${stageNames[index]} Stage</div>
+                                <div class="stage-info">${stage.models?.join(', ') || 'Processing...'}</div>
+                            </div>
+                            <div class="result-content">${stage.result || 'Processing stage...'}</div>
+                        `;
+                        
+                        resultsContainer.appendChild(stageCard);
+                    });
+                } else if (data.result) {
+                    // Fallback for simple result format
                     const resultCard = document.createElement('div');
                     resultCard.className = 'result-card';
-                    
-                    if (result.success) {
-                        resultCard.innerHTML = `
-                            <div class="result-header">
-                                <div class="model-name">${result.model}</div>
-                            </div>
-                            <div class="result-content">${result.response}</div>
-                        `;
-                    } else if (result.isApiError) {
-                        resultCard.innerHTML = `
-                            <div class="result-header">
-                                <div class="model-name">${result.model}</div>
-                            </div>
-                            <div class="api-status error">${result.response}</div>
-                        `;
-                    } else {
-                        resultCard.innerHTML = `
-                            <div class="result-header">
-                                <div class="model-name">${result.model}</div>
-                            </div>
-                            <div class="error">Network Error: ${result.error || 'Unknown error occurred'}</div>
-                        `;
-                    }
-                    
+                    resultCard.innerHTML = `
+                        <div class="result-header">
+                            <div class="model-name">🎯 UltraAI Feather Analysis</div>
+                        </div>
+                        <div class="result-content">${data.result}</div>
+                    `;
                     resultsContainer.appendChild(resultCard);
-                });
+                } else {
+                    // Error case
+                    resultsContainer.innerHTML = `<div class="error">Unexpected response format: ${JSON.stringify(data)}</div>`;
+                }
+            }
+
+            displayResults(results) {
+                // Legacy method - keep for backwards compatibility
+                this.displayFeatherResults({stages: results.map(r => ({result: r.response, models: [r.model]}))});
             }
         }
 
