@@ -36,19 +36,14 @@ tenacity==8.2.3
 psutil==6.1.1
 python-multipart==0.0.18
 
-# Additional dependencies for sophisticated orchestration
-beautifulsoup4==4.12.2
+# Core sophisticated orchestration (REQUIRED)
 cachetools==5.3.2
-backoff==2.2.1
-cryptography==41.0.7
 
-# Document processing
-PyPDF2==3.0.1
-python-docx==1.1.0
-openpyxl==3.1.2
-
-# Performance monitoring
-prometheus_client==0.19.0
-
-# Security
-bleach==6.1.0
+# Optional sophisticated features (memory-efficient deployment)
+# beautifulsoup4==4.12.2  # Only for pricing updater, not core orchestration
+# backoff==2.2.1          # Built-in retry logic exists, external lib optional
+# PyPDF2==3.0.1          # Document processing optional for basic deployment
+# python-docx==1.1.0     # Document processing optional for basic deployment  
+# openpyxl==3.1.2        # Excel processing optional for basic deployment
+# prometheus_client==0.19.0  # Has stub implementation, optional for production
+# bleach==6.1.0          # Security optional if not processing user documents
