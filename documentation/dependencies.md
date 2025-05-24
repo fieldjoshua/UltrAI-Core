@@ -43,18 +43,25 @@ These dependencies enhance functionality but are not required for the core appli
 
 ### Sophisticated Orchestration Dependencies (Production)
 
-These dependencies are required for the patent-protected UltraAI orchestration platform:
+These dependencies enable the patent-protected UltraAI orchestration platform:
 
-| Dependency                             | Version | Purpose                | Patent Component                        | Required For                       |
-| -------------------------------------- | ------- | ---------------------- | --------------------------------------- | ---------------------------------- |
-| beautifulsoup4                         | 4.12.2  | Document processing    | Context-aware prompt interpolation      | Feather analysis with documents    |
-| cachetools                             | 5.3.2   | Performance caching    | Quality evaluation optimization         | Enhanced orchestrator performance  |
-| backoff                                | 2.2.1   | Circuit breaker logic  | Fault tolerance patterns                | Resilient multi-LLM orchestration |
-| PyPDF2                                 | 3.0.1   | PDF document processing| Document context integration            | 4-stage analysis with documents    |
-| python-docx                            | 1.1.0   | Word document processing| Structured document analysis           | Business document Feather patterns|
-| openpyxl                               | 3.1.2   | Excel processing       | Data analysis workflows                 | Spreadsheet-based analysis        |
-| prometheus_client                      | 0.19.0  | Performance monitoring | Quality evaluation metrics              | Patent claim validation           |
-| bleach                                 | 6.1.0   | Security sanitization  | Input security for document processing | Safe document context integration |
+#### Core Required Dependencies (Memory Efficient)
+| Dependency                             | Version | Purpose                | Patent Component                        | Memory Efficient |
+| -------------------------------------- | ------- | ---------------------- | --------------------------------------- | --------------- |
+| cachetools                             | 5.3.2   | Performance caching    | Quality evaluation optimization         | ✅ Essential    |
+
+#### Optional Enhancement Dependencies (Feature-Specific)
+| Dependency                             | Version | Purpose                | When Required                           | Fallback Available |
+| -------------------------------------- | ------- | ---------------------- | --------------------------------------- | ----------------- |
+| beautifulsoup4                         | 4.12.2  | Document processing    | Pricing updater only                    | ✅ Skip pricing updates |
+| backoff                                | 2.2.1   | Circuit breaker logic  | External retry lib preference           | ✅ Built-in retry logic |
+| PyPDF2                                 | 3.0.1   | PDF document processing| Document upload features                | ✅ Skip document features |
+| python-docx                            | 1.1.0   | Word document processing| Business document analysis             | ✅ Skip document features |
+| openpyxl                               | 3.1.2   | Excel processing       | Spreadsheet analysis workflows          | ✅ Skip spreadsheet features |
+| prometheus_client                      | 0.19.0  | Performance monitoring | Detailed metrics collection             | ✅ Stub implementation |
+| bleach                                 | 6.1.0   | Security sanitization  | User document processing                | ✅ Skip if no user docs |
+
+**Memory-Efficient Deployment**: Only `cachetools` is required for core 4-stage Feather analysis. Other dependencies are optional enhancements that gracefully degrade when unavailable.
 
 ## UltraAI Patent-Protected Features
 
