@@ -41,6 +41,47 @@ These dependencies enhance functionality but are not required for the core appli
 | sentry_sdk                             | Error tracking         | Production monitoring                   | Disable Sentry integration         |
 | anthropic, openai, google-generativeai | LLM integrations       | Multi-model analysis                    | Use mock LLM service               |
 
+### Sophisticated Orchestration Dependencies (Production)
+
+These dependencies are required for the patent-protected UltraAI orchestration platform:
+
+| Dependency                             | Version | Purpose                | Patent Component                        | Required For                       |
+| -------------------------------------- | ------- | ---------------------- | --------------------------------------- | ---------------------------------- |
+| beautifulsoup4                         | 4.12.2  | Document processing    | Context-aware prompt interpolation      | Feather analysis with documents    |
+| cachetools                             | 5.3.2   | Performance caching    | Quality evaluation optimization         | Enhanced orchestrator performance  |
+| backoff                                | 2.2.1   | Circuit breaker logic  | Fault tolerance patterns                | Resilient multi-LLM orchestration |
+| PyPDF2                                 | 3.0.1   | PDF document processing| Document context integration            | 4-stage analysis with documents    |
+| python-docx                            | 1.1.0   | Word document processing| Structured document analysis           | Business document Feather patterns|
+| openpyxl                               | 3.1.2   | Excel processing       | Data analysis workflows                 | Spreadsheet-based analysis        |
+| prometheus_client                      | 0.19.0  | Performance monitoring | Quality evaluation metrics              | Patent claim validation           |
+| bleach                                 | 6.1.0   | Security sanitization  | Input security for document processing | Safe document context integration |
+
+## UltraAI Patent-Protected Features
+
+The sophisticated orchestration dependencies enable UltraAI's patent-protected competitive advantages:
+
+### 4-Stage Feather Analysis Workflow
+- **Initial Stage**: Base LLM responses to user prompts
+- **Meta Stage**: Cross-model analysis and refinement using `cachetools` for performance
+- **Hyper Stage**: Quality evaluation and synthesis with `prometheus_client` monitoring
+- **Ultra Stage**: Final orchestrated response with circuit breakers (`backoff`)
+
+### Document Context Integration
+- **PDF Processing**: `PyPDF2` enables sophisticated document analysis workflows
+- **Word Documents**: `python-docx` supports business document Feather patterns
+- **Web Content**: `beautifulsoup4` provides HTML parsing for context-aware analysis
+- **Security**: `bleach` ensures safe document processing without XSS vulnerabilities
+
+### Patent Claims Implementation
+These dependencies directly support filed patent claims:
+- **Claim 1-5**: Dynamic model registry with runtime configuration
+- **Claim 6-10**: Quality evaluation and synthesis engines
+- **Claim 11-15**: Circuit breaker patterns for fault tolerance
+- **Claim 16-20**: Context-aware prompt interpolation with documents
+- **Claim 21-26**: Performance monitoring and optimization systems
+
+**Note**: Removing these dependencies would compromise patent defensibility and competitive advantages.
+
 ## Configuration Options
 
 ### Environment Variables
