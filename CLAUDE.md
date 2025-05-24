@@ -57,13 +57,48 @@ When creating dependencies between actions:
 2. Specify the type of dependency (data, function, service, etc.)
 3. Add detailed description of the dependency relationship
 
+## UltraAI Vision Protection Protocol
+
+### 🚨 CRITICAL: Consult Vision Guardian BEFORE Major Changes
+
+For ANY significant work on UltraAI, you MUST:
+
+1. **Read Vision Context**:
+   - `.aicheck/actions/ultrai-system-assessment/ultrai-system-assessment-plan.md`
+   - `.aicheck/actions/ultrai-vision-auditor/supporting_docs/ULTRAI_VISION_AUDITOR_AGENT.md`
+   - `.aicheck/actions/ultrai-system-assessment/supporting_docs/AI_EDITOR_SYSTEM_PROTECTION_GUIDELINES.md`
+
+2. **UltraAI Core Understanding**:
+   - UltraAI is a **patent-pending orchestration platform** (26 filed claims)
+   - **Feather analysis** = 4-stage workflows (Initial → Meta → Hyper → Ultra)
+   - **NOT** a simple multi-LLM interface - it's sophisticated IP
+   - Core value = structured LLM collaboration with quality evaluation
+
+3. **Prohibited Actions**:
+   - ❌ "Simplifying" orchestration features
+   - ❌ Creating "basic" or "minimal" versions  
+   - ❌ Removing Feather analysis patterns
+   - ❌ Hiding sophisticated features for "ease of use"
+   - ❌ Infrastructure shortcuts that eliminate capabilities
+
+4. **Vision Guardian Consultation**:
+   ```
+   Before implementing changes, evaluate against:
+   - Patent claim preservation (all 26 claims)
+   - Feather pattern functionality (4-stage workflows)  
+   - Competitive differentiation (vs commodity tools)
+   - User value experience (sophistication visible)
+   ```
+
 ## Claude Workflow
 
 When the user requests work:
-1. Check if it fits within the current action (if not, suggest creating a new action)
-2. Consult the action plan for guidance
-3. Follow test-driven development practices
-4. Document your thought process
-5. Document all dependencies
-6. Implement according to the plan
-7. Verify your implementation against the success criteria
+1. **Vision Check**: Does this preserve UltraAI's patent-protected competitive advantages?
+2. Check if it fits within the current action (if not, suggest creating a new action)
+3. Consult the action plan for guidance
+4. Follow test-driven development practices
+5. Document your thought process
+6. Document all dependencies
+7. Implement according to the plan
+8. **Final Vision Audit**: Verify sophistication is preserved and enhanced
+9. Verify your implementation against the success criteria

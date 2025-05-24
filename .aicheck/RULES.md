@@ -46,6 +46,11 @@ Implementation procedures should reside within the Action's Plan
 ### 1.4 Claude Code Integration
 
 Claude Code functions as an AI engineer within the AICheck workflow, complementing human editors while respecting our documentation-first approach and action-based governance requirements.
+
+**CRITICAL**: All Claude Code interactions MUST be pre-audited by the Project Vision Guardian (`.aicheck/universal_vision_guardian.md` configured via `.aicheck/project_vision_config.md`) before implementation to prevent degradation of intellectual property, system architecture, or competitive advantages.
+
+**REVIEW MODE ACTIVE**: Guardian is currently in REVIEW mode - all significant changes require guardian analysis and stakeholder approval before implementation.
+
 Capabilities
 
 Generate implementation code from PLAN specifications
@@ -64,6 +69,7 @@ Provide contextual examples of existing patterns
 Verify outputs against action requirements
 Document all Claude interactions in ACTION's supporting_docs
 Use standardized prompt templates stored in .aicheck/templates/claude/
+**MANDATORY**: Consult Project Vision Guardian before ANY significant changes to codebase, architecture, or system features
 
 ## 2. Glossary and Key Concepts
 

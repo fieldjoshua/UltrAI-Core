@@ -6,6 +6,9 @@ This document tracks all ACTIONS in the PROJECT. All ACTIONS must be registered 
 
 | ACTION | Owner | Status | Progress | Description |
 |--------|-------|--------|----------|-------------|
+| vision-guardian-automation | | Not Started | 0% | |
+| ultrai-vision-auditor | | Not Started | 0% | |
+| ultrai-system-assessment | | Not Started | 0% | |
 | integrated-frontend-implementation | | Not Started | 0% | |
 | comprehensive-system-audit | | Not Started | 0% | |
 | eliminate-frontend-service | | Not Started | 0% | |
