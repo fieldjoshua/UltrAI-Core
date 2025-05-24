@@ -6,6 +6,9 @@ This document tracks all dependencies in the PROJECT. All dependencies must be r
 
 | Dependency | Version | Added By | Date Added | Justification | Actions Using |
 |------------|---------|----------|------------|---------------|---------------|
+| API_KEY_ENCRYPTION_KEY | env-var | | 2025-05-23 | Required for encrypting and securing API keys in sophisticated backend production environment | production-config-fix |
+| SECRET_KEY | env-var | | 2025-05-23 | Required security environment variable for sophisticated backend authentication and session management | production-config-fix |
+| sse-starlette | 1.6.5 | | 2025-05-23 | Required for Server-Sent Events in sophisticated analyze_routes.py - enables real-time streaming analysis responses in UltraAI Feather patterns | frontend-deployment-fix |
 | bleach | 6.1.0 | | 2025-05-23 | Security layer for document processing and input sanitization in sophisticated Feather analysis workflows | ultrai-system-assessment |
 | prometheus_client | 0.19.0 | | 2025-05-23 | Performance monitoring for sophisticated orchestration system quality evaluation and patent claim validation | ultrai-system-assessment |
 | python-docx | 1.1.0 | | 2025-05-23 | Document processing for sophisticated analysis workflows supporting patent-protected document context integration | ultrai-system-assessment |

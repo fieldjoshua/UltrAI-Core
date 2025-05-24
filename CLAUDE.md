@@ -90,9 +90,96 @@ For ANY significant work on UltraAI, you MUST:
    - User value experience (sophistication visible)
    ```
 
+## Development Commands
+
+### Backend Commands
+
+- **Development server**: `uvicorn app_production:app --host 0.0.0.0 --port 8000 --reload`
+- **Production server**: `uvicorn app_production:app --host 0.0.0.0 --port $PORT`
+- **Run tests**: `python -m pytest tests/` (backend tests)
+- **Run specific test**: `python -m pytest tests/test_specific_file.py`
+- **Type checking**: Use `mypy` if configured in the project
+
+### Frontend Commands (React/TypeScript/Vite)
+
+- **Development**: `cd frontend && npm run dev`
+- **Build**: `cd frontend && npm run build`
+- **Lint**: `cd frontend && npm run lint`
+- **Preview**: `cd frontend && npm run preview`
+
+### Docker Commands
+
+- **Build services**: `docker-compose build`
+- **Run services**: `docker-compose up`
+- **Production deploy**: Uses `render.yaml` configuration
+
+### Environment Management
+
+- **Production**: Set `ENVIRONMENT=production`, uses `requirements-production.txt`
+- **Development**: Set `ENVIRONMENT=development`, uses `requirements-dev.txt`
+- **Testing**: Set `TESTING=true` and `USE_MOCK=true` for mock mode
+
+## Architecture Overview
+
+### Core Architecture - UltraAI Feather Orchestration System
+
+UltraAI implements a sophisticated **patent-pending Feather Analysis** orchestration platform with 4-stage LLM collaboration:
+
+1. **Initial Analysis**: Basic LLM responses to prompt
+2. **Meta Analysis**: Pattern analysis of initial responses
+3. **Hyper Analysis**: Advanced synthesis and quality evaluation
+4. **Ultra Analysis**: Final orchestrated output with quality scoring
+
+### Key Components
+
+**Backend Architecture (FastAPI)**:
+
+- `app_production.py`: Production application entry point with auth, database, caching
+- `backend/app.py`: Modular backend with route separation and middleware
+- `backend/routes/`: API endpoints organized by functionality
+- `backend/services/`: Business logic and LLM integration services
+- `backend/models/`: Pydantic models and database schemas
+- `backend/middleware/`: Authentication, security, and validation layers
+
+**Frontend Architecture (React/TypeScript)**:
+
+- Vite-based build system with hot module replacement
+- Redux Toolkit for state management
+- Tailwind CSS for styling with custom components
+- Axios for API communication with the FastAPI backend
+
+**Database and Caching**:
+
+- SQLAlchemy ORM with PostgreSQL (production) or SQLite (development)
+- Redis for caching and session management
+- Alembic for database migrations
+
+**Deployment**:
+
+- Render.com deployment via `render.yaml`
+- Environment-specific configuration files
+- Health check endpoints at `/health`
+
+### Testing Strategy
+
+**Mock vs Real Mode**:
+
+- `USE_MOCK=true`: Uses mock LLM services for development/testing
+- `USE_MOCK=false`: Uses real API endpoints with proper API keys
+- Test files in `tests/` and `backend/tests/` directories
+- Environment-aware test fixtures support both modes
+
+**Testing Patterns**:
+
+- API endpoint testing with FastAPI TestClient
+- Mock LLM service testing for development workflows
+- End-to-end testing for critical user journeys
+- Performance testing for orchestration workflows
+
 ## Claude Workflow
 
 When the user requests work:
+
 1. **Vision Check**: Does this preserve UltraAI's patent-protected competitive advantages?
 2. Check if it fits within the current action (if not, suggest creating a new action)
 3. Consult the action plan for guidance
