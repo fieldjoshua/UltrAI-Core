@@ -4,7 +4,7 @@ services:
     name: ultrai-core
     runtime: python
     buildCommand: "echo 'Installing Python dependencies...' && pip install -r requirements-production.txt"
-    startCommand: "cd backend && uvicorn app:app --host 0.0.0.0 --port $PORT"
+    startCommand: "uvicorn app_production:app --host 0.0.0.0 --port $PORT"
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.0
@@ -21,7 +21,7 @@ services:
       - key: API_KEY_ENCRYPTION_KEY
         generateValue: true
       - key: CORS_ORIGINS
-        value: "https://ultrai-core.onrender.com,https://ultrai-frontend.onrender.com"
+        value: "https://ultrai-core-4lut.onrender.com,https://ultrai-core.onrender.com,https://ultrai-frontend.onrender.com"
       - key: OPENAI_API_KEY
         sync: false
       - key: ANTHROPIC_API_KEY
