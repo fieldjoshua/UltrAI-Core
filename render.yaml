@@ -16,6 +16,12 @@ services:
         value: "false"
       - key: JWT_SECRET
         generateValue: true
+      - key: SECRET_KEY
+        generateValue: true
+      - key: API_KEY_ENCRYPTION_KEY
+        generateValue: true
+      - key: CORS_ORIGINS
+        value: "https://ultrai-core.onrender.com,https://ultrai-frontend.onrender.com"
       - key: OPENAI_API_KEY
         sync: false
       - key: ANTHROPIC_API_KEY
