@@ -1,76 +1,81 @@
 # AICheck Git Hooks
 
-This directory contains git hooks to enforce AICheck compliance as defined in RULES.md.
+This directory contains git hooks that help enforce AICheck workflow requirements, particularly around action completion.
 
-## Phased Implementation
+## Available Hooks
 
-### Phase 1 (Required - Implemented)
+### post-action-complete.sh
+A comprehensive check that runs when an action is marked complete. It verifies:
+- Documentation migration requirements
+- Actions index updates
+- ACTION_TIMELINE.md updates
+- Dependency documentation
+- Directory organization
 
-- ✅ Commit message format validation (50-char subject, present tense)
-- ✅ ACTION directory structure validation for new ACTIONS
-- ✅ Basic security checks (via pre-commit framework)
-- ✅ File format validation (JSON, YAML)
+### install-hooks.sh
+Installation script that sets up all AICheck git hooks in your repository.
 
-### Phase 2 (Required - Implemented)
-
-- ✅ Test existence verification for implementation changes
-- ✅ Basic documentation completeness checks
-- ✅ Status file validation (.aicheck/current_action)
-- ✅ ACTION reference in commit messages (warning only)
-
-### Phase 3 (Future - Not Required)
-
-- ❌ Claude interaction logging automation
-- ❌ Full PLAN approval workflow integration
-- ❌ Comprehensive migration tracking
-- ❌ Automated documentation migration
-
-## Hooks
-
-### commit-msg
-
-Location: `.git/hooks/commit-msg`
-Purpose: Validates commit message format according to RULES.md
-
-- Enforces 50-character subject line limit
-- Requires present-tense verb at start
-- Warns about missing ACTION references
-- Warns about implementation without tests
-
-### pre-commit-aicheck
-
-Location: `.aicheck/hooks/pre-commit-aicheck`
-Purpose: Validates AICheck structure and compliance
-
-- Checks new ACTION directory structure
-- Validates current_action file
-- Warns about missing documentation updates
-
-## Integration
-
-The hooks are integrated via `.pre-commit-config.yaml` which runs both standard code quality checks and AICheck-specific validations.
-
-## Testing Hooks
-
-To test commit message validation:
+## Installation
 
 ```bash
-echo "This is a very long commit message that definitely exceeds fifty characters" > test_msg
-.git/hooks/commit-msg test_msg
+# From the project root
+.aicheck/hooks/install-hooks.sh
 ```
 
-To test pre-commit validation:
+This will install:
+- **post-commit**: Automatically checks for action completion in commit messages
+- **prepare-commit-msg**: Adds reminders about completion requirements
+- **pre-push**: (Optional) Vision Guardian IP protection audit
+
+## Usage
+
+### Automatic Checks
+When you commit with messages containing "complete", "finished", or "done", the hooks will automatically run completion checks.
+
+### Manual Checks
+You can manually verify action completion requirements:
 
 ```bash
-.aicheck/hooks/pre-commit-aicheck
+# Check specific action
+.aicheck/hooks/post-action-complete.sh action complete <action-name>
+
+# Check current action
+.aicheck/hooks/post-action-complete.sh
 ```
 
-## Disabling Hooks (Emergency Only)
+## Completion Requirements
 
-If you need to bypass hooks in an emergency:
+Per RULES.md Section 6.1, when completing an action:
 
-```bash
-git commit --no-verify -m "Emergency fix"
-```
+1. **Migrate Universal Documentation**
+   - Review supporting_docs/ for enduring documentation
+   - Move to appropriate /documentation/ subdirectories
 
-Note: This should only be used following the Quick Response protocol in RULES.md section 5.3.
+2. **Update Actions Index**
+   - Mark action as Completed in actions_index.md
+   - Include completion date
+
+3. **Update Timeline**
+   - Add entry to ACTION_TIMELINE.md
+   - Include status, philosophy, accomplishments, and impact
+
+4. **Document Dependencies**
+   - External: `./aicheck dependency add NAME VERSION JUSTIFICATION`
+   - Internal: `./aicheck dependency internal DEP_ACTION ACTION TYPE`
+
+5. **Move to Completed**
+   - Move action directory to .aicheck/actions/completed/
+
+## Customization
+
+The hooks are designed to warn but not block by default. To enforce strict compliance:
+
+1. Edit `.aicheck/hooks/post-action-complete.sh`
+2. Uncomment `exit 1` at the end to block non-compliant completions
+
+## Troubleshooting
+
+If hooks aren't running:
+- Ensure they're executable: `chmod +x .git/hooks/*`
+- Check git version: `git --version` (requires 2.9+)
+- Verify hook installation: `ls -la .git/hooks/`

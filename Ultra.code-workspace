@@ -1,13 +1,7 @@
 {
-  "settings": {
-    "workbench.editor.alwaysShowEditorActions": true,
-    "workbench.editor.autoLockGroups": {
-      "default": true
-    }
-  },
-  "folders": [
-    {
-      "path": "."
-    }
-  ]
+    "folders": [
+        {
+            "path": "."
+        }
+    ]
 }

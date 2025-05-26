@@ -1,0 +1,69 @@
+{
+  "name": "Cursor Document Mode",
+  "version": "1.0",
+  "context": "document", 
+  "description": "Optimized for document preview, markdown editing, and documentation work",
+  "keys": [
+    {
+      "id": "key1",
+      "label": "Preview",
+      "action": "keystroke",
+      "keystroke": "cmd+shift+v",
+      "description": "Toggle markdown preview"
+    },
+    {
+      "id": "key2",
+      "label": "TOC",
+      "action": "keystroke",
+      "keystroke": "cmd+shift+o",
+      "description": "Show document outline/table of contents"
+    },
+    {
+      "id": "key3",
+      "label": "Bold",
+      "action": "keystroke",
+      "keystroke": "cmd+b",
+      "description": "Toggle bold formatting"
+    },
+    {
+      "id": "key4",
+      "label": "Italic", 
+      "action": "keystroke",
+      "keystroke": "cmd+i",
+      "description": "Toggle italic formatting"
+    },
+    {
+      "id": "key5",
+      "label": "Link",
+      "action": "keystroke",
+      "keystroke": "cmd+k",
+      "description": "Insert/edit link"
+    },
+    {
+      "id": "key6",
+      "label": "Code Block",
+      "action": "text_snippet",
+      "text": "```\n\n```",
+      "description": "Insert code block"
+    },
+    {
+      "id": "key7",
+      "label": "Header",
+      "action": "text_snippet", 
+      "text": "## ",
+      "description": "Insert heading"
+    },
+    {
+      "id": "key8",
+      "label": "Back to Code",
+      "action": "keystroke",
+      "keystroke": "cmd+1",
+      "description": "Switch back to code editor"
+    }
+  ],
+  "triggers": {
+    "file_extensions": [".md", ".txt", ".rst"],
+    "panel_visible": "preview",
+    "window_title_contains": ["Preview", "README", "Documentation"]
+  }
+}

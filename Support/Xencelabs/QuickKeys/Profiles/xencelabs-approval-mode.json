@@ -1,0 +1,69 @@
+{
+  "name": "Cursor AI Approval Mode",
+  "version": "1.0",
+  "context": "approval",
+  "description": "Optimized for reviewing and approving AI-generated code changes",
+  "keys": [
+    {
+      "id": "key1",
+      "label": "Accept All",
+      "action": "keystroke",
+      "keystroke": "cmd+shift+enter",
+      "description": "Accept all pending changes"
+    },
+    {
+      "id": "key2",
+      "label": "Accept",
+      "action": "keystroke",
+      "keystroke": "tab",
+      "description": "Accept current suggestion"
+    },
+    {
+      "id": "key3",
+      "label": "Reject",
+      "action": "keystroke", 
+      "keystroke": "esc",
+      "description": "Reject current suggestion"
+    },
+    {
+      "id": "key4",
+      "label": "Next Change",
+      "action": "keystroke",
+      "keystroke": "f8",
+      "description": "Go to next change"
+    },
+    {
+      "id": "key5",
+      "label": "Prev Change",
+      "action": "keystroke",
+      "keystroke": "shift+f8", 
+      "description": "Go to previous change"
+    },
+    {
+      "id": "key6",
+      "label": "Show Diff",
+      "action": "keystroke",
+      "keystroke": "cmd+shift+d",
+      "description": "Show detailed diff view"
+    },
+    {
+      "id": "key7",
+      "label": "Partial Accept",
+      "action": "keystroke",
+      "keystroke": "cmd+enter",
+      "description": "Accept partial change"
+    },
+    {
+      "id": "key8",
+      "label": "Request Edit",
+      "action": "keystroke",
+      "keystroke": "cmd+k",
+      "description": "Request AI to modify suggestion"
+    }
+  ],
+  "triggers": {
+    "ui_elements_visible": ["diff", "changes", "approval"],
+    "cursor_mode": "review",
+    "pending_changes": true
+  }
+}

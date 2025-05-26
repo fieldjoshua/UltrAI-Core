@@ -1,0 +1,69 @@
+{
+  "name": "Cursor Terminal Mode",
+  "version": "1.0",
+  "context": "terminal",
+  "description": "Optimized for terminal/command line interactions in Cursor",
+  "keys": [
+    {
+      "id": "key1",
+      "label": "Run",
+      "action": "keystroke",
+      "keystroke": "cmd+enter",
+      "description": "Execute terminal command"
+    },
+    {
+      "id": "key2", 
+      "label": "Clear",
+      "action": "keystroke",
+      "keystroke": "cmd+k",
+      "description": "Clear terminal"
+    },
+    {
+      "id": "key3",
+      "label": "Split",
+      "action": "keystroke", 
+      "keystroke": "cmd+shift+5",
+      "description": "Split terminal pane"
+    },
+    {
+      "id": "key4",
+      "label": "New Term",
+      "action": "keystroke",
+      "keystroke": "cmd+shift+`",
+      "description": "Open new terminal"
+    },
+    {
+      "id": "key5",
+      "label": "Interrupt",
+      "action": "keystroke",
+      "keystroke": "ctrl+c", 
+      "description": "Interrupt running process"
+    },
+    {
+      "id": "key6",
+      "label": "History",
+      "action": "keystroke",
+      "keystroke": "ctrl+r",
+      "description": "Search command history"
+    },
+    {
+      "id": "key7",
+      "label": "Kill Term",
+      "action": "keystroke",
+      "keystroke": "cmd+w",
+      "description": "Close current terminal"
+    },
+    {
+      "id": "key8",
+      "label": "Focus Editor",
+      "action": "keystroke",
+      "keystroke": "cmd+1",
+      "description": "Switch focus to editor"
+    }
+  ],
+  "triggers": {
+    "window_title_contains": ["Terminal", "zsh", "bash"],
+    "panel_visible": "terminal",
+    "cursor_focus": "terminal"
+  }
+}

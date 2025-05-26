@@ -1,0 +1,69 @@
+{
+  "name": "Cursor Editor Mode",
+  "version": "1.0", 
+  "context": "editor",
+  "description": "Optimized for code editing and AI-assisted development in Cursor",
+  "keys": [
+    {
+      "id": "key1",
+      "label": "AI Edit",
+      "action": "keystroke",
+      "keystroke": "cmd+k",
+      "description": "Trigger AI edit for selection"
+    },
+    {
+      "id": "key2",
+      "label": "Accept",
+      "action": "keystroke", 
+      "keystroke": "tab",
+      "description": "Accept AI suggestion"
+    },
+    {
+      "id": "key3",
+      "label": "Reject",
+      "action": "keystroke",
+      "keystroke": "esc",
+      "description": "Reject AI suggestion"
+    },
+    {
+      "id": "key4",
+      "label": "Quick Fix",
+      "action": "keystroke",
+      "keystroke": "cmd+.",
+      "description": "Show quick fixes"
+    },
+    {
+      "id": "key5",
+      "label": "Format",
+      "action": "keystroke",
+      "keystroke": "shift+alt+f",
+      "description": "Format document"
+    },
+    {
+      "id": "key6",
+      "label": "Find/Replace",
+      "action": "keystroke",
+      "keystroke": "cmd+shift+f",
+      "description": "Global find and replace"
+    },
+    {
+      "id": "key7",
+      "label": "Go to Def",
+      "action": "keystroke",
+      "keystroke": "f12",
+      "description": "Go to definition"
+    },
+    {
+      "id": "key8",
+      "label": "AI Chat",
+      "action": "keystroke",
+      "keystroke": "cmd+l",
+      "description": "Open AI chat panel"
+    }
+  ],
+  "triggers": {
+    "file_extensions": [".py", ".js", ".ts", ".tsx", ".jsx", ".md", ".json", ".yml", ".yaml"],
+    "cursor_focus": "editor",
+    "panel_visible": "editor"
+  }
+}

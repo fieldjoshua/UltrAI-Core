@@ -1,0 +1,296 @@
+{
+  "name": "Context-Aware Xencelabs Configuration for Cursor",
+  "version": "2.0",
+  "description": "Dynamic button mapping based on active Cursor context",
+  
+  "context_detection": {
+    "chat_active": {
+      "detect_condition": "workbench.panel.chat.view.copilot.focus",
+      "description": "When Claude chat/AI panel is focused"
+    },
+    "terminal_active": {
+      "detect_condition": "terminal.focus",
+      "description": "When terminal is focused"
+    },
+    "editor_active": {
+      "detect_condition": "editorTextFocus",
+      "description": "When code editor is focused"
+    },
+    "pending_approvals": {
+      "detect_condition": "cursor.hasPendingApprovals",
+      "description": "When Cursor has pending AI approvals",
+      "trigger_mode": "notification_led"
+    }
+  },
+
+  "context_configs": {
+    "chat_mode": {
+      "name": "💬 Claude Conversation Mode",
+      "active_when": "chat_active",
+      "led_color": "#9933FF",
+      "buttons": {
+        "button_1": {
+          "command": "workbench.action.chat.submit",
+          "label": "📤 Send Message",
+          "color": "#00FF00"
+        },
+        "button_2": {
+          "command": "workbench.action.chat.clear",
+          "label": "🗑️ Clear Chat",
+          "color": "#FF6600"
+        },
+        "button_3": {
+          "command": "workbench.action.chat.newSession",
+          "label": "✨ New Chat",
+          "color": "#0066FF"
+        },
+        "button_4": {
+          "command": "cursor.action.explainCode",
+          "label": "❓ Explain This",
+          "color": "#FFFF00"
+        },
+        "button_5": {
+          "command": "cursor.action.generateCode",
+          "label": "🤖 Generate Code",
+          "color": "#FF00FF"
+        },
+        "button_6": {
+          "command": "cursor.action.fixCode",
+          "label": "🔧 Fix Code",
+          "color": "#00FFFF"
+        },
+        "button_7": {
+          "command": "workbench.action.terminal.focus",
+          "label": "🖥️ Switch to Terminal",
+          "color": "#666666"
+        },
+        "button_8": {
+          "command": "workbench.action.focusActiveEditorGroup",
+          "label": "📝 Back to Editor",
+          "color": "#888888"
+        }
+      }
+    },
+
+    "terminal_mode": {
+      "name": "🖥️ Terminal Mode",
+      "active_when": "terminal_active",
+      "led_color": "#00FF00",
+      "buttons": {
+        "button_1": {
+          "command": "workbench.action.terminal.sendSequence",
+          "args": {"text": "\\r"},
+          "label": "⏎ Execute Command",
+          "color": "#00FF00"
+        },
+        "button_2": {
+          "command": "workbench.action.terminal.kill",
+          "label": "❌ Kill Process",
+          "color": "#FF0000"
+        },
+        "button_3": {
+          "command": "workbench.action.terminal.clear",
+          "label": "🧹 Clear Terminal",
+          "color": "#0066FF"
+        },
+        "button_4": {
+          "command": "workbench.action.terminal.sendSequence",
+          "args": {"text": "\\u0003"},
+          "label": "⛔ Ctrl+C",
+          "color": "#FF6600"
+        },
+        "button_5": {
+          "command": "workbench.action.terminal.new",
+          "label": "➕ New Terminal",
+          "color": "#9933FF"
+        },
+        "button_6": {
+          "command": "workbench.action.terminal.split",
+          "label": "📱 Split Terminal",
+          "color": "#00FFFF"
+        },
+        "button_7": {
+          "command": "workbench.panel.chat.view.copilot.focus",
+          "label": "💬 Switch to Chat",
+          "color": "#666666"
+        },
+        "button_8": {
+          "command": "workbench.action.focusActiveEditorGroup",
+          "label": "📝 Back to Editor",
+          "color": "#888888"
+        }
+      }
+    },
+
+    "editor_mode": {
+      "name": "📝 Code Editor Mode",
+      "active_when": "editor_active",
+      "led_color": "#0066FF",
+      "buttons": {
+        "button_1": {
+          "command": "editor.action.inlineSuggest.commit",
+          "label": "✅ Accept Suggestion",
+          "color": "#00FF00"
+        },
+        "button_2": {
+          "command": "editor.action.inlineSuggest.hide",
+          "label": "❌ Reject Suggestion",
+          "color": "#FF0000"
+        },
+        "button_3": {
+          "command": "editor.action.triggerSuggest",
+          "label": "🔮 Trigger AI",
+          "color": "#9933FF"
+        },
+        "button_4": {
+          "command": "workbench.action.showCommands",
+          "label": "⚡ Command Palette",
+          "color": "#FFFF00"
+        },
+        "button_5": {
+          "command": "workbench.action.files.save",
+          "label": "💾 Save File",
+          "color": "#00FFFF"
+        },
+        "button_6": {
+          "command": "editor.action.formatDocument",
+          "label": "🎨 Format Code",
+          "color": "#FF00FF"
+        },
+        "button_7": {
+          "command": "workbench.action.terminal.toggleTerminal",
+          "label": "🖥️ Toggle Terminal",
+          "color": "#666666"
+        },
+        "button_8": {
+          "command": "workbench.panel.chat.view.copilot.focus",
+          "label": "💬 Open Chat",
+          "color": "#888888"
+        }
+      }
+    },
+
+    "approval_mode": {
+      "name": "⚠️ Pending Approvals Mode",
+      "active_when": "pending_approvals",
+      "led_color": "#FF6600",
+      "led_pattern": "pulse",
+      "priority": "high",
+      "buttons": {
+        "button_1": {
+          "command": "cursor.action.approveAllChanges",
+          "label": "✅ Approve All",
+          "color": "#00FF00",
+          "pulse": true
+        },
+        "button_2": {
+          "command": "cursor.action.rejectAllChanges",
+          "label": "❌ Reject All",
+          "color": "#FF0000",
+          "pulse": true
+        },
+        "button_3": {
+          "command": "cursor.action.reviewChanges",
+          "label": "🔍 Review Details",
+          "color": "#0066FF"
+        },
+        "button_4": {
+          "command": "cursor.action.approveNext",
+          "label": "➡️ Approve Next",
+          "color": "#00FFFF"
+        },
+        "button_5": {
+          "command": "workbench.panel.chat.view.copilot.focus",
+          "label": "💬 Ask Claude",
+          "color": "#9933FF"
+        },
+        "button_6": {
+          "command": "editor.action.showHover",
+          "label": "❓ Show Details",
+          "color": "#FFFF00"
+        },
+        "button_7": {
+          "command": "workbench.action.closePanel",
+          "label": "🚫 Dismiss",
+          "color": "#666666"
+        },
+        "button_8": {
+          "command": "workbench.action.focusActiveEditorGroup",
+          "label": "📝 Back to Code",
+          "color": "#888888"
+        }
+      }
+    }
+  },
+
+  "automation_triggers": {
+    "pending_approval_notification": {
+      "event": "cursor.onPendingApprovals",
+      "actions": [
+        {
+          "type": "switch_context",
+          "target": "approval_mode"
+        },
+        {
+          "type": "led_notification",
+          "pattern": "pulse",
+          "color": "#FF6600",
+          "duration": 5000
+        },
+        {
+          "type": "haptic_feedback",
+          "intensity": "medium",
+          "pattern": "double_tap"
+        }
+      ]
+    },
+    "approval_resolved": {
+      "event": "cursor.onApprovalsCleared",
+      "actions": [
+        {
+          "type": "switch_context",
+          "target": "previous_context"
+        },
+        {
+          "type": "led_notification",
+          "color": "#00FF00",
+          "duration": 1000
+        }
+      ]
+    }
+  },
+
+  "dial_configurations": {
+    "universal": {
+      "dial_1": {
+        "command_increment": "workbench.action.zoomIn",
+        "command_decrement": "workbench.action.zoomOut",
+        "label": "🔍 Zoom"
+      },
+      "dial_2": {
+        "command_increment": "workbench.action.nextEditor",
+        "command_decrement": "workbench.action.previousEditor",
+        "label": "📂 Switch Files"
+      },
+      "dial_3": {
+        "command_increment": "editor.action.marker.next",
+        "command_decrement": "editor.action.marker.prev",
+        "label": "⚠️ Navigate Issues"
+      }
+    }
+  },
+
+  "implementation_notes": {
+    "xencelabs_integration": [
+      "Use Xencelabs QuickKeys software to detect active window/context",
+      "Set up profiles that switch based on Cursor's active panel",
+      "Configure LED colors to match context modes",
+      "Use haptic feedback for important notifications"
+    ],
+    "cursor_integration": [
+      "Monitor focus events via Cursor's API",
+      "Hook into notification system for pending approvals",
+      "Use command palette integration for seamless switching"
+    ]
+  }
+}

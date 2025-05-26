@@ -1,0 +1,69 @@
+{
+  "name": "Cursor Chat Mode",
+  "version": "1.0",
+  "context": "chat",
+  "description": "Optimized for AI chat interactions and conversations in Cursor",
+  "keys": [
+    {
+      "id": "key1",
+      "label": "Send",
+      "action": "keystroke",
+      "keystroke": "cmd+enter",
+      "description": "Send message to AI"
+    },
+    {
+      "id": "key2",
+      "label": "New Chat",
+      "action": "keystroke",
+      "keystroke": "cmd+shift+l",
+      "description": "Start new conversation"
+    },
+    {
+      "id": "key3",
+      "label": "Clear",
+      "action": "keystroke",
+      "keystroke": "cmd+k",
+      "description": "Clear current chat"
+    },
+    {
+      "id": "key4",
+      "label": "Copy Response",
+      "action": "keystroke",
+      "keystroke": "cmd+c",
+      "description": "Copy AI response"
+    },
+    {
+      "id": "key5",
+      "label": "Regenerate",
+      "action": "keystroke", 
+      "keystroke": "cmd+r",
+      "description": "Regenerate last response"
+    },
+    {
+      "id": "key6",
+      "label": "Edit Code",
+      "action": "keystroke",
+      "keystroke": "cmd+k",
+      "description": "Request code edit from AI"
+    },
+    {
+      "id": "key7",
+      "label": "Code Block",
+      "action": "text_snippet",
+      "text": "```\n\n```",
+      "description": "Insert code block in message"
+    },
+    {
+      "id": "key8",
+      "label": "Focus Editor",
+      "action": "keystroke",
+      "keystroke": "cmd+1", 
+      "description": "Switch focus to editor pane"
+    }
+  ],
+  "triggers": {
+    "panel_visible": "chat",
+    "window_title_contains": ["Chat", "AI"],
+    "cursor_focus": "chat"
+  }
+}
