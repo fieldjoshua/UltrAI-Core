@@ -17,60 +17,55 @@ from typing import Any, Dict, List, Optional
 from fastapi import APIRouter, Body, HTTPException, Query
 from pydantic import BaseModel, Field
 
-# Import our sophisticated orchestrator with better error handling
+# Import our sophisticated orchestrator with proper path handling
 try:
-    # First try importing from src (works in development)
+    # Try direct import first (works in development)
     from src.core.ultra_pattern_orchestrator import PatternOrchestrator
     from src.patterns.ultra_analysis_patterns import get_pattern_mapping
+except ImportError:
+    try:
+        # Try backend-relative import (works when backend is the main module)
+        from ..integrations.pattern_orchestrator import PatternOrchestrator
+        from ..models.enhanced_orchestrator import get_pattern_mapping
+    except ImportError:
+        # Final fallback - use the orchestrator from backend directory
+        try:
+            import sys
+            import os
+            # Add parent directory to path for production environments
+            parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+            root_dir = os.path.dirname(parent_dir)
+            if root_dir not in sys.path:
+                sys.path.append(root_dir)
+            
+            from src.core.ultra_pattern_orchestrator import PatternOrchestrator
+            from src.patterns.ultra_analysis_patterns import get_pattern_mapping
+        except ImportError as e:
+            print(f"⚠️ Could not import PatternOrchestrator: {e}")
+            raise
     print("✅ Successfully imported sophisticated PatternOrchestrator from src/core")
     ORCHESTRATOR_AVAILABLE = True
-except ImportError as e1:
-    # If that fails, try adding parent directories to path
-    try:
-        import sys
-        import os
-        # Get the backend directory
-        backend_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        # Get the project root
-        root_dir = os.path.dirname(backend_dir)
-        # Add both to path if not already there
-        for directory in [root_dir, os.path.join(root_dir, "src")]:
-            if directory not in sys.path and os.path.exists(directory):
-                sys.path.insert(0, directory)
+except ImportError as e:
+    print(f"❌ Failed to import sophisticated PatternOrchestrator: {e}")
+    # Use a dummy class if the import fails
+    class PatternOrchestrator:
+        def __init__(self, api_keys, pattern="gut", output_format="plain"):
+            print("⚠️ Using fallback stub PatternOrchestrator - sophisticated features not available")
+            self.available_models = ["mock-claude", "mock-gpt4", "mock-gemini"]
         
-        # Try import again
-        from src.core.ultra_pattern_orchestrator import PatternOrchestrator
-        from src.patterns.ultra_analysis_patterns import get_pattern_mapping
-        print("✅ Successfully imported PatternOrchestrator after fixing path")
-        ORCHESTRATOR_AVAILABLE = True
-    except ImportError as e2:
-        print(f"❌ Failed to import sophisticated PatternOrchestrator: {e1}, {e2}")
-        # Use a fallback implementation
-        class PatternOrchestrator:
-            def __init__(self, api_keys, pattern="gut", output_format="plain"):
-                print("⚠️ Using fallback stub PatternOrchestrator - sophisticated features not available")
-                self.available_models = ["mock-claude", "mock-gpt4", "mock-gemini"]
-            
-            async def orchestrate_full_process(self, prompt):
-                return {
-                    "initial_responses": {"mock-claude": "Mock initial response"},
-                    "meta_responses": {"mock-claude": "Mock meta response"},
-                    "hyper_responses": {"mock-claude": "Mock hyper response"},
-                    "ultra_response": "Mock ultra response - sophisticated orchestrator not available",
-                    "processing_time": 0.0
-                }
-        
-        def get_pattern_mapping():
+        async def orchestrate_full_process(self, prompt):
             return {
-                "gut": {"name": "gut", "description": "Gut-based intuitive analysis"},
-                "confidence": {"name": "confidence", "description": "Confidence scoring analysis"},
-                "critique": {"name": "critique", "description": "Critical analysis pattern"},
-                "fact_check": {"name": "fact_check", "description": "Fact-checking analysis"},
-                "perspective": {"name": "perspective", "description": "Multi-perspective analysis"},
-                "scenario": {"name": "scenario", "description": "Scenario-based analysis"}
+                "initial_responses": {"mock-claude": "Mock initial response"},
+                "meta_responses": {"mock-claude": "Mock meta response"},
+                "hyper_responses": {"mock-claude": "Mock hyper response"},
+                "ultra_response": "Mock ultra response - sophisticated orchestrator not available",
+                "processing_time": 0.0
             }
-        
-        ORCHESTRATOR_AVAILABLE = False
+    
+    def get_pattern_mapping():
+        return {"gut": None, "confidence": None, "critique": None}
+    
+    ORCHESTRATOR_AVAILABLE = False
 
 # Create a router
 orchestrator_router = APIRouter(tags=["Orchestrator"])
@@ -242,19 +237,11 @@ async def get_available_analysis_patterns():
         
         pattern_list = []
         for pattern_name, pattern_obj in patterns.items():
-            if isinstance(pattern_obj, dict):
-                # Handle dict format from fallback
-                pattern_list.append({
-                    "name": pattern_obj.get("name", pattern_name),
-                    "description": pattern_obj.get("description", f"{pattern_name} analysis"),
-                    "stages": pattern_obj.get("stages", ["initial", "meta", "hyper", "ultra"])
-                })
-            elif pattern_obj:
-                # Handle object format from real implementation
+            if pattern_obj:
                 pattern_list.append({
                     "name": pattern_name,
-                    "description": getattr(pattern_obj, 'description', f"{pattern_name} analysis"),
-                    "stages": getattr(pattern_obj, 'stages', ["initial", "meta", "hyper", "ultra"])
+                    "description": pattern_obj.description,
+                    "stages": pattern_obj.stages if hasattr(pattern_obj, 'stages') else ["initial", "meta", "hyper", "ultra"]
                 })
 
         return {"status": "success", "patterns": pattern_list}
