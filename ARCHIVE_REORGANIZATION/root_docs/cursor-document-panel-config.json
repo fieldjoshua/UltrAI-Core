@@ -1,0 +1,210 @@
+{
+  "name": "Document Panel Integration for Claude Editing",
+  "version": "1.0",
+  "description": "Real-time document preview when Claude is editing docs",
+  
+  "panel_configuration": {
+    "document_preview": {
+      "location": "panel",
+      "position": "bottom",
+      "height": "40%",
+      "auto_focus": false,
+      "live_preview": true,
+      "supported_formats": [".md", ".txt", ".json", ".yaml", ".yml", ".html"]
+    },
+    
+    "three_panel_layout": {
+      "left": "file_explorer",
+      "center": "editor",
+      "right": "chat_panel", 
+      "bottom": "document_preview"
+    }
+  },
+
+  "document_editing_workflow": {
+    "detection": {
+      "trigger_on": [
+        "claude_editing_markdown",
+        "claude_editing_documentation", 
+        "claude_editing_config_files",
+        "claude_editing_json"
+      ],
+      "auto_open_preview": true,
+      "focus_behavior": "keep_chat_focused"
+    },
+    
+    "preview_features": {
+      "markdown_rendering": true,
+      "syntax_highlighting": true,
+      "live_scroll_sync": true,
+      "diff_highlighting": true,
+      "auto_refresh": "on_save"
+    }
+  },
+
+  "xencelabs_document_mode": {
+    "name": "📄 Document Editing Mode",
+    "active_when": "document_preview_open",
+    "led_color": "#00FFAA",
+    "led_pattern": "steady",
+    
+    "buttons": {
+      "button_1": {
+        "command": "markdown.showPreviewToSide",
+        "label": "👁️ Toggle Preview",
+        "color": "#00FF00"
+      },
+      "button_2": {
+        "command": "workbench.action.files.save",
+        "label": "💾 Save & Refresh",
+        "color": "#0066FF"
+      },
+      "button_3": {
+        "command": "markdown.extension.editing.toggleBold",
+        "label": "**B** Bold Text",
+        "color": "#FF6600"
+      },
+      "button_4": {
+        "command": "markdown.extension.editing.toggleItalic", 
+        "label": "*I* Italic Text",
+        "color": "#FF6600"
+      },
+      "button_5": {
+        "command": "editor.action.formatDocument",
+        "label": "🎨 Format Doc",
+        "color": "#9933FF"
+      },
+      "button_6": {
+        "command": "workbench.action.showCommands",
+        "label": "⚡ Commands",
+        "color": "#FFFF00"
+      },
+      "button_7": {
+        "command": "workbench.panel.chat.view.copilot.focus",
+        "label": "💬 Back to Chat",
+        "color": "#666666"
+      },
+      "button_8": {
+        "command": "workbench.action.closePanel",
+        "label": "❌ Close Preview",
+        "color": "#888888"
+      }
+    },
+
+    "dial_functions": {
+      "dial_1": {
+        "command_increment": "workbench.action.zoomIn",
+        "command_decrement": "workbench.action.zoomOut",
+        "label": "🔍 Preview Zoom"
+      },
+      "dial_2": {
+        "command_increment": "cursorDown",
+        "command_decrement": "cursorUp",
+        "label": "📜 Scroll Document"
+      },
+      "dial_3": {
+        "command_increment": "editor.action.indentLines",
+        "command_decrement": "editor.action.outdentLines",
+        "label": "↔️ Indent Level"
+      }
+    }
+  },
+
+  "cursor_settings_for_docs": {
+    "// Document panel settings": "",
+    "markdown.preview.openMarkdownLinks": "inPreview",
+    "markdown.preview.scrollEditorWithPreview": true,
+    "markdown.preview.scrollPreviewWithEditor": true,
+    "markdown.preview.markEditorSelection": true,
+    
+    "// Auto-open preview for document editing": "",
+    "markdown.extension.preview.autoShowPreviewToSide": true,
+    "workbench.editor.enablePreviewFromQuickOpen": true,
+    
+    "// Panel layout optimization": "",
+    "workbench.panel.defaultLocation": "bottom",
+    "workbench.panel.opensMaximized": "never",
+    "workbench.sideBar.location": "left",
+    
+    "// Document-specific formatting": "",
+    "[markdown]": {
+      "editor.wordWrap": "on",
+      "editor.lineNumbers": "on",
+      "editor.minimap.enabled": false,
+      "editor.folding": true,
+      "files.trimTrailingWhitespace": false
+    },
+    
+    "[json]": {
+      "editor.defaultFormatter": "esbenp.prettier-vscode",
+      "editor.formatOnSave": true
+    }
+  },
+
+  "workflow_examples": {
+    "markdown_editing": {
+      "scenario": "Claude editing README.md",
+      "layout": {
+        "left_panel": "File Explorer",
+        "center_panel": "README.md (source)",
+        "right_panel": "Claude Chat",
+        "bottom_panel": "README.md (rendered preview)"
+      },
+      "user_experience": [
+        "You see Claude's edits in real-time in center panel",
+        "Rendered result updates automatically in bottom panel", 
+        "Chat continues in right panel",
+        "Macropad switches to document mode (green LED)"
+      ]
+    },
+    
+    "json_config_editing": {
+      "scenario": "Claude editing package.json", 
+      "layout": {
+        "center_panel": "package.json (with syntax highlighting)",
+        "bottom_panel": "JSON validation + formatting preview",
+        "right_panel": "Claude Chat"
+      },
+      "features": [
+        "Live JSON validation",
+        "Syntax error highlighting",
+        "Format preview before saving"
+      ]
+    },
+
+    "documentation_writing": {
+      "scenario": "Claude helping write docs",
+      "workflow": [
+        "You: 'Help me document the orchestrator API'",
+        "Claude: 'I'll create comprehensive API docs. Should I start with the endpoints?'",
+        "You: 'Yes' (in chat)",
+        "Claude: [Edits documentation.md]",
+        "Bottom panel: Shows rendered docs with navigation",
+        "Macropad: Document mode (format, preview, save buttons)"
+      ]
+    }
+  },
+
+  "integration_triggers": {
+    "auto_open_preview": {
+      "file_extensions": [".md", ".txt", ".json", ".yaml"],
+      "claude_action_detected": true,
+      "command": "markdown.showPreviewToSide"
+    },
+    
+    "auto_switch_macropad": {
+      "when": "document_preview_visible",
+      "switch_to": "document_mode",
+      "led_notification": {
+        "color": "#00FFAA",
+        "pattern": "fade_in"
+      }
+    },
+
+    "live_updates": {
+      "on_claude_edit": "refresh_preview",
+      "on_save": "validate_and_refresh",
+      "scroll_sync": "bidirectional"
+    }
+  }
+}

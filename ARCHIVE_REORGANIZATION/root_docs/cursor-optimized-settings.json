@@ -1,0 +1,115 @@
+{
+  "// AI & Edit Acceptance Settings": "Reduce edit acceptance prompts",
+  "cursor.general.autoAcceptThreshold": 0.8,
+  "cursor.general.requireConfirmation": false,
+  "cursor.general.streamingEdits": true,
+  "cursor.ai.enableAutoComplete": true,
+  "cursor.ai.enableInlineCompletion": true,
+  "cursor.ai.autoAcceptDelay": 500,
+  "cursor.cpp.enablePartialAccepts": true,
+  "cursor.general.enableShadowWorkspace": true,
+  "cursor.general.gitGraphIndexing": "enabled",
+  
+  "// Editor Behavior": "Smooth editing experience", 
+  "files.autoSave": "afterDelay",
+  "files.autoSaveDelay": 1000,
+  "editor.formatOnSave": true,
+  "editor.formatOnSaveMode": "modifications",
+  "editor.cursorStyle": "block-outline",
+  "editor.wordWrap": "on",
+  "editor.minimap.enabled": true,
+  "editor.suggestOnTriggerCharacters": true,
+  "editor.acceptSuggestionOnEnter": "smart",
+  "editor.quickSuggestions": {
+    "other": true,
+    "comments": true,
+    "strings": true
+  },
+  
+  "// Workbench Optimizations": "Better UI experience",
+  "workbench.colorTheme": "Cursor Dark High Contrast",
+  "workbench.editor.empty.hint": "hidden",
+  "workbench.statusBar.visible": true,
+  "workbench.editor.enablePreview": false,
+  "workbench.editor.highlightModifiedTabs": true,
+  "workbench.editor.closeOnFileDelete": true,
+  "workbench.editor.revealIfOpen": true,
+  
+  "// Git Integration": "Smooth git workflow",
+  "git.autofetch": true,
+  "git.confirmSync": false,
+  "git.enableSmartCommit": true,
+  "git.suggestSmartCommit": true,
+  
+  "// Language-Specific Settings": "Optimized for your stack",
+  "[python]": {
+    "editor.defaultFormatter": "ms-python.python",
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+      "source.organizeImports": true
+    }
+  },
+  "[typescript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+      "source.organizeImports": true
+    }
+  },
+  "[typescriptreact]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true
+  },
+  "[javascript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true
+  },
+  "[javascriptreact]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true
+  },
+  "[json]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[jsonc]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[markdown]": {
+    "editor.defaultFormatter": "DavidAnson.vscode-markdownlint",
+    "editor.wordWrap": "on"
+  },
+  
+  "// Terminal Settings": "Better terminal experience",
+  "terminal.integrated.cursorStyle": "block",
+  "terminal.integrated.fontSize": 14,
+  "terminal.integrated.scrollback": 10000,
+  "python.terminal.activateEnvInCurrentTerminal": true,
+  "python.terminal.focusAfterLaunch": true,
+  
+  "// Performance Optimizations": "Faster IDE performance",
+  "search.followSymlinks": false,
+  "files.watcherExclude": {
+    "**/.git/objects/**": true,
+    "**/.git/subtree-cache/**": true,
+    "**/node_modules/**": true,
+    "**/.venv/**": true,
+    "**/__pycache__/**": true,
+    "**/temp/**": true
+  },
+  
+  "// Security & Privacy": "Safe settings",
+  "redhat.telemetry.enabled": false,
+  "snyk.features.openSourceSecurity": false,
+  "snyk.features.codeSecurity": false,
+  "snyk.yesCrashReport": false,
+  "snyk.features.codeQuality": false,
+  "snyk.yesBackgroundOssNotification": false,
+  "snyk.yesWelcomeNotification": false,
+  "snyk.advanced.automaticDependencyManagement": false,
+  "snyk.features.infrastructureAsCode": false,
+  
+  "// Diff & Merge Settings": "Better diff experience",
+  "diffEditor.renderSideBySide": true,
+  "diffEditor.useInlineViewWhenSpaceIsLimited": false,
+  "merge-conflict.autoNavigateNextConflict.enabled": true
+}
