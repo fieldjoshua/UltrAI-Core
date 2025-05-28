@@ -241,8 +241,7 @@ setup_validation_middleware(app)
 
 # Only set up auth and API key middleware if enabled
 if Config.ENABLE_AUTH:
-    setup_auth_middleware(app)
-    # Add orchestrator endpoints to public paths for testing
+    # Add orchestrator endpoints to public paths for demo access
     public_paths = [
         "/api/auth/",
         "/health",
@@ -253,8 +252,10 @@ if Config.ENABLE_AUTH:
         "/api/openapi.json",
         "/api/debug/",
         "/favicon.ico",
-        "/api/orchestrator/",  # Temporarily add orchestrator endpoints
+        "/api/orchestrator/",  # Enable demo access to sophisticated orchestrator
+        "/orchestrator",       # Enable frontend access to orchestrator UI
     ]
+    setup_auth_middleware(app, public_paths=public_paths)
     setup_api_key_middleware(app, public_paths=public_paths)
 else:
     logger.info("Authentication disabled - auth middleware skipped")
