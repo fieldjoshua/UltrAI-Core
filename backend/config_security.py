@@ -23,7 +23,7 @@ def get_csp_directives() -> Dict[str, str]:
     return {
         "default-src": "'self'",
         "script-src": "'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net",
-        "style-src": "'self' 'unsafe-inline' https://fonts.googleapis.com",
+        "style-src": "'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net https://unpkg.com",
         "img-src": "'self' data: https:",
         "font-src": "'self' https://fonts.gstatic.com",
         "connect-src": "'self' https://api.ultrai.app wss://api.ultrai.app",
