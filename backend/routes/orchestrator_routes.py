@@ -68,6 +68,16 @@ except Exception as e:
 # Create a router
 orchestrator_router = APIRouter(tags=["Orchestrator"])
 
+# Add a simple test route to verify router inclusion
+@orchestrator_router.get("/orchestrator/test")
+async def test_orchestrator_router():
+    """Simple test endpoint to verify orchestrator router is properly included"""
+    return {
+        "status": "success",
+        "message": "Orchestrator router is working",
+        "routes_available": ["models", "patterns", "feather", "process"]
+    }
+
 # Configure logging
 logger = logging.getLogger("orchestrator_routes")
 
@@ -145,6 +155,7 @@ async def get_available_orchestrator_models():
     Returns:
         List of available model names from the sophisticated orchestrator
     """
+    print("🔍 DEBUG: get_available_orchestrator_models called")
     try:
         if not ORCHESTRATOR_AVAILABLE:
             # Fallback to mock models if sophisticated orchestrator couldn't be imported

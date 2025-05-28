@@ -3,11 +3,16 @@
 ## Essential Commands
 
 ```bash
-aicheck create-action <name>      # Create new action
-aicheck status                    # Show current action
-aicheck set-action <name>         # Set active action
-aicheck complete-action <name>    # Mark action complete
-aicheck list                      # List all actions
+aicheck create-action <name>           # Create new action (with validation)
+aicheck status                         # Show comprehensive system status  
+aicheck set-action <name>              # Set active action
+aicheck update-status <name> <status>  # Update action status
+aicheck update-progress <name> <0-100> # Update action progress
+aicheck complete-action <name>         # Mark action complete
+aicheck list                           # List all actions
+aicheck validate                       # Validate AICheck system
+aicheck test                          # Run system tests
+aicheck security-check               # Check security
 ```
 
 ## Action Lifecycle
