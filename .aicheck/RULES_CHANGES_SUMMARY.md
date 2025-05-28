@@ -1,9 +1,9 @@
 # RULES.md Changes Summary - Recent Updates (May 22-26, 2025)
 
 ## Document Version History
-- **Current Version**: 3.0 (2025-05-26)
-- **Previous Version**: 2.22 (2025-05-24)
-- **Changes Tracked**: 5 major commits including latest git hook integration
+- **Current Version**: 3.1 (2025-05-26)
+- **Previous Version**: 3.0 (2025-05-26)
+- **Changes Tracked**: 6 major commits including deployment verification requirements
 
 ---
 
@@ -11,7 +11,23 @@
 
 ### **🔴 HIGH PRIORITY CHANGES** (Require AICheck Team Review)
 
-#### **Version 3.0 (TODAY - 2025-05-26)**
+#### **Version 3.1 (TODAY - 2025-05-26)**
+**Added by:** Claude Code (Emergency Exec Session - Deployment Verification)
+
+1. **NEW: Section 6.1.1 - Deployment Verification Requirements**
+   - Added CRITICAL requirement for production deployment verification
+   - Created 4-part verification process (commit → push → deploy → test)
+   - Listed specific exceptions for local-only development
+   - Added requirement for `deployment-verification.md` documentation
+   - **Impact**: Prevents marking actions COMPLETED without production verification
+   - **Rationale**: Discovered orchestration-integration-fix was marked COMPLETED but never deployed
+
+2. **WARNING Added**:
+   - Explicit warning that deployment verification failure = MISREPRESENTATION
+   - References Section 1.3 guidelines about not misrepresenting completion
+   - **Impact**: Makes it a rules violation to claim deployment without verification
+
+#### **Version 3.0 (2025-05-26)**
 **Added by:** Claude Code (Action Completion Enforcement Implementation)
 
 1. **NEW: Section 6.5 - Action Completion Hook**

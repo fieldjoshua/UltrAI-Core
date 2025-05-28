@@ -15,62 +15,48 @@ import sys
 from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, Body, HTTPException, Query
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
-# Import our sophisticated orchestrator with better error handling
+# Import our sophisticated orchestrator through the integration module
 try:
-    # First try importing from src (works in development)
-    from src.core.ultra_pattern_orchestrator import PatternOrchestrator
-    from src.patterns.ultra_analysis_patterns import get_pattern_mapping
-    print("✅ Successfully imported sophisticated PatternOrchestrator from src/core")
-    ORCHESTRATOR_AVAILABLE = True
-except ImportError as e1:
-    # If that fails, try adding parent directories to path
-    try:
-        import sys
-        import os
-        # Get the backend directory
-        backend_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        # Get the project root
-        root_dir = os.path.dirname(backend_dir)
-        # Add both to path if not already there
-        for directory in [root_dir, os.path.join(root_dir, "src")]:
-            if directory not in sys.path and os.path.exists(directory):
-                sys.path.insert(0, directory)
+    # Import from the integration module which handles path setup
+    from backend.integrations.pattern_orchestrator_integration import (
+        PatternOrchestrator, 
+        get_pattern_mapping, 
+        ORCHESTRATOR_AVAILABLE
+    )
+    if ORCHESTRATOR_AVAILABLE:
+        print("✅ Successfully imported sophisticated PatternOrchestrator via integration")
+    else:
+        print("⚠️ Using fallback PatternOrchestrator from integration")
+except ImportError as e:
+    print(f"❌ Failed to import from integration module: {e}")
+    # Use a fallback implementation
+    ORCHESTRATOR_AVAILABLE = False
+    class PatternOrchestrator:
+        def __init__(self, api_keys, pattern="gut", output_format="plain"):
+            print("⚠️ Using fallback stub PatternOrchestrator - sophisticated features not available")
+            self.available_models = ["mock-claude", "mock-gpt4", "mock-gemini"]
         
-        # Try import again
-        from src.core.ultra_pattern_orchestrator import PatternOrchestrator
-        from src.patterns.ultra_analysis_patterns import get_pattern_mapping
-        print("✅ Successfully imported PatternOrchestrator after fixing path")
-        ORCHESTRATOR_AVAILABLE = True
-    except ImportError as e2:
-        print(f"❌ Failed to import sophisticated PatternOrchestrator: {e1}, {e2}")
-        # Use a fallback implementation
-        class PatternOrchestrator:
-            def __init__(self, api_keys, pattern="gut", output_format="plain"):
-                print("⚠️ Using fallback stub PatternOrchestrator - sophisticated features not available")
-                self.available_models = ["mock-claude", "mock-gpt4", "mock-gemini"]
-            
-            async def orchestrate_full_process(self, prompt):
-                return {
-                    "initial_responses": {"mock-claude": "Mock initial response"},
-                    "meta_responses": {"mock-claude": "Mock meta response"},
-                    "hyper_responses": {"mock-claude": "Mock hyper response"},
-                    "ultra_response": "Mock ultra response - sophisticated orchestrator not available",
-                    "processing_time": 0.0
-                }
-        
-        def get_pattern_mapping():
+        async def orchestrate_full_process(self, prompt):
             return {
-                "gut": {"name": "gut", "description": "Gut-based intuitive analysis"},
-                "confidence": {"name": "confidence", "description": "Confidence scoring analysis"},
-                "critique": {"name": "critique", "description": "Critical analysis pattern"},
-                "fact_check": {"name": "fact_check", "description": "Fact-checking analysis"},
-                "perspective": {"name": "perspective", "description": "Multi-perspective analysis"},
-                "scenario": {"name": "scenario", "description": "Scenario-based analysis"}
+                "initial_responses": {"mock-claude": "Mock initial response"},
+                "meta_responses": {"mock-claude": "Mock meta response"},
+                "hyper_responses": {"mock-claude": "Mock hyper response"},
+                "ultra_response": "Mock ultra response - sophisticated orchestrator not available",
+                "processing_time": 0.0
             }
-        
-        ORCHESTRATOR_AVAILABLE = False
+    
+    def get_pattern_mapping():
+        return {
+            "gut": {"name": "gut", "description": "Gut-based intuitive analysis"},
+            "confidence": {"name": "confidence", "description": "Confidence scoring analysis"},
+            "critique": {"name": "critique", "description": "Critical analysis pattern"},
+            "fact_check": {"name": "fact_check", "description": "Fact-checking analysis"},
+            "perspective": {"name": "perspective", "description": "Multi-perspective analysis"},
+            "scenario": {"name": "scenario", "description": "Scenario-based analysis"}
+        }
 
 # Create a router
 orchestrator_router = APIRouter(tags=["Orchestrator"])
@@ -144,7 +130,7 @@ class FeatherOrchestrationResponse(BaseModel):
     models_used: List[str]
 
 
-@orchestrator_router.get("/orchestrator/models", response_model=ModelListResponse)
+@orchestrator_router.get("/orchestrator/models")
 async def get_available_orchestrator_models():
     """
     Get all models available through the sophisticated PatternOrchestrator
@@ -216,7 +202,7 @@ async def get_available_orchestrator_models():
         }
 
 
-@orchestrator_router.get("/orchestrator/patterns", response_model=PatternListResponse)
+@orchestrator_router.get("/orchestrator/patterns")
 async def get_available_analysis_patterns():
     """
     Get all available analysis patterns for the sophisticated orchestrator
