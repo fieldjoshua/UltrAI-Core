@@ -113,6 +113,23 @@ For ANY significant work on UltraAI, you MUST:
 - **Run services**: `docker-compose up`
 - **Production deploy**: Uses `render.yaml` configuration
 
+### Render CLI Commands (Production Deployment)
+
+- **Install CLI**: `curl -fsSL https://raw.githubusercontent.com/render-oss/cli/refs/heads/main/bin/install.sh | sh`
+- **Login**: `render login`
+- **Deploy with verification**: `./scripts/deploy-render.sh`
+- **Verify production**: `./scripts/verify-production.sh`
+- **Check service status**: `render whoami` (requires PATH export)
+- **Add to PATH**: `export PATH=$PATH:/Users/joshuafield/.local/bin`
+
+**Deployment Verification Protocol**:
+- Always run `./scripts/verify-production.sh` after deployment
+- Verify sophisticated orchestrator endpoints are available:
+  - `/api/orchestrator/models` (not antiquated `/api/orchestrator/execute`)
+  - `/api/orchestrator/patterns` (10 analysis patterns)
+  - `/api/orchestrator/feather` (4-stage Feather analysis)
+- If verification fails, clear cache and redeploy
+
 ### Environment Management
 
 - **Production**: Set `ENVIRONMENT=production`, uses `requirements-production.txt`
