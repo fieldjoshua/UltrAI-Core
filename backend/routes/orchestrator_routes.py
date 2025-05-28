@@ -19,6 +19,10 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
 # Import our sophisticated orchestrator through the integration module
+ORCHESTRATOR_AVAILABLE = False
+PatternOrchestrator = None
+get_pattern_mapping = None
+
 try:
     # Import from the integration module which handles path setup
     from backend.integrations.pattern_orchestrator_integration import (
@@ -30,23 +34,26 @@ try:
         print("✅ Successfully imported sophisticated PatternOrchestrator via integration")
     else:
         print("⚠️ Using fallback PatternOrchestrator from integration")
-except ImportError as e:
+except Exception as e:
     print(f"❌ Failed to import from integration module: {e}")
     # Use a fallback implementation
     ORCHESTRATOR_AVAILABLE = False
-    class PatternOrchestrator:
+    
+    class FallbackPatternOrchestrator:
         def __init__(self, api_keys, pattern="gut", output_format="plain"):
             print("⚠️ Using fallback stub PatternOrchestrator - sophisticated features not available")
-            self.available_models = ["mock-claude", "mock-gpt4", "mock-gemini"]
+            self.available_models = ["claude-3-opus", "gpt-4-turbo", "gemini-pro"]
         
         async def orchestrate_full_process(self, prompt):
             return {
-                "initial_responses": {"mock-claude": "Mock initial response"},
-                "meta_responses": {"mock-claude": "Mock meta response"},
-                "hyper_responses": {"mock-claude": "Mock hyper response"},
+                "initial_responses": {"claude-3-opus": "Mock initial response"},
+                "meta_responses": {"claude-3-opus": "Mock meta response"},
+                "hyper_responses": {"claude-3-opus": "Mock hyper response"},
                 "ultra_response": "Mock ultra response - sophisticated orchestrator not available",
                 "processing_time": 0.0
             }
+    
+    PatternOrchestrator = FallbackPatternOrchestrator
     
     def get_pattern_mapping():
         return {
