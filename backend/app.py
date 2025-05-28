@@ -307,11 +307,28 @@ app.include_router(debug_router, prefix="/api")  # Debug routes for troubleshoot
 # )  # Resilient orchestrator routes
 # app.include_router(recovery_router)  # Recovery routes (already has /api prefix)
 
-# Mount static files for frontend (must be last to avoid conflicts)
+# Serve React frontend with SPA routing support
 static_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "static")
 if os.path.exists(static_path):
-    app.mount("/", StaticFiles(directory=static_path, html=True), name="static")
-    logger.info(f"✅ Static frontend mounted from: {static_path}")
+    from fastapi.responses import FileResponse
+    
+    @app.get("/{path:path}")
+    async def serve_spa(path: str):
+        """Serve React SPA - return index.html for all non-API routes"""
+        # Don't interfere with API routes
+        if path.startswith("api/") or path.startswith("health") or path.startswith("ping") or path.startswith("metrics"):
+            raise HTTPException(status_code=404, detail="Not Found")
+        
+        # Serve actual files if they exist (CSS, JS, images, etc.)
+        file_path = os.path.join(static_path, path)
+        if os.path.isfile(file_path):
+            return FileResponse(file_path)
+        
+        # For all other routes, serve index.html (React Router will handle routing)
+        index_path = os.path.join(static_path, "index.html")
+        return FileResponse(index_path)
+    
+    logger.info(f"✅ React SPA routing configured for: {static_path}")
 else:
     logger.warning(f"⚠️ Static directory not found: {static_path}")
 
