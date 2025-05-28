@@ -4,6 +4,7 @@ Health check endpoints for the Ultra backend.
 This module provides endpoints for checking the health of the application and its services.
 """
 
+from datetime import datetime
 from typing import Any, Dict
 
 from fastapi import APIRouter, HTTPException, Query, status
@@ -18,6 +19,12 @@ router = APIRouter(tags=["health"])
 
 # Configure logging
 logger = get_logger("health_routes")
+
+
+@router.get("/ping", summary="Simple ping endpoint")
+async def ping():
+    """Simple ping endpoint that always works."""
+    return {"status": "ok", "message": "pong"}
 
 
 @router.get(
@@ -37,26 +44,37 @@ async def get_health(
         # Log the health check
         logger.info(f"Health check requested with detail={detail}")
 
-        # Get health status
-        health_status = health_service.get_health_status(detailed=detail)
+        # Try to get health status, but provide basic response if service fails
+        try:
+            # Get health status
+            health_status = health_service.get_health_status(detailed=detail)
 
-        # Add orchestrator router debug info if detailed
-        if detail:
-            try:
-                from backend.routes.orchestrator_routes import orchestrator_router
-                health_status["orchestrator_debug"] = {
-                    "router_imported": True,
-                    "route_count": len(orchestrator_router.routes),
-                    "routes": [f"{getattr(route, 'methods', 'UNKNOWN')} {getattr(route, 'path', 'UNKNOWN')}" for route in orchestrator_router.routes]
-                }
-            except Exception as e:
-                health_status["orchestrator_debug"] = {
-                    "router_imported": False,
-                    "import_error": str(e)
-                }
+            # Add orchestrator router debug info if detailed
+            if detail:
+                try:
+                    from backend.routes.orchestrator_routes import orchestrator_router
+                    health_status["orchestrator_debug"] = {
+                        "router_imported": True,
+                        "route_count": len(orchestrator_router.routes),
+                        "routes": [f"{getattr(route, 'methods', 'UNKNOWN')} {getattr(route, 'path', 'UNKNOWN')}" for route in orchestrator_router.routes]
+                    }
+                except Exception as e:
+                    health_status["orchestrator_debug"] = {
+                        "router_imported": False,
+                        "import_error": str(e)
+                    }
 
-        # Return health status
-        return health_status
+            return health_status
+        except Exception as service_error:
+            # If health service fails, return basic health status
+            logger.warning(f"Health service error: {str(service_error)}, returning basic status")
+            return {
+                "status": "degraded",
+                "message": "Health service unavailable, but API is running",
+                "environment": Config.ENVIRONMENT,
+                "timestamp": datetime.utcnow().isoformat(),
+                "error": str(service_error) if detail else None
+            }
     except Exception as e:
         logger.error(f"Error retrieving health status: {str(e)}")
         raise HTTPException(
