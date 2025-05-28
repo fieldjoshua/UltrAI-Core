@@ -40,6 +40,21 @@ async def get_health(
         # Get health status
         health_status = health_service.get_health_status(detailed=detail)
 
+        # Add orchestrator router debug info if detailed
+        if detail:
+            try:
+                from backend.routes.orchestrator_routes import orchestrator_router
+                health_status["orchestrator_debug"] = {
+                    "router_imported": True,
+                    "route_count": len(orchestrator_router.routes),
+                    "routes": [f"{list(route.methods)[0]} {route.path}" for route in orchestrator_router.routes]
+                }
+            except Exception as e:
+                health_status["orchestrator_debug"] = {
+                    "router_imported": False,
+                    "import_error": str(e)
+                }
+
         # Return health status
         return health_status
     except Exception as e:
