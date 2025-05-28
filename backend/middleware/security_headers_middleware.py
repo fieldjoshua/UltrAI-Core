@@ -114,8 +114,26 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
             response: FastAPI response object
         """
         if self.csp_directives:
+            # Ensure critical domains are always included
+            directives = dict(self.csp_directives)
+            
+            # Always include Google Fonts in style-src
+            if "style-src" in directives:
+                if "fonts.googleapis.com" not in directives["style-src"]:
+                    directives["style-src"] += " https://fonts.googleapis.com"
+            
+            # Always include Google Fonts in font-src  
+            if "font-src" in directives:
+                if "fonts.gstatic.com" not in directives["font-src"]:
+                    directives["font-src"] += " https://fonts.gstatic.com"
+                    
+            # Always include production domain in connect-src
+            if "connect-src" in directives:
+                if "ultrai-core-4lut.onrender.com" not in directives["connect-src"]:
+                    directives["connect-src"] += " https://ultrai-core-4lut.onrender.com wss://ultrai-core-4lut.onrender.com"
+            
             csp_value = "; ".join(
-                f"{key} {value}" for key, value in self.csp_directives.items()
+                f"{key} {value}" for key, value in directives.items()
             )
             response.headers["Content-Security-Policy"] = csp_value
 

@@ -2,8 +2,8 @@
  * Orchestrator API client for the frontend
  */
 
-// Base API URL - using environment variable or fallback to development port
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8081/api';
+// Base API URL - using Vite environment variable or fallback to development port
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8081/api';
 
 /**
  * Get available models for orchestration
