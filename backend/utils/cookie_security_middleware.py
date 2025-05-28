@@ -102,7 +102,9 @@ class CookieSecurityMiddleware(BaseHTTPMiddleware):
             secure_cookies.append(secure_cookie)
 
         # Replace cookies in response
-        response.headers.remove("set-cookie")
+        # Remove existing set-cookie headers
+        if "set-cookie" in response.headers:
+            del response.headers["set-cookie"]
         for cookie in secure_cookies:
             response.headers.append("set-cookie", cookie)
 
