@@ -218,22 +218,25 @@ class CSRFMiddleware(BaseHTTPMiddleware):
             Response with CSRF token cookie
         """
         # Check if response already has CSRF cookie
-        if self.cookie_name in response.cookies:
+        # Handle streaming responses that don't have cookies attribute
+        if hasattr(response, 'cookies') and self.cookie_name in response.cookies:
             return response
 
         # Generate new CSRF token
         token = self._generate_csrf_token(request)
 
         # Set cookie with appropriate security flags
-        response.set_cookie(
-            key=self.cookie_name,
-            value=token,
-            max_age=self.token_expiry,
-            httponly=False,  # JS needs to access this token
-            secure=True,
-            samesite="lax",
-            path="/",
-        )
+        # Only set cookie if response supports it (not streaming responses)
+        if hasattr(response, 'set_cookie'):
+            response.set_cookie(
+                key=self.cookie_name,
+                value=token,
+                max_age=self.token_expiry,
+                httponly=False,  # JS needs to access this token
+                secure=True,
+                samesite="lax",
+                path="/",
+            )
 
         # Also set the token in a header for single-page applications
         response.headers[self.token_header] = token
