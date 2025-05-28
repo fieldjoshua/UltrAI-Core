@@ -66,10 +66,10 @@ except Exception as e:
         }
 
 # Create a router
-orchestrator_router = APIRouter(tags=["Orchestrator"])
+orchestrator_router = APIRouter(prefix="/orchestrator", tags=["Orchestrator"])
 
 # Add a simple test route to verify router inclusion
-@orchestrator_router.get("/orchestrator/test")
+@orchestrator_router.get("/test")
 async def test_orchestrator_router():
     """Simple test endpoint to verify orchestrator router is properly included"""
     return {
@@ -147,7 +147,7 @@ class FeatherOrchestrationResponse(BaseModel):
     models_used: List[str]
 
 
-@orchestrator_router.get("/orchestrator/models")
+@orchestrator_router.get("/models")
 async def get_available_orchestrator_models():
     """
     Get all models available through the sophisticated PatternOrchestrator
@@ -220,7 +220,7 @@ async def get_available_orchestrator_models():
         }
 
 
-@orchestrator_router.get("/orchestrator/patterns")
+@orchestrator_router.get("/patterns")
 async def get_available_analysis_patterns():
     """
     Get all available analysis patterns for the sophisticated orchestrator
@@ -278,7 +278,7 @@ async def get_available_analysis_patterns():
         }
 
 
-@orchestrator_router.post("/orchestrator/feather", response_model=FeatherOrchestrationResponse)
+@orchestrator_router.post("/feather", response_model=FeatherOrchestrationResponse)
 async def process_with_feather_orchestration(request: FeatherOrchestrationRequest):
     """
     Process a prompt using the sophisticated 4-stage Feather orchestration
@@ -364,7 +364,7 @@ async def process_with_feather_orchestration(request: FeatherOrchestrationReques
         )
 
 
-@orchestrator_router.post("/orchestrator/process")
+@orchestrator_router.post("/process")
 async def process_with_orchestrator(request: OrchestrationRequest):
     """
     Legacy endpoint for backward compatibility - now uses sophisticated PatternOrchestrator
