@@ -155,12 +155,9 @@ class HealthService:
         """Check database connection"""
         try:
             # Import here to avoid circular imports
-            from backend.database.connection import get_db_connection
+            from backend.database.connection import check_database_connection
 
-            conn = get_db_connection()
-            if conn:
-                # Try a simple query
-                conn.execute("SELECT 1").fetchone()
+            if check_database_connection():
                 self.service_status["database"] = {
                     "status": "healthy",
                     "message": "Database connection is working",
@@ -183,12 +180,12 @@ class HealthService:
     def _check_cache(self) -> None:
         """Check cache connection"""
         try:
-            if cache_service and cache_service.is_available():
-                cache_info = cache_service.get_info()
+            if cache_service and hasattr(cache_service, 'is_redis_available'):
+                cache_type = "redis" if cache_service.is_redis_available() else "memory"
                 self.service_status["cache"] = {
                     "status": "healthy",
-                    "message": "Cache service is working",
-                    "type": cache_info.get("type", "unknown"),
+                    "message": f"Cache service is working ({cache_type})",
+                    "type": cache_type,
                     "last_checked": datetime.datetime.now().isoformat(),
                 }
             else:
