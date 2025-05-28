@@ -47,7 +47,7 @@ async def get_health(
                 health_status["orchestrator_debug"] = {
                     "router_imported": True,
                     "route_count": len(orchestrator_router.routes),
-                    "routes": [f"{list(route.methods)[0]} {route.path}" for route in orchestrator_router.routes]
+                    "routes": [f"{getattr(route, 'methods', 'UNKNOWN')} {getattr(route, 'path', 'UNKNOWN')}" for route in orchestrator_router.routes]
                 }
             except Exception as e:
                 health_status["orchestrator_debug"] = {
