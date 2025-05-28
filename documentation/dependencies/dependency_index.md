@@ -6,6 +6,9 @@ This document tracks all dependencies in the PROJECT. All dependencies must be r
 
 | Dependency | Version | Added By | Date Added | Justification | Actions Using |
 |------------|---------|----------|------------|---------------|---------------|
+| git | >=2.0 | | 2025-05-27 | Required for git integration and hooks functionality | streamlined-action-management |
+| bash | >=4.0 | | 2025-05-27 | Required for associative arrays and advanced string manipulation in aicheck scripts | streamlined-action-management |
+| requests | ^2.31.0 | | 2025-05-27 | Required for HTTP requests in deployment verification template | streamlined-action-management |
 | fastapi | 0.115.12 | | 2025-05-24 | SECURITY UPDATE: Core framework for sophisticated orchestration backend - updated from 0.109.0 to resolve PYSEC-2024-38 vulnerability | security-vulnerability-fix |
 | python-jose | 3.4.0 | | 2025-05-24 | SECURITY UPDATE: JWT authentication library - updated from 3.3.0 to resolve PYSEC-2024-232, PYSEC-2024-233 vulnerabilities | security-vulnerability-fix |
 | aiohttp | 3.10.11 | | 2025-05-24 | SECURITY UPDATE: Async HTTP client - updated from 3.9.1 to resolve multiple vulnerabilities (PYSEC-2024-24, PYSEC-2024-26, GHSA-7gpw-8wmc-pm8g, GHSA-5m98-qgg9-wh84, GHSA-8495-4g3g-x7pr) | security-vulnerability-fix |
@@ -29,4 +32,4 @@ This document tracks all dependencies in the PROJECT. All dependencies must be r
 | *None yet* | | | | |
 
 ---
-*Last Updated: 2025-05-24*
+*Last Updated: 2025-05-27*
