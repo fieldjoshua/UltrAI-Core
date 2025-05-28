@@ -51,6 +51,7 @@ ujson==5.8.0
 # CORS and middleware
 fastapi-limiter==0.1.5
 slowapi==0.1.9
+sse-starlette>=1.6.0
 
 # File handling
 aiofiles==23.2.1
