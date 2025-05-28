@@ -246,10 +246,12 @@ if Config.ENABLE_AUTH:
     public_paths = [
         "/api/auth/",
         "/health",
+        "/ping",
         "/metrics", 
         "/api/docs",
         "/api/redoc",
         "/api/openapi.json",
+        "/api/debug/",
         "/favicon.ico",
         "/api/orchestrator/",  # Temporarily add orchestrator endpoints
     ]
