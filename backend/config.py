@@ -124,7 +124,12 @@ class Config:
 
     # Public paths for authentication
     PUBLIC_PATHS: List[str] = [
+        "/health",
+        "/ping",
         "/api/health",
+        "/api/debug/ping",
+        "/api/debug/config",
+        "/api/debug/env",
         "/api/docs",
         "/api/redoc",
         "/api/openapi.json",
