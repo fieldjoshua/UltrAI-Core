@@ -260,8 +260,10 @@ if Config.ENABLE_AUTH:
         "/api/openapi.json",
         "/api/debug/",
         "/favicon.ico",
+        "/assets/",            # Enable access to frontend assets (CSS, JS)
         "/api/orchestrator/",  # Enable demo access to sophisticated orchestrator
         "/orchestrator",       # Enable frontend access to orchestrator UI
+        "/",                   # Enable access to main page and frontend routes
     ]
     setup_auth_middleware(app, public_paths=public_paths)
     setup_api_key_middleware(app, public_paths=public_paths)
@@ -322,7 +324,17 @@ if os.path.exists(static_path):
         # Serve actual files if they exist (CSS, JS, images, etc.)
         file_path = os.path.join(static_path, path)
         if os.path.isfile(file_path):
-            return FileResponse(file_path)
+            # Set proper MIME types for static assets
+            if path.endswith('.css'):
+                return FileResponse(file_path, media_type="text/css")
+            elif path.endswith('.js'):
+                return FileResponse(file_path, media_type="application/javascript")
+            elif path.endswith('.svg'):
+                return FileResponse(file_path, media_type="image/svg+xml")
+            elif path.endswith('.ico'):
+                return FileResponse(file_path, media_type="image/x-icon")
+            else:
+                return FileResponse(file_path)
         
         # For all other routes, serve index.html (React Router will handle routing)
         index_path = os.path.join(static_path, "index.html")
