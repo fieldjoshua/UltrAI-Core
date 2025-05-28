@@ -1,9 +1,9 @@
 # UltraAI Production Requirements
 # Core Framework
-fastapi==0.104.1
-uvicorn[standard]==0.24.0.post1
-gunicorn==21.2.0
-pydantic==2.5.0
+fastapi>=0.104.0,<0.105.0
+uvicorn[standard]>=0.24.0
+gunicorn>=21.2.0
+pydantic>=2.5.2
 pydantic-settings==2.1.0
 python-multipart==0.0.6
 
@@ -25,11 +25,11 @@ authlib==1.2.1
 itsdangerous==2.1.2
 
 # LLM Provider SDKs
-openai==1.6.1
-anthropic==0.8.1
-google-generativeai==0.3.2
-mistralai==0.0.8
-cohere==4.39
+openai>=1.6.0
+anthropic>=0.8.0
+google-generativeai>=0.3.0
+mistralai>=0.0.8
+cohere>=4.39
 
 # HTTP & Async
 httpx==0.25.2
