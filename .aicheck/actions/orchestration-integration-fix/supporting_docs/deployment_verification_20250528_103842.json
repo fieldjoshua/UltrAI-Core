@@ -1,0 +1,182 @@
+{
+  "timestamp": "2025-05-28T10:38:41.435731",
+  "base_url": "https://ultrai-core.onrender.com",
+  "endpoints": {
+    "health_basic": {
+      "status_code": 500,
+      "response_time": 0.3291928768157959,
+      "success": false,
+      "headers": {
+        "Date": "Wed, 28 May 2025 17:38:41 GMT",
+        "Content-Type": "application/json",
+        "Transfer-Encoding": "chunked",
+        "Connection": "keep-alive",
+        "rndr-id": "30249759-3066-41ff",
+        "vary": "Accept-Encoding",
+        "x-render-origin-server": "uvicorn",
+        "cf-cache-status": "DYNAMIC",
+        "Server": "cloudflare",
+        "CF-RAY": "946f86f1ccec757d-SEA",
+        "alt-svc": "h3=\":443\"; ma=86400"
+      },
+      "data": {
+        "error": {
+          "code": "SYS_001",
+          "message": "Something went wrong on our end. Please try again later.",
+          "details": {},
+          "timestamp": "2025-05-28T17:38:41.747697",
+          "request_id": null
+        }
+      }
+    },
+    "health_detailed": {
+      "status_code": 500,
+      "response_time": 0.24090099334716797,
+      "success": false,
+      "headers": {
+        "Date": "Wed, 28 May 2025 17:38:42 GMT",
+        "Content-Type": "application/json",
+        "Transfer-Encoding": "chunked",
+        "Connection": "keep-alive",
+        "rndr-id": "e9aab5b3-b688-48ad",
+        "vary": "Accept-Encoding",
+        "x-render-origin-server": "uvicorn",
+        "cf-cache-status": "DYNAMIC",
+        "Server": "cloudflare",
+        "CF-RAY": "946f86f3d8a17561-SEA",
+        "alt-svc": "h3=\":443\"; ma=86400"
+      },
+      "data": {
+        "error": {
+          "code": "SYS_001",
+          "message": "Something went wrong on our end. Please try again later.",
+          "details": {},
+          "timestamp": "2025-05-28T17:38:42.036521",
+          "request_id": null
+        }
+      }
+    },
+    "health_llm_providers": {
+      "status_code": 500,
+      "response_time": 0.26186418533325195,
+      "success": false,
+      "headers": {
+        "Date": "Wed, 28 May 2025 17:38:42 GMT",
+        "Content-Type": "application/json",
+        "Transfer-Encoding": "chunked",
+        "Connection": "keep-alive",
+        "rndr-id": "e6e8b8cc-0cad-4c69",
+        "vary": "Accept-Encoding",
+        "x-render-origin-server": "uvicorn",
+        "cf-cache-status": "DYNAMIC",
+        "Server": "cloudflare",
+        "CF-RAY": "946f86f55d74b99d-SEA",
+        "alt-svc": "h3=\":443\"; ma=86400"
+      },
+      "data": {
+        "error": {
+          "code": "SYS_001",
+          "message": "Something went wrong on our end. Please try again later.",
+          "details": {},
+          "timestamp": "2025-05-28T17:38:42.247268",
+          "request_id": null
+        }
+      }
+    },
+    "orchestrator_models": {
+      "status_code": 401,
+      "response_time": 0.14765381813049316,
+      "success": false,
+      "headers": {
+        "Date": "Wed, 28 May 2025 17:38:42 GMT",
+        "Content-Type": "application/json",
+        "Transfer-Encoding": "chunked",
+        "Connection": "keep-alive",
+        "Cache-Control": "no-store, max-age=0",
+        "content-language": "en_US",
+        "content-security-policy": "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://unpkg.com; object-src 'none'; img-src 'self' data: https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://unpkg.com; font-src 'self' https://cdn.jsdelivr.net; frame-src 'none'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; worker-src 'self' blob:; connect-src 'self' https://api.ultrai.app wss://api.ultrai.app https://app.ultrai.app;",
+        "cross-origin-embedder-policy": "require-corp",
+        "cross-origin-opener-policy": "same-origin",
+        "cross-origin-resource-policy": "same-origin",
+        "permissions-policy": "accelerometer=(), autoplay=(), camera=(), clipboard-read=(), clipboard-write=(), display-capture=(), document-domain=(), encrypted-media=(), fullscreen=(), geolocation=(), gyroscope=(), hid=(), identity-credentials-get=(), idle-detection=(), local-fonts=(), magnetometer=(), microphone=(), midi=(), payment=(), picture-in-picture=(), publickey-credentials-get=(), screen-wake-lock=(), serial=(), sync-xhr=(), usb=(), web-share=(), xr-spatial-tracking=()",
+        "pragma": "no-cache",
+        "referrer-policy": "strict-origin-when-cross-origin",
+        "rndr-id": "22cd5a93-4ae8-4042",
+        "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+        "vary": "Origin, Accept-Encoding",
+        "www-authenticate": "Bearer",
+        "x-content-type-options": "nosniff",
+        "x-frame-options": "DENY",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "59",
+        "x-ratelimit-reset": "1748453982",
+        "x-render-origin-server": "uvicorn",
+        "x-request-id": "None, 64b025be-4d2d-4790-90ab-fefa51e025ad",
+        "x-xss-protection": "1; mode=block",
+        "cf-cache-status": "DYNAMIC",
+        "Server": "cloudflare",
+        "CF-RAY": "946f86f6ed5febd7-SEA",
+        "alt-svc": "h3=\":443\"; ma=86400"
+      },
+      "data": {
+        "status": "error",
+        "message": "Missing authentication token",
+        "code": "missing_token"
+      }
+    },
+    "orchestrator_patterns": {
+      "status_code": 401,
+      "response_time": 0.1458568572998047,
+      "success": false,
+      "headers": {
+        "Date": "Wed, 28 May 2025 17:38:42 GMT",
+        "Content-Type": "application/json",
+        "Transfer-Encoding": "chunked",
+        "Connection": "keep-alive",
+        "Cache-Control": "no-store, max-age=0",
+        "content-language": "en_US",
+        "content-security-policy": "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://unpkg.com; object-src 'none'; img-src 'self' data: https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://unpkg.com; font-src 'self' https://cdn.jsdelivr.net; frame-src 'none'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; worker-src 'self' blob:; connect-src 'self' https://api.ultrai.app wss://api.ultrai.app https://app.ultrai.app;",
+        "cross-origin-embedder-policy": "require-corp",
+        "cross-origin-opener-policy": "same-origin",
+        "cross-origin-resource-policy": "same-origin",
+        "permissions-policy": "accelerometer=(), autoplay=(), camera=(), clipboard-read=(), clipboard-write=(), display-capture=(), document-domain=(), encrypted-media=(), fullscreen=(), geolocation=(), gyroscope=(), hid=(), identity-credentials-get=(), idle-detection=(), local-fonts=(), magnetometer=(), microphone=(), midi=(), payment=(), picture-in-picture=(), publickey-credentials-get=(), screen-wake-lock=(), serial=(), sync-xhr=(), usb=(), web-share=(), xr-spatial-tracking=()",
+        "pragma": "no-cache",
+        "referrer-policy": "strict-origin-when-cross-origin",
+        "rndr-id": "33cdf9ef-f01d-4aec",
+        "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+        "vary": "Origin, Accept-Encoding",
+        "www-authenticate": "Bearer",
+        "x-content-type-options": "nosniff",
+        "x-frame-options": "DENY",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "57",
+        "x-ratelimit-reset": "1748453982",
+        "x-render-origin-server": "uvicorn",
+        "x-request-id": "None, 36dbc1d1-edeb-4b46-ac62-c55f3150e5fb",
+        "x-xss-protection": "1; mode=block",
+        "CF-Cache-Status": "DYNAMIC",
+        "Server": "cloudflare",
+        "CF-RAY": "946f86f7d9839b5a-SEA",
+        "alt-svc": "h3=\":443\"; ma=86400"
+      },
+      "data": {
+        "status": "error",
+        "message": "Missing authentication token",
+        "code": "missing_token"
+      }
+    }
+  },
+  "patterns": {},
+  "performance": {
+    "avg_endpoint_response": 0.22509374618530273,
+    "avg_pattern_response": 0
+  },
+  "errors": [],
+  "summary": {
+    "endpoints_tested": 5,
+    "endpoints_successful": 0,
+    "patterns_tested": 0,
+    "patterns_successful": 0,
+    "overall_status": "unhealthy"
+  }
+}
