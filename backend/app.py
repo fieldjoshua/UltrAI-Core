@@ -236,7 +236,15 @@ if Config.ENVIRONMENT == "production":
 else:
     # Use default configuration for development
     setup_security_headers_middleware(app)
-setup_csrf_middleware(app)
+
+# Configure CSRF middleware with orchestrator exemptions for demo access
+csrf_exempt_paths = [
+    "/api/auth/login",
+    "/api/auth/register", 
+    "/api/auth/refresh",
+    "/api/orchestrator/",  # Enable demo access to sophisticated orchestrator
+]
+setup_csrf_middleware(app, exempt_paths=csrf_exempt_paths)
 setup_validation_middleware(app)
 
 # Only set up auth and API key middleware if enabled
