@@ -42,6 +42,7 @@ from backend.routes.pricing_routes import pricing_router
 # from backend.routes.recovery_routes import router as recovery_router
 # from backend.routes.resilient_orchestrator_routes import resilient_orchestrator_router
 from backend.routes.user_routes import user_router
+from backend.routes.debug_routes import router as debug_router
 from backend.utils.cookie_security_middleware import setup_cookie_security_middleware
 from backend.utils.error_handler import (
     error_handling_middleware,
@@ -272,7 +273,7 @@ setup_metrics(app)
 # --- END ADDED ROUTE --- #
 
 # Include routers
-app.include_router(health_router, prefix="/api")
+app.include_router(health_router)  # Health router should be at root level
 app.include_router(metrics_router, prefix="/api")
 app.include_router(document_router, prefix="/api")
 app.include_router(
@@ -289,6 +290,7 @@ app.include_router(
     modelrunner_router
 )  # Already has /api prefix in its route definitions
 app.include_router(orchestrator_router, prefix="/api")  # New orchestrator routes
+app.include_router(debug_router, prefix="/api")  # Debug routes for troubleshooting
 # app.include_router(
 #     resilient_orchestrator_router, prefix="/api"
 # )  # Resilient orchestrator routes
