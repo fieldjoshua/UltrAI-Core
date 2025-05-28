@@ -142,6 +142,14 @@ All Claude Code interactions MUST:
 
 Store interactions in `supporting_docs/claude-interactions/` with date, purpose, prompt, response, and any modifications.
 
+#### 3.3.2 Claude Code Context Generation
+
+Claude Code has built-in procedures for generating chat context and session continuity. When working with Claude:
+- Claude automatically maintains context across sessions
+- Claude can generate session summaries for continuity
+- This functionality is inherent to Claude Code and does not require AICheck automation
+- Document any specific context requirements in action supporting_docs
+
 ### 3.4 Action Consolidation and Conflict Resolution
 
 Actions may require consolidation when they overlap in scope, duplicate functionality, or create conflicting approaches.
@@ -370,41 +378,45 @@ All approvals are done by Joshua Field
 
 Daily sync via session logs. Co-own integration tests. Track blockers. Joint planning for conflicts.
 
-### 6.5 Git Hook Compliance (Phased Approach)
+### 6.5 AICheck Automation Features
 
-Commit message enforcement is implemented progressively to maintain workflow efficiency while improving compliance:
+AICheck includes comprehensive automation for system management and validation:
 
-#### Phase 1: Commit Message Validation (Current)
+#### Core Automation
+1. **Security Validation**: Automatic path validation, permission checks, input sanitization
+2. **Action Validation**: Name format validation, status validation, progress tracking
+3. **File Structure**: Automatic directory creation, template application, permission setting
+4. **System Testing**: Comprehensive test suite for AICheck functionality validation
 
-1. Enforce character limit (50 chars max)
-2. Present-tense imperative mood
-3. Optional: Warn about missing ACTION references
+#### Git Hook Integration
+- **Post-commit hooks**: Action completion verification
+- **Pre-commit hooks**: Commit message validation
+- **Installation**: Run `.aicheck/hooks/install-hooks.sh`
 
-#### Phase 2: ACTION Reference Requirements (Future)
+#### Enhanced CLI Commands
+```bash
+aicheck create-action <name>           # Creates action with validation
+aicheck status                         # Comprehensive system status
+aicheck update-status <name> <status>  # Update action status
+aicheck update-progress <name> <num>   # Update progress (0-100)
+aicheck complete-action <name>         # Complete and move to completed/
+aicheck validate                       # Validate system structure
+aicheck test                          # Run AICheck system tests
+aicheck security-check               # Security validation
+```
 
-1. Require ACTION references in commits
-2. Validate ACTION exists in index
-3. Update ACTION progress automatically
+#### Automated Security Features
+- Input sanitization for all user inputs
+- Path validation preventing directory traversal
+- Secure file creation with proper permissions
+- Security event logging
+- Action name format enforcement (kebab-case)
 
-#### Phase 3: Full Integration (Planned)
-
-1. Pre-commit test validation
-2. Documentation checks
-3. Automated documentation migration
-
-#### Action Completion Hook (Implemented)
-
-The post-commit hook automatically checks completion requirements when actions are marked complete:
-
-1. **Documentation Migration Check**: Identifies universal docs in supporting_docs/ requiring migration
-2. **Actions Index Update**: Verifies action is marked as Completed in actions_index.md
-3. **Timeline Update**: Ensures ACTION_TIMELINE.md includes completion entry
-4. **Dependency Documentation**: Reminds about dependency documentation requirements
-5. **Directory Migration**: Checks if action directory needs moving to completed/
-
-**Installation**: Run `.aicheck/hooks/install-hooks.sh` to install git hooks
-
-**Manual Check**: `.aicheck/hooks/post-action-complete.sh action complete <action-name>`
+#### System Testing
+- Validates AICheck functionality (not project code)
+- Tests action management, security, file structure
+- Generates test reports in `.aicheck/test_reports/`
+- Run via `aicheck test`
 
 ### 6.6 Process Documentation Versioning
 

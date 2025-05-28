@@ -1,0 +1,209 @@
+#!/bin/bash
+
+# AICheck CLI
+# Version: 4.0
+
+AICHECK_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(dirname "$AICHECK_DIR")"
+
+# Source enhanced functionality
+source "$AICHECK_DIR/scripts/security.sh"
+source "$AICHECK_DIR/scripts/action_advanced.sh"
+
+# Colors
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m'
+
+usage() {
+    echo "AICheck - Action-based development workflow management"
+    echo ""
+    echo "Usage: aicheck <command> [arguments]"
+    echo ""
+    echo "Commands:"
+    echo "  create-action <name>    Create a new action (with validation)"
+    echo "  status                  Show comprehensive system status"
+    echo "  set-action <name>       Set the active action"
+    echo "  update-status <name> <status>   Update action status"
+    echo "  update-progress <name> <0-100>  Update action progress"
+    echo "  complete-action <name>  Mark action as complete"
+    echo "  list                    List all actions"
+    echo "  validate                Validate AICheck system"
+    echo "  test                    Run AICheck system tests"
+    echo "  security-check          Check AICheck security"
+    echo "  help                    Show this help message"
+}
+
+create_action() {
+    action_create_advanced "$1"
+}
+
+show_status() {
+    show_system_status
+}
+
+set_active_action() {
+    local action_name="$1"
+    if [ -z "$action_name" ]; then
+        echo -e "${RED}Error:${NC} Action name required"
+        exit 1
+    fi
+    
+    # Validate action exists
+    if [ ! -d "$AICHECK_DIR/actions/$action_name" ]; then
+        echo -e "${RED}Error:${NC} Action '$action_name' does not exist"
+        exit 1
+    fi
+    
+    echo "$action_name" > "$AICHECK_DIR/current_action"
+    echo -e "${GREEN}✓${NC} Set active action to: $action_name"
+    
+    log_security_event "INFO" "Active action changed to: $action_name"
+}
+
+update_action_status() {
+    action_update_status "$1" "$2"
+}
+
+update_action_progress() {
+    action_update_progress "$1" "$2"
+}
+
+complete_action() {
+    local action_name="$1"
+    if [ -z "$action_name" ]; then
+        echo -e "${RED}Error:${NC} Action name required"
+        exit 1
+    fi
+    
+    # Run completion checks if hook exists
+    if [ -f "$AICHECK_DIR/hooks/post-action-complete.sh" ]; then
+        "$AICHECK_DIR/hooks/post-action-complete.sh" action complete "$action_name"
+    fi
+    
+    # Use advanced completion function
+    action_complete "$action_name"
+}
+
+list_actions() {
+    echo -e "${BLUE}Actions:${NC}"
+    
+    if [ -d "$AICHECK_DIR/actions" ]; then
+        for dir in "$AICHECK_DIR/actions"/*/; do
+            if [ -d "$dir" ] && [ "$(basename "$dir")" != "completed" ]; then
+                local action_name=$(basename "$dir")
+                local status="Unknown"
+                local progress="0"
+                
+                [ -f "$dir/status.txt" ] && status=$(cat "$dir/status.txt")
+                [ -f "$dir/progress.txt" ] && progress=$(cat "$dir/progress.txt")
+                
+                echo -e "  • $action_name ($status, $progress%)"
+            fi
+        done
+        
+        # Show completed actions count
+        local completed_count=0
+        if [ -d "$AICHECK_DIR/actions/completed" ]; then
+            completed_count=$(find "$AICHECK_DIR/actions/completed" -maxdepth 1 -type d | wc -l)
+            ((completed_count--)) # Subtract the completed directory itself
+        fi
+        
+        echo -e "\n${GREEN}Completed actions: $completed_count${NC}"
+    else
+        echo -e "  No actions found"
+    fi
+}
+
+validate_system() {
+    echo -e "${BLUE}Validating AICheck system...${NC}"
+    
+    # Check directory structure
+    local missing_dirs=()
+    for dir in "actions" "templates" "scripts" "hooks"; do
+        if [ ! -d "$AICHECK_DIR/$dir" ]; then
+            missing_dirs+=("$dir")
+        fi
+    done
+    
+    if [ ${#missing_dirs[@]} -gt 0 ]; then
+        echo -e "${RED}✗ Missing directories:${NC} ${missing_dirs[*]}"
+        return 1
+    fi
+    
+    # Check required files
+    local missing_files=()
+    for file in "RULES.md" "actions_index.md"; do
+        if [ ! -f "$AICHECK_DIR/$file" ]; then
+            missing_files+=("$file")
+        fi
+    done
+    
+    if [ ${#missing_files[@]} -gt 0 ]; then
+        echo -e "${RED}✗ Missing files:${NC} ${missing_files[*]}"
+        return 1
+    fi
+    
+    # Run security validation
+    validate_aicheck_security
+    
+    echo -e "${GREEN}✓ AICheck system validation passed${NC}"
+}
+
+run_tests() {
+    if [ -f "$AICHECK_DIR/scripts/aicheck_test.sh" ]; then
+        bash "$AICHECK_DIR/scripts/aicheck_test.sh"
+    else
+        echo -e "${RED}Error:${NC} Test script not found"
+        exit 1
+    fi
+}
+
+security_check() {
+    echo -e "${BLUE}Running AICheck security check...${NC}"
+    validate_aicheck_security
+}
+
+case "$1" in
+    create-action)
+        create_action "$2"
+        ;;
+    status)
+        show_status
+        ;;
+    set-action)
+        set_active_action "$2"
+        ;;
+    update-status)
+        update_action_status "$2" "$3"
+        ;;
+    update-progress)
+        update_action_progress "$2" "$3"
+        ;;
+    complete-action)
+        complete_action "$2"
+        ;;
+    list)
+        list_actions
+        ;;
+    validate)
+        validate_system
+        ;;
+    test)
+        run_tests
+        ;;
+    security-check)
+        security_check
+        ;;
+    help|--help|-h)
+        usage
+        ;;
+    *)
+        echo -e "${RED}Error:${NC} Unknown command: $1"
+        echo ""
+        usage
+        exit 1
+        ;;
+esac
