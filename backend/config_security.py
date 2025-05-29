@@ -6,7 +6,8 @@ from typing import Dict, Optional
 
 def get_csp_directives() -> Dict[str, str]:
     """Get Content Security Policy directives from environment or defaults."""
-    env_csp = os.environ.get("CSP_POLICY", "")
+    # TEMPORARILY IGNORE environment CSP to fix production issues
+    env_csp = ""  # os.environ.get("CSP_POLICY", "")
     
     if env_csp:
         # Parse the environment CSP string into directives
@@ -27,7 +28,7 @@ def get_csp_directives() -> Dict[str, str]:
         "style-src-elem": "'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net https://unpkg.com",
         "img-src": "'self' data: https:",
         "font-src": "'self' https://fonts.gstatic.com",
-        "connect-src": "'self' https://ultrai-core-4lut.onrender.com wss://ultrai-core-4lut.onrender.com https://api.ultrai.app wss://api.ultrai.app",
+        "connect-src": "'self' https://ultrai-core.onrender.com https://ultrai-core-4lut.onrender.com wss://ultrai-core.onrender.com wss://ultrai-core-4lut.onrender.com https://api.ultrai.app wss://api.ultrai.app",
         "frame-src": "'none'",
         "object-src": "'none'",
         "base-uri": "'self'",
