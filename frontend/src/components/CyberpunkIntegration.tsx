@@ -1,9 +1,10 @@
 import React from 'react';
 import CyberpunkTheme from './CyberpunkTheme';
-import PromptInput from './PromptInput';
-import LLMSelector from './LLMSelector';
-import AnalysisPatternSelector from './AnalysisPatternSelector';
-import Button from './Button';
+// Example integration - uncomment and fix imports as needed
+// import { PromptInput } from './PromptInput';
+// import { LLMSelector } from './LLMSelector';
+// import { AnalysisPatternSelector } from './AnalysisPatternSelector';
+// import { Button } from './ui/button';
 
 interface CyberpunkIntegrationProps {
   onAnalyze?: () => void;
@@ -27,42 +28,21 @@ const CyberpunkIntegration: React.FC<CyberpunkIntegrationProps> = ({
       credit={credit}
     >
       <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
-        {/* Prompt Input Section */}
-        <div className="cyber-ui-element cyber-ui-prompt">
-          <h3 style={{ color: '#ff00de', marginBottom: '1rem' }}>Your Prompt</h3>
-          <PromptInput
-            value=""
-            onChange={() => {}}
-            placeholder="Describe what you want to analyze..."
-          />
+        {/* Example UI Elements - Replace with actual components */}
+        <div className="cyber-ui-element" style={{ padding: '2rem', textAlign: 'center' }}>
+          <h2 style={{ color: '#00ffff', marginBottom: '1rem' }}>Cyberpunk Theme Integration Example</h2>
+          <p style={{ color: '#ff00de' }}>
+            This demonstrates how to wrap your existing components with the cyberpunk theme.
+          </p>
+          <p style={{ color: '#00ff9f', marginTop: '1rem' }}>
+            The animated cityscape, neon billboard, and glowing effects create an immersive experience.
+          </p>
         </div>
 
-        {/* Model Selection Section */}
-        <div className="cyber-ui-element cyber-ui-model">
-          <h3 style={{ color: '#00ffff', marginBottom: '1rem' }}>AI Models</h3>
-          <LLMSelector
-            selectedModels={[]}
-            onModelToggle={() => {}}
-            availableModels={[
-              { id: 'gpt-4', name: 'GPT-4', provider: 'OpenAI' },
-              { id: 'claude-3', name: 'Claude 3', provider: 'Anthropic' },
-              { id: 'llama-2', name: 'Llama 2', provider: 'Meta' }
-            ]}
-          />
-        </div>
-
-        {/* Analysis Pattern Section */}
-        <div className="cyber-ui-element cyber-ui-analysis">
-          <h3 style={{ color: '#00ff9f', marginBottom: '1rem' }}>Analysis Pattern</h3>
-          <AnalysisPatternSelector
-            selectedPattern=""
-            onPatternSelect={() => {}}
-            patterns={[
-              { id: 'deep-dive', name: 'Deep Dive', description: 'Thorough analysis' },
-              { id: 'compare', name: 'Compare & Contrast', description: 'Multiple perspectives' },
-              { id: 'creative', name: 'Creative Synthesis', description: 'Novel insights' }
-            ]}
-          />
+        {/* Placeholder for actual components */}
+        <div className="cyber-ui-element" style={{ padding: '2rem' }}>
+          <h3 style={{ color: '#ff00de', marginBottom: '1rem' }}>Your Components Here</h3>
+          <p>Replace this with your actual PromptInput, LLMSelector, etc.</p>
         </div>
 
         {/* Analyze Button */}
