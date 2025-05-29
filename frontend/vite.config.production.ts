@@ -35,6 +35,6 @@ export default defineConfig({
     },
   },
   define: {
-    'import.meta.env.VITE_API_URL': JSON.stringify('https://ultrai-core.onrender.com'),
+    'import.meta.env.VITE_API_URL': JSON.stringify('https://ultrai-core-4lut.onrender.com'),
   },
 });
