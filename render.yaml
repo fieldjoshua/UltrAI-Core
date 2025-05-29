@@ -1,0 +1,66 @@
+services:
+  - type: web
+    name: ultrai-core
+    env: python
+    plan: free
+    buildCommand: pip install -r requirements-production.txt
+    startCommand: python -m uvicorn app_production:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: ENVIRONMENT
+        value: production
+      - key: DEBUG
+        value: false
+      - key: ENABLE_AUTH
+        value: true
+      - key: ENABLE_RATE_LIMIT
+        value: true
+      - key: ENABLE_CACHE
+        value: true
+      - key: MOCK_MODE
+        value: false
+      - key: DEFAULT_PROVIDER
+        value: openai
+      - key: DEFAULT_MODEL
+        value: gpt-4-turbo
+      - key: DATABASE_URL
+        fromDatabase:
+          name: ultrai-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: ultrai-redis
+          property: connectionString
+      - key: OPENAI_API_KEY
+        fromService:
+          type: pserv
+          name: ultrai-core
+          envVarKey: OPENAI_API_KEY
+      - key: ANTHROPIC_API_KEY
+        fromService:
+          type: pserv
+          name: ultrai-core
+          envVarKey: ANTHROPIC_API_KEY
+      - key: GOOGLE_API_KEY
+        fromService:
+          type: pserv
+          name: ultrai-core
+          envVarKey: GOOGLE_API_KEY
+      - key: JWT_SECRET
+        generateValue: true
+      - key: ENCRYPTION_KEY
+        generateValue: true
+      - key: CSP_POLICY
+        value: "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://unpkg.com; object-src 'none'; img-src 'self' data: https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://unpkg.com; font-src 'self' https://cdn.jsdelivr.net; frame-src 'none'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; worker-src 'self' blob:; connect-src 'self' https://api.ultrai.app wss://api.ultrai.app https://app.ultrai.app;"
+
+databases:
+  - name: ultrai-db
+    databaseName: ultrai_production
+    user: ultrai_user
+    plan: free
+
+services:
+  - type: redis
+    name: ultrai-redis
+    plan: free
+    maxmemoryPolicy: allkeys-lru
