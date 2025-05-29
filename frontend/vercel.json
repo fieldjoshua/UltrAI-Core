@@ -39,6 +39,6 @@
   "trailingSlash": false,
   "cleanUrls": true,
   "env": {
-    "VITE_API_URL": "https://ultrai-core-4lut.onrender.com"
+    "VITE_API_URL": "https://ultrai-core-4lut.onrender.com/api"
   }
 }
