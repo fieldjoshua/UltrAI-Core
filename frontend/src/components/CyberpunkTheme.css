@@ -1,0 +1,527 @@
+/* CyberpunkTheme.css */
+
+/* Base styles */
+.cyberpunk-theme {
+  position: relative;
+  min-height: 100vh;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  font-family: monospace;
+  background-color: #0f0f17;
+  color: #00ffff;
+  overflow-x: hidden;
+}
+
+/* Scene container for day/night transitions */
+.scene {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: radial-gradient(circle, #1a0b2e 0%, #000000 100%);
+  transition: all 8s ease;
+  z-index: -2;
+}
+
+.scene.day {
+  background-image: linear-gradient(to bottom, #3498db 0%, #8e44ad 100%);
+}
+
+/* Animations */
+@keyframes neonPulse {
+  0%, 100% {
+    text-shadow: 0 0 10px #ff00de, 0 0 20px #ff00de, 0 0 30px #ff00de, 0 0 40px #ff00de;
+  }
+  50% {
+    text-shadow: 0 0 20px #00ffff, 0 0 30px #00ffff, 0 0 40px #00ffff, 0 0 50px #00ffff;
+  }
+}
+
+@keyframes backgroundShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@keyframes glitch {
+  0% { transform: translate(0) }
+  20% { transform: translate(-5px, 5px) }
+  40% { transform: translate(-5px, -5px) }
+  60% { transform: translate(5px, 5px) }
+  80% { transform: translate(5px, -5px) }
+  100% { transform: translate(0) }
+}
+
+@keyframes flicker {
+  0%, 19.999%, 22%, 62.999%, 64%, 64.999%, 70%, 100% {
+    opacity: 1;
+  }
+  20%, 21.999%, 63%, 63.999%, 65%, 69.999% {
+    opacity: 0.33;
+  }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes cityGlow {
+  0%, 100% { filter: brightness(0.8) saturate(1.2); }
+  50% { filter: brightness(1.2) saturate(1.5); }
+}
+
+/* Header area with billboard and scaffolding */
+.header-billboard {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 120px;
+  background-color: rgba(0, 0, 0, 0.9);
+  z-index: 50;
+  overflow: visible;
+  border-bottom: 3px solid #ff00de;
+  box-shadow: 0 0 30px #ff00de;
+}
+
+.billboard {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.8);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  animation: flicker 10s infinite;
+  box-shadow: inset 0 0 20px rgba(255, 0, 221, 0.5);
+}
+
+.billboard h1 {
+  margin: 0;
+  font-size: 3.5rem;
+  font-weight: 900;
+  background: linear-gradient(to right, #ff00de, #00ffff, #00ff9f);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: neonPulse 2s infinite;
+  line-height: 1;
+  z-index: 52;
+}
+
+.billboard p {
+  margin: 0.2rem 0 0;
+  color: #00ffff;
+  font-size: 1rem;
+  text-shadow: 0 0 5px #00ffff;
+  z-index: 52;
+}
+
+/* Scaffolding design */
+.scaffolding {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 51;
+}
+
+.scaffold-beam {
+  position: absolute;
+  width: 8px;
+  background-color: #555;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.8);
+}
+
+.scaffold-beam.left {
+  left: 40px;
+  height: 180px;
+  top: 0;
+}
+
+.scaffold-beam.right {
+  right: 40px;
+  height: 180px;
+  top: 0;
+}
+
+.scaffold-beam.left-2 {
+  left: 25%;
+  height: 160px;
+  top: 0;
+}
+
+.scaffold-beam.right-2 {
+  right: 25%;
+  height: 160px;
+  top: 0;
+}
+
+.scaffold-support {
+  position: absolute;
+  height: 6px;
+  background-color: #555;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.8);
+  z-index: 53;
+}
+
+.scaffold-support.top {
+  top: 40px;
+  left: 40px;
+  right: 40px;
+}
+
+.scaffold-support.bottom {
+  bottom: 30px;
+  left: 40px;
+  right: 40px;
+}
+
+.scaffold-diagonal {
+  position: absolute;
+  width: 100px;
+  height: 3px;
+  background-color: #555;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.8);
+  transform-origin: 0 0;
+}
+
+.scaffold-diagonal.left {
+  top: 40px;
+  left: 40px;
+  transform: rotate(45deg);
+}
+
+.scaffold-diagonal.right {
+  top: 40px;
+  right: 40px;
+  transform: rotate(-45deg);
+  transform-origin: 100% 0;
+}
+
+/* Grid background */
+.grid-background {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image:
+    linear-gradient(rgba(255, 0, 221, 0.1) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 0, 221, 0.1) 1px, transparent 1px);
+  background-size: 20px 20px;
+  animation: backgroundShift 15s ease infinite;
+  z-index: -1;
+  opacity: 0;
+  transition: opacity 3s ease;
+}
+
+.grid-background.visible {
+  opacity: 0.2;
+}
+
+/* City skyline */
+.cityscape {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 60vh;
+  z-index: -1;
+  pointer-events: none;
+  filter: brightness(0.4);
+  transition: filter 8s ease;
+}
+
+.day .cityscape {
+  filter: brightness(1);
+}
+
+.cityscape::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.8) 0%, rgba(0, 0, 0, 0) 40%);
+  z-index: 1;
+}
+
+.buildings {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 200%;
+  height: 100%;
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 300" preserveAspectRatio="none"><path d="M0,300 L0,150 L20,145 L40,160 L60,140 L80,150 L100,130 L120,170 L140,160 L160,175 L180,190 L200,150 L220,140 L240,160 L260,180 L280,170 L300,190 L320,200 L340,180 L360,170 L380,190 L400,200 L420,150 L440,160 L460,140 L480,170 L500,190 L520,170 L540,150 L560,170 L580,160 L600,180 L620,170 L640,190 L660,200 L680,180 L700,140 L720,170 L740,180 L760,160 L780,180 L800,190 L820,160 L840,170 L860,190 L880,160 L900,140 L920,150 L940,130 L960,140 L980,150 L1000,145 L1000,300 Z" fill="%23000000"/><path d="M0,300 L0,200 L15,190 L30,210 L45,200 L60,220 L75,210 L90,230 L105,220 L120,240 L135,230 L150,250 L165,240 L180,220 L195,230 L210,210 L225,220 L240,200 L255,210 L270,190 L285,210 L300,230 L315,220 L330,240 L345,230 L360,250 L375,230 L390,240 L405,220 L420,230 L435,210 L450,220 L465,240 L480,230 L495,250 L510,240 L525,220 L540,230 L555,210 L570,220 L585,200 L600,210 L615,230 L630,220 L645,240 L660,230 L675,250 L690,240 L705,220 L720,210 L735,230 L750,220 L765,240 L780,230 L795,250 L810,220 L825,230 L840,210 L855,220 L870,200 L885,230 L900,220 L915,240 L930,230 L945,250 L960,230 L975,240 L1000,230 L1000,300 Z" fill="%23101820"/><path d="M0,300 L0,250 L10,240 L20,260 L30,250 L40,270 L50,260 L60,250 L70,260 L80,250 L90,270 L100,260 L110,280 L120,270 L130,260 L140,280 L150,270 L160,290 L170,280 L180,260 L190,270 L200,250 L210,260 L220,270 L230,260 L240,280 L250,270 L260,290 L270,280 L280,270 L290,290 L300,270 L310,260 L320,270 L330,260 L340,280 L350,270 L360,290 L370,280 L380,270 L390,280 L400,260 L410,270 L420,250 L430,270 L440,260 L450,280 L460,270 L470,290 L480,270 L490,260 L500,280 L510,270 L520,290 L530,280 L540,270 L550,260 L560,270 L570,250 L580,270 L590,260 L600,280 L610,270 L620,290 L630,280 L640,270 L650,280 L660,260 L670,270 L680,250 L690,270 L700,260 L710,280 L720,270 L730,290 L740,280 L750,270 L760,260 L770,270 L780,250 L790,270 L800,260 L810,280 L820,270 L830,290 L840,280 L850,270 L860,280 L870,260 L880,270 L890,250 L900,270 L910,260 L920,280 L930,270 L940,290 L950,280 L960,270 L970,280 L980,260 L990,270 L1000,250 L1000,300 Z" fill="%23283040"/></svg>');
+  background-size: contain;
+  background-position: bottom;
+  background-repeat: repeat-x;
+  opacity: 0.9;
+  animation: cityGlow 5s infinite alternate;
+}
+
+/* Main building */
+.main-building {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: 0;
+  width: 600px;
+  height: 500px;
+  background: linear-gradient(to bottom, #1a1a2e, #0f0f17);
+  border-left: 2px solid #333;
+  border-right: 2px solid #333;
+  border-top: 2px solid #ff00de;
+  box-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
+  z-index: 2;
+}
+
+.building-top-light {
+  position: absolute;
+  top: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 10px;
+  height: 10px;
+  background-color: #ff0000;
+  border-radius: 50%;
+  box-shadow: 0 0 15px #ff0000;
+  animation: pulse 1s infinite;
+}
+
+.building-windows {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 30px;
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  grid-template-rows: repeat(5, 1fr);
+  gap: 10px;
+}
+
+.building-window {
+  background-color: rgba(255, 255, 100, 0.7);
+  animation: pulse 3s infinite;
+}
+
+.building-window:nth-child(odd) {
+  animation-delay: 0.5s;
+}
+
+.building-window:nth-child(3n) {
+  animation-delay: 1.2s;
+}
+
+/* City lights */
+.city-lights {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  z-index: 1;
+}
+
+.light {
+  position: absolute;
+  background-color: rgba(255, 255, 100, 0.7);
+  width: 2px;
+  height: 2px;
+  border-radius: 50%;
+  animation: pulse 3s infinite;
+}
+
+/* Main container */
+.cyberpunk-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 150px 2rem 2rem;
+  position: relative;
+  z-index: 5;
+}
+
+/* Floating elements */
+.floating-cost {
+  position: fixed;
+  top: 140px;
+  right: 20px;
+  background-color: rgba(0, 0, 0, 0.8);
+  border: 2px solid #ff00de;
+  box-shadow: 0 0 15px #ff00de;
+  color: #ff00de;
+  padding: 10px 15px;
+  border-radius: 8px;
+  font-size: 18px;
+  z-index: 100;
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+}
+
+.floating-credit {
+  position: fixed;
+  top: 190px;
+  right: 20px;
+  background-color: rgba(0, 0, 0, 0.8);
+  border: 2px solid #00ffff;
+  box-shadow: 0 0 15px #00ffff;
+  color: #00ffff;
+  padding: 10px 15px;
+  border-radius: 8px;
+  font-size: 18px;
+  z-index: 100;
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+}
+
+/* Day/Night toggle */
+.toggle-container {
+  position: fixed;
+  top: 140px;
+  left: 20px;
+  z-index: 100;
+}
+
+.day-night-toggle {
+  background-color: rgba(0, 0, 0, 0.8);
+  border: 2px solid #00ffff;
+  color: #00ffff;
+  padding: 10px 15px;
+  font-size: 16px;
+  cursor: pointer;
+  border-radius: 8px;
+  box-shadow: 0 0 15px #00ffff;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+  font-family: monospace;
+}
+
+.day-night-toggle:hover {
+  box-shadow: 0 0 25px #00ffff;
+}
+
+/* Time indicator */
+.time-indicator {
+  position: fixed;
+  top: 190px;
+  left: 20px;
+  background-color: rgba(0, 0, 0, 0.8);
+  border: 2px solid #ff00de;
+  color: #ff00de;
+  padding: 10px 15px;
+  font-size: 16px;
+  border-radius: 8px;
+  box-shadow: 0 0 15px #ff00de;
+  z-index: 100;
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+}
+
+/* Cyberpunk UI Elements */
+.cyber-ui-element {
+  background-color: rgba(0, 0, 0, 0.7);
+  border: 2px solid;
+  border-radius: 10px;
+  padding: 1.5rem;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+}
+
+.cyber-ui-element:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+}
+
+.cyber-ui-prompt {
+  border-color: #ff00de;
+  box-shadow: 0 0 15px #ff00de;
+}
+
+.cyber-ui-model {
+  border-color: #00ffff;
+  box-shadow: 0 0 15px #00ffff;
+}
+
+.cyber-ui-analysis {
+  border-color: #00ff9f;
+  box-shadow: 0 0 15px #00ff9f;
+}
+
+/* Cyberpunk Button */
+.cyber-button {
+  background-color: rgba(0, 0, 0, 0.8);
+  border: 2px solid #00ff9f;
+  color: #00ff9f;
+  padding: 15px 30px;
+  font-size: 20px;
+  font-weight: bold;
+  text-transform: uppercase;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  box-shadow: 0 0 15px #00ff9f;
+  border-radius: 5px;
+  letter-spacing: 2px;
+  font-family: monospace;
+}
+
+.cyber-button:hover {
+  background-color: rgba(0, 255, 159, 0.2);
+  box-shadow: 0 0 25px #00ff9f;
+  transform: translateY(-3px);
+}
+
+.cyber-button:before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(0, 255, 159, 0.4), transparent);
+  transition: 0.5s;
+}
+
+.cyber-button:hover:before {
+  left: 100%;
+}
+
+/* Media queries */
+@media (max-width: 768px) {
+  .billboard h1 {
+    font-size: 2rem;
+  }
+  
+  .main-building {
+    width: 100%;
+  }
+  
+  .cyberpunk-container {
+    padding: 130px 1rem 1rem;
+  }
+  
+  .floating-cost,
+  .floating-credit {
+    font-size: 14px;
+    padding: 8px 12px;
+  }
+}
