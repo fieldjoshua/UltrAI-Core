@@ -16,6 +16,7 @@ import NavBar from './components/layout/NavBar';
 import { ThemeProvider } from './theme/ThemeContext';
 import CyberpunkDemo from './components/CyberpunkDemo';
 import CyberpunkIntegration from './components/CyberpunkIntegration';
+import CyberpunkDebug from './components/CyberpunkDebug';
 
 // Simple error boundary component since the imported one is causing TypeScript errors
 class SimpleErrorBoundary extends React.Component<{
@@ -62,7 +63,8 @@ const App: React.FC = () => {
                 <Route path="/universal-ui" element={<UniversalUI />} />
                 <Route path="/cyberpunk" element={<CyberpunkDemo />} />
                 <Route path="/cyberpunk-integration" element={<CyberpunkIntegration />} />
-                <Route path="/" element={<Navigate to="/cyberpunk" replace />} />
+                <Route path="/cyberpunk-debug" element={<CyberpunkDebug />} />
+                <Route path="/" element={<Navigate to="/cyberpunk-debug" replace />} />
               </Routes>
             </main>
           </div>

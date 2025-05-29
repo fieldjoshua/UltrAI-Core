@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>CORS Test</title>
+</head>
+<body>
+    <h1>Testing UltraAI Backend CORS</h1>
+    <button onclick="testModels()">Test /api/orchestrator/models</button>
+    <button onclick="testPatterns()">Test /api/orchestrator/patterns</button>
+    <button onclick="testFeather()">Test /api/orchestrator/feather</button>
+    <pre id="output"></pre>
+
+    <script>
+    const API_URL = 'https://ultrai-core-4lut.onrender.com';
+    const output = document.getElementById('output');
+
+    async function testModels() {
+        output.textContent = 'Testing /api/orchestrator/models...\n';
+        try {
+            const response = await fetch(`${API_URL}/api/orchestrator/models`);
+            const data = await response.json();
+            output.textContent += 'SUCCESS: ' + JSON.stringify(data, null, 2);
+        } catch (error) {
+            output.textContent += 'ERROR: ' + error.message;
+        }
+    }
+
+    async function testPatterns() {
+        output.textContent = 'Testing /api/orchestrator/patterns...\n';
+        try {
+            const response = await fetch(`${API_URL}/api/orchestrator/patterns`);
+            const data = await response.json();
+            output.textContent += 'SUCCESS: ' + JSON.stringify(data, null, 2);
+        } catch (error) {
+            output.textContent += 'ERROR: ' + error.message;
+        }
+    }
+
+    async function testFeather() {
+        output.textContent = 'Testing /api/orchestrator/feather...\n';
+        try {
+            const response = await fetch(`${API_URL}/api/orchestrator/feather`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    prompt: 'What is 2+2?',
+                    models: ['claude-3-opus'],
+                    pattern: 'gut'
+                })
+            });
+            const data = await response.json();
+            output.textContent += 'SUCCESS: ' + JSON.stringify(data, null, 2);
+        } catch (error) {
+            output.textContent += 'ERROR: ' + error.message;
+        }
+    }
+    </script>
+</body>
+</html>
