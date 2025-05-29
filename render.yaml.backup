@@ -1,0 +1,51 @@
+services:
+  - type: web
+    name: ultrai-backend
+    env: python
+    region: oregon
+    plan: starter
+    buildCommand: pip install -r requirements-production.txt
+    startCommand: uvicorn app_production:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    envVars:
+      - key: ENVIRONMENT
+        value: production
+      - key: DATABASE_URL
+        generateValue: true
+      - key: REDIS_URL
+        generateValue: true
+      - key: JWT_SECRET_KEY
+        generateValue: true
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: GOOGLE_API_KEY
+        sync: false
+      - key: ENABLE_AUTH
+        value: "true"
+      - key: DEBUG
+        value: "false"
+      - key: CORS_ORIGINS
+        value: "*"
+      - key: MAX_REQUEST_SIZE
+        value: "50MB"
+    autoDeploy: true
+    buildFilter:
+      paths:
+        - backend/**
+        - requirements-production.txt
+        - app_production.py
+        - render.yaml
+
+databases:
+  - name: ultrai-db
+    databaseName: ultrai_production
+    user: ultrai_user
+    region: oregon
+    plan: starter
+
+redis:
+  - name: ultrai-cache
+    region: oregon
+    plan: starter
