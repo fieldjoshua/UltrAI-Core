@@ -54,9 +54,9 @@ apiClient.interceptors.response.use(undefined, async (error) => {
 
 // List of public endpoints that don't need authentication
 const PUBLIC_ENDPOINTS = [
-  '/api/available-models',
+  '/available-models',
   '/health',
-  '/api/orchestrator/execute' // May need auth later, but test without first
+  '/orchestrator/feather' // Updated to use Feather orchestration
 ];
 
 // Request interceptor (keep existing)
@@ -168,11 +168,11 @@ export const endpoints = {
 
   // Analysis endpoints
   analysis: {
-    analyze: '/api/orchestrator/execute', // Production endpoint
+    analyze: '/orchestrator/feather', // Use Feather orchestration endpoint
     analyzeWithDocs: '/analyze-with-docs',
     getById: (id: string) => `/analysis/${id}`,
     getHistory: '/analysis/history',
-    availableModels: '/api/available-models', // Fixed to match backend
+    availableModels: '/available-models', // Fixed to remove double /api prefix
   },
 };
 
