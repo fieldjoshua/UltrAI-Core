@@ -1,8 +1,70 @@
+<!-- WARNING: This file is the controlling version downloaded from the AICheck repository. -->
+<!-- Do not modify this file locally. Changes must be made to the official repository. -->
+<!-- File is marked read-only to prevent accidental changes. -->
+
 # AICheck Rules
 
 This document is the controlling reference for all work managed by the AICheck system in this PROJECT. These rules cannot be modified without approval from Joshua Field
 
-> **Quick Navigation**: [Core Principles](#1-core-principles) | [Glossary](#2-glossary-and-key-concepts) | [Action Management](#3-action-management) | [Todo Management](#4-todo-management-integration) | [Project Structure](#5-project-structure-and-organization) | [Workflow](#6-workflow-and-processes) | [Standards](#7-style-and-documentation-standards) | [Testing](#8-testing-framework) | [Documentation](#9-documentation-organization)
+> **Quick Navigation**: [DEPLOYMENT REQUIREMENTS](#deployment-requirements-critical) | [Core Principles](#1-core-principles) | [Glossary](#2-glossary-and-key-concepts) | [Action Management](#3-action-management) | [Todo Management](#4-todo-management-integration) | [Project Structure](#5-project-structure-and-organization) | [Workflow](#6-workflow-and-processes) | [Standards](#7-style-and-documentation-standards) | [Testing](#8-testing-framework) | [Documentation](#9-documentation-organization)
+
+---
+
+# DEPLOYMENT REQUIREMENTS (CRITICAL)
+
+## ⚠️ MANDATORY: NO ACTION IS COMPLETE WITHOUT DEPLOYMENT VERIFICATION
+
+**"CODE COMPLETE" ≠ "DEPLOYED AND WORKING"**
+
+### Definition of Done for Production Systems
+
+| Status | Requirement | Verification |
+|--------|------------|-------------|
+| ❌ Code Complete | Changes written and committed locally | NOT sufficient for completion |
+| ❌ Build Passing | Tests pass in development environment | NOT sufficient for completion |
+| ✅ **DEPLOYED AND WORKING** | **Production system tested and verified functional** | **REQUIRED for completion** |
+
+### MANDATORY Production Verification Steps
+
+1. **Test the ACTUAL production URL** (not localhost)
+2. **Document the production URL and timestamp tested**
+3. **Capture response/output as evidence**
+4. **Verify all critical endpoints work end-to-end**
+5. **Test error handling in production context**
+6. **Confirm deployment platform settings match expectations**
+
+### Deployment Verification Checklist
+
+**Before marking ANY ACTION as COMPLETED:**
+
+- [ ] Code pushed to correct branch
+- [ ] Deployment triggered successfully  
+- [ ] Build completed without errors
+- [ ] Service shows "Live" status
+- [ ] **Production URL responds correctly**
+- [ ] **All endpoints tested and documented**
+- [ ] Performance acceptable
+- [ ] Logs show no critical errors
+- [ ] Create `deployment-verification.md` in supporting_docs
+- [ ] Document test results from production
+
+**Platform-Specific Checks:**
+- [ ] Verify deployment configuration (render.yaml vs dashboard settings)
+- [ ] Check for cached/stale deployments
+- [ ] Confirm environment variables are properly set
+- [ ] Test build and start commands are correct
+
+### ⚠️ WARNING: Deployment Verification Violations
+
+**Marking an ACTION as COMPLETED without deployment verification when deployment is required constitutes a MISREPRESENTATION and violates Section 1.3 guidelines.**
+
+**This includes:**
+- Claiming production deployment without testing production URLs
+- Assuming deployment worked based on local testing
+- Skipping verification due to "time pressure"
+- Not documenting actual production test results
+
+---
 
 ## 1. Core Principles
 
@@ -34,6 +96,15 @@ Each team member may work on one ActiveAction at a time; complete or pause befor
 
 !!! YOU MAY NOT MISREPRESENT YOU HAVE COMPLETED ELEMENTS OF A PLAN WHEN YOU HAVE NOT. FOLLOWING APPROVED PLANS IS VITAL TO THIS SYSTEM!!!
 
+!!! DEPLOYMENT VERIFICATION IS MANDATORY. YOU MAY NOT MARK AN ACTION AS COMPLETED WITHOUT VERIFYING PRODUCTION FUNCTIONALITY. "CODE COMPLETE" DOES NOT EQUAL "DEPLOYED AND WORKING"!!!
+
+**Production System Requirements**:
+- Test actual production URLs, not localhost
+- Document all production endpoints tested  
+- Capture evidence of working functionality
+- Verify deployment configuration matches code
+- Check platform-specific settings (e.g., Render dashboard vs blueprint)
+
 Follow AICheck directory structure and naming conventions. Update action status and document progress regularly. Follow language-specific best practices. Implement graceful degradation for optional dependencies.
 
 Use Docker-based development when available, with documented alternatives when not available. Document all environment variables and configuration options. Implementation procedures should reside within the Action's Plan.
@@ -59,40 +130,49 @@ Claude Code functions as an AI engineer within the AICheck workflow, complementi
 - Document all Claude interactions in ACTION's supporting_docs
 - Use standardized prompt templates stored in .aicheck/templates/claude/
 
-#### Vision Guardian Integration (Optional)
-
-**On-Demand Auditing**: Project Vision Guardian consultation is available via:
-- **Custom command**: `.aicheck/guardian audit [files/actions]` - Manual audit trigger
-- **Git pre-push hook**: Automatic audit before code is pushed to repository
-- **Explicit request**: When stakeholders request IP protection review
-
-**Audit Triggers**:
-- Major architectural changes to core systems
-- Patent-protected feature modifications
-- Competitive advantage implementations
-- Upon explicit request for IP protection review
-
-**Guardian Modes**:
-- **ADVISORY** (default): Provides recommendations and warnings
-- **REVIEW**: Requires explicit approval for flagged changes
-- **VETO**: Blocks problematic changes (emergency use only)
-
-Vision Guardian integration protects intellectual property without impeding daily development workflow.
-
 ## 2. Glossary and Key Concepts
 
-### Core Terms
-- **PROJECT**: The overall software development initiative
-- **PROGRAM**: The software product being built
-- **ACTION**: Discrete unit of work with clear objectives and completion criteria
-- **EDITOR**: Any contributor (human or AI) working on actions
-- **PLAN**: Documented specification for an ACTION
-- **ActiveAction**: ACTION currently being worked on
-- **Process Documentation**: Temporary, action-specific documentation
-- **Product Documentation**: Documentation with enduring relevance
-- **Test-Driven Development (TDD)**: Tests written before implementation
-- **Documentation-First**: Documentation before code
-- **Action Lifecycle**: Creation → Planning → Implementation → Testing → Completion
+Before proceeding, it is essential to understand the following key terms as used throughout this document:
+
+### 2.1 Core Terminology
+
+**PROJECT**: The overall software development initiative governed by these rules; a long-running collaborative effort with defined objectives, teams, and governance structures.
+
+**PROGRAM**: The software product being built by the PROJECT; the actual executable system that will be deployed and used by end-users.
+
+**ACTION**: A discrete unit of work that contributes to the PROGRAM; has clear boundaries, objectives, and completion criteria. An ACTION is the atomic unit of work assignment and tracking.
+
+**EDITOR**: Any human or AI contributor who performs work on ACTIONS; includes developers, writers, designers, and Claude Code.
+
+**PLAN**: A documented specification for an ACTION; includes requirements, approach, expected outcomes, and testing strategy.
+
+**ActiveAction**: An ACTION that is currently being worked on by one or more EDITORs; tracked in .aicheck/current_action for individual EDITORs.
+
+**Process Documentation**: Temporary documentation relevant only during an ACTION's lifecycle; stored in the ACTION's supporting_docs directory.
+
+**Product Documentation**: Documentation with enduring relevance beyond ACTION completion; stored in the centralized documentation directory.
+
+### 2.2 Workflow Terminology
+
+**Test-Driven Development (TDD)**: Development approach where tests are written before implementation code; ensures functionality is well-defined and verifiable.
+
+**Documentation-First**: Principle that documentation should be created or updated before code, ensuring clear understanding of objectives.
+
+**Quick Response**: Limited exception to standard processes for urgent operational issues; still requires minimal planning and test-first approach.
+
+**Action Lifecycle**: The standard progression of an ACTION from creation through planning, implementation, testing, and completion.
+
+### 2.3 System Components
+
+**AICheck System**: The tooling, processes, and rules that govern the PROJECT's development workflow.
+
+**Claude Code**: AI-powered assistant that helps implement ACTIONS following the project's guidelines.
+
+**Supporting Documents**: Auxiliary files associated with an ACTION; stored in the ACTION's supporting_docs directory.
+
+**Process Tests**: Tests specific to an ACTION that are not intended to be part of the long-term test suite.
+
+**Product Tests**: Tests with enduring value that are maintained as part of the PROGRAM's test suite.
 
 ## 3. Action Management
 
@@ -112,21 +192,49 @@ The following ALWAYS require human manager approval:
 - Modifying any Action Plan
 - Creating or modifying Templates
 
-#### 3.1.1 Approval Boundaries
+#### 3.1.1 Claude Code Boundary Examples
 
-**No Approval Needed**: Implementation per plan, tests, refactoring, documentation updates, bug fixes within scope
+**ALLOWED without approval:**
+- Implementing error handler based on approved PLAN
+- Writing unit tests for defined functionality
+- Refactoring code for readability (same functionality)
+- Adding logging statements
+- Updating comments and docstrings
+- Creating helper functions within ACTION scope
 
-**Approval Required**: New APIs, schema changes, auth modifications, new dependencies, plan changes
+**REQUIRES approval:**
+- Adding new API endpoints
+- Changing database schema
+- Modifying authentication flow
+- Integrating new third-party services
+- Changing public interfaces
+- Adding new dependencies
 
 ### 3.2 Documentation Requirements
 
-- Action plan (PLAN.md)
-- Supporting documentation
-- Status updates (Not Started, ActiveAction, Completed, Blocked, On Hold, Cancelled)
+Action plan (PLAN.md)
+Supporting documentation
+Status updates (Not Started, ActiveAction, Completed, Blocked, On Hold)
 
-#### 3.2.1 Managing Dependencies
+#### 3.2.1 Managing ACTION Dependencies
 
-Document in PLAN.md under `## Dependencies` section. Track blockers in action status. Coordinate with dependent action owners.
+When an ACTION depends on another:
+
+1. List dependencies in PLAN.md `## Dependencies` section
+2. Document integration points in supporting_docs/integration-points.md
+3. Create integration tests spanning both ACTIONS
+4. Coordinate with owners of dependent ACTIONS
+5. Document any blocking issues in the ACTION status
+
+Example dependency declaration:
+
+```markdown
+## Dependencies
+
+- APIIntegration: Requires error response format (v2.1)
+- AuthSystem: Uses JWT tokens from auth service
+- Database: Needs user table migration (migration_003)
+```
 
 ### 3.3 Claude Code Documentation
 
@@ -138,53 +246,40 @@ All Claude Code interactions MUST:
 - Include verification steps performed on Claude-generated outputs
 - Note iterations or refinements to prompts
 
-#### 3.3.1 Claude Documentation
+#### 3.3.1 Claude Interaction Documentation Format
 
-Store interactions in `supporting_docs/claude-interactions/` with date, purpose, prompt, response, and any modifications.
+Each interaction must include:
 
-#### 3.3.2 Claude Code Context Generation
+```markdown
+# Claude Interaction Log
 
-Claude Code has built-in procedures for generating chat context and session continuity. When working with Claude:
-- Claude automatically maintains context across sessions
-- Claude can generate session summaries for continuity
-- This functionality is inherent to Claude Code and does not require AICheck automation
-- Document any specific context requirements in action supporting_docs
+**Date**: 2025-05-28
+**ACTION**: ErrorHandlingImplementation
+**Purpose**: Generate error handler base classes
+**Template Used**: action-implementation/basic.md v1.2
+**Prompt Hash**: abc123def456
 
-### 3.4 Action Consolidation and Conflict Resolution
+## Prompt
 
-Actions may require consolidation when they overlap in scope, duplicate functionality, or create conflicting approaches.
+[Full prompt text]
 
-#### Identifying Action Conflicts
+## Response
 
-Actions may conflict when they:
-- Address identical or overlapping objectives
-- Duplicate functionality or scope  
-- Create contradictory implementation approaches
-- Compete for same resources or dependencies
-- Would result in inconsistent system architecture
+[Claude's response]
 
-#### Consolidation Process
+## Modifications
 
-1. **Conflict Detection**: Review actions_index.md for overlapping scope and objectives
-2. **Impact Analysis**: Assess which action has greater value, progress, or strategic importance
-3. **Merge Strategy**: Combine valuable elements from conflicting actions into single action
-4. **Cancellation**: Cancel duplicate, superseded, or lower-priority actions
-5. **Documentation**: Update plans to reflect consolidated scope and approach
-6. **Cross-Reference Updates**: Update any dependencies or references in other actions
+[Any manual changes made]
 
-#### Resolution Authority
+## Verification
 
-- Joshua Field approves all action consolidations and cancellations
-- Document consolidation reasoning in supporting_docs/consolidation-notes.md
-- Update actions_index.md to reflect organizational changes
-- Preserve cancelled action documentation in /actions/completed/ for historical reference
+[How output was verified]
 
-#### Post-Consolidation Requirements
+## Iterations
 
-- Update todo.md files to reflect merged scope
-- Reconcile conflicting timelines and milestones
-- Merge supporting documentation where appropriate
-- Notify stakeholders of scope and timeline changes
+[Number of attempts: 2]
+[Reason for iterations: Added security constraints]
+```
 
 ## 4. Todo Management Integration
 
@@ -217,20 +312,6 @@ Additional context or dependencies for tasks
 - Progress tracked in real-time as tasks complete
 - Todo status integrates with overall ACTION progress tracking
 
-### 4.4 Todo File Compliance
-
-#### Mandatory Requirements
-- Every action MUST have todo.md file
-- File must follow standardized format from Section 4.2
-- Tasks must align with action plan phases
-- Progress must be tracked in real-time
-
-#### Enforcement
-- Non-compliant actions flagged in actions_index.md
-- Automatic todo.md generation for missing files
-- Integration with action progress tracking
-- Regular compliance audits
-
 ## 5. Project Structure and Organization
 
 ### 5.1 Directory Structure
@@ -239,27 +320,26 @@ Additional context or dependencies for tasks
 /
 ├── .aicheck/
 │   ├── actions/                      # All PROJECT ACTIONS
-│   │   ├── [action-name]/            # Individual ACTION directory
-│   │   │   ├── [action-name]-plan.md # ACTION PLAN (requires approval)
-│   │   │   ├── todo.md              # ACTION TODO tracking (required)
-│   │   │   └── supporting_docs/      # ACTION-specific documentation
-│   │   │       ├── claude-interactions/  # Claude Code logs
-│   │   │       ├── process-tests/        # Temporary tests for ACTION
-│   │   │       └── research/             # Research and notes
-│   │   └── completed/               # Completed/cancelled actions
+│   │   └── [action-name]/            # Individual ACTION directory
+│   │       ├── [action-name]-plan.md # ACTION PLAN (requires approval)
+│   │       ├── todo.md              # ACTION TODO tracking (required)
+│   │       └── supporting_docs/      # ACTION-specific documentation
+│   │           ├── claude-interactions/  # Claude Code logs
+│   │           ├── process-tests/        # Temporary tests for ACTION
+│   │           └── research/             # Research notes
 │   ├── current_action                # Current ActionActivity for EDITOR
 │   ├── actions_index.md              # Master list of all ACTIONS
-│   ├── ACTION_TIMELINE.md            # System evolution timeline (required)
 │   ├── rules.md                      # This document
-│   └── session_log_[date].md         # Daily logs
+│   └── templates/                    # Templates for prompts and actions
 ├── documentation/                    # Permanent PROJECT documentation
 │   ├── api/                          # API documentation
 │   ├── architecture/                 # System architecture docs
 │   ├── configuration/                # Configuration guides
+│   ├── dependencies/                 # Dependency documentation
 │   ├── deployment/                   # Deployment procedures
 │   ├── testing/                      # Testing strategies
 │   └── user/                         # User documentation
-├── tests/                            # Permanent test suite
+├── tests/                            # Product tests with enduring value
 │   ├── unit/                         # Unit tests
 │   ├── integration/                  # Integration tests
 │   ├── e2e/                          # End-to-end tests
@@ -268,50 +348,37 @@ Additional context or dependencies for tasks
 
 ### 5.2 Action Directory Structure
 
+Each ACTION must follow this structure:
+
 ```text
 .aicheck/actions/[action-name]/
-├── PLAN.md                      # ACTION plan (REQUIRED)
-├── todo.md                      # Task tracking (REQUIRED)
-└── supporting_docs/             # ACTION-specific docs
-
-### 5.3 Action Lifecycle Organization
-
-Actions progress through defined lifecycle stages with corresponding directory organization:
-
-#### Active Actions
-- Location: `.aicheck/actions/[action-name]/`
-- Status: ActiveAction, Not Started, or Blocked
-- Full compliance with Section 5.2 structure required
-
-#### Completed/Cancelled Actions  
-- Location: `.aicheck/actions/completed/[action-name]/`
-- Organized for historical reference and knowledge preservation
-- Maintains full supporting_docs structure for future reference
-- Preserves all documentation for audit trail and lessons learned
-
-#### Directory Migration Process
-When actions reach completion or cancellation:
-1. Move entire action directory to `.aicheck/actions/completed/`
-2. Update actions_index.md with new location and status
-3. Add completion/cancellation metadata to action files
-4. Preserve all supporting documentation for audit trail
-5. Update any cross-references in other actions
+├── [action-name]-plan.md        # ACTION plan (REQUIRED)
+├── todo.md                      # ACTION TODO tracking (REQUIRED)
+├── progress.md                  # Progress tracking
+├── status.txt                   # Current status
+└── supporting_docs/             # Supporting documentation
+    ├── claude-interactions/     # Claude Code interaction logs
+    ├── process-tests/          # Tests specific to this ACTION
+    ├── research/               # Research and analysis
+    ├── integration-points.md   # Integration with other ACTIONS
+    └── deployment-verification.md  # Production deployment verification
+```
 
 ## 6. Workflow and Processes
 
 ### 6.1 Standard Action Lifecycle
 
-1. **Creation**: ACTION directory created with initial PLAN
-2. **Planning**: PLAN.md developed with requirements and approach
-3. **Approval**: Human manager reviews and approves PLAN
-4. **Test Development**: Tests created based on PLAN specifications
-5. **Implementation**: Code written to pass tests
-6. **Documentation**: Updates to relevant documentation
-7. **Review**: Code review and validation
-8. **Completion**: ACTION marked complete, documents migrated
-9. **Timeline Update**: Update ACTION_TIMELINE.md with completion details
-10. **Organization**: Move completed/cancelled actions to `/actions/completed/`
-11. **Index Update**: Update actions_index.md with enhanced formatting
+1. **ACTION Creation**: Define objectives, scope, and success criteria
+2. **PLAN Development**: Create detailed plan with approach and tests
+3. **PLAN Approval**: Human review and approval of approach
+4. **Test Implementation**: Write tests before implementation
+5. **Code Implementation**: Develop according to approved plan
+6. **Testing and Validation**: Ensure all tests pass
+7. **Documentation**: Update relevant documentation
+8. **Deployment Verification**: Verify production functionality (if applicable)
+9. **Review and Integration**: Final review before completion
+10. **ACTION Completion**: Mark complete with dependency verification
+11. **Documentation Migration**: Move relevant docs to permanent locations
 12. **Compliance Verification**: Ensure all required files (todo.md, supporting_docs) exist
 
 #### 6.1.1 Deployment Verification Requirements
@@ -332,17 +399,27 @@ When actions reach completion or cancellation:
    - [ ] Test results documented in supporting_docs
    - [ ] Any deployment issues resolved
 
-3. **Exceptions**:
+3. **Enhanced Production Testing Requirements**:
+   - [ ] Test actual production URLs (not localhost)
+   - [ ] Document production URL and timestamp tested
+   - [ ] Capture response/output as evidence
+   - [ ] Verify all critical endpoints work end-to-end
+   - [ ] Test error handling in production context
+   - [ ] Confirm deployment platform settings match expectations
+   - [ ] Performance acceptable in production environment
+   - [ ] Logs show no critical errors
+
+4. **Exceptions**:
    - Local-only development tools
    - Documentation-only changes
    - Actions explicitly marked as "local development only"
-   - Emergency fixes pending review (must be noted)
 
-4. **Verification Documentation**:
+5. **Verification Documentation**:
    - Create `deployment-verification.md` in supporting_docs
    - Include deployment timestamps
    - Document test results from production
    - Note any discrepancies between local and production
+   - Include evidence (screenshots, logs, response data)
 
 **WARNING**: Marking an ACTION as COMPLETED without deployment verification when deployment is required constitutes a MISREPRESENTATION and violates Section 1.3 guidelines.
 
@@ -358,92 +435,197 @@ When actions reach completion or cancellation:
 
 **Test-First Pattern**: Human discusses → Claude proposes plan/tests → Human approves → Claude implements → Human reviews → Claude documents
 
-**Enhancement Pattern**: Human requests → Claude analyzes → Proposes approach → Human approves → Claude implements → Review/iterate
+#### 6.2.1 Optimal Claude-Human Collaboration Patterns
 
-#### 6.2.1 Security Guidelines
+**Pattern 1: Test-Implementation-Document Cycle**
+1. Human defines requirements in ACTION PLAN
+2. Claude generates comprehensive test suite
+3. Human reviews and approves tests
+4. Claude implements code to pass tests
+5. Claude updates documentation
+6. Human reviews final implementation
 
-- No real credentials in prompts
-- Use mock data for sensitive scenarios  
-- Security review for auth code
-- Document security assumptions
-- Verify against OWASP
-- Security tests required
+**Pattern 2: Incremental Enhancement**
+1. Human identifies improvement opportunity
+2. Claude analyzes current state and proposes enhancement plan
+3. Human approves approach
+4. Claude implements enhancement with tests
+5. Claude documents changes and integration points
 
+**Pattern 3: Problem-First Development**
+1. Human describes problem within ACTION scope
+2. Claude researches and proposes solution approaches
+3. Human selects preferred approach
+4. Claude develops solution with comprehensive testing
+5. Claude documents solution and lessons learned
+
+**Pattern 4: Code Review Assistant**
+1. Human requests code review for ACTION
+2. Claude analyzes code against ACTION requirements
+3. Claude suggests improvements, optimizations, security enhancements
+4. Human prioritizes suggestions
+5. Claude implements approved improvements
+
+#### 6.2.2 Security Guidelines for Claude Code
+
+When generating security-sensitive code:
+
+1. Never include real credentials in prompts
+2. Use example/mock data for sensitive scenarios
+3. Request security review for authentication/authorization code
+4. Document security assumptions in claude-interactions/
+5. Verify generated code against OWASP guidelines
+6. Add security-specific tests for all generated auth code
+
+### 6.3 Exec Mode (System Maintenance)
+
+AICheck exec mode provides a special context for system maintenance tasks that don't fit within normal ACTION workflows.
+
+**Purpose**: Handle system maintenance, tooling updates, and administrative tasks without disrupting active ACTION work.
+
+**Usage**:
+```bash
+./aicheck exec  # Enter exec mode
+./aicheck exec  # Exit exec mode (returns to previous action)
+```
+
+**Exec Mode Behavior**:
+- Saves current active ACTION
+- Sets action context to "AICheckExec" 
+- Provides clear indication you're in maintenance mode
+- Restores previous ACTION when exiting
+
+**Exec Mode Guidelines**:
+- Use ONLY for system maintenance, tooling, and administrative tasks
+- No substantive code changes should be made in exec mode
+- Keep exec mode sessions brief and focused
+- Document any significant system changes made
+- Exit back to ACTION-based work as soon as maintenance is complete
+
+**Appropriate Exec Mode Tasks**:
+- Updating AICheck rules (`./aicheck update`)
+- Repository cleanup and organization
+- Tooling configuration and setup
+- System dependency management
+- Administrative documentation updates
+
+**Not Appropriate for Exec Mode**:
+- Feature development
+- Bug fixes affecting application code
+- User-facing functionality changes
+- Business logic implementation
 
 ### 6.4 Approval Process
 
-All approvals are done by Joshua Field
+All approvals are done by Joshua Field.
 
-#### 6.4.1 Multi-Editor Coordination
+### 6.5 Approval Authorities
 
-Daily sync via session logs. Co-own integration tests. Track blockers. Joint planning for conflicts.
+Joshua Field: Approves all ACTION PLANs and significant changes
 
-### 6.5 AICheck Automation Features
+#### 6.5.1 Multi-Editor Coordination
 
-AICheck includes comprehensive automation for system management and validation:
+When multiple EDITORs work on related ACTIONS:
+- Daily sync via shared `.aicheck/session_log_[date].md`
+- Integration tests must be co-owned
+- Blocking dependencies tracked in `.aicheck/blockers.md`
+- Resolution requires joint planning sessions
 
-#### Core Automation
-1. **Security Validation**: Automatic path validation, permission checks, input sanitization
-2. **Action Validation**: Name format validation, status validation, progress tracking
-3. **File Structure**: Automatic directory creation, template application, permission setting
-4. **System Testing**: Comprehensive test suite for AICheck functionality validation
+### 6.6 Git Hook Compliance (Phased Approach)
 
-#### Git Hook Integration
-- **Post-commit hooks**: Action completion verification
-- **Pre-commit hooks**: Commit message validation
-- **Installation**: Run `.aicheck/hooks/install-hooks.sh`
+Commit message enforcement is implemented progressively to maintain workflow efficiency while improving compliance:
 
-#### Enhanced CLI Commands
-```bash
-aicheck create-action <name>           # Creates action with validation
-aicheck status                         # Comprehensive system status
-aicheck update-status <name> <status>  # Update action status
-aicheck update-progress <name> <num>   # Update progress (0-100)
-aicheck complete-action <name>         # Complete and move to completed/
-aicheck validate                       # Validate system structure
-aicheck test                          # Run AICheck system tests
-aicheck security-check               # Security validation
+#### Phase 1: Commit Message Validation (Current)
+1. Enforce character limit (50 chars max)
+2. Present-tense imperative mood
+3. Optional: Warn about missing ACTION references
+
+#### Phase 2: ACTION Reference Requirements (Future)
+1. Require ACTION references in commits
+2. Validate ACTION exists in index
+3. Update ACTION progress automatically
+
+#### Phase 3: Full Integration (Planned)
+1. Pre-commit test validation
+2. Documentation checks
+3. Automated documentation migration
+
+### 6.7 Process Documentation Versioning
+
+All PLANs must include version information:
+
+```markdown
+# ACTION: [name]
+
+Version: 1.0
+Last Updated: 2025-05-28
+Status: ActiveAction
+Progress: 45%
 ```
 
-#### Automated Security Features
-- Input sanitization for all user inputs
-- Path validation preventing directory traversal
-- Secure file creation with proper permissions
-- Security event logging
-- Action name format enforcement (kebab-case)
+Major changes require version increment and changelog.
 
-#### System Testing
-- Validates AICheck functionality (not project code)
-- Tests action management, security, file structure
-- Generates test reports in `.aicheck/test_reports/`
-- Run via `aicheck test`
+### 6.8 AI-Assisted Migration Process
 
-### 6.6 Process Documentation Versioning
+When migrating documentation or tests:
 
-PLANs must include version, date, status, and progress. Major changes require version increment.
+1. Claude: Analyze current location and content
+2. Claude: Propose migration plan with mappings
+3. Human: Review and approve migration plan
+4. Claude: Execute migration with verification
+5. Human: Validate migrated content
+6. Claude: Update all references
 
-### 6.7 Actions Index Management
+### 6.9 Feature Flag Management
 
-#### Enhanced Formatting Standards
-The actions_index.md must include:
-- Visual formatting with emojis for status identification
-- Progress bars using Unicode block characters (░█)
-- Collapsible sections for completed/cancelled actions
-- ASCII art headers for visual organization
-- Terminal-friendly layout for CLI environments
+For gradual rollouts:
+- Document feature flags in ACTION PLAN
+- Test both enabled/disabled states
+- Migration plan for flag removal
+- Performance impact analysis
 
-#### Status Standardization
-Use only these approved status values:
-- `ActiveAction` - Currently being worked on
-- `Not Started` - Planned but not yet begun  
-- `Completed` - Successfully finished
-- `Cancelled` - Terminated without completion
-- `Blocked` - Waiting on dependencies
+### 6.10 Dependency Management
 
-#### Progress Tracking
-- Progress represented as percentage (0-100%)
-- Visual progress bars in index: `██░░░░░░░░` format
-- Updated in real-time as work progresses
+External dependencies require:
+- Security audit documentation
+- License compatibility check
+- Performance impact assessment
+- Fallback plan if dependency fails
+
+### 6.11 Definition of Done - Production Systems
+
+**CRITICAL**: An ACTION is NOT COMPLETE until production functionality is verified working.
+
+**"Code Complete" vs "Deployed and Working"**:
+- ❌ "Code Complete" = Changes written and committed locally
+- ❌ "Build Passing" = Tests pass in development environment  
+- ✅ "Deployed and Working" = Production system tested and verified functional
+
+**Mandatory Production Verification**:
+1. Test the ACTUAL production URL (not localhost)
+2. Document the production URL and timestamp tested
+3. Capture response/output as evidence
+4. Verify all critical endpoints work end-to-end
+5. Test error handling in production context
+6. Confirm deployment platform settings match expectations
+
+### 6.12 Deployment Verification Checklist
+
+**Deployment Verification Checklist**:
+- [ ] Code pushed to correct branch
+- [ ] Deployment triggered successfully
+- [ ] Build completed without errors
+- [ ] Service shows "Live" status
+- [ ] Production URL responds correctly
+- [ ] All endpoints tested and documented
+- [ ] Performance acceptable
+- [ ] Logs show no critical errors
+
+**Blueprint vs Manual Deployments**:
+- Verify deployment configuration (render.yaml vs dashboard settings)
+- Check for cached/stale deployments
+- Confirm environment variables are properly set
+- Test build and start commands are correct
 
 ## 7. Style and Documentation Standards
 
@@ -474,24 +656,15 @@ Include action reference in a standardized format (e.g., [action-name]). For lon
 
 Use predefined status values with progress percentage. Document blockers clearly with timestamps. Create clear error messages with error codes, resolution steps, and appropriate logging.
 
-Example:
+Example of proper commit message format:
 ```
-Add user authentication [auth-system]
+Add user authentication module [auth-system]
+
+- Implements JWT-based authentication
+- Adds password hashing with bcrypt
+- Creates login/logout endpoints
+- Includes unit tests for all components
 ```
-
-### 7.4 Visual Formatting Standards
-
-#### Status Indicators
-- 🟡 ActiveAction - Currently being worked on
-- 🔴 Not Started - Planned but not begun  
-- 🟢 Completed - Successfully finished
-- ❌ Cancelled - Terminated
-- ⏸️ Blocked - Waiting on dependencies
-
-#### Progress Bars
-Format: `██░░░░░░░░` (10 characters, filled=complete)
-
-Must be terminal-compatible and maintain alignment in monospace fonts.
 
 ## 8. Testing Framework
 
@@ -502,12 +675,18 @@ ACTIONS MUST have tests written before implementation with coverage for:
 - Boundary condition tests (validating behavior at threshold values)
 - Integration tests with other ACTIONS
 - Error handling tests
+- Production deployment verification tests
 
 Test data SHOULD be maintained in standard locations and formats. Test fixtures SHOULD be reused across related ACTIONS when appropriate.
 
-#### 8.1.1 Performance Testing
+#### 8.1.1 Performance Testing Requirements
 
-For performance-critical actions: baseline before, test after, document impact, regression tests for critical paths.
+For ACTIONS affecting system performance:
+- Baseline performance tests before implementation
+- Performance tests after implementation
+- Document performance impact in supporting_docs/performance-impact.md
+- Regression tests for critical paths
+- Claude may suggest performance optimizations with benchmarks
 
 ### 8.2 Testing Documentation
 
@@ -522,7 +701,7 @@ Organized into:
 
 When tests are migrated, the following requirements MUST be met:
 
-**Migration Plan must specify:**
+**Migration Plan** must specify:
 - Source and destination test locations
 - Timeline with discrete phases (parallel testing, validation, cutover)
 - Verification methods for maintaining test coverage
@@ -543,31 +722,33 @@ When tests are migrated, the following requirements MUST be met:
 
 ### 8.4 Test Location Specifications
 
-**Directory Structure:**
+**Directory Structure**:
 - Product functionality unit tests → tests/unit/ at the project root
 - Integration tests → tests/integration/ at the project root
 - E2E tests → tests/e2e/ at the project root
 - Process-specific temporary tests → .aicheck/actions/[action-name]/supporting_docs/process-tests/
 
-**Naming Conventions:**
+**Naming Conventions**:
 - Test files MUST use the pattern [feature-name].test.[ext] where [ext] is the appropriate extension for the language (e.g., .js, .py, .go)
 - Integration test files MUST use the pattern [feature-name].integration.test.[ext]
 - E2E test files MUST use the pattern [workflow-name].e2e.test.[ext]
 
-**Organization:**
+**Organization**:
 - Test directory structure SHOULD mirror the code structure being tested
 - Shared test utilities → tests/utils/
 - Test data → tests/fixtures/
 
 ### 8.5 Claude Code Test Generation
 
-Claude may generate tests when provided with:
-- ACTION requirements and success criteria
-- Expected inputs/outputs
-- Boundary conditions
-- Integration points
+Claude Code MAY be used to generate tests for ACTIONS under the following conditions:
 
-Validate all generated tests against PLAN.
+The ACTION PLAN must be thoroughly documented before test generation. Claude Code must be provided with:
+- Specific ACTION requirements and success criteria
+- Expected inputs and outputs
+- Boundary conditions and edge cases
+- Integration points with other ACTIONS
+
+Generated tests MUST be validated against the ACTION PLAN. Generated tests MUST follow the project's testing standards and patterns. Any manual modifications to generated tests MUST be documented.
 
 ## 9. Documentation Organization
 
@@ -603,115 +784,128 @@ Migration from ACTION to product documentation MUST:
 
 ## 10. Language-Specific Standards
 
-### 10.1 Language Standards
+### 10.1 Python Standards
 
-**Python**: PEP 8 (120 char lines), type hints, Black formatter
-**JavaScript/TypeScript**: ESLint, prefer TypeScript, Jest for tests
-**Documentation**: Clear English, active voice, consistent terminology
+Follow PEP 8 style guide with these specific exceptions:
+- Line length: 120 characters (not 79)
+- Use type hints for all new functions
+- Docstrings required for all public functions
+- Use Black for code formatting
+
+Import order:
+1. Standard library imports
+2. Third-party imports
+3. Local application imports
+
+### 10.2 JavaScript/TypeScript Standards
+
+Use ESLint with the project's configuration. Prefer TypeScript for new files. Use Jest for testing. Follow Airbnb style guide with modifications. Async/await over promises. Functional programming patterns where appropriate.
+
+### 10.3 Documentation Language
+
+Write in clear, concise English. Use active voice. Avoid jargon without explanation. Include examples for complex concepts. Maintain consistent terminology.
 
 ## 11. Implementation Standards
 
-### 11.1 Configuration
-- No hard-coded credentials
-- Use environment variables
-- Provide .env.example
+### 11.1 Environment Configuration
+
+Never hard-code credentials or secrets. Use environment variables for configuration. Document all required environment variables. Provide example .env.example file. Support multiple deployment environments.
 
 ### 11.2 Error Handling
-- Error codes
-- Human-readable messages
-- Resolution steps
-- Appropriate logging
 
-### 11.3 Dependencies
-- Document in manifest
-- Pin major versions
-- Security audits
-- Clear install instructions
+All errors must include:
+- Error code for programmatic handling
+- Human-readable message
+- Suggested resolution steps
+- Context about where the error occurred
+- Logging at appropriate level
 
-## 12. Version Control
+### 11.3 Dependency Management
 
-### 12.1 Branches
-- Main always deployable
-- Feature branches per ACTION
-- Pull requests required
+Document all dependencies in appropriate manifest. Pin major versions for production dependencies. Regular security audits of dependencies. Graceful degradation for optional dependencies. Clear installation instructions.
 
-### 12.2 Commits
-- Atomic changes
-- Present-tense imperative
-- Reference ACTION
-- Clean history
+## 12. Version Control Best Practices
+
+### 12.1 Branching Strategy
+
+Main branch is always deployable. Feature branches for new ACTIONS. Hotfix branches for urgent fixes. No direct commits to main. All changes through pull requests.
+
+### 12.2 Pull Request Requirements
+
+Reference ACTION in PR title. Tests must pass before merge. Code review required. Update documentation if needed. Clean commit history.
+
+### 12.3 Commit Best Practices
+
+Atomic commits (one logical change). Present-tense imperative mood. Reference ACTION and issue numbers. Explain why, not just what. Sign commits when required.
 
 ## 13. Review and Approval Process
 
 ### 13.1 Pre-Implementation Review
 
-- ACTION PLAN must be reviewed
-- Test specifications approved
-- Architecture decisions documented
-- Security implications considered
-- Performance impact assessed
+ACTION PLAN must be reviewed. Test specifications approved. Architecture decisions documented. Security implications considered. Performance impact assessed.
 
 ### 13.2 Code Review Focus Areas
 
-- Correctness and functionality
-- Security vulnerabilities
-- Performance implications
-- Code maintainability
-- Documentation completeness
-- Test coverage
+Correctness and functionality. Security vulnerabilities. Performance implications. Code maintainability. Documentation completeness. Test coverage.
 
 ### 13.3 Post-Implementation Review
 
-- All tests passing
-- Documentation updated
-- Dependencies documented
-- Deployment instructions clear
-- Monitoring in place
+All tests passing. Documentation updated. Dependencies documented. Deployment instructions clear. Monitoring in place. **Production verification completed**.
 
 ## 14. Continuous Improvement
 
-- Regular retrospectives
-- Track metrics (completion time, coverage, quality)
-- Develop automation tools
-- Update RULES based on experience
+### 14.1 Retrospectives
+
+Regular ACTION retrospectives. Document lessons learned. Update RULES based on experience. Share knowledge across team. Improve tooling and processes.
+
+### 14.2 Metrics and Monitoring
+
+Track ACTION completion times. Monitor test coverage trends. Measure documentation quality. Analyze error rates. Review performance metrics. **Track deployment verification compliance**.
+
+### 14.3 Tool Development
+
+Create tools to enforce RULES. Automate repetitive tasks. Improve developer experience. Enhance Claude Code integration. Streamline approval processes. **Automate deployment verification checks**.
 
 ## 15. Compliance and Governance
 
 ### 15.1 Audit Trail
 
-- All ACTIONS tracked in index
-- Decisions documented in PLANs
-- Changes tracked in version control
-- Reviews recorded in PRs
-- Approvals logged appropriately
+All ACTIONS tracked in index. Decisions documented in PLANs. Changes tracked in version control. Reviews recorded in PRs. Approvals logged appropriately. **Deployment verification documented**.
 
 ### 15.2 Security Compliance
 
-- Regular security assessments
-- Dependency vulnerability scanning
-- Access control reviews
-- Incident response procedures
-- Compliance reporting
+Regular security assessments. Dependency vulnerability scanning. Access control reviews. Incident response procedures. Compliance reporting.
 
 ### 15.3 Quality Assurance
 
-- Code quality metrics
-- Test coverage requirements
-- Documentation standards
-- Performance benchmarks
-- Accessibility compliance
+Code quality metrics. Test coverage requirements. Documentation standards. Performance benchmarks. Accessibility compliance. **Production deployment verification**.
 
-## 16. Exceptions and Technical Debt
+## 16. Exception Handling
 
 ### 16.1 Rule Exceptions
-Require Joshua Field approval, documentation, and regular review.
 
-### 16.2 Technical Debt
-Tracked as ACTIONS, prioritized quarterly, addressed systematically.
+Must be documented. Require approval from Joshua Field. Time-limited when possible. Reviewed regularly. Lessons learned captured.
+
+### 16.2 Incident Response
+
+Clear escalation path. Documented in runbooks. Tested regularly. Post-incident reviews. Process improvements. Production verification protocols for urgent fixes.
+
+### 16.3 Technical Debt
+
+Tracked as ACTIONS. Prioritized quarterly. Addressed systematically. Documented thoroughly. Reviewed quarterly.
 
 ---
 
-**Document Version**: 3.1
-**Last Updated**: 2025-05-26
+**Document Version**: 4.0
+**Last Updated**: 2025-05-28
 **Owner**: Joshua Field
 **Next Review**: Quarterly
+
+**Version 4.0 Changes**:
+- Added prominent DEPLOYMENT REQUIREMENTS section at top
+- Enhanced deployment verification with comprehensive checklist
+- Strengthened "Code Complete" vs "Deployed and Working" distinction
+- Added production testing requirements to all relevant sections
+- Integrated deployment verification into standard workflows
+- Added exec mode documentation for system maintenance
+- Enhanced audit and compliance sections with deployment tracking

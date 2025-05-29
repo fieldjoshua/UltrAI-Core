@@ -26,7 +26,26 @@ fi
 
 # Register the MCP server with Claude
 echo "Registering the MCP server with Claude..."
-claude mcp add -s local -t stdio aicheck node "$MCP_SERVER_DIR/index.js"
+echo "Using path: $MCP_SERVER_DIR/index.js"
+
+# Remove any existing aicheck registration first
+claude mcp remove aicheck > /dev/null 2>&1 || true
+
+# Register the MCP server
+if claude mcp add -s local -t stdio aicheck node "$MCP_SERVER_DIR/index.js"; then
+    echo "✓ AICheck MCP server registered successfully"
+    
+    # Verify registration
+    if claude mcp list | grep -q "aicheck"; then
+        echo "✓ Registration verified"
+    else
+        echo "⚠ Registration verification failed"
+    fi
+else
+    echo "⚠ Registration failed. Manual registration required:"
+    echo "   Run: claude mcp add -s local -t stdio aicheck node \"$MCP_SERVER_DIR/index.js\""
+    exit 1
+fi
 
 echo "AICheck MCP server setup complete!"
 echo
