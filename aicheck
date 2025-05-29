@@ -2,12 +2,172 @@
 
 # AICheck command script
 # Provides the core functionality for AICheck MCP
+# Version: 4.0.1
+# Last Updated: 2025-05-28
 
 set -e
+
+# AICheck version info
+AICHECK_VERSION="4.0.1"
+GITHUB_REPO="fieldjoshua/AICheck_MCP"
+GITHUB_RAW_BASE="https://raw.githubusercontent.com/${GITHUB_REPO}/main"
 
 CMD=$1
 shift
 ARGS=$@
+
+# Function to show version information
+function show_version() {
+  echo -e "${BRIGHT_BLURPLE}AICheck MCP${NC}"
+  echo -e "Version: ${GREEN}${AICHECK_VERSION}${NC}"
+  echo -e "Repository: ${GITHUB_REPO}"
+  echo -e "Commands: action, dependency, exec, status, update, version"
+}
+
+# Function to check for updates
+function check_for_updates() {
+  echo -e "${BRIGHT_BLURPLE}Checking for updates...${NC}"
+  
+  # Get remote version
+  local remote_version=$(curl -s "${GITHUB_RAW_BASE}/aicheck" | grep "AICHECK_VERSION=" | head -1 | cut -d'"' -f2)
+  
+  if [ -z "$remote_version" ]; then
+    echo -e "${YELLOW}⚠ Could not check remote version${NC}"
+    return 1
+  fi
+  
+  echo -e "Local version:  ${GREEN}${AICHECK_VERSION}${NC}"
+  echo -e "Remote version: ${GREEN}${remote_version}${NC}"
+  
+  if [ "$AICHECK_VERSION" != "$remote_version" ]; then
+    echo -e "${YELLOW}🔄 Update available: ${remote_version}${NC}"
+    return 0
+  else
+    echo -e "${GREEN}✓ AICheck is up to date${NC}"
+    return 1
+  fi
+}
+
+# Function to backup current aicheck command
+function backup_aicheck() {
+  local script_path="$(readlink -f "${BASH_SOURCE[0]}" 2>/dev/null || echo "${BASH_SOURCE[0]}")"
+  local backup_path="${script_path}.backup.$(date +%Y%m%d_%H%M%S)"
+  
+  if cp "$script_path" "$backup_path" 2>/dev/null; then
+    echo -e "${GREEN}✓ Backup created: $(basename "$backup_path")${NC}"
+    echo "$backup_path"
+  else
+    echo -e "${YELLOW}⚠ Could not create backup${NC}"
+    return 1
+  fi
+}
+
+# Function to update aicheck command itself
+function update_aicheck_command() {
+  echo -e "${BRIGHT_BLURPLE}Updating AICheck command...${NC}"
+  
+  # Get the script path
+  local script_path="$(readlink -f "${BASH_SOURCE[0]}" 2>/dev/null || echo "${BASH_SOURCE[0]}")"
+  
+  # Create backup
+  local backup_path=$(backup_aicheck)
+  if [ $? -ne 0 ]; then
+    echo -e "${RED}✗ Failed to create backup - aborting update${NC}"
+    return 1
+  fi
+  
+  # Download new version to temporary file
+  local temp_file=$(mktemp)
+  if curl -sL "${GITHUB_RAW_BASE}/aicheck" -o "$temp_file"; then
+    # Verify the download is valid
+    if bash -n "$temp_file" 2>/dev/null; then
+      # Make sure it's executable and replace current script
+      chmod +x "$temp_file"
+      if mv "$temp_file" "$script_path"; then
+        echo -e "${GREEN}✓ AICheck command updated successfully${NC}"
+        echo -e "${BRIGHT_BLURPLE}Restart your session or run the command again to use the new version${NC}"
+        return 0
+      else
+        echo -e "${RED}✗ Failed to replace aicheck command${NC}"
+        # Restore from backup
+        mv "$backup_path" "$script_path"
+        echo -e "${YELLOW}⚠ Restored from backup${NC}"
+        rm -f "$temp_file"
+        return 1
+      fi
+    else
+      echo -e "${RED}✗ Downloaded file is not valid - aborting update${NC}"
+      rm -f "$temp_file"
+      return 1
+    fi
+  else
+    echo -e "${RED}✗ Failed to download aicheck command${NC}"
+    rm -f "$temp_file"
+    return 1
+  fi
+}
+
+# Function to update AICheck rules
+function update_rules() {
+  echo -e "${BRIGHT_BLURPLE}Updating AICheck RULES.md...${NC}"
+  
+  # Make RULES.md writable if it exists
+  if [ -f ".aicheck/RULES.md" ]; then
+    chmod +w .aicheck/RULES.md
+  fi
+  
+  # Download latest RULES.md
+  if curl -sL "${GITHUB_RAW_BASE}/RULES.md" -o .aicheck/RULES.md; then
+    echo -e "${GREEN}✓ RULES.md updated successfully${NC}"
+    chmod 444 .aicheck/RULES.md  # Make read-only again
+  else
+    echo -e "${RED}✗ Failed to update RULES.md - check internet connection${NC}"
+    return 1
+  fi
+}
+
+# Function to update everything (rules + command)
+function update_all() {
+  echo -e "${BRIGHT_BLURPLE}Updating AICheck system...${NC}"
+  echo ""
+  
+  # Check if updates are available
+  if ! check_for_updates; then
+    echo -e "${GREEN}✓ No updates needed${NC}"
+    return 0
+  fi
+  
+  echo ""
+  local rules_updated=false
+  local command_updated=false
+  
+  # Update RULES.md
+  if update_rules; then
+    rules_updated=true
+  fi
+  
+  echo ""
+  
+  # Update aicheck command
+  if update_aicheck_command; then
+    command_updated=true
+  fi
+  
+  echo ""
+  echo -e "${BRIGHT_BLURPLE}Update Summary:${NC}"
+  echo -e "RULES.md: $([ "$rules_updated" = true ] && echo -e "${GREEN}✓ Updated${NC}" || echo -e "${RED}✗ Failed${NC}")"
+  echo -e "AICheck command: $([ "$command_updated" = true ] && echo -e "${GREEN}✓ Updated${NC}" || echo -e "${RED}✗ Failed${NC}")"
+  
+  if [ "$rules_updated" = true ] || [ "$command_updated" = true ]; then
+    echo -e "${GREEN}✓ AICheck system updated successfully${NC}"
+    if [ "$command_updated" = true ]; then
+      echo -e "${YELLOW}⚠ Please restart your session or run the command again${NC}"
+    fi
+  else
+    echo -e "${RED}✗ Update failed${NC}"
+    return 1
+  fi
+}
 
 GREEN="\033[0;32m"
 NEON_BLURPLE="\033[38;5;99m"      # Neon blurple highlight color
@@ -580,8 +740,31 @@ case "$CMD" in
   "status")
     show_status
     ;;
+  "update")
+    case "$1" in
+      "")
+        update_all
+        ;;
+      "--rules")
+        update_rules
+        ;;
+      "--self"|"--command")
+        update_aicheck_command
+        ;;
+      "--check")
+        check_for_updates
+        ;;
+      *)
+        echo -e "${RED}Unknown update option: $1${NC}"
+        echo "Available options: update, update --rules, update --self, update --check"
+        ;;
+    esac
+    ;;
+  "version"|"--version")
+    show_version
+    ;;
   *)
     echo -e "${RED}Unknown command: $CMD${NC}"
-    echo "Available commands: action, dependency, exec, status"
+    echo "Available commands: action, dependency, exec, status, update, version"
     ;;
 esac
