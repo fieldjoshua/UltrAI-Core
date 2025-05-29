@@ -39,6 +39,6 @@
   "trailingSlash": false,
   "cleanUrls": true,
   "env": {
-    "VITE_API_URL": "https://backend-olyoq52ap-jfield-forresterfies-projects.vercel.app"
+    "VITE_API_URL": "https://ultrai-core.onrender.com"
   }
 }
