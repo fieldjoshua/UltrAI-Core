@@ -14,7 +14,9 @@ export default defineConfig(({ mode }) => {
 
   // For browser requests, always use localhost or the host machine IP
   // The Docker service name 'backend' only works for container-to-container communication
-  const apiUrl = env.VITE_API_URL || 'http://localhost:8087/api';
+  const apiUrl = mode === 'production' 
+    ? 'https://ultrai-core-4lut.onrender.com/api'
+    : (env.VITE_API_URL || 'http://localhost:8087/api');
 
   console.log('Using API URL:', apiUrl);
 
@@ -24,6 +26,8 @@ export default defineConfig(({ mode }) => {
       alias: {
         '@': path.resolve(__dirname, './src'),
         '/api': path.resolve(__dirname, './api'),
+        'react': path.resolve(__dirname, 'node_modules/react'),
+        'react-dom': path.resolve(__dirname, 'node_modules/react-dom'),
       },
     },
     server: {
