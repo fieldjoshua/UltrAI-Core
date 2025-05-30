@@ -9,6 +9,8 @@ export default defineConfig({
     alias: {
       '@': path.resolve(__dirname, './src'),
       '/api': path.resolve(__dirname, './api'),
+      'react': path.resolve(__dirname, 'node_modules/react'),
+      'react-dom': path.resolve(__dirname, 'node_modules/react-dom'),
     },
   },
   build: {
@@ -17,20 +19,7 @@ export default defineConfig({
     minify: 'esbuild',
     rollupOptions: {
       output: {
-        manualChunks(id) {
-          if (id.includes('node_modules')) {
-            if (id.includes('react') || id.includes('react-dom')) {
-              return 'react';
-            }
-            if (id.includes('@radix-ui')) {
-              return 'radix-ui';
-            }
-            if (id.includes('axios')) {
-              return 'axios';
-            }
-            return 'vendor';
-          }
-        },
+        manualChunks: undefined, // Let Vite handle chunking to avoid React duplication
       },
     },
   },
