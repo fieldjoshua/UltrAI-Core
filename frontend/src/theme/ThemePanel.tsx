@@ -57,10 +57,8 @@ const ThemePanel: React.FC<ThemePanelProps> = ({
     localTheme.reducedMotion,
   ]);
 
-  if (!isOpen) return null;
-
   return (
-    <div className={`theme-panel ${className}`}>
+    <div className={`theme-panel ${className} ${isOpen ? 'block' : 'hidden'}`}>
       <div
         className="fixed inset-0 bg-black bg-opacity-50 z-40"
         onClick={onClose}
