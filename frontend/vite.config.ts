@@ -12,11 +12,7 @@ export default defineConfig(({ mode }) => {
   console.log('API URL Vite sees:', env.VITE_API_URL || 'Not found');
   console.log('IS_DOCKER value:', env.VITE_IS_DOCKER);
 
-  // For browser requests, always use localhost or the host machine IP
-  // The Docker service name 'backend' only works for container-to-container communication
-  const apiUrl = mode === 'production' 
-    ? 'https://ultrai-core-4lut.onrender.com/api'
-    : (env.VITE_API_URL || 'http://localhost:8087/api');
+  const apiUrl = 'https://ultrai-core-4lut.onrender.com/api';
 
   console.log('Using API URL:', apiUrl);
 
