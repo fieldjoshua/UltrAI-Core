@@ -6,8 +6,8 @@ from typing import Dict, Optional
 
 def get_csp_directives() -> Dict[str, str]:
     """Get Content Security Policy directives from environment or defaults."""
-    # TEMPORARILY IGNORE environment CSP to fix production issues
-    env_csp = ""  # os.environ.get("CSP_POLICY", "")
+    # Re-enabled CSP from environment with proper handling
+    env_csp = os.environ.get("CSP_POLICY", "")
     
     if env_csp:
         # Parse the environment CSP string into directives
@@ -20,21 +20,22 @@ def get_csp_directives() -> Dict[str, str]:
                 directives[key] = value
         return directives
     
-    # Default production CSP
+    # Default production CSP - Updated with all required domains
     return {
         "default-src": "'self'",
-        "script-src": "'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net",
+        "script-src": "'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://unpkg.com",
         "style-src": "'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net https://unpkg.com",
         "style-src-elem": "'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net https://unpkg.com",
         "img-src": "'self' data: https:",
-        "font-src": "'self' https://fonts.gstatic.com",
-        "connect-src": "'self' https://ultrai-core.onrender.com https://ultrai-core-4lut.onrender.com wss://ultrai-core.onrender.com wss://ultrai-core-4lut.onrender.com https://api.ultrai.app wss://api.ultrai.app",
+        "font-src": "'self' https://fonts.gstatic.com https://fonts.googleapis.com",
+        "connect-src": "'self' https://ultrai-core.onrender.com https://ultrai-core-4lut.onrender.com wss://ultrai-core.onrender.com wss://ultrai-core-4lut.onrender.com https://api.ultrai.app wss://api.ultrai.app http://localhost:* ws://localhost:*",
         "frame-src": "'none'",
         "object-src": "'none'",
         "base-uri": "'self'",
         "form-action": "'self'",
         "frame-ancestors": "'none'",
         "upgrade-insecure-requests": "",
+        "worker-src": "'self' blob:",
     }
 
 

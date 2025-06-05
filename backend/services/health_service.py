@@ -222,7 +222,7 @@ class HealthService:
                             self.service_status["llm"] = {
                                 "status": "healthy",
                                 "message": f"LLM services are available ({len(models)} models, {len(available_providers)} providers)",
-                                "providers": [model["provider"] for model in models],
+                                "providers": [model["provider"] for model in models.values()],
                                 "last_checked": datetime.datetime.now().isoformat(),
                                 "provider_details": providers_status,
                             }
@@ -230,7 +230,7 @@ class HealthService:
                             self.service_status["llm"] = {
                                 "status": "degraded",
                                 "message": "Models configured but no providers are reachable",
-                                "providers": [model["provider"] for model in models],
+                                "providers": [model["provider"] for model in models.values()],
                                 "last_checked": datetime.datetime.now().isoformat(),
                                 "provider_details": providers_status,
                             }
