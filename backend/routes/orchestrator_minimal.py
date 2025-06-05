@@ -7,16 +7,28 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import List, Dict, Any, Optional
 import logging
+import os
 
-from backend.services.minimal_orchestrator import MinimalOrchestrator
+# Choose which orchestrator to use based on environment
+USE_BASIC = os.getenv("USE_BASIC_ORCHESTRATOR", "false").lower() == "true"
 
-logger = logging.getLogger(__name__)
+if USE_BASIC:
+    from backend.services.basic_orchestrator import BasicOrchestrator
+    logger = logging.getLogger(__name__)
+    logger.info("Using BasicOrchestrator (reliability focus)")
+else:
+    from backend.services.minimal_orchestrator import MinimalOrchestrator
+    logger = logging.getLogger(__name__)
+    logger.info("Using MinimalOrchestrator (Ultra Synthesis)")
 
 # Create router
 router = APIRouter(prefix="/api/orchestrator", tags=["orchestrator"])
 
 # Initialize orchestrator (singleton)
-orchestrator = MinimalOrchestrator()
+if USE_BASIC:
+    orchestrator = BasicOrchestrator()
+else:
+    orchestrator = MinimalOrchestrator()
 
 
 class FeatherRequest(BaseModel):
@@ -59,18 +71,27 @@ async def orchestrate_feather(request: FeatherRequest):
         # Log request for debugging
         logger.info(f"Orchestration request: {len(request.models)} models, pattern: {request.args.get('pattern', 'none')}")
         
-        # Call orchestrator (always uses Ultra Synthesis)
-        result = await orchestrator.orchestrate(
-            prompt=request.prompt,
-            models=request.models,
-            ultra_model=ultra_model
-        )
+        # Call orchestrator based on which one we're using
+        if USE_BASIC:
+            # Basic orchestrator just does parallel calls
+            result = await orchestrator.orchestrate_basic(
+                prompt=request.prompt,
+                models=request.models,
+                combine=True
+            )
+        else:
+            # Minimal orchestrator uses Ultra Synthesis
+            result = await orchestrator.orchestrate(
+                prompt=request.prompt,
+                models=request.models,
+                ultra_model=ultra_model
+            )
         
         # Return in expected format
         return FeatherResponse(
             status=result["status"],
             model_responses=result["model_responses"],
-            ultra_response=result["ultra_response"],
+            ultra_response=result.get("ultra_response", result.get("combined_response", "")),
             performance=result["performance"],
             cached=result.get("cached", False)
         )

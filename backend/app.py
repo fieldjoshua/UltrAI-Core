@@ -39,7 +39,7 @@ from backend.routes.llm_routes import llm_router
 from backend.routes.metrics import metrics_router
 from backend.routes.oauth_routes import oauth_router
 # Orchestrator routes - minimal implementation
-# from backend.routes.orchestrator_minimal import router as orchestrator_router  # REMOVED - orchestrator doesn't work
+from backend.routes.orchestrator_minimal import router as orchestrator_router  # Basic/Minimal orchestrator
 from backend.routes.pricing_routes import pricing_router
 # from backend.routes.recovery_routes import router as recovery_router
 # from backend.routes.resilient_orchestrator_routes import resilient_orchestrator_router
@@ -308,8 +308,8 @@ app.include_router(available_models_router, prefix="/api")  # New available mode
 app.include_router(
     modelrunner_router
 )  # Already has /api prefix in its route definitions
-# Orchestrator REMOVED - doesn't work in production
-# app.include_router(orchestrator_router)
+# Orchestrator - basic/minimal implementation
+app.include_router(orchestrator_router)  # Already has /api/orchestrator prefix
 app.include_router(debug_router, prefix="/api")  # Debug routes for troubleshooting
 # app.include_router(
 #     resilient_orchestrator_router, prefix="/api"
