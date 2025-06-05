@@ -1,0 +1,5 @@
+{
+    "chatgpt": "Error code: 401 - {'error': {'message': 'Incorrect API key provided: your-ope********here. You can find your API key at https://platform.openai.com/account/api-keys.', 'type': 'invalid_request_error', 'param': None, 'code': 'invalid_api_key'}}",
+    "gemini": "Error: Incorrect method or module usage",
+    "llama": "HTTP Error: 403 Client Error: Forbidden for url: http://localhost:5000/generate"
+}

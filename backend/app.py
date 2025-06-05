@@ -39,7 +39,7 @@ from backend.routes.llm_routes import llm_router
 from backend.routes.metrics import metrics_router
 from backend.routes.oauth_routes import oauth_router
 # Orchestrator routes - minimal implementation
-from backend.routes.orchestrator_minimal import router as orchestrator_router
+# from backend.routes.orchestrator_minimal import router as orchestrator_router  # REMOVED - orchestrator doesn't work
 from backend.routes.pricing_routes import pricing_router
 # from backend.routes.recovery_routes import router as recovery_router
 # from backend.routes.resilient_orchestrator_routes import resilient_orchestrator_router
@@ -243,7 +243,7 @@ csrf_exempt_paths = [
     "/api/auth/login",
     "/api/auth/register", 
     "/api/auth/refresh",
-    "/api/orchestrator/",  # Enable demo access to sophisticated orchestrator
+    # "/api/orchestrator/",  # REMOVED - orchestrator doesn't work
 ]
 setup_csrf_middleware(app, exempt_paths=csrf_exempt_paths)
 setup_validation_middleware(app)
@@ -262,8 +262,8 @@ if Config.ENABLE_AUTH:
         "/api/debug/",
         "/favicon.ico",
         "/assets/",            # Enable access to frontend assets (CSS, JS)
-        "/api/orchestrator/",  # Enable demo access to sophisticated orchestrator
-        "/orchestrator",       # Enable frontend access to orchestrator UI
+        # "/api/orchestrator/",  # REMOVED - orchestrator doesn't work
+        # "/orchestrator",       # REMOVED - orchestrator doesn't work
         "/",                   # Enable access to main page and frontend routes
     ]
     setup_auth_middleware(app, public_paths=public_paths)
@@ -308,8 +308,8 @@ app.include_router(available_models_router, prefix="/api")  # New available mode
 app.include_router(
     modelrunner_router
 )  # Already has /api prefix in its route definitions
-# Minimal orchestrator implementation
-app.include_router(orchestrator_router)  # Already has /api/orchestrator prefix
+# Orchestrator REMOVED - doesn't work in production
+# app.include_router(orchestrator_router)
 app.include_router(debug_router, prefix="/api")  # Debug routes for troubleshooting
 # app.include_router(
 #     resilient_orchestrator_router, prefix="/api"
