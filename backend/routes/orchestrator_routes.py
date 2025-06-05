@@ -25,7 +25,7 @@ get_pattern_mapping = None
 
 try:
     # Import from the FIXED integration module which handles path setup and model name mapping
-    from integrations.pattern_orchestrator_integration_fixed import (
+    from backend.integrations.pattern_orchestrator_integration_fixed import (
         PatternOrchestrator, 
         get_pattern_mapping, 
         ORCHESTRATOR_AVAILABLE
