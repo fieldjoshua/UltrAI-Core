@@ -62,37 +62,55 @@ class SimpleOrchestrator:
             logger.info("Google client initialized")
             
     async def call_openai(self, prompt: str) -> str:
-        """Call OpenAI API"""
+        """Call OpenAI API with timeout"""
         try:
-            response = await self.clients["openai"].chat.completions.create(
-                model="gpt-4-turbo-preview",
-                messages=[{"role": "user", "content": prompt}],
-                max_tokens=1000
+            response = await asyncio.wait_for(
+                self.clients["openai"].chat.completions.create(
+                    model="gpt-4-turbo-preview",
+                    messages=[{"role": "user", "content": prompt}],
+                    max_tokens=1000
+                ),
+                timeout=30.0  # 30 second timeout per call
             )
             return response.choices[0].message.content or "No response"
+        except asyncio.TimeoutError:
+            logger.error("OpenAI timeout after 30 seconds")
+            return "OpenAI timeout: Request took too long"
         except Exception as e:
             logger.error(f"OpenAI error: {e}")
             return f"OpenAI error: {str(e)}"
             
     async def call_anthropic(self, prompt: str) -> str:
-        """Call Anthropic API"""
+        """Call Anthropic API with timeout"""
         try:
-            message = await self.clients["anthropic"].messages.create(
-                model="claude-3-opus-20240229",
-                max_tokens=1000,
-                messages=[{"role": "user", "content": prompt}]
+            message = await asyncio.wait_for(
+                self.clients["anthropic"].messages.create(
+                    model="claude-3-opus-20240229",
+                    max_tokens=1000,
+                    messages=[{"role": "user", "content": prompt}]
+                ),
+                timeout=30.0  # 30 second timeout per call
             )
             return message.content[0].text
+        except asyncio.TimeoutError:
+            logger.error("Anthropic timeout after 30 seconds")
+            return "Anthropic timeout: Request took too long"
         except Exception as e:
             logger.error(f"Anthropic error: {e}")
             return f"Anthropic error: {str(e)}"
             
     async def call_google(self, prompt: str) -> str:
-        """Call Google API"""
+        """Call Google API with timeout"""
         try:
             model = genai.GenerativeModel('gemini-pro')
-            response = await asyncio.to_thread(model.generate_content, prompt)
+            response = await asyncio.wait_for(
+                asyncio.to_thread(model.generate_content, prompt),
+                timeout=30.0  # 30 second timeout per call
+            )
             return response.text
+        except asyncio.TimeoutError:
+            logger.error("Google timeout after 30 seconds")
+            return "Google timeout: Request took too long"
         except Exception as e:
             logger.error(f"Google error: {e}")
             return f"Google error: {str(e)}"
@@ -101,6 +119,11 @@ class SimpleOrchestrator:
         """Simple orchestration that just calls available models"""
         start_time = time.time()
         responses = {}
+        
+        # Validate we have models available
+        if not self.available_models:
+            logger.error("No models available for orchestration")
+            raise ValueError("No LLM models configured. Please check API keys.")
         
         # Call available models in parallel
         tasks = []
@@ -111,14 +134,27 @@ class SimpleOrchestrator:
         if self.api_keys.get("google"):
             tasks.append(("gemini-pro", self.call_google(prompt)))
             
-        # Execute all tasks
-        for model_name, task in tasks:
-            try:
-                response = await task
-                responses[model_name] = response
-            except Exception as e:
-                logger.error(f"Error calling {model_name}: {e}")
-                responses[model_name] = f"Error: {str(e)}"
+        # Execute all tasks in parallel
+        if tasks:
+            model_names = [t[0] for t in tasks]
+            coroutines = [t[1] for t in tasks]
+            
+            logger.info(f"Starting parallel execution of {len(tasks)} models")
+            start_parallel = time.time()
+            
+            results = await asyncio.gather(*coroutines, return_exceptions=True)
+            
+            for model_name, result in zip(model_names, results):
+                if isinstance(result, Exception):
+                    logger.error(f"Error calling {model_name}: {result}")
+                    responses[model_name] = f"Error: {str(result)}"
+                else:
+                    responses[model_name] = result
+            
+            logger.info(f"Completed all models in {time.time() - start_parallel:.2f} seconds")
+        else:
+            logger.error("No models available for orchestration")
+            raise HTTPException(status_code=500, detail="No LLM models available")
                 
         # Simple synthesis
         synthesis = "Based on the analysis:\n"
@@ -200,7 +236,7 @@ async def process_with_feather_orchestration(request: FeatherOrchestrationReques
         try:
             result = await asyncio.wait_for(
                 orchestrator.orchestrate_simple(request.prompt),
-                timeout=60.0  # 1 minute timeout
+                timeout=300.0  # 5 minute timeout - we'll see actual times and adjust later
             )
         except asyncio.TimeoutError:
             raise HTTPException(

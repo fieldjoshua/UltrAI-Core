@@ -50,3 +50,7 @@ When the user requests work:
 5. Document all dependencies
 6. Implement according to the plan
 7. Verify your implementation against the success criteria
+
+## Memories
+
+- always test in production environemnt 
