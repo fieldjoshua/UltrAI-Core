@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UltraAI - Mockups Gallery</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #0a0f17;
+            color: #00ffff;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 50px;
+            padding: 40px 20px;
+            background: linear-gradient(135deg, rgba(255, 0, 222, 0.1) 0%, rgba(0, 255, 255, 0.1) 100%);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 0, 222, 0.3);
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, #ff00de 0%, #00ffff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 40px rgba(255, 0, 222, 0.5);
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.8;
+        }
+
+        .navigation {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 40px;
+            flex-wrap: wrap;
+        }
+
+        .nav-link {
+            padding: 12px 24px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(0, 255, 255, 0.5);
+            border-radius: 30px;
+            color: #00ffff;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .nav-link:hover {
+            background: rgba(0, 255, 255, 0.2);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(0, 255, 255, 0.3);
+        }
+
+        .gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 30px;
+            margin-bottom: 50px;
+        }
+
+        .mockup-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(0, 255, 255, 0.3);
+            border-radius: 15px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .mockup-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 40px rgba(0, 255, 255, 0.3);
+            border-color: #ff00de;
+        }
+
+        .mockup-image {
+            width: 100%;
+            height: 300px;
+            object-fit: cover;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+
+        .mockup-card:hover .mockup-image {
+            transform: scale(1.05);
+        }
+
+        .mockup-info {
+            padding: 20px;
+        }
+
+        .mockup-title {
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            color: #ff00de;
+        }
+
+        .mockup-description {
+            opacity: 0.8;
+            line-height: 1.6;
+        }
+
+        /* Lightbox styles */
+        .lightbox {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            cursor: pointer;
+        }
+
+        .lightbox.active {
+            display: flex;
+        }
+
+        .lightbox img {
+            max-width: 90%;
+            max-height: 90%;
+            object-fit: contain;
+            border: 2px solid #00ffff;
+            border-radius: 10px;
+            box-shadow: 0 0 50px rgba(0, 255, 255, 0.5);
+        }
+
+        .close-lightbox {
+            position: absolute;
+            top: 20px;
+            right: 40px;
+            font-size: 40px;
+            color: #00ffff;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+
+        .close-lightbox:hover {
+            color: #ff00de;
+        }
+
+        /* Special section for original preview */
+        .original-preview {
+            margin: 50px 0;
+            padding: 30px;
+            background: linear-gradient(135deg, rgba(255, 0, 222, 0.1) 0%, rgba(0, 255, 255, 0.1) 100%);
+            border: 2px solid #ff00de;
+            border-radius: 20px;
+            text-align: center;
+        }
+
+        .original-preview h2 {
+            color: #ff00de;
+            margin-bottom: 20px;
+        }
+
+        .preview-button {
+            display: inline-block;
+            padding: 15px 40px;
+            background: linear-gradient(135deg, #ff00de 0%, #00ffff 100%);
+            color: #0a0f17;
+            text-decoration: none;
+            border-radius: 30px;
+            font-weight: bold;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 20px rgba(255, 0, 222, 0.3);
+        }
+
+        .preview-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 30px rgba(255, 0, 222, 0.5);
+        }
+
+        @media (max-width: 768px) {
+            .gallery {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>UltraAI Mockups Gallery</h1>
+        <p>Explore the design evolution of UltraAI interface</p>
+    </div>
+
+    <div class="navigation">
+        <a href="index.html" class="nav-link">UI Versions</a>
+        <a href="original-working-preview.html" class="nav-link">Original Preview</a>
+        <a href="Images/Placeholder/daynight.html" class="nav-link">Day/Night Demo</a>
+        <a href="#mockups" class="nav-link">Mockups</a>
+    </div>
+
+    <div class="gallery" id="mockups">
+        <div class="mockup-card">
+            <img src="Images/mock.png" alt="UltraAI Billboard Mockup" class="mockup-image" onclick="openLightbox(this)">
+            <div class="mockup-info">
+                <h3 class="mockup-title">Billboard Concept</h3>
+                <p class="mockup-description">Night scene with iconic billboard-style branding featuring "ULTRA AI - MULTIPLY YOUR AI!" tagline</p>
+            </div>
+        </div>
+
+        <div class="mockup-card">
+            <img src="Images/mock 2.png" alt="Basic Interface Mockup" class="mockup-image" onclick="openLightbox(this)">
+            <div class="mockup-info">
+                <h3 class="mockup-title">Basic Interface</h3>
+                <p class="mockup-description">Initial interface design with prompt input, attachments, model selection, and pricing display</p>
+            </div>
+        </div>
+
+        <div class="mockup-card">
+            <img src="Images/mock3.png" alt="Enhanced Design Mockup" class="mockup-image" onclick="openLightbox(this)">
+            <div class="mockup-info">
+                <h3 class="mockup-title">Enhanced Design</h3>
+                <p class="mockup-description">Refined UI with improved styling, green CTA button, and enhanced visual hierarchy</p>
+            </div>
+        </div>
+
+        <div class="mockup-card">
+            <img src="Images/ultrai mock.png" alt="Plug In Power Up Mockup" class="mockup-image" onclick="openLightbox(this)">
+            <div class="mockup-info">
+                <h3 class="mockup-title">Alternative Branding</h3>
+                <p class="mockup-description">"PLUG IN, POWER UP!" concept with simplified interface and warm color scheme</p>
+            </div>
+        </div>
+
+        <div class="mockup-card">
+            <img src="Images/ultrAI mocks.png" alt="Design Variations Collection" class="mockup-image" onclick="openLightbox(this)">
+            <div class="mockup-info">
+                <h3 class="mockup-title">Design Variations</h3>
+                <p class="mockup-description">Collection of four different design approaches showcasing various themes and layouts</p>
+            </div>
+        </div>
+
+        <div class="mockup-card">
+            <img src="Images/night.png" alt="Night Theme" class="mockup-image" onclick="openLightbox(this)">
+            <div class="mockup-info">
+                <h3 class="mockup-title">Night Theme</h3>
+                <p class="mockup-description">Dark theme variation with enhanced contrast and visibility</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="original-preview">
+        <h2>🎯 Experience the Original Working Build</h2>
+        <p style="margin-bottom: 20px;">View the interactive prototype that started it all</p>
+        <a href="original-working-preview.html" class="preview-button">Launch Original Preview</a>
+    </div>
+
+    <!-- Lightbox -->
+    <div class="lightbox" id="lightbox" onclick="closeLightbox()">
+        <span class="close-lightbox">&times;</span>
+        <img id="lightbox-img" src="" alt="">
+    </div>
+
+    <script>
+        function openLightbox(img) {
+            const lightbox = document.getElementById('lightbox');
+            const lightboxImg = document.getElementById('lightbox-img');
+            lightboxImg.src = img.src;
+            lightbox.classList.add('active');
+        }
+
+        function closeLightbox() {
+            const lightbox = document.getElementById('lightbox');
+            lightbox.classList.remove('active');
+        }
+
+        // Close lightbox on escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeLightbox();
+            }
+        });
+    </script>
+</body>
+</html>

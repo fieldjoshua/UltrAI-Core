@@ -1,0 +1,45 @@
+# Test Requirements for UltraAI
+
+# Core testing framework
+pytest>=7.4.0
+pytest-asyncio>=0.21.0
+pytest-timeout>=2.1.0
+pytest-xdist>=3.3.0  # For parallel test execution
+
+# HTTP testing
+httpx>=0.24.0
+pytest-httpx>=0.22.0
+requests-mock>=1.11.0
+
+# Coverage
+pytest-cov>=4.1.0
+coverage>=7.2.0
+
+# Mocking
+pytest-mock>=3.11.0
+responses>=0.23.0
+
+# Fixtures and utilities
+factory-boy>=3.3.0
+faker>=19.2.0
+
+# Performance testing
+pytest-benchmark>=4.0.0
+locust>=2.15.0  # For load testing
+
+# Snapshot testing
+pytest-snapshot>=0.9.0
+
+# Environment management
+python-dotenv>=1.0.0
+
+# Assertion helpers
+pytest-clarity>=1.0.1
+pytest-sugar>=0.9.7  # Better test output
+
+# API testing
+pytest-aiohttp>=1.0.4  # For async HTTP testing
+
+# Database testing
+pytest-postgresql>=5.0.0
+sqlalchemy-utils>=0.41.0
