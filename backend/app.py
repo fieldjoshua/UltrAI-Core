@@ -38,7 +38,8 @@ from backend.routes.health import health_router as api_health_router
 from backend.routes.llm_routes import llm_router
 from backend.routes.metrics import metrics_router
 from backend.routes.oauth_routes import oauth_router
-from backend.routes.orchestrator_routes_fixed import orchestrator_router
+# Orchestrator routes - minimal implementation
+from backend.routes.orchestrator_minimal import router as orchestrator_router
 from backend.routes.pricing_routes import pricing_router
 # from backend.routes.recovery_routes import router as recovery_router
 # from backend.routes.resilient_orchestrator_routes import resilient_orchestrator_router
@@ -307,7 +308,8 @@ app.include_router(available_models_router, prefix="/api")  # New available mode
 app.include_router(
     modelrunner_router
 )  # Already has /api prefix in its route definitions
-app.include_router(orchestrator_router, prefix="/api")  # New orchestrator routes
+# Minimal orchestrator implementation
+app.include_router(orchestrator_router)  # Already has /api/orchestrator prefix
 app.include_router(debug_router, prefix="/api")  # Debug routes for troubleshooting
 # app.include_router(
 #     resilient_orchestrator_router, prefix="/api"
