@@ -24,18 +24,18 @@ PatternOrchestrator = None
 get_pattern_mapping = None
 
 try:
-    # Import from the integration module which handles path setup
-    from backend.integrations.pattern_orchestrator_integration import (
+    # Import from the FIXED integration module which handles path setup and model name mapping
+    from integrations.pattern_orchestrator_integration_fixed import (
         PatternOrchestrator, 
         get_pattern_mapping, 
         ORCHESTRATOR_AVAILABLE
     )
     if ORCHESTRATOR_AVAILABLE:
-        print("✅ Successfully imported sophisticated PatternOrchestrator via integration")
+        print("✅ Successfully imported sophisticated PatternOrchestrator via fixed integration")
     else:
-        print("⚠️ Using fallback PatternOrchestrator from integration")
+        print("⚠️ Using fallback PatternOrchestrator from fixed integration")
 except Exception as e:
-    print(f"❌ Failed to import from integration module: {e}")
+    print(f"❌ Failed to import from fixed integration module: {e}")
     # Use a fallback implementation
     ORCHESTRATOR_AVAILABLE = False
     
@@ -341,8 +341,19 @@ async def process_with_feather_orchestration(request: FeatherOrchestrationReques
             # Set the ultra model on the orchestrator
             setattr(orchestrator, 'ultra_model', ultra_model)
 
-        # Run the sophisticated 4-stage orchestration
-        result = await orchestrator.orchestrate_full_process(request.prompt)
+        # Run the sophisticated 4-stage orchestration with timeout
+        import asyncio
+        try:
+            result = await asyncio.wait_for(
+                orchestrator.orchestrate_full_process(request.prompt),
+                timeout=120.0  # 2 minute timeout
+            )
+        except asyncio.TimeoutError:
+            logger.error("Orchestration timed out after 120 seconds")
+            raise HTTPException(
+                status_code=504,
+                detail="Orchestration timed out. This may be due to LLM API issues. Please try again."
+            )
 
         # Get the models that were actually used
         models_used = list(result["initial_responses"].keys())
@@ -437,8 +448,19 @@ async def process_with_orchestrator(request: OrchestrationRequest):
             # Set the ultra model on the orchestrator
             setattr(orchestrator, 'ultra_model', ultra_model)
 
-        # Run the sophisticated orchestration
-        result = await orchestrator.orchestrate_full_process(request.prompt)
+        # Run the sophisticated orchestration with timeout
+        import asyncio
+        try:
+            result = await asyncio.wait_for(
+                orchestrator.orchestrate_full_process(request.prompt),
+                timeout=120.0  # 2 minute timeout
+            )
+        except asyncio.TimeoutError:
+            logger.error("Legacy orchestration timed out after 120 seconds")
+            raise HTTPException(
+                status_code=504,
+                detail="Orchestration timed out. This may be due to LLM API issues. Please try again."
+            )
 
         # Format result for backward compatibility
         return {
