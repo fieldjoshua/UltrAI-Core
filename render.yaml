@@ -32,26 +32,17 @@ services:
           name: ultrai-redis
           property: connectionString
       - key: OPENAI_API_KEY
-        fromService:
-          type: pserv
-          name: ultrai-core
-          envVarKey: OPENAI_API_KEY
+        sync: false
       - key: ANTHROPIC_API_KEY
-        fromService:
-          type: pserv
-          name: ultrai-core
-          envVarKey: ANTHROPIC_API_KEY
+        sync: false
       - key: GOOGLE_API_KEY
-        fromService:
-          type: pserv
-          name: ultrai-core
-          envVarKey: GOOGLE_API_KEY
+        sync: false
       - key: JWT_SECRET
         generateValue: true
       - key: ENCRYPTION_KEY
         generateValue: true
       - key: CSP_POLICY
-        value: "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://unpkg.com; object-src 'none'; img-src 'self' data: https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://unpkg.com; font-src 'self' https://cdn.jsdelivr.net; frame-src 'none'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; worker-src 'self' blob:; connect-src 'self' https://api.ultrai.app wss://api.ultrai.app https://app.ultrai.app;"
+        value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://unpkg.com; object-src 'none'; img-src 'self' data: https:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net https://unpkg.com; style-src-elem 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net https://unpkg.com; font-src 'self' https://fonts.gstatic.com https://fonts.googleapis.com; frame-src 'none'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; worker-src 'self' blob:; connect-src 'self' https://ultrai-core.onrender.com https://ultrai-core-4lut.onrender.com wss://ultrai-core.onrender.com wss://ultrai-core-4lut.onrender.com https://api.ultrai.app wss://api.ultrai.app http://localhost:* ws://localhost:*;"
 
 databases:
   - name: ultrai-db
