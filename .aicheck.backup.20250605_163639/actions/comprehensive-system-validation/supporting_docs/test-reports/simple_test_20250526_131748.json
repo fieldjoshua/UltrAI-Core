@@ -1,0 +1,34 @@
+{
+  "timestamp": "2025-05-26T13:17:48.578279",
+  "base_url": "https://ultrai-core.onrender.com",
+  "results": {
+    "passed": 0,
+    "failed": 6,
+    "tests": [
+      [
+        "Available Models",
+        false
+      ],
+      [
+        "Available Patterns",
+        false
+      ],
+      [
+        "Basic Gut Analysis",
+        false
+      ],
+      [
+        "Confidence Analysis",
+        false
+      ],
+      [
+        "Critique Analysis",
+        false
+      ],
+      [
+        "Fact Check Analysis",
+        false
+      ]
+    ]
+  }
+}
