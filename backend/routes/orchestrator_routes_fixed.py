@@ -58,6 +58,7 @@ class SimpleOrchestrator:
         # Initialize Google
         if api_keys.get("google"):
             genai.configure(api_key=api_keys["google"])
+            self.clients["google"] = genai  # Store the client
             self.available_models.append("gemini-pro")
             logger.info("Google client initialized")
             
@@ -131,7 +132,7 @@ class SimpleOrchestrator:
             tasks.append(("gpt-4-turbo", self.call_openai(prompt)))
         if "anthropic" in self.clients:
             tasks.append(("claude-3-opus", self.call_anthropic(prompt)))
-        if self.api_keys.get("google"):
+        if "google" in self.clients:
             tasks.append(("gemini-pro", self.call_google(prompt)))
             
         # Execute all tasks in parallel
@@ -183,9 +184,35 @@ async def test_orchestrator_router():
 @orchestrator_router.get("/models")
 async def get_available_orchestrator_models():
     """Get available models"""
+    # Check what API keys are actually available
+    api_keys_status = {
+        "anthropic": bool(os.getenv("ANTHROPIC_API_KEY")),
+        "openai": bool(os.getenv("OPENAI_API_KEY")),
+        "google": bool(os.getenv("GOOGLE_API_KEY"))
+    }
+    
+    # Create a test orchestrator to see what models it finds
+    api_keys = {
+        "anthropic": os.getenv("ANTHROPIC_API_KEY"),
+        "openai": os.getenv("OPENAI_API_KEY"),
+        "google": os.getenv("GOOGLE_API_KEY")
+    }
+    api_keys = {k: v for k, v in api_keys.items() if v}
+    
+    if api_keys:
+        orchestrator = SimpleOrchestrator(api_keys)
+        actual_models = orchestrator.available_models
+    else:
+        actual_models = []
+    
     return {
         "status": "success",
-        "models": ["claude-3-opus", "gpt-4-turbo", "gemini-pro"]
+        "models": ["claude-3-opus", "gpt-4-turbo", "gemini-pro"],
+        "debug": {
+            "api_keys_found": api_keys_status,
+            "actual_models": actual_models,
+            "keys_count": len(api_keys)
+        }
     }
 
 
