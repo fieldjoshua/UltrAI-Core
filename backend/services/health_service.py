@@ -215,7 +215,7 @@ class HealthService:
                         available_providers = [
                             p
                             for p, status in providers_status.items()
-                            if status["status"] == "healthy"
+                            if status.get("status") in ["healthy", "ok"]
                         ]
 
                         if available_providers:
