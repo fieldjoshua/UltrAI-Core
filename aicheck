@@ -2,18 +2,18 @@
 
 # AICheck command script
 # Provides the core functionality for AICheck MCP
-# Version: 4.0.1
-# Last Updated: 2025-05-28
+# Version: 4.1.0
+# Last Updated: 2025-06-03
 
 set -e
 
 # AICheck version info
-AICHECK_VERSION="4.0.1"
+AICHECK_VERSION="4.3.0"
 GITHUB_REPO="fieldjoshua/AICheck_MCP"
 GITHUB_RAW_BASE="https://raw.githubusercontent.com/${GITHUB_REPO}/main"
 
 CMD=$1
-shift
+shift || true
 ARGS=$@
 
 # Function to show version information
@@ -21,7 +21,22 @@ function show_version() {
   echo -e "${BRIGHT_BLURPLE}AICheck MCP${NC}"
   echo -e "Version: ${GREEN}${AICHECK_VERSION}${NC}"
   echo -e "Repository: ${GITHUB_REPO}"
-  echo -e "Commands: action, dependency, exec, status, update, version"
+  echo -e ""
+  echo -e "${BRIGHT_BLURPLE}🚀 Quick Commands (Use These!):${NC}"
+  echo -e "  ${GREEN}./aicheck reset${NC}          - Clean up when things get messy"
+  echo -e "  ${GREEN}./aicheck focus${NC}          - Check if you're staying on track" 
+  echo -e "  ${GREEN}./aicheck cleanup${NC}        - Tidy up old files and logs"
+  echo -e "  ${GREEN}./aicheck usage${NC}          - See how much Claude Code you're using"
+  echo -e "  ${GREEN}./aicheck stuck${NC}          - Get unstuck when confused"
+  echo -e ""
+  echo -e "${BRIGHT_BLURPLE}📋 Core Commands:${NC}"
+  echo -e "  action, dependency, exec, status, update, version"
+  echo -e ""
+  echo -e "${YELLOW}💡 When to use:${NC}"
+  echo -e "  ${YELLOW}• Feeling lost?${NC} Run: ${GREEN}./aicheck stuck${NC}"
+  echo -e "  ${YELLOW}• Too many files?${NC} Run: ${GREEN}./aicheck cleanup${NC}"
+  echo -e "  ${YELLOW}• Scope creep?${NC} Run: ${GREEN}./aicheck focus${NC}"
+  echo -e "  ${YELLOW}• High usage?${NC} Run: ${GREEN}./aicheck usage${NC}"
 }
 
 # Function to check for updates
@@ -177,6 +192,867 @@ RED="\033[0;31m"
 CYAN="\033[0;36m"
 NC="\033[0m" # No Color
 
+# Function to automatically detect context pollution
+function detect_context_pollution() {
+  local current_action=$(cat .aicheck/current_action 2>/dev/null || echo "None")
+  local pollution_score=0
+  local warnings=()
+  
+  # Check for multiple active actions
+  if [ -d ".aicheck/actions" ]; then
+    local active_count=$(find .aicheck/actions -name "status.txt" -exec grep -l "ActiveAction" {} \; 2>/dev/null | wc -l | tr -d ' ')
+    if [ "$active_count" -gt 1 ]; then
+      pollution_score=$((pollution_score + 30))
+      warnings+=("Multiple active actions detected ($active_count)")
+    fi
+  fi
+  
+  # Check for excessive Claude interaction logs in the last hour
+  if [ "$current_action" != "None" ] && [ "$current_action" != "AICheckExec" ]; then
+    local dir_name=$(echo "$current_action" | sed 's/\([a-z0-9]\)\([A-Z]\)/\1-\2/g' | tr '[:upper:]' '[:lower:]')
+    local interaction_dir=".aicheck/actions/$dir_name/supporting_docs/claude-interactions"
+    if [ -d "$interaction_dir" ]; then
+      local recent_interactions=$(find "$interaction_dir" -name "*.md" -mmin -60 2>/dev/null | wc -l | tr -d ' ')
+      if [ "$recent_interactions" -gt 10 ]; then
+        pollution_score=$((pollution_score + 20))
+        warnings+=("High interaction frequency: $recent_interactions in last hour")
+      fi
+    fi
+  fi
+  
+  # Check for uncommitted changes across multiple directories
+  if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+    local changed_dirs=$(git status --porcelain 2>/dev/null | awk '{print $2}' | xargs dirname | sort -u | wc -l | tr -d ' ')
+    if [ "$changed_dirs" -gt 3 ]; then
+      pollution_score=$((pollution_score + 15))
+      warnings+=("Changes scattered across $changed_dirs directories")
+    fi
+  fi
+  
+  echo "$pollution_score"
+  if [ ${#warnings[@]} -gt 0 ]; then
+    echo "WARNINGS:"
+    printf '%s\n' "${warnings[@]}"
+  fi
+}
+
+# Function to automatically clear context (with approval for destructive actions)
+function clear_context() {
+  local force=$1
+  local current_action=$(cat .aicheck/current_action 2>/dev/null || echo "None")
+  
+  echo -e "${BRIGHT_BLURPLE}AICheck Context Clear${NC}"
+  echo -e "Analyzing current context state..."
+  
+  local pollution_data=$(detect_context_pollution)
+  local pollution_score=$(echo "$pollution_data" | head -1)
+  local warnings=$(echo "$pollution_data" | tail -n +2)
+  
+  echo -e "Context pollution score: ${GREEN}$pollution_score/100${NC}"
+  if [ -n "$warnings" ]; then
+    echo -e "${YELLOW}$warnings${NC}"
+  fi
+  
+  # Automated safe actions (no approval needed)
+  echo -e "\n${BRIGHT_BLURPLE}Performing automated context cleanup...${NC}"
+  
+  # Clean up temp files
+  find . -name "*.tmp" -o -name "*.temp" -o -name ".DS_Store" 2>/dev/null | xargs rm -f 2>/dev/null || true
+  echo -e "${GREEN}✓ Cleaned temporary files${NC}"
+  
+  # Reset any exec mode state safely
+  if [ "$current_action" = "AICheckExec" ] && [ -f ".aicheck/previous_action" ]; then
+    local previous=$(cat .aicheck/previous_action)
+    echo "$previous" > .aicheck/current_action
+    rm .aicheck/previous_action
+    echo -e "${GREEN}✓ Restored from exec mode to: $previous${NC}"
+  fi
+  
+  # Archive old interaction logs (keep last 5 per action)
+  if [ -d ".aicheck/actions" ]; then
+    find .aicheck/actions -name "claude-interactions" -type d | while read dir; do
+      if [ $(ls "$dir"/*.md 2>/dev/null | wc -l) -gt 5 ]; then
+        mkdir -p "$dir/archive"
+        ls -t "$dir"/*.md 2>/dev/null | tail -n +6 | xargs mv -t "$dir/archive/" 2>/dev/null || true
+      fi
+    done
+    echo -e "${GREEN}✓ Archived old interaction logs${NC}"
+  fi
+  
+  # Actions requiring approval
+  local needs_approval=false
+  local approval_actions=()
+  
+  if [ "$pollution_score" -gt 50 ]; then
+    needs_approval=true
+    approval_actions+=("Reset all active actions to 'Not Started'")
+    approval_actions+=("Clear all uncommitted git changes")
+    approval_actions+=("Reset current action to 'None'")
+  fi
+  
+  if [ "$force" != "--force" ] && [ "$needs_approval" = true ]; then
+    echo -e "\n${YELLOW}The following actions require human approval:${NC}"
+    printf '  - %s\n' "${approval_actions[@]}"
+    echo -e "\n${YELLOW}Run './aicheck context clear --force' to proceed with destructive actions${NC}"
+    echo -e "${YELLOW}Or manually address the issues listed above${NC}"
+    return 0
+  fi
+  
+  if [ "$force" = "--force" ]; then
+    echo -e "\n${RED}Performing destructive context reset...${NC}"
+    
+    # Reset multiple active actions
+    if [ -d ".aicheck/actions" ]; then
+      find .aicheck/actions -name "status.txt" -exec sed -i "" 's/ActiveAction/Not Started/g' {} \; 2>/dev/null
+      echo -e "${GREEN}✓ Reset all actions to 'Not Started'${NC}"
+    fi
+    
+    # Reset current action
+    echo "None" > .aicheck/current_action
+    echo -e "${GREEN}✓ Reset current action to 'None'${NC}"
+    
+    echo -e "${RED}⚠ Destructive context reset completed${NC}"
+    echo -e "${YELLOW}You may need to manually restore your intended active action${NC}"
+  fi
+  
+  echo -e "\n${GREEN}✓ Context cleanup completed${NC}"
+}
+
+# Function to automatically compact context (summarize and preserve essentials)
+function compact_context() {
+  local current_action=$(cat .aicheck/current_action 2>/dev/null || echo "None")
+  
+  echo -e "${BRIGHT_BLURPLE}AICheck Context Compact${NC}"
+  echo -e "Compacting context for action: ${GREEN}$current_action${NC}"
+  
+  if [ "$current_action" = "None" ] || [ "$current_action" = "AICheckExec" ]; then
+    echo -e "${YELLOW}No active action to compact${NC}"
+    return 0
+  fi
+  
+  local dir_name=$(echo "$current_action" | sed 's/\([a-z0-9]\)\([A-Z]\)/\1-\2/g' | tr '[:upper:]' '[:lower:]')
+  local action_dir=".aicheck/actions/$dir_name"
+  
+  if [ ! -d "$action_dir" ]; then
+    echo -e "${RED}Action directory not found: $action_dir${NC}"
+    return 1
+  fi
+  
+  # Automated compaction (no approval needed)
+  echo -e "\n${BRIGHT_BLURPLE}Performing automated compaction...${NC}"
+  
+  # Create compact summary
+  local timestamp=$(date +"%Y-%m-%d_%H%M%S")
+  local summary_file="$action_dir/context-compact-$timestamp.md"
+  
+  cat > "$summary_file" << COMPACT
+# Context Compact: $current_action
+
+**Generated:** $(date)
+**Action Status:** $(cat "$action_dir/status.txt" 2>/dev/null || echo "Unknown")
+
+## Action Summary
+
+$(head -20 "$action_dir/$dir_name-plan.md" 2>/dev/null || echo "Plan not found")
+
+## Recent Progress
+
+$(tail -10 "$action_dir/progress.md" 2>/dev/null || echo "No progress logged")
+
+## Key Files Modified (Last 24h)
+
+$(if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+  git log --since="24 hours ago" --name-only --pretty=format: | sort -u | head -10
+else
+  echo "Not in git repository"
+fi)
+
+## Dependencies
+
+$(if [ -f "documentation/dependencies/dependency_index.md" ]; then
+  grep "$current_action" documentation/dependencies/dependency_index.md || echo "No dependencies found"
+else
+  echo "No dependency index found"
+fi)
+
+## Context State
+
+- Interaction logs: $(find "$action_dir/supporting_docs/claude-interactions" -name "*.md" 2>/dev/null | wc -l | tr -d ' ') files
+- Git changes: $(git status --porcelain 2>/dev/null | wc -l | tr -d ' ') files
+- Action progress: $(grep "Progress:" "$action_dir/$dir_name-plan.md" 2>/dev/null | cut -d':' -f2 | tr -d ' ' || echo "Unknown")
+COMPACT
+
+  echo -e "${GREEN}✓ Created compact summary: $(basename "$summary_file")${NC}"
+  
+  # Archive older interaction logs (keep last 3)
+  local interaction_dir="$action_dir/supporting_docs/claude-interactions"
+  if [ -d "$interaction_dir" ]; then
+    local log_count=$(ls "$interaction_dir"/*.md 2>/dev/null | wc -l | tr -d ' ')
+    if [ "$log_count" -gt 3 ]; then
+      mkdir -p "$interaction_dir/archive"
+      ls -t "$interaction_dir"/*.md 2>/dev/null | tail -n +4 | xargs mv -t "$interaction_dir/archive/" 2>/dev/null || true
+      echo -e "${GREEN}✓ Archived $(($log_count - 3)) older interaction logs${NC}"
+    fi
+  fi
+  
+  # Update progress tracking
+  local current_progress=$(grep "Progress:" "$action_dir/$dir_name-plan.md" 2>/dev/null | cut -d':' -f2 | tr -d ' %' || echo "0")
+  echo "$(date +"%Y-%m-%d") - Context compacted (Progress: $current_progress%)" >> "$action_dir/progress.md"
+  
+  echo -e "${GREEN}✓ Context compaction completed${NC}"
+  echo -e "${BRIGHT_BLURPLE}Summary: $summary_file${NC}"
+}
+
+# Function to track and analyze usage costs
+function analyze_usage_costs() {
+  local current_action=$(cat .aicheck/current_action 2>/dev/null || echo "None")
+  
+  echo -e "${BRIGHT_BLURPLE}AICheck Usage & Cost Analysis${NC}"
+  echo -e "Current Action: ${GREEN}$current_action${NC}"
+  
+  # Track interaction frequency and estimate costs
+  local total_interactions=0
+  local today_interactions=0
+  local thinking_usage=0
+  local estimated_cost=0
+  
+  if [ "$current_action" != "None" ] && [ "$current_action" != "AICheckExec" ]; then
+    local dir_name=$(echo "$current_action" | sed 's/\([a-z0-9]\)\([A-Z]\)/\1-\2/g' | tr '[:upper:]' '[:lower:]')
+    local interaction_dir=".aicheck/actions/$dir_name/supporting_docs/claude-interactions"
+    
+    if [ -d "$interaction_dir" ]; then
+      total_interactions=$(find "$interaction_dir" -name "*.md" 2>/dev/null | wc -l | tr -d ' ')
+      today_interactions=$(find "$interaction_dir" -name "*.md" -mtime -1 2>/dev/null | wc -l | tr -d ' ')
+      
+      # Analyze for "think harder" usage patterns
+      thinking_usage=$(find "$interaction_dir" -name "*.md" -exec grep -l "think\|analyze\|complex" {} \; 2>/dev/null | wc -l | tr -d ' ')
+    fi
+  fi
+  
+  # Estimate costs based on Claude Code subscription model
+  # Rough estimation: Claude Code subscription provides predictable costs
+  local daily_limit=100
+  local usage_percent=$((today_interactions * 100 / daily_limit))
+  
+  echo -e "\n${BRIGHT_BLURPLE}Usage Statistics:${NC}"
+  echo -e "Total interactions: ${GREEN}$total_interactions${NC}"
+  echo -e "Today's interactions: ${GREEN}$today_interactions${NC}"
+  echo -e "Thinking-intensive: ${GREEN}$thinking_usage${NC} ($(($thinking_usage * 100 / ($total_interactions + 1)))%)"
+  echo -e "Daily usage: ${GREEN}$usage_percent%${NC} of typical daily limit"
+  
+  # Context size analysis
+  local context_files=$(find . -name "*.md" -o -name "*.js" -o -name "*.py" -o -name "*.ts" | wc -l | tr -d ' ')
+  local large_files=$(find . -name "*.md" -o -name "*.js" -o -name "*.py" -o -name "*.ts" -size +10k | wc -l | tr -d ' ')
+  
+  echo -e "\n${BRIGHT_BLURPLE}Context Optimization:${NC}"
+  echo -e "Total context files: ${GREEN}$context_files${NC}"
+  echo -e "Large files (>10k): ${YELLOW}$large_files${NC}"
+  
+  if [ "$large_files" -gt 5 ]; then
+    echo -e "${YELLOW}⚠ Consider context optimization for large files${NC}"
+  fi
+  
+  # Usage recommendations
+  echo -e "\n${BRIGHT_BLURPLE}Optimization Recommendations:${NC}"
+  
+  if [ "$usage_percent" -gt 80 ]; then
+    echo -e "${YELLOW}• High daily usage - consider context compaction${NC}"
+    echo -e "${YELLOW}• Run './aicheck context compact' to reduce context size${NC}"
+  fi
+  
+  if [ "$thinking_usage" -gt 5 ]; then
+    echo -e "${YELLOW}• High thinking usage - consider graduated prompts${NC}"
+    echo -e "${YELLOW}• Start with simple prompts, escalate to 'think harder' only when needed${NC}"
+  fi
+  
+  if [ "$large_files" -gt 3 ]; then
+    echo -e "${YELLOW}• Large context detected - consider file splitting${NC}"
+    echo -e "${YELLOW}• Use surgical fix templates for focused changes${NC}"
+  fi
+  
+  echo -e "${GREEN}✓ Usage analysis completed${NC}"
+}
+
+# Function to auto-cleanup after commits
+function auto_post_commit_cleanup() {
+  echo -e "${BRIGHT_BLURPLE}🤖 Auto-cleanup after commit detected...${NC}"
+  
+  # Check if there are recent commits (last 10 minutes)
+  if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+    local recent_commits=$(git log --since="10 minutes ago" --oneline 2>/dev/null | wc -l | tr -d ' ')
+    
+    if [ "$recent_commits" -gt 0 ]; then
+      echo -e "${GREEN}✓ Recent commit detected, running comprehensive cleanup...${NC}"
+      
+      # Run full optimization
+      optimize_context
+      
+      # Validate dependencies and documentation
+      validate_action_completeness
+      
+      return 0
+    fi
+  fi
+  
+  return 1
+}
+
+# Function to validate action completeness and RULES compliance
+function validate_action_completeness() {
+  local current_action=$(cat .aicheck/current_action 2>/dev/null || echo "None")
+  
+  if [ "$current_action" = "None" ] || [ "$current_action" = "AICheckExec" ]; then
+    return 0
+  fi
+  
+  echo -e "\n${BRIGHT_BLURPLE}🔍 Validating RULES compliance and action completeness...${NC}"
+  
+  local dir_name=$(echo "$current_action" | sed 's/\([a-z0-9]\)\([A-Z]\)/\1-\2/g' | tr '[:upper:]' '[:lower:]')
+  local action_dir=".aicheck/actions/$dir_name"
+  local issues=()
+  local auto_fixes=()
+  
+  # 1. RULES: Check action status and matrix updates
+  echo -e "${BRIGHT_BLURPLE}📋 Checking action status compliance...${NC}"
+  
+  if [ ! -f "$action_dir/status.txt" ]; then
+    issues+=("Action status file missing")
+    auto_fixes+=("create_status_file")
+  fi
+  
+  # Verify actions_index.md is current
+  if [ -f ".aicheck/actions_index.md" ]; then
+    if ! grep -q "$current_action" .aicheck/actions_index.md; then
+      issues+=("Action not registered in actions_index.md")
+      auto_fixes+=("update_actions_index")
+    fi
+  fi
+  
+  # 2. RULES: Check action timeline and progress tracking
+  echo -e "${BRIGHT_BLURPLE}📈 Checking timeline and progress compliance...${NC}"
+  
+  if [ ! -f "$action_dir/progress.md" ]; then
+    issues+=("Progress tracking missing: $action_dir/progress.md")
+    auto_fixes+=("create_progress_tracking")
+  else
+    # Check if progress has been updated recently
+    local last_update=$(stat -f "%m" "$action_dir/progress.md" 2>/dev/null || stat -c "%Y" "$action_dir/progress.md" 2>/dev/null || echo "0")
+    local current_time=$(date +%s)
+    local time_diff=$((current_time - last_update))
+    if [ "$time_diff" -gt 86400 ]; then  # 24 hours
+      issues+=("Progress tracking not updated in 24+ hours")
+      auto_fixes+=("update_progress_timestamp")
+    fi
+  fi
+  
+  # 3. RULES: Check dependency documentation
+  echo -e "${BRIGHT_BLURPLE}🔗 Checking dependency compliance...${NC}"
+  
+  # Check for code dependencies that aren't documented
+  if git status --porcelain 2>/dev/null | grep -q "package.json\|requirements.txt\|go.mod\|Cargo.toml\|pom.xml\|build.gradle"; then
+    if ! grep -q "$current_action" documentation/dependencies/dependency_index.md 2>/dev/null; then
+      issues+=("Dependencies modified but not documented for $current_action")
+    fi
+  fi
+  
+  # Check for import statements in modified files
+  local modified_files=$(git status --porcelain 2>/dev/null | awk '{print $2}')
+  local has_imports=false
+  for file in $modified_files; do
+    if [[ "$file" =~ \.(py|js|ts|jsx|tsx)$ ]] && [ -f "$file" ]; then
+      if grep -q "^import\|^from.*import\|require(" "$file" 2>/dev/null; then
+        has_imports=true
+        break
+      fi
+    fi
+  done
+  
+  if [ "$has_imports" = true ] && ! grep -q "$current_action" documentation/dependencies/dependency_index.md 2>/dev/null; then
+    issues+=("Code imports detected but dependencies not documented")
+  fi
+  
+  # 4. RULES: Check action plan compliance
+  echo -e "${BRIGHT_BLURPLE}📝 Checking action plan compliance...${NC}"
+  
+  if [ ! -f "$action_dir/$dir_name-plan.md" ]; then
+    issues+=("Action plan missing: $action_dir/$dir_name-plan.md")
+    auto_fixes+=("create_action_plan")
+  else
+    # Check plan has required sections
+    local plan_file="$action_dir/$dir_name-plan.md"
+    if ! grep -q "## Purpose" "$plan_file"; then
+      issues+=("Action plan missing Purpose section")
+    fi
+    if ! grep -q "## Requirements" "$plan_file"; then
+      issues+=("Action plan missing Requirements section") 
+    fi
+    if ! grep -q "## Success Criteria" "$plan_file"; then
+      issues+=("Action plan missing Success Criteria section")
+    fi
+    if ! grep -q "Progress:" "$plan_file"; then
+      issues+=("Action plan missing Progress tracking")
+      auto_fixes+=("add_progress_to_plan")
+    fi
+  fi
+  
+  # 5. RULES: Check Claude interaction logging
+  echo -e "${BRIGHT_BLURPLE}💬 Checking Claude interaction compliance...${NC}"
+  
+  local interaction_dir="$action_dir/supporting_docs/claude-interactions"
+  if [ ! -d "$interaction_dir" ] || [ $(find "$interaction_dir" -name "*.md" 2>/dev/null | wc -l) -eq 0 ]; then
+    issues+=("No Claude interactions logged for $current_action")
+    auto_fixes+=("create_interaction_structure")
+  fi
+  
+  # 6. RULES: Check documentation migration for completed features
+  if [ -f "$action_dir/status.txt" ] && grep -q "Completed" "$action_dir/status.txt"; then
+    echo -e "${BRIGHT_BLURPLE}📚 Checking documentation migration for completed action...${NC}"
+    
+    # Check if documentation has been migrated to central docs
+    if [ ! -f "documentation/api/actions-completed.md" ]; then
+      auto_fixes+=("create_completed_docs")
+    fi
+  fi
+  
+  # 7. RULES: Check test compliance
+  echo -e "${BRIGHT_BLURPLE}🧪 Checking test compliance...${NC}"
+  
+  # Look for implementation files without corresponding tests
+  local impl_files=$(git status --porcelain 2>/dev/null | awk '{print $2}' | grep -E "\.(py|js|ts|jsx|tsx)$" | grep -v test | grep -v spec)
+  if [ -n "$impl_files" ]; then
+    local has_tests=false
+    for file in $impl_files; do
+      local test_file1="${file%.*}.test.${file##*.}"
+      local test_file2="${file%.*}_test.${file##*.}"
+      local test_file3="tests/$(basename "${file%.*}").test.${file##*.}"
+      if [ -f "$test_file1" ] || [ -f "$test_file2" ] || [ -f "$test_file3" ]; then
+        has_tests=true
+        break
+      fi
+    done
+    
+    if [ "$has_tests" = false ]; then
+      issues+=("Implementation files modified without corresponding tests")
+    fi
+  fi
+  
+  # Report issues and perform auto-fixes
+  if [ ${#issues[@]} -gt 0 ]; then
+    echo -e "${YELLOW}⚠ Found ${#issues[@]} RULES compliance issues:${NC}"
+    printf '  - %s\n' "${issues[@]}"
+    
+    echo -e "\n${BRIGHT_BLURPLE}🔧 Auto-fixing compliance issues...${NC}"
+    
+    # Perform auto-fixes
+    for fix in "${auto_fixes[@]}"; do
+      case $fix in
+        "create_status_file")
+          echo "ActiveAction" > "$action_dir/status.txt"
+          echo -e "${GREEN}✓ Created status file${NC}"
+          ;;
+        "create_progress_tracking")
+          cat > "$action_dir/progress.md" << PROGRESS
+# $current_action Progress
+
+## Updates
+
+$(date +"%Y-%m-%d") - Auto-created progress tracking for RULES compliance
+$(date +"%Y-%m-%d") - Action status: $(cat "$action_dir/status.txt" 2>/dev/null || echo "ActiveAction")
+
+## Timeline
+
+- $(date +"%Y-%m-%d"): Action created/reactivated
+- Next update: [Track your progress here]
+
+## Tasks
+
+- [ ] Update this file with your progress
+- [ ] Document any dependencies added  
+- [ ] Update action plan if scope changes
+- [ ] Ensure tests are written before implementation
+- [ ] Log Claude interactions as you work
+
+## Dependencies Added
+
+[Document any new dependencies here]
+
+## Documentation Migration
+
+[Track any documentation that needs to be moved to central docs]
+
+PROGRESS
+          echo -e "${GREEN}✓ Created RULES-compliant progress tracking${NC}"
+          ;;
+        "create_action_plan")
+          cat > "$action_dir/$dir_name-plan.md" << PLAN
+# ACTION: $current_action
+
+Version: 1.0
+Last Updated: $(date +"%Y-%m-%d")
+Status: ActiveAction
+Progress: 0%
+
+## Purpose
+
+[Describe the purpose of this ACTION and its value to the PROGRAM]
+
+## Requirements
+
+- [Requirement 1]
+- [Requirement 2]
+
+## Dependencies
+
+- [Document any dependencies here]
+
+## Implementation Approach
+
+### Phase 1: Research and Planning
+- [Research tasks]
+
+### Phase 2: Test Design
+- [Test specifications and cases]
+
+### Phase 3: Implementation  
+- [Implementation tasks]
+
+### Phase 4: Documentation
+- [Documentation and migration tasks]
+
+## Success Criteria
+
+- [Criterion 1: Tests pass]
+- [Criterion 2: Documentation complete]
+- [Criterion 3: Dependencies documented]
+
+## Timeline
+
+- Start: $(date +"%Y-%m-%d")
+- Target completion: [Set target date]
+
+PLAN
+          echo -e "${GREEN}✓ Created RULES-compliant action plan${NC}"
+          ;;
+        "create_interaction_structure")
+          mkdir -p "$interaction_dir"
+          cat > "$interaction_dir/README.md" << INTERACTIONS
+# Claude Interactions for $current_action
+
+This directory contains all Claude Code interactions for this action.
+
+## RULES Compliance
+
+- All Claude interactions must be logged here
+- Include purpose, date, and content for each interaction
+- Interactions help track decision-making process
+- Required for action completion verification
+
+## File Naming
+
+Use format: YYYY-MM-DD_HHMMSS-purpose.md
+
+INTERACTIONS
+          echo -e "${GREEN}✓ Created Claude interactions structure${NC}"
+          ;;
+        "update_actions_index")
+          # Add action to index if not present
+          if [ -f ".aicheck/actions_index.md" ]; then
+            if ! grep -q "$current_action" .aicheck/actions_index.md; then
+              local line_num=$(grep -n "| \*None yet\* |" .aicheck/actions_index.md | head -1 | cut -d':' -f1)
+              if [ -n "$line_num" ]; then
+                sed -i "" "${line_num}s/| \*None yet\* | | | | |/| $current_action | | ActiveAction | 0% | |\\n| \*None yet\* | | | | |/" .aicheck/actions_index.md
+                echo -e "${GREEN}✓ Updated actions index${NC}"
+              fi
+            fi
+          fi
+          ;;
+        "add_progress_to_plan")
+          if [ -f "$action_dir/$dir_name-plan.md" ] && ! grep -q "Progress:" "$action_dir/$dir_name-plan.md"; then
+            sed -i "" '/^Status:/a\
+Progress: 0%' "$action_dir/$dir_name-plan.md"
+            echo -e "${GREEN}✓ Added progress tracking to plan${NC}"
+          fi
+          ;;
+        "update_progress_timestamp")
+          echo "$(date +"%Y-%m-%d") - Progress check during cleanup validation" >> "$action_dir/progress.md"
+          echo -e "${GREEN}✓ Updated progress timestamp${NC}"
+          ;;
+        "create_completed_docs")
+          mkdir -p documentation/api
+          if [ ! -f "documentation/api/actions-completed.md" ]; then
+            cat > "documentation/api/actions-completed.md" << COMPLETED
+# Completed Actions Documentation
+
+This file tracks completed actions and their documentation migration.
+
+## Completed Actions
+
+### $current_action
+- Completion Date: $(date +"%Y-%m-%d")
+- Documentation Location: [Link to migrated docs]
+- Key Deliverables: [List main outputs]
+
+COMPLETED
+            echo -e "${GREEN}✓ Created completed actions documentation${NC}"
+          fi
+          ;;
+      esac
+    done
+    
+    # Update actions index timestamp
+    if [ -f ".aicheck/actions_index.md" ]; then
+      sed -i "" "s/\*Last Updated: .*\*/\*Last Updated: $(date +"%Y-%m-%d")\*/" .aicheck/actions_index.md
+    fi
+    
+    echo -e "${YELLOW}Manual fixes still needed:${NC}"
+    echo -e "${YELLOW}• Document dependencies: ./aicheck dependency add NAME VERSION JUSTIFICATION${NC}"
+    echo -e "${YELLOW}• Write tests before implementation (RULES requirement)${NC}"
+    echo -e "${YELLOW}• Log Claude interactions during work${NC}"
+    echo -e "${YELLOW}• Update action plan with specific requirements${NC}"
+    echo -e "${YELLOW}• Migrate documentation to central folders when action completes${NC}"
+  else
+    echo -e "${GREEN}✓ Full RULES compliance verified${NC}"
+  fi
+}
+
+# Function to optimize context for cost efficiency
+function optimize_context() {
+  local current_action=$(cat .aicheck/current_action 2>/dev/null || echo "None")
+  
+  echo -e "${BRIGHT_BLURPLE}AICheck Context Optimization${NC}"
+  echo -e "Optimizing for cost efficiency and performance..."
+  
+  # Automated optimization (no approval needed)
+  echo -e "\n${BRIGHT_BLURPLE}Performing automated optimizations...${NC}"
+  
+  # Compress old interaction logs
+  if [ -d ".aicheck" ]; then
+    find .aicheck -name "claude-interactions" -type d | while read dir; do
+      if [ $(find "$dir" -name "*.md" 2>/dev/null | wc -l) -gt 10 ]; then
+        mkdir -p "$dir/compressed"
+        # Move old interactions to compressed folder
+        find "$dir" -name "*.md" -mtime +7 | head -n -5 | while read file; do
+          mv "$file" "$dir/compressed/" 2>/dev/null || true
+        done
+      fi
+    done
+    echo -e "${GREEN}✓ Compressed old interaction logs${NC}"
+  fi
+  
+  # Generate context summary for large files
+  local summary_file=".aicheck/context-summary-$(date +%Y%m%d).md"
+  cat > "$summary_file" << SUMMARY
+# Context Summary - $(date)
+
+## Project Overview
+$(head -20 README.md 2>/dev/null || echo "No README found")
+
+## Current Action
+$(cat .aicheck/current_action 2>/dev/null || echo "None")
+
+## Active Files (Modified in last 7 days)
+$(find . -name "*.js" -o -name "*.py" -o -name "*.ts" -o -name "*.md" -mtime -7 2>/dev/null | head -20)
+
+## Key Dependencies
+$(if [ -f "package.json" ]; then jq -r '.dependencies | keys[]' package.json 2>/dev/null | head -10; fi)
+$(if [ -f "requirements.txt" ]; then head -10 requirements.txt 2>/dev/null; fi)
+
+## Recent Changes
+$(git log --oneline -10 2>/dev/null || echo "No git history")
+
+*This summary can be used instead of reading many individual files to understand project context*
+SUMMARY
+  
+  echo -e "${GREEN}✓ Generated context summary: $(basename "$summary_file")${NC}"
+  
+  # Cache frequently accessed patterns
+  local cache_file=".aicheck/pattern-cache-$(date +%Y%m%d).md"
+  cat > "$cache_file" << CACHE
+# Frequently Used Patterns Cache
+
+## Code Patterns
+$(grep -r "function\|class\|const\|def " --include="*.js" --include="*.py" --include="*.ts" . 2>/dev/null | head -20)
+
+## Import Patterns  
+$(grep -r "import\|require\|from " --include="*.js" --include="*.py" --include="*.ts" . 2>/dev/null | head -15)
+
+## Test Patterns
+$(find . -name "*test*" -o -name "*spec*" -name "*.js" -o -name "*.py" -o -name "*.ts" 2>/dev/null | head -10)
+
+*Cache generated: $(date)*
+CACHE
+  
+  echo -e "${GREEN}✓ Cached common patterns for quick reference${NC}"
+  
+  # Analyze context efficiency
+  local total_size=$(du -sh . 2>/dev/null | cut -f1)
+  local aicheck_size=$(du -sh .aicheck 2>/dev/null | cut -f1)
+  
+  echo -e "\n${BRIGHT_BLURPLE}Context Efficiency Report:${NC}"
+  echo -e "Total project size: ${GREEN}$total_size${NC}"
+  echo -e "AICheck overhead: ${GREEN}$aicheck_size${NC}"
+  echo -e "Optimization files created: ${GREEN}2${NC}"
+  
+  echo -e "\n${GREEN}✓ Context optimization completed${NC}"
+  echo -e "${BRIGHT_BLURPLE}Use context summary and pattern cache for efficient prompting${NC}"
+}
+
+# Function to automatically enforce action boundaries
+function enforce_action_boundaries() {
+  local current_action=$(cat .aicheck/current_action 2>/dev/null || echo "None")
+  
+  if [ "$current_action" = "None" ] || [ "$current_action" = "AICheckExec" ]; then
+    echo -e "${YELLOW}No active action - boundary enforcement skipped${NC}"
+    return 0
+  fi
+  
+  echo -e "${BRIGHT_BLURPLE}Enforcing boundaries for: ${GREEN}$current_action${NC}"
+  
+  local dir_name=$(echo "$current_action" | sed 's/\([a-z0-9]\)\([A-Z]\)/\1-\2/g' | tr '[:upper:]' '[:lower:]')
+  local action_dir=".aicheck/actions/$dir_name"
+  
+  # Check for scope creep indicators
+  local scope_warnings=()
+  
+  # Check if working outside action directory
+  if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+    local changed_files=$(git status --porcelain 2>/dev/null | awk '{print $2}')
+    local outside_scope=0
+    
+    for file in $changed_files; do
+      # Skip if file is in action directory or common project files
+      if [[ ! "$file" =~ ^\.aicheck/actions/$dir_name/ ]] && 
+         [[ ! "$file" =~ ^(src/|tests/|documentation/|README|\.md$) ]]; then
+        outside_scope=$((outside_scope + 1))
+      fi
+    done
+    
+    if [ "$outside_scope" -gt 0 ]; then
+      scope_warnings+=("$outside_scope files modified outside expected scope")
+    fi
+  fi
+  
+  # Check for excessive new dependencies
+  if [ -f "documentation/dependencies/dependency_index.md" ]; then
+    local recent_deps=$(grep "$(date +"%Y-%m-%d")" documentation/dependencies/dependency_index.md | grep "$current_action" | wc -l | tr -d ' ')
+    if [ "$recent_deps" -gt 3 ]; then
+      scope_warnings+=("$recent_deps new dependencies added today")
+    fi
+  fi
+  
+  # Check for multiple action modifications
+  local modified_actions=$(find .aicheck/actions -name "*.md" -newer .aicheck/current_action 2>/dev/null | grep -v "$dir_name" | wc -l | tr -d ' ')
+  if [ "$modified_actions" -gt 0 ]; then
+    scope_warnings+=("$modified_actions other actions modified during this session")
+  fi
+  
+  if [ ${#scope_warnings[@]} -gt 0 ]; then
+    echo -e "${YELLOW}⚠ Potential scope creep detected:${NC}"
+    printf '  - %s\n' "${scope_warnings[@]}"
+    echo -e "${YELLOW}Consider using './aicheck context clear' if work has drifted${NC}"
+    return 1
+  else
+    echo -e "${GREEN}✓ Action boundaries maintained${NC}"
+    return 0
+  fi
+}
+
+# Function to detect if this is a new session and auto-run stuck command
+function auto_session_start_check() {
+  # Check if this appears to be a new session by looking for recent activity
+  local session_marker=".aicheck/last_session_timestamp"
+  local current_time=$(date +%s)
+  local session_gap=3600  # 1 hour gap indicates new session
+  
+  # Create .aicheck directory if it doesn't exist
+  mkdir -p .aicheck
+  
+  # Check if we have a previous session timestamp
+  if [ -f "$session_marker" ]; then
+    local last_session=$(cat "$session_marker" 2>/dev/null || echo "0")
+    local time_diff=$((current_time - last_session))
+    
+    if [ "$time_diff" -gt "$session_gap" ]; then
+      echo -e "${BRIGHT_BLURPLE}🆕 New session detected (${time_diff}s gap)${NC}"
+      echo -e "${BRIGHT_BLURPLE}🤖 Auto-running session startup checks...${NC}"
+      
+      # Update session timestamp
+      echo "$current_time" > "$session_marker"
+      
+      # Run stuck command logic without the full UI (simplified for robustness)
+      echo -e "${YELLOW}Session Summary:${NC}"
+      local current_action=$(cat .aicheck/current_action 2>/dev/null || echo "None")
+      echo -e "Current Action: ${GREEN}$current_action${NC}"
+      
+      # Check for basic issues (simplified)
+      local pollution_score=0
+      if [ -d ".aicheck/actions" ]; then
+        local active_count=$(find .aicheck/actions -name "status.txt" -exec grep -l "ActiveAction" {} \; 2>/dev/null | wc -l | tr -d ' ')
+        if [ "$active_count" -gt 1 ]; then
+          pollution_score=30
+        fi
+      fi
+      
+      if [ "$pollution_score" -gt 30 ]; then
+        echo -e "${YELLOW}⚠ Context pollution detected${NC}"
+        echo -e "${YELLOW}Consider running './aicheck cleanup' before starting work${NC}"
+      fi
+      
+      echo -e "${GREEN}✓ Session startup complete${NC}"
+      return 0
+    fi
+  fi
+  
+  # Update session timestamp for normal commands
+  echo "$current_time" > "$session_marker"
+  return 1
+}
+
+# Function to auto-run focus check before new actions
+function auto_focus_check() {
+  echo -e "${BRIGHT_BLURPLE}🤖 Auto-checking focus before creating new action...${NC}"
+  
+  # Check if there's an active action
+  local current_action=$(cat .aicheck/current_action 2>/dev/null || echo "None")
+  if [ "$current_action" != "None" ] && [ "$current_action" != "AICheckExec" ]; then
+    echo -e "${YELLOW}⚠ You have an active action: $current_action${NC}"
+    
+    # Auto-check boundaries
+    if ! enforce_action_boundaries >/dev/null 2>&1; then
+      echo -e "${YELLOW}🎯 Scope creep detected in current action!${NC}"
+      echo -e "${YELLOW}Consider completing '$current_action' first or running './aicheck focus' for details${NC}"
+      echo -e "${YELLOW}Continue creating new action anyway? (y/n)${NC}"
+      read -r continue_anyway
+      
+      if [[ $continue_anyway != "y" && $continue_anyway != "Y" ]]; then
+        echo -e "${YELLOW}Action creation cancelled. Fix current action first.${NC}"
+        return 1
+      fi
+    else
+      echo -e "${GREEN}✓ Current action boundaries look good${NC}"
+    fi
+  fi
+  
+  # Check context pollution
+  local pollution_data=$(detect_context_pollution)
+  local pollution_score=$(echo "$pollution_data" | head -1)
+  
+  if [ "$pollution_score" -gt 30 ]; then
+    echo -e "${YELLOW}⚠ Context pollution detected (score: $pollution_score)${NC}"
+    echo -e "${YELLOW}Recommend running './aicheck cleanup' before starting new work${NC}"
+    echo -e "${YELLOW}Continue anyway? (y/n)${NC}"
+    read -r continue_anyway
+    
+    if [[ $continue_anyway != "y" && $continue_anyway != "Y" ]]; then
+      echo -e "${YELLOW}Action creation cancelled. Clean up context first.${NC}"
+      return 1
+    fi
+  fi
+  
+  echo -e "${GREEN}✓ Focus check passed${NC}"
+  return 0
+}
+
 # Function to create a new action
 function create_action() {
   local action_name=$1
@@ -185,6 +1061,11 @@ function create_action() {
     echo -e "${RED}Error: Action name is required${NC}"
     echo "Usage: ./aicheck action new ACTION_NAME"
     exit 1
+  fi
+  
+  # Auto-run focus check before creating action
+  if ! auto_focus_check; then
+    return 1
   fi
   
   # Convert PascalCase to kebab-case for directories (compatible with macOS)
@@ -610,8 +1491,8 @@ EODOC2
   fi
   
   # Check if both actions exist
-  local dep_dir_name=$(echo "$dep_action" | sed -r 's/([a-z0-9])([A-Z])/\1-\2/g' | tr '[:upper:]' '[:lower:]')
-  local action_dir_name=$(echo "$action" | sed -r 's/([a-z0-9])([A-Z])/\1-\2/g' | tr '[:upper:]' '[:lower:]')
+  local dep_dir_name=$(echo "$dep_action" | sed 's/\([a-z0-9]\)\([A-Z]\)/\1-\2/g' | tr '[:upper:]' '[:lower:]')
+  local action_dir_name=$(echo "$action" | sed 's/\([a-z0-9]\)\([A-Z]\)/\1-\2/g' | tr '[:upper:]' '[:lower:]')
   
   if [ ! -d ".aicheck/actions/$dep_dir_name" ]; then
     echo -e "${YELLOW}Warning: Dependency action '$dep_action' does not exist.${NC}"
@@ -654,7 +1535,7 @@ function show_status() {
   
   if [ "$current_action" != "None" ] && [ "$current_action" != "AICheckExec" ]; then
     # Convert PascalCase to kebab-case for directories
-    local dir_name=$(echo "$current_action" | sed -r 's/([a-z0-9])([A-Z])/\1-\2/g' | tr '[:upper:]' '[:lower:]')
+    local dir_name=$(echo "$current_action" | sed 's/\([a-z0-9]\)\([A-Z]\)/\1-\2/g' | tr '[:upper:]' '[:lower:]')
     
     if [ -d ".aicheck/actions/$dir_name" ]; then
       local status=$(cat ".aicheck/actions/$dir_name/status.txt" 2>/dev/null || echo "Unknown")
@@ -692,6 +1573,25 @@ function show_status() {
     echo "No action index found"
   fi
   
+  # Show context pollution analysis
+  echo -e "\nContext Health:"
+  pollution_data=$(detect_context_pollution)
+  pollution_score=$(echo "$pollution_data" | head -1)
+  warnings=$(echo "$pollution_data" | tail -n +2)
+  
+  if [ "$pollution_score" -le 20 ]; then
+    echo -e "Pollution score: ${GREEN}$pollution_score/100 (Clean)${NC}"
+  elif [ "$pollution_score" -le 50 ]; then
+    echo -e "Pollution score: ${YELLOW}$pollution_score/100 (Moderate)${NC}"
+  else
+    echo -e "Pollution score: ${RED}$pollution_score/100 (High)${NC}"
+    echo -e "${YELLOW}Consider running './aicheck context clear'${NC}"
+  fi
+  
+  if [ -n "$warnings" ] && [ "$warnings" != "WARNINGS:" ]; then
+    echo -e "${YELLOW}$warnings${NC}"
+  fi
+  
   # Show git status if in a git repo
   if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
     echo -e "\nGit Status:"
@@ -699,7 +1599,20 @@ function show_status() {
     echo -e "Changes: $(git status --porcelain 2>/dev/null | wc -l | tr -d ' ')"
     echo -e "Last commit: $(git log -1 --oneline 2>/dev/null || echo "No commits yet")"
   fi
+  
+  # Automatically check boundaries if there's an active action
+  if [ "$current_action" != "None" ] && [ "$current_action" != "AICheckExec" ]; then
+    echo -e "\nBoundary Check:"
+    if enforce_action_boundaries >/dev/null 2>&1; then
+      echo -e "${GREEN}✓ Action boundaries maintained${NC}"
+    else
+      echo -e "${YELLOW}⚠ Potential scope creep detected - run './aicheck context check' for details${NC}"
+    fi
+  fi
 }
+
+# Auto-detect new sessions and run startup checks
+# auto_session_start_check  # Temporarily disabled for testing
 
 # Main command handling
 case "$CMD" in
@@ -734,6 +1647,42 @@ case "$CMD" in
         ;;
     esac
     ;;
+  "context")
+    case "$1" in
+      "clear")
+        clear_context "$2"
+        ;;
+      "compact")
+        compact_context
+        ;;
+      "check")
+        enforce_action_boundaries
+        ;;
+      "pollution")
+        echo -e "${BRIGHT_BLURPLE}Context Pollution Analysis${NC}"
+        pollution_data=$(detect_context_pollution)
+        pollution_score=$(echo "$pollution_data" | head -1)
+        warnings=$(echo "$pollution_data" | tail -n +2)
+        echo -e "Pollution score: ${GREEN}$pollution_score/100${NC}"
+        if [ -n "$warnings" ]; then
+          echo -e "${YELLOW}$warnings${NC}"
+        fi
+        if [ "$pollution_score" -gt 30 ]; then
+          echo -e "${YELLOW}Consider running './aicheck context clear' or './aicheck context compact'${NC}"
+        fi
+        ;;
+      "cost"|"usage")
+        analyze_usage_costs
+        ;;
+      "optimize")
+        optimize_context
+        ;;
+      *)
+        echo -e "${RED}Unknown context command: $1${NC}"
+        echo "Available commands: clear [--force], compact, check, pollution, cost, optimize"
+        ;;
+    esac
+    ;;
   "exec")
     exec_mode
     ;;
@@ -763,8 +1712,47 @@ case "$CMD" in
   "version"|"--version")
     show_version
     ;;
+  "reset"|"clear")
+    echo -e "${BRIGHT_BLURPLE}🧹 Cleaning up when things get messy...${NC}"
+    clear_context
+    ;;
+  "focus"|"boundaries"|"scope")
+    echo -e "${BRIGHT_BLURPLE}🎯 Checking if you're staying on track...${NC}"
+    enforce_action_boundaries
+    ;;
+  "cleanup"|"tidy"|"optimize")
+    echo -e "${BRIGHT_BLURPLE}🗂️ Tidying up old files and logs...${NC}"
+    
+    # Try auto-cleanup first (detects recent commits)
+    if ! auto_post_commit_cleanup; then
+      # Manual cleanup - still run validation
+      optimize_context
+      validate_action_completeness
+    fi
+    ;;
+  "usage"|"cost"|"budget")
+    echo -e "${BRIGHT_BLURPLE}📊 Checking Claude Code usage...${NC}"
+    analyze_usage_costs
+    ;;
+  "stuck"|"help"|"lost")
+    echo -e "${BRIGHT_BLURPLE}🆘 Getting you unstuck!${NC}"
+    echo -e ""
+    echo -e "${GREEN}Here's what's happening:${NC}"
+    show_status
+    echo -e ""
+    echo -e "${BRIGHT_BLURPLE}💡 Quick fixes:${NC}"
+    echo -e "${YELLOW}• Run ${GREEN}./aicheck focus${YELLOW} to check scope creep${NC}"
+    echo -e "${YELLOW}• Run ${GREEN}./aicheck cleanup${YELLOW} to reduce context size${NC}"
+    echo -e "${YELLOW}• Run ${GREEN}./aicheck reset${YELLOW} if really confused${NC}"
+    echo -e "${YELLOW}• Use templates in ${GREEN}.aicheck/templates/claude/${YELLOW} for common patterns${NC}"
+    ;;
   *)
-    echo -e "${RED}Unknown command: $CMD${NC}"
-    echo "Available commands: action, dependency, exec, status, update, version"
+    echo -e "${RED}❌ Unknown command: $CMD${NC}"
+    echo -e ""
+    echo -e "${BRIGHT_BLURPLE}Try these instead:${NC}"
+    echo -e "  ${GREEN}./aicheck stuck${NC}     - Get help and see what's happening"
+    echo -e "  ${GREEN}./aicheck focus${NC}     - Check if you're on track"
+    echo -e "  ${GREEN}./aicheck cleanup${NC}   - Clean up files and optimize"
+    echo -e "  ${GREEN}./aicheck version${NC}   - See all available commands"
     ;;
 esac

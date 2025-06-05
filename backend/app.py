@@ -34,6 +34,7 @@ from backend.routes.document_routes import document_router
 
 # Import routes
 from backend.routes.health_routes import router as health_router
+from backend.routes.health import health_router as api_health_router
 from backend.routes.llm_routes import llm_router
 from backend.routes.metrics import metrics_router
 from backend.routes.oauth_routes import oauth_router
@@ -219,8 +220,7 @@ else:
 # Register exception handlers
 register_exception_handlers(app)
 
-# Add error handling middleware
-app.middleware("http")(error_handling_middleware)
+# Note: error_handling_middleware will be added as the last middleware to catch all errors
 
 # Set up security middleware
 if Config.ENVIRONMENT == "production":
@@ -283,10 +283,15 @@ app.middleware("http")(rate_limit_middleware)
 setup_monitoring(app)
 setup_metrics(app)
 
+# Add error handling middleware as the LAST middleware (executes first due to reverse order)
+# This ensures it catches errors from all other middleware
+app.middleware("http")(error_handling_middleware)
+
 # --- END ADDED ROUTE --- #
 
 # Include routers
 app.include_router(health_router)  # Health router should be at root level
+app.include_router(api_health_router)  # API health endpoints (already have /api prefix)
 app.include_router(metrics_router, prefix="/api")
 app.include_router(document_router, prefix="/api")
 app.include_router(
