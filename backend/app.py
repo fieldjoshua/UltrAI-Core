@@ -38,7 +38,7 @@ from backend.routes.health import health_router as api_health_router
 from backend.routes.llm_routes import llm_router
 from backend.routes.metrics import metrics_router
 from backend.routes.oauth_routes import oauth_router
-from backend.routes.orchestrator_routes import orchestrator_router
+from backend.routes.orchestrator_routes_fixed import orchestrator_router
 from backend.routes.pricing_routes import pricing_router
 # from backend.routes.recovery_routes import router as recovery_router
 # from backend.routes.resilient_orchestrator_routes import resilient_orchestrator_router
