@@ -38,9 +38,13 @@ from backend.routes.health import health_router as api_health_router
 from backend.routes.llm_routes import llm_router
 from backend.routes.metrics import metrics_router
 from backend.routes.oauth_routes import oauth_router
+
 # Orchestrator routes - minimal implementation
-from backend.routes.orchestrator_minimal import router as orchestrator_router  # Basic/Minimal orchestrator
+from backend.routes.orchestrator_minimal import (
+    router as orchestrator_router,
+)  # Basic/Minimal orchestrator
 from backend.routes.pricing_routes import pricing_router
+
 # from backend.routes.recovery_routes import router as recovery_router
 # from backend.routes.resilient_orchestrator_routes import resilient_orchestrator_router
 from backend.routes.user_routes import user_router
@@ -241,9 +245,13 @@ else:
 # Configure CSRF middleware with orchestrator exemptions for demo access
 csrf_exempt_paths = [
     "/api/auth/login",
-    "/api/auth/register", 
+    "/api/auth/register",
     "/api/auth/refresh",
-    # "/api/orchestrator/",  # REMOVED - orchestrator doesn't work
+    "/api/auth/reset-password-request",
+    "/api/auth/reset-password",
+    "/api/upload",  # File uploads handled differently
+    "/api/ws",  # WebSockets
+    "/api/orchestrator",  # Exempt orchestrator for testing/API access
 ]
 setup_csrf_middleware(app, exempt_paths=csrf_exempt_paths)
 setup_validation_middleware(app)
@@ -255,16 +263,15 @@ if Config.ENABLE_AUTH:
         "/api/auth/",
         "/health",
         "/ping",
-        "/metrics", 
+        "/metrics",
         "/api/docs",
         "/api/redoc",
         "/api/openapi.json",
         "/api/debug/",
         "/favicon.ico",
-        "/assets/",            # Enable access to frontend assets (CSS, JS)
-        # "/api/orchestrator/",  # REMOVED - orchestrator doesn't work
-        # "/orchestrator",       # REMOVED - orchestrator doesn't work
-        "/",                   # Enable access to main page and frontend routes
+        "/assets/",  # Enable access to frontend assets (CSS, JS)
+        "/api/orchestrator/",
+        "/",  # Enable access to main page and frontend routes
     ]
     setup_auth_middleware(app, public_paths=public_paths)
     setup_api_key_middleware(app, public_paths=public_paths)
@@ -320,33 +327,38 @@ app.include_router(debug_router, prefix="/api")  # Debug routes for troubleshoot
 static_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "static")
 if os.path.exists(static_path):
     from fastapi.responses import FileResponse
-    
+
     @app.get("/{path:path}")
     async def serve_spa(path: str):
         """Serve React SPA - return index.html for all non-API routes"""
         # Don't interfere with API routes
-        if path.startswith("api/") or path.startswith("health") or path.startswith("ping") or path.startswith("metrics"):
+        if (
+            path.startswith("api/")
+            or path.startswith("health")
+            or path.startswith("ping")
+            or path.startswith("metrics")
+        ):
             raise HTTPException(status_code=404, detail="Not Found")
-        
+
         # Serve actual files if they exist (CSS, JS, images, etc.)
         file_path = os.path.join(static_path, path)
         if os.path.isfile(file_path):
             # Set proper MIME types for static assets
-            if path.endswith('.css'):
+            if path.endswith(".css"):
                 return FileResponse(file_path, media_type="text/css")
-            elif path.endswith('.js'):
+            elif path.endswith(".js"):
                 return FileResponse(file_path, media_type="application/javascript")
-            elif path.endswith('.svg'):
+            elif path.endswith(".svg"):
                 return FileResponse(file_path, media_type="image/svg+xml")
-            elif path.endswith('.ico'):
+            elif path.endswith(".ico"):
                 return FileResponse(file_path, media_type="image/x-icon")
             else:
                 return FileResponse(file_path)
-        
+
         # For all other routes, serve index.html (React Router will handle routing)
         index_path = os.path.join(static_path, "index.html")
         return FileResponse(index_path)
-    
+
     logger.info(f"✅ React SPA routing configured for: {static_path}")
 else:
     logger.warning(f"⚠️ Static directory not found: {static_path}")

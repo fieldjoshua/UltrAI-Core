@@ -1,0 +1,77 @@
+# Action Configuration File - Companion to Traditional AICheck Files
+# This file provides machine-readable action tracking while preserving existing workflows
+
+version: "1.0"
+
+action:
+  name: ACTION_NAME  # PascalCase action name
+  status: not_started  # not_started | in_progress | deployed | verified | completed | blocked
+  created: YYYY-MM-DD
+  completed: null  # Set when action is completed
+  
+# References to traditional AICheck files (not replacements)
+files:
+  plan: ACTION_NAME-plan.md      # Traditional plan file (source of truth)
+  todo: todo.md                  # Claude's native todo file (managed by TodoRead/TodoWrite)
+  progress: progress.md          # Traditional progress tracking
+  
+# Core action plan (summary of plan.md)
+plan:
+  purpose: |
+    Brief description of the action's purpose
+    This is a summary - full details in plan.md
+  success_criteria:
+    - "Criterion 1 from plan.md"
+    - "Criterion 2 from plan.md"
+    - "Add all criteria that can be verified"
+    
+# Task tracking (summary only - todo.md is source of truth)
+task_summary:
+  total: 0        # Total tasks in todo.md
+  completed: 0    # Completed tasks in todo.md
+  in_progress: 0  # Tasks currently being worked on
+  source: todo.md # Indicates Claude manages the actual tasks
+  
+# Deployment configuration (new capability)
+deployment:
+  required: true  # Does this action require deployment verification?
+  environments:
+    production:
+      url: https://example.com
+      last_deployed: null
+      verified: false
+      test_command: "python verify_deployment.py"  # Script to verify deployment
+      verification_results: null  # Populated by aicheck deploy verify
+      
+# Dependency tracking (synced with dependency_index.md)
+dependencies:
+  external:
+    - name: package-name
+      version: "1.0.0"
+      justification: "Required for X functionality"
+  internal:
+    - action: prerequisite-action-name
+      type: prerequisite  # prerequisite | blocks | related
+      description: "This action depends on completion of X"
+      
+# Issue tracking (new capability)
+issues:
+  - id: issue-001
+    desc: "Description of discovered issue"
+    severity: medium  # low | medium | high | critical
+    status: open      # open | in_progress | resolved
+    discovered: YYYY-MM-DD
+    resolved: null
+    resolution: null  # How it was resolved
+    
+# Sync metadata (for automation)
+sync:
+  last_synced: YYYY-MM-DD HH:MM:SS
+  sync_direction: bidirectional  # bidirectional | yaml-to-files | files-to-yaml
+  conflicts: []  # Any sync conflicts logged here
+  
+# Notes (additional context not in other files)
+notes: |
+  Any additional context or important information
+  that doesn't fit in the structured fields above.
+  This supplements, not replaces, traditional documentation.
