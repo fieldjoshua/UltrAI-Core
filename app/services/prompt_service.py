@@ -1,88 +1,186 @@
 """
 Prompt Service Module
 
-This module provides the service layer for handling prompt submission and processing.
+This module provides template management and prompt processing services.
 """
 
-import asyncio
-import logging
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional
+from dataclasses import dataclass, field
+from datetime import datetime
+import json
+import markdown
 
-from app.models.enhanced_orchestrator import (
-    EnhancedOrchestrator,
-    OrchestratorConfig,
-)
-from app.models.llm_models import (
-    AnalysisOption,
-    ModelPrediction,
-    OutputFormat,
-    ProcessPromptRequest,
-    PromptResult,
-    PromptStreamUpdate,
-)
-from app.services.llm_config_service import LLMConfigService
+from app.services.model_registry import ModelRegistry
+from app.services.orchestration_service import OrchestrationService
+from app.utils.logging import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger("prompt_service")
 
 
-class AsyncIterator:
-    """Type hint for async iterators."""
+@dataclass
+class Template:
+    """A prompt template with variables and metadata."""
 
-    async def __aiter__(self):
-        pass
+    name: str
+    description: str
+    template: str
+    variables: List[str]
+    version: str = "1.0.0"
+    created_at: datetime = field(default_factory=datetime.now)
+    updated_at: datetime = field(default_factory=datetime.now)
+    metadata: Dict[str, Any] = field(default_factory=dict)
 
-    async def __anext__(self):
-        pass
+
+@dataclass
+class PromptRequest:
+    """A request to process a prompt."""
+
+    template_name: str
+    variables: Dict[str, Any]
+    models: List[str]
+    options: Dict[str, Any] = field(default_factory=dict)
+    format: str = "markdown"
 
 
 class PromptService:
-    """Service for handling prompt submission and processing"""
+    """Service for managing prompt templates and processing prompts."""
 
-    def __init__(self, llm_config_service: LLMConfigService):
+    def __init__(
+        self, model_registry: ModelRegistry, orchestration_service: OrchestrationService
+    ):
         """Initialize the prompt service.
 
         Args:
-            llm_config_service: Service for managing LLM configuration
+            model_registry: The model registry service
+            orchestration_service: The orchestration service
         """
-        self.llm_config_service = llm_config_service
-        self.orchestrators: Dict[str, EnhancedOrchestrator] = {}
-        self._initialize_orchestrators()
+        self.model_registry = model_registry
+        self.orchestration_service = orchestration_service
+        self._templates: Dict[str, Template] = {}
+        self._initialize_default_templates()
 
-    def _initialize_orchestrators(self) -> None:
-        """Initialize the orchestrators for different analysis modes."""
-        # Get analysis modes from config service
-        analysis_modes = self.llm_config_service.get_modes()
+    def _initialize_default_templates(self) -> None:
+        """Initialize default prompt templates."""
+        default_templates = {
+            "analysis": Template(
+                name="analysis",
+                description="Standard analysis template",
+                template="""Analyze the following content:
 
-        for mode in analysis_modes:
-            # Create orchestrator config based on mode settings
-            config = OrchestratorConfig(
-                default_pattern=mode["pattern"],
-                parallel_processing=True,
-                circuit_breaker_enabled=True,
-                collect_metrics=True,
-                max_retries=3,
-                retry_base_delay=0.5,
-                recovery_timeout=int(mode["timeout"] or 30.0),
-            )
-            self.orchestrators[mode["name"]] = EnhancedOrchestrator(config)
+{content}
 
-            # Register available models with the orchestrator
-            models_dict = self.llm_config_service.get_available_models()
-            for model_name, model in models_dict.items():
-                if model.get("available", False) and model.get("status", "") == "ready":
-                    # Mock API key for testing
-                    api_key = "sk_test_mock_key"
+Consider these aspects:
+- Key points and insights
+- Potential implications
+- Recommendations
+- Areas for further investigation
 
-                    # Register the model with the orchestrator
-                    self.orchestrators[mode["name"]].register_model(
-                        name=model_name,
-                        api_key=api_key,  # Use mock API key
-                        provider=model.get("provider", ""),
-                        model=model.get("model", ""),
-                        weight=model.get("weight", 1.0),
-                    )
+Additional context:
+{context}""",
+                variables=["content", "context"],
+            ),
+            "comparison": Template(
+                name="comparison",
+                description="Comparison analysis template",
+                template="""Compare and contrast the following items:
 
-    def _format_output(self, content: str, format_type: OutputFormat) -> str:
+{items}
+
+Consider these aspects:
+- Similarities
+- Differences
+- Relative strengths
+- Relative weaknesses
+- Recommendations
+
+Context:
+{context}""",
+                variables=["items", "context"],
+            ),
+            "evaluation": Template(
+                name="evaluation",
+                description="Evaluation template",
+                template="""Evaluate the following:
+
+{subject}
+
+Use these criteria:
+{criteria}
+
+Consider:
+- Strengths
+- Weaknesses
+- Opportunities
+- Threats
+- Recommendations
+
+Context:
+{context}""",
+                variables=["subject", "criteria", "context"],
+            ),
+        }
+        self._templates.update(default_templates)
+
+    def register_template(self, template: Template) -> None:
+        """Register a new prompt template.
+
+        Args:
+            template: The template to register
+        """
+        if template.name in self._templates:
+            raise ValueError(f"Template {template.name} already exists")
+
+        self._templates[template.name] = template
+        logger.info(f"Registered template: {template.name}")
+
+    def get_template(self, name: str) -> Optional[Template]:
+        """Get a template by name.
+
+        Args:
+            name: The template name
+
+        Returns:
+            Optional[Template]: The template if found
+        """
+        return self._templates.get(name)
+
+    def list_templates(self) -> List[Dict[str, Any]]:
+        """List all registered templates.
+
+        Returns:
+            List[Dict[str, Any]]: List of template information
+        """
+        return [
+            {
+                "name": template.name,
+                "description": template.description,
+                "version": template.version,
+                "variables": template.variables,
+                "created_at": template.created_at,
+                "updated_at": template.updated_at,
+            }
+            for template in self._templates.values()
+        ]
+
+    def update_template(self, name: str, updates: Dict[str, Any]) -> None:
+        """Update a template's configuration.
+
+        Args:
+            name: Name of the template to update
+            updates: Dictionary of updates to apply
+        """
+        if name not in self._templates:
+            raise ValueError(f"Template {name} not found")
+
+        template = self._templates[name]
+        for key, value in updates.items():
+            if hasattr(template, key):
+                setattr(template, key, value)
+
+        template.updated_at = datetime.now()
+        logger.info(f"Updated template: {name}")
+
+    def _format_output(self, content: str, format_type: str) -> str:
         """Format the output according to the requested format.
 
         Args:
@@ -90,538 +188,85 @@ class PromptService:
             format_type: The requested output format
 
         Returns:
-            Formatted content
+            str: Formatted content
         """
-        if format_type == OutputFormat.PLAIN:
+        if format_type == "plain":
             # Strip markdown formatting
-            # This is a simple implementation, a more robust one would be needed in production
             lines = content.split("\n")
             result = []
             for line in lines:
                 if line.startswith("#"):
-                    # Remove heading markers
                     result.append(line.lstrip("# "))
                 elif line.startswith("```"):
-                    # Skip code block markers
                     continue
                 elif line.startswith("- "):
-                    # Convert list items
                     result.append(line[2:])
                 else:
-                    # Keep other lines as is
                     result.append(line)
             return "\n".join(result)
 
-        elif format_type == OutputFormat.HTML:
-            # Convert markdown to HTML
-            # A proper markdown to HTML converter should be used in production
-            import markdown
-
+        elif format_type == "html":
             return markdown.markdown(content)
 
-        elif format_type == OutputFormat.JSON:
-            # Return content as a JSON string
-            import json
-
+        elif format_type == "json":
             return json.dumps({"content": content})
 
-        # Default is markdown - return as is
+        # Default is markdown
         return content
 
-    def _apply_analysis_options(
-        self, prompt: str, options: List[AnalysisOption]
-    ) -> str:
-        """Apply analysis options to the prompt.
+    def _render_template(self, template: Template, variables: Dict[str, Any]) -> str:
+        """Render a template with the provided variables.
 
         Args:
-            prompt: The original prompt
-            options: The analysis options to apply
+            template: The template to render
+            variables: The variables to use
 
         Returns:
-            Modified prompt with instructions based on options
+            str: The rendered template
         """
-        if not options:
-            return prompt
+        # Validate all required variables are provided
+        missing_vars = [var for var in template.variables if var not in variables]
+        if missing_vars:
+            raise ValueError(f"Missing required variables: {', '.join(missing_vars)}")
 
-        additional_instructions = []
+        # Render the template
+        try:
+            return template.template.format(**variables)
+        except KeyError as e:
+            raise ValueError(f"Invalid variable in template: {str(e)}")
 
-        if AnalysisOption.DETAILED in options:
-            additional_instructions.append("Provide a detailed analysis.")
-
-        if AnalysisOption.BULLET_POINTS in options:
-            additional_instructions.append("Format key points as bullet points.")
-
-        if AnalysisOption.EXAMPLES in options:
-            additional_instructions.append("Include relevant examples.")
-
-        if AnalysisOption.CITATIONS in options:
-            additional_instructions.append("Include citations where appropriate.")
-
-        if AnalysisOption.SUMMARY in options:
-            additional_instructions.append("Include a brief summary at the beginning.")
-
-        if AnalysisOption.CODE_BLOCKS in options:
-            instructions = "Include code examples in code blocks where relevant."
-            additional_instructions.append(instructions)
-
-        if additional_instructions:
-            instructions_text = "\n\nAdditional instructions:\n" + "\n".join(
-                f"- {instr}" for instr in additional_instructions
-            )
-            return prompt + instructions_text
-
-        return prompt
-
-    async def process_prompt(
-        self, request: ProcessPromptRequest
-    ) -> Union[PromptResult, AsyncIterator]:
-        """Process a prompt with the specified models and analysis mode.
+    async def process_prompt(self, request: PromptRequest) -> Dict[str, Any]:
+        """Process a prompt using the specified template and models.
 
         Args:
             request: The prompt processing request
 
         Returns:
-            A PromptResult object or an async generator of PromptStreamUpdate objects
+            Dict[str, Any]: The processing results
         """
-        logger.debug(
-            f"Processing prompt request: {request.dict(exclude={'api_key'})}"
-        )  # Log request safely
+        # Get the template
+        template = self.get_template(request.template_name)
+        if not template:
+            raise ValueError(f"Template {request.template_name} not found")
 
-        # Determine which analysis mode to use
-        analysis_mode = request.analysis_mode
-        if analysis_mode not in self.orchestrators:
-            logger.warning(
-                f"Requested analysis mode '{request.analysis_mode}' not found. Using 'standard'."
-            )
-            analysis_mode = "standard"
+        # Render the template
+        prompt = self._render_template(template, request.variables)
 
-        # Get the corresponding orchestrator
-        orchestrator = self.orchestrators[analysis_mode]
-        logger.debug(f"Using orchestrator for mode: {analysis_mode}")
-        logger.debug(f"Orchestrator initial models: {list(orchestrator.models.keys())}")
-
-        # Apply analysis options to the prompt
-        enhanced_prompt = self._apply_analysis_options(request.prompt, request.options)
-
-        # Override the pattern if specified
-        if request.pattern:
-            pattern = request.pattern
-            available_patterns = (
-                self.llm_config_service.get_available_analysis_patterns()
-            )
-            if pattern not in available_patterns:
-                logger.warning(
-                    f"Requested pattern '{pattern}' not found. Using default pattern."
-                )
-                pattern = orchestrator.config.analysis_pattern
-        else:
-            pattern = orchestrator.config.analysis_pattern
-        logger.debug(f"Using analysis pattern: {pattern}")
-
-        # Filter the models if specific ones are requested
-        if request.selected_models:
-            logger.debug(
-                f"Filtering models based on request: {request.selected_models}"
-            )
-            initial_model_count = len(orchestrator.models)
-            models_to_process = {
-                name: model
-                for name, model in orchestrator.models.items()
-                if name in request.selected_models
-            }
-            # Temporarily update orchestrator models for this request
-            original_models = orchestrator.models
-            orchestrator.models = models_to_process
-            logger.debug(
-                f"Models remaining after filtering: {list(orchestrator.models.keys())}"
-            )
-
-            if not orchestrator.models:
-                logger.error(
-                    "ValueError: No valid models selected for processing after filtering."
-                )
-                # Restore original models before raising
-                orchestrator.models = original_models
-                raise ValueError("No valid models selected for processing")
-        else:
-            logger.debug(
-                "No specific models requested, using all available models for the orchestrator."
-            )
-            # Ensure we restore original models if no filtering happened but we modified it before
-            # This scenario shouldn't happen with current logic, but good practice
-            if "original_models" in locals():
-                orchestrator.models = original_models
-
-        # Set max tokens if specified
-        max_tokens = request.max_tokens
-
-        # Process with streaming if requested
-        if request.stream:
-            return self._stream_process(
-                orchestrator=orchestrator,
-                prompt=enhanced_prompt,
-                pattern=pattern,
-                max_tokens=max_tokens,
-            )
-
-        # Process without streaming
-        logger.debug(
-            f"Calling orchestrator.process for prompt: '{enhanced_prompt[:100]}...'"
-        )
-        start_time = asyncio.get_event_loop().time()
-        try:
-            result = await orchestrator.process(
-                prompt=enhanced_prompt,
-                pattern=pattern,
-                max_tokens=max_tokens,
-            )
-            logger.debug(f"Orchestrator process result: {result}")  # Log the raw result
-        except Exception as e:
-            logger.error(f"Error during orchestrator.process: {str(e)}", exc_info=True)
-            # Restore original models in case of error during processing
-            if "original_models" in locals():
-                orchestrator.models = original_models
-            raise  # Re-raise the exception to be caught by the route handler
-        finally:
-            # Always restore the original models list for the orchestrator instance
-            if "original_models" in locals():
-                orchestrator.models = original_models
-
-        end_time = asyncio.get_event_loop().time()
-        logger.debug(
-            f"Orchestrator processing took {end_time - start_time:.2f} seconds."
+        # Process the prompt through the orchestration service
+        result = await self.orchestration_service.run_pipeline(
+            input_data=prompt, options=request.options
         )
 
-        # Format the result
-        formatted_result = self._format_output(result.response, request.output_format)
+        # Format the output
+        formatted_output = self._format_output(str(result), request.format)
 
-        # Create model predictions
-        model_predictions = {}
-        total_tokens = 0
-
-        for model_name, response in result.model_responses.items():
-            tokens = response.get("tokens_used", 0)
-            total_tokens += tokens
-
-            model_predictions[model_name] = ModelPrediction(
-                model=model_name,
-                content=response.get("content", ""),
-                tokens_used=tokens,
-                processing_time=response.get("processing_time", 0.0),
-                quality_score=response.get("quality_score"),
-            )
-
-        # Build the final result
-        return PromptResult(
-            prompt=request.prompt,
-            ultra_response=formatted_result,
-            model_responses=model_predictions,
-            total_processing_time=end_time - start_time,
-            total_tokens=total_tokens,
-            pattern_used=pattern,
-            analysis_mode=analysis_mode,
-        )
-
-    async def _stream_process(
-        self,
-        orchestrator: EnhancedOrchestrator,
-        prompt: str,
-        pattern: str,
-        max_tokens: Optional[int] = None,
-    ) -> AsyncIterator:
-        """Process a prompt with streaming updates.
-
-        Args:
-            orchestrator: The orchestrator to use
-            prompt: The prompt to process
-            pattern: The pattern to use
-            max_tokens: Maximum tokens to generate (optional)
-
-        Yields:
-            PromptStreamUpdate objects
-        """
-        async for update in orchestrator.stream_process(
-            prompt=prompt,
-            pattern=pattern,
-            max_tokens=max_tokens,
-        ):
-            yield PromptStreamUpdate(
-                model=update.get("model", "unknown"),
-                content=update.get("content", ""),
-                done=update.get("done", False),
-                stage=update.get("stage", "processing"),
-                progress=update.get("progress", 0.0),
-            )
-
-    async def get_analysis_progress(self, analysis_id: str) -> Dict[str, Any]:
-        """Get the progress of a multi-stage analysis.
-
-        Args:
-            analysis_id: The ID of the analysis to track
-
-        Returns:
-            Progress information including current stage and completion status
-        """
-        try:
-            # Get the orchestrator that's handling this analysis
-            orchestrator = self._get_orchestrator_for_analysis(analysis_id)
-            if not orchestrator:
-                return None
-
-            # Get progress from the orchestrator
-            progress = await orchestrator.get_progress(analysis_id)
-
-            return {
-                "status": progress.status,
-                "current_stage": progress.current_stage,
-                "stages": {
-                    stage_name: {"status": stage.status, "progress": stage.progress}
-                    for stage_name, stage in progress.stages.items()
-                },
-            }
-        except Exception as e:
-            logger.error(f"Error getting analysis progress: {str(e)}")
-            return None
-
-    def _get_orchestrator_for_analysis(
-        self, analysis_id: str
-    ) -> Optional[EnhancedOrchestrator]:
-        """Get the orchestrator handling a specific analysis.
-
-        Args:
-            analysis_id: The ID of the analysis
-
-        Returns:
-            The orchestrator handling the analysis, or None if not found
-        """
-        # In a real implementation, this would look up the orchestrator in a database
-        # For now, we'll just return the first orchestrator
-        return next(iter(self.orchestrators.values())) if self.orchestrators else None
-
-    async def analyze_prompt(
-        self,
-        prompt: str,
-        models: List[str],
-        ultra_model: str,
-        pattern: str,
-        options: Dict[str, Any] = None,
-    ) -> Dict[str, Any]:
-        """Process a prompt analysis request and return the results.
-
-        Args:
-            prompt: The input prompt to analyze
-            models: List of model names to use for analysis
-            ultra_model: The model to use for synthesizing the final response
-            pattern: The analysis pattern to use
-            options: Additional options for the analysis
-
-        Returns:
-            Dict containing analysis results
-        """
-        import time  # Import time for timestamp and performance metrics
-
-        logger.info(
-            f"Analyzing prompt with {len(models)} models using pattern {pattern}"
-        )
-
-        # Initialize orchestrator if not already done
-        if not self.orchestrators:
-            logger.info("Initializing orchestrators")
-            self._initialize_orchestrators()
-
-        # Select the orchestrator for standard analysis
-        orchestrator = (
-            next(iter(self.orchestrators.values())) if self.orchestrators else None
-        )
-        if not orchestrator:
-            logger.error("No orchestrator available")
-            raise ValueError("No orchestrator available")
-
-        # Validate the models are available
-        available_models = self.llm_config_service.get_available_models()
-        logger.debug(f"Available models: {list(available_models.keys())}")
-
-        # Check which requested models are actually available
-        valid_models = [model for model in models if model in available_models]
-        logger.info(f"Valid models for analysis: {valid_models}")
-
-        if not valid_models:
-            logger.warning(f"None of the requested models {models} are available")
-            # Instead of failing, we'll return a mock response with a clear error message
-            return {
-                "model_responses": {
-                    model: f"Error: Model {model} is not available. Please check your API keys or model configuration."
-                    for model in models
-                },
-                "ultra_response": "Error: No valid models were available to process your request. Please check your API keys and model configuration.",
-                "performance": {
-                    "total_time_seconds": 0.1,
-                    "model_times": {model: 0.1 for model in models},
-                    "token_counts": {model: 0 for model in models},
-                },
-                "metadata": {
-                    "pattern": pattern,
-                    "timestamp": time.time(),
-                    "models_used": [],
-                    "ultra_model": ultra_model,
-                    "error": "No valid models available",
-                },
-            }
-
-        # Filter models to only include those requested
-        original_models = (
-            orchestrator.models.copy() if hasattr(orchestrator, "models") else {}
-        )
-        models_to_process = {
-            name: model for name, model in original_models.items() if name in models
+        return {
+            "template": request.template_name,
+            "prompt": prompt,
+            "result": formatted_output,
+            "metadata": {
+                "models_used": request.models,
+                "format": request.format,
+                "timestamp": datetime.now().isoformat(),
+            },
         }
-
-        # Check if we have valid models
-        if not models_to_process:
-            logger.warning("No valid models found after filtering, using all available")
-            models_to_process = original_models
-
-        # Temporarily update orchestrator models for this request
-        if hasattr(orchestrator, "models"):
-            orchestrator.models = models_to_process
-
-        try:
-            # Process the analysis
-            logger.debug(f"Running analysis with prompt: '{prompt[:100]}...'")
-
-            # Try to run real processing if the orchestrator can handle it
-            if hasattr(orchestrator, "process") and callable(
-                getattr(orchestrator, "process")
-            ):
-                try:
-                    start_time = asyncio.get_event_loop().time()
-                    result = await orchestrator.process(
-                        prompt=prompt,
-                        pattern=pattern,
-                        max_tokens=2000,  # Default max tokens
-                    )
-                    end_time = asyncio.get_event_loop().time()
-
-                    # Extract model responses
-                    model_responses = {}
-                    for model_name, response in result.model_responses.items():
-                        model_responses[model_name] = response.get(
-                            "content", "No content returned"
-                        )
-
-                    # Format the final result
-                    return {
-                        "model_responses": model_responses,
-                        "ultra_response": result.response,
-                        "performance": {
-                            "total_time_seconds": end_time - start_time,
-                            "model_times": {
-                                model: response.get("processing_time", 0)
-                                for model, response in result.model_responses.items()
-                            },
-                            "token_counts": {
-                                model: response.get("tokens_used", 0)
-                                for model, response in result.model_responses.items()
-                            },
-                        },
-                        "metadata": {
-                            "pattern": pattern,
-                            "timestamp": time.time(),
-                            "models_used": list(models_to_process.keys()),
-                            "ultra_model": ultra_model,
-                        },
-                    }
-                except Exception as e:
-                    logger.error(
-                        f"Error during orchestrator.process: {str(e)}", exc_info=True
-                    )
-                    # Fall back to using mock service
-                    logger.warning("Falling back to mock response generation")
-
-            # If we couldn't use the real orchestrator or it failed, use a mock implementation
-            logger.warning("Using mock implementation for analysis")
-
-            # Import mock service
-            try:
-                from mock_llm_service import MOCK_RESPONSES, MockLLMService
-
-                mock_service = MockLLMService()
-
-                # Use mock implementation to analyze prompt
-                mock_result = await mock_service.analyze_prompt(
-                    prompt=prompt,
-                    models=models,
-                    ultra_model=ultra_model,
-                    pattern=pattern,
-                )
-
-                # Format results to match expected format
-                model_responses = {}
-                for model, details in mock_result.get("results", {}).items():
-                    model_responses[model] = details.get("response", "")
-
-                ultra_response = mock_result.get(
-                    "ultra_response", f"Combined analysis of prompt: {prompt[:50]}..."
-                )
-
-                # Calculate performance metrics
-                performance = {
-                    "total_time_seconds": sum(
-                        details.get("time_taken", 0)
-                        for details in mock_result.get("results", {}).values()
-                    ),
-                    "model_times": {
-                        model: details.get("time_taken", 0)
-                        for model, details in mock_result.get("results", {}).items()
-                    },
-                    "token_counts": {
-                        model: 150 for model in models
-                    },  # Mock token counts
-                }
-
-                # Create final result
-                return {
-                    "model_responses": model_responses,
-                    "ultra_response": ultra_response,
-                    "performance": performance,
-                    "metadata": {
-                        "pattern": pattern,
-                        "timestamp": time.time(),
-                        "models_used": models,
-                        "ultra_model": ultra_model,
-                    },
-                }
-            except ImportError:
-                logger.error(
-                    "Failed to import mock service, generating simple mock responses"
-                )
-
-                # Generate simple mock responses if we can't import the mock service
-                model_responses = {}
-                for model in models:
-                    model_responses[model] = (
-                        f"Analysis from {model} about '{prompt[:50]}...': This would be generated by the real model in a production environment."
-                    )
-
-                ultra_response = f"Combined analysis from {ultra_model} about '{prompt[:50]}...': This would synthesize all model responses in a production environment."
-
-                return {
-                    "model_responses": model_responses,
-                    "ultra_response": ultra_response,
-                    "performance": {
-                        "total_time_seconds": 3.0,
-                        "model_times": {model: 2.0 for model in models},
-                        "token_counts": {model: 150 for model in models},
-                    },
-                    "metadata": {
-                        "pattern": pattern,
-                        "timestamp": time.time(),
-                        "models_used": models,
-                        "ultra_model": ultra_model,
-                    },
-                }
-
-        finally:
-            # Restore original models in the orchestrator
-            if hasattr(orchestrator, "models"):
-                orchestrator.models = original_models

@@ -5,7 +5,6 @@ This module provides endpoints for uploading, managing, and processing documents
 """
 
 import json
-import logging
 import os
 import shutil
 import uuid
@@ -26,9 +25,10 @@ from fastapi.responses import JSONResponse
 
 from app.models.document import DocumentUploadResponse
 from app.services.document_processor import UltraDocumentsOptimized
+from app.utils.logging import get_logger
 
 # Configure logging
-logger = logging.getLogger("document_routes")
+logger = get_logger("document_routes")
 
 # Set document storage path from config
 DOCUMENT_STORAGE_PATH = os.getenv("DOCUMENT_STORAGE_PATH", "documents")
@@ -36,10 +36,10 @@ DOCUMENT_STORAGE_PATH = os.getenv("DOCUMENT_STORAGE_PATH", "documents")
 # Default values for document processing
 DEFAULT_CHUNK_SIZE = 1024 * 1024  # 1MB chunks
 
-# Default values for FastAPI dependencies
-DEFAULT_FILE = File(...)
-DEFAULT_FORM = Form(...)
-DEFAULT_DEPENDS = Depends()
+# Default FastAPI dependencies
+REQUIRED_FILE = File(...)
+REQUIRED_FORM = Form(...)
+EMPTY_DICT = Depends(lambda: {})
 
 
 def create_router(document_processor: UltraDocumentsOptimized) -> APIRouter:
@@ -55,8 +55,16 @@ def create_router(document_processor: UltraDocumentsOptimized) -> APIRouter:
     router = APIRouter(tags=["Documents"])
 
     @router.post("/api/upload-document", response_model=DocumentUploadResponse)
-    async def upload_document(file: UploadFile = DEFAULT_FILE):
-        """Upload a document"""
+    async def upload_document(file: UploadFile = REQUIRED_FILE):
+        """
+        Upload a document to the system.
+
+        Args:
+            file: The file to upload
+
+        Returns:
+            DocumentUploadResponse: The response containing document details
+        """
         try:
             # Create a unique ID for the document
             document_id = str(uuid.uuid4())
@@ -121,7 +129,15 @@ def create_router(document_processor: UltraDocumentsOptimized) -> APIRouter:
 
     @router.get("/api/documents/{document_id}", response_model=Dict[str, Any])
     async def get_document(document_id: str):
-        """Get document details by ID"""
+        """
+        Get document details by ID.
+
+        Args:
+            document_id: The ID of the document to retrieve
+
+        Returns:
+            Dict[str, Any]: Document details
+        """
         try:
             # Check if document directory exists
             document_dir = os.path.join(DOCUMENT_STORAGE_PATH, document_id)
@@ -157,7 +173,12 @@ def create_router(document_processor: UltraDocumentsOptimized) -> APIRouter:
 
     @router.get("/api/documents", response_model=List[Dict[str, Any]])
     async def list_documents():
-        """List all uploaded documents"""
+        """
+        List all uploaded documents.
+
+        Returns:
+            List[Dict[str, Any]]: List of document details
+        """
         try:
             documents = []
 
@@ -205,7 +226,15 @@ def create_router(document_processor: UltraDocumentsOptimized) -> APIRouter:
 
     @router.post("/api/create-document-session")
     async def create_document_session(request: Request):
-        """Create a session for chunked document upload"""
+        """
+        Create a session for chunked document upload.
+
+        Args:
+            request: The request containing session details
+
+        Returns:
+            JSONResponse: Session creation response
+        """
         try:
             # Parse request data
             body = await request.json()
@@ -249,56 +278,55 @@ def create_router(document_processor: UltraDocumentsOptimized) -> APIRouter:
                 status_code=200,
                 content={
                     "success": True,
-                    "sessionId": session_id,
-                    "message": "Upload session created successfully",
+                    "session_id": session_id,
+                    "message": "Document session created successfully",
                 },
             )
         except Exception as e:
             logger.error(f"Error creating document session: {str(e)}")
-            return JSONResponse(
+            raise HTTPException(
                 status_code=500,
-                content={
-                    "success": False,
-                    "message": f"Error creating session: {str(e)}",
-                },
+                detail=f"Error creating document session: {str(e)}",
             )
 
     @router.post("/api/upload-document-chunk")
     async def upload_document_chunk(
-        sessionId: str = DEFAULT_FORM,
-        chunkIndex: str = DEFAULT_FORM,
-        chunk: UploadFile = DEFAULT_FILE,
+        session_id: str = REQUIRED_FORM,
+        chunk_index: str = REQUIRED_FORM,
+        chunk: UploadFile = REQUIRED_FILE,
     ):
-        """Upload a chunk of a document"""
+        """
+        Upload a chunk of a document.
+
+        Args:
+            session_id: The session ID
+            chunk_index: The index of the chunk
+            chunk: The chunk file
+
+        Returns:
+            JSONResponse: Upload response
+        """
         try:
             # Validate session
-            session_dir = os.path.join(DOCUMENT_STORAGE_PATH, f"temp_{sessionId}")
+            session_dir = os.path.join(DOCUMENT_STORAGE_PATH, f"temp_{session_id}")
             if not os.path.exists(session_dir):
-                return JSONResponse(
-                    status_code=404,
-                    content={"success": False, "message": "Upload session not found"},
-                )
+                raise HTTPException(status_code=404, detail="Session not found")
 
             # Read session metadata
             with open(os.path.join(session_dir, "session.json"), "r") as f:
                 session_metadata = json.load(f)
 
-            # Validate chunk index
-            chunk_index = int(chunkIndex)
-            if chunk_index >= session_metadata["total_chunks"]:
-                return JSONResponse(
-                    status_code=400,
-                    content={"success": False, "message": "Invalid chunk index"},
-                )
-
             # Save chunk
             chunk_path = os.path.join(session_dir, f"chunk_{chunk_index}")
             with open(chunk_path, "wb") as f:
-                content = await chunk.read()
-                f.write(content)
+                while True:
+                    chunk_data = await chunk.read(DEFAULT_CHUNK_SIZE)
+                    if not chunk_data:
+                        break
+                    f.write(chunk_data)
 
             # Update session metadata
-            session_metadata["uploaded_chunks"].append(chunk_index)
+            session_metadata["uploaded_chunks"].append(int(chunk_index))
             with open(os.path.join(session_dir, "session.json"), "w") as f:
                 json.dump(session_metadata, f, indent=2)
 
@@ -309,72 +337,65 @@ def create_router(document_processor: UltraDocumentsOptimized) -> APIRouter:
                     "message": f"Chunk {chunk_index} uploaded successfully",
                 },
             )
+        except HTTPException:
+            raise
         except Exception as e:
             logger.error(f"Error uploading document chunk: {str(e)}")
-            return JSONResponse(
+            raise HTTPException(
                 status_code=500,
-                content={
-                    "success": False,
-                    "message": f"Error uploading chunk: {str(e)}",
-                },
+                detail=f"Error uploading document chunk: {str(e)}",
             )
         finally:
             await chunk.close()
 
     @router.post("/api/finalize-document-upload")
     async def finalize_document_upload(request: Request):
-        """Finalize a chunked document upload"""
+        """
+        Finalize a chunked document upload.
+
+        Args:
+            request: The request containing session details
+
+        Returns:
+            JSONResponse: Finalization response
+        """
         try:
             # Parse request data
             body = await request.json()
             session_id = body.get("sessionId")
 
             if not session_id:
-                return JSONResponse(
-                    status_code=400,
-                    content={"success": False, "message": "Missing session ID"},
-                )
+                raise HTTPException(status_code=400, detail="Session ID is required")
 
             # Validate session
             session_dir = os.path.join(DOCUMENT_STORAGE_PATH, f"temp_{session_id}")
             if not os.path.exists(session_dir):
-                return JSONResponse(
-                    status_code=404,
-                    content={"success": False, "message": "Upload session not found"},
-                )
+                raise HTTPException(status_code=404, detail="Session not found")
 
             # Read session metadata
             with open(os.path.join(session_dir, "session.json"), "r") as f:
                 session_metadata = json.load(f)
-
-            # Validate all chunks are uploaded
-            if (
-                len(session_metadata["uploaded_chunks"])
-                != session_metadata["total_chunks"]
-            ):
-                return JSONResponse(
-                    status_code=400,
-                    content={
-                        "success": False,
-                        "message": "Not all chunks have been uploaded",
-                    },
-                )
 
             # Create final document directory
             document_id = str(uuid.uuid4())
             document_dir = os.path.join(DOCUMENT_STORAGE_PATH, document_id)
             os.makedirs(document_dir, exist_ok=True)
 
-            # Combine chunks into final file
+            # Combine chunks
             final_file_path = os.path.join(document_dir, session_metadata["file_name"])
-            with open(final_file_path, "wb") as outfile:
-                for i in range(session_metadata["total_chunks"]):
-                    chunk_path = os.path.join(session_dir, f"chunk_{i}")
-                    with open(chunk_path, "rb") as infile:
-                        outfile.write(infile.read())
+            with open(final_file_path, "wb") as final_file:
+                for chunk_index in range(session_metadata["total_chunks"]):
+                    chunk_path = os.path.join(session_dir, f"chunk_{chunk_index}")
+                    if not os.path.exists(chunk_path):
+                        raise HTTPException(
+                            status_code=400,
+                            detail=f"Missing chunk {chunk_index}",
+                        )
+                    with open(chunk_path, "rb") as chunk_file:
+                        final_file.write(chunk_file.read())
 
             # Create document metadata
-            document_metadata = {
+            metadata = {
                 "id": document_id,
                 "original_filename": session_metadata["file_name"],
                 "file_path": final_file_path,
@@ -384,60 +405,55 @@ def create_router(document_processor: UltraDocumentsOptimized) -> APIRouter:
                 "processing_status": "ready",
             }
 
-            # Save document metadata
+            # Save metadata
             with open(os.path.join(document_dir, "metadata.json"), "w") as f:
-                json.dump(document_metadata, f, indent=2)
+                json.dump(metadata, f, indent=2)
 
-            # Clean up temporary session directory
+            # Clean up session directory
             shutil.rmtree(session_dir)
 
             return JSONResponse(
                 status_code=200,
                 content={
                     "success": True,
-                    "documentId": document_id,
+                    "document_id": document_id,
                     "message": "Document upload finalized successfully",
                 },
             )
+        except HTTPException:
+            raise
         except Exception as e:
             logger.error(f"Error finalizing document upload: {str(e)}")
-            return JSONResponse(
+            raise HTTPException(
                 status_code=500,
-                content={
-                    "success": False,
-                    "message": f"Error finalizing upload: {str(e)}",
-                },
+                detail=f"Error finalizing document upload: {str(e)}",
             )
-
-    def get_document_request(request: Dict[str, Any] = DEFAULT_DEPENDS):
-        """Dependency for document processing request"""
-        return request
 
     @router.post("/api/process-documents-with-pricing")
     async def process_documents_with_pricing(
         background_tasks: BackgroundTasks,
-        request: Dict[str, Any] = DEFAULT_DEPENDS,
+        request: Dict[str, Any] = EMPTY_DICT,
     ):
-        """Process documents with pricing information"""
+        """
+        Process documents with pricing information.
+
+        Args:
+            background_tasks: FastAPI background tasks
+            request: The request containing document processing details
+
+        Returns:
+            JSONResponse: Processing response
+        """
         try:
             # Extract document IDs and query from request
             document_ids = request.get("documentIds", [])
             query = request.get("query", "")
 
-            if not document_ids or not query:
-                return JSONResponse(
-                    status_code=400,
-                    content={
-                        "success": False,
-                        "message": "Missing document IDs or query",
-                    },
-                )
+            if not document_ids:
+                raise HTTPException(status_code=400, detail="No document IDs provided")
 
             # Process documents in background
-            background_tasks.add_task(
-                document_processor.process_documents,
-                document_data=[{"id": doc_id} for doc_id in document_ids],
-            )
+            background_tasks.add_task(process_document_context, document_ids, query)
 
             return JSONResponse(
                 status_code=200,
@@ -446,29 +462,42 @@ def create_router(document_processor: UltraDocumentsOptimized) -> APIRouter:
                     "message": "Document processing started",
                 },
             )
+        except HTTPException:
+            raise
         except Exception as e:
             logger.error(f"Error processing documents: {str(e)}")
-            return JSONResponse(
+            raise HTTPException(
                 status_code=500,
-                content={
-                    "success": False,
-                    "message": f"Error processing documents: {str(e)}",
-                },
+                detail=f"Error processing documents: {str(e)}",
             )
 
     async def process_document_context(document_ids: List[str], query: str) -> str:
-        """Process document context for a query"""
+        """
+        Process document context asynchronously.
+
+        Args:
+            document_ids: List of document IDs to process
+            query: The query to process against the documents
+
+        Returns:
+            str: Processing result
+        """
         try:
-            # Process documents using document processor
+            # Process documents using the document processor
             result = document_processor.process_documents(
-                document_data=[{"id": doc_id} for doc_id in document_ids],
+                document_data=[
+                    {
+                        "id": doc_id,
+                        "path": os.path.join(
+                            DOCUMENT_STORAGE_PATH, doc_id, "metadata.json"
+                        ),
+                    }
+                    for doc_id in document_ids
+                ]
             )
             return str(result)
         except Exception as e:
             logger.error(f"Error processing document context: {str(e)}")
-            raise HTTPException(
-                status_code=500,
-                detail=f"Error processing document context: {str(e)}",
-            )
+            raise
 
     return router
