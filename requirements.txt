@@ -1,29 +1,31 @@
-# UltraAI Production Requirements - FINAL AUDITED
+# UltraAI Production Requirements - FINAL AUDITED (Unpinned)
 # This file is generated based on a static analysis of the clean `app` directory
 # and has been manually verified to contain only essential production dependencies.
+# Version specifiers have been removed to allow the resolver to select compatible versions.
 
 # Core Framework
-fastapi==0.115.12
-uvicorn==0.34.3
-pydantic==2.11.5
-starlette==0.47.0
+fastapi
+uvicorn
+pydantic
+starlette
 
 # Database & Cache
-SQLAlchemy==2.0.41
-alembic==1.15.2
-redis==4.6.0
-cachetools==5.5.1
+SQLAlchemy
+alembic
+redis
+cachetools
 
 # Security & Auth
-cryptography==45.0.3
-passlib==1.7.4
-python-dotenv==1.1.0
+cryptography
+passlib
+python-dotenv
 
 # HTTP & Async
-httpx==0.28.1
+httpx
 
 # Monitoring
-sentry_sdk==2.25.1
+sentry_sdk
 
 # Streaming
-sse_starlette==2.3.6
+sse_starlette
+fastapi-limiter
