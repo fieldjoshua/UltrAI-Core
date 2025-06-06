@@ -1,4 +1,53 @@
-# system-wide-cleanup-and-audit Progress
+# System-wide Cleanup and Audit Progress
+
+## Phase 3: Service Integration (In Progress)
+
+### Completed Tasks
+
+- Deleted rogue service at `app/services/llm_config_service.py`
+- Removed duplicate health check implementations
+- Refactored health routes to use dependency injection
+- Refactored auth routes to use dependency injection
+- Refactored analyze routes to use dependency injection
+- Refactored recovery routes to use dependency injection
+- Refactored orchestrator routes to use dependency injection
+- Refactored document routes to use dependency injection
+- Refactored LLM routes to use dependency injection
+- Refactored user routes to use dependency injection
+- Refactored Docker Model Runner routes to use create_router pattern
+
+### Current Task
+
+- Refactoring remaining route files to use create_router pattern (In Progress)
+  - Progress: 0%
+
+### Next Tasks
+
+- Address linter issues in route files:
+  - Fix function calls in argument defaults
+  - Resolve variable usage in type expressions
+  - Standardize dependency injection patterns
+  - Resolve import resolution issues for Docker Model Runner adapters
+  - Clean up unused imported variables
+  - Address line length violations
+  - Remove unused local variables
+  - Add proper error handling for unresolved imports
+  - Implement proper type hints for all route functions
+  - Add comprehensive docstrings for all functions
+- Implement proper dependency injection in all services
+- Standardize error handling across all routes
+- Unify health check implementation
+- Implement exponential backoff for API calls
+
+### Notes
+
+- Recent changes have successfully implemented the create_router pattern across multiple route files
+- Some linter issues remain regarding function calls in argument defaults and type expressions
+- These issues will be addressed in a separate task to ensure consistent patterns across all route files
+- Docker Model Runner routes have been refactored but require additional work to resolve import and dependency issues
+- Future work will focus on standardizing error handling and improving code quality across all route files
+
+Last updated: 2024-03-19
 
 ## Updates
 
