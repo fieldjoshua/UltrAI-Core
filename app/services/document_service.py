@@ -9,8 +9,8 @@ from typing import Any, Dict, List, Optional
 
 from sqlalchemy.orm import Session
 
-from backend.database.repositories import DocumentChunkRepository, DocumentRepository
-from backend.utils.exceptions import ResourceNotFoundException
+from app.database.repositories import DocumentChunkRepository, DocumentRepository
+from app.utils.exceptions import ResourceNotFoundException
 
 logger = logging.getLogger(__name__)
 

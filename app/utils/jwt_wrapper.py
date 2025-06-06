@@ -16,8 +16,8 @@ import uuid
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional, Union
 
-from backend.utils.dependency_manager import jwt_dependency
-from backend.utils.logging import get_logger
+from app.utils.dependency_manager import jwt_dependency
+from app.utils.logging import get_logger
 
 # Get logger
 logger = get_logger("jwt_wrapper", "logs/jwt.log")

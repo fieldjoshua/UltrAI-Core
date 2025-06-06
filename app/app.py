@@ -45,8 +45,8 @@ from routes.orchestrator_minimal import (
 )  # Basic/Minimal orchestrator
 from routes.pricing_routes import pricing_router
 
-# from backend.routes.recovery_routes import router as recovery_router
-# from backend.routes.resilient_orchestrator_routes import resilient_orchestrator_router
+# from app.routes.recovery_routes import router as recovery_router
+# from app.routes.resilient_orchestrator_routes import resilient_orchestrator_router
 from routes.user_routes import user_router
 from routes.debug_routes import router as debug_router
 from utils.cookie_security_middleware import setup_cookie_security_middleware
@@ -145,7 +145,7 @@ async def lifespan(app: FastAPI):
     global mock_service
     if Config.USE_MOCK or Config.MOCK_MODE:
         try:
-            from backend.services.mock_llm_service import MockLLMService
+            from app.services.mock_llm_service import MockLLMService
 
             mock_service = MockLLMService()
             logger.info("🧪 Running in MOCK MODE - all responses will be simulated")

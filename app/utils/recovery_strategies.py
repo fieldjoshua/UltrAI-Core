@@ -18,12 +18,12 @@ from enum import Enum
 from functools import wraps
 from typing import Any, Callable, Dict, List, Optional, Set, Type, TypeVar, Union, cast
 
-from backend.utils.domain_exceptions import (
+from app.utils.domain_exceptions import (
     CircuitOpenException,
     ServiceUnavailableException,
     TimeoutException,
 )
-from backend.utils.unified_error_handler import ErrorCode, UltraBaseException
+from app.utils.unified_error_handler import ErrorCode, UltraBaseException
 
 # Configure logger
 logger = logging.getLogger("recovery_strategies")

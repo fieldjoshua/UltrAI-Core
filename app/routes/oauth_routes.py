@@ -12,12 +12,12 @@ from fastapi import APIRouter, Depends, Query, Request
 from fastapi.responses import JSONResponse, RedirectResponse
 from sqlalchemy.orm import Session
 
-from backend.database.connection import get_db
-from backend.database.repositories.user import UserRepository
-from backend.models.oauth import OAuthCodeRequest, OAuthError, OAuthURLResponse
-from backend.models.user import TokenResponse
-from backend.services.auth_service import auth_service
-from backend.services.oauth_service import oauth_service
+from app.database.connection import get_db
+from app.database.repositories.user import UserRepository
+from app.models.oauth import OAuthCodeRequest, OAuthError, OAuthURLResponse
+from app.models.user import TokenResponse
+from app.services.auth_service import auth_service
+from app.services.oauth_service import oauth_service
 
 # Create a router
 oauth_router = APIRouter(tags=["OAuth"])

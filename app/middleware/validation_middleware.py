@@ -15,8 +15,8 @@ from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.types import ASGIApp
 
-from backend.models.base_models import ErrorResponse
-from backend.utils.logging import get_logger, log_error
+from app.models.base_models import ErrorResponse
+from app.utils.logging import get_logger, log_error
 
 # Set up logger
 logger = get_logger("validation_middleware", "logs/security.log")

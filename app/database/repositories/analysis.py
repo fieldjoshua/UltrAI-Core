@@ -12,9 +12,9 @@ from sqlalchemy import func
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
-from backend.database.models.analysis import Analysis
-from backend.database.repositories.base import BaseRepository
-from backend.utils.exceptions import DatabaseException
+from app.database.models.analysis import Analysis
+from app.database.repositories.base import BaseRepository
+from app.utils.exceptions import DatabaseException
 
 logger = logging.getLogger(__name__)
 

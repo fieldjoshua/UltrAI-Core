@@ -14,11 +14,11 @@ from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.types import ASGIApp
 
-from backend.database.models.user import User
-from backend.models.base_models import ErrorResponse
-from backend.services.auth_service import auth_service
-from backend.utils.logging import get_logger
-from backend.utils.rate_limit_service import rate_limit_service
+from app.database.models.user import User
+from app.models.base_models import ErrorResponse
+from app.services.auth_service import auth_service
+from app.utils.logging import get_logger
+from app.utils.rate_limit_service import rate_limit_service
 
 # Set up logger
 logger = get_logger("rate_limit_middleware", "logs/rate_limit.log")

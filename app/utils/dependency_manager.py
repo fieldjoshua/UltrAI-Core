@@ -11,7 +11,7 @@ import os
 from typing import Any, Callable, Dict, Generic, List, Optional, Tuple, TypeVar
 
 # Set up logging
-from backend.utils.logging import get_logger
+from app.utils.logging import get_logger
 
 logger = get_logger("dependency_manager", "logs/dependency.log")
 

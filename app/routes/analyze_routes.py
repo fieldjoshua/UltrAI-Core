@@ -27,24 +27,24 @@ from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 from sse_starlette.sse import EventSourceResponse
 
-from backend.config import Config
-from backend.database.connection import get_db
-from backend.database.models import User
-from backend.decorators.cache_decorator import cached
-from backend.models import analysis as models
-from backend.models.analysis import (
+from app.config import Config
+from app.database.connection import get_db
+from app.database.models import User
+from app.decorators.cache_decorator import cached
+from app.models import analysis as models
+from app.models.analysis import (
     AnalysisProgress,
     AnalysisProgressResponse,
     AnalysisResultsResponse,
     AnalysisStage,
     AnalysisStageStatus,
 )
-from backend.services.auth_service import auth_service
-from backend.services.cache_service import cache_service
+from app.services.auth_service import auth_service
+from app.services.cache_service import cache_service
 
 # Import the singleton instance
-from backend.services.llm_config_service import llm_config_service
-from backend.services.prompt_service import PromptService
+from app.services.llm_config_service import llm_config_service
+from app.services.prompt_service import PromptService
 
 # Configure logging
 logger = logging.getLogger("analyze_routes")

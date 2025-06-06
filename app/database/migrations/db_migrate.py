@@ -269,7 +269,7 @@ def get_migration_status() -> Dict[str, Any]:
         # Get database connection status
         db_connected = True
         try:
-            from backend.database.connection import check_database_connection
+            from app.database.connection import check_database_connection
 
             db_connected = check_database_connection()
         except ImportError:

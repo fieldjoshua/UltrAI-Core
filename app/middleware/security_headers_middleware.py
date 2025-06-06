@@ -11,7 +11,7 @@ from fastapi import Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.types import ASGIApp
 
-from backend.utils.logging import get_logger
+from app.utils.logging import get_logger
 
 # Set up logger
 logger = get_logger("security_headers_middleware", "logs/security.log")

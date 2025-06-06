@@ -9,10 +9,10 @@ import os
 import time
 from typing import Any, Dict, List, Optional
 
-from backend.config import Config
-from backend.services.document_processor import document_processor
-from backend.services.llm_config_service import llm_config_service
-from backend.services.prompt_service import PromptService
+from app.config import Config
+from app.services.document_processor import document_processor
+from app.services.llm_config_service import llm_config_service
+from app.services.prompt_service import PromptService
 
 # Configure logging
 logger = logging.getLogger("document_analysis_service")

@@ -6,8 +6,8 @@ from fastapi import Request
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import Response
 
-from backend.utils.logging import get_logger
-from backend.utils.user_messages import Locale
+from app.utils.logging import get_logger
+from app.utils.user_messages import Locale
 
 logger = get_logger(__name__)
 

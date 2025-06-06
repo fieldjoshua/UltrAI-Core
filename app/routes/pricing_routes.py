@@ -4,7 +4,7 @@ from typing import Any, Dict, Optional
 from fastapi import APIRouter
 from fastapi.responses import JSONResponse
 
-from backend.models.pricing import (
+from app.models.pricing import (
     AddFundsRequest,
     PricingToggleRequest,
     TokenEstimateRequest,
@@ -19,10 +19,10 @@ logger = logging.getLogger("pricing_routes")
 
 # Import pricing integration
 try:
-    from backend.services.pricing_integration import PricingIntegration
+    from app.services.pricing_integration import PricingIntegration
 
     pricing_integration = PricingIntegration()
-    from backend.services.pricing_integration import (
+    from app.services.pricing_integration import (
         check_request_authorization,
         track_request_cost,
     )

@@ -8,11 +8,11 @@ import asyncio
 import logging
 from typing import Any, Dict, List, Optional, Union
 
-from src.models.enhanced_orchestrator import (
+from app.models.enhanced_orchestrator import (
     EnhancedOrchestrator,
     OrchestratorConfig,
 )
-from backend.models.llm_models import (
+from app.models.llm_models import (
     AnalysisOption,
     ModelPrediction,
     OutputFormat,
@@ -20,7 +20,7 @@ from backend.models.llm_models import (
     PromptResult,
     PromptStreamUpdate,
 )
-from backend.services.llm_config_service import LLMConfigService
+from app.services.llm_config_service import LLMConfigService
 
 logger = logging.getLogger(__name__)
 

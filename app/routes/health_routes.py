@@ -9,10 +9,10 @@ from typing import Any, Dict
 
 from fastapi import APIRouter, HTTPException, Query, status
 
-from backend.config import Config
-from backend.services.health_service import health_service
-from backend.utils.health_check import health_check_registry
-from backend.utils.logging import get_logger
+from app.config import Config
+from app.services.health_service import health_service
+from app.utils.health_check import health_check_registry
+from app.utils.logging import get_logger
 
 # Configure router - use prefix for direct inclusion in app
 router = APIRouter(tags=["health"])
@@ -52,7 +52,7 @@ async def get_health(
             # Add orchestrator router debug info if detailed
             if detail:
                 try:
-                    from backend.routes.orchestrator_routes import orchestrator_router
+                    from app.routes.orchestrator_routes import orchestrator_router
                     health_status["orchestrator_debug"] = {
                         "router_imported": True,
                         "route_count": len(orchestrator_router.routes),

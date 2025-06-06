@@ -12,7 +12,7 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import Response
 from starlette.types import ASGIApp
 
-from backend.utils.logging import get_logger
+from app.utils.logging import get_logger
 
 # Set up logger
 logger = get_logger("cookie_security", "logs/security.log")

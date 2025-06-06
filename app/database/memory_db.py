@@ -14,7 +14,7 @@ import uuid
 from datetime import datetime
 from typing import Any, Callable, Dict, List, Optional, Set, Tuple, Union
 
-from backend.utils.logging import get_logger
+from app.utils.logging import get_logger
 
 # Set up logger
 logger = get_logger("memory_db", "logs/memory_db.log")

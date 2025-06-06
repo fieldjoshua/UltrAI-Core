@@ -14,7 +14,7 @@ import time
 import os
 from typing import Dict, List, Any, Optional
 import logging
-from backend.models.llm_adapter import OpenAIAdapter, AnthropicAdapter, GeminiAdapter
+from app.models.llm_adapter import OpenAIAdapter, AnthropicAdapter, GeminiAdapter
 
 logger = logging.getLogger(__name__)
 

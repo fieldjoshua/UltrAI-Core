@@ -19,8 +19,8 @@ from urllib.parse import urlparse
 import requests
 
 # Import dependency registry but avoid unused import warning
-from backend.utils.dependency_manager import dependency_registry  # noqa: F401
-from backend.utils.logging import get_logger
+from app.utils.dependency_manager import dependency_registry  # noqa: F401
+from app.utils.logging import get_logger
 
 # Get logger
 logger = get_logger("health_check", "logs/health_check.log")
@@ -551,7 +551,7 @@ def check_database_health() -> Dict[str, Any]:
     Returns:
         Health check result
     """
-    from backend.database.connection import (
+    from app.database.connection import (
         check_database_connection,
         get_database_status,
         is_using_fallback,
@@ -596,7 +596,7 @@ def check_redis_health() -> Dict[str, Any]:
     Returns:
         Health check result
     """
-    from backend.services.cache_service import cache_service
+    from app.services.cache_service import cache_service
 
     # Get cache status
     cache_details = cache_service.get_status()
@@ -628,7 +628,7 @@ def check_jwt_health() -> Dict[str, Any]:
     Returns:
         Health check result
     """
-    from backend.utils.jwt_wrapper import get_jwt_status, is_using_pyjwt
+    from app.utils.jwt_wrapper import get_jwt_status, is_using_pyjwt
 
     # Get JWT status
     jwt_details = get_jwt_status()
@@ -703,7 +703,7 @@ def check_llm_provider_health(provider: str, api_key_env_var: str) -> Dict[str, 
     # Check if dependency is available
     provider_dependency = provider_info[provider]["dependency"]
     if provider_dependency == "openai":
-        from backend.utils.dependency_manager import openai_dependency
+        from app.utils.dependency_manager import openai_dependency
 
         if not openai_dependency.is_available():
             return {
@@ -715,7 +715,7 @@ def check_llm_provider_health(provider: str, api_key_env_var: str) -> Dict[str, 
                 "timestamp": datetime.utcnow().isoformat(),
             }
     elif provider_dependency == "anthropic":
-        from backend.utils.dependency_manager import anthropic_dependency
+        from app.utils.dependency_manager import anthropic_dependency
 
         if not anthropic_dependency.is_available():
             return {
@@ -727,7 +727,7 @@ def check_llm_provider_health(provider: str, api_key_env_var: str) -> Dict[str, 
                 "timestamp": datetime.utcnow().isoformat(),
             }
     elif provider_dependency == "google.generativeai":
-        from backend.utils.dependency_manager import google_ai_dependency
+        from app.utils.dependency_manager import google_ai_dependency
 
         if not google_ai_dependency.is_available():
             return {
@@ -887,7 +887,7 @@ def check_system_health() -> Dict[str, Any]:
 
         # Update Prometheus metrics
         try:
-            from backend.utils.metrics import MetricsCollector
+            from app.utils.metrics import MetricsCollector
 
             metrics = MetricsCollector()
             metrics.update_system_metrics()

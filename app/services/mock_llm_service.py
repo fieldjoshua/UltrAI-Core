@@ -33,7 +33,7 @@ class MockLLMService:
                         DockerModelRunnerAdapter,
                     )
                 except ImportError:
-                    from backend.models.docker_modelrunner_adapter import (
+                    from app.models.docker_modelrunner_adapter import (
                         DockerModelRunnerAdapter,
                     )
 

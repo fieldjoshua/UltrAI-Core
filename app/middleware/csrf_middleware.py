@@ -14,8 +14,8 @@ from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.types import ASGIApp
 
-from backend.models.base_models import ErrorResponse
-from backend.utils.logging import get_logger
+from app.models.base_models import ErrorResponse
+from app.utils.logging import get_logger
 
 # Set up logger
 logger = get_logger("csrf_middleware", "logs/security.log")
@@ -81,7 +81,7 @@ class CSRFMiddleware(BaseHTTPMiddleware):
             Response
         """
         # Skip CSRF protection if auth is disabled
-        from backend.config import Config
+        from app.config import Config
         if not Config.ENABLE_AUTH:
             return await call_next(request)
             

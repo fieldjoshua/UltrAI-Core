@@ -10,8 +10,8 @@ import time
 from datetime import datetime
 from typing import Any, Dict, Optional
 
-from backend.utils.health_check import HealthStatus
-from backend.utils.logging import get_logger
+from app.utils.health_check import HealthStatus
+from app.utils.logging import get_logger
 
 # Configure logging
 logger = get_logger("migration_health", "logs/migration_health.log")
@@ -180,7 +180,7 @@ def register_migration_health_check():
     """
     Register the migration health check with the health check registry.
     """
-    from backend.utils.health_check import (
+    from app.utils.health_check import (
         HealthCheck,
         ServiceType,
         health_check_registry,

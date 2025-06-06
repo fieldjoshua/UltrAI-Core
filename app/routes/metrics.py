@@ -6,7 +6,7 @@ try:
     from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
     from prometheus_client.exposition import choose_encoder
 except ImportError:
-    from backend.utils.stubs.prometheus_client import (
+    from app.utils.stubs.prometheus_client import (
         CONTENT_TYPE_LATEST,
         exposition,
         generate_latest,
@@ -17,8 +17,8 @@ except ImportError:
         return exposition.choose_encoder(accept_header), CONTENT_TYPE_LATEST
 
 
-from backend.config import Config
-from backend.utils.metrics import (
+from app.config import Config
+from app.utils.metrics import (
     MetricsCollector,
     get_current_metrics,
     get_metrics_history,

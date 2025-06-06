@@ -14,9 +14,9 @@ from fastapi.responses import JSONResponse
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
 
-from backend.database.connection import get_db
-from backend.middleware.auth_middleware import add_token_to_blacklist, token_blacklist
-from backend.models.auth import (
+from app.database.connection import get_db
+from app.middleware.auth_middleware import add_token_to_blacklist, token_blacklist
+from app.models.auth import (
     MessageResponse,
     PasswordReset,
     PasswordResetRequest,
@@ -25,9 +25,9 @@ from backend.models.auth import (
     UserCreate,
     UserLogin,
 )
-from backend.services.auth_service import auth_service
-from backend.utils.exceptions import AuthenticationException, ResourceNotFoundException
-from backend.utils.password import check_password_strength
+from app.services.auth_service import auth_service
+from app.utils.exceptions import AuthenticationException, ResourceNotFoundException
+from app.utils.password import check_password_strength
 
 # Create a router
 auth_router = APIRouter(tags=["Authentication"])

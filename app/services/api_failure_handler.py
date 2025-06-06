@@ -11,17 +11,17 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
-from backend.services.cache_service import cache_service
-from backend.utils.circuit_breaker import (
+from app.services.cache_service import cache_service
+from app.utils.circuit_breaker import (
     CircuitBreaker,
     CircuitConfig,
     CircuitOpenError,
 )
-from backend.utils.error_rate_limiter import ErrorRateLimitConfig, ErrorRateLimiter
-from backend.utils.errors import LLMError, NetworkError, SystemError
-from backend.utils.logging import get_logger
-from backend.utils.retry_handler import RetryConfig, RetryError, RetryHandler
-from backend.utils.timeout_handler import TimeoutConfig, TimeoutError, TimeoutHandler
+from app.utils.error_rate_limiter import ErrorRateLimitConfig, ErrorRateLimiter
+from app.utils.errors import LLMError, NetworkError, SystemError
+from app.utils.logging import get_logger
+from app.utils.retry_handler import RetryConfig, RetryError, RetryHandler
+from app.utils.timeout_handler import TimeoutConfig, TimeoutError, TimeoutHandler
 
 logger = get_logger("api_failure_handler", "logs/api_failure_handler.log")
 

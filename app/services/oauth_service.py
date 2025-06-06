@@ -12,7 +12,7 @@ from urllib.parse import urlencode
 
 import httpx
 
-from backend.utils.logging import get_logger
+from app.utils.logging import get_logger
 
 # Set up logger
 logger = get_logger("oauth_service", "logs/oauth.log")

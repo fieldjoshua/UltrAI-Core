@@ -8,8 +8,8 @@ and ensuring proper cleanup of database resources.
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.types import ASGIApp
 
-from backend.database.connection import get_db_session
-from backend.utils.logging import get_logger
+from app.database.connection import get_db_session
+from app.utils.logging import get_logger
 
 # Set up logger
 logger = get_logger("database_middleware", "logs/database.log")

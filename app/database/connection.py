@@ -10,8 +10,8 @@ import os
 from contextlib import contextmanager
 from typing import Any, Generator
 
-from backend.utils.dependency_manager import sqlalchemy_dependency
-from backend.utils.logging import get_logger
+from app.utils.dependency_manager import sqlalchemy_dependency
+from app.utils.logging import get_logger
 
 # Set up logger
 logger = get_logger("database", "logs/database.log")
@@ -120,7 +120,7 @@ def init_db() -> None:
 
         try:
             # Import fallback dynamically
-            from backend.database.fallback import fallback_session
+            from app.database.fallback import fallback_session
 
             SessionLocal = fallback_session
         except ImportError as e:
@@ -135,7 +135,7 @@ def init_db() -> None:
 
         if engine is None:
             # Using fallback
-            from backend.database.fallback import fallback_session
+            from app.database.fallback import fallback_session
 
             SessionLocal = fallback_session
             return
@@ -162,7 +162,7 @@ def init_db() -> None:
 
             try:
                 # Import fallback dynamically
-                from backend.database.fallback import fallback_session
+                from app.database.fallback import fallback_session
 
                 SessionLocal = fallback_session
             except ImportError as e2:
@@ -197,7 +197,7 @@ def create_tables() -> None:
 
     try:
         # Import Base and create tables
-        from backend.database.models.base import Base
+        from app.database.models.base import Base
 
         Base.metadata.create_all(bind=engine)
         logger.info("Database tables created")
@@ -344,7 +344,7 @@ def get_database_status() -> dict:
     else:
         # Add fallback-specific status
         try:
-            from backend.database.memory_db import memory_db
+            from app.database.memory_db import memory_db
 
             status.update(
                 {

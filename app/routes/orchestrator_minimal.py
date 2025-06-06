@@ -13,11 +13,11 @@ import os
 USE_BASIC = os.getenv("USE_BASIC_ORCHESTRATOR", "false").lower() == "true"
 
 if USE_BASIC:
-    from backend.services.basic_orchestrator import BasicOrchestrator
+    from app.services.basic_orchestrator import BasicOrchestrator
     logger = logging.getLogger(__name__)
     logger.info("Using BasicOrchestrator (reliability focus)")
 else:
-    from backend.services.minimal_orchestrator import MinimalOrchestrator
+    from app.services.minimal_orchestrator import MinimalOrchestrator
     logger = logging.getLogger(__name__)
     logger.info("Using MinimalOrchestrator (Ultra Synthesis)")
 

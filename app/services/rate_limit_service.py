@@ -13,8 +13,8 @@ from typing import Dict, Optional, Tuple
 import redis
 from fastapi import Request
 
-from backend.database.models.user import SubscriptionTier, User
-from backend.utils.logging import get_logger
+from app.database.models.user import SubscriptionTier, User
+from app.utils.logging import get_logger
 
 # Set up logger
 logger = get_logger("rate_limit_service", "logs/rate_limit.log")

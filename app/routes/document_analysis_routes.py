@@ -14,19 +14,19 @@ from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 
-from backend.config import Config
-from backend.database.connection import get_db
-from backend.models.document_analysis import (
+from app.config import Config
+from app.database.connection import get_db
+from app.models.document_analysis import (
     DocumentAnalysisRequest,
     DocumentAnalysisResponse,
     DocumentChunkAnalysisRequest,
     DocumentChunkAnalysisResponse,
 )
-from backend.services.cache_service import cache_service
-from backend.services.document_analysis_service import document_analysis_service
-from backend.services.document_processor import document_processor
-from backend.services.llm_config_service import llm_config_service
-from backend.services.prompt_service import PromptService
+from app.services.cache_service import cache_service
+from app.services.document_analysis_service import document_analysis_service
+from app.services.document_processor import document_processor
+from app.services.llm_config_service import llm_config_service
+from app.services.prompt_service import PromptService
 
 # Configure logging
 logger = logging.getLogger("document_analysis_routes")
@@ -130,7 +130,7 @@ async def analyze_document(
             # Retrieve document data
             from os import path
 
-            from backend.config import Config
+            from app.config import Config
 
             document_path = path.join(
                 Config.DOCUMENT_STORAGE_PATH, document_analysis.document_id

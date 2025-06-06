@@ -12,7 +12,7 @@ import time
 import os
 from typing import Dict, List, Any, Optional
 import logging
-from backend.services.llm_adapters import OpenAIAdapter, AnthropicAdapter, GeminiAdapter
+from app.services.llm_adapters import OpenAIAdapter, AnthropicAdapter, GeminiAdapter
 
 logger = logging.getLogger(__name__)
 
