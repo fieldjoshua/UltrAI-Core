@@ -6,7 +6,6 @@ from contextlib import asynccontextmanager
 import uvicorn
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
 
 # Import configuration
 from config import Config
@@ -25,7 +24,7 @@ from middleware.security_headers_middleware import (
     setup_security_headers_middleware,
 )
 from middleware.validation_middleware import setup_validation_middleware
-from routes.analyze_routes import analyze_router
+from routes.analyze_routes import create_router as create_analyze_router
 from routes.auth_routes import auth_router
 from routes.available_models_routes import router as available_models_router
 from routes.docker_modelrunner_routes import router as modelrunner_router
@@ -33,8 +32,7 @@ from routes.document_analysis_routes import document_analysis_router
 from routes.document_routes import document_router
 
 # Import routes
-from routes.health_routes import router as health_router
-from routes.health import health_router as api_health_router
+from routes.health_routes import create_router as create_health_router
 from routes.llm_routes import llm_router
 from routes.metrics import metrics_router
 from routes.oauth_routes import oauth_router
@@ -49,7 +47,6 @@ from routes.pricing_routes import pricing_router
 # from app.routes.resilient_orchestrator_routes import resilient_orchestrator_router
 from routes.user_routes import user_router
 from routes.debug_routes import router as debug_router
-from utils.cookie_security_middleware import setup_cookie_security_middleware
 from utils.error_handler import (
     error_handling_middleware,
     register_exception_handlers,
@@ -59,7 +56,6 @@ from utils.metrics import setup_metrics
 from utils.middleware import setup_middleware
 from utils.monitoring import (
     log_startup_event,
-    monitoring_system,
     setup_monitoring,
 )
 
@@ -69,6 +65,9 @@ from utils.rate_limit_middleware import rate_limit_middleware
 # Import utility functions
 from utils.server import find_available_port, is_port_available
 from utils.structured_logging import apply_structured_logging_middleware
+
+# Import services
+from services.health_service import HealthService
 
 # Get logger
 logger = get_logger("ultra_api", "logs/api.log")
@@ -92,6 +91,8 @@ async def lifespan(app: FastAPI):
     Lifespan context manager for FastAPI application
     Handles startup and shutdown events
     """
+    global health_service
+
     # Note: monitoring and metrics will be set up after middleware
 
     # Startup: Create necessary directories
@@ -182,6 +183,9 @@ async def lifespan(app: FastAPI):
             "default_model": Config.DEFAULT_MODEL,
         },
     )
+
+    # Initialize services
+    health_service = HealthService()
 
     yield
 
@@ -295,17 +299,23 @@ setup_metrics(app)
 # This ensures it catches errors from all other middleware
 app.middleware("http")(error_handling_middleware)
 
-# --- END ADDED ROUTE --- #
+# Create routers with dependencies
+health_router = create_health_router(health_service)
 
 # Include routers
 app.include_router(health_router)  # Health router should be at root level
-app.include_router(api_health_router)  # API health endpoints (already have /api prefix)
 app.include_router(metrics_router, prefix="/api")
 app.include_router(document_router, prefix="/api")
 app.include_router(
     document_analysis_router
 )  # Already has /api prefix in its route definitions
-app.include_router(analyze_router)  # Already has /api prefix in its route definitions
+app.include_router(
+    create_analyze_router(
+        app.state.model_registry,
+        app.state.prompt_template_manager,
+        app.state.analysis_pipeline,
+    )
+)
 app.include_router(pricing_router, prefix="/api")
 app.include_router(user_router, prefix="/api")
 app.include_router(oauth_router, prefix="/api")

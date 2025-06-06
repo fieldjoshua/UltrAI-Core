@@ -1,26 +1,84 @@
 # PLAN: System-Wide Cleanup and Audit
 
-## Objective
+**Version:** 1.0
+**Last Updated:** 2025-06-06
+**Status:** Not Started
 
-To restore stability, improve deployment speed, and create a clean, maintainable codebase by performing a full system audit, eliminating unused code and dependencies, and refactoring the application's structure.
+## 1. Objective
 
-## Phase 1: Full-System Audit (Current Phase)
+To restore stability, improve deployment speed, and create a clean, maintainable codebase that fully implements the patented UltrLLMOrchestrator system architecture. This includes proper implementation of the multi-layered analysis pipeline, model registry, and hardware acceleration support.
 
-- [ ] **Dependency Analysis:** Statically analyze the `backend` and `src` directories to generate a definitive list of _required_ production dependencies.
-- [ ] **Code Discovery:** Map the complete application structure, identifying all obsolete, orphaned, and duplicated code files.
-- [ ] **Route Identification:** Programmatically list every API route to understand the full surface area of the application.
+## 2. Current State
 
-## Phase 2: Code & Dependency Archival
+The current system has several architectural issues:
 
-- [ ] **Archive Unused Code:** Move all identified non-essential files and directories into a dedicated `ARCHIVE` folder.
-- [ ] **Create Lean Requirements:** Generate a new, clean `requirements.txt` based _only_ on the results of the dependency analysis.
+- Multiple singleton service instances
+- Inconsistent dependency injection patterns
+- Overlapping service responsibilities
+- Duplicate implementations (e.g., health checks)
+- Rogue services that need removal
+- Inconsistent error handling
+- Incomplete test coverage
+- Missing patent-aligned features:
+  - Multi-layered analysis pipeline
+  - Model registry
+  - Hardware acceleration
+  - Complete prompt template system
+  - Meta-analysis implementation
+  - Ultra-synthesis stage
+  - Hyper-level analysis
 
-## Phase 3: Structural Refactoring
+## 3. Target State
 
-- [ ] **Unify Application Structure:** Consolidate the duplicative `src` and `backend` directories into a single, logical `app` directory.
-- [ ] **Standardize Imports:** Refactor all application imports to use absolute paths from the new `app` root, completely eliminating all `sys.path` manipulation.
+The target system will have:
 
-## Phase 4: Verification & Deployment
+- Clean, maintainable architecture
+- Proper dependency injection
+- Clear service boundaries
+- Standardized error handling
+- Comprehensive test coverage
+- Single source of truth for configuration
+- Unified health check implementation
+- Full patent implementation:
+  - Complete multi-layered analysis pipeline
+  - Functional model registry
+  - Hardware acceleration support
+  - Comprehensive prompt templates
+  - Meta-analysis capabilities
+  - Ultra-synthesis functionality
+  - Hyper-level analysis
 
-- [ ] **Update Deployment Configuration:** Modify `render.yaml` to use the new, clean application entry point and the lean `requirements.txt`.
-- [ ] **Deploy & Confirm:** Deploy the refactored, stable application and run the final verification tests to confirm the orchestrator is fully functional.
+## 4. Execution Plan
+
+The detailed, step-by-step checklist for this action is maintained in `todo.md`. The plan is divided into five phases:
+
+1. Code Removal & Restructuring
+2. Core Architecture Implementation
+3. Service Integration
+4. Testing & Verification
+5. Documentation & Deployment
+
+## 5. Supporting Documentation
+
+- **`CURRENT_ARCHITECTURE.md`**: An exhaustive, file-by-file manifest of the system in its current, broken state.
+- **`TARGET_ARCHITECTURE.md`**: A detailed blueprint of the final, logically sound system we will build.
+
+## 6. Testing & Verification
+
+- All refactoring will be followed by a full test suite run
+- Final deployment will be verified against the DEPLOYMENT REQUIREMENTS checklist in `RULES.md`
+- A `deployment-verification.md` will be created in `supporting_docs` upon completion
+- Patent alignment will be verified through comprehensive testing
+
+## 7. Success Criteria
+
+- All tests pass
+- No singleton service instances
+- Consistent dependency injection
+- Clear service boundaries
+- Standardized error handling
+- Complete test coverage
+- Production deployment verified
+- Patent features fully implemented
+- Hardware acceleration working
+- Performance metrics collected

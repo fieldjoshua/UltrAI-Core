@@ -1,0 +1,19 @@
+ActiveAction
+Phase: 3 - Service Integration
+Status: In Progress
+Last Updated: 2024-03-19
+
+Completed Tasks:
+- ✅ DELETE the rogue service: `app/services/llm_config_service.py`
+- ✅ REMOVE duplicate health check implementations
+- ✅ REFACTOR health routes to use dependency injection
+
+Current Task:
+- 🔄 REFACTOR document routes to use dependency injection
+
+Next Tasks:
+- REFACTOR remaining route files to use the `create_router` pattern
+- IMPLEMENT proper dependency injection in all services
+- STANDARDIZE error handling across all routes
+- UNIFY health check implementation
+- IMPLEMENT exponential backoff for API calls
