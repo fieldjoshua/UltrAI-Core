@@ -1,185 +1,211 @@
 """
-Model Registry Service for managing LLM models and their capabilities.
+Model Registry Service
+
+This service manages model instances, configurations, and lifecycle.
 """
 
-from typing import Dict, List, Optional, Any
+from typing import Any, Dict, List, Optional, Type
+from dataclasses import dataclass
 from datetime import datetime
-import logging
-from dataclasses import dataclass, field
 
-from app.utils.hardware import get_device_info, get_optimal_device
+from app.utils.logging import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger("model_registry")
 
 
 @dataclass
-class ModelCapability:
-    """Represents a model's capabilities and performance metrics."""
+class ModelConfig:
+    """Configuration for a model instance."""
 
     name: str
+    version: str
     provider: str
     max_tokens: int
-    context_window: int
-    cost_per_1k_tokens: float
-    supported_tasks: List[str]
-    performance_metrics: Dict[str, float] = field(default_factory=dict)
-    last_updated: datetime = field(default_factory=datetime.now)
+    temperature: float
+    timeout_seconds: int
+    rate_limit: Dict[str, int]  # requests per minute
+    is_active: bool = True
+    created_at: datetime = datetime.now()
+    updated_at: datetime = datetime.now()
 
 
 @dataclass
 class ModelInstance:
-    """Represents an instance of a model with its current state."""
+    """A registered model instance."""
 
-    model_id: str
-    capability: ModelCapability
-    is_available: bool = True
-    current_load: float = 0.0
-    error_count: int = 0
+    config: ModelConfig
+    instance: Any
     last_used: Optional[datetime] = None
-    device: str = field(default_factory=get_optimal_device)
+    error_count: int = 0
+    success_count: int = 0
 
 
 class ModelRegistry:
-    """Central registry for managing LLM models and their capabilities."""
+    """
+    Service for managing model instances and configurations.
+    """
 
     def __init__(self):
+        """Initialize the model registry."""
         self._models: Dict[str, ModelInstance] = {}
-        self._capabilities: Dict[str, ModelCapability] = {}
-        self._device_info = get_device_info()
-        logger.info(
-            f"Initialized ModelRegistry with device: {self._device_info['device']}"
-        )
+        self._model_classes: Dict[str, Type[Any]] = {}
 
-    def register_model(
-        self,
-        model_id: str,
-        name: str,
-        provider: str,
-        max_tokens: int,
-        context_window: int,
-        cost_per_1k_tokens: float,
-        supported_tasks: List[str],
+    def register_model_class(
+        self, name: str, model_class: Type[Any], config: ModelConfig
     ) -> None:
         """
-        Register a new model with its capabilities.
+        Register a model class with its configuration.
 
         Args:
-            model_id: Unique identifier for the model
-            name: Display name of the model
-            provider: Provider of the model (e.g., 'openai', 'anthropic')
-            max_tokens: Maximum tokens the model can generate
-            context_window: Maximum context window size
-            cost_per_1k_tokens: Cost per 1000 tokens
-            supported_tasks: List of tasks the model supports
+            name: Unique identifier for the model
+            model_class: The model class to register
+            config: Model configuration
         """
-        capability = ModelCapability(
-            name=name,
-            provider=provider,
-            max_tokens=max_tokens,
-            context_window=context_window,
-            cost_per_1k_tokens=cost_per_1k_tokens,
-            supported_tasks=supported_tasks,
+        if name in self._model_classes:
+            raise ValueError(f"Model class {name} is already registered")
+
+        self._model_classes[name] = model_class
+        logger.info(f"Registered model class: {name}")
+
+    def unregister_model_class(self, name: str) -> None:
+        """
+        Unregister a model class.
+
+        Args:
+            name: Name of the model to unregister
+        """
+        if name not in self._model_classes:
+            raise ValueError(f"Model class {name} is not registered")
+
+        del self._model_classes[name]
+        logger.info(f"Unregistered model class: {name}")
+
+    def create_model_instance(self, name: str, **kwargs: Any) -> ModelInstance:
+        """
+        Create a new model instance.
+
+        Args:
+            name: Name of the registered model class
+            **kwargs: Additional arguments for model initialization
+
+        Returns:
+            ModelInstance: The created model instance
+        """
+        if name not in self._model_classes:
+            raise ValueError(f"Model class {name} is not registered")
+
+        model_class = self._model_classes[name]
+        instance = model_class(**kwargs)
+
+        model_instance = ModelInstance(
+            config=ModelConfig(
+                name=name,
+                version=kwargs.get("version", "1.0.0"),
+                provider=kwargs.get("provider", "unknown"),
+                max_tokens=kwargs.get("max_tokens", 2048),
+                temperature=kwargs.get("temperature", 0.7),
+                timeout_seconds=kwargs.get("timeout_seconds", 30),
+                rate_limit=kwargs.get("rate_limit", {"requests_per_minute": 60}),
+            ),
+            instance=instance,
         )
 
-        self._capabilities[model_id] = capability
-        self._models[model_id] = ModelInstance(
-            model_id=model_id,
-            capability=capability,
-        )
-        logger.info(f"Registered model: {name} ({model_id})")
+        self._models[name] = model_instance
+        logger.info(f"Created model instance: {name}")
+        return model_instance
 
-    def get_model(self, model_id: str) -> Optional[ModelInstance]:
+    def get_model_instance(self, name: str) -> Optional[ModelInstance]:
         """
-        Get a model instance by ID.
+        Get a model instance by name.
 
         Args:
-            model_id: The model's unique identifier
+            name: Name of the model instance
 
         Returns:
-            Optional[ModelInstance]: The model instance if found, None otherwise
+            Optional[ModelInstance]: The model instance if found
         """
-        return self._models.get(model_id)
+        return self._models.get(name)
 
-    def get_available_models(self, task: Optional[str] = None) -> List[ModelInstance]:
+    def list_models(self) -> List[Dict[str, Any]]:
         """
-        Get all available models, optionally filtered by task.
-
-        Args:
-            task: Optional task to filter models by
+        List all registered models and their status.
 
         Returns:
-            List[ModelInstance]: List of available model instances
+            List[Dict[str, Any]]: List of model information
         """
-        models = [model for model in self._models.values() if model.is_available]
+        return [
+            {
+                "name": name,
+                "config": instance.config.__dict__,
+                "last_used": instance.last_used,
+                "error_count": instance.error_count,
+                "success_count": instance.success_count,
+            }
+            for name, instance in self._models.items()
+        ]
 
-        if task:
-            models = [
-                model for model in models if task in model.capability.supported_tasks
-            ]
-
-        return models
-
-    def update_model_metrics(
-        self,
-        model_id: str,
-        metrics: Dict[str, float],
-    ) -> None:
+    def update_model_config(self, name: str, config_updates: Dict[str, Any]) -> None:
         """
-        Update a model's performance metrics.
+        Update a model's configuration.
 
         Args:
-            model_id: The model's unique identifier
-            metrics: Dictionary of metric names and values
+            name: Name of the model to update
+            config_updates: Dictionary of configuration updates
         """
-        if model_id in self._models:
-            self._models[model_id].capability.performance_metrics.update(metrics)
-            self._models[model_id].capability.last_updated = datetime.now()
-            logger.debug(f"Updated metrics for model: {model_id}")
+        if name not in self._models:
+            raise ValueError(f"Model {name} is not registered")
 
-    def mark_model_unavailable(self, model_id: str) -> None:
-        """
-        Mark a model as unavailable.
+        instance = self._models[name]
+        for key, value in config_updates.items():
+            if hasattr(instance.config, key):
+                setattr(instance.config, key, value)
 
-        Args:
-            model_id: The model's unique identifier
-        """
-        if model_id in self._models:
-            self._models[model_id].is_available = False
-            self._models[model_id].error_count += 1
-            logger.warning(f"Marked model as unavailable: {model_id}")
+        instance.config.updated_at = datetime.now()
+        logger.info(f"Updated model config: {name}")
 
-    def mark_model_available(self, model_id: str) -> None:
+    def record_model_usage(self, name: str, success: bool) -> None:
         """
-        Mark a model as available.
+        Record model usage statistics.
 
         Args:
-            model_id: The model's unique identifier
+            name: Name of the model
+            success: Whether the usage was successful
         """
-        if model_id in self._models:
-            self._models[model_id].is_available = True
-            logger.info(f"Marked model as available: {model_id}")
+        if name not in self._models:
+            raise ValueError(f"Model {name} is not registered")
 
-    def get_model_stats(self) -> Dict[str, Any]:
+        instance = self._models[name]
+        instance.last_used = datetime.now()
+
+        if success:
+            instance.success_count += 1
+        else:
+            instance.error_count += 1
+
+        logger.debug(f"Recorded model usage: {name} (success={success})")
+
+    def get_model_stats(self, name: str) -> Dict[str, Any]:
         """
-        Get statistics about all registered models.
+        Get usage statistics for a model.
+
+        Args:
+            name: Name of the model
 
         Returns:
-            Dict[str, Any]: Statistics about the models
+            Dict[str, Any]: Model usage statistics
         """
+        if name not in self._models:
+            raise ValueError(f"Model {name} is not registered")
+
+        instance = self._models[name]
         return {
-            "total_models": len(self._models),
-            "available_models": len(self.get_available_models()),
-            "models_by_provider": {
-                provider: len(
-                    [
-                        model
-                        for model in self._models.values()
-                        if model.capability.provider == provider
-                    ]
-                )
-                for provider in set(
-                    model.capability.provider for model in self._models.values()
-                )
-            },
-            "device_info": self._device_info,
+            "name": name,
+            "last_used": instance.last_used,
+            "error_count": instance.error_count,
+            "success_count": instance.success_count,
+            "success_rate": (
+                instance.success_count / (instance.success_count + instance.error_count)
+                if (instance.success_count + instance.error_count) > 0
+                else 0
+            ),
         }

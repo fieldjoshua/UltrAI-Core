@@ -7,14 +7,12 @@ This module provides API routes for prompt analysis and progress tracking.
 """
 
 import json
-import logging
 import time
 from typing import List, Optional
 
 from fastapi import (
     APIRouter,
     BackgroundTasks,
-    Body,
     Depends,
     File,
     Form,
@@ -27,81 +25,102 @@ from sqlalchemy.orm import Session
 
 from app.database.connection import get_db
 from app.database.models import User
-from app.decorators.cache_decorator import cached
+from app.utils.cache_decorator import cached
 from app.models import analysis as models
 from app.models.analysis import AnalysisResultsResponse
 from app.services.auth_service import auth_service
 from app.services.cache_service import cache_service
+from app.utils.logging import get_logger
 
 # Configure logging
-logger = logging.getLogger("analyze_routes")
+logger = get_logger("analyze_routes")
+
+# Define pattern name mappings
+PATTERN_NAME_MAPPING = {
+    "comparative": "comparative_analysis",
+    "comprehensive": "comprehensive_analysis",
+    "concise": "concise_analysis",
+    "contextual": "contextual_understanding",
+    "creative": "creative_exploration",
+    "critical": "critical_evaluation",
+    "empirical": "empirical_assessment",
+    "evaluative": "evaluative_assessment",
+    "explanatory": "explanatory_discourse",
+    "investigative": "investigative_inquiry",
+    "reflective": "reflective_consideration",
+    "speculative": "speculative_reasoning",
+    "structured": "structured_analysis",
+    "custom": "custom_pattern",
+}
+
+# Default values for form fields
+DEFAULT_PATTERN = "Confidence Analysis"
+DEFAULT_OPTIONS = "{}"
+DEFAULT_USER_ID = None
+
+# Default FastAPI dependencies
+REQUIRED_FORM = Form(...)
+REQUIRED_FILE = File(...)
+EMPTY_DICT = Depends(lambda: {})
+
+# Form field dependencies
+PROMPT_FORM = Form(...)
+SELECTED_MODELS_FORM = Form(...)
+ULTRA_MODEL_FORM = Form(...)
+FILES_FORM = File(...)
+PATTERN_FORM = Form(DEFAULT_PATTERN)
+OPTIONS_FORM = Form(DEFAULT_OPTIONS)
+USER_ID_FORM = Form(DEFAULT_USER_ID)
+
+# Standard error messages
+ERROR_MESSAGES = {
+    "invalid_request": "Invalid request parameters",
+    "analysis_not_found": "Analysis {analysis_id} not found",
+    "internal_error": "An internal error occurred",
+    "invalid_pattern": "Invalid analysis pattern: {pattern}",
+    "no_models": "No valid models selected for processing",
+    "processing_error": "Error processing analysis: {error}",
+}
+
+# Get database session
+get_db_session = get_db
 
 
-def create_router(model_registry, prompt_template_manager, analysis_pipeline):
+def create_router(
+    model_registry,
+    prompt_template_manager,
+    analysis_pipeline,
+    auth_service=auth_service,
+    cache_service=cache_service,
+) -> APIRouter:
+    """
+    Create the analysis router with dependencies.
+
+    Args:
+        model_registry: The model registry service
+        prompt_template_manager: The prompt template manager service
+        analysis_pipeline: The analysis pipeline service
+        auth_service: The authentication service
+        cache_service: The cache service
+
+    Returns:
+        APIRouter: The configured router
+    """
     router = APIRouter(tags=["Analysis"])
 
-    # Dependency injection for services
-    def get_analysis_pipeline():
-        return analysis_pipeline
-
-    def get_model_registry():
-        return model_registry
-
-    def get_prompt_template_manager():
-        return prompt_template_manager
-
-    # Get database session
-    get_db_session = get_db
-
-    # Define pattern name mappings
-    PATTERN_NAME_MAPPING = {
-        "comparative": "comparative_analysis",
-        "comprehensive": "comprehensive_analysis",
-        "concise": "concise_analysis",
-        "contextual": "contextual_understanding",
-        "creative": "creative_exploration",
-        "critical": "critical_evaluation",
-        "empirical": "empirical_assessment",
-        "evaluative": "evaluative_assessment",
-        "explanatory": "explanatory_discourse",
-        "investigative": "investigative_inquiry",
-        "reflective": "reflective_consideration",
-        "speculative": "speculative_reasoning",
-        "structured": "structured_analysis",
-        "custom": "custom_pattern",
-    }
-
-    # Default values for form fields
-    DEFAULT_PATTERN = "Confidence Analysis"
-    DEFAULT_OPTIONS = "{}"
-    DEFAULT_USER_ID = None
-
-    # Default values for dependencies
-    default_db = Depends(get_db_session)
-    default_user_id = Body(None, description="User ID")
-
-    # Default values for form fields
-    default_prompt = Form(...)
-    default_selected_models = Form(...)
-    default_ultra_model = Form(...)
-    default_files = File([])
-    default_pattern = Form(DEFAULT_PATTERN)
-    default_options = Form(DEFAULT_OPTIONS)
-    default_user_id_form = Form(DEFAULT_USER_ID)
-
-    # Standard error messages
-    ERROR_MESSAGES = {
-        "invalid_request": "Invalid request parameters",
-        "analysis_not_found": "Analysis {analysis_id} not found",
-        "internal_error": "An internal error occurred",
-        "invalid_pattern": "Invalid analysis pattern: {pattern}",
-        "no_models": "No valid models selected for processing",
-        "processing_error": "Error processing analysis: {error}",
-    }
-
     async def get_current_user(
-        request: Request, db: Session = default_db
+        request: Request, db: Session = Depends(get_db_session)
     ) -> Optional[User]:
+        """
+        Get the current user from the request.
+
+        Args:
+            request: The request object
+            db: The database session
+
+        Returns:
+            Optional[User]: The current user if authenticated, None otherwise
+        """
         auth_header = request.headers.get("Authorization")
         if not auth_header:
             return None
@@ -127,41 +146,45 @@ def create_router(model_registry, prompt_template_manager, analysis_pipeline):
         request: Request,
         analysis_request: models.AnalysisRequest,
         db: Session = Depends(get_db_session),
-        analysis_pipeline=Depends(get_analysis_pipeline),
-        model_registry=Depends(get_model_registry),
-        prompt_template_manager=Depends(get_prompt_template_manager),
     ):
+        """
+        Analyze a prompt using the specified models and pattern.
+
+        Args:
+            request: The request object
+            analysis_request: The analysis request data
+            db: The database session
+
+        Returns:
+            JSONResponse: The analysis results
+        """
         # Start timer
         start_time = time.time()
 
         try:
             # Validate required fields
             if not analysis_request.prompt:
-                return JSONResponse(
+                raise HTTPException(
                     status_code=400,
-                    content={
-                        "status": "error",
-                        "message": ERROR_MESSAGES["invalid_request"],
-                    },
+                    detail=ERROR_MESSAGES["invalid_request"],
                 )
 
             if not analysis_request.selected_models:
-                return JSONResponse(
+                raise HTTPException(
                     status_code=400,
-                    content={"status": "error", "message": ERROR_MESSAGES["no_models"]},
+                    detail=ERROR_MESSAGES["no_models"],
                 )
 
             if not analysis_request.ultra_model:
-                return JSONResponse(
+                raise HTTPException(
                     status_code=400,
-                    content={
-                        "status": "error",
-                        "message": ERROR_MESSAGES["invalid_request"],
-                    },
+                    detail=ERROR_MESSAGES["invalid_request"],
                 )
 
             # Generate unique analysis ID
-            analysis_id = f"analysis_{int(time.time())}_{hash(analysis_request.prompt)}"
+            analysis_id = (
+                f"analysis_{int(time.time())}_{hash(str(analysis_request.prompt))}"
+            )
 
             # Map pattern name
             pattern_name = (
@@ -182,7 +205,7 @@ def create_router(model_registry, prompt_template_manager, analysis_pipeline):
             if isinstance(analysis_request.selected_models, str):
                 try:
                     selected_models = json.loads(analysis_request.selected_models)
-                except:
+                except json.JSONDecodeError:
                     selected_models = [analysis_request.selected_models]
             elif isinstance(analysis_request.selected_models, list):
                 selected_models = analysis_request.selected_models
@@ -202,12 +225,9 @@ def create_router(model_registry, prompt_template_manager, analysis_pipeline):
                         logger.warning(f"Model {model} not found in registry, skipping")
 
                 if not valid_models:
-                    return JSONResponse(
+                    raise HTTPException(
                         status_code=400,
-                        content={
-                            "status": "error",
-                            "message": ERROR_MESSAGES["no_models"],
-                        },
+                        detail=ERROR_MESSAGES["no_models"],
                     )
 
                 # Validate ultra model exists
@@ -248,126 +268,128 @@ def create_router(model_registry, prompt_template_manager, analysis_pipeline):
                     "ultra_response": result.get("ultra_response", ""),
                     "performance": result.get("performance", {}),
                     "metadata": result.get("metadata", {}),
+                    "processing_time": processing_time,
                 }
 
-                # Return the response
-                return response_data
+                return JSONResponse(content=response_data)
+
             except Exception as e:
-                logger.error(f"Error formatting response: {str(e)}", exc_info=True)
-                return JSONResponse(
+                logger.error(f"Error processing analysis: {str(e)}")
+                raise HTTPException(
                     status_code=500,
-                    content={
-                        "status": "error",
-                        "message": f"Error formatting response: {str(e)}",
-                    },
+                    detail=ERROR_MESSAGES["processing_error"].format(error=str(e)),
                 )
 
+        except HTTPException:
+            raise
         except Exception as e:
-            logger.error(
-                f"Unexpected error in analyze endpoint: {str(e)}", exc_info=True
-            )
-            return JSONResponse(
+            logger.error(f"Error in analyze_prompt: {str(e)}")
+            raise HTTPException(
                 status_code=500,
-                content={
-                    "status": "error",
-                    "message": ERROR_MESSAGES["internal_error"],
-                },
+                detail=ERROR_MESSAGES["internal_error"],
             )
 
     @router.post("/api/analyze-with-docs")
     async def analyze_with_docs(
         background_tasks: BackgroundTasks,
-        prompt: str = Form(...),
-        selected_models: str = Form(...),
-        ultra_model: str = Form(...),
-        files: List[UploadFile] = File([]),
-        pattern: str = Form(DEFAULT_PATTERN),
-        options: str = Form(DEFAULT_OPTIONS),
-        user_id: str = Form(DEFAULT_USER_ID),
-        prompt_template_manager=Depends(get_prompt_template_manager),
+        prompt: str = PROMPT_FORM,
+        selected_models: str = SELECTED_MODELS_FORM,
+        ultra_model: str = ULTRA_MODEL_FORM,
+        files: List[UploadFile] = FILES_FORM,
+        pattern: str = PATTERN_FORM,
+        options: str = OPTIONS_FORM,
+        user_id: str = USER_ID_FORM,
     ):
-        """Process documents and analyze them with models"""
+        """
+        Analyze a prompt with document context.
+
+        Args:
+            background_tasks: FastAPI background tasks
+            prompt: The prompt to analyze
+            selected_models: The models to use for analysis
+            ultra_model: The ultra model to use
+            files: The document files to analyze
+            pattern: The analysis pattern to use
+            options: Additional options for analysis
+            user_id: The user ID
+
+        Returns:
+            JSONResponse: The analysis results
+        """
         try:
-            # Parse JSON strings
+            # Parse selected models
             try:
-                # Validate JSON but don't store unused variables
-                json.loads(selected_models)
-                json.loads(options)
+                models_list = json.loads(selected_models)
             except json.JSONDecodeError:
-                return JSONResponse(
-                    status_code=400,
-                    content={
-                        "status": "error",
-                        "message": "Invalid JSON in selected_models or options",
-                    },
+                models_list = [selected_models]
+
+            # Process files
+            processed_files = []
+            for file in files:
+                content = await file.read()
+                processed_files.append(
+                    {
+                        "name": file.filename,
+                        "content": content.decode(),
+                        "type": file.content_type,
+                    }
                 )
 
-            # Process files if any
-            if files:
-                # In a real implementation, you would handle file processing
-                # For now, we'll just acknowledge the files
-                file_names = [
-                    file.filename for file in files if file.filename is not None
-                ]
-                logger.info(f"Processing files: {', '.join(file_names)}")
+            # Generate analysis ID
+            analysis_id = f"analysis_{int(time.time())}_{hash(str(prompt))}"
 
-            # Create a document context
-            document_context = f"Analyzing with {len(files)} documents" if files else ""
-
-            # Combine with prompt
-            combined_prompt = (
-                f"{prompt}\n\n{document_context}" if document_context else prompt
+            # Map pattern name
+            pattern_name = pattern.lower() if pattern else "comprehensive"
+            pattern_key = PATTERN_NAME_MAPPING.get(
+                pattern_name, "comprehensive_analysis"
             )
 
-            # Use the analyze endpoint to process the prompt
-            # In a real implementation, you would properly process the documents
-            # and incorporate their content into the analysis
+            # Process analysis in background
+            background_tasks.add_task(
+                prompt_template_manager.analyze_with_docs,
+                prompt=prompt,
+                models=models_list,
+                ultra_model=ultra_model,
+                files=processed_files,
+                pattern=pattern_key,
+                options=json.loads(options) if options else {},
+                user_id=user_id,
+            )
 
-            return {
-                "status": "success",
-                "message": "Document analysis initiated",
-                "prompt": combined_prompt,
-                "files_processed": len(files),
-            }
-        except Exception as e:
-            logger.error(f"Error in analyze with docs: {str(e)}")
             return JSONResponse(
+                content={
+                    "status": "success",
+                    "analysis_id": analysis_id,
+                    "message": "Analysis started",
+                }
+            )
+
+        except Exception as e:
+            logger.error(f"Error in analyze_with_docs: {str(e)}")
+            raise HTTPException(
                 status_code=500,
-                content={"status": "error", "message": f"Error: {str(e)}"},
+                detail=ERROR_MESSAGES["processing_error"].format(error=str(e)),
             )
 
     @router.get("/api/analyze/{analysis_id}/progress")
-    async def get_analysis_progress(
-        analysis_id: str,
-        prompt_template_manager=Depends(get_prompt_template_manager),
-    ):
+    async def get_analysis_progress(analysis_id: str):
         """
-        Get the progress of a multi-stage analysis
+        Get the progress of an analysis.
 
         Args:
-            analysis_id: The ID of the analysis to track
-            prompt_template_manager: PromptTemplateManager instance
+            analysis_id: The ID of the analysis
 
         Returns:
-            Progress information for the analysis
+            JSONResponse: The analysis progress
         """
         try:
-            # Get progress from the prompt service
             progress = await prompt_template_manager.get_analysis_progress(analysis_id)
-
-            if not progress:
-                raise HTTPException(
-                    status_code=404, detail=f"Analysis {analysis_id} not found"
-                )
-
-            return {
-                "status": "success",
-                "analysis_id": analysis_id,
-                "progress": progress,
-            }
+            return JSONResponse(content=progress)
         except Exception as e:
+            logger.error(f"Error getting analysis progress: {str(e)}")
             raise HTTPException(
-                status_code=500, detail=f"Error getting analysis progress: {str(e)}"
+                status_code=500,
+                detail=ERROR_MESSAGES["processing_error"].format(error=str(e)),
             )
 
     @router.get(
@@ -376,110 +398,45 @@ def create_router(model_registry, prompt_template_manager, analysis_pipeline):
     async def get_analysis_results(
         analysis_id: str,
         request: Request,
-        db: Session = default_db,
-        prompt_template_manager=Depends(get_prompt_template_manager),
+        db: Session = Depends(get_db_session),
     ):
         """
-        Get the results of a completed analysis
+        Get the results of an analysis.
 
         Args:
-            analysis_id: Unique identifier for the analysis
-            request: FastAPI request
-            db: Database session
-            prompt_template_manager: PromptTemplateManager instance
+            analysis_id: The ID of the analysis
+            request: The request object
+            db: The database session
 
         Returns:
-            Analysis results
-
-        Raises:
-            HTTPException: If analysis is not found or not completed
+            AnalysisResultsResponse: The analysis results
         """
         try:
-            # Get results from cache
-            results = await cache_service.get(
-                "analyze_results", {"analysis_id": analysis_id}
+            # Get current user
+            user = await get_current_user(request, db)
+
+            # Get results from cache or service
+            results = await prompt_template_manager.get_analysis_results(
+                analysis_id, user.id if user else None
             )
 
             if not results:
-                # Check if analysis exists in progress
-                progress = await cache_service.get(
-                    "analysis_progress", {"analysis_id": analysis_id}
-                )
-
-                if not progress:
-                    logger.warning(f"Analysis not found: {analysis_id}")
-                    raise HTTPException(
-                        status_code=404,
-                        detail=ERROR_MESSAGES["analysis_not_found"].format(
-                            analysis_id=analysis_id
-                        ),
-                    )
-
-                if progress["status"] != "completed":
-                    logger.info(f"Analysis not completed: {analysis_id}")
-                    raise HTTPException(
-                        status_code=400,
-                        detail=ERROR_MESSAGES["analysis_not_completed"].format(
-                            analysis_id=analysis_id
-                        ),
-                    )
-
-            # Ensure results is not None
-            if results is None:
-                logger.warning(f"Null results for analysis: {analysis_id}")
-                results = {}
-
-            # Validate results format
-            try:
-                # Check required fields
-                required_fields = ["model_responses", "ultra_response", "performance"]
-                for field in required_fields:
-                    if field not in results:
-                        logger.error(f"Missing required field in results: {field}")
-                        raise HTTPException(
-                            status_code=500, detail=ERROR_MESSAGES["internal_error"]
-                        )
-
-                # Validate performance metrics
-                performance = results["performance"]
-                if not isinstance(performance, dict):
-                    logger.error("Invalid performance metrics format")
-                    raise HTTPException(
-                        status_code=500, detail=ERROR_MESSAGES["internal_error"]
-                    )
-
-                # Validate model responses
-                model_responses = results["model_responses"]
-                if not isinstance(model_responses, dict):
-                    logger.error("Invalid model responses format")
-                    raise HTTPException(
-                        status_code=500, detail=ERROR_MESSAGES["internal_error"]
-                    )
-
-                # Validate ultra response
-                ultra_response = results["ultra_response"]
-                if not isinstance(ultra_response, dict):
-                    logger.error("Invalid ultra response format")
-                    raise HTTPException(
-                        status_code=500, detail=ERROR_MESSAGES["internal_error"]
-                    )
-
-            except Exception as e:
-                logger.error(f"Error validating results format: {str(e)}")
                 raise HTTPException(
-                    status_code=500, detail=ERROR_MESSAGES["internal_error"]
+                    status_code=404,
+                    detail=ERROR_MESSAGES["analysis_not_found"].format(
+                        analysis_id=analysis_id
+                    ),
                 )
 
-            return AnalysisResultsResponse(
-                status="success", analysis_id=analysis_id, results=results
-            )
+            return results
 
         except HTTPException:
             raise
         except Exception as e:
             logger.error(f"Error getting analysis results: {str(e)}")
             raise HTTPException(
-                status_code=500, detail=ERROR_MESSAGES["internal_error"]
+                status_code=500,
+                detail=ERROR_MESSAGES["processing_error"].format(error=str(e)),
             )
 
     return router

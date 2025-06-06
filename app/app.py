@@ -1,3 +1,7 @@
+"""
+FastAPI application setup and middleware configuration.
+"""
+
 import argparse
 import os
 import sys
@@ -8,8 +12,8 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
 # Import configuration
-from config import Config
-from config_cors import get_cors_config
+from app.config import Config
+from app.config_cors import get_cors_config
 
 # Import database
 from database import check_database_connection, init_db
@@ -17,7 +21,7 @@ from middleware.api_key_middleware import setup_api_key_middleware
 
 # Import security middleware
 from middleware.auth_middleware import setup_auth_middleware
-from config_security import get_security_config
+from app.config_security import get_security_config
 from middleware.csrf_middleware import setup_csrf_middleware
 from middleware.locale_middleware import setup_locale_middleware
 from middleware.security_headers_middleware import (
@@ -29,7 +33,8 @@ from routes.auth_routes import auth_router
 from routes.available_models_routes import router as available_models_router
 from routes.docker_modelrunner_routes import router as modelrunner_router
 from routes.document_analysis_routes import document_analysis_router
-from routes.document_routes import document_router
+from app.routes.document_routes import create_router as create_document_router
+from app.services.document_processor import document_processor
 
 # Import routes
 from routes.health_routes import create_router as create_health_router
@@ -70,7 +75,7 @@ from utils.structured_logging import apply_structured_logging_middleware
 from services.health_service import HealthService
 
 # Get logger
-logger = get_logger("ultra_api", "logs/api.log")
+logger = get_logger("app")
 
 # Check if Sentry is available
 try:
@@ -170,7 +175,7 @@ async def lifespan(app: FastAPI):
 
     # Log application startup
     log_startup_event(
-        app_name="UltraAI Backend",
+        app_name="Ultra API",
         version=app.version,
         config={
             "environment": Config.ENVIRONMENT,
@@ -193,185 +198,191 @@ async def lifespan(app: FastAPI):
     logger.info("Shutting down application")
 
 
-# Create FastAPI application with lifespan manager
-app = FastAPI(
-    title="Ultra API",
-    description="UltraAI Backend API",
-    version="2.0.0",
-    lifespan=lifespan,
-    docs_url="/api/docs",
-    redoc_url="/api/redoc",
-)
-
-# Configure CORS
-if Config.ENVIRONMENT == "production":
-    # Use production CORS configuration
-    cors_config = get_cors_config()
-    app.add_middleware(
-        CORSMiddleware,
-        allow_origins=cors_config["allow_origins"],
-        allow_credentials=cors_config["allow_credentials"],
-        allow_methods=cors_config["allow_methods"],
-        allow_headers=cors_config["allow_headers"],
-        expose_headers=cors_config["expose_headers"],
-        max_age=cors_config["max_age"],
-    )
-else:
-    # Development CORS configuration (more permissive)
-    app.add_middleware(
-        CORSMiddleware,
-        allow_origins=["*"],  # Allow all origins for development
-        allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"],
+def create_app() -> FastAPI:
+    """Create and configure the FastAPI application."""
+    app = FastAPI(
+        title="Ultra API",
+        description="UltraAI Backend API",
+        version="2.0.0",
+        lifespan=lifespan,
+        docs_url="/api/docs",
+        redoc_url="/api/redoc",
     )
 
-# Register exception handlers
-register_exception_handlers(app)
+    # Configure CORS
+    if Config.ENVIRONMENT == "production":
+        # Use production CORS configuration
+        cors_config = get_cors_config()
+        app.add_middleware(
+            CORSMiddleware,
+            allow_origins=cors_config["allow_origins"],
+            allow_credentials=cors_config["allow_credentials"],
+            allow_methods=cors_config["allow_methods"],
+            allow_headers=cors_config["allow_headers"],
+            expose_headers=cors_config["expose_headers"],
+            max_age=cors_config["max_age"],
+        )
+    else:
+        # Development CORS configuration (more permissive)
+        app.add_middleware(
+            CORSMiddleware,
+            allow_origins=["*"],  # Allow all origins for development
+            allow_credentials=True,
+            allow_methods=["*"],
+            allow_headers=["*"],
+        )
 
-# Note: error_handling_middleware will be added as the last middleware to catch all errors
+    # Register exception handlers
+    register_exception_handlers(app)
 
-# Set up security middleware
-if Config.ENVIRONMENT == "production":
-    # Use production security configuration from environment
-    security_config = get_security_config()
-    setup_security_headers_middleware(
-        app,
-        csp_directives=security_config["csp_directives"],
-        hsts_max_age=security_config["hsts_max_age"],
-        hsts_include_subdomains=security_config["hsts_include_subdomains"],
-        hsts_preload=security_config["hsts_preload"],
-    )
-else:
-    # Use default configuration for development
-    setup_security_headers_middleware(app)
+    # Note: error_handling_middleware will be added as the last middleware to catch all errors
 
-# Configure CSRF middleware with orchestrator exemptions for demo access
-csrf_exempt_paths = [
-    "/api/auth/login",
-    "/api/auth/register",
-    "/api/auth/refresh",
-    "/api/auth/reset-password-request",
-    "/api/auth/reset-password",
-    "/api/upload",  # File uploads handled differently
-    "/api/ws",  # WebSockets
-    "/api/orchestrator",  # Exempt orchestrator for testing/API access
-]
-setup_csrf_middleware(app, exempt_paths=csrf_exempt_paths)
-setup_validation_middleware(app)
+    # Set up security middleware
+    if Config.ENVIRONMENT == "production":
+        # Use production security configuration from environment
+        security_config = get_security_config()
+        setup_security_headers_middleware(
+            app,
+            csp_directives=security_config["csp_directives"],
+            hsts_max_age=security_config["hsts_max_age"],
+            hsts_include_subdomains=security_config["hsts_include_subdomains"],
+            hsts_preload=security_config["hsts_preload"],
+        )
+    else:
+        # Use default configuration for development
+        setup_security_headers_middleware(app)
 
-# Only set up auth and API key middleware if enabled
-if Config.ENABLE_AUTH:
-    # Add orchestrator endpoints to public paths for demo access
-    public_paths = [
-        "/api/auth/",
-        "/health",
-        "/ping",
-        "/metrics",
-        "/api/docs",
-        "/api/redoc",
-        "/api/openapi.json",
-        "/api/debug/",
-        "/favicon.ico",
-        "/assets/",  # Enable access to frontend assets (CSS, JS)
-        "/api/orchestrator/",
-        "/",  # Enable access to main page and frontend routes
+    # Configure CSRF middleware with orchestrator exemptions for demo access
+    csrf_exempt_paths = [
+        "/api/auth/login",
+        "/api/auth/register",
+        "/api/auth/refresh",
+        "/api/auth/reset-password-request",
+        "/api/auth/reset-password",
+        "/api/upload",  # File uploads handled differently
+        "/api/ws",  # WebSockets
+        "/api/orchestrator",  # Exempt orchestrator for testing/API access
     ]
-    setup_auth_middleware(app, public_paths=public_paths)
-    setup_api_key_middleware(app, public_paths=public_paths)
-else:
-    logger.info("Authentication disabled - auth middleware skipped")
+    setup_csrf_middleware(app, exempt_paths=csrf_exempt_paths)
+    setup_validation_middleware(app)
 
-setup_middleware(app)
-setup_locale_middleware(app)
+    # Only set up auth and API key middleware if enabled
+    if Config.ENABLE_AUTH:
+        # Add orchestrator endpoints to public paths for demo access
+        public_paths = [
+            "/api/auth/",
+            "/health",
+            "/ping",
+            "/metrics",
+            "/api/docs",
+            "/api/redoc",
+            "/api/openapi.json",
+            "/api/debug/",
+            "/favicon.ico",
+            "/assets/",  # Enable access to frontend assets (CSS, JS)
+            "/api/orchestrator/",
+            "/",  # Enable access to main page and frontend routes
+        ]
+        setup_auth_middleware(app, public_paths=public_paths)
+        setup_api_key_middleware(app, public_paths=public_paths)
+    else:
+        logger.info("Authentication disabled - auth middleware skipped")
 
-# Apply the structured logging middleware that was previously configured
-apply_structured_logging_middleware(app)
+    setup_middleware(app)
+    setup_locale_middleware(app)
 
-# Set up rate limiting
-app.middleware("http")(rate_limit_middleware)
+    # Apply the structured logging middleware that was previously configured
+    apply_structured_logging_middleware(app)
 
-# Set up monitoring and metrics after all middleware
-setup_monitoring(app)
-setup_metrics(app)
+    # Set up rate limiting
+    app.middleware("http")(rate_limit_middleware)
 
-# Add error handling middleware as the LAST middleware (executes first due to reverse order)
-# This ensures it catches errors from all other middleware
-app.middleware("http")(error_handling_middleware)
+    # Set up monitoring and metrics after all middleware
+    setup_monitoring(app)
+    setup_metrics(app)
 
-# Create routers with dependencies
-health_router = create_health_router(health_service)
+    # Add error handling middleware as the LAST middleware (executes first due to reverse order)
+    # This ensures it catches errors from all other middleware
+    app.middleware("http")(error_handling_middleware)
 
-# Include routers
-app.include_router(health_router)  # Health router should be at root level
-app.include_router(metrics_router, prefix="/api")
-app.include_router(document_router, prefix="/api")
-app.include_router(
-    document_analysis_router
-)  # Already has /api prefix in its route definitions
-app.include_router(
-    create_analyze_router(
-        app.state.model_registry,
-        app.state.prompt_template_manager,
-        app.state.analysis_pipeline,
+    # Create routers with dependencies
+    health_router = create_health_router(health_service)
+    document_router = create_document_router(document_processor)
+
+    # Include routers
+    app.include_router(health_router)  # Health router should be at root level
+    app.include_router(metrics_router, prefix="/api")
+    app.include_router(document_router, prefix="/api")
+    app.include_router(
+        document_analysis_router
+    )  # Already has /api prefix in its route definitions
+    app.include_router(
+        create_analyze_router(
+            app.state.model_registry,
+            app.state.prompt_template_manager,
+            app.state.analysis_pipeline,
+        )
     )
-)
-app.include_router(pricing_router, prefix="/api")
-app.include_router(user_router, prefix="/api")
-app.include_router(oauth_router, prefix="/api")
-app.include_router(auth_router, prefix="/api")
-app.include_router(llm_router, prefix="/api")
-app.include_router(available_models_router, prefix="/api")  # New available models route
-app.include_router(
-    modelrunner_router
-)  # Already has /api prefix in its route definitions
-# Orchestrator - basic/minimal implementation
-app.include_router(orchestrator_router)  # Already has /api/orchestrator prefix
-app.include_router(debug_router, prefix="/api")  # Debug routes for troubleshooting
-# app.include_router(
-#     resilient_orchestrator_router, prefix="/api"
-# )  # Resilient orchestrator routes
-# app.include_router(recovery_router)  # Recovery routes (already has /api prefix)
+    app.include_router(pricing_router, prefix="/api")
+    app.include_router(user_router, prefix="/api")
+    app.include_router(oauth_router, prefix="/api")
+    app.include_router(auth_router, prefix="/api")
+    app.include_router(llm_router, prefix="/api")
+    app.include_router(
+        available_models_router, prefix="/api"
+    )  # New available models route
+    app.include_router(
+        modelrunner_router
+    )  # Already has /api prefix in its route definitions
+    # Orchestrator - basic/minimal implementation
+    app.include_router(orchestrator_router)  # Already has /api/orchestrator prefix
+    app.include_router(debug_router, prefix="/api")  # Debug routes for troubleshooting
+    # app.include_router(
+    #     resilient_orchestrator_router, prefix="/api"
+    # )  # Resilient orchestrator routes
+    # app.include_router(recovery_router)  # Recovery routes (already has /api prefix)
 
-# Serve React frontend with SPA routing support
-static_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "static")
-if os.path.exists(static_path):
-    from fastapi.responses import FileResponse
+    # Serve React frontend with SPA routing support
+    static_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "static")
+    if os.path.exists(static_path):
+        from fastapi.responses import FileResponse
 
-    @app.get("/{path:path}")
-    async def serve_spa(path: str):
-        """Serve React SPA - return index.html for all non-API routes"""
-        # Don't interfere with API routes
-        if (
-            path.startswith("api/")
-            or path.startswith("health")
-            or path.startswith("ping")
-            or path.startswith("metrics")
-        ):
-            raise HTTPException(status_code=404, detail="Not Found")
+        @app.get("/{path:path}")
+        async def serve_spa(path: str):
+            """Serve React SPA - return index.html for all non-API routes"""
+            # Don't interfere with API routes
+            if (
+                path.startswith("api/")
+                or path.startswith("health")
+                or path.startswith("ping")
+                or path.startswith("metrics")
+            ):
+                raise HTTPException(status_code=404, detail="Not Found")
 
-        # Serve actual files if they exist (CSS, JS, images, etc.)
-        file_path = os.path.join(static_path, path)
-        if os.path.isfile(file_path):
-            # Set proper MIME types for static assets
-            if path.endswith(".css"):
-                return FileResponse(file_path, media_type="text/css")
-            elif path.endswith(".js"):
-                return FileResponse(file_path, media_type="application/javascript")
-            elif path.endswith(".svg"):
-                return FileResponse(file_path, media_type="image/svg+xml")
-            elif path.endswith(".ico"):
-                return FileResponse(file_path, media_type="image/x-icon")
-            else:
-                return FileResponse(file_path)
+            # Serve actual files if they exist (CSS, JS, images, etc.)
+            file_path = os.path.join(static_path, path)
+            if os.path.isfile(file_path):
+                # Set proper MIME types for static assets
+                if path.endswith(".css"):
+                    return FileResponse(file_path, media_type="text/css")
+                elif path.endswith(".js"):
+                    return FileResponse(file_path, media_type="application/javascript")
+                elif path.endswith(".svg"):
+                    return FileResponse(file_path, media_type="image/svg+xml")
+                elif path.endswith(".ico"):
+                    return FileResponse(file_path, media_type="image/x-icon")
+                else:
+                    return FileResponse(file_path)
 
-        # For all other routes, serve index.html (React Router will handle routing)
-        index_path = os.path.join(static_path, "index.html")
-        return FileResponse(index_path)
+            # For all other routes, serve index.html (React Router will handle routing)
+            index_path = os.path.join(static_path, "index.html")
+            return FileResponse(index_path)
 
-    logger.info(f"✅ React SPA routing configured for: {static_path}")
-else:
-    logger.warning(f"⚠️ Static directory not found: {static_path}")
+        logger.info(f"✅ React SPA routing configured for: {static_path}")
+    else:
+        logger.warning(f"⚠️ Static directory not found: {static_path}")
+
+    return app
 
 
 def run_server():
@@ -425,7 +436,7 @@ def run_server():
         logger.info("Running in MOCK MODE - real API keys will not be used")
 
     uvicorn.run(
-        "app:app",
+        "app:create_app",
         host=args.host,
         port=port,
         reload=args.reload,
