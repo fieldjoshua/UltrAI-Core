@@ -1,0 +1,50 @@
+[1m============================= test session starts ==============================[0m
+platform darwin -- Python 3.12.0, pytest-8.3.3, pluggy-1.5.0 -- /Users/joshuafield/Documents/Ultra/.venv/bin/python3.12
+cachedir: .pytest_cache
+rootdir: /Users/joshuafield/Documents/Ultra
+configfile: pytest.ini
+plugins: asyncio-0.24.0, cov-6.0.0, langsmith-0.3.22, anyio-4.9.0
+asyncio: mode=Mode.AUTO, default_loop_scope=None
+[1mcollecting ... [0mcollected 1 item / 1 error
+
+==================================== ERRORS ====================================
+[31m[1m_ ERROR collecting ARCHIVE_20250606/ARCHIVE_OLD/archive/NEWArchive/old_code/previous_archive/misc/test_claude.py _[0m
+[1m[31m.venv/lib/python3.12/site-packages/pytest_asyncio/plugin.py[0m:667: in _patched_collect
+    [0mmodule = collector.obj[90m[39;49;00m
+[1m[31m.venv/lib/python3.12/site-packages/_pytest/python.py[0m:284: in obj
+    [0m[96mself[39;49;00m._obj = obj = [96mself[39;49;00m._getobj()[90m[39;49;00m
+[1m[31m.venv/lib/python3.12/site-packages/_pytest/python.py[0m:546: in _getobj
+    [0m[94mreturn[39;49;00m importtestmodule([96mself[39;49;00m.path, [96mself[39;49;00m.config)[90m[39;49;00m
+[1m[31m.venv/lib/python3.12/site-packages/_pytest/python.py[0m:493: in importtestmodule
+    [0mmod = import_path([90m[39;49;00m
+[1m[31m.venv/lib/python3.12/site-packages/_pytest/pathlib.py[0m:582: in import_path
+    [0mimportlib.import_module(module_name)[90m[39;49;00m
+[1m[31m/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/importlib/__init__.py[0m:90: in import_module
+    [0m[94mreturn[39;49;00m _bootstrap._gcd_import(name[level:], package, level)[90m[39;49;00m
+[1m[31m<frozen importlib._bootstrap>[0m:1381: in _gcd_import
+    [0m[04m[91m?[39;49;00m[04m[91m?[39;49;00m[04m[91m?[39;49;00m[90m[39;49;00m
+[1m[31m<frozen importlib._bootstrap>[0m:1354: in _find_and_load
+    [0m[04m[91m?[39;49;00m[04m[91m?[39;49;00m[04m[91m?[39;49;00m[90m[39;49;00m
+[1m[31m<frozen importlib._bootstrap>[0m:1325: in _find_and_load_unlocked
+    [0m[04m[91m?[39;49;00m[04m[91m?[39;49;00m[04m[91m?[39;49;00m[90m[39;49;00m
+[1m[31m<frozen importlib._bootstrap>[0m:929: in _load_unlocked
+    [0m[04m[91m?[39;49;00m[04m[91m?[39;49;00m[04m[91m?[39;49;00m[90m[39;49;00m
+[1m[31m.venv/lib/python3.12/site-packages/_pytest/assertion/rewrite.py[0m:184: in exec_module
+    [0mexec(co, module.[91m__dict__[39;49;00m)[90m[39;49;00m
+[1m[31m/Users/joshuafield/Documents/Ultra/ARCHIVE/archive/NEWArchive/old_code/previous_archive/misc/test_claude.py[0m:9: in <module>
+    [0m[04m[91m?[39;49;00m[04m[91m?[39;49;00m[04m[91m?[39;49;00m[90m[39;49;00m
+[1m[31m.venv/lib/python3.12/site-packages/anthropic/_utils/_utils.py[0m:275: in wrapper
+    [0m[94mreturn[39;49;00m func(*args, **kwargs)[90m[39;49;00m
+[1m[31m.venv/lib/python3.12/site-packages/anthropic/resources/completions.py[0m:386: in create
+    [0m[94mreturn[39;49;00m [96mself[39;49;00m._post([90m[39;49;00m
+[1m[31m.venv/lib/python3.12/site-packages/anthropic/_base_client.py[0m:1336: in post
+    [0m[94mreturn[39;49;00m cast(ResponseT, [96mself[39;49;00m.request(cast_to, opts, stream=stream, stream_cls=stream_cls))[90m[39;49;00m
+[1m[31m.venv/lib/python3.12/site-packages/anthropic/_base_client.py[0m:1013: in request
+    [0m[94mreturn[39;49;00m [96mself[39;49;00m._request([90m[39;49;00m
+[1m[31m.venv/lib/python3.12/site-packages/anthropic/_base_client.py[0m:1117: in _request
+    [0m[94mraise[39;49;00m [96mself[39;49;00m._make_status_error_from_response(err.response) [94mfrom[39;49;00m [94mNone[39;49;00m[90m[39;49;00m
+[1m[31mE   anthropic.AuthenticationError: Error code: 401 - {'type': 'error', 'error': {'type': 'authentication_error', 'message': 'invalid x-api-key'}}[0m
+[36m[1m=========================== short test summary info ============================[0m
+[31mERROR[0m ARCHIVE_20250606/ARCHIVE_OLD/archive/NEWArchive/old_code/previous_archive/misc/test_claude.py - anthropic.AuthenticationError: Error code: 401 - {'type': 'error', 'error':...
+[31m!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!![0m
+[31m========================= [33m3 warnings[0m, [31m[1m1 error[0m[31m in 0.86s[0m[31m =========================[0m

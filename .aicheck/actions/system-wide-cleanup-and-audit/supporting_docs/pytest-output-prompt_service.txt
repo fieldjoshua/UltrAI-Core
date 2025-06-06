@@ -1,0 +1,17 @@
+[1m============================= test session starts ==============================[0m
+platform darwin -- Python 3.12.0, pytest-8.3.3, pluggy-1.5.0 -- /Users/joshuafield/Documents/Ultra/.venv/bin/python3.12
+cachedir: .pytest_cache
+rootdir: /Users/joshuafield/Documents/Ultra
+configfile: pytest.ini
+plugins: asyncio-0.24.0, cov-6.0.0, langsmith-0.3.22, anyio-4.9.0
+asyncio: mode=Mode.AUTO, default_loop_scope=None
+[1mcollecting ... [0mcollected 6 items
+
+app/tests/unit/test_prompt_service.py::test_register_and_get_template [32mPASSED[0m[33m [ 16%][0m
+app/tests/unit/test_prompt_service.py::test_update_template [32mPASSED[0m[33m       [ 33%][0m
+app/tests/unit/test_prompt_service.py::test_list_templates [32mPASSED[0m[33m        [ 50%][0m
+app/tests/unit/test_prompt_service.py::test_render_template [32mPASSED[0m[33m       [ 66%][0m
+app/tests/unit/test_prompt_service.py::test_process_prompt_success [32mPASSED[0m[33m [ 83%][0m
+app/tests/unit/test_prompt_service.py::test_process_prompt_missing_template [32mPASSED[0m[33m [100%][0m
+
+[33m======================== [32m6 passed[0m, [33m[1m3 warnings[0m[33m in 0.30s[0m[33m =========================[0m

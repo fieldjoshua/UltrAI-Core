@@ -11,7 +11,7 @@ import logging
 import os
 import re
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Set, Tuple
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -219,27 +219,136 @@ class RouteRefactorer:
         logger.info(f"Refactored {self.file_path}")
 
 
+def get_route_files() -> List[Path]:
+    """Get all route files that need refactoring."""
+    routes_dir = Path("app/routes")
+    return [f for f in routes_dir.glob("*.py") if not f.name.startswith("__")]
+
+
+def extract_dependencies(content: str) -> Dict[str, Set[str]]:
+    """Extract dependencies from route file content."""
+    imports = set()
+    services = set()
+
+    # Extract imports
+    import_pattern = r"from\s+([\w\.]+)\s+import"
+    imports.update(re.findall(import_pattern, content))
+
+    # Extract service dependencies
+    service_pattern = r"from\s+app\.services\.(\w+)\s+import"
+    services.update(re.findall(service_pattern, content))
+
+    return {"imports": imports, "services": services}
+
+
+def extract_endpoints(content: str) -> List[Tuple[str, str, str, str]]:
+    """Extract endpoint definitions from route file content."""
+    endpoints = []
+
+    # Match route decorators and their functions
+    route_pattern = r"@\w+\.(get|post|put|delete|patch)\s*\(\s*[\"']([^\"']+)[\"']\s*\)\s*\n\s*async\s+def\s+(\w+)\s*\(([^)]*)\)\s*:"
+    matches = re.finditer(route_pattern, content)
+
+    for match in matches:
+        method, path, func_name, params = match.groups()
+        # Extract the function body
+        func_start = match.end()
+        func_end = content.find("\n\n", func_start)
+        if func_end == -1:
+            func_end = len(content)
+        func_body = content[func_start:func_end].strip()
+
+        # Extract imports needed for this endpoint
+        imports = set()
+        for line in func_body.split("\n"):
+            if "import" in line:
+                imports.add(line.strip())
+
+        endpoints.append((method, path, func_name, params, func_body, imports))
+
+    return endpoints
+
+
+def create_dependency_injection(services: Set[str]) -> str:
+    """Create dependency injection functions for services."""
+    deps = []
+    for service in services:
+        deps.append(
+            f"""
+def get_{service}() -> {service.title()}:
+    \"\"\"Dependency provider for {service.title()}.\"\"\"
+    return {service}()
+"""
+        )
+    return "\n".join(deps)
+
+
+def refactor_route_file(file_path: Path) -> None:
+    """Refactor a single route file to use create_router pattern."""
+    with open(file_path, "r") as f:
+        content = f.read()
+
+    # Extract dependencies and endpoints
+    deps = extract_dependencies(content)
+    endpoints = extract_endpoints(content)
+
+    # Collect all imports needed
+    all_imports = set()
+    for _, _, _, _, _, imports in endpoints:
+        all_imports.update(imports)
+
+    # Create new content with create_router pattern
+    new_content = f'''"""
+Route handlers for the Ultra backend.
+"""
+
+import logging
+from typing import Dict
+from fastapi import APIRouter, Depends, HTTPException
+from fastapi.responses import JSONResponse
+
+{create_dependency_injection(deps["services"])}
+
+def create_router() -> APIRouter:
+    """
+    Create the router with all endpoints.
+
+    Returns:
+        APIRouter: The configured router
+    """
+    router = APIRouter(tags=["{file_path.stem.replace('_routes', '').title()}"])
+
+'''
+
+    # Add endpoints to router
+    for method, path, func_name, params, func_body, _ in endpoints:
+        new_content += f"""
+    @router.{method}("{path}")
+    async def {func_name}({params}):
+{func_body}
+
+"""
+
+    new_content += "    return router"
+
+    # Create backup
+    backup_path = file_path.with_suffix(".py.bak")
+    if not backup_path.exists():
+        with open(backup_path, "w") as f:
+            f.write(content)
+
+    # Write new content
+    with open(file_path, "w") as f:
+        f.write(new_content)
+
+
 def main():
     """Main function to refactor all route files."""
-    routes_dir = Path("app/routes")
-    route_files = [
-        "oauth_routes.py",
-        "available_models_routes.py",
-        "debug_routes.py",
-        "document_analysis_routes.py",
-        "metrics.py",
-    ]
-
-    for file_name in route_files:
-        file_path = routes_dir / file_name
-        if file_path.exists():
-            try:
-                refactorer = RouteRefactorer(str(file_path))
-                refactorer.refactor()
-            except Exception as e:
-                logger.error(f"Error refactoring {file_name}: {e}")
-        else:
-            logger.warning(f"File not found: {file_name}")
+    route_files = get_route_files()
+    for file_path in route_files:
+        print(f"Refactoring {file_path.name}...")
+        refactor_route_file(file_path)
+        print(f"✓ {file_path.name} refactored")
 
 
 if __name__ == "__main__":

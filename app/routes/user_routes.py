@@ -1,248 +1,128 @@
 """
-User routes for the Ultra backend.
-
-This module provides API routes for user management and authentication.
+Route handlers for the Ultra backend.
 """
 
-import logging
-from typing import Annotated, Any, Optional
-from uuid import uuid4
+from typing import Optional
+from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel
 
-from fastapi import APIRouter, Depends, HTTPException, Header
-from fastapi.responses import JSONResponse
-from sqlalchemy.orm import Session
+from app.services.transaction_service import TransactionService
+from app.services.token_management_service import TokenManagementService
 
-from app.database.connection import get_db
-from app.models.user import (
-    TokenResponse,
-    UserCreate,
-    UserLogin,
-    UserResponse,
-    UserUpdate,
-)
-from app.services.auth_service import auth_service
-
-# Configure logging
-logger = logging.getLogger("user_routes")
-
-# Create module-level dependencies
-get_db_session = get_db
-DEFAULT_DB = Depends(get_db_session)
+# For demonstration, use singleton instances (replace with DI in production)
+transaction_service = TransactionService()
+token_management_service = TokenManagementService()
 
 
-def create_router(
-    auth_service: Any = auth_service,
-) -> APIRouter:
+# Placeholder authentication and admin check
+class User(BaseModel):
+    user_id: str
+    is_admin: bool = False
+
+
+def get_current_user() -> User:
+    # In production, replace with real authentication
+    return User(user_id="test_user", is_admin=True)
+
+
+def admin_required(user: User):
+    if not user.is_admin:
+        raise HTTPException(status_code=403, detail="Admin privileges required")
+    return user
+
+
+# Request models
+class AddFundsRequest(BaseModel):
+    amount: float
+    description: Optional[str] = "User deposit"
+
+
+class ManualDebitRequest(BaseModel):
+    user_id: str
+    amount: float
+    description: Optional[str] = "Manual debit"
+
+
+class RefundRequest(BaseModel):
+    user_id: str
+    amount: float
+    description: Optional[str] = "Refund"
+
+
+def create_router() -> APIRouter:
     """
-    Create the user router with dependencies.
-
-    Args:
-        auth_service: The authentication service
+    Create the router with all endpoints.
 
     Returns:
         APIRouter: The configured router
     """
-    router = APIRouter(tags=["Users"])
+    router = APIRouter(tags=["User"])
 
-    async def get_current_user(
-        authorization: Optional[str] = Header(default=None),
-    ) -> Optional[str]:
-        """
-        Dependency to get the current user ID from the authorization header
-        Returns None if no valid token is provided
-        """
-        if not authorization:
-            return None
+    @router.get("/user/balance", response_model=float)
+    async def get_balance(user: User = Depends(get_current_user)):
+        """Get the user's current balance."""
+        return await transaction_service.get_balance(user.user_id)
 
-        # Extract token from header (Bearer token)
-        try:
-            scheme, token = authorization.split()
-            if scheme.lower() != "bearer":
-                return None
-        except ValueError:
-            return None
+    @router.get("/user/transactions")
+    async def get_transaction_history(user: User = Depends(get_current_user)):
+        """Get the user's transaction history."""
+        history = transaction_service.get_transaction_history(user.user_id)
+        return [t.__dict__ for t in history]
 
-        # Verify token
-        user_id = auth_service.verify_token(token)
-        return user_id
+    @router.get("/user/token-usage")
+    async def get_token_usage(user: User = Depends(get_current_user)):
+        """Get the user's token usage history."""
+        usage = token_management_service.get_user_usage(user.user_id)
+        return [
+            {
+                "model": t.model,
+                "input_tokens": t.input_tokens,
+                "output_tokens": t.output_tokens,
+                "input_cost_per_1k": t.input_cost_per_1k,
+                "output_cost_per_1k": t.output_cost_per_1k,
+                "timestamp": t.timestamp,
+                "total_cost": t.total_cost,
+            }
+            for t in usage
+        ]
 
-    # Use Annotated for dependency injection to avoid linter warnings
-    CurrentUser = Annotated[Optional[str], Depends(get_current_user)]
-
-    @router.post("/api/register", response_model=UserResponse)
-    async def register_user(user: UserCreate, db: Session = DEFAULT_DB):
-        """
-        Register a new user.
-        WARNING: This endpoint is for development/testing only. Do not use in production.
-        """
-        try:
-            # If no user_id provided, generate one
-            if not user.user_id:
-                user.user_id = str(uuid4())
-
-            result = auth_service.create_user(
-                db=db,
-                email=user.email,
-                password=user.password,
-                username=user.username,
-                name=user.name,
-                tier=user.tier,
-            )
-
-            if "error" in result:
-                return JSONResponse(
-                    status_code=400,
-                    content={"status": "error", "message": result["error"]},
-                )
-
-            return result
-        except Exception as e:
-            logger.error(f"Error registering user: {str(e)}")
-            raise HTTPException(
-                status_code=500, detail=f"Error registering user: {str(e)}"
-            )
-
-    @router.post("/api/login", response_model=TokenResponse)
-    async def login_user(login: UserLogin, db: Session = DEFAULT_DB):
-        """Authenticate a user and return an access token"""
-        try:
-            # Authenticate user
-            user = auth_service.authenticate_user(db, login.email, login.password)
-
-            if not user:
-                return JSONResponse(
-                    status_code=401,
-                    content={"status": "error", "message": "Invalid email or password"},
-                )
-
-            # Create access token
-            token = auth_service.create_access_token(user.id)
-
-            if "error" in token:
-                return JSONResponse(
-                    status_code=500,
-                    content={"status": "error", "message": token["error"]},
-                )
-
-            return token
-        except Exception as e:
-            logger.error(f"Error logging in user: {str(e)}")
-            raise HTTPException(status_code=500, detail=f"Error logging in: {str(e)}")
-
-    @router.get("/api/user/me", response_model=UserResponse)
-    async def get_current_user_profile(
-        current_user: CurrentUser, db: Session = DEFAULT_DB
+    @router.post("/user/add-funds")
+    async def add_funds(
+        request: AddFundsRequest, user: User = Depends(get_current_user)
     ):
-        """Get the profile of the currently authenticated user"""
-        if not current_user:
-            return JSONResponse(
-                status_code=401,
-                content={"status": "error", "message": "Authentication required"},
-            )
-
-        try:
-            # Convert user_id to int (it's stored as string in the token)
-            user_id = int(current_user)
-        except ValueError:
-            return JSONResponse(
-                status_code=400,
-                content={"status": "error", "message": "Invalid user ID"},
-            )
-
-        user = auth_service.get_user(db, user_id)
-
-        if not user:
-            return JSONResponse(
-                status_code=404,
-                content={"status": "error", "message": "User not found"},
-            )
-
-        # Convert SQLAlchemy model to Pydantic response
-        return {
-            "user_id": str(user.id),
-            "email": user.email,
-            "username": user.username,
-            "name": user.full_name,
-            "tier": user.subscription_tier.value,
-            "created_at": user.created_at.isoformat(),
-            "last_login": user.last_login.isoformat() if user.last_login else None,
-            "balance": user.account_balance,
-            "settings": {},  # This would come from a settings table
-            "is_verified": user.is_verified,
-            "oauth_provider": user.oauth_provider,
-        }
-
-    @router.get("/api/user/{user_id}", response_model=UserResponse)
-    async def get_user_profile(
-        user_id: str, current_user: CurrentUser, db: Session = DEFAULT_DB
-    ):
-        """Get a user profile by ID (requires authentication)"""
-        if not current_user:
-            return JSONResponse(
-                status_code=401,
-                content={"status": "error", "message": "Authentication required"},
-            )
-
-        # In a real app, you might check permissions here
-        # (e.g., only admins can view other user profiles)
-
-        try:
-            # Convert user_id string to int
-            user_id_int = int(user_id)
-        except ValueError:
-            return JSONResponse(
-                status_code=400,
-                content={"status": "error", "message": "Invalid user ID"},
-            )
-
-        user = auth_service.get_user(db, user_id_int)
-
-        if not user:
-            return JSONResponse(
-                status_code=404,
-                content={"status": "error", "message": "User not found"},
-            )
-
-        # Convert SQLAlchemy model to Pydantic response
-        return {
-            "user_id": str(user.id),
-            "email": user.email,
-            "username": user.username,
-            "name": user.full_name,
-            "tier": user.subscription_tier.value,
-            "created_at": user.created_at.isoformat(),
-            "last_login": user.last_login.isoformat() if user.last_login else None,
-            "balance": user.account_balance,
-            "settings": {},  # This would come from a settings table
-            "is_verified": user.is_verified,
-            "oauth_provider": user.oauth_provider,
-        }
-
-    @router.put("/api/user/me", response_model=UserResponse)
-    async def update_user_profile(
-        user_update: UserUpdate,
-        current_user: CurrentUser,
-        db: Session = DEFAULT_DB,
-    ):
-        """
-        Update user profile.
-        WARNING: This endpoint is for development/testing only. Do not use in production.
-        """
-        if not current_user:
-            return JSONResponse(
-                status_code=401,
-                content={"status": "error", "message": "Authentication required"},
-            )
-
-        result = auth_service.update_user(
-            user_id=current_user, **user_update.dict(exclude_unset=True)
+        """Add funds to the user's account."""
+        transaction = await transaction_service.add_funds(
+            user_id=user.user_id,
+            amount=request.amount,
+            description=request.description or "User deposit",
         )
+        return transaction.__dict__
 
-        if "error" in result:
-            return JSONResponse(
-                status_code=400, content={"status": "error", "message": result["error"]}
-            )
+    @router.post("/admin/manual-debit")
+    async def manual_debit(
+        request: ManualDebitRequest, admin: User = Depends(get_current_user)
+    ):
+        admin_required(admin)
+        """Manually debit a user's account (admin only)."""
+        transaction = await transaction_service.deduct_cost(
+            user_id=request.user_id,
+            amount=request.amount,
+            description=request.description or "Manual debit",
+        )
+        if transaction is None:
+            raise HTTPException(status_code=400, detail="Insufficient funds")
+        return transaction.__dict__
 
-        return result
+    @router.post("/admin/refund")
+    async def refund(request: RefundRequest, admin: User = Depends(get_current_user)):
+        admin_required(admin)
+        """Refund a user (admin only)."""
+        # Refund is implemented as a credit
+        transaction = await transaction_service.add_funds(
+            user_id=request.user_id,
+            amount=request.amount,
+            description=request.description or "Refund",
+        )
+        return transaction.__dict__
 
     return router

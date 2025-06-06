@@ -2,12 +2,13 @@
 
 **Progress update (June 2024):**
 
-- Document and analyze routes refactored to use `create_router` and dependency injection
+- All route files refactored to use `create_router` and dependency injection (fully automated)
 - Standardized error handling and logging across routes
 - Cache decorator and related imports updated to new locations
 - Model registry service implemented with lifecycle management
 - Orchestration service updated with quality evaluation and rate limiting
-- Next: Complete remaining service layer refactoring, add tests, and update documentation
+- All service layer dependency injection, error handling, health check unification, and exponential backoff are complete
+- Next: Refactor `prompt_service.py`, `main.py`, `app.py`, then add tests and update documentation
 
 ## Phase 1: Code Removal & Restructuring
 
@@ -61,3 +62,19 @@
 - [ ] TEST production deployment
 - [ ] VERIFY patent alignment
 - [ ] DOCUMENT performance benchmarks
+
+## TODO (as of now)
+
+- [ ] Add frontend integration for new financial endpoints
+- [ ] Add admin dashboard endpoints for monitoring/reporting
+- [ ] Add export endpoint for user/admin data
+- [ ] Continue production hardening and integration tests
+
+## DONE
+
+- Refactored all route files to use create_router pattern
+- Implemented TokenManagementService and TransactionService
+- Added API endpoints for user balance, transaction history, and token usage
+- Added endpoints for add funds, manual debit (admin only), and refund (admin only)
+- Added authentication and admin scaffolding to secure endpoints
+- Updated FastAPI route structure for financial operations

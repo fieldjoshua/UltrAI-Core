@@ -7,7 +7,7 @@ from typing import Dict, Any
 from fastapi import FastAPI
 from app.app import create_app
 from app.services.model_registry import ModelRegistry
-from app.services.prompt_service import PromptService
+from app.services.prompt_service import get_prompt_service
 from app.services.orchestration_service import OrchestrationService
 from app.services.quality_evaluation import QualityEvaluationService
 from app.services.rate_limiter import RateLimiter
@@ -34,8 +34,8 @@ def initialize_services() -> Dict[str, Any]:
         rate_limiter=rate_limiter,
     )
 
-    # Initialize prompt service with required dependencies
-    prompt_service = PromptService(
+    # Initialize prompt service with dependency injection
+    prompt_service = get_prompt_service(
         model_registry=model_registry, orchestration_service=orchestration_service
     )
 
