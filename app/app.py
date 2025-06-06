@@ -9,66 +9,66 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
 # Import configuration
-from backend.config import Config
-from backend.config_cors import get_cors_config
+from config import Config
+from config_cors import get_cors_config
 
 # Import database
-from backend.database import check_database_connection, init_db
-from backend.middleware.api_key_middleware import setup_api_key_middleware
+from database import check_database_connection, init_db
+from middleware.api_key_middleware import setup_api_key_middleware
 
 # Import security middleware
-from backend.middleware.auth_middleware import setup_auth_middleware
-from backend.config_security import get_security_config
-from backend.middleware.csrf_middleware import setup_csrf_middleware
-from backend.middleware.locale_middleware import setup_locale_middleware
-from backend.middleware.security_headers_middleware import (
+from middleware.auth_middleware import setup_auth_middleware
+from config_security import get_security_config
+from middleware.csrf_middleware import setup_csrf_middleware
+from middleware.locale_middleware import setup_locale_middleware
+from middleware.security_headers_middleware import (
     setup_security_headers_middleware,
 )
-from backend.middleware.validation_middleware import setup_validation_middleware
-from backend.routes.analyze_routes import analyze_router
-from backend.routes.auth_routes import auth_router
-from backend.routes.available_models_routes import router as available_models_router
-from backend.routes.docker_modelrunner_routes import router as modelrunner_router
-from backend.routes.document_analysis_routes import document_analysis_router
-from backend.routes.document_routes import document_router
+from middleware.validation_middleware import setup_validation_middleware
+from routes.analyze_routes import analyze_router
+from routes.auth_routes import auth_router
+from routes.available_models_routes import router as available_models_router
+from routes.docker_modelrunner_routes import router as modelrunner_router
+from routes.document_analysis_routes import document_analysis_router
+from routes.document_routes import document_router
 
 # Import routes
-from backend.routes.health_routes import router as health_router
-from backend.routes.health import health_router as api_health_router
-from backend.routes.llm_routes import llm_router
-from backend.routes.metrics import metrics_router
-from backend.routes.oauth_routes import oauth_router
+from routes.health_routes import router as health_router
+from routes.health import health_router as api_health_router
+from routes.llm_routes import llm_router
+from routes.metrics import metrics_router
+from routes.oauth_routes import oauth_router
 
 # Orchestrator routes - minimal implementation
-from backend.routes.orchestrator_minimal import (
+from routes.orchestrator_minimal import (
     router as orchestrator_router,
 )  # Basic/Minimal orchestrator
-from backend.routes.pricing_routes import pricing_router
+from routes.pricing_routes import pricing_router
 
 # from backend.routes.recovery_routes import router as recovery_router
 # from backend.routes.resilient_orchestrator_routes import resilient_orchestrator_router
-from backend.routes.user_routes import user_router
-from backend.routes.debug_routes import router as debug_router
-from backend.utils.cookie_security_middleware import setup_cookie_security_middleware
-from backend.utils.error_handler import (
+from routes.user_routes import user_router
+from routes.debug_routes import router as debug_router
+from utils.cookie_security_middleware import setup_cookie_security_middleware
+from utils.error_handler import (
     error_handling_middleware,
     register_exception_handlers,
 )
-from backend.utils.logging import get_logger
-from backend.utils.metrics import setup_metrics
-from backend.utils.middleware import setup_middleware
-from backend.utils.monitoring import (
+from utils.logging import get_logger
+from utils.metrics import setup_metrics
+from utils.middleware import setup_middleware
+from utils.monitoring import (
     log_startup_event,
     monitoring_system,
     setup_monitoring,
 )
 
 # Import rate limiting
-from backend.utils.rate_limit_middleware import rate_limit_middleware
+from utils.rate_limit_middleware import rate_limit_middleware
 
 # Import utility functions
-from backend.utils.server import find_available_port, is_port_available
-from backend.utils.structured_logging import apply_structured_logging_middleware
+from utils.server import find_available_port, is_port_available
+from utils.structured_logging import apply_structured_logging_middleware
 
 # Get logger
 logger = get_logger("ultra_api", "logs/api.log")
