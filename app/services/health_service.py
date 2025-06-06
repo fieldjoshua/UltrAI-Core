@@ -15,9 +15,9 @@ from typing import Any, Dict, List, Optional, Tuple
 
 import psutil
 
-from backend.config import Config
-from backend.services.cache_service import cache_service
-from backend.services.llm_config_service import llm_config_service
+from app.config import Config
+from app.services.cache_service import cache_service
+from app.services.llm_config_service import llm_config_service
 
 # Configure logging
 logger = logging.getLogger("health_service")
@@ -155,7 +155,7 @@ class HealthService:
         """Check database connection"""
         try:
             # Import here to avoid circular imports
-            from backend.database.connection import check_database_connection
+            from app.database.connection import check_database_connection
 
             if check_database_connection():
                 self.service_status["database"] = {
@@ -267,12 +267,12 @@ class HealthService:
         Returns:
             Dictionary of provider status information
         """
-        from backend.utils.dependency_manager import (
+        from app.utils.dependency_manager import (
             anthropic_dependency,
             google_ai_dependency,
             openai_dependency,
         )
-        from backend.utils.health_check import check_llm_provider_health
+        from app.utils.health_check import check_llm_provider_health
 
         results = {}
 
@@ -371,7 +371,7 @@ class HealthService:
     def _check_mock_services(self) -> None:
         """Check mock services"""
         try:
-            from backend.services.mock_llm_service import mock_llm_service
+            from app.services.mock_llm_service import mock_llm_service
 
             if mock_llm_service:
                 self.service_status["mock_llm"] = {

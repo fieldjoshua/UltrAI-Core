@@ -12,9 +12,9 @@ from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.types import ASGIApp
 
-from backend.models.base_models import ErrorResponse
-from backend.utils.api_key_manager import ApiKeyScope, api_key_manager
-from backend.utils.logging import get_logger, log_audit
+from app.models.base_models import ErrorResponse
+from app.utils.api_key_manager import ApiKeyScope, api_key_manager
+from app.utils.logging import get_logger, log_audit
 
 # Set up logger
 logger = get_logger("api_key_middleware", "logs/security.log")

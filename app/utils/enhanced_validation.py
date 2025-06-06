@@ -12,7 +12,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, ValidationError, create_model, validator
 
-from backend.utils.logging import get_logger
+from app.utils.logging import get_logger
 
 # Configure logger
 logger = get_logger("validation", "logs/validation.log")

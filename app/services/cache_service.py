@@ -14,8 +14,8 @@ import time
 from collections import OrderedDict
 from typing import Any, Dict, List, Optional
 
-from backend.utils.dependency_manager import redis_dependency
-from backend.utils.logging import get_logger
+from app.utils.dependency_manager import redis_dependency
+from app.utils.logging import get_logger
 
 # Set up logger
 logger = get_logger("cache_service", "logs/cache.log")

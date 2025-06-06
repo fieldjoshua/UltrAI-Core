@@ -12,7 +12,7 @@ class UltraDocumentsOptimized:
         """Initialize the optimized document processor"""
         self.cache_enabled = True
 
-        from backend.utils.cache import CacheObject
+        from app.utils.cache import CacheObject
 
         self.cache = CacheObject()
 

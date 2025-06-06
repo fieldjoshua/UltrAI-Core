@@ -7,8 +7,8 @@ providing consistent error handling with domain-specific context and metadata.
 
 from typing import Any, Dict, List, Optional, Union
 
-from backend.models.base_models import ErrorDetail
-from backend.utils.unified_error_handler import (
+from app.models.base_models import ErrorDetail
+from app.utils.unified_error_handler import (
     ErrorCategory,
     ErrorCode,
     UltraBaseException,

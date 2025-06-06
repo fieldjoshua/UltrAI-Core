@@ -15,7 +15,7 @@ from fastapi import Depends, HTTPException, Request, status
 from fastapi.exceptions import RequestValidationError
 from pydantic import BaseModel, Field, ValidationError, root_validator, validator
 
-from backend.utils.logging import get_logger
+from app.utils.logging import get_logger
 
 # Configure logger
 logger = get_logger("validation", "logs/validation.log")

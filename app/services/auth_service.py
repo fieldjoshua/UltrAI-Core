@@ -17,13 +17,13 @@ from fastapi import Depends, HTTPException, status
 from passlib.context import CryptContext
 from sqlalchemy.orm import Session
 
-from backend.database.connection import get_db
-from backend.database.models.user import ApiKey, SubscriptionTier, User
-from backend.database.repositories.user import UserRepository
-from backend.models.auth import TokenResponse, UserCreate
-from backend.utils.exceptions import AuthenticationException
-from backend.utils.logging import get_logger
-from backend.utils.password import check_password_strength, verify_password
+from app.database.connection import get_db
+from app.database.models.user import ApiKey, SubscriptionTier, User
+from app.database.repositories.user import UserRepository
+from app.models.auth import TokenResponse, UserCreate
+from app.utils.exceptions import AuthenticationException
+from app.utils.logging import get_logger
+from app.utils.password import check_password_strength, verify_password
 
 # Configure logging
 logger = get_logger("auth_service", "logs/auth.log")

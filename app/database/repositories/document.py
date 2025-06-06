@@ -9,9 +9,9 @@ from typing import List, Optional
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
-from backend.database.models.document import Document, DocumentChunk
-from backend.database.repositories.base import BaseRepository
-from backend.utils.exceptions import DatabaseException
+from app.database.models.document import Document, DocumentChunk
+from app.database.repositories.base import BaseRepository
+from app.utils.exceptions import DatabaseException
 
 logger = logging.getLogger(__name__)
 

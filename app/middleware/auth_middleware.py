@@ -12,11 +12,11 @@ from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.types import ASGIApp
 
-from backend.database.connection import get_db_session
-from backend.models.base_models import ErrorResponse
-from backend.services.auth_service import auth_service
-from backend.utils.jwt import decode_token, is_token_expired
-from backend.utils.logging import get_logger
+from app.database.connection import get_db_session
+from app.models.base_models import ErrorResponse
+from app.services.auth_service import auth_service
+from app.utils.jwt import decode_token, is_token_expired
+from app.utils.logging import get_logger
 
 # Set up logger
 logger = get_logger("auth_middleware", "logs/auth.log")

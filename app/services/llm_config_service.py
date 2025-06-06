@@ -15,13 +15,13 @@ import os
 import time
 from typing import Any, Dict, List, Optional
 
-from src.models.enhanced_orchestrator import (
+from app.models.enhanced_orchestrator import (
     AnalysisMode,
     EnhancedOrchestrator,
     OrchestratorConfig,
 )
-from backend.models.llm_adapter import LLMAdapter
-from backend.utils.logging import get_logger
+from app.models.llm_adapter import LLMAdapter
+from app.utils.logging import get_logger
 
 logger = get_logger("llm_config_service", "logs/llm_config.log")
 
@@ -63,7 +63,7 @@ class LLMConfigService:
             )
 
             # Import the adapter classes directly
-            from backend.models.llm_adapter import (
+            from app.models.llm_adapter import (
                 AnthropicAdapter,
                 GeminiAdapter,
                 OpenAIAdapter,
@@ -260,7 +260,7 @@ class LLMConfigService:
 
                     if model_runner_type == "cli":
                         # Import the CLI adapter
-                        from backend.models.docker_modelrunner_cli_adapter import (
+                        from app.models.docker_modelrunner_cli_adapter import (
                             DockerModelRunnerCLIAdapter,
                         )
 
@@ -337,7 +337,7 @@ class LLMConfigService:
                                 )
                     else:
                         # Import the API adapter
-                        from backend.models.docker_modelrunner_adapter import (
+                        from app.models.docker_modelrunner_adapter import (
                             DockerModelRunnerAdapter,
                             get_available_models,
                         )

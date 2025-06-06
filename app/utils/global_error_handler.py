@@ -29,8 +29,8 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.types import ASGIApp
 
-from backend.models.base_models import ErrorDetail, ErrorResponse
-from backend.utils.logging import CorrelationContext, get_logger
+from app.models.base_models import ErrorDetail, ErrorResponse
+from app.utils.logging import CorrelationContext, get_logger
 
 # Configure logger
 logger = get_logger("error_handler", "logs/error.log")

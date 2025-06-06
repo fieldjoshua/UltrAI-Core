@@ -11,15 +11,15 @@ import random
 import time
 from typing import Any, AsyncGenerator, Callable, Dict, List, Optional, Set, Tuple
 
-from backend.services.cache_service import cache_service
-from backend.utils.logging import get_logger
+from app.services.cache_service import cache_service
+from app.utils.logging import get_logger
 
 # Try importing circuit breaker from various locations
 try:
     from models.circuit_breaker import CircuitBreaker, CircuitBreakerRegistry
 except ImportError:
     try:
-        from backend.models.circuit_breaker import CircuitBreaker, CircuitBreakerRegistry
+        from app.models.circuit_breaker import CircuitBreaker, CircuitBreakerRegistry
     except ImportError:
         # Provide stub implementations if circuit breaker is not available
         class CircuitBreaker:
@@ -279,7 +279,7 @@ class LLMFallbackService:
         """
         # Try to use the mock LLM service if available
         try:
-            from backend.services.mock_llm_service import MockLLMService
+            from app.services.mock_llm_service import MockLLMService
 
             mock_service = MockLLMService()
             response = await mock_service._generate_model_response(model, prompt)

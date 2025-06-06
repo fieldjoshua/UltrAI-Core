@@ -10,8 +10,8 @@ from typing import Any, Dict, List, Optional
 
 from sqlalchemy.orm import Session
 
-from backend.database.repositories import AnalysisRepository
-from backend.services.document_service import DocumentService
+from app.database.repositories import AnalysisRepository
+from app.services.document_service import DocumentService
 
 logger = logging.getLogger(__name__)
 

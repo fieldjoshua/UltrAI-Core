@@ -10,8 +10,8 @@ from typing import Any, Dict, Generic, List, Optional, Type, TypeVar
 from sqlalchemy import exc
 from sqlalchemy.orm import Session
 
-from backend.utils.exceptions import DatabaseException, ResourceNotFoundException
-from backend.utils.logging import get_logger
+from app.utils.exceptions import DatabaseException, ResourceNotFoundException
+from app.utils.logging import get_logger
 
 # Create a generic type variable for the model
 T = TypeVar("T")

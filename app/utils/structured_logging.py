@@ -37,8 +37,8 @@ from typing import Any, Callable, Dict, List, Optional, Set, TypeVar, Union, cas
 
 # Import existing logger if available, otherwise use a placeholder
 try:
-    from backend.utils.logging import CorrelationContext
-    from backend.utils.logging import get_logger as base_get_logger
+    from app.utils.logging import CorrelationContext
+    from app.utils.logging import get_logger as base_get_logger
 except ImportError:
     # Fallback implementation if the existing logger is not available
     class CorrelationContext:

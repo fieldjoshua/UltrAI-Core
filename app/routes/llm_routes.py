@@ -13,14 +13,14 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
 # Import the models we created
-from backend.models.llm_models import (
+from app.models.llm_models import (
     AnalysisModesResponse,
     ModelResponse,
     ModelsResponse,
     ModelStatusResponse,
     PatternsResponse,
 )
-from backend.services.llm_config_service import llm_config_service
+from app.services.llm_config_service import llm_config_service
 
 # Create a router
 llm_router = APIRouter(tags=["LLM Management"])

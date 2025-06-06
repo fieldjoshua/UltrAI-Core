@@ -17,14 +17,14 @@ from fastapi import APIRouter, Depends, Query, Request, Response
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
-from backend.database.connection import (
+from app.database.connection import (
     check_database_connection,
     get_database_status,
     is_using_fallback,
 )
-from backend.services.cache_service import cache_service
-from backend.utils.dependency_manager import dependency_registry
-from backend.utils.health_check import (
+from app.services.cache_service import cache_service
+from app.utils.dependency_manager import dependency_registry
+from app.utils.health_check import (
     HealthCheck,
     HealthStatus,
     ServiceType,
@@ -37,9 +37,9 @@ from backend.utils.health_check import (
     check_system_health,
     health_check_registry,
 )
-from backend.utils.jwt_wrapper import get_jwt_status, is_using_pyjwt
-from backend.utils.logging import get_logger
-from backend.utils.metrics import get_current_metrics, start_time
+from app.utils.jwt_wrapper import get_jwt_status, is_using_pyjwt
+from app.utils.logging import get_logger
+from app.utils.metrics import get_current_metrics, start_time
 
 # Create router
 health_router = APIRouter(tags=["Health"])

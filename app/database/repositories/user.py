@@ -8,10 +8,10 @@ from typing import Dict, List, Optional
 
 from sqlalchemy.orm import Session
 
-from backend.database.models.user import User, UserRole
-from backend.database.repositories.base import BaseRepository
-from backend.utils.exceptions import ResourceAlreadyExistsException
-from backend.utils.logging import get_logger
+from app.database.models.user import User, UserRole
+from app.database.repositories.base import BaseRepository
+from app.utils.exceptions import ResourceAlreadyExistsException
+from app.utils.logging import get_logger
 
 # Set up logger
 logger = get_logger("database.repository.user", "logs/database.log")

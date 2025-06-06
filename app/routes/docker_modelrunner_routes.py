@@ -29,7 +29,7 @@ try:
             create_modelrunner_cli_adapter,
         )
     except ImportError:
-        from backend.models.docker_modelrunner_cli_adapter import (
+        from app.models.docker_modelrunner_cli_adapter import (
             DockerModelRunnerCLIAdapter,
             create_modelrunner_cli_adapter,
         )
@@ -44,7 +44,7 @@ try:
             get_available_models,
         )
     except ImportError:
-        from backend.models.docker_modelrunner_adapter import (
+        from app.models.docker_modelrunner_adapter import (
             DockerModelRunnerAdapter,
             get_available_models,
         )

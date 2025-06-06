@@ -20,7 +20,7 @@ sys.path.insert(
 )
 
 # Import database connection settings
-from backend.database.connection import (
+from app.database.connection import (
     DATABASE_URL,
     DB_HOST,
     DB_NAME,
@@ -30,7 +30,7 @@ from backend.database.connection import (
 )
 
 # Import the SQLAlchemy base
-from backend.database.models.base import Base
+from app.database.models.base import Base
 
 # Alembic Config object, which provides access to values in the .ini file
 config = context.config
@@ -42,11 +42,11 @@ config.set_main_option("sqlalchemy.url", DATABASE_URL)
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-from backend.database.models.analysis import Analysis, AnalysisResult
-from backend.database.models.document import Document, DocumentChunk
+from app.database.models.analysis import Analysis, AnalysisResult
+from app.database.models.document import Document, DocumentChunk
 
 # Import all models to ensure they're included in the migration
-from backend.database.models.user import ApiKey, User
+from app.database.models.user import ApiKey, User
 
 # Set target metadata to Base.metadata
 target_metadata = Base.metadata

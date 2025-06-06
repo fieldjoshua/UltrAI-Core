@@ -21,7 +21,7 @@ from sqlalchemy import (
 from sqlalchemy.dialects.postgresql import ARRAY, JSONB
 from sqlalchemy.orm import relationship
 
-from backend.database.models.base import Base
+from app.database.models.base import Base
 
 
 class AnalysisStatus(enum.Enum):

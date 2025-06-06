@@ -15,8 +15,8 @@ from typing import Any, Dict, List, Optional
 from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 
-from backend.config import Config
-from backend.utils.health_check import (
+from app.config import Config
+from app.utils.health_check import (
     CircuitBreaker,
     HealthCheck,
     HealthCheckRegistry,
@@ -28,7 +28,7 @@ from backend.utils.health_check import (
     check_system_health,
     health_check_registry,
 )
-from backend.utils.structured_logging import (
+from app.utils.structured_logging import (
     EnhancedLogger,
     LogCategory,
     RequestContext,

@@ -19,7 +19,7 @@ from fastapi.responses import JSONResponse
 from starlette.datastructures import MutableHeaders
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
-from backend.utils.logging import CorrelationContext, log_performance, log_request
+from app.utils.logging import CorrelationContext, log_performance, log_request
 
 # Lazy loading setup variables
 _rate_limit_middleware_setup = None
@@ -347,19 +347,19 @@ def setup_middleware(app: FastAPI) -> None:
     global _cookie_security_middleware_setup
 
     if _rate_limit_middleware_setup is None:
-        from backend.utils.rate_limit_middleware import setup_rate_limit_middleware
+        from app.utils.rate_limit_middleware import setup_rate_limit_middleware
 
         _rate_limit_middleware_setup = setup_rate_limit_middleware
 
     if _security_headers_middleware_setup is None:
-        from backend.utils.security_headers_middleware import (
+        from app.utils.security_headers_middleware import (
             setup_security_headers_middleware,
         )
 
         _security_headers_middleware_setup = setup_security_headers_middleware
 
     if _cookie_security_middleware_setup is None:
-        from backend.utils.cookie_security_middleware import (
+        from app.utils.cookie_security_middleware import (
             setup_cookie_security_middleware,
         )
 

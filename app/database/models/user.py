@@ -19,7 +19,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import relationship
 
-from backend.database.models.base import Base
+from app.database.models.base import Base
 
 
 class SubscriptionTier(str, enum.Enum):

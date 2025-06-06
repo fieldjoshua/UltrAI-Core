@@ -12,15 +12,15 @@ from fastapi import APIRouter, Depends, Header, HTTPException
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 
-from backend.database.connection import get_db
-from backend.models.user import (
+from app.database.connection import get_db
+from app.models.user import (
     TokenResponse,
     UserCreate,
     UserLogin,
     UserResponse,
     UserUpdate,
 )
-from backend.services.auth_service import auth_service
+from app.services.auth_service import auth_service
 
 # Create a router
 user_router = APIRouter(tags=["Users"])

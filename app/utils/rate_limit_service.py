@@ -15,8 +15,8 @@ from typing import Any, Dict, List, Optional, Tuple
 
 import redis
 
-from backend.database.models.user import User
-from backend.utils.logging import get_logger
+from app.database.models.user import User
+from app.utils.logging import get_logger
 
 # Configure logging
 logger = get_logger("rate_limit_service", "logs/rate_limit.log")

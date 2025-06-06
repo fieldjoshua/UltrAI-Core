@@ -7,7 +7,7 @@ This module provides the Base declarative base class for all SQLAlchemy models.
 import uuid
 from typing import Any, Dict
 
-from backend.utils.dependency_manager import sqlalchemy_dependency
+from app.utils.dependency_manager import sqlalchemy_dependency
 
 # Check if SQLAlchemy is available
 if sqlalchemy_dependency.is_available():

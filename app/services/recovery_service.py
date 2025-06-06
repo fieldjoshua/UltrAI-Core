@@ -12,18 +12,18 @@ from datetime import datetime, timedelta
 from enum import Enum
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
-from backend.services.cache_service import cache_service
-from backend.services.health_service import HealthService
-from backend.utils.circuit_breaker import CircuitBreaker, CircuitState
-from backend.utils.errors import RecoveryError, SystemError
-from backend.utils.logging import get_logger
-from backend.utils.recovery_strategies import (
+from app.services.cache_service import cache_service
+from app.services.health_service import HealthService
+from app.utils.circuit_breaker import CircuitBreaker, CircuitState
+from app.utils.errors import RecoveryError, SystemError
+from app.utils.logging import get_logger
+from app.utils.recovery_strategies import (
     AdaptiveStrategy,
     ExponentialBackoffStrategy,
     LinearBackoffStrategy,
     RecoveryStrategy,
 )
-from backend.utils.recovery_workflows import RecoveryWorkflow, WorkflowStep
+from app.utils.recovery_workflows import RecoveryWorkflow, WorkflowStep
 
 logger = get_logger("recovery_service", "logs/recovery_service.log")
 
@@ -397,7 +397,7 @@ class RecoveryService:
 
     async def _reset_circuit_breaker(self, context: RecoveryContext):
         """Reset circuit breaker for the service."""
-        from backend.services.api_failure_handler import (
+        from app.services.api_failure_handler import (
             APIProvider,
             api_failure_handler,
         )
@@ -438,7 +438,7 @@ class RecoveryService:
 
     async def _check_database_status(self, context: RecoveryContext):
         """Check database connection status."""
-        from backend.database.connection import db_manager
+        from app.database.connection import db_manager
 
         is_connected = await db_manager.check_connection()
         context.metadata["db_connected"] = is_connected
@@ -448,7 +448,7 @@ class RecoveryService:
 
     async def _reset_connection_pool(self, context: RecoveryContext):
         """Reset database connection pool."""
-        from backend.database.connection import db_manager
+        from app.database.connection import db_manager
 
         await db_manager.reset_pool()
         logger.info("Database connection pool reset")
@@ -461,7 +461,7 @@ class RecoveryService:
 
     async def _resume_database_operations(self, context: RecoveryContext):
         """Resume normal database operations."""
-        from backend.database.connection import db_manager
+        from app.database.connection import db_manager
 
         await db_manager.resume_operations()
         logger.info("Database operations resumed")

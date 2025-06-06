@@ -19,7 +19,7 @@ from cryptography.fernet import Fernet
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 
-from backend.utils.logging import get_logger, log_audit
+from app.utils.logging import get_logger, log_audit
 
 # Set up logger
 logger = get_logger("api_key_manager", "logs/security.log")

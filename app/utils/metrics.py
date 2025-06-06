@@ -22,7 +22,7 @@ try:
 except ImportError:
     logging.warning("prometheus_client not found, using stub implementation")
     # Use the local stub implementation
-    from backend.utils.stubs.prometheus_client import (
+    from app.utils.stubs.prometheus_client import (
         Counter,
         Histogram,
         Gauge,
@@ -34,7 +34,7 @@ except ImportError:
 from fastapi import FastAPI, Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
 
-from backend.config import Config
+from app.config import Config
 
 # Legacy metrics for backward compatibility
 performance_metrics = {

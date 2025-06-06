@@ -34,7 +34,7 @@ async def get_env() -> Dict[str, Any]:
 async def get_routes() -> Dict[str, Any]:
     """List all registered routes"""
     from fastapi import FastAPI
-    from backend.app import app
+    from app.app import app
     
     routes = []
     for route in app.routes:

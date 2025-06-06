@@ -18,9 +18,9 @@ from fastapi import (
 )
 from fastapi.responses import JSONResponse
 
-from backend.config import Config
-from backend.models.document import DocumentUploadResponse
-from backend.services.document_processor import document_processor
+from app.config import Config
+from app.models.document import DocumentUploadResponse
+from app.services.document_processor import document_processor
 
 # Create a document router
 document_router = APIRouter(tags=["Documents"])
