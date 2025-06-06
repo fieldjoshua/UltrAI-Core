@@ -11,8 +11,8 @@ SRC_PATH = os.path.dirname(os.path.abspath(__file__))
 if SRC_PATH not in sys.path:
     sys.path.insert(0, SRC_PATH)
 
-# Import the actual app from backend
-from backend.app import app
+# Import the actual app from our new, clean 'app' directory
+from app.app import app
 
 # Export for uvicorn
 __all__ = ["app"]
