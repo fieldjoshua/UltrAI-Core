@@ -12,21 +12,15 @@ It provides functions to:
 import json
 import logging
 import os
-import sys
 import time
 from typing import Any, Dict, List, Optional
-
-# Robustly add 'src' to the path to ensure correct module resolution.
-# This is a targeted fix to bypass the faulty facade import mechanism.
-SRC_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
-if SRC_PATH not in sys.path:
-    sys.path.insert(0, SRC_PATH)
 
 from src.models.enhanced_orchestrator import (
     AnalysisMode,
     EnhancedOrchestrator,
     OrchestratorConfig,
 )
+from backend.models.llm_adapter import LLMAdapter
 from backend.utils.logging import get_logger
 
 logger = get_logger("llm_config_service", "logs/llm_config.log")
