@@ -10,6 +10,8 @@ from datetime import datetime
 
 from app.services.quality_evaluation import QualityEvaluationService, ResponseQuality
 from app.services.rate_limiter import RateLimiter
+from app.services.token_management_service import TokenManagementService
+from app.services.transaction_service import TransactionService
 from app.utils.logging import get_logger
 
 logger = get_logger("orchestration_service")
@@ -34,6 +36,7 @@ class PipelineResult:
     quality: Optional[ResponseQuality] = None
     performance_metrics: Optional[Dict[str, Any]] = None
     error: Optional[str] = None
+    token_usage: Optional[Dict[str, int]] = None
 
 
 class OrchestrationService:
@@ -46,6 +49,8 @@ class OrchestrationService:
         model_registry: Any,
         quality_evaluator: Optional[QualityEvaluationService] = None,
         rate_limiter: Optional[RateLimiter] = None,
+        token_manager: Optional[TokenManagementService] = None,
+        transaction_service: Optional[TransactionService] = None,
     ):
         """
         Initialize the orchestration service.
@@ -54,10 +59,14 @@ class OrchestrationService:
             model_registry: The model registry service
             quality_evaluator: Optional quality evaluation service
             rate_limiter: Optional rate limiter service
+            token_manager: Optional token management service
+            transaction_service: Optional transaction service
         """
         self.model_registry = model_registry
         self.quality_evaluator = quality_evaluator or QualityEvaluationService()
         self.rate_limiter = rate_limiter or RateLimiter()
+        self.token_manager = token_manager or TokenManagementService()
+        self.transaction_service = transaction_service or TransactionService()
 
         # Define pipeline stages according to patent
         self.pipeline_stages = [
@@ -88,7 +97,10 @@ class OrchestrationService:
         ]
 
     async def run_pipeline(
-        self, input_data: Any, options: Optional[Dict[str, Any]] = None
+        self,
+        input_data: Any,
+        options: Optional[Dict[str, Any]] = None,
+        user_id: Optional[str] = None,
     ) -> Dict[str, PipelineResult]:
         """
         Run the full analysis pipeline according to the patent specification.
@@ -96,12 +108,14 @@ class OrchestrationService:
         Args:
             input_data: The input data for analysis
             options: Additional options for the pipeline
+            user_id: Optional user ID for cost tracking
 
         Returns:
             Dict[str, PipelineResult]: Results from each pipeline stage
         """
         results = {}
         current_data = input_data
+        total_cost = 0.0
 
         for stage in self.pipeline_stages:
             try:
@@ -113,6 +127,17 @@ class OrchestrationService:
                     logger.error(f"Error in {stage.name}: {stage_result.error}")
                     break
 
+                # Track token usage and costs if user_id is provided
+                if user_id and stage_result.token_usage:
+                    for model, usage in stage_result.token_usage.items():
+                        cost = await self.token_manager.track_usage(
+                            model=model,
+                            input_tokens=usage.get("input", 0),
+                            output_tokens=usage.get("output", 0),
+                            user_id=user_id,
+                        )
+                        total_cost += cost.total_cost
+
                 # Update data for next stage
                 current_data = stage_result.output
 
@@ -122,6 +147,14 @@ class OrchestrationService:
                     stage_name=stage.name, output=None, error=str(e)
                 )
                 break
+
+        # Deduct total cost from user's balance if user_id is provided
+        if user_id and total_cost > 0:
+            await self.transaction_service.deduct_cost(
+                user_id=user_id,
+                amount=total_cost,
+                description=f"Pipeline execution cost: {', '.join(results.keys())}",
+            )
 
         return results
 
@@ -146,6 +179,7 @@ class OrchestrationService:
         stage_output = None
         quality = None
         error = None
+        token_usage = {}
 
         try:
             # Acquire rate limit tokens for all required models
@@ -159,6 +193,10 @@ class OrchestrationService:
 
             # Run the stage
             stage_output = await method(input_data, stage.required_models, options)
+
+            # Track token usage if available
+            if hasattr(stage_output, "token_usage"):
+                token_usage = stage_output.token_usage
 
             # Evaluate quality if evaluator is available
             if self.quality_evaluator:
@@ -192,6 +230,7 @@ class OrchestrationService:
             quality=quality,
             performance_metrics=performance_metrics,
             error=error,
+            token_usage=token_usage,
         )
 
     async def initial_response(

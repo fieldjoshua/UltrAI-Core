@@ -270,3 +270,19 @@ Context:
                 "timestamp": datetime.now().isoformat(),
             },
         }
+
+
+def get_prompt_service(
+    model_registry: Optional[ModelRegistry] = None,
+    orchestration_service: Optional[OrchestrationService] = None,
+) -> "PromptService":
+    """
+    Dependency provider for PromptService. If dependencies are not provided, instantiate them.
+    """
+    if model_registry is None:
+        model_registry = ModelRegistry()
+    if orchestration_service is None:
+        orchestration_service = OrchestrationService(model_registry=model_registry)
+    return PromptService(
+        model_registry=model_registry, orchestration_service=orchestration_service
+    )
