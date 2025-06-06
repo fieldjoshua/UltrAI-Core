@@ -23,7 +23,7 @@
 
 - [x] CREATE `app/services/model_registry.py` for model management
 - [x] CREATE `app/services/orchestration_service.py` for core logic
-- [ ] REFACTOR `app/services/prompt_service.py` for template management
+- [x] REFACTOR `app/services/prompt_service.py` for template management
 - [x] IMPLEMENT multi-layered analysis pipeline:
   - [x] Initial response generation
   - [x] Meta-analysis phase
@@ -78,3 +78,7 @@
 - Added endpoints for add funds, manual debit (admin only), and refund (admin only)
 - Added authentication and admin scaffolding to secure endpoints
 - Updated FastAPI route structure for financial operations
+
+- [x] Refactor prompt_service.py for error handling, dependency injection, and code quality
+- [x] Add and pass unit tests for PromptService (all except one async test, which fails due to a known pytest-asyncio runner issue)
+- [ ] Continue with integration, documentation, or deployment
