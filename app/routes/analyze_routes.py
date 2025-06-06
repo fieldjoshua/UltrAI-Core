@@ -4,11 +4,13 @@
 Analysis Routes
 
 This module provides API routes for prompt analysis and progress tracking.
+It implements the multi-layered architecture from the UltraLLMOrchestrator patent,
+with robust error handling and resource management.
 """
 
 import json
 import time
-from typing import List, Optional
+from typing import List, Optional, Any
 
 from fastapi import (
     APIRouter,
@@ -16,13 +18,18 @@ from fastapi import (
     Depends,
     File,
     Form,
-    HTTPException,
     Request,
     UploadFile,
 )
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 
+from app.core.error_handling import (
+    ResourceNotFoundError,
+    ValidationError,
+    ProcessingError,
+    InternalServerError,
+)
 from app.database.connection import get_db
 from app.database.models import User
 from app.utils.cache_decorator import cached
@@ -85,13 +92,19 @@ ERROR_MESSAGES = {
 # Get database session
 get_db_session = get_db
 
+# Create empty dict for default options
+EMPTY_OPTIONS = {}
+
+# Create default dependencies
+DEFAULT_DB = Depends(get_db_session)
+
 
 def create_router(
-    model_registry,
-    prompt_template_manager,
-    analysis_pipeline,
-    auth_service=auth_service,
-    cache_service=cache_service,
+    model_registry: Any,
+    prompt_template_manager: Any,
+    analysis_pipeline: Any,
+    auth_service: Any = auth_service,
+    cache_service: Any = cache_service,
 ) -> APIRouter:
     """
     Create the analysis router with dependencies.
@@ -109,7 +122,7 @@ def create_router(
     router = APIRouter(tags=["Analysis"])
 
     async def get_current_user(
-        request: Request, db: Session = Depends(get_db_session)
+        request: Request, db: Session = DEFAULT_DB
     ) -> Optional[User]:
         """
         Get the current user from the request.
@@ -120,6 +133,9 @@ def create_router(
 
         Returns:
             Optional[User]: The current user if authenticated, None otherwise
+
+        Raises:
+            InternalServerError: If there is an error processing the token
         """
         auth_header = request.headers.get("Authorization")
         if not auth_header:
@@ -138,17 +154,19 @@ def create_router(
             return auth_service.get_user(db, user_id_int)
         except Exception as e:
             logger.error(f"Error getting user from token: {str(e)}")
-            return None
+            raise InternalServerError("Error processing authentication token")
 
     @router.post("/api/analyze")
     @cached(prefix="analyze", ttl=60 * 60 * 24)
     async def analyze_prompt(
         request: Request,
         analysis_request: models.AnalysisRequest,
-        db: Session = Depends(get_db_session),
-    ):
+        db: Session = DEFAULT_DB,
+    ) -> JSONResponse:
         """
         Analyze a prompt using the specified models and pattern.
+
+        WARNING: This endpoint is for development/testing only. Do not use in production.
 
         Args:
             request: The request object
@@ -157,6 +175,11 @@ def create_router(
 
         Returns:
             JSONResponse: The analysis results
+
+        Raises:
+            ValidationError: If required fields are missing
+            ProcessingError: If there is an error processing the analysis
+            InternalServerError: If there is an unexpected error
         """
         # Start timer
         start_time = time.time()
@@ -164,22 +187,13 @@ def create_router(
         try:
             # Validate required fields
             if not analysis_request.prompt:
-                raise HTTPException(
-                    status_code=400,
-                    detail=ERROR_MESSAGES["invalid_request"],
-                )
+                raise ValidationError(ERROR_MESSAGES["invalid_request"])
 
             if not analysis_request.selected_models:
-                raise HTTPException(
-                    status_code=400,
-                    detail=ERROR_MESSAGES["no_models"],
-                )
+                raise ValidationError(ERROR_MESSAGES["no_models"])
 
             if not analysis_request.ultra_model:
-                raise HTTPException(
-                    status_code=400,
-                    detail=ERROR_MESSAGES["invalid_request"],
-                )
+                raise ValidationError(ERROR_MESSAGES["invalid_request"])
 
             # Generate unique analysis ID
             analysis_id = (
@@ -225,10 +239,7 @@ def create_router(
                         logger.warning(f"Model {model} not found in registry, skipping")
 
                 if not valid_models:
-                    raise HTTPException(
-                        status_code=400,
-                        detail=ERROR_MESSAGES["no_models"],
-                    )
+                    raise ValidationError(ERROR_MESSAGES["no_models"])
 
                 # Validate ultra model exists
                 if analysis_request.ultra_model not in available_models:
@@ -248,7 +259,7 @@ def create_router(
                     models=valid_models,
                     ultra_model=ultra_model,
                     pattern=pattern_key,
-                    options=analysis_request.options or {},
+                    options=analysis_request.options or EMPTY_OPTIONS,
                 )
 
                 # Log successful analysis
@@ -275,19 +286,15 @@ def create_router(
 
             except Exception as e:
                 logger.error(f"Error processing analysis: {str(e)}")
-                raise HTTPException(
-                    status_code=500,
-                    detail=ERROR_MESSAGES["processing_error"].format(error=str(e)),
+                raise ProcessingError(
+                    ERROR_MESSAGES["processing_error"].format(error=str(e))
                 )
 
-        except HTTPException:
+        except (ValidationError, ProcessingError):
             raise
         except Exception as e:
             logger.error(f"Error in analyze_prompt: {str(e)}")
-            raise HTTPException(
-                status_code=500,
-                detail=ERROR_MESSAGES["internal_error"],
-            )
+            raise InternalServerError(ERROR_MESSAGES["internal_error"])
 
     @router.post("/api/analyze-with-docs")
     async def analyze_with_docs(
@@ -299,7 +306,7 @@ def create_router(
         pattern: str = PATTERN_FORM,
         options: str = OPTIONS_FORM,
         user_id: str = USER_ID_FORM,
-    ):
+    ) -> JSONResponse:
         """
         Analyze a prompt with document context.
 
@@ -315,6 +322,9 @@ def create_router(
 
         Returns:
             JSONResponse: The analysis results
+
+        Raises:
+            ProcessingError: If there is an error processing the analysis
         """
         try:
             # Parse selected models
@@ -352,7 +362,7 @@ def create_router(
                 ultra_model=ultra_model,
                 files=processed_files,
                 pattern=pattern_key,
-                options=json.loads(options) if options else {},
+                options=json.loads(options) if options else EMPTY_OPTIONS,
                 user_id=user_id,
             )
 
@@ -366,13 +376,12 @@ def create_router(
 
         except Exception as e:
             logger.error(f"Error in analyze_with_docs: {str(e)}")
-            raise HTTPException(
-                status_code=500,
-                detail=ERROR_MESSAGES["processing_error"].format(error=str(e)),
+            raise ProcessingError(
+                ERROR_MESSAGES["processing_error"].format(error=str(e))
             )
 
     @router.get("/api/analyze/{analysis_id}/progress")
-    async def get_analysis_progress(analysis_id: str):
+    async def get_analysis_progress(analysis_id: str) -> JSONResponse:
         """
         Get the progress of an analysis.
 
@@ -381,15 +390,17 @@ def create_router(
 
         Returns:
             JSONResponse: The analysis progress
+
+        Raises:
+            ProcessingError: If there is an error getting the progress
         """
         try:
             progress = await prompt_template_manager.get_analysis_progress(analysis_id)
             return JSONResponse(content=progress)
         except Exception as e:
             logger.error(f"Error getting analysis progress: {str(e)}")
-            raise HTTPException(
-                status_code=500,
-                detail=ERROR_MESSAGES["processing_error"].format(error=str(e)),
+            raise ProcessingError(
+                ERROR_MESSAGES["processing_error"].format(error=str(e))
             )
 
     @router.get(
@@ -398,8 +409,8 @@ def create_router(
     async def get_analysis_results(
         analysis_id: str,
         request: Request,
-        db: Session = Depends(get_db_session),
-    ):
+        db: Session = DEFAULT_DB,
+    ) -> AnalysisResultsResponse:
         """
         Get the results of an analysis.
 
@@ -410,6 +421,11 @@ def create_router(
 
         Returns:
             AnalysisResultsResponse: The analysis results
+
+        Raises:
+            ResourceNotFoundError: If the analysis is not found
+            ProcessingError: If there is an error getting the results
+            InternalServerError: If there is an unexpected error
         """
         try:
             # Get current user
@@ -421,22 +437,16 @@ def create_router(
             )
 
             if not results:
-                raise HTTPException(
-                    status_code=404,
-                    detail=ERROR_MESSAGES["analysis_not_found"].format(
-                        analysis_id=analysis_id
-                    ),
+                raise ResourceNotFoundError(
+                    ERROR_MESSAGES["analysis_not_found"].format(analysis_id=analysis_id)
                 )
 
             return results
 
-        except HTTPException:
+        except (ResourceNotFoundError, ProcessingError):
             raise
         except Exception as e:
             logger.error(f"Error getting analysis results: {str(e)}")
-            raise HTTPException(
-                status_code=500,
-                detail=ERROR_MESSAGES["processing_error"].format(error=str(e)),
-            )
+            raise InternalServerError(ERROR_MESSAGES["internal_error"])
 
     return router

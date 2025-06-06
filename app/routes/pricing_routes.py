@@ -1,9 +1,26 @@
+from typing import Any, Dict, List, Optional, Union
+from pydantic import BaseModel
+from fastapi import APIRouter, Depends, HTTPException, Request, Response
+"""
+Route handlers for the Ultra backend.
+
+This module provides API routes for various endpoints.
+"""
+
+from typing import Any, Dict, List, Optional, Union
+from pydantic import BaseModel
+from fastapi import APIRouter, Depends, HTTPException, Request, Response
+"""
+Pricing routes for the Ultra backend.
+
+This module provides API routes for pricing and user account management.
+"""
+
 import logging
 from typing import Any, Dict, Optional
 
 from fastapi import APIRouter
-from fastapi.responses import JSONResponse
-
+from fastapi.responses 
 from app.models.pricing import (
     AddFundsRequest,
     PricingToggleRequest,
@@ -100,8 +117,10 @@ except ImportError:
 
 # Token usage estimate endpoint
 @pricing_router.post("/api/estimate-tokens")
-async def estimate_tokens(request: TokenEstimateRequest):
-    """Estimate token usage and costs for a request"""
+    """
+    Create estimate tokens.
+    WARNING: This endpoint is for development/testing only. Do not use in production.
+    """
     # Simple token estimation logic
     estimated_tokens = len(request.prompt.split()) * 4  # Simple estimate
 
@@ -140,8 +159,10 @@ async def estimate_tokens(request: TokenEstimateRequest):
 
 # Pricing toggle endpoint (admin only)
 @pricing_router.post("/api/admin/pricing/toggle")
-async def toggle_pricing(request: PricingToggleRequest):
-    """Toggle pricing functionality (admin only)"""
+    """
+    Create toggle pricing.
+    WARNING: This endpoint is for development/testing only. Do not use in production.
+    """
     # In a real system, you would add authentication/authorization here
     prev_state = pricing_integration.pricing_enabled
     pricing_integration.pricing_enabled = request.enabled
@@ -160,8 +181,10 @@ async def toggle_pricing(request: PricingToggleRequest):
 
 # User account management endpoints
 @pricing_router.post("/api/user/create")
-async def create_user(request: UserAccountRequest):
-    """Create a new user account"""
+    """
+    Create create user.
+    WARNING: This endpoint is for development/testing only. Do not use in production.
+    """
     result = pricing_integration.create_user_account(
         user_id=request.userId,
         tier=request.tier,
@@ -177,8 +200,10 @@ async def create_user(request: UserAccountRequest):
 
 
 @pricing_router.post("/api/user/add-funds")
-async def add_funds(request: AddFundsRequest):
-    """Add funds to a user account"""
+    """
+    Create add funds.
+    WARNING: This endpoint is for development/testing only. Do not use in production.
+    """
     result = pricing_integration.add_funds(
         user_id=request.userId, amount=request.amount, description=request.description
     )
@@ -192,8 +217,10 @@ async def add_funds(request: AddFundsRequest):
 
 
 @pricing_router.get("/api/user/{user_id}/balance")
-async def get_user_balance(user_id: str):
-    """Get the current balance for a user"""
+    """
+    Get get user balance.
+    WARNING: This endpoint is for development/testing only. Do not use in production.
+    """
     result = pricing_integration.check_balance(user_id)
 
     if "error" in result:
@@ -205,8 +232,10 @@ async def get_user_balance(user_id: str):
 
 
 @pricing_router.get("/api/user/{user_id}/usage")
-async def get_user_usage(user_id: str):
-    """Get usage summary for a user"""
+    """
+    Get get user usage.
+    WARNING: This endpoint is for development/testing only. Do not use in production.
+    """
     result = pricing_integration.get_user_usage_summary(user_id)
 
     if "error" in result and "No usage data" not in result["error"]:
@@ -218,8 +247,10 @@ async def get_user_usage(user_id: str):
 
 
 @pricing_router.get("/api/session/{session_id}")
-async def get_session(session_id: str):
-    """Get details for a specific session"""
+    """
+    Get get session.
+    WARNING: This endpoint is for development/testing only. Do not use in production.
+    """
     result = pricing_integration.get_session_summary(session_id)
 
     if "error" in result:

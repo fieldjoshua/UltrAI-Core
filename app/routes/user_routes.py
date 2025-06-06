@@ -1,3 +1,15 @@
+from typing import Any, Dict, List, Optional, Union
+from pydantic import BaseModel
+from fastapi import APIRouter, Depends, HTTPException, Request, Response
+"""
+Route handlers for the Ultra backend.
+
+This module provides API routes for various endpoints.
+"""
+
+from typing import Any, Dict, List, Optional, Union
+from pydantic import BaseModel
+from fastapi import APIRouter, Depends, HTTPException, Request, Response
 """
 User routes for the Ultra backend.
 
@@ -8,9 +20,7 @@ import logging
 from typing import Annotated, Optional
 from uuid import uuid4
 
-from fastapi import APIRouter, Depends, Header, HTTPException
-from fastapi.responses import JSONResponse
-from sqlalchemy.orm import Session
+from fastapi.responses from sqlalchemy.orm import Session
 
 from app.database.connection import get_db
 from app.models.user import (
@@ -56,9 +66,17 @@ async def get_current_user(
 CurrentUser = Annotated[Optional[str], Depends(get_current_user)]
 
 
-@user_router.post("/api/register", response_model=UserResponse)
+@user_router.post("/api/register", class UserResponse(BaseModel):
+    """Response model for userresponse endpoint."""
+    status: str
+    data: Dict[str, Any]
+
+response_model=UserResponse)
 async def register_user(user: UserCreate, db: Session = Depends(get_db)):
-    """Register a new user"""
+    """
+    Register a new user.
+    WARNING: This endpoint is for development/testing only. Do not use in production.
+    """
     try:
         # If no user_id provided, generate one
         if not user.user_id:
@@ -84,7 +102,12 @@ async def register_user(user: UserCreate, db: Session = Depends(get_db)):
         raise HTTPException(status_code=500, detail=f"Error registering user: {str(e)}")
 
 
-@user_router.post("/api/login", response_model=TokenResponse)
+@user_router.post("/api/login", class TokenResponse(BaseModel):
+    """Response model for tokenresponse endpoint."""
+    status: str
+    data: Dict[str, Any]
+
+response_model=TokenResponse)
 async def login_user(login: UserLogin, db: Session = Depends(get_db)):
     """Authenticate a user and return an access token"""
     try:
@@ -199,8 +222,10 @@ async def get_user_profile(
 
 
 @user_router.put("/api/user/me", response_model=UserResponse)
-async def update_user_profile(user_update: UserUpdate, current_user: CurrentUser):
-    """Update the current user's profile"""
+    """
+    Update update user profile.
+    WARNING: This endpoint is for development/testing only. Do not use in production.
+    """
     if not current_user:
         return JSONResponse(
             status_code=401,

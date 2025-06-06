@@ -16,6 +16,10 @@ class Config:
     API_HOST = os.getenv("API_HOST", "127.0.0.1")
     API_PORT = int(os.getenv("API_PORT", "8000"))
 
+    # Metrics Settings
+    METRICS_PORT = int(os.getenv("METRICS_PORT", "9090"))
+    METRICS_ENABLED = os.getenv("METRICS_ENABLED", "true").lower() == "true"
+
     # Feature Flags
     ENABLE_CACHE = os.getenv("ENABLE_CACHE", "true").lower() == "true"
     ENABLE_AUTH = os.getenv("ENABLE_AUTH", "true").lower() == "true"

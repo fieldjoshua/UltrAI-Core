@@ -1,10 +1,21 @@
+from typing import Any, Dict, List, Optional, Union
+from pydantic import BaseModel
+from fastapi import APIRouter, Depends, HTTPException, Request, Response
+"""
+Route handlers for the Ultra backend.
+
+This module provides API routes for various endpoints.
+"""
+
+from typing import Any, Dict, List, Optional, Union
+from pydantic import BaseModel
+from fastapi import APIRouter, Depends, HTTPException, Request, Response
 """
 Minimal Orchestrator Routes - Drop-in replacement for /api/orchestrator/feather
 
 Provides compatibility with existing frontend while implementing Ultra Synthesis
 """
 from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel
 from typing import List, Dict, Any, Optional
 import logging
 import os
@@ -51,26 +62,25 @@ class FeatherResponse(BaseModel):
 
 
 @router.post("/feather", response_model=FeatherResponse)
-async def orchestrate_feather(request: FeatherRequest):
+async def orchestrate_feather(request: FeatherRequest) -> FeatherResponse:
     """
-    Drop-in replacement for the feather orchestration endpoint.
-    
-    Implements Ultra Synthesis™ regardless of pattern parameter.
+    Create orchestrate feather.
+    WARNING: This endpoint is for development/testing only. Do not use in production.
     """
     try:
         # Validate request
         if not request.prompt:
             raise HTTPException(status_code=400, detail="Prompt cannot be empty")
-        
+
         if not request.models:
             request.models = ["gpt4o", "claude37"]  # Default models
-        
+
         # Extract ultra_model from args if provided
         ultra_model = request.args.get("ultra_model", request.models[0])
-        
+
         # Log request for debugging
         logger.info(f"Orchestration request: {len(request.models)} models, pattern: {request.args.get('pattern', 'none')}")
-        
+
         # Call orchestrator based on which one we're using
         if USE_BASIC:
             # Basic orchestrator just does parallel calls
@@ -86,7 +96,7 @@ async def orchestrate_feather(request: FeatherRequest):
                 models=request.models,
                 ultra_model=ultra_model
             )
-        
+
         # Return in expected format
         return FeatherResponse(
             status=result["status"],
@@ -95,12 +105,12 @@ async def orchestrate_feather(request: FeatherRequest):
             performance=result["performance"],
             cached=result.get("cached", False)
         )
-        
+
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         logger.error(f"Orchestration error: {str(e)}", exc_info=True)
-        
+
         # Return error response in expected format
         return FeatherResponse(
             status="error",
@@ -113,12 +123,14 @@ async def orchestrate_feather(request: FeatherRequest):
 
 
 @router.get("/health")
-async def orchestrator_health():
-    """Health check endpoint"""
+    """
+    Get orchestrator health.
+    WARNING: This endpoint is for development/testing only. Do not use in production.
+    """
     try:
         # Check if we have any adapters initialized
         adapter_count = sum(len(models) for models in orchestrator.adapters.values())
-        
+
         return {
             "status": "healthy" if adapter_count > 0 else "degraded",
             "adapters_initialized": adapter_count,
@@ -132,10 +144,12 @@ async def orchestrator_health():
 
 
 @router.get("/models")
-async def list_available_models():
-    """List all available models"""
+    """
+    Get list available models.
+    WARNING: This endpoint is for development/testing only. Do not use in production.
+    """
     available = []
-    
+
     for provider, models in orchestrator.adapters.items():
         for model_name in models.keys():
             # Find frontend name for this backend model
@@ -144,14 +158,14 @@ async def list_available_models():
                 if bn == model_name:
                     frontend_name = fn
                     break
-            
+
             available.append({
                 "id": frontend_name or model_name,
                 "name": frontend_name or model_name,
                 "provider": provider,
                 "available": True
             })
-    
+
     return {
         "models": available,
         "count": len(available)

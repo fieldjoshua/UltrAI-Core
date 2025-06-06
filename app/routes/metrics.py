@@ -1,5 +1,18 @@
+from typing import Any, Dict, List, Optional, Union
+from pydantic import BaseModel
+from fastapi import APIRouter, Depends, HTTPException, Request, Response
+from typing import Any, Dict, List, Optional, Union
+from pydantic import BaseModel
+from fastapi import APIRouter, Depends, HTTPException, Request, Response
+"""
+Metrics routes for the Ultra backend.
+
+This module provides API routes for system metrics and monitoring.
+"""
+
+from typing import Any, Dict, Union
+
 from fastapi import APIRouter, Request, Response
-from fastapi.responses import JSONResponse, PlainTextResponse
 
 # Try to import from prometheus_client, use stub if not available
 try:
@@ -13,7 +26,7 @@ except ImportError:
     )
 
     # Define choose_encoder if we're using the stub
-    def choose_encoder(accept_header):
+    def choose_encoder(accept_header: str) -> tuple[Any, str]:  # type: ignore
         return exposition.choose_encoder(accept_header), CONTENT_TYPE_LATEST
 
 
@@ -28,61 +41,91 @@ from app.utils.metrics import (
 metrics_router = APIRouter(tags=["Metrics"])
 
 
-@metrics_router.get("/api/status")
-async def check_status():
-    """Get API status with basic metrics"""
+class StatusResponse(BaseModel):
+    """Response model for status endpoint."""
+
+    status: str
+    uptime_seconds: float
+    requests_processed: int
+    avg_processing_time: float
+    memory_usage_mb: float
+
+
+@metrics_router.get("/api/status", response_model=StatusResponse)
+async def check_status() -> StatusResponse:
+    """
+    Get current system status and basic metrics.
+    WARNING: This endpoint is for development/testing only. Do not use in production.
+    """
     metrics = get_current_metrics()
 
-    return JSONResponse(
-        content={
-            "status": "operational",
-            "uptime_seconds": metrics["uptime_seconds"],
-            "requests_processed": metrics["requests_processed"],
-            "avg_processing_time": metrics["avg_processing_time"],
-            "memory_usage_mb": metrics["memory_usage_mb"],
-        }
+    return StatusResponse(
+        status="operational",
+        uptime_seconds=metrics["uptime_seconds"],
+        requests_processed=metrics["requests_processed"],
+        avg_processing_time=metrics["avg_processing_time"],
+        memory_usage_mb=metrics["memory_usage_mb"],
     )
 
 
-@metrics_router.get("/api/metrics")
-async def get_metrics():
-    """Get detailed metrics about the API"""
+class MetricsResponse(BaseModel):
+    """Response model for metrics endpoint."""
+
+    status: str
+    metrics: Dict[str, Union[float, int, str]]
+
+
+@metrics_router.get("/api/metrics", response_model=MetricsResponse)
+async def get_metrics() -> MetricsResponse:
+    """
+    Get detailed system metrics including Prometheus endpoint.
+    WARNING: This endpoint is for development/testing only. Do not use in production.
+    """
     metrics = get_current_metrics()
 
     # Update system metrics to get latest values
     collector = MetricsCollector()
     collector.update_system_metrics()
 
-    return JSONResponse(
-        content={
-            "status": "success",
-            "metrics": {
-                "uptime_seconds": metrics["uptime_seconds"],
-                "requests_processed": metrics["requests_processed"],
-                "avg_processing_time": metrics["avg_processing_time"],
-                "memory_usage_mb": metrics["memory_usage_mb"],
-                "cache_hits": metrics["cache_hits"],
-                "prometheus_endpoint": f"http://localhost:{Config.METRICS_PORT}/metrics",
-            },
-        }
+    return MetricsResponse(
+        status="success",
+        metrics={
+            "uptime_seconds": metrics["uptime_seconds"],
+            "requests_processed": metrics["requests_processed"],
+            "avg_processing_time": metrics["avg_processing_time"],
+            "memory_usage_mb": metrics["memory_usage_mb"],
+            "cache_hits": metrics["cache_hits"],
+            "prometheus_endpoint": f"http://localhost:{Config.METRICS_PORT}/metrics",
+        },
     )
 
 
-@metrics_router.get("/api/metrics/history")
-async def get_history():
-    """Get historical metrics data"""
+class HistoryResponse(BaseModel):
+    """Response model for metrics history endpoint."""
+
+    status: str
+    history: Dict[str, Any]
+
+
+@metrics_router.get("/api/metrics/history", response_model=HistoryResponse)
+async def get_history() -> HistoryResponse:
+    """
+    Get historical metrics data.
+    WARNING: This endpoint is for development/testing only. Do not use in production.
+    """
     history = get_metrics_history()
 
-    return JSONResponse(content={"status": "success", "history": history})
+    return HistoryResponse(
+        status="success",
+        history=history,
+    )
 
 
 @metrics_router.get("/metrics")
-async def prometheus_metrics(request: Request):
+async def prometheus_metrics(request: Request) -> Response:
     """
-    Expose Prometheus metrics directly through the API
-
-    This is in addition to the standalone metrics server, providing
-    flexibility in how metrics are accessed.
+    Get metrics in Prometheus format.
+    WARNING: This endpoint is for development/testing only. Do not use in production.
     """
     if not Config.METRICS_ENABLED:
         return Response(content="Metrics collection is disabled", status_code=404)

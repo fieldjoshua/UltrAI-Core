@@ -1,3 +1,15 @@
+from typing import Any, Dict, List, Optional, Union
+from pydantic import BaseModel
+from fastapi import APIRouter, Depends, HTTPException, Request, Response
+"""
+Route handlers for the Ultra backend.
+
+This module provides API routes for various endpoints.
+"""
+
+from typing import Any, Dict, List, Optional, Union
+from pydantic import BaseModel
+from fastapi import APIRouter, Depends, HTTPException, Request, Response
 """
 Document Analysis Routes
 
@@ -11,8 +23,7 @@ import uuid
 from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
-from fastapi.responses import JSONResponse
-from sqlalchemy.orm import Session
+from fastapi.responses from sqlalchemy.orm import Session
 
 from app.config import Config
 from app.database.connection import get_db
@@ -60,7 +71,12 @@ def get_prompt_service() -> PromptService:
 
 
 @document_analysis_router.post(
-    "/api/analyze-document", response_model=DocumentAnalysisResponse
+    "/api/analyze-document", class DocumentAnalysisResponse(BaseModel):
+    """Response model for documentanalysisresponse endpoint."""
+    status: str
+    data: Dict[str, Any]
+
+response_model=DocumentAnalysisResponse
 )
 async def analyze_document(
     request: Request,
