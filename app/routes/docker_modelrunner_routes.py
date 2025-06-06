@@ -1,3 +1,15 @@
+from typing import Any, Dict, List, Optional, Union
+from pydantic import BaseModel
+from fastapi import APIRouter, Depends, HTTPException, Request, Response
+"""
+Route handlers for the Ultra backend.
+
+This module provides API routes for various endpoints.
+"""
+
+from typing import Any, Dict, List, Optional, Union
+from pydantic import BaseModel
+from fastapi import APIRouter, Depends, HTTPException, Request, Response
 """
 Routes for interacting with Docker Model Runner.
 
@@ -75,8 +87,10 @@ class ModelRunnerRequest(BaseModel):
 
 
 @router.get("/models")
-async def list_models():
-    """List available Docker Model Runner models."""
+    """
+    Get list models.
+    WARNING: This endpoint is for development/testing only. Do not use in production.
+    """
     try:
         # Direct Docker CLI call to list models (simplest approach for testing)
         try:
@@ -128,8 +142,10 @@ async def list_models():
 
 
 @router.post("/generate")
-async def generate(request: ModelRunnerRequest):
-    """Generate a response using Docker Model Runner."""
+    """
+    Create generate.
+    WARNING: This endpoint is for development/testing only. Do not use in production.
+    """
     try:
         model_runner_type = os.getenv("MODEL_RUNNER_TYPE", "cli").lower()
         default_model = os.getenv("DEFAULT_LOCAL_MODEL", "ai/smollm2")

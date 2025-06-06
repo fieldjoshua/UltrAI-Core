@@ -1,3 +1,15 @@
+from typing import Any, Dict, List, Optional, Union
+from pydantic import BaseModel
+from fastapi import APIRouter, Depends, HTTPException, Request, Response
+"""
+Route handlers for the Ultra backend.
+
+This module provides API routes for various endpoints.
+"""
+
+from typing import Any, Dict, List, Optional, Union
+from pydantic import BaseModel
+from fastapi import APIRouter, Depends, HTTPException, Request, Response
 """
 OAuth routes for the Ultra backend.
 
@@ -8,7 +20,6 @@ import logging
 from typing import Union
 from uuid import uuid4
 
-from fastapi import APIRouter, Depends, Query, Request
 from fastapi.responses import JSONResponse, RedirectResponse
 from sqlalchemy.orm import Session
 
@@ -30,17 +41,16 @@ user_repository = UserRepository()
 
 
 @oauth_router.get(
-    "/api/auth/{provider}/login", response_model=Union[OAuthURLResponse, OAuthError]
+    "/api/auth/{provider}/login", class Union(BaseModel):
+    """Response model for union endpoint."""
+    status: str
+    data: Dict[str, Any]
+
+response_model=Union[OAuthURLResponse, OAuthError]
 )
-async def oauth_login(provider: str):
     """
-    Generate OAuth login URL for the specified provider
-
-    Args:
-        provider: The OAuth provider ("google" or "github")
-
-    Returns:
-        OAuthURLResponse with authorization URL and state token
+    Get oauth login.
+    WARNING: This endpoint is for development/testing only. Do not use in production.
     """
     try:
         result = await oauth_service.generate_oauth_url(provider)

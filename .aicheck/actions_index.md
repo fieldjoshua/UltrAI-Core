@@ -11,6 +11,7 @@ This document tracks all ACTIONS in the PROJECT. All ACTIONS must be registered 
 | ux-ui-mockup-development | | Not Started | 0% | |
 | critical-path-execution | | Not Started | 0% | |
 | operational-system-audit | | Not Started | 0% | |
+| system-wide-cleanup-and-audit | | ActiveAction | 0% | |
 | *None yet* | | | | |
 
 ## Completed Actions
