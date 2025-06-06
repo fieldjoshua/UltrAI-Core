@@ -1,15 +1,3 @@
-from typing import Any, Dict, List, Optional, Union
-from pydantic import BaseModel
-from fastapi import APIRouter, Depends, HTTPException, Request, Response
-"""
-Route handlers for the Ultra backend.
-
-This module provides API routes for various endpoints.
-"""
-
-from typing import Any, Dict, List, Optional, Union
-from pydantic import BaseModel
-from fastapi import APIRouter, Depends, HTTPException, Request, Response
 """
 Pricing routes for the Ultra backend.
 
@@ -19,17 +7,14 @@ This module provides API routes for pricing and user account management.
 import logging
 from typing import Any, Dict, Optional
 
-from fastapi import APIRouter
-from fastapi.responses 
+from fastapi import APIRouter, HTTPException
+from fastapi.responses import JSONResponse
 from app.models.pricing import (
     AddFundsRequest,
     PricingToggleRequest,
     TokenEstimateRequest,
     UserAccountRequest,
 )
-
-# Create a pricing router
-pricing_router = APIRouter(tags=["Pricing"])
 
 # Configure logging
 logger = logging.getLogger("pricing_routes")
@@ -115,150 +100,161 @@ except ImportError:
         return {"status": "success", "cost": 0.01}
 
 
-# Token usage estimate endpoint
-@pricing_router.post("/api/estimate-tokens")
+def create_router() -> APIRouter:
     """
-    Create estimate tokens.
-    WARNING: This endpoint is for development/testing only. Do not use in production.
+    Create the pricing router.
+
+    Returns:
+        APIRouter: The configured router
     """
-    # Simple token estimation logic
-    estimated_tokens = len(request.prompt.split()) * 4  # Simple estimate
+    router = APIRouter(tags=["Pricing"])
 
-    # Get cost estimate if pricing is enabled
-    cost_estimate = {"cost": 0, "details": {}}
+    @router.post("/api/estimate-tokens")
+    async def estimate_tokens(request: TokenEstimateRequest):
+        """
+        Create estimate tokens.
+        WARNING: This endpoint is for development/testing only. Do not use in production.
+        """
+        # Simple token estimation logic
+        estimated_tokens = len(request.prompt.split()) * 4  # Simple estimate
 
-    if request.userId:
-        estimate = pricing_integration.estimate_request_cost(
-            user_id=request.userId,
-            model=request.model,
-            estimated_tokens=estimated_tokens,
-            request_type=request.requestType,
-        )
+        # Get cost estimate if pricing is enabled
+        cost_estimate = {"cost": 0, "details": {}}
 
-        cost_estimate = {
-            "cost": estimate["estimated_cost"],
-            "tier": estimate["tier"],
-            "has_sufficient_balance": estimate.get("has_sufficient_balance", True),
-            "details": {
-                "base_cost": estimate["cost_details"].get("base_cost", 0),
-                "markup": estimate["cost_details"].get("markup_cost", 0),
-                "discount": estimate["cost_details"].get("discount_amount", 0),
-                "features": estimate["cost_details"].get("feature_costs", {}),
-            },
+        if request.userId:
+            estimate = pricing_integration.estimate_request_cost(
+                user_id=request.userId,
+                model=request.model,
+                estimated_tokens=estimated_tokens,
+                request_type=request.requestType,
+            )
+
+            cost_estimate = {
+                "cost": estimate["estimated_cost"],
+                "tier": estimate["tier"],
+                "has_sufficient_balance": estimate.get("has_sufficient_balance", True),
+                "details": {
+                    "base_cost": estimate["cost_details"].get("base_cost", 0),
+                    "markup": estimate["cost_details"].get("markup_cost", 0),
+                    "discount": estimate["cost_details"].get("discount_amount", 0),
+                    "features": estimate["cost_details"].get("feature_costs", {}),
+                },
+            }
+
+        return {
+            "prompt_length": len(request.prompt),
+            "estimated_tokens": estimated_tokens,
+            "model": request.model,
+            "requestType": request.requestType,
+            "pricing_enabled": pricing_integration.pricing_enabled,
+            "cost_estimate": cost_estimate,
         }
 
-    return {
-        "prompt_length": len(request.prompt),
-        "estimated_tokens": estimated_tokens,
-        "model": request.model,
-        "requestType": request.requestType,
-        "pricing_enabled": pricing_integration.pricing_enabled,
-        "cost_estimate": cost_estimate,
-    }
+    @router.post("/api/admin/pricing/toggle")
+    async def toggle_pricing(request: PricingToggleRequest):
+        """
+        Create toggle pricing.
+        WARNING: This endpoint is for development/testing only. Do not use in production.
+        """
+        # In a real system, you would add authentication/authorization here
+        prev_state = pricing_integration.pricing_enabled
+        pricing_integration.pricing_enabled = request.enabled
 
-
-# Pricing toggle endpoint (admin only)
-@pricing_router.post("/api/admin/pricing/toggle")
-    """
-    Create toggle pricing.
-    WARNING: This endpoint is for development/testing only. Do not use in production.
-    """
-    # In a real system, you would add authentication/authorization here
-    prev_state = pricing_integration.pricing_enabled
-    pricing_integration.pricing_enabled = request.enabled
-
-    logger.info(
-        f"Pricing {'enabled' if request.enabled else 'disabled'}, reason: {request.reason}"
-    )
-
-    return {
-        "status": "success",
-        "pricing_enabled": pricing_integration.pricing_enabled,
-        "previous_state": prev_state,
-        "message": f"Pricing has been {'enabled' if request.enabled else 'disabled'}",
-    }
-
-
-# User account management endpoints
-@pricing_router.post("/api/user/create")
-    """
-    Create create user.
-    WARNING: This endpoint is for development/testing only. Do not use in production.
-    """
-    result = pricing_integration.create_user_account(
-        user_id=request.userId,
-        tier=request.tier,
-        initial_balance=request.initialBalance,
-    )
-
-    if "error" in result:
-        return JSONResponse(
-            status_code=400, content={"status": "error", "message": result["error"]}
+        logger.info(
+            f"Pricing {'enabled' if request.enabled else 'disabled'}, reason: {request.reason}"
         )
 
-    return {"status": "success", "user": result}
+        return {
+            "status": "success",
+            "pricing_enabled": pricing_integration.pricing_enabled,
+            "previous_state": prev_state,
+            "message": f"Pricing has been {'enabled' if request.enabled else 'disabled'}",
+        }
 
-
-@pricing_router.post("/api/user/add-funds")
-    """
-    Create add funds.
-    WARNING: This endpoint is for development/testing only. Do not use in production.
-    """
-    result = pricing_integration.add_funds(
-        user_id=request.userId, amount=request.amount, description=request.description
-    )
-
-    if "error" in result:
-        return JSONResponse(
-            status_code=400, content={"status": "error", "message": result["error"]}
+    @router.post("/api/user/create")
+    async def create_user(request: UserAccountRequest):
+        """
+        Create create user.
+        WARNING: This endpoint is for development/testing only. Do not use in production.
+        """
+        result = pricing_integration.create_user_account(
+            user_id=request.userId,
+            tier=request.tier,
+            initial_balance=request.initialBalance,
         )
 
-    return {"status": "success", "transaction": result}
+        if "error" in result:
+            return JSONResponse(
+                status_code=400, content={"status": "error", "message": result["error"]}
+            )
 
+        return {"status": "success", "user": result}
 
-@pricing_router.get("/api/user/{user_id}/balance")
-    """
-    Get get user balance.
-    WARNING: This endpoint is for development/testing only. Do not use in production.
-    """
-    result = pricing_integration.check_balance(user_id)
-
-    if "error" in result:
-        return JSONResponse(
-            status_code=404, content={"status": "error", "message": result["error"]}
+    @router.post("/api/user/add-funds")
+    async def add_funds(request: AddFundsRequest):
+        """
+        Create add funds.
+        WARNING: This endpoint is for development/testing only. Do not use in production.
+        """
+        result = pricing_integration.add_funds(
+            user_id=request.userId,
+            amount=request.amount,
+            description=request.description,
         )
 
-    return {"status": "success", "balance": result}
+        if "error" in result:
+            return JSONResponse(
+                status_code=400, content={"status": "error", "message": result["error"]}
+            )
 
+        return {"status": "success", "transaction": result}
 
-@pricing_router.get("/api/user/{user_id}/usage")
-    """
-    Get get user usage.
-    WARNING: This endpoint is for development/testing only. Do not use in production.
-    """
-    result = pricing_integration.get_user_usage_summary(user_id)
+    @router.get("/api/user/{user_id}/balance")
+    async def get_user_balance(user_id: str):
+        """
+        Get get user balance.
+        WARNING: This endpoint is for development/testing only. Do not use in production.
+        """
+        result = pricing_integration.check_balance(user_id)
 
-    if "error" in result and "No usage data" not in result["error"]:
-        return JSONResponse(
-            status_code=404, content={"status": "error", "message": result["error"]}
-        )
+        if "error" in result:
+            return JSONResponse(
+                status_code=404, content={"status": "error", "message": result["error"]}
+            )
 
-    return {"status": "success", "usage": result}
+        return {"status": "success", "balance": result}
 
+    @router.get("/api/user/{user_id}/usage")
+    async def get_user_usage(user_id: str):
+        """
+        Get get user usage.
+        WARNING: This endpoint is for development/testing only. Do not use in production.
+        """
+        result = pricing_integration.get_user_usage_summary(user_id)
 
-@pricing_router.get("/api/session/{session_id}")
-    """
-    Get get session.
-    WARNING: This endpoint is for development/testing only. Do not use in production.
-    """
-    result = pricing_integration.get_session_summary(session_id)
+        if "error" in result and "No usage data" not in result["error"]:
+            return JSONResponse(
+                status_code=404, content={"status": "error", "message": result["error"]}
+            )
 
-    if "error" in result:
-        return JSONResponse(
-            status_code=404, content={"status": "error", "message": result["error"]}
-        )
+        return {"status": "success", "usage": result}
 
-    return {"status": "success", "session": result}
+    @router.get("/api/session/{session_id}")
+    async def get_session_summary(session_id: str):
+        """
+        Get session summary.
+        WARNING: This endpoint is for development/testing only. Do not use in production.
+        """
+        result = pricing_integration.get_session_summary(session_id)
+
+        if "error" in result:
+            return JSONResponse(
+                status_code=404, content={"status": "error", "message": result["error"]}
+            )
+
+        return {"status": "success", "session": result}
+
+    return router
 
 
 # Background tasks

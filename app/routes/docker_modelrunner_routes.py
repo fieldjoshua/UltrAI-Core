@@ -1,30 +1,25 @@
-from typing import Any, Dict, List, Optional, Union
-from pydantic import BaseModel
-from fastapi import APIRouter, Depends, HTTPException, Request, Response
-"""
-Route handlers for the Ultra backend.
-
-This module provides API routes for various endpoints.
-"""
-
-from typing import Any, Dict, List, Optional, Union
-from pydantic import BaseModel
-from fastapi import APIRouter, Depends, HTTPException, Request, Response
 """
 Routes for interacting with Docker Model Runner.
 
 This module provides API endpoints for testing and using Docker Model Runner LLMs.
+
+Security Note:
+    This module uses subprocess to execute Docker commands. While this is necessary
+    for the functionality, it should be used with caution and proper input validation
+    to prevent command injection attacks.
 """
 
 import asyncio
 import logging
 import os
-import subprocess
 import sys
-from typing import Any, Dict, List, Optional
+from typing import Optional
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
+
+# Configure logging
+logger = logging.getLogger("modelrunner_routes")
 
 # Global variables for adapters
 DockerModelRunnerCLIAdapter = None
@@ -46,7 +41,7 @@ try:
             create_modelrunner_cli_adapter,
         )
 except ImportError as e:
-    logging.error(f"Failed to import Docker Model Runner CLI adapter: {e}")
+    logger.error(f"Failed to import Docker Model Runner CLI adapter: {e}")
 
 # Try to import the API adapter
 try:
@@ -61,17 +56,7 @@ try:
             get_available_models,
         )
 except ImportError as e:
-    logging.error(f"Failed to import Docker Model Runner API adapter: {e}")
-
-# Create router
-router = APIRouter(
-    prefix="/api/modelrunner",
-    tags=["modelrunner"],
-    responses={404: {"description": "Not found"}},
-)
-
-# Logger
-logger = logging.getLogger("modelrunner_routes")
+    logger.error(f"Failed to import Docker Model Runner API adapter: {e}")
 
 
 class ModelRunnerRequest(BaseModel):
@@ -86,113 +71,132 @@ class ModelRunnerRequest(BaseModel):
     stream: Optional[bool] = Field(False, description="Whether to stream the response")
 
 
-@router.get("/models")
+def create_router() -> APIRouter:
     """
-    Get list models.
-    WARNING: This endpoint is for development/testing only. Do not use in production.
+    Create the Docker Model Runner router.
+
+    Returns:
+        APIRouter: The configured router
     """
-    try:
-        # Direct Docker CLI call to list models (simplest approach for testing)
+    router = APIRouter(
+        prefix="/api/modelrunner",
+        tags=["modelrunner"],
+        responses={404: {"description": "Not found"}},
+    )
+
+    @router.get("/models")
+    async def list_models():
+        """
+        Get list models.
+        WARNING: This endpoint is for development/testing only. Do not use in production.
+        """
         try:
-            logger.info("Listing Docker models via CLI")
+            # Direct Docker CLI call to list models (simplest approach for testing)
+            try:
+                logger.info("Listing Docker models via CLI")
 
-            # Alternative approach - use shell command to invoke Docker Model CLI on host
-            # This could be python scripting if available in the container
-            cmd = 'ls -la /var/run/docker.sock || echo "Docker socket not found" && docker model list || echo "Docker model command not available"'
+                # Alternative approach - use shell command to invoke Docker Model CLI on host
+                # This could be python scripting if available in the container
+                cmd = 'ls -la /var/run/docker.sock || echo "Docker socket not found" && docker model list || echo "Docker model command not available"'
 
-            # For debugging - show environment
-            logger.info(
-                f"Environment: PATH={os.environ.get('PATH', 'N/A')}, DOCKER_HOST={os.environ.get('DOCKER_HOST', 'N/A')}"
-            )
-
-            # Execute the command
-            process = await asyncio.create_subprocess_shell(
-                cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
-            )
-            stdout, stderr = await process.communicate()
-
-            if process.returncode != 0:
-                error = stderr.decode().strip()
-                logger.error(f"Docker model list command failed: {error}")
-                raise HTTPException(
-                    status_code=500, detail=f"Docker model list command failed: {error}"
+                # For debugging - show environment
+                logger.info(
+                    f"Environment: PATH={os.environ.get('PATH', 'N/A')}, DOCKER_HOST={os.environ.get('DOCKER_HOST', 'N/A')}"
                 )
 
-            # Parse the output to extract model names
-            output = stdout.decode().strip()
-            lines = output.split("\n")
-            models = []
+                # Execute the command
+                process = await asyncio.create_subprocess_shell(
+                    cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
+                )
+                stdout, stderr = await process.communicate()
 
-            # Skip header line
-            if len(lines) > 1:
-                for line in lines[1:]:
-                    parts = line.split()
-                    if parts:
-                        models.append(parts[0])  # First column is model name
+                if process.returncode != 0:
+                    error = stderr.decode().strip()
+                    logger.error(f"Docker model list command failed: {error}")
+                    raise HTTPException(
+                        status_code=500,
+                        detail=f"Docker model list command failed: {error}",
+                    )
 
-            return {"models": models}
-        except Exception as e:
-            logger.error(f"Error listing Docker models: {str(e)}")
-            raise HTTPException(
-                status_code=500, detail=f"Error listing Docker models: {str(e)}"
-            )
-    except Exception as e:
-        logger.error(f"Error listing models: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Error listing models: {str(e)}")
+                # Parse the output to extract model names
+                output = stdout.decode().strip()
+                lines = output.split("\n")
+                models = []
 
+                # Skip header line
+                if len(lines) > 1:
+                    for line in lines[1:]:
+                        parts = line.split()
+                        if parts:
+                            models.append(parts[0])  # First column is model name
 
-@router.post("/generate")
-    """
-    Create generate.
-    WARNING: This endpoint is for development/testing only. Do not use in production.
-    """
-    try:
-        model_runner_type = os.getenv("MODEL_RUNNER_TYPE", "cli").lower()
-        default_model = os.getenv("DEFAULT_LOCAL_MODEL", "ai/smollm2")
-
-        # Use requested model or default
-        model = request.model or default_model
-
-        # Direct Docker CLI call (simplest approach for testing)
-        try:
-            logger.info(f"Running Docker model command with model {model}")
-            # Quote the prompt to handle special characters
-            quoted_prompt = request.prompt.replace('"', '\\"')
-            cmd = f'docker model run {model} "{quoted_prompt}"'
-
-            # For debugging - show environment
-            logger.info(
-                f"Running with model: {model}, Environment: PATH={os.environ.get('PATH', 'N/A')}"
-            )
-
-            # Alternative approach - directly run the model
-            # In a container environment, we may need to use a different approach
-            cmd = f'docker model run {model} "{quoted_prompt}" || echo "Docker model command failed"'
-
-            # Execute the command
-            process = await asyncio.create_subprocess_shell(
-                cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
-            )
-            stdout, stderr = await process.communicate()
-
-            if process.returncode != 0:
-                error = stderr.decode().strip()
-                logger.error(f"Docker model command failed: {error}")
+                return {"models": models}
+            except Exception as e:
+                logger.error(f"Error listing Docker models: {str(e)}")
                 raise HTTPException(
-                    status_code=500, detail=f"Docker model command failed: {error}"
+                    status_code=500, detail=f"Error listing Docker models: {str(e)}"
+                )
+        except Exception as e:
+            logger.error(f"Error listing models: {str(e)}")
+            raise HTTPException(
+                status_code=500, detail=f"Error listing models: {str(e)}"
+            )
+
+    @router.post("/generate")
+    async def generate_response(request: ModelRunnerRequest):
+        """
+        Create generate.
+        WARNING: This endpoint is for development/testing only. Do not use in production.
+        """
+        try:
+            model_runner_type = os.getenv("MODEL_RUNNER_TYPE", "cli").lower()
+            default_model = os.getenv("DEFAULT_LOCAL_MODEL", "ai/smollm2")
+
+            # Use requested model or default
+            model = request.model or default_model
+
+            # Direct Docker CLI call (simplest approach for testing)
+            try:
+                logger.info(f"Running Docker model command with model {model}")
+                # Quote the prompt to handle special characters
+                quoted_prompt = request.prompt.replace('"', '\\"')
+                cmd = f'docker model run {model} "{quoted_prompt}"'
+
+                # For debugging - show environment
+                logger.info(
+                    f"Running with model: {model}, Environment: PATH={os.environ.get('PATH', 'N/A')}"
                 )
 
-            response = stdout.decode().strip()
-            return {"model": model, "response": response}
+                # Alternative approach - directly run the model
+                # In a container environment, we may need to use a different approach
+                cmd = f'docker model run {model} "{quoted_prompt}" || echo "Docker model command failed"'
+
+                # Execute the command
+                process = await asyncio.create_subprocess_shell(
+                    cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
+                )
+                stdout, stderr = await process.communicate()
+
+                if process.returncode != 0:
+                    error = stderr.decode().strip()
+                    logger.error(f"Docker model command failed: {error}")
+                    raise HTTPException(
+                        status_code=500, detail=f"Docker model command failed: {error}"
+                    )
+
+                response = stdout.decode().strip()
+                return {"model": model, "response": response}
+            except Exception as e:
+                logger.error(f"Error executing Docker model command: {str(e)}")
+                raise HTTPException(
+                    status_code=500,
+                    detail=f"Error executing Docker model command: {str(e)}",
+                )
+
         except Exception as e:
-            logger.error(f"Error executing Docker model command: {str(e)}")
+            logger.error(f"Error generating response: {str(e)}")
             raise HTTPException(
-                status_code=500,
-                detail=f"Error executing Docker model command: {str(e)}",
+                status_code=500, detail=f"Error generating response: {str(e)}"
             )
 
-    except Exception as e:
-        logger.error(f"Error generating response: {str(e)}")
-        raise HTTPException(
-            status_code=500, detail=f"Error generating response: {str(e)}"
-        )
+    return router
