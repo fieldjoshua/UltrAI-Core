@@ -6,9 +6,17 @@ This module provides the service layer for handling prompt submission and proces
 
 import asyncio
 import logging
+import os
+import sys
 from typing import Any, Dict, List, Optional, Union
 
-from backend.models.enhanced_orchestrator import (
+# Robustly add 'src' to the path to ensure correct module resolution.
+# This is a targeted fix to bypass the faulty facade import mechanism.
+SRC_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+if SRC_PATH not in sys.path:
+    sys.path.insert(0, SRC_PATH)
+
+from src.models.enhanced_orchestrator import (
     EnhancedOrchestrator,
     OrchestratorConfig,
 )
