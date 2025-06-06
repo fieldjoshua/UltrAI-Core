@@ -1,0 +1,42 @@
+[tool.poetry]
+name = "ultra-ai-core"
+version = "0.1.0"
+description = "Core backend for the UltraAI application."
+authors = ["Your Name <you@example.com>"]
+readme = "README.md"
+packages = [{include = "app"}]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+fastapi = "*"
+uvicorn = "*"
+pydantic = "*"
+starlette = "*"
+sqlalchemy = "*"
+alembic = "*"
+redis = "<5.0.0"  # Pinning to a version compatible with fastapi-limiter
+cachetools = "*"
+cryptography = "*"
+passlib = "*"
+python-dotenv = "*"
+httpx = "*"
+sentry-sdk = "*"
+sse-starlette = "*"
+fastapi-limiter = "*"
+psycopg2-binary = "*"
+gunicorn = "*"
+python-jose = "*"
+authlib = "*"
+itsdangerous = "*"
+email-validator = "*"
+python-dateutil = "*"
+orjson = "*"
+ujson = "*"
+aiofiles = "*"
+tenacity = "*"
+prometheus-client = "*"
+structlog = "*"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
