@@ -41,3 +41,6 @@ fastapi-limiter
 
 # Email validation (required by Pydantic networks)
 email-validator
+
+# Markdown
+markdown
