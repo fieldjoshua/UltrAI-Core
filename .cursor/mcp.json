@@ -1,0 +1,3 @@
+{
+  "mcpServers": "bash <(curl -sSL https://raw.githubusercontent.com/fieldjoshua/AICheck_MCP/main/install.sh)"
+}
