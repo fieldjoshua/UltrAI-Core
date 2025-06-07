@@ -1,10 +1,10 @@
 services:
   - type: web
     name: ultrai-core
-    env: python
+    runtime: python
     plan: free
-    buildCommand: pip install poetry && poetry install
-    startCommand: poetry run uvicorn app.app:app --host 0.0.0.0 --port $PORT
+    buildCommand: pip install poetry && poetry install --no-dev --no-interaction
+    startCommand: poetry run uvicorn app_production:app --host 0.0.0.0 --port $PORT
     envVars:
       - key: ENVIRONMENT
         value: production
@@ -43,15 +43,15 @@ services:
         generateValue: true
       - key: CSP_POLICY
         value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://unpkg.com; object-src 'none'; img-src 'self' data: https:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net https://unpkg.com; style-src-elem 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net https://unpkg.com; font-src 'self' https://fonts.gstatic.com https://fonts.googleapis.com; frame-src 'none'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; worker-src 'self' blob:; connect-src 'self' https://ultrai-core.onrender.com https://ultrai-core-4lut.onrender.com wss://ultrai-core.onrender.com wss://ultrai-core-4lut.onrender.com https://api.ultrai.app wss://api.ultrai.app http://localhost:* ws://localhost:*;"
+    ipAllowList: []
+
+  - type: redis
+    name: ultrai-redis
+    plan: free
+    maxmemoryPolicy: allkeys-lru
 
 databases:
   - name: ultrai-db
     databaseName: ultrai_production
     user: ultrai_user
     plan: free
-
-services:
-  - type: redis
-    name: ultrai-redis
-    plan: free
-    maxmemoryPolicy: allkeys-lru

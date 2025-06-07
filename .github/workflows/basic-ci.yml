@@ -44,6 +44,11 @@ jobs:
               sys.exit(1)
           EOF
 
+      - name: AICheck Status
+        run: |
+          chmod +x aicheck
+          ./aicheck status
+
   test-frontend:
     runs-on: ubuntu-latest
 
