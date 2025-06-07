@@ -2,11 +2,7 @@
 Route handlers for the Ultra backend.
 """
 
-import logging
-from typing import Dict
-from fastapi import APIRouter, Depends, HTTPException
-from fastapi.responses import JSONResponse
-
+from fastapi import APIRouter
 
 
 def create_router() -> APIRouter:
@@ -19,3 +15,6 @@ def create_router() -> APIRouter:
     router = APIRouter(tags=["Metrics"])
 
     return router
+
+
+metrics_router = create_router()  # Expose router for application

@@ -8,8 +8,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import JSONResponse
 
 
-
-def create_router() -> APIRouter:
+def create_router(document_processor=None) -> APIRouter:
     """
     Create the router with all endpoints.
 
@@ -19,3 +18,6 @@ def create_router() -> APIRouter:
     router = APIRouter(tags=["Document"])
 
     return router
+
+
+document_router = create_router()  # Expose router for application

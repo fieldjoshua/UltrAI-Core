@@ -17,7 +17,11 @@ import psutil
 
 from app.config import Config
 from app.services.cache_service import cache_service
-from app.services.llm_config_service import llm_config_service
+
+try:
+    from app.services.llm_config_service import llm_config_service
+except ImportError:
+    llm_config_service = None
 
 # Configure logging
 logger = logging.getLogger("health_service")
@@ -180,7 +184,7 @@ class HealthService:
     def _check_cache(self) -> None:
         """Check cache connection"""
         try:
-            if cache_service and hasattr(cache_service, 'is_redis_available'):
+            if cache_service and hasattr(cache_service, "is_redis_available"):
                 cache_type = "redis" if cache_service.is_redis_available() else "memory"
                 self.service_status["cache"] = {
                     "status": "healthy",
@@ -222,7 +226,9 @@ class HealthService:
                             self.service_status["llm"] = {
                                 "status": "healthy",
                                 "message": f"LLM services are available ({len(models)} models, {len(available_providers)} providers)",
-                                "providers": [model["provider"] for model in models.values()],
+                                "providers": [
+                                    model["provider"] for model in models.values()
+                                ],
                                 "last_checked": datetime.datetime.now().isoformat(),
                                 "provider_details": providers_status,
                             }
@@ -230,7 +236,9 @@ class HealthService:
                             self.service_status["llm"] = {
                                 "status": "degraded",
                                 "message": "Models configured but no providers are reachable",
-                                "providers": [model["provider"] for model in models.values()],
+                                "providers": [
+                                    model["provider"] for model in models.values()
+                                ],
                                 "last_checked": datetime.datetime.now().isoformat(),
                                 "provider_details": providers_status,
                             }

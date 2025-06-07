@@ -1,5 +1,5 @@
 # UltraAI Core - Production/Development Toggle
-.PHONY: help dev prod install setup clean-ports run test deploy
+.PHONY: help dev prod install setup clean-ports run test deploy e2e
 
 # Default target
 help:
@@ -11,6 +11,7 @@ help:
 	@echo "  make run         - Clean ports and start dev server"
 	@echo "  make test        - Run tests"
 	@echo "  make deploy      - Deploy to production"
+	@echo "  make e2e         - Run end-to-end tests (E2E)"
 	@echo ""
 	@echo "Quick start: make setup && make dev"
 
@@ -78,6 +79,15 @@ test:
 	@echo "Running tests..."
 	pytest tests/ -v 2>/dev/null || echo "No tests found in tests/"
 	cd frontend && npm test 2>/dev/null || echo "No frontend tests configured"
+
+# Run end-to-end tests (E2E) with a pre-check step
+e2e:
+	@echo "Running pre-check: poetry check"
+	poetry check
+	@echo "Running pre-E2E unit & integration tests"
+	pytest tests/ -q -m "not e2e"
+	@echo "Running end-to-end (e2e) tests"
+	pytest tests/ -q -m e2e
 
 # Deploy to production
 deploy:
