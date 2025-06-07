@@ -67,13 +67,71 @@ git status --porcelain
 
 ## 5. Impact Assessment
 
-- **Production:** Key routers unmounted; HealthService errors in prod due to missing stub imports.
-- **Developer:** Wasted days debugging module-not-found and missing endpoints.
+- **Production Errors:** On deployment (2025-06-07), `/health` endpoint began returning 500 due to missing `psutil`:
+
+  ```text
+  ModuleNotFoundError: No module named 'psutil'
+  at app/services/health_service.py line 15
+  ```
+
+- **Endpoint Visibility:** All non-`/health` routers (orchestrator, document, analyze, etc.) were unreachable because `app/app.py` was replaced with a minimal factory. Requests to `/api/orchestrator/analyze` returned 404.
+
+- **Developer Productivity:** Engineers spent ~3 days chasing import errors and missing endpoints before discovering the minimal factory override in Git history.
+
+- **Repository Health:** Uncommitted changes in `health_service.py` caused inconsistency between local and remote branches, complicating merges.
 
 ## 6. Recommendations
 
-1. **Restore Full App Factory:** Revert or merge full router inclusion behind flag or dual entrypoint.
-2. **Enhance CI:** Add `poetry run pytest -q` step; enforce file-change audit via `./aicheck status`.
-3. **Clean Workspace:** Update `.gitignore` to exclude venv directories and unneeded bin files.
-4. **Test-Driven Lockdown:** Write unit tests for every stub fallback and new feature before commit.
-5. **Documentation & Training:** Update CONTRIBUTING.md and RULES.md notes on commit hygiene.
+1. **Restore Full App Factory**
+
+   - Revert `app/app.py` to import from `app/main.py`:
+     ```python
+     from app.main import create_production_app
+     def create_app(): return create_production_app()
+     ```
+   - Include all routers in `create_app`:
+     ```python
+     for router in [health_router, user_router, auth_router, document_router, ...]:
+         app.include_router(router)
+     ```
+
+2. **Enhance CI**
+
+   - Add test step to `.github/workflows/basic-ci.yml`:
+     ```yaml
+     - name: Run test suite
+       run: poetry run pytest -q
+     ```
+   - Enforce no unstaged changes before merge:
+     ```yaml
+     - name: Check for unstaged changes
+       run: git diff --exit-code
+     ```
+   - Validate AICheck boundaries:
+     ```yaml
+     - name: AICheck status
+       run: ./aicheck status
+     ```
+
+3. **Clean Workspace**
+
+   - Add `test_minimal_env/` to `.gitignore`:
+     ```gitignore
+     test_minimal_env/
+     ```
+   - Run `./aicheck cleanup` regularly to remove stale files.
+
+4. **Test-Driven Development**
+
+   - Write a unit test for `HealthService` stub fallback (`psutil` import):
+     ```python
+     def test_health_service_uses_psutil_stub(monkeypatch):
+         monkeypatch.setattr(sys.modules, 'psutil', None)
+         from app.services.health_service import HealthService
+         hs = HealthService()
+         assert 'memory_total' in hs.system_info['resources']
+     ```
+
+5. **Documentation & Training**
+   - Update `CONTRIBUTING.md` with branch hygiene and commit checklist.
+   - Add a section in `RULES.md` on venv exclusion and action boundary enforcement.
