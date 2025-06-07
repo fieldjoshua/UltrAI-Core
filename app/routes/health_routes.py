@@ -47,6 +47,11 @@ def create_router(health_service: Optional[HealthService] = None) -> APIRouter:
         """
         return health_service.get_health_status(detailed=True)
 
+    @router.get("/", include_in_schema=False)
+    async def root():
+        """Root welcome endpoint."""
+        return {"message": "Welcome to the Ultra API! See /docs for usage."}
+
     return router
 
 
