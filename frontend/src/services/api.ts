@@ -168,20 +168,28 @@ export const endpoints = {
 
   // Analysis endpoints
   analysis: {
-    analyze: '/orchestrator/feather', // Use Feather orchestration endpoint
+    analyze: '/analyze', // Simple analysis endpoint
+    orchestrator: '/orchestrator/analyze', // Multi-stage orchestrator endpoint  
     analyzeWithDocs: '/analyze-with-docs',
     getById: (id: string) => `/analysis/${id}`,
     getHistory: '/analysis/history',
-    availableModels: '/available-models', // Fixed to remove double /api prefix
+    availableModels: '/available-models', // Our working models endpoint
   },
 };
 
 // --- New Service Functions ---
 
-// Define expected response structure for available models
+// Define expected response structure for available models (matches our API)
 interface AvailableModelsResponse {
-  available_models: string[];
-  // Add other fields if the API returns more
+  models: Array<{
+    name: string;
+    provider: string;
+    status: string;
+    max_tokens: number;
+    cost_per_1k_tokens: number;
+  }>;
+  total_count: number;
+  healthy_count: number;
 }
 
 // Function to fetch available models
@@ -199,10 +207,11 @@ export const fetchAvailableModels = async (): Promise<string[]> => {
 
     console.log('Response from available-models endpoint:', response.data);
 
-    // Properly handle the API response
-    if (response.data && response.data.available_models) {
-      console.log('Found available models:', response.data.available_models);
-      return response.data.available_models;
+    // Parse our new API response format
+    if (response.data && response.data.models) {
+      const modelNames = response.data.models.map(model => model.name);
+      console.log('Found available models:', modelNames);
+      return modelNames;
     } else {
       // If the API doesn't return the expected structure, log and throw
       console.error(
@@ -224,15 +233,14 @@ export const fetchAvailableModels = async (): Promise<string[]> => {
       console.error('Error message:', error.message);
     }
 
-    // Fallback to default models if API fails
+    // Fallback to default models if API fails (matches our API models)
     console.warn('Using fallback model list');
     const fallbackModels = [
-      'gpt4o',
-      'gpt4turbo',
-      'claude37',
-      'claude3opus',
-      'gemini15',
-      'llama3',
+      'gpt-4',
+      'gpt-4-turbo', 
+      'claude-3-sonnet',
+      'claude-3-haiku',
+      'gemini-pro',
     ];
     console.log('Using fallback models:', fallbackModels);
     return fallbackModels;
@@ -280,47 +288,96 @@ interface AnalysisResponse {
   timestamp?: string;
 }
 
-// Enhanced error handling in the analyze function
+// Enhanced multimodal analysis function
 export const analyzePrompt = async (
   payload: AnalysisPayload
 ): Promise<AnalysisResponse> => {
   try {
-    // Format the payload to match the production backend's expected format
-    const formattedPayload = {
-      prompt: payload.prompt,
-      models: payload.selected_models, // Production app expects "models"
-      args: {
-        pattern: payload.pattern,
-        ultra_model: payload.ultra_model,
-        output_format: payload.output_format || 'txt',
-      },
-      kwargs: payload.options || {},
-    };
+    // Use orchestrator for multimodal analysis when multiple models selected
+    const useOrchestrator = payload.selected_models.length > 1;
+    
+    let response;
+    
+    if (useOrchestrator) {
+      // Use orchestrator for multi-model analysis
+      const orchestratorPayload = {
+        query: payload.prompt,
+        analysis_type: payload.pattern || 'comprehensive',
+        options: payload.options || {}
+      };
 
-    console.log('Sending analysis request with payload:', formattedPayload);
-
-    const response = await apiClient.post<AnalysisResponse>(
-      endpoints.analysis.analyze,
-      formattedPayload
-    );
-
-    console.log('Received analysis response:', response.data);
-    console.log('Model responses structure:', response.data.model_responses);
-
-    // Handle successful but error-containing responses
-    if (response.data.status === 'error') {
-      throw new Error(
-        response.data.message ||
-          response.data.error ||
-          'An error occurred during analysis'
+      console.log('Sending orchestrator request with payload:', orchestratorPayload);
+      
+      response = await apiClient.post<any>(
+        endpoints.analysis.orchestrator,
+        orchestratorPayload
       );
-    }
+      
+      console.log('Received orchestrator response:', response.data);
+      
+      if (!response.data.success) {
+        throw new Error(response.data.error || 'Orchestrator analysis failed');
+      }
 
-    if (response.data.status === 'partial_success') {
-      console.warn('Partial success in analysis:', response.data.message);
-    }
+      // Transform orchestrator response to expected format
+      const modelResponses: any = {};
+      const results = response.data.results;
+      
+      if (results.initial_response && results.initial_response.responses) {
+        Object.entries(results.initial_response.responses).forEach(([model, content]: [string, any]) => {
+          modelResponses[model] = {
+            response: typeof content === 'string' ? content : JSON.stringify(content),
+            model: model,
+            status: 'success'
+          };
+        });
+      }
 
-    return response.data;
+      return {
+        status: 'success',
+        message: 'Multimodal analysis completed successfully',
+        model_responses: modelResponses,
+        combined_response: JSON.stringify(results, null, 2),
+        timestamp: new Date().toISOString(),
+        processing_time: response.data.processing_time
+      };
+      
+    } else {
+      // Use simple analysis for single model
+      const simplePayload = {
+        text: payload.prompt,
+        model: payload.selected_models[0] || 'gpt-4',
+        temperature: 0.7
+      };
+
+      console.log('Sending simple analysis request with payload:', simplePayload);
+
+      response = await apiClient.post<any>(
+        endpoints.analysis.analyze,
+        simplePayload
+      );
+
+      console.log('Received simple analysis response:', response.data);
+
+      if (!response.data.success) {
+        throw new Error(response.data.error || 'Analysis failed');
+      }
+
+      // Transform simple response to expected format
+      return {
+        status: 'success',
+        message: 'Analysis completed successfully',
+        model_responses: {
+          [response.data.model_used]: {
+            response: response.data.analysis,
+            model: response.data.model_used,
+            status: 'success'
+          }
+        },
+        combined_response: response.data.analysis,
+        timestamp: new Date().toISOString()
+      };
+    }
   } catch (error: any) {
     console.error('API analyzePrompt error:', error);
 
