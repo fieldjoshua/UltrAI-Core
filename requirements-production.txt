@@ -29,3 +29,6 @@ sentry_sdk
 # Streaming
 sse_starlette
 fastapi-limiter
+
+# Email validation (required by Pydantic networks)
+email-validator
