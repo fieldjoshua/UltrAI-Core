@@ -126,3 +126,6 @@ def create_router() -> APIRouter:
         return transaction.__dict__
 
     return router
+
+
+user_router = create_router()  # Expose router for application

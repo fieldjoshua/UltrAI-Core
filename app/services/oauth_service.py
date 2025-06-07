@@ -52,7 +52,10 @@ class OAuthService:
         state = secrets.token_urlsafe(32)
 
         if provider == "google":
-            if not GOOGLE_CLIENT_ID:
+            # Read configuration at runtime
+            client_id = os.getenv("GOOGLE_CLIENT_ID", "")
+            redirect_uri = os.getenv("GOOGLE_REDIRECT_URI", GOOGLE_REDIRECT_URI)
+            if not client_id:
                 return {"error": "Google OAuth is not configured"}
 
             # Store state token
@@ -60,8 +63,8 @@ class OAuthService:
 
             # Build Google OAuth URL
             params = {
-                "client_id": GOOGLE_CLIENT_ID,
-                "redirect_uri": GOOGLE_REDIRECT_URI,
+                "client_id": client_id,
+                "redirect_uri": redirect_uri,
                 "response_type": "code",
                 "scope": "openid email profile",
                 "state": state,

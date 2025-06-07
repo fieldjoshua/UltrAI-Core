@@ -285,8 +285,6 @@ def register_exception_handlers(app):
     """
     from fastapi.exceptions import RequestValidationError
 
-    from .errors import BaseError
-
     # Register handler for BaseError and subclasses
     app.add_exception_handler(BaseError, base_error_handler)
 

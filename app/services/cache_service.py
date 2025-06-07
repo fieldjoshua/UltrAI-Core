@@ -399,7 +399,15 @@ class CacheService:
         try:
             if redis_dependency.is_available():
                 logger.info("Using Redis for caching")
-                self.implementation = RedisCache()
+                cache_impl = RedisCache()
+                # If Redis client failed to initialize, fallback to in-memory cache
+                if getattr(cache_impl, "client", None):
+                    self.implementation = cache_impl
+                else:
+                    logger.warning(
+                        "Redis client unavailable, falling back to in-memory cache"
+                    )
+                    self.implementation = MemoryCache()
             else:
                 logger.info("Redis not available, using in-memory cache")
                 self.implementation = MemoryCache()

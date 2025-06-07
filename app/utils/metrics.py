@@ -13,7 +13,10 @@ from datetime import datetime
 from functools import wraps
 from typing import Any, Callable, Dict, List, Optional
 
-import psutil
+try:
+    import psutil
+except ImportError:
+    from app.utils.stubs import psutil
 
 # Try to import prometheus_client, use stub if not available
 try:
@@ -425,7 +428,7 @@ class MetricsMiddleware(BaseHTTPMiddleware):
         start_time = time.time()
         response = None
         status_code = 500
-        
+
         try:
             response = await call_next(request)
             status_code = response.status_code

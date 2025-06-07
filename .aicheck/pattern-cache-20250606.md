@@ -43,12 +43,12 @@
 ./.aicheck/.aicheck_backup_20250524_095556/scripts/test_pre_commit.sh
 ./.aicheck/.aicheck_backup_20250524_095556/scripts/test_security.sh
 ./.aicheck/.aicheck_backup_20250524_095556/scripts/test_all.sh
-./.aicheck/.aicheck_backup_20250524_095556/actions/production-config-fix/supporting_docs/process-tests
-./.aicheck/.aicheck_backup_20250524_095556/actions/security-vulnerability-fix/supporting_docs/process-tests
-./.aicheck/.aicheck_backup_20250524_095556/actions/ultrai-system-assessment/supporting_docs/process-tests
-./.aicheck/.aicheck_backup_20250524_095556/actions/comprehensive-system-audit/supporting_docs/process-tests
-./.aicheck/.aicheck_backup_20250524_095556/actions/frontend-deployment-fix/supporting_docs/process-tests
-./.aicheck/.aicheck_backup_20250524_095556/actions/vision-guardian-automation/supporting_docs/process-tests
-./.aicheck/.aicheck_backup_20250524_095556/actions/mcpsetup/supporting_docs/process-tests
+./.aicheck/.aicheck_backup_20250524_095556/actions/mvp-minimal-deployment/supporting_docs/frontend-tests.py
+./.aicheck/.aicheck_backup_20250524_095556/actions/mvp-minimal-deployment/supporting_docs/complete-mvp-validation-test.py
+./.aicheck/.aicheck_backup_20250524_095556/actions/mvp-minimal-deployment/supporting_docs/test-minimal-deployment.sh
+./.aicheck/.aicheck_backup_20250524_095556/actions/mvp-minimal-deployment/supporting_docs/mvp-minimal-tests.py
+./.aicheck/.aicheck_backup_20250524_095556/actions/mvp-minimal-deployment/supporting_docs/deployment-validation-test.py
+./.aicheck/.aicheck_backup_20250524_095556/actions/mvp-minimal-deployment/supporting_docs/resource-monitoring-test.py
+./.aicheck/.aicheck_backup_20250524_095556/actions/mvp-minimal-deployment/supporting_docs/test_minimal_deployment.py
 
-*Cache generated: Fri Jun  6 01:14:15 PDT 2025*
+*Cache generated: Fri Jun  6 19:32:56 PDT 2025*
