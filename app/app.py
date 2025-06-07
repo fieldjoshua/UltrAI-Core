@@ -1,4 +1,7 @@
 from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
+import os
 from app.routes.health_routes import router as health_router
 from app.routes.user_routes import user_router
 
@@ -39,4 +42,31 @@ def create_app() -> FastAPI:
     app.include_router(recovery_router, prefix=api_prefix)
     app.include_router(debug_router, prefix=api_prefix)
     app.include_router(metrics_router, prefix=api_prefix)
+    
+    # Serve frontend static files
+    frontend_dist = os.path.join(os.path.dirname(os.path.dirname(__file__)), "frontend", "dist")
+    if os.path.exists(frontend_dist):
+        app.mount("/static", StaticFiles(directory=frontend_dist), name="static")
+        
+        @app.get("/")
+        async def serve_frontend():
+            """Serve the React frontend"""
+            index_file = os.path.join(frontend_dist, "index.html")
+            if os.path.exists(index_file):
+                return FileResponse(index_file)
+            return {"message": "Frontend not built. Run 'cd frontend && npm run build'"}
+        
+        @app.get("/{path:path}")
+        async def serve_frontend_routes(path: str):
+            """Serve React app for all non-API routes (SPA routing)"""
+            # Don't intercept API routes
+            if path.startswith("api/") or path.startswith("docs") or path.startswith("health"):
+                return {"error": "Route not found"}
+            
+            # Serve index.html for all other routes (React Router handles client-side routing)
+            index_file = os.path.join(frontend_dist, "index.html")
+            if os.path.exists(index_file):
+                return FileResponse(index_file)
+            return {"message": "Frontend not built"}
+    
     return app
