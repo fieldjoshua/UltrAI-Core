@@ -81,6 +81,35 @@ def create_router() -> APIRouter:
                     status="available",
                     max_tokens=32768,
                     cost_per_1k_tokens=0.0005
+                ),
+                # HuggingFace models - free tier
+                ModelInfo(
+                    name="meta-llama/Llama-2-7b-chat-hf",
+                    provider="huggingface",
+                    status="available",
+                    max_tokens=4096,
+                    cost_per_1k_tokens=0.0  # Free tier
+                ),
+                ModelInfo(
+                    name="meta-llama/Meta-Llama-3-8B-Instruct",
+                    provider="huggingface", 
+                    status="available",
+                    max_tokens=8192,
+                    cost_per_1k_tokens=0.0  # Free tier
+                ),
+                ModelInfo(
+                    name="mistralai/Mistral-7B-Instruct-v0.3",
+                    provider="huggingface",
+                    status="available", 
+                    max_tokens=32768,
+                    cost_per_1k_tokens=0.0  # Free tier
+                ),
+                ModelInfo(
+                    name="Qwen/Qwen2.5-7B-Instruct",
+                    provider="huggingface",
+                    status="available",
+                    max_tokens=32768,
+                    cost_per_1k_tokens=0.0  # Free tier
                 )
             ]
             

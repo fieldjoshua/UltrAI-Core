@@ -248,7 +248,7 @@ class OrchestrationService:
             Any: Initial responses from all models
         """
         import os
-        from app.services.llm_adapters import OpenAIAdapter, AnthropicAdapter, GeminiAdapter
+        from app.services.llm_adapters import OpenAIAdapter, AnthropicAdapter, GeminiAdapter, HuggingFaceAdapter
         
         responses = {}
         prompt = f"Analyze the following query and provide insights: {data}"
@@ -266,6 +266,11 @@ class OrchestrationService:
                     responses[model] = result.get("generated_text", "Response generated successfully")
                 elif model.startswith("gemini") and os.getenv("GOOGLE_API_KEY"):
                     adapter = GeminiAdapter(os.getenv("GOOGLE_API_KEY"), model)
+                    result = await adapter.generate(prompt)
+                    responses[model] = result.get("generated_text", "Response generated successfully")
+                elif ("llama" in model.lower() or "mistral" in model.lower() or "qwen" in model.lower() or "/" in model) and os.getenv("HUGGINGFACE_API_KEY"):
+                    # HuggingFace models (includes Llama, Mistral, etc.)
+                    adapter = HuggingFaceAdapter(os.getenv("HUGGINGFACE_API_KEY"), model)
                     result = await adapter.generate(prompt)
                     responses[model] = result.get("generated_text", "Response generated successfully")
                 else:
