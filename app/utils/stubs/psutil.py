@@ -10,6 +10,8 @@ logger.warning("Using stub psutil module. System metrics may be incorrect.")
 
 def virtual_memory():
     class VM:
+        total = 0
+        available = 0
         percent = 0.0
 
     return VM()
@@ -17,6 +19,8 @@ def virtual_memory():
 
 def disk_usage(path):
     class DU:
+        total = 0
+        free = 0
         percent = 0.0
 
     return DU()
