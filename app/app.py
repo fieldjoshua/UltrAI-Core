@@ -46,7 +46,8 @@ def create_app() -> FastAPI:
     # Serve frontend static files
     frontend_dist = os.path.join(os.path.dirname(os.path.dirname(__file__)), "frontend", "dist")
     if os.path.exists(frontend_dist):
-        app.mount("/static", StaticFiles(directory=frontend_dist), name="static")
+        # Mount static assets at root to serve JS/CSS files properly
+        app.mount("/assets", StaticFiles(directory=os.path.join(frontend_dist, "assets")), name="assets")
         
         @app.get("/")
         async def serve_frontend():
@@ -59,8 +60,8 @@ def create_app() -> FastAPI:
         @app.get("/{path:path}")
         async def serve_frontend_routes(path: str):
             """Serve React app for all non-API routes (SPA routing)"""
-            # Don't intercept API routes
-            if path.startswith("api/") or path.startswith("docs") or path.startswith("health"):
+            # Don't intercept API routes or assets
+            if path.startswith("api/") or path.startswith("docs") or path.startswith("health") or path.startswith("assets/"):
                 return {"error": "Route not found"}
             
             # Serve index.html for all other routes (React Router handles client-side routing)
