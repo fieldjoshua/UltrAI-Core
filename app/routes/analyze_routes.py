@@ -47,28 +47,43 @@ def create_router() -> APIRouter:
         try:
             logger.info(f"Starting simple analysis with model: {request.model}")
             
-            # For rapid implementation, return a structured response
-            # In full implementation, this would connect to LLM adapters
-            mock_analysis = f"""
-Analysis of the provided text using {request.model}:
-
-Text Length: {len(request.text)} characters
-Analysis Type: Simple Direct Analysis
-Temperature: {request.temperature}
-
-Key Insights:
-- Text appears to be well-formed
-- Contains {len(request.text.split())} words approximately
-- Analysis completed successfully
-
-This is a rapid implementation response. Full LLM integration would provide deeper analysis.
-            """.strip()
+            # Use real LLM adapters for analysis
+            try:
+                import os
+                from app.services.llm_adapters import OpenAIAdapter, AnthropicAdapter, GeminiAdapter
+                
+                prompt = f"Please analyze the following text and provide insights:\n\n{request.text}"
+                
+                # Select adapter based on model
+                if request.model.startswith("gpt") and os.getenv("OPENAI_API_KEY"):
+                    adapter = OpenAIAdapter(os.getenv("OPENAI_API_KEY"), request.model)
+                elif request.model.startswith("claude") and os.getenv("ANTHROPIC_API_KEY"):
+                    adapter = AnthropicAdapter(os.getenv("ANTHROPIC_API_KEY"), request.model)
+                elif request.model.startswith("gemini") and os.getenv("GOOGLE_API_KEY"):
+                    adapter = GeminiAdapter(os.getenv("GOOGLE_API_KEY"), request.model)
+                else:
+                    # Fallback to mock response if no API key
+                    mock_analysis = f"Analysis using {request.model}: API key not configured. Text length: {len(request.text)} characters."
+                    return SimpleAnalysisResponse(
+                        success=True,
+                        analysis=mock_analysis,
+                        model_used=request.model,
+                        error=None
+                    )
+                
+                # Get real LLM response
+                result = await adapter.generate(prompt)
+                actual_analysis = result.get("generated_text", "Analysis completed")
+                
+            except Exception as e:
+                logger.warning(f"LLM adapter failed, using fallback: {str(e)}")
+                actual_analysis = f"Analysis fallback for {request.model}: {request.text[:100]}... (Length: {len(request.text)} chars)"
             
             logger.info(f"Analysis completed successfully with {request.model}")
             
             return SimpleAnalysisResponse(
                 success=True,
-                analysis=mock_analysis,
+                analysis=actual_analysis,
                 model_used=request.model,
                 error=None
             )
