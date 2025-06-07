@@ -1,7 +1,3 @@
-<!-- WARNING: This file is the controlling version downloaded from the AICheck repository. -->
-<!-- Do not modify this file locally. Changes must be made to the official repository. -->
-<!-- File is marked read-only to prevent accidental changes. -->
-
 # AICheck Rules
 
 This document is the controlling reference for all work managed by the AICheck system in this PROJECT. These rules cannot be modified without approval from Joshua Field
@@ -109,9 +105,9 @@ Follow AICheck directory structure and naming conventions. Update action status 
 
 Use Docker-based development when available, with documented alternatives when not available. Document all environment variables and configuration options. Implementation procedures should reside within the Action's Plan.
 
-### 1.4 Claude Code Integration
+### 1.4 AI Assistant Integration
 
-Claude Code functions as an AI engineer within the AICheck workflow, complementing human editors while respecting our documentation-first approach and action-based governance requirements.
+AI assistants function as AI engineers within the AICheck workflow, complementing human editors while respecting our documentation-first approach and action-based governance requirements.
 
 #### Capabilities
 - Generate implementation code from PLAN specifications
@@ -127,8 +123,8 @@ Claude Code functions as an AI engineer within the AICheck workflow, complementi
 - Include relevant directory paths and documentation links
 - Provide contextual examples of existing patterns
 - Verify outputs against action requirements
-- Document all Claude interactions in ACTION's supporting_docs
-- Use standardized prompt templates stored in .aicheck/templates/claude/
+- Document all AI assistant interactions in ACTION's supporting_docs
+- Use standardized prompt templates stored in .aicheck/templates/ai-prompts/
 
 ## 2. Glossary and Key Concepts
 
@@ -142,11 +138,11 @@ Before proceeding, it is essential to understand the following key terms as used
 
 **ACTION**: A discrete unit of work that contributes to the PROGRAM; has clear boundaries, objectives, and completion criteria. An ACTION is the atomic unit of work assignment and tracking.
 
-**EDITOR**: Any human or AI contributor who performs work on ACTIONS; includes developers, writers, designers, and Claude Code.
+**EDITOR**: Any human or AI contributor who performs work on ACTIONS; includes developers, writers, designers, and AI assistants.
 
 **PLAN**: A documented specification for an ACTION; includes requirements, approach, expected outcomes, and testing strategy.
 
-**ActiveAction**: An ACTION that is currently being worked on by one or more EDITORs; tracked in .aicheck/current_action for individual EDITORs.
+**ActiveAction**: An ACTION that is currently being worked on by one or more EDITORs; tracked in .aicheck/current_action for individual EDITORs. Only ONE ACTION can be active per EDITOR at any time. All work performed by an EDITOR is automatically associated with their ActiveAction.
 
 **Process Documentation**: Temporary documentation relevant only during an ACTION's lifecycle; stored in the ACTION's supporting_docs directory.
 
@@ -166,7 +162,7 @@ Before proceeding, it is essential to understand the following key terms as used
 
 **AICheck System**: The tooling, processes, and rules that govern the PROJECT's development workflow.
 
-**Claude Code**: AI-powered assistant that helps implement ACTIONS following the project's guidelines.
+**AI Assistant**: AI-powered tools (Claude, GPT, Copilot, etc.) that help implement ACTIONS following the project's guidelines.
 
 **Supporting Documents**: Auxiliary files associated with an ACTION; stored in the ACTION's supporting_docs directory.
 
@@ -176,7 +172,29 @@ Before proceeding, it is essential to understand the following key terms as used
 
 ## 3. Action Management
 
-### 3.1 AI Editor Scope
+### 3.0 Action Completion Requirements
+
+**Every Action MUST have a `deployment-verification.md` file** in its supporting_docs directory before being marked COMPLETE. This file must include:
+- Production URL tested
+- Timestamp of testing
+- Sample request/response data
+- List of all endpoints verified
+- Any issues encountered and resolutions
+- Screenshots or logs as evidence
+
+### 3.1 Understanding Actions vs ActiveAction
+
+**Critical Distinction**:
+- **ACTION**: A defined unit of work (task, feature, bugfix) that exists in the project
+- **ActiveAction**: The ONE ACTION currently selected for work by an EDITOR
+
+**Key Rules**:
+1. An EDITOR can only have ONE ActiveAction at a time
+2. All code changes, commits, and documentation are attributed to the ActiveAction
+3. To work on a different ACTION, you must first change your ActiveAction using `./aicheck action set`
+4. Completing an ACTION (`./aicheck action complete`) automatically clears your ActiveAction
+
+### 3.2 AI Editor Scope
 
 AI editors may implement without approval:
 - Code implementing the ActiveAction plan (after PLAN approval)
@@ -192,7 +210,7 @@ The following ALWAYS require human manager approval:
 - Modifying any Action Plan
 - Creating or modifying Templates
 
-#### 3.1.1 Claude Code Boundary Examples
+#### 3.2.1 AI Assistant Boundary Examples
 
 **ALLOWED without approval:**
 - Implementing error handler based on approved PLAN
@@ -210,13 +228,13 @@ The following ALWAYS require human manager approval:
 - Changing public interfaces
 - Adding new dependencies
 
-### 3.2 Documentation Requirements
+### 3.3 Documentation Requirements
 
 Action plan (PLAN.md)
 Supporting documentation
 Status updates (Not Started, ActiveAction, Completed, Blocked, On Hold)
 
-#### 3.2.1 Managing ACTION Dependencies
+#### 3.3.1 Managing ACTION Dependencies
 
 When an ACTION depends on another:
 
@@ -236,22 +254,22 @@ Example dependency declaration:
 - Database: Needs user table migration (migration_003)
 ```
 
-### 3.3 Claude Code Documentation
+### 3.4 AI Assistant Documentation
 
-All Claude Code interactions MUST:
+All AI assistant interactions MUST:
 - Be stored in .aicheck/actions/[action-name]/supporting_docs/claude-interactions/
 - Reference specific sections of the ACTION's PLAN
 - Include the complete prompts used to generate code or solutions
-- Document any modifications made to Claude-generated content
-- Include verification steps performed on Claude-generated outputs
+- Document any modifications made to AI-generated content
+- Include verification steps performed on AI-generated outputs
 - Note iterations or refinements to prompts
 
-#### 3.3.1 Claude Interaction Documentation Format
+#### 3.4.1 AI Interaction Documentation Format
 
 Each interaction must include:
 
 ```markdown
-# Claude Interaction Log
+# AI Assistant Interaction Log
 
 **Date**: 2025-05-28
 **ACTION**: ErrorHandlingImplementation
@@ -265,7 +283,7 @@ Each interaction must include:
 
 ## Response
 
-[Claude's response]
+[AI Assistant's response]
 
 ## Modifications
 
@@ -287,7 +305,7 @@ Each interaction must include:
 
 - **MANDATORY**: Every ACTION directory MUST contain a todo.md file
 - Todo files track task progress, priorities, and completion status
-- Claude Code automatically manages todo.md files using native todo functions
+- AI assistants automatically manage todo.md files using native todo functions
 - Todo items must align with ACTION plan and success criteria
 
 ### 4.2 Todo File Format
@@ -307,7 +325,7 @@ Additional context or dependencies for tasks
 
 ### 4.3 Todo Management Workflow
 
-- Claude Code automatically creates todo.md when starting an ACTION
+- AI assistants automatically create todo.md when starting an ACTION
 - Tasks are derived from ACTION plan phases and requirements
 - Progress tracked in real-time as tasks complete
 - Todo status integrates with overall ACTION progress tracking
@@ -324,7 +342,7 @@ Additional context or dependencies for tasks
 │   │       ├── [action-name]-plan.md # ACTION PLAN (requires approval)
 │   │       ├── todo.md              # ACTION TODO tracking (required)
 │   │       └── supporting_docs/      # ACTION-specific documentation
-│   │           ├── claude-interactions/  # Claude Code logs
+│   │           ├── ai-interactions/      # AI assistant logs
 │   │           ├── process-tests/        # Temporary tests for ACTION
 │   │           └── research/             # Research notes
 │   ├── current_action                # Current ActionActivity for EDITOR
@@ -357,7 +375,7 @@ Each ACTION must follow this structure:
 ├── progress.md                  # Progress tracking
 ├── status.txt                   # Current status
 └── supporting_docs/             # Supporting documentation
-    ├── claude-interactions/     # Claude Code interaction logs
+    ├── ai-interactions/         # AI assistant interaction logs
     ├── process-tests/          # Tests specific to this ACTION
     ├── research/               # Research and analysis
     ├── integration-points.md   # Integration with other ACTIONS
@@ -379,7 +397,12 @@ Each ACTION must follow this structure:
 9. **Review and Integration**: Final review before completion
 10. **ACTION Completion**: Mark complete with dependency verification
 11. **Documentation Migration**: Move relevant docs to permanent locations
-12. **Compliance Verification**: Ensure all required files (todo.md, supporting_docs) exist
+12. **Compliance Verification**: Ensure all required files exist:
+    - todo.md in action directory
+    - supporting_docs directory
+    - deployment-verification.md (for deployable Actions)
+    - Test results documentation
+    - Migration of enduring documentation to /documentation/
 
 #### 6.1.1 Deployment Verification Requirements
 
@@ -423,57 +446,72 @@ Each ACTION must follow this structure:
 
 **WARNING**: Marking an ACTION as COMPLETED without deployment verification when deployment is required constitutes a MISREPRESENTATION and violates Section 1.3 guidelines.
 
-#### 6.1.2 ACTION Creation Checklist
+#### 6.1.2 Deployment Verification Requirements
+
+**Before marking an Action COMPLETE, CI must run the full test suite and verify all routers/endpoints are properly mounted:**
+
+1. **Python Projects**: Run `poetry run pytest -q` (zero failures required)
+2. **Node.js Projects**: Run `npm test` or `yarn test` (zero failures required)
+3. **API Projects**: Verify all routers are mounted via automated script
+4. **Production deployment must be verified with actual URL testing**
+
+**CI Pipeline Requirements**:
+- Test suite must run automatically on every push
+- Router/endpoint verification must be automated
+- Build must fail if any tests fail
+- Deployment verification must include production URL testing
+
+#### 6.1.3 ACTION Creation Checklist
 
 1. Create directory: `.aicheck/actions/[action-name]/`
 2. Create `PLAN.md` with objectives, approach, tests
-3. Create `todo.md` (or let Claude auto-generate)
+3. Create `todo.md` (or let AI assistant auto-generate)
 4. Update `actions_index.md`
 5. Get approval before proceeding
 
-### 6.2 Claude Code Workflow
+### 6.2 AI Assistant Workflow
 
-**Test-First Pattern**: Human discusses → Claude proposes plan/tests → Human approves → Claude implements → Human reviews → Claude documents
+**Test-First Pattern**: Human discusses → AI proposes plan/tests → Human approves → AI implements → Human reviews → AI documents
 
-#### 6.2.1 Optimal Claude-Human Collaboration Patterns
+#### 6.2.1 Optimal AI-Human Collaboration Patterns
 
 **Pattern 1: Test-Implementation-Document Cycle**
 1. Human defines requirements in ACTION PLAN
-2. Claude generates comprehensive test suite
+2. AI assistant generates comprehensive test suite
 3. Human reviews and approves tests
-4. Claude implements code to pass tests
-5. Claude updates documentation
+4. AI assistant implements code to pass tests
+5. AI assistant updates documentation
 6. Human reviews final implementation
 
 **Pattern 2: Incremental Enhancement**
 1. Human identifies improvement opportunity
-2. Claude analyzes current state and proposes enhancement plan
+2. AI assistant analyzes current state and proposes enhancement plan
 3. Human approves approach
-4. Claude implements enhancement with tests
-5. Claude documents changes and integration points
+4. AI assistant implements enhancement with tests
+5. AI assistant documents changes and integration points
 
 **Pattern 3: Problem-First Development**
 1. Human describes problem within ACTION scope
-2. Claude researches and proposes solution approaches
+2. AI assistant researches and proposes solution approaches
 3. Human selects preferred approach
-4. Claude develops solution with comprehensive testing
-5. Claude documents solution and lessons learned
+4. AI assistant develops solution with comprehensive testing
+5. AI assistant documents solution and lessons learned
 
 **Pattern 4: Code Review Assistant**
 1. Human requests code review for ACTION
-2. Claude analyzes code against ACTION requirements
-3. Claude suggests improvements, optimizations, security enhancements
+2. AI assistant analyzes code against ACTION requirements
+3. AI assistant suggests improvements, optimizations, security enhancements
 4. Human prioritizes suggestions
-5. Claude implements approved improvements
+5. AI assistant implements approved improvements
 
-#### 6.2.2 Security Guidelines for Claude Code
+#### 6.2.2 Security Guidelines for AI Assistants
 
 When generating security-sensitive code:
 
 1. Never include real credentials in prompts
 2. Use example/mock data for sensitive scenarios
 3. Request security review for authentication/authorization code
-4. Document security assumptions in claude-interactions/
+4. Document security assumptions in ai-interactions/
 5. Verify generated code against OWASP guidelines
 6. Add security-specific tests for all generated auth code
 
@@ -569,12 +607,12 @@ Major changes require version increment and changelog.
 
 When migrating documentation or tests:
 
-1. Claude: Analyze current location and content
-2. Claude: Propose migration plan with mappings
+1. AI: Analyze current location and content
+2. AI: Propose migration plan with mappings
 3. Human: Review and approve migration plan
-4. Claude: Execute migration with verification
+4. AI: Execute migration with verification
 5. Human: Validate migrated content
-6. Claude: Update all references
+6. AI: Update all references
 
 ### 6.9 Feature Flag Management
 
@@ -586,11 +624,42 @@ For gradual rollouts:
 
 ### 6.10 Dependency Management
 
+#### 6.10.1 External Dependencies
+
 External dependencies require:
 - Security audit documentation
 - License compatibility check
 - Performance impact assessment
 - Fallback plan if dependency fails
+- Proper installation documentation
+
+#### 6.10.2 Python Dependency Management
+
+**Poetry Required for Python Projects**:
+- All Python projects MUST use Poetry for dependency management
+- `pyproject.toml` must specify all dependencies with version constraints
+- `poetry.lock` must be committed to ensure reproducible builds
+- CI/CD must use `poetry install` to ensure exact dependency versions
+- Development dependencies must be separated from production dependencies
+
+**Poetry Setup Requirements**:
+```bash
+# Install Poetry if not present
+curl -sSL https://install.python-poetry.org | python3 -
+
+# Install dependencies
+poetry install
+
+# Run tests
+poetry run pytest
+```
+
+#### 6.10.3 Node.js Dependency Management
+
+**NPM/Yarn Requirements**:
+- `package-lock.json` (npm) or `yarn.lock` must be committed
+- CI/CD must use `npm ci` or `yarn install --frozen-lockfile`
+- Dev dependencies must be properly categorized
 
 ### 6.11 Definition of Done - Production Systems
 
@@ -637,9 +706,9 @@ Use ATX-style headers, fenced code blocks with language specification. Use bulle
 
 Follow documentation structure in documentation/README.md. Separate technical from user-facing documentation. Document configuration files in documentation/configuration/.
 
-### 7.2 Claude Code Prompt Style
+### 7.2 AI Assistant Prompt Style
 
-Claude Code prompts MUST:
+AI assistant prompts MUST:
 - Reference specific sections of RULES.md in prompts (using correct capitalization)
 - Include directory structure information
 - Reference documentation sources
@@ -653,6 +722,21 @@ Claude Code prompts MUST:
 Write commit messages that begin with a present-tense verb. Keep commit message subject lines under 50 characters (hard limit). Use the extended commit body for any content beyond the 50-character limit.
 
 Include action reference in a standardized format (e.g., [action-name]). For longer descriptions, use the commit body separated by a blank line. Wrap commit message body text at 72 characters.
+
+#### 7.3.1 Git Hook Requirements
+
+**Pre-push Hook (MANDATORY)**:
+A pre-push hook must be installed in `.aicheck/hooks/` that:
+1. Runs the full test suite (`poetry run pytest -q` for Python, `npm test` for Node.js)
+2. Verifies all routers/endpoints are properly registered
+3. Checks for uncommitted dependency changes
+4. Fails the push if any check fails
+
+**Hook Installation**:
+```bash
+# Install AICheck git hooks
+./aicheck hooks install
+```
 
 Use predefined status values with progress percentage. Document blockers clearly with timestamps. Create clear error messages with error codes, resolution steps, and appropriate logging.
 
@@ -677,6 +761,12 @@ ACTIONS MUST have tests written before implementation with coverage for:
 - Error handling tests
 - Production deployment verification tests
 
+**CI Pipeline Requirements**:
+- CI pipelines MUST include a 'Run test suite' step immediately after any build/setup steps
+- No Action may skip the test suite execution
+- Test failures must block deployment
+- Router/endpoint verification must be included in CI
+
 Test data SHOULD be maintained in standard locations and formats. Test fixtures SHOULD be reused across related ACTIONS when appropriate.
 
 #### 8.1.1 Performance Testing Requirements
@@ -686,7 +776,7 @@ For ACTIONS affecting system performance:
 - Performance tests after implementation
 - Document performance impact in supporting_docs/performance-impact.md
 - Regression tests for critical paths
-- Claude may suggest performance optimizations with benchmarks
+- AI assistants may suggest performance optimizations with benchmarks
 
 ### 8.2 Testing Documentation
 
@@ -738,11 +828,11 @@ When tests are migrated, the following requirements MUST be met:
 - Shared test utilities → tests/utils/
 - Test data → tests/fixtures/
 
-### 8.5 Claude Code Test Generation
+### 8.5 AI Assistant Test Generation
 
-Claude Code MAY be used to generate tests for ACTIONS under the following conditions:
+AI assistants MAY be used to generate tests for ACTIONS under the following conditions:
 
-The ACTION PLAN must be thoroughly documented before test generation. Claude Code must be provided with:
+The ACTION PLAN must be thoroughly documented before test generation. AI assistants must be provided with:
 - Specific ACTION requirements and success criteria
 - Expected inputs and outputs
 - Boundary conditions and edge cases
@@ -758,7 +848,8 @@ Generated tests MUST be validated against the ACTION PLAN. Generated tests MUST 
 - Implementation details specific to ACTION
 - Research notes, experiments, progress tracking
 - Design worksheets, ACTION-specific planning
-- Claude Code interactions in claude-interactions/ subfolder
+- AI assistant interactions in ai-interactions/ subfolder
+- **MANDATORY: deployment-verification.md for all deployable Actions**
 
 **Product Documentation (/documentation/[CATEGORY]/)**
 - System architecture and component descriptions
@@ -766,10 +857,13 @@ Generated tests MUST be validated against the ACTION PLAN. Generated tests MUST 
 - API references and specifications
 - User guides and end-user documentation
 
-ACTION documentation SHOULD be migrated to product documentation directories:
-- WHEN the ACTION is completed, OR
-- WHEN documentation has value beyond the ACTION's scope, AND
-- WHEN approved by the technical lead
+**MANDATORY Migration Requirement**:
+As part of Action completion, ANY supporting documentation with enduring value (especially deployment-verification.md) MUST be migrated from `.aicheck/` to `/documentation/` to ensure nothing lives only under `.aicheck/` forever.
+
+ACTION documentation MUST be migrated to product documentation directories:
+- WHEN the ACTION is completed (MANDATORY for deployment-verification.md)
+- WHEN documentation has value beyond the ACTION's scope
+- Migration is part of the Action completion checklist
 
 ### 9.2 Documentation Migration Requirements
 
@@ -864,7 +958,7 @@ Track ACTION completion times. Monitor test coverage trends. Measure documentati
 
 ### 14.3 Tool Development
 
-Create tools to enforce RULES. Automate repetitive tasks. Improve developer experience. Enhance Claude Code integration. Streamline approval processes. **Automate deployment verification checks**.
+Create tools to enforce RULES. Automate repetitive tasks. Improve developer experience. Enhance AI assistant integration. Streamline approval processes. **Automate deployment verification checks**.
 
 ## 15. Compliance and Governance
 
@@ -896,10 +990,17 @@ Tracked as ACTIONS. Prioritized quarterly. Addressed systematically. Documented 
 
 ---
 
-**Document Version**: 4.0
-**Last Updated**: 2025-05-28
+**Document Version**: 5.0
+**Last Updated**: 2025-06-07
 **Owner**: Joshua Field
 **Next Review**: Quarterly
+
+**Version 5.0 Changes**:
+- Enhanced ActiveAction definition to clarify only ONE per EDITOR
+- Added Section 3.1 "Understanding Actions vs ActiveAction" 
+- Renumbered subsequent sections (3.1→3.2, 3.2→3.3, etc.)
+- Added deployment verification requirements in multiple sections
+- Made language AI-assistant agnostic (not Claude-specific)
 
 **Version 4.0 Changes**:
 - Added prominent DEPLOYMENT REQUIREMENTS section at top

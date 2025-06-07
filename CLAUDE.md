@@ -2,55 +2,121 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Development Commands
+
+### Backend Development
+- `make dev` - Start development server (fast, minimal dependencies)
+- `make prod` - Start production server (full features including database/auth)
+- `make setup` - Initial setup (install dependencies + build frontend)
+- `make test` - Run all tests
+- `make e2e` - Run end-to-end tests with pre-checks
+- `make deploy` - Deploy to production (commits and pushes to trigger Render deployment)
+
+### Frontend Development
+- `cd frontend && npm run dev` - Start frontend development server
+- `cd frontend && npm run build` - Build frontend for production
+- `cd frontend && npm run lint` - Run ESLint
+
+### Testing
+- `pytest tests/ -v` - Run backend tests with verbose output
+- `pytest tests/ -m "unit"` - Run only unit tests
+- `pytest tests/ -m "integration"` - Run only integration tests
+- `pytest tests/ -m "e2e"` - Run only end-to-end tests
+
+## Architecture Overview
+
+### Core Application Structure
+
+**FastAPI Backend** (`app/`) - Production-ready API with dependency injection pattern:
+- `main.py` - Application factory with service initialization
+- `app.py` - Core FastAPI app configuration
+- `config.py` - Environment-based configuration management
+
+**Service Layer** (`app/services/`) - Business logic with clear separation:
+- `orchestration_service.py` - Main LLM orchestration controller
+- `model_registry.py` - Dynamic model registration and management
+- `prompt_service.py` - Prompt templates and processing
+- `quality_evaluation.py` - Response quality assessment
+- `llm_adapters.py` - Unified interface for OpenAI, Anthropic, and Google APIs
+
+**LLM Adapter Pattern**: All external LLM providers use a shared `httpx.AsyncClient` with 25-second timeout to prevent hanging requests. Each adapter (OpenAI, Anthropic, Google) implements provider-specific API requirements while maintaining consistent interface.
+
+**Routes Layer** (`app/routes/`) - FastAPI route handlers that validate input and delegate to services
+**Models Layer** (`app/models/`) - Pydantic models for API validation and SQLAlchemy models for database
+
+### Frontend Architecture
+
+**React + TypeScript** (`frontend/`) with modern tooling:
+- Vite build system with hot reload
+- TailwindCSS + Radix UI components
+- Redux Toolkit for state management
+- Production API URL: `https://ultrai-core-4lut.onrender.com`
+
 ## AICheck Integration
 
-Claude should follow the rules specified in `.aicheck/RULES.md` and use AICheck commands:
+Follow `.aicheck/RULES.md` requirements with focus on **deployment verification**:
 
-- `./aicheck action new ActionName` - Create a new action 
-- `./aicheck action set ActionName` - Set the current active action
-- `./aicheck action complete [ActionName]` - Complete an action with dependency verification
-- `./aicheck exec` - Toggle exec mode for system maintenance
-- `./aicheck status` - Show the current action status
-- `./aicheck dependency add NAME VERSION JUSTIFICATION [ACTION]` - Add external dependency
-- `./aicheck dependency internal DEP_ACTION ACTION TYPE [DESCRIPTION]` - Add internal dependency
+### Core Commands
+- `./aicheck status` - Check current action and system status
+- `./aicheck new ActionName` - Create new action
+- `./aicheck ACTIVE ActionName` - Set active action (only one can be active)
+- `./aicheck complete` - Complete active action with dependency verification
+- `./aicheck deploy` - Pre-deployment validation
+- `./aicheck focus` - Check for scope creep
+- `./aicheck stuck` - Get help when confused
 
-## Project Rules
+### Critical Deployment Rule
+**NO ACTION IS COMPLETE WITHOUT PRODUCTION VERIFICATION**. All work must be tested on the actual production URL (`https://ultrai-core.onrender.com`) with documented evidence before marking actions complete.
 
-Claude should follow the rules specified in `.aicheck/RULES.md` with focus on documentation-first approach and adherence to language-specific best practices.
+## Development Workflow
 
-## AICheck Procedures
+### Service Dependencies
+Services use dependency injection pattern initialized in `main.py`:
+```python
+orchestration_service = OrchestrationService(
+    model_registry=model_registry,
+    quality_evaluator=quality_evaluator,
+    rate_limiter=rate_limiter,
+)
+```
 
-1. Always check the current action with `./aicheck status` at the start of a session
-2. Follow the active action's plan when implementing
-3. Create tests before implementation code
-4. Document all Claude interactions in supporting_docs/claude-interactions/
-5. Only work within the scope of the active action
-6. Document all dependencies before completing an action
-7. Immediately respond to git hook suggestions before continuing work
+### Adding New Features
+1. Create route handler in `app/routes/`
+2. Implement business logic in `app/services/`
+3. Add Pydantic models in `app/models/`
+4. Write tests with appropriate markers (`unit`, `integration`, `e2e`)
+5. Test locally with `make dev` or `make prod`
+6. Deploy and verify in production before completion
 
-## Dependency Management
+### Environment Configuration
+- Development: Uses minimal dependencies, no database required
+- Production: Full features with PostgreSQL, Redis, authentication
+- Feature flags in `app/config.py` control which components are enabled
+- Environment variables configure API keys and external services
 
-When adding external libraries or frameworks:
-1. Document with `./aicheck dependency add NAME VERSION JUSTIFICATION`
-2. Include specific version requirements
-3. Provide clear justification for adding the dependency
+## Testing Strategy
 
-When creating dependencies between actions:
-1. Document with `./aicheck dependency internal DEP_ACTION ACTION TYPE DESCRIPTION`
-2. Specify the type of dependency (data, function, service, etc.)
-3. Add detailed description of the dependency relationship
+**Pytest Configuration** (`pytest.ini`):
+- Async test support with `asyncio_mode = auto`
+- Test markers: `unit`, `integration`, `e2e`, `production`, `slow`, `quick`
+- 60-second timeout for long-running tests
+- Coverage reporting excludes test files
 
-## Claude Workflow
+**Test Organization**:
+- `tests/unit/` - Fast, isolated unit tests
+- `tests/integration/` - Service integration tests
+- `tests/e2e/` - End-to-end workflow tests
 
-When the user requests work:
-1. Check if it fits within the current action (if not, suggest creating a new action)
-2. Consult the action plan for guidance
-3. Follow test-driven development practices
-4. Document your thought process
-5. Document all dependencies
-6. Implement according to the plan
-7. Verify your implementation against the success criteria
+## Production Deployment
 
-## Memories
+**Platform**: Render.com
+- Repository: Auto-deploys from `main` branch pushes
+- Service: `ultrai-core`
+- URL: `https://ultrai-core.onrender.com`
+- Configuration: `render.yaml` (may be overridden by dashboard settings)
 
-- always test in production environemnt 
+**Deployment Process**:
+1. Use `make deploy` to commit and push changes
+2. Monitor build in Render dashboard
+3. Test production endpoints before marking work complete
+4. Document verification results in `supporting_docs/` 
