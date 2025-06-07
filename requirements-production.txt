@@ -45,7 +45,14 @@ email-validator
 # Markdown
 markdown
 
+# LLM API clients
+openai
+anthropic
+google-generativeai
+
+# Database drivers
+psycopg2-binary
+
 # Script dependencies
 PyJWT
 aiohttp
-anthropic
