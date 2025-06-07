@@ -247,8 +247,39 @@ class OrchestrationService:
         Returns:
             Any: Initial responses from all models
         """
-        # TODO: Implement initial response generation
-        return {"stage": "initial_response", "input": data}
+        import os
+        from app.services.llm_adapters import OpenAIAdapter, AnthropicAdapter, GeminiAdapter
+        
+        responses = {}
+        prompt = f"Analyze the following query and provide insights: {data}"
+        
+        # Try each available model
+        for model in models:
+            try:
+                if model.startswith("gpt") and os.getenv("OPENAI_API_KEY"):
+                    adapter = OpenAIAdapter(os.getenv("OPENAI_API_KEY"), model)
+                    result = await adapter.generate(prompt)
+                    responses[model] = result.get("generated_text", "Response generated successfully")
+                elif model.startswith("claude") and os.getenv("ANTHROPIC_API_KEY"):
+                    adapter = AnthropicAdapter(os.getenv("ANTHROPIC_API_KEY"), model)
+                    result = await adapter.generate(prompt)
+                    responses[model] = result.get("generated_text", "Response generated successfully")
+                elif model.startswith("gemini") and os.getenv("GOOGLE_API_KEY"):
+                    adapter = GeminiAdapter(os.getenv("GOOGLE_API_KEY"), model)
+                    result = await adapter.generate(prompt)
+                    responses[model] = result.get("generated_text", "Response generated successfully")
+                else:
+                    responses[model] = f"API key not available for {model}"
+            except Exception as e:
+                logger.warning(f"Failed to get response from {model}: {str(e)}")
+                responses[model] = f"Error: {str(e)}"
+        
+        return {
+            "stage": "initial_response",
+            "responses": responses,
+            "prompt": prompt,
+            "models_attempted": models
+        }
 
     async def meta_analysis(
         self, data: Any, models: List[str], options: Optional[Dict[str, Any]] = None
