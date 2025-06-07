@@ -15,19 +15,55 @@
 
 ## 2. CI Pipeline Audit
 
-- **Observation:** CI workflow never ran full test suite (`pytest`).
-- **Impact:** Missing test failures and uncommitted code went undetected.
+**Observation:** The CI workflow defines syntax and import checks but never invokes the full test suite (`pytest`). Below is the relevant excerpt from `.github/workflows/basic-ci.yml`:
+
+```12:21:.github/workflows/basic-ci.yml
+      - name: Basic syntax check
+        run: |
+          poetry run python -m py_compile app_production.py
+
+      - name: Test health endpoint
+        run: |
+          poetry run python - <<EOF
+          import sys
+          ...
+          EOF
+```
+
+**Missing Step:**
+
+```bash
+poetry run pytest -q
+```
+
+**Impact:** Without executing all tests, stub fallbacks and critical logic changes went unvalidated in CI, allowing errors and uncommitted fixes to slip through.
 
 ## 3. Working Tree Analysis
 
-- **Pattern:** Staged other files during CI/Poetry migration; overlooked `health_service.py` changes.
-- **Cause:** Lack of automated lint/test step in CI; manual commits focused on other areas.
+At the time CI was updated and local edits were made, the working tree contained:
+
+```bash
+git status --porcelain
+```
+
+```12:21
+ M app/services/health_service.py
+ D test_minimal_env/bin/fastapi
+ M test_minimal_env/bin/httpx
+ M test_minimal_env/bin/py.test
+ M test_minimal_env/bin/pytest
+?? test_minimal_env/bin/alembic
+?? test_minimal_env/bin/requests
+... (many untracked venv scripts)
+```
+
+**Pattern:** Only `health_service.py` remained unstaged when polishing CI and build changes; all other substantive edits (e.g. stubs in `app/utils` and the minimalist `app/app.py`) were staged and committed. The presence of numerous venv binaries (`test_minimal_env/bin/`) diluted focus, contributing to the omission of one important change.
 
 ## 4. Root Cause Analysis
 
-- **Primary Gap:** No `pytest` invocation or file-change enforcement in CI.
-- **Secondary Gap:** Local virtualenv files cluttered workspace (`test_minimal_env/bin/`), leading to accidental omissions.
-- **Tertiary Gap:** Minimal factory override replaced critical code without test coverage.
+- **Primary Gap:** CI lacks a `pytest` step—no enforcement of test-driven validation.
+- **Secondary Gap:** Untracked/ignored venv files cluttered the working tree, leading to manual oversight of a single file.
+- **Tertiary Gap:** Adoption of a minimal factory override removed critical endpoints without corresponding test coverage.
 
 ## 5. Impact Assessment
 
