@@ -8,6 +8,7 @@ requests and robust network timeouts.
 
 import httpx
 import logging
+import os
 from typing import Dict, Any
 
 logger = logging.getLogger(__name__)
@@ -116,4 +117,76 @@ class GeminiAdapter(BaseAdapter):
             logger.error(f"Google Gemini API error for model {self.model}: {e}")
             return {
                 "generated_text": f"Error: An issue occurred with the Google Gemini API: {e}"
+            }
+
+
+class HuggingFaceAdapter(BaseAdapter):
+    """Adapter for Hugging Face Inference API models using httpx."""
+
+    def __init__(self, api_key: str, model: str):
+        super().__init__(api_key, model)
+        # Hugging Face model ID format: "meta-llama/Llama-2-7b-chat-hf"
+        self.model_id = model
+
+    async def generate(self, prompt: str) -> Dict[str, Any]:
+        url = f"https://api-inference.huggingface.co/models/{self.model_id}"
+        headers = {
+            "Authorization": f"Bearer {self.api_key}",
+            "Content-Type": "application/json",
+        }
+        
+        # Different payload format for different model types
+        if "llama" in self.model_id.lower() or "mistral" in self.model_id.lower():
+            # Chat models
+            payload = {
+                "inputs": f"<s>[INST] {prompt} [/INST]",
+                "parameters": {
+                    "max_new_tokens": 1000,
+                    "temperature": 0.7,
+                    "do_sample": True,
+                    "return_full_text": False
+                }
+            }
+        else:
+            # Text generation models
+            payload = {
+                "inputs": prompt,
+                "parameters": {
+                    "max_new_tokens": 1000,
+                    "temperature": 0.7,
+                    "do_sample": True,
+                    "return_full_text": False
+                }
+            }
+
+        try:
+            response = await CLIENT.post(url, headers=headers, json=payload)
+            response.raise_for_status()
+            data = response.json()
+            
+            # Handle different response formats
+            if isinstance(data, list) and len(data) > 0:
+                if isinstance(data[0], dict) and "generated_text" in data[0]:
+                    return {"generated_text": data[0]["generated_text"]}
+                elif isinstance(data[0], str):
+                    return {"generated_text": data[0]}
+            elif isinstance(data, dict) and "generated_text" in data:
+                return {"generated_text": data["generated_text"]}
+            
+            return {"generated_text": str(data)}
+            
+        except httpx.ReadTimeout:
+            logger.warning(f"HuggingFace request timed out for model {self.model_id}.")
+            return {"generated_text": "Error: HuggingFace request timed out."}
+        except httpx.HTTPStatusError as e:
+            if e.response.status_code == 503:
+                logger.warning(f"HuggingFace model {self.model_id} is loading. Try again in a moment.")
+                return {"generated_text": "Model is loading on HuggingFace. Please try again in 30 seconds."}
+            else:
+                logger.error(f"HuggingFace API error for model {self.model_id}: {e}")
+                return {"generated_text": f"Error: HuggingFace API error: {e}"}
+        except Exception as e:
+            logger.error(f"HuggingFace API error for model {self.model_id}: {e}")
+            return {
+                "generated_text": f"Error: An issue occurred with the HuggingFace API: {e}"
             }

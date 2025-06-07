@@ -30,7 +30,7 @@ interface AnalysisResults {
 const MultimodalAnalysis: React.FC = () => {
   const [query, setQuery] = useState('');
   const [availableModels, setAvailableModels] = useState<string[]>([]);
-  const [selectedModels, setSelectedModels] = useState<string[]>(['gpt-4', 'claude-3-sonnet', 'gemini-pro']);
+  const [selectedModels, setSelectedModels] = useState<string[]>(['gpt-4', 'claude-3-sonnet', 'meta-llama/Meta-Llama-3-8B-Instruct']);
   const [analysisResults, setAnalysisResults] = useState<AnalysisResults | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -110,6 +110,10 @@ const MultimodalAnalysis: React.FC = () => {
     if (modelName.includes('gpt')) return '🧠';
     if (modelName.includes('claude')) return '🤖';
     if (modelName.includes('gemini')) return '💎';
+    if (modelName.includes('llama')) return '🦙';
+    if (modelName.includes('mistral')) return '🌪️';
+    if (modelName.includes('qwen')) return '🏮';
+    if (modelName.includes('/')) return '🤗'; // HuggingFace models
     return '🔬';
   };
 
@@ -117,6 +121,10 @@ const MultimodalAnalysis: React.FC = () => {
     if (modelName.includes('gpt')) return 'border-green-500 bg-green-50';
     if (modelName.includes('claude')) return 'border-blue-500 bg-blue-50';
     if (modelName.includes('gemini')) return 'border-purple-500 bg-purple-50';
+    if (modelName.includes('llama')) return 'border-orange-500 bg-orange-50';
+    if (modelName.includes('mistral')) return 'border-indigo-500 bg-indigo-50';
+    if (modelName.includes('qwen')) return 'border-red-500 bg-red-50';
+    if (modelName.includes('/')) return 'border-yellow-500 bg-yellow-50'; // HuggingFace models
     return 'border-gray-500 bg-gray-50';
   };
 

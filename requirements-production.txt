@@ -49,6 +49,7 @@ markdown
 openai
 anthropic
 google-generativeai
+huggingface-hub
 
 # Database drivers
 psycopg2-binary
