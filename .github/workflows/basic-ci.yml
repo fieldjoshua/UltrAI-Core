@@ -49,6 +49,14 @@ jobs:
           chmod +x aicheck
           ./aicheck status
 
+      - name: Install MCP CLI
+        run: |
+          bash <(curl -sSL https://raw.githubusercontent.com/fieldjoshua/AICheck_MCP/main/install.sh)
+
+      - name: Run MCP Server List
+        run: |
+          mcp --list-servers
+
   test-frontend:
     runs-on: ubuntu-latest
 
