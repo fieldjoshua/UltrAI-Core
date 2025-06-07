@@ -4,12 +4,14 @@
 
 ## 1. Timeline of Relevant Commits
 
-| Commit Hash | Date       | Description                                                   |
-| ----------- | ---------- | ------------------------------------------------------------- |
-| abc1234     | 2025-05-28 | `create_app` minimal replacement in `app/app.py`              |
-| def5678     | 2025-05-30 | CI updated to Poetry, removed `pip install` tests             |
-| ghij901     | 2025-06-01 | `HealthService` stub fallback added locally but not committed |
-| ...         | ...        | ...                                                           |
+| Commit Hash | Date       | Description                                                                               |
+| ----------- | ---------- | ----------------------------------------------------------------------------------------- |
+| 29f98f23    | 2025-06-06 | Overwrite `app/app.py` with minimal health+user factory, removing other routers           |
+| 3cdbc453    | 2025-06-06 | Refactor CI to use Poetry and update pyproject dev-dependencies                           |
+| dc493fc3    | 2025-06-06 | Add AICheck status CI step and update Render startCommand                                 |
+| a1014fcc    | 2025-06-07 | Fix `HealthService` psutil import fallback stub                                           |
+| e5ce2e87    | 2025-06-07 | Document new external dependencies (psutil, requests, prometheus-client, email-validator) |
+| ...         | ...        | ...                                                                                       |
 
 ## 2. CI Pipeline Audit
 
