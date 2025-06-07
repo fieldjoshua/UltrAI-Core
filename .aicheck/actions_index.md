@@ -4,29 +4,24 @@ This document tracks all ACTIONS in the PROJECT. All ACTIONS must be registered 
 
 ## Active Actions
 
-| ACTION | Owner | Status | Progress | Description |
-|--------|-------|--------|----------|-------------|
-| clean-rebuild-orchestration | | Not Started | 0% | |
-| fix-simple-orchestrator-parallel | | Not Started | 0% | |
-| ux-ui-mockup-development | | Not Started | 0% | |
-| critical-path-execution | | Not Started | 0% | |
-| operational-system-audit | | Not Started | 0% | |
-| system-wide-cleanup-and-audit | | ActiveAction | 0% | |
-| *None yet* | | | | |
+| ACTION                      | Owner | Status      | Progress | Description |
+| --------------------------- | ----- | ----------- | -------- | ----------- |
+| clean-rebuild-orchestration |       | Not Started | 0%       |             |
 
 ## Completed Actions
 
-| ACTION | Owner | Completion Date | Description |
-|--------|-------|-----------------|-------------|
-| fix-simple-orchestrator-parallel | | 2025-06-04 | |
-| orchestration-deep-audit | | 2025-06-04 | |
-| *None yet* | | | |
+| ACTION                           | Owner | Completion Date | Description                                                                                                                    |
+| -------------------------------- | ----- | --------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| fix-simple-orchestrator-parallel |       | 2025-06-04      |                                                                                                                                |
+| orchestration-deep-audit         |       | 2025-06-04      |                                                                                                                                |
+| investigate-git-commit-omissions |       | 2025-06-08      | Investigated missing commits, restored HealthService stub, full router inclusion, CI enhancements, and documentation migration |
 
 ## Blocked/On Hold Actions
 
-| ACTION | Owner | Status | Blocker | Description |
-|--------|-------|--------|---------|-------------|
-| *None yet* | | | | |
+| ACTION     | Owner | Status | Blocker | Description |
+| ---------- | ----- | ------ | ------- | ----------- |
+| _None yet_ |       |        |         |             |
 
 ---
-*Last Updated: 2025-06-07*
+
+_Last Updated: 2025-06-08_
