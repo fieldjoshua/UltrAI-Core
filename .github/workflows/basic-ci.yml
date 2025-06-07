@@ -57,6 +57,22 @@ jobs:
         run: |
           mcp --list-servers
 
+      - name: Install Pandoc for PDF generation
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y pandoc texlive-latex-base
+
+      - name: Generate Investigation Report PDF
+        run: |
+          pandoc .aicheck/actions/investigate-git-commit-omissions/supporting_docs/investigation-report.md \
+            -o investigation-report.pdf
+
+      - name: Upload Investigation Report PDF
+        uses: actions/upload-artifact@v3
+        with:
+          name: investigation-report
+          path: investigation-report.pdf
+
   test-frontend:
     runs-on: ubuntu-latest
 
