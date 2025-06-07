@@ -1,5 +1,39 @@
 ---
-description:
-globs:
-alwaysApply: false
+description: 
+globs: 
+alwaysApply: true
 ---
+ore Modules: The Application's Anatomy
+This section details the purpose of each major directory within the app folder.
+app/routes/
+Purpose: This is the entry point for all web traffic. Each file in this directory corresponds to a set of API endpoints (e.g., orchestrator_minimal.py handles requests to /api/orchestrator/*). Their job is to receive an incoming HTTP request, validate the data using Pydantic models, and pass the request to the appropriate service in the app/services layer. They are the "front door."
+app/services/
+Purpose: This is the brain of the application. It contains all the core business logic.
+prompt_service.py will be refactored to be the main controller, creating the orchestrator.
+minimal_orchestrator.py contains the logic for the multi-step analysis (initial, meta, ultra).
+auth_service.py handles user login, token creation, and password validation.
+Other services contain the specific logic for their corresponding routes.
+app/models/
+Purpose: This is the dictionary of the application. It defines the shape of all data.
+It contains Pydantic models that ensure API requests and responses have the correct structure and data types (e.g., llm_models.py).
+It also contains SQLAlchemy models that define how data is stored in the database.
+app/database/
+Purpose: This is the memory of the application. It manages everything related to the PostgreSQL database, including the connection pool, session management, and the Alembic migration scripts that track changes to the database schema over time.
+app/middleware/
+Purpose: These are the gatekeepers of the application. Every request and response passes through them. They handle cross-cutting concerns like checking for a valid Authorization header (auth_middleware.py), preventing Cross-Site Request Forgery (csrf_middleware.py), and adding security headers.
+app/utils/
+Purpose: This is the toolbox of the application. It contains shared, reusable code that is used by all other modules, such as the logging configuration (logging.py), the global error handler (error_handler.py), and other utility functions.
+The LLM Adapter Classes: The Bridge to the Outside World
+The file app/services/llm_adapters.py is one of the most critical components in the refactored architecture. It contains the classes that are responsible for all communication with external, third-party Large Language Models.
+BaseAdapter
+Purpose: A simple base class that requires all other adapters to have an api_key and a model name. It provides a common structure.
+OpenAIAdapter(BaseAdapter)
+Purpose: To communicate specifically with the OpenAI API.
+Logic: Its generate method takes a prompt, constructs the JSON payload required by the OpenAI /v1/chat/completions endpoint, adds the Authorization: Bearer <API_KEY> header, and sends the request using the httpx library. It then parses the JSON response to extract and return the generated text.
+AnthropicAdapter(BaseAdapter)
+Purpose: To communicate specifically with the Anthropic API.
+Logic: Its generate method constructs the JSON payload required by the Anthropic /v1/messages endpoint, adds the x-api-key: <API_KEY> header, and sends the request using httpx. It parses the response to return the generated text.
+GeminiAdapter(BaseAdapter)
+Purpose: To communicate specifically with the Google Gemini API.
+Logic: Its generate method constructs the JSON payload required by the Google generativelanguage.googleapis.com endpoint and, uniquely, includes the API key directly in the URL's query string. It sends the request using httpx and parses the response.
+Crucially, all of these adapters use a single, shared httpx.AsyncClient which is configured with a 25-second timeout. This solves the original "hanging request" problem at its source and makes the application resilient to unresponsive external APIs.
