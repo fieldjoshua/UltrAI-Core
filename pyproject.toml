@@ -38,6 +38,10 @@ prometheus-client = "^0.20.0"
 structlog = "^24.1.0"
 setuptools = "^78.1.1"
 
+[tool.poetry.dev-dependencies]
+pytest = "^7.3.2"
+pytest-asyncio = "^0.21.0"
+
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"

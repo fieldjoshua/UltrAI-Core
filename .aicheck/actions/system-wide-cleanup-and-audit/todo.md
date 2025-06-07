@@ -33,8 +33,8 @@
 
 ## Phase 3: Service Integration
 
-- [ ] REFACTOR `app/main.py` to properly initialize and inject services
-- [ ] REFACTOR `app/app.py` to only handle FastAPI setup and middleware
+- [x] REFACTOR `app/main.py` to properly initialize and inject services
+- [x] REFACTOR `app/app.py` to only handle FastAPI setup and middleware
 - [x] REFACTOR health routes to use the `create_router` pattern
 - [x] REFACTOR document routes to use the `create_router` pattern
 - [x] REFACTOR remaining route files to use the `create_router` pattern
