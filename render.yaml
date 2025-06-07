@@ -3,7 +3,7 @@ services:
     name: ultrai-core
     runtime: python
     plan: free
-    buildCommand: pip install poetry && poetry install --no-dev --no-interaction
+    buildCommand: pip install poetry && poetry install --no-dev --no-interaction && cd frontend && npm ci && npm run build
     startCommand: poetry run uvicorn app_production:app --host 0.0.0.0 --port $PORT
     envVars:
       - key: ENVIRONMENT
