@@ -314,3 +314,7 @@ ENV/
 
 **/.claude/settings.local.json
 scout-demo-service/
+
+# AICheck and test environment backups
+/test_minimal_env/
+/.aicheck.backup*/

@@ -44,6 +44,12 @@ jobs:
               sys.exit(1)
           EOF
 
+      - name: Run test suite
+        run: poetry run pytest -q
+
+      - name: Check for unstaged changes
+        run: git diff --exit-code
+
       - name: AICheck Status
         run: |
           chmod +x aicheck
@@ -68,7 +74,7 @@ jobs:
             -o investigation-report.pdf
 
       - name: Upload Investigation Report PDF
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: investigation-report
           path: investigation-report.pdf
