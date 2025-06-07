@@ -2,13 +2,13 @@
 
 # AICheck command script
 # Provides the core functionality for AICheck MCP
-# Version: 5.0.0
-# Last Updated: 2025-01-06
+# Version: 4.1.0
+# Last Updated: 2025-06-03
 
 set -e
 
 # AICheck version info
-AICHECK_VERSION="5.1.0"
+AICHECK_VERSION="4.3.0"
 GITHUB_REPO="fieldjoshua/AICheck_MCP"
 GITHUB_RAW_BASE="https://raw.githubusercontent.com/${GITHUB_REPO}/main"
 
@@ -22,18 +22,21 @@ function show_version() {
   echo -e "Version: ${GREEN}${AICHECK_VERSION}${NC}"
   echo -e "Repository: ${GITHUB_REPO}"
   echo -e ""
-  echo -e "${BRIGHT_BLURPLE}📋 Your Commands:${NC}"
-  echo -e "  ${GREEN}./aicheck status${NC}         - Show detailed status"
-  echo -e "  ${GREEN}./aicheck focus${NC}          - Check for scope creep"
+  echo -e "${BRIGHT_BLURPLE}🚀 Quick Commands (Use These!):${NC}"
+  echo -e "  ${GREEN}./aicheck reset${NC}          - Clean up when things get messy"
+  echo -e "  ${GREEN}./aicheck focus${NC}          - Check if you're staying on track" 
+  echo -e "  ${GREEN}./aicheck cleanup${NC}        - Tidy up old files and logs"
+  echo -e "  ${GREEN}./aicheck usage${NC}          - See how much Claude Code you're using"
   echo -e "  ${GREEN}./aicheck stuck${NC}          - Get unstuck when confused"
-  echo -e "  ${GREEN}./aicheck deploy${NC}         - Pre-deployment validation"
-  echo -e "  ${GREEN}./aicheck new${NC}            - Create a new action"
-  echo -e "  ${GREEN}./aicheck ACTIVE${NC}         - Set the ACTIVE action"
-  echo -e "  ${GREEN}./aicheck complete${NC}       - Complete the ACTIVE action"
-  echo -e "  ${GREEN}./aicheck cleanup${NC}        - Optimize and fix compliance"
-  echo -e "  ${GREEN}./aicheck usage${NC}          - See AI usage and costs"
   echo -e ""
-  echo -e "${YELLOW}💡 Only one action can be ACTIVE at a time.${NC}"
+  echo -e "${BRIGHT_BLURPLE}📋 Core Commands:${NC}"
+  echo -e "  action, dependency, exec, status, update, version"
+  echo -e ""
+  echo -e "${YELLOW}💡 When to use:${NC}"
+  echo -e "  ${YELLOW}• Feeling lost?${NC} Run: ${GREEN}./aicheck stuck${NC}"
+  echo -e "  ${YELLOW}• Too many files?${NC} Run: ${GREEN}./aicheck cleanup${NC}"
+  echo -e "  ${YELLOW}• Scope creep?${NC} Run: ${GREEN}./aicheck focus${NC}"
+  echo -e "  ${YELLOW}• High usage?${NC} Run: ${GREEN}./aicheck usage${NC}"
 }
 
 # Function to check for updates
@@ -1608,245 +1611,11 @@ function show_status() {
   fi
 }
 
-# Guardian System Functions
-function handle_guardian() {
-  local GUARDIAN_DIR=".aicheck/guardian"
-  local GUARDIAN_DB="$GUARDIAN_DIR/guardian.db"
-  local GUARDIAN_LOG="$GUARDIAN_DIR/guardian.log"
-  local PROTECTED_FILES="$GUARDIAN_DIR/protected_files.txt"
-  local HASHES_DB="$GUARDIAN_DIR/file_hashes.db"
-  
-  local subcmd="$1"
-  shift
-  
-  case "$subcmd" in
-    "init")
-      mkdir -p "$GUARDIAN_DIR"
-      touch "$GUARDIAN_DB" "$GUARDIAN_LOG" "$PROTECTED_FILES" "$HASHES_DB"
-      echo -e "${BLUE}🛡️  AICheck Guardian Initialized${NC}"
-      echo -e "${YELLOW}Use './aicheck guardian protect <file> <CRITICAL|SENSITIVE|MONITORED>' to protect files${NC}"
-      ;;
-    "protect")
-      local file="$1"
-      local level="${2:-MONITORED}"
-      if [ ! -f "$file" ]; then
-        echo -e "${RED}✗ File not found: $file${NC}"
-        return 1
-      fi
-      local hash=$(shasum -a 256 "$file" | cut -d' ' -f1)
-      echo "$file|$level|$hash|$(date +%s)" >> "$PROTECTED_FILES"
-      echo "$file:$hash:$(date +%s)" >> "$HASHES_DB"
-      echo "[$(date '+%Y-%m-%d %H:%M:%S')] PROTECT | $file | Added to $level protection | User: $(whoami)" >> "$GUARDIAN_LOG"
-      echo -e "${GREEN}✓ Protected: $file (Level: $level)${NC}"
-      ;;
-    "check"|"scan")
-      echo -e "${BLUE}🔍 Scanning protected files...${NC}"
-      local violations=0
-      while IFS='|' read -r file level hash timestamp; do
-        if [ -n "$file" ] && [ -f "$file" ]; then
-          local stored_hash=$(grep "^$file:" "$HASHES_DB" 2>/dev/null | cut -d':' -f2 | tail -1)
-          local current_hash=$(shasum -a 256 "$file" 2>/dev/null | cut -d' ' -f1)
-          if [ "$stored_hash" != "$current_hash" ]; then
-            echo -e "${RED}🚨 INTEGRITY VIOLATION: $file has been modified!${NC}"
-            if [ "$level" = "CRITICAL" ]; then
-              echo -e "${RED}CRITICAL FILE MODIFIED - IMMEDIATE ACTION REQUIRED${NC}"
-            fi
-            ((violations++))
-          else
-            echo -e "${GREEN}✓ Integrity verified: $file${NC}"
-          fi
-        fi
-      done < "$PROTECTED_FILES"
-      if [ $violations -eq 0 ]; then
-        echo -e "${GREEN}✅ All protected files intact${NC}"
-      else
-        echo -e "${RED}⚠️  Found $violations integrity violations${NC}"
-      fi
-      ;;
-    "status")
-      echo -e "${PURPLE}🛡️  AICheck Guardian Status${NC}"
-      echo "========================="
-      if [ -f "$PROTECTED_FILES" ]; then
-        local total=$(wc -l < "$PROTECTED_FILES")
-        local critical=$(grep "|CRITICAL|" "$PROTECTED_FILES" 2>/dev/null | wc -l)
-        local sensitive=$(grep "|SENSITIVE|" "$PROTECTED_FILES" 2>/dev/null | wc -l)
-        echo -e "Protected Files: ${BLUE}$total${NC}"
-        echo -e "  ${RED}CRITICAL: $critical${NC}"
-        echo -e "  ${YELLOW}SENSITIVE: $sensitive${NC}"
-      else
-        echo -e "${YELLOW}No files protected yet${NC}"
-      fi
-      
-      # Check for blueprints
-      if [ -f "$GUARDIAN_DIR/blueprints.json" ]; then
-        local blueprint_count=$(grep -c "entry_point" "$GUARDIAN_DIR/blueprints.json" 2>/dev/null || echo "0")
-        echo -e "\nCritical Paths: ${BLUE}$blueprint_count${NC}"
-      fi
-      
-      # Integration with AICheck
-      local current_action=$(cat .aicheck/current_action 2>/dev/null || echo "None")
-      if [ "$current_action" != "None" ]; then
-        echo -e "\nActive Action: ${GREEN}$current_action${NC}"
-        echo -e "Guardian Mode: ${YELLOW}Monitoring changes${NC}"
-      fi
-      ;;
-    
-    "blueprint")
-      local action="$1"
-      shift
-      case "$action" in
-        "add")
-          # Add a critical path blueprint
-          local name="$1"
-          local entry="$2"
-          echo -e "${BLUE}Adding critical path: $name${NC}"
-          mkdir -p "$GUARDIAN_DIR"
-          # Store blueprint (simplified for bash)
-          echo "$name|$entry|$(date +%s)" >> "$GUARDIAN_DIR/blueprints.txt"
-          echo -e "${GREEN}✓ Blueprint added. Define flow with 'blueprint flow $name file1 file2...'${NC}"
-          ;;
-        "analyze")
-          # Analyze proposed change
-          local file="$1"
-          echo -e "${BLUE}🔍 Analyzing proposed change to: $file${NC}"
-          
-          # Check if file is in any critical path
-          local in_critical_path=false
-          local affected_paths=""
-          
-          if [ -f "$GUARDIAN_DIR/blueprints.txt" ]; then
-            while IFS='|' read -r path_name entry_point timestamp; do
-              # Simple check - in real implementation would parse flow
-              if [[ "$file" == *"$entry_point"* ]]; then
-                in_critical_path=true
-                affected_paths="$affected_paths $path_name"
-              fi
-            done < "$GUARDIAN_DIR/blueprints.txt"
-          fi
-          
-          if [ "$in_critical_path" = true ]; then
-            echo -e "${YELLOW}⚠️  File is part of critical paths:$affected_paths${NC}"
-            
-            # Check with dependency system
-            echo -e "\n${BLUE}Checking dependencies...${NC}"
-            local deps=$(grep -l "$file" documentation/dependencies/dependency_index.md 2>/dev/null)
-            if [ -n "$deps" ]; then
-              echo -e "${YELLOW}This file is referenced in dependency index${NC}"
-            fi
-            
-            # Check current action context
-            if [ "$current_action" != "None" ] && [ -f ".aicheck/actions/${current_action,,}/$(echo $current_action | tr '[:upper:]' '[:lower:]')-plan.md" ]; then
-              echo -e "\n${BLUE}Checking action plan...${NC}"
-              local in_plan=$(grep -c "$file" ".aicheck/actions/${current_action,,}/$(echo $current_action | tr '[:upper:]' '[:lower:]')-plan.md" 2>/dev/null || echo "0")
-              if [ "$in_plan" -gt 0 ]; then
-                echo -e "${GREEN}✓ File modification is part of current action plan${NC}"
-              else
-                echo -e "${RED}❌ File not mentioned in current action plan${NC}"
-                echo -e "${YELLOW}Consider updating action plan before proceeding${NC}"
-              fi
-            fi
-            
-            echo -e "\n${PURPLE}Change Impact Analysis:${NC}"
-            echo -e "1. Run tests for affected paths"
-            echo -e "2. Update documentation if contracts change"
-            echo -e "3. Notify dependent modules"
-            echo -e "4. Consider backward compatibility"
-          else
-            echo -e "${GREEN}✓ File is not in critical paths${NC}"
-          fi
-          ;;
-        *)
-          echo "Usage: ./aicheck guardian blueprint {add|analyze}"
-          ;;
-      esac
-      ;;
-    "analyze")
-      # Deep analysis of proposed changes
-      local file="$1"
-      if [ -z "$file" ]; then
-        echo -e "${RED}Please specify a file to analyze${NC}"
-        return 1
-      fi
-      
-      echo -e "${BLUE}🔬 Deep Analysis of: $file${NC}"
-      echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-      
-      # Run conflict analyzer
-      if [ -f ".aicheck/guardian/conflict_analyzer.sh" ]; then
-        .aicheck/guardian/conflict_analyzer.sh "$file"
-      fi
-      
-      # Check protection level
-      local protection_level=$(grep "^$file|" "$PROTECTED_FILES" 2>/dev/null | cut -d'|' -f2)
-      if [ -n "$protection_level" ]; then
-        echo ""
-        echo -e "${YELLOW}Protection Level: $protection_level${NC}"
-        if [ "$protection_level" = "CRITICAL" ]; then
-          echo -e "${RED}⚠️  This is a CRITICAL file - changes require approval${NC}"
-        fi
-      fi
-      
-      # Integration with AICheck validation
-      echo ""
-      echo -e "${BLUE}=== AICheck Validation ===${NC}"
-      
-      # Check if this fits current action
-      local current_action=$(cat .aicheck/current_action 2>/dev/null || echo "None")
-      if [ "$current_action" != "None" ]; then
-        # Use AICheck's boundary checking
-        local boundary_check=$(enforce_action_boundaries 2>&1 | grep -c "outside.*action" || echo "0")
-        if [ "$boundary_check" -gt 0 ]; then
-          echo -e "${RED}❌ Change may be outside current action boundaries${NC}"
-        else
-          echo -e "${GREEN}✓ Change appears within action boundaries${NC}"
-        fi
-      fi
-      
-      # Suggest next steps
-      echo ""
-      echo -e "${PURPLE}Recommended Actions:${NC}"
-      echo "1. Review the analysis above"
-      echo "2. Run tests: ./aicheck guardian test $file"
-      echo "3. Update docs if needed: ./aicheck guardian doc $file"
-      echo "4. If approved, update hash: ./aicheck guardian update $file"
-      ;;
-      
-    *)
-      echo -e "${BLUE}AICheck Guardian - Code Protection System${NC}"
-      echo "Usage: ./aicheck guardian {init|protect|check|scan|status|blueprint|analyze}"
-      echo ""
-      echo "Commands:"
-      echo "  init              Initialize guardian system"
-      echo "  protect FILE LVL  Add file to protection (LVL: CRITICAL/SENSITIVE/MONITORED)"
-      echo "  check/scan        Check file integrity"
-      echo "  status            Show guardian status"
-      echo "  blueprint         Manage critical path blueprints"
-      echo "  analyze FILE      Deep analysis of proposed changes"
-      ;;
-  esac
-}
-
 # Auto-detect new sessions and run startup checks
 # auto_session_start_check  # Temporarily disabled for testing
 
 # Main command handling
 case "$CMD" in
-  "new")
-    # Shortcut for action new
-    create_action "$1"
-    ;;
-  "active"|"ACTIVE")
-    # Shortcut for action set
-    set_active_action "$1"
-    ;;
-  "complete"|"Complete"|"COMPLETE")
-    # Shortcut for action complete
-    complete_action "$1"
-    ;;
-  "deploy")
-    # Shortcut for deploy-check
-    $0 deploy-check
-    ;;
   "action")
     case "$1" in
       "new")
@@ -1864,43 +1633,17 @@ case "$CMD" in
         ;;
     esac
     ;;
-  "dependency"|"deps")
+  "dependency")
     case "$1" in
       "add")
-        # Check if we're in a Poetry project
-        if [ -f "pyproject.toml" ] && [ -f ".aicheck/scripts/aicheck_deps.py" ]; then
-          python3 .aicheck/scripts/aicheck_deps.py add "$2" "$3" "$4"
-        else
-          add_dependency "$2" "$3" "$4" "$5"
-        fi
-        ;;
-      "check")
-        # Quick deployment readiness check
-        if [ -f ".aicheck/scripts/aicheck_deps.py" ]; then
-          python3 .aicheck/scripts/aicheck_deps.py check
-        else
-          echo -e "${YELLOW}Dependency guardian not available. Install AICheck in your project.${NC}"
-        fi
-        ;;
-      "fix")
-        # Auto-fix common dependency issues
-        if [ -f ".aicheck/scripts/aicheck_deps.py" ]; then
-          python3 .aicheck/scripts/aicheck_deps.py fix
-        else
-          echo -e "${YELLOW}Dependency guardian not available. Install AICheck in your project.${NC}"
-        fi
+        add_dependency "$2" "$3" "$4" "$5"
         ;;
       "internal")
         add_internal_dependency "$2" "$3" "$4" "$5"
         ;;
       *)
         echo -e "${RED}Unknown dependency command: $1${NC}"
-        echo "Available commands: add, check, fix, internal"
-        echo ""
-        echo "Quick commands:"
-        echo "  ${GREEN}./aicheck deps check${NC} - Check if ready to deploy"
-        echo "  ${GREEN}./aicheck deps fix${NC}   - Auto-fix dependency issues"
-        echo "  ${GREEN}./aicheck deps add <pkg> <reason>${NC} - Add with metadata"
+        echo "Available commands: add, internal"
         ;;
     esac
     ;;
@@ -1942,10 +1685,6 @@ case "$CMD" in
     ;;
   "exec")
     exec_mode
-    ;;
-  "guardian")
-    # Code Guardian System
-    handle_guardian "$@"
     ;;
   "status")
     show_status
@@ -2006,69 +1745,6 @@ case "$CMD" in
     echo -e "${YELLOW}• Run ${GREEN}./aicheck cleanup${YELLOW} to reduce context size${NC}"
     echo -e "${YELLOW}• Run ${GREEN}./aicheck reset${YELLOW} if really confused${NC}"
     echo -e "${YELLOW}• Use templates in ${GREEN}.aicheck/templates/claude/${YELLOW} for common patterns${NC}"
-    ;;
-  "deploy-check"|"deploy")
-    echo -e "${BRIGHT_BLURPLE}🚀 Deployment Readiness Check${NC}"
-    echo -e ""
-    
-    # Run all deployment checks
-    all_good=true
-    
-    # Check dependencies
-    echo -e "${YELLOW}Checking dependencies...${NC}"
-    if [ -f ".aicheck/scripts/simple_dependency_check.py" ]; then
-      if python3 .aicheck/scripts/simple_dependency_check.py; then
-        echo -e "${GREEN}✅ Dependencies OK${NC}"
-      else
-        echo -e "${RED}❌ Dependency issues found${NC}"
-        all_good=false
-      fi
-    elif [ -f ".aicheck/scripts/dependency_guardian.py" ] && [ -f "pyproject.toml" ]; then
-      if python3 .aicheck/scripts/dependency_guardian.py 2>/dev/null; then
-        echo -e "${GREEN}✅ Dependencies OK${NC}"
-      else
-        echo -e "${RED}❌ Dependency issues found${NC}"
-        all_good=false
-      fi
-    fi
-    
-    # Check tests
-    echo -e "\n${YELLOW}Running tests...${NC}"
-    if [ -f "pyproject.toml" ] && command -v poetry >/dev/null 2>&1; then
-      if poetry run pytest -q; then
-        echo -e "${GREEN}✅ Tests passed${NC}"
-      else
-        echo -e "${RED}❌ Tests failed${NC}"
-        all_good=false
-      fi
-    elif [ -f "package.json" ]; then
-      if npm test; then
-        echo -e "${GREEN}✅ Tests passed${NC}"
-      else
-        echo -e "${RED}❌ Tests failed${NC}"
-        all_good=false
-      fi
-    fi
-    
-    # Check git status
-    echo -e "\n${YELLOW}Checking git status...${NC}"
-    if [ -z "$(git status --porcelain)" ]; then
-      echo -e "${GREEN}✅ Working directory clean${NC}"
-    else
-      echo -e "${YELLOW}⚠️  Uncommitted changes${NC}"
-      git status --short
-    fi
-    
-    # Final verdict
-    echo -e ""
-    if [ "$all_good" = true ]; then
-      echo -e "${GREEN}✅ Ready to deploy!${NC}"
-      echo -e "${YELLOW}Run 'git push' to deploy your changes${NC}"
-    else
-      echo -e "${RED}❌ Not ready to deploy. Fix the issues above.${NC}"
-      echo -e "${YELLOW}Run './aicheck deps fix' to auto-fix some issues${NC}"
-      exit 1
-    fi
     ;;
   *)
     echo -e "${RED}❌ Unknown command: $CMD${NC}"

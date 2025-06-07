@@ -6,6 +6,7 @@ This document tracks all ACTIONS in the PROJECT. All ACTIONS must be registered 
 
 | ACTION                      | Owner | Status      | Progress | Description |
 | --------------------------- | ----- | ----------- | -------- | ----------- |
+| fix-core-functionality | | Not Started | 0% | |
 | clean-rebuild-orchestration |       | Not Started | 0%       |             |
 
 ## Completed Actions
