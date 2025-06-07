@@ -72,6 +72,17 @@
 - [x] VERIFY patent alignment
 - [x] DOCUMENT performance benchmarks
 
+## Phase 6: Build System Migration & RULES Compliance
+
+- [ ] Migrate build pipeline to Poetry:
+  - Update GitHub Actions workflow to install and run dependencies via Poetry
+  - Update Render buildCommand and startCommand to use Poetry
+- [ ] Integrate AICheck compliance into CI workflow:
+  - Add CI step to run `./aicheck status` and `./aicheck dependency check`
+- [ ] Create deployment verification document in `supporting_docs/deployment-verification.md`
+- [ ] Verify production deployment with Poetry-based build (test actual production URL, capture response)
+- [ ] Document production test results in `supporting_docs/deployment-verification.md`
+
 ## TODO (as of now)
 
 - [ ] Add frontend integration for new financial endpoints
