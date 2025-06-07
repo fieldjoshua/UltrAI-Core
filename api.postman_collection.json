@@ -1,0 +1,72 @@
+{
+  "info": {
+    "_postman_id": "ultra-api-collection-001",
+    "name": "Ultra API Collection",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Health Check",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": { "raw": "http://localhost:8000/health", "protocol": "http", "host": ["localhost"], "port": "8000", "path": ["health"] }
+      }
+    },
+    {
+      "name": "Prometheus Metrics",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": { "raw": "http://localhost:8000/api/metrics", "protocol": "http", "host": ["localhost"], "port": "8000", "path": ["api", "metrics"] }
+      }
+    },
+    {
+      "name": "Login (Auth)",
+      "request": {
+        "method": "POST",
+        "header": [ { "key": "Content-Type", "value": "application/json" } ],
+        "body": { "mode": "raw", "raw": "{\n  \"username\": \"user@example.com\",\n  \"password\": \"yourpassword\"\n}" },
+        "url": { "raw": "http://localhost:8000/api/auth/login", "protocol": "http", "host": ["localhost"], "port": "8000", "path": ["api", "auth", "login"] }
+      }
+    },
+    {
+      "name": "User Balance (JWT required)",
+      "request": {
+        "method": "GET",
+        "header": [ { "key": "Authorization", "value": "Bearer {{jwt_token}}" } ],
+        "url": { "raw": "http://localhost:8000/api/user/balance", "protocol": "http", "host": ["localhost"], "port": "8000", "path": ["api", "user", "balance"] }
+      }
+    },
+    {
+      "name": "Orchestrator Analyze (JWT required)",
+      "request": {
+        "method": "POST",
+        "header": [ { "key": "Authorization", "value": "Bearer {{jwt_token}}" }, { "key": "Content-Type", "value": "application/json" } ],
+        "body": { "mode": "raw", "raw": "{\n  \"input\": \"Your input here\"\n}" },
+        "url": { "raw": "http://localhost:8000/api/orchestrator/analyze", "protocol": "http", "host": ["localhost"], "port": "8000", "path": ["api", "orchestrator", "analyze"] }
+      }
+    },
+    {
+      "name": "Orchestrator Compare (JWT required)",
+      "request": {
+        "method": "POST",
+        "header": [ { "key": "Authorization", "value": "Bearer {{jwt_token}}" }, { "key": "Content-Type", "value": "application/json" } ],
+        "body": { "mode": "raw", "raw": "{\n  \"input\": \"Your input here\"\n}" },
+        "url": { "raw": "http://localhost:8000/api/orchestrator/compare", "protocol": "http", "host": ["localhost"], "port": "8000", "path": ["api", "orchestrator", "compare"] }
+      }
+    },
+    {
+      "name": "Orchestrator Evaluate (JWT required)",
+      "request": {
+        "method": "POST",
+        "header": [ { "key": "Authorization", "value": "Bearer {{jwt_token}}" }, { "key": "Content-Type", "value": "application/json" } ],
+        "body": { "mode": "raw", "raw": "{\n  \"input\": \"Your input here\"\n}" },
+        "url": { "raw": "http://localhost:8000/api/orchestrator/evaluate", "protocol": "http", "host": ["localhost"], "port": "8000", "path": ["api", "orchestrator", "evaluate"] }
+      }
+    }
+  ],
+  "variable": [
+    { "key": "jwt_token", "value": "" }
+  ]
+}
