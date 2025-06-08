@@ -438,12 +438,32 @@ Enhanced Response:"""
         Returns:
             Any: Ultra-synthesis results
         """
-        if not isinstance(data, dict) or 'analysis' not in data:
-            logger.warning("Invalid data structure for ultra-synthesis")
+        # Handle failed meta-analysis by checking if there's an error
+        if not isinstance(data, dict):
+            logger.warning("Invalid data structure for ultra-synthesis - not a dict")
             return {"stage": "ultra_synthesis", "error": "Invalid input data structure"}
         
-        meta_analysis = data['analysis']
-        source_models = data.get('source_models', [])
+        # If meta-analysis failed, try to extract initial responses instead
+        if 'error' in data and data.get('error'):
+            logger.warning(f"Meta-analysis failed: {data['error']}, attempting direct synthesis from initial data")
+            if 'input_data' in data and isinstance(data['input_data'], dict) and 'responses' in data['input_data']:
+                # Use initial responses directly for synthesis
+                initial_responses = data['input_data']['responses']
+                analysis_text = "\\n\\n".join([
+                    f"**{model}:** {response}" 
+                    for model, response in initial_responses.items()
+                ])
+                meta_analysis = f"Direct synthesis from initial responses:\\n{analysis_text}"
+                source_models = list(initial_responses.keys())
+            else:
+                return {"stage": "ultra_synthesis", "error": "No valid data available for synthesis"}
+        elif 'analysis' not in data:
+            logger.warning("Invalid data structure for ultra-synthesis - missing analysis")
+            return {"stage": "ultra_synthesis", "error": "Invalid input data structure - missing analysis"}
+        else:
+            # Normal case - meta-analysis succeeded
+            meta_analysis = data['analysis']
+            source_models = data.get('source_models', [])
         
         synthesis_prompt = f"""You are tasked with creating the Ultra Synthesis™: a fully-integrated intelligence synthesis that combines the relevant outputs from all methods into a cohesive whole, with recommendations that benefit from multiple cognitive frameworks. 
 
