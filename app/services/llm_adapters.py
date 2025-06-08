@@ -57,6 +57,16 @@ class OpenAIAdapter(BaseAdapter):
         except httpx.ReadTimeout:
             logger.warning(f"OpenAI request timed out for model {self.model}.")
             return {"generated_text": "Error: OpenAI request timed out."}
+        except httpx.HTTPStatusError as e:
+            if e.response.status_code == 401:
+                logger.error(f"OpenAI API authentication failed for model {self.model}: Invalid API key")
+                return {"generated_text": "Error: OpenAI API authentication failed. Check API key."}
+            elif e.response.status_code == 404:
+                logger.error(f"OpenAI API 404 for model {self.model}: Model not found")
+                return {"generated_text": f"Error: Model {self.model} not found in OpenAI API"}
+            else:
+                logger.error(f"OpenAI API HTTP error for model {self.model}: {e.response.status_code} - {e}")
+                return {"generated_text": f"Error: OpenAI API HTTP {e.response.status_code}: {e}"}
         except Exception as e:
             logger.error(f"OpenAI API error for model {self.model}: {e}")
             return {
@@ -88,6 +98,16 @@ class AnthropicAdapter(BaseAdapter):
         except httpx.ReadTimeout:
             logger.warning(f"Anthropic request timed out for model {self.model}.")
             return {"generated_text": "Error: Anthropic request timed out."}
+        except httpx.HTTPStatusError as e:
+            if e.response.status_code == 401:
+                logger.error(f"Anthropic API authentication failed for model {self.model}: Invalid API key")
+                return {"generated_text": "Error: Anthropic API authentication failed. Check API key."}
+            elif e.response.status_code == 404:
+                logger.error(f"Anthropic API 404 for model {self.model}: Model not found or invalid endpoint")
+                return {"generated_text": f"Error: Model {self.model} not found in Anthropic API"}
+            else:
+                logger.error(f"Anthropic API HTTP error for model {self.model}: {e.response.status_code} - {e}")
+                return {"generated_text": f"Error: Anthropic API HTTP {e.response.status_code}: {e}"}
         except Exception as e:
             logger.error(f"Anthropic API error for model {self.model}: {e}")
             return {
@@ -113,6 +133,19 @@ class GeminiAdapter(BaseAdapter):
         except httpx.ReadTimeout:
             logger.warning(f"Google Gemini request timed out for model {self.model}.")
             return {"generated_text": "Error: Google Gemini request timed out."}
+        except httpx.HTTPStatusError as e:
+            if e.response.status_code == 400:
+                logger.error(f"Google Gemini API 400 for model {self.model}: Bad request or invalid model")
+                return {"generated_text": f"Error: Invalid request or model {self.model} not available in Gemini API"}
+            elif e.response.status_code == 401:
+                logger.error(f"Google Gemini API authentication failed for model {self.model}: Invalid API key")
+                return {"generated_text": "Error: Google Gemini API authentication failed. Check API key."}
+            elif e.response.status_code == 404:
+                logger.error(f"Google Gemini API 404 for model {self.model}: Model not found")
+                return {"generated_text": f"Error: Model {self.model} not found in Google Gemini API"}
+            else:
+                logger.error(f"Google Gemini API HTTP error for model {self.model}: {e.response.status_code} - {e}")
+                return {"generated_text": f"Error: Google Gemini API HTTP {e.response.status_code}: {e}"}
         except Exception as e:
             logger.error(f"Google Gemini API error for model {self.model}: {e}")
             return {
