@@ -272,32 +272,66 @@ class OrchestrationService:
         # Try each available model
         for model in models:
             try:
-                if model.startswith("gpt") and os.getenv("OPENAI_API_KEY"):
-                    adapter = OpenAIAdapter(os.getenv("OPENAI_API_KEY"), model)
+                if model.startswith("gpt"):
+                    api_key = os.getenv("OPENAI_API_KEY")
+                    if not api_key:
+                        logger.warning(f"No OpenAI API key found for {model}, skipping")
+                        continue
+                    adapter = OpenAIAdapter(api_key, model)
                     result = await adapter.generate(prompt)
-                    responses[model] = result.get("generated_text", "Response generated successfully")
-                elif model.startswith("claude") and os.getenv("ANTHROPIC_API_KEY"):
-                    adapter = AnthropicAdapter(os.getenv("ANTHROPIC_API_KEY"), model)
+                    if "Error:" not in result.get("generated_text", ""):
+                        responses[model] = result.get("generated_text", "Response generated successfully")
+                        logger.info(f"✅ Successfully got response from {model}")
+                    else:
+                        logger.warning(f"❌ Error response from {model}: {result.get('generated_text', '')}")
+                        continue
+                elif model.startswith("claude"):
+                    api_key = os.getenv("ANTHROPIC_API_KEY")
+                    if not api_key:
+                        logger.warning(f"No Anthropic API key found for {model}, skipping")
+                        continue
+                    adapter = AnthropicAdapter(api_key, model)
                     result = await adapter.generate(prompt)
-                    responses[model] = result.get("generated_text", "Response generated successfully")
-                elif model.startswith("gemini") and os.getenv("GOOGLE_API_KEY"):
-                    adapter = GeminiAdapter(os.getenv("GOOGLE_API_KEY"), model)
+                    if "Error:" not in result.get("generated_text", ""):
+                        responses[model] = result.get("generated_text", "Response generated successfully")
+                        logger.info(f"✅ Successfully got response from {model}")
+                    else:
+                        logger.warning(f"❌ Error response from {model}: {result.get('generated_text', '')}")
+                        continue
+                elif model.startswith("gemini"):
+                    api_key = os.getenv("GOOGLE_API_KEY")
+                    if not api_key:
+                        logger.warning(f"No Google API key found for {model}, skipping")
+                        continue
+                    adapter = GeminiAdapter(api_key, model)
                     result = await adapter.generate(prompt)
-                    responses[model] = result.get("generated_text", "Response generated successfully")
-                elif ("llama" in model.lower() or "mistral" in model.lower() or "qwen" in model.lower() or "/" in model) and os.getenv("HUGGINGFACE_API_KEY"):
-                    # HuggingFace models (includes Llama, Mistral, etc.)
-                    adapter = HuggingFaceAdapter(os.getenv("HUGGINGFACE_API_KEY"), model)
-                    result = await adapter.generate(prompt)
-                    responses[model] = result.get("generated_text", "Response generated successfully")
-                else:
-                    # Real HuggingFace Inference API integration
+                    if "Error:" not in result.get("generated_text", ""):
+                        responses[model] = result.get("generated_text", "Response generated successfully")
+                        logger.info(f"✅ Successfully got response from {model}")
+                    else:
+                        logger.warning(f"❌ Error response from {model}: {result.get('generated_text', '')}")
+                        continue
+                elif ("llama" in model.lower() or "mistral" in model.lower() or "qwen" in model.lower() or "/" in model):
+                    # HuggingFace models - try with adapter first if API key available
+                    api_key = os.getenv("HUGGINGFACE_API_KEY")
+                    if api_key:
+                        try:
+                            adapter = HuggingFaceAdapter(api_key, model)
+                            result = await adapter.generate(prompt)
+                            if "Error:" not in result.get("generated_text", ""):
+                                responses[model] = result.get("generated_text", "Response generated successfully")
+                                logger.info(f"✅ Successfully got response from {model} via adapter")
+                                continue
+                        except Exception as e:
+                            logger.warning(f"HuggingFace adapter failed for {model}: {str(e)}")
+                    
+                    # Fallback to direct HuggingFace Inference API (works without API key on free tier)
                     try:
                         import httpx
-                        import asyncio
                         
-                        headers = {}
-                        if os.getenv("HUGGINGFACE_API_KEY"):
-                            headers["Authorization"] = f"Bearer {os.getenv('HUGGINGFACE_API_KEY')}"
+                        headers = {"Content-Type": "application/json"}
+                        if api_key:
+                            headers["Authorization"] = f"Bearer {api_key}"
                         
                         async with httpx.AsyncClient() as client:
                             # Enhanced prompt for better responses
@@ -327,7 +361,7 @@ class OrchestrationService:
                                     cleaned_response = generated_text.replace(enhanced_prompt, '').strip()
                                     if len(cleaned_response) > 20:  # Ensure substantial response
                                         responses[model] = cleaned_response
-                                        logger.info(f"Successfully got real response from {model} ({len(cleaned_response)} chars)")
+                                        logger.info(f"✅ Successfully got real response from {model} ({len(cleaned_response)} chars)")
                                     else:
                                         logger.warning(f"Response too short from {model}, skipping")
                                         continue
@@ -347,6 +381,9 @@ class OrchestrationService:
                     except Exception as hf_error:
                         logger.error(f"HuggingFace API error for {model}: {str(hf_error)}")
                         continue
+                else:
+                    logger.warning(f"Unknown model type or no API configuration: {model}")
+                    continue
             except Exception as e:
                 logger.error(f"Failed to get response from {model}: {str(e)}")
                 # Skip models that fail completely

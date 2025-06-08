@@ -11,17 +11,21 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `make test` - Run all tests
 - `make e2e` - Run end-to-end tests with pre-checks
 - `make deploy` - Deploy to production (commits and pushes to trigger Render deployment)
+- `make clean-ports` - Kill processes on ports 8000-8001
+- `make run` - Clean ports and start dev server
 
 ### Frontend Development
 - `cd frontend && npm run dev` - Start frontend development server
 - `cd frontend && npm run build` - Build frontend for production
 - `cd frontend && npm run lint` - Run ESLint
 
-### Testing
-- `pytest tests/ -v` - Run backend tests with verbose output
-- `pytest tests/ -m "unit"` - Run only unit tests
-- `pytest tests/ -m "integration"` - Run only integration tests
-- `pytest tests/ -m "e2e"` - Run only end-to-end tests
+### Single Test Commands
+- `pytest tests/test_specific_file.py -v` - Run specific test file
+- `pytest tests/test_file.py::test_function -v` - Run specific test function
+- `pytest tests/ -k "test_pattern" -v` - Run tests matching pattern
+- `pytest tests/ -m "unit" -v` - Run only unit tests
+- `pytest tests/ -m "integration" -v` - Run only integration tests
+- `pytest tests/ -m "e2e" -v` - Run only end-to-end tests
 
 ## Architecture Overview
 
@@ -39,18 +43,34 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `quality_evaluation.py` - Response quality assessment
 - `llm_adapters.py` - Unified interface for OpenAI, Anthropic, and Google APIs
 
-**LLM Adapter Pattern**: All external LLM providers use a shared `httpx.AsyncClient` with 25-second timeout to prevent hanging requests. Each adapter (OpenAI, Anthropic, Google) implements provider-specific API requirements while maintaining consistent interface.
+**LLM Adapter Pattern**: All external LLM providers use a shared `httpx.AsyncClient` with 25-second timeout to prevent hanging requests. Each adapter (OpenAI, Anthropic, Google, HuggingFace) implements provider-specific API requirements while maintaining consistent interface.
 
-**Routes Layer** (`app/routes/`) - FastAPI route handlers that validate input and delegate to services
+**Routes Layer** (`app/routes/`) - FastAPI route handlers that validate input and delegate to services:
+- `orchestrator_minimal.py` - Core multi-model orchestration endpoint
+- `health_routes.py` - System health monitoring
+- `available_models_routes.py` - Dynamic model discovery
+
 **Models Layer** (`app/models/`) - Pydantic models for API validation and SQLAlchemy models for database
+
+**Ultra Synthesis™ Pipeline**: Three-stage orchestration process:
+1. `initial_response` - Multi-model parallel analysis
+2. `meta_analysis` - Cross-model comparison and enhancement  
+3. `ultra_synthesis` - Final comprehensive synthesis using lead LLM approach
 
 ### Frontend Architecture
 
 **React + TypeScript** (`frontend/`) with modern tooling:
-- Vite build system with hot reload
-- TailwindCSS + Radix UI components
+- Vite build system with hot reload and ESM support
+- TailwindCSS + Radix UI components (modular design system)
 - Redux Toolkit for state management
-- Production API URL: `https://ultrai-core-4lut.onrender.com`
+- React Router for SPA navigation
+- Production API URL: `https://ultrai-core.onrender.com`
+
+**Key Frontend Features**:
+- `MultimodalAnalysis` component - Main orchestrator interface
+- `DocumentsPage` - Document upload and analysis
+- `OrchestratorPage` - Multi-model selection and execution
+- Error boundaries with `ErrorFallback` for graceful error handling
 
 ## AICheck Integration
 
@@ -70,15 +90,33 @@ Follow `.aicheck/RULES.md` requirements with focus on **deployment verification*
 
 ## Development Workflow
 
-### Service Dependencies
-Services use dependency injection pattern initialized in `main.py`:
+### Service Dependencies and Application Factory
+Services use dependency injection pattern with centralized initialization in `main.py`:
+
 ```python
-orchestration_service = OrchestrationService(
-    model_registry=model_registry,
-    quality_evaluator=quality_evaluator,
-    rate_limiter=rate_limiter,
-)
+def initialize_services() -> Dict[str, Any]:
+    model_registry = ModelRegistry()
+    quality_evaluator = QualityEvaluationService()
+    rate_limiter = RateLimiter()
+    
+    orchestration_service = OrchestrationService(
+        model_registry=model_registry,
+        quality_evaluator=quality_evaluator,
+        rate_limiter=rate_limiter,
+    )
+    
+    prompt_service = get_prompt_service(
+        model_registry=model_registry, 
+        orchestration_service=orchestration_service
+    )
+    
+    return {"model_registry": model_registry, "prompt_service": prompt_service, "orchestration_service": orchestration_service}
 ```
+
+**Application Entry Points**:
+- `app_production.py` - Production entry point used by Render
+- `app/main.py` - Application factory with service initialization
+- `app/app.py` - FastAPI app configuration and route mounting
 
 ### Adding New Features
 1. Create route handler in `app/routes/`
@@ -89,10 +127,19 @@ orchestration_service = OrchestrationService(
 6. Deploy and verify in production before completion
 
 ### Environment Configuration
-- Development: Uses minimal dependencies, no database required
-- Production: Full features with PostgreSQL, Redis, authentication
-- Feature flags in `app/config.py` control which components are enabled
-- Environment variables configure API keys and external services
+**Development vs Production Modes**:
+- `make dev` - Minimal dependencies, no database/auth required, fast startup
+- `make prod` - Full features with PostgreSQL, Redis, authentication
+
+**Configuration Management** (`app/config.py`):
+- Environment variables control feature flags (ENABLE_CACHE, ENABLE_AUTH, ENABLE_RATE_LIMIT)
+- LLM API keys: OPENAI_API_KEY, ANTHROPIC_API_KEY, GOOGLE_API_KEY, HUGGINGFACE_API_KEY
+- Mock mode available via USE_MOCK/MOCK_MODE environment variables
+
+**Key Configuration Patterns**:
+- Services gracefully degrade when optional dependencies unavailable
+- Rate limiter auto-registers new models dynamically
+- Frontend served as static files from `/frontend/dist/` when built
 
 ## Testing Strategy
 
@@ -119,4 +166,40 @@ orchestration_service = OrchestrationService(
 1. Use `make deploy` to commit and push changes
 2. Monitor build in Render dashboard
 3. Test production endpoints before marking work complete
-4. Document verification results in `supporting_docs/` 
+4. Document verification results in `supporting_docs/`
+
+## API Architecture
+
+**Core Orchestration Endpoint**:
+- `POST /api/orchestrator/analyze` - Main multi-model analysis
+- Request: `{"query": "...", "selected_models": ["gpt-4", "claude-3"], "options": {...}}`
+- Response: Multi-stage pipeline results (initial_response, meta_analysis, ultra_synthesis)
+
+**Health Monitoring**:
+- `GET /health` - Overall system health
+- `GET /api/orchestrator/health` - Orchestrator service health
+- `GET /api/metrics` - Prometheus metrics
+
+**Model Integration**:
+- Dynamic model registry supports runtime model addition
+- Unified adapter pattern for all LLM providers
+- Automatic rate limiting and timeout handling (25-second max per request)
+
+## Architecture Principles (from .cursor/rules)
+
+**Route Responsibility**: Routes in `app/routes/` are the "front door" - they validate requests with Pydantic models and delegate to services. They should not contain business logic.
+
+**Service Layer Logic**: `app/services/` contains the application brain:
+- `orchestration_service.py` - Core multi-step analysis controller
+- `prompt_service.py` - Main orchestrator controller (being refactored)
+- `llm_adapters.py` - Critical bridge to external LLM APIs
+
+**LLM Adapter Architecture**:
+- All adapters inherit from `BaseAdapter` requiring `api_key` and `model`
+- Shared `httpx.AsyncClient` with 25-second timeout solves hanging request issues
+- Provider-specific payload construction (OpenAI chat format, Anthropic messages, Gemini contents)
+- Consistent error handling and response parsing across all providers
+
+**Data Models**: `app/models/` defines application vocabulary through Pydantic (API validation) and SQLAlchemy (database) models
+
+**Middleware**: `app/middleware/` handles cross-cutting concerns (auth, CSRF, security headers) for every request/response
