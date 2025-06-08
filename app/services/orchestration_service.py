@@ -443,7 +443,7 @@ Enhanced Response:"""
             logger.warning("Invalid data structure for ultra-synthesis - not a dict")
             return {"stage": "ultra_synthesis", "error": "Invalid input data structure"}
         
-        # If meta-analysis failed, try to extract initial responses instead
+        # Check if this is a failed meta-analysis result
         if 'error' in data and data.get('error'):
             logger.warning(f"Meta-analysis failed: {data['error']}, attempting direct synthesis from initial data")
             if 'input_data' in data and isinstance(data['input_data'], dict) and 'responses' in data['input_data']:
@@ -457,13 +457,13 @@ Enhanced Response:"""
                 source_models = list(initial_responses.keys())
             else:
                 return {"stage": "ultra_synthesis", "error": "No valid data available for synthesis"}
-        elif 'analysis' not in data:
-            logger.warning("Invalid data structure for ultra-synthesis - missing analysis")
-            return {"stage": "ultra_synthesis", "error": "Invalid input data structure - missing analysis"}
-        else:
-            # Normal case - meta-analysis succeeded
+        elif 'analysis' in data:
+            # Normal case - meta-analysis succeeded and we have the analysis
             meta_analysis = data['analysis']
             source_models = data.get('source_models', [])
+        else:
+            logger.warning(f"Invalid data structure for ultra-synthesis - data keys: {list(data.keys()) if isinstance(data, dict) else 'not a dict'}")
+            return {"stage": "ultra_synthesis", "error": f"Invalid input data structure - missing analysis. Available keys: {list(data.keys()) if isinstance(data, dict) else 'not a dict'}"}
         
         synthesis_prompt = f"""You are tasked with creating the Ultra Synthesis™: a fully-integrated intelligence synthesis that combines the relevant outputs from all methods into a cohesive whole, with recommendations that benefit from multiple cognitive frameworks. 
 
