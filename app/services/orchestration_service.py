@@ -387,7 +387,7 @@ class OrchestrationService:
             for model, response in initial_responses.items()
         ])
         
-        meta_prompt = f\"\"\"Several of your fellow LLMs were given the same prompt as you. Their responses are as follows. Do NOT assume that anything written is correct or properly sourced, but given these other responses, could you make your original response better? More insightful? More factual, more comprehensive when considering the initial user prompt?
+        meta_prompt = f"""Several of your fellow LLMs were given the same prompt as you. Their responses are as follows. Do NOT assume that anything written is correct or properly sourced, but given these other responses, could you make your original response better? More insightful? More factual, more comprehensive when considering the initial user prompt?
 
 Original User Prompt: {data.get('prompt', 'Unknown prompt')}
 
@@ -396,7 +396,7 @@ Fellow LLM Responses:
 
 If you believe you can make a better response considering these other perspectives, please draft a new, improved response to the initial inquiry. Focus on being more comprehensive and insightful than any single response alone.
 
-Enhanced Response:\"\"\"
+Enhanced Response:"""
 
         # Use the first available model for meta-analysis
         analysis_model = models[0] if models else "claude-3-haiku"
@@ -445,7 +445,7 @@ Enhanced Response:\"\"\"
         meta_analysis = data['analysis']
         source_models = data.get('source_models', [])
         
-        synthesis_prompt = f\"\"\"You are tasked with creating the Ultra Synthesis™: a fully-integrated intelligence synthesis that combines the relevant outputs from all methods into a cohesive whole, with recommendations that benefit from multiple cognitive frameworks. 
+        synthesis_prompt = f"""You are tasked with creating the Ultra Synthesis™: a fully-integrated intelligence synthesis that combines the relevant outputs from all methods into a cohesive whole, with recommendations that benefit from multiple cognitive frameworks. 
 
 The objective here is not to be necessarily the best, but the most expansive synthesization of the many outputs. While you should disregard facts or analyses that are extremely anomalous or wrong, your final Ultra Synthesis should reflect all of the relevant insights from the meta-level responses, organized in a manner that is clear and non-repetitive.
 
@@ -458,7 +458,7 @@ Source Models Analyzed: {', '.join(source_models)}
 
 Your Ultra Synthesis should maximize intelligence multiplication by leveraging the complementary strengths of different analytical approaches, resulting in insights and recommendations that no single method could produce.
 
-Ultra Synthesis™:\"\"\"
+Ultra Synthesis™:"""
 
         # Use the first available model for synthesis
         synthesis_model = models[0] if models else "claude-3-haiku"
