@@ -312,20 +312,10 @@ class OrchestrationService:
                         logger.warning(f"❌ Error response from {model}: {result.get('generated_text', '')}")
                         continue
                 elif ("llama" in model.lower() or "mistral" in model.lower() or "qwen" in model.lower() or "/" in model):
-                    # HuggingFace models - try with adapter first if API key available
+                    # HuggingFace models - try direct API first (free tier), then adapter if available
                     api_key = os.getenv("HUGGINGFACE_API_KEY")
-                    if api_key:
-                        try:
-                            adapter = HuggingFaceAdapter(api_key, model)
-                            result = await adapter.generate(prompt)
-                            if "Error:" not in result.get("generated_text", ""):
-                                responses[model] = result.get("generated_text", "Response generated successfully")
-                                logger.info(f"✅ Successfully got response from {model} via adapter")
-                                continue
-                        except Exception as e:
-                            logger.warning(f"HuggingFace adapter failed for {model}: {str(e)}")
                     
-                    # Fallback to direct HuggingFace Inference API (works without API key on free tier)
+                    # Direct HuggingFace Inference API (works without API key on free tier)
                     try:
                         import httpx
                         
@@ -362,24 +352,37 @@ class OrchestrationService:
                                     if len(cleaned_response) > 20:  # Ensure substantial response
                                         responses[model] = cleaned_response
                                         logger.info(f"✅ Successfully got real response from {model} ({len(cleaned_response)} chars)")
-                                    else:
-                                        logger.warning(f"Response too short from {model}, skipping")
                                         continue
+                                    else:
+                                        logger.warning(f"Response too short from {model}, trying fallback")
                                 elif isinstance(hf_data, dict) and 'error' in hf_data:
                                     logger.warning(f"HuggingFace API error for {model}: {hf_data['error']}")
-                                    continue
                                 else:
                                     logger.warning(f"Unexpected HuggingFace response format for {model}: {type(hf_data)}")
-                                    continue
                             elif hf_response.status_code == 503:
-                                logger.warning(f"Model {model} is loading, skipping for now")
-                                continue
+                                logger.warning(f"Model {model} is loading, will try adapter fallback")
                             else:
                                 logger.warning(f"HuggingFace API failed for {model}: {hf_response.status_code}")
-                                continue
                                 
                     except Exception as hf_error:
-                        logger.error(f"HuggingFace API error for {model}: {str(hf_error)}")
+                        logger.warning(f"HuggingFace direct API error for {model}: {str(hf_error)}")
+                    
+                    # Fallback to adapter if direct API failed and we have an API key
+                    if api_key and model not in responses:
+                        try:
+                            adapter = HuggingFaceAdapter(api_key, model)
+                            result = await adapter.generate(prompt)
+                            if "Error:" not in result.get("generated_text", ""):
+                                responses[model] = result.get("generated_text", "Response generated successfully")
+                                logger.info(f"✅ Successfully got response from {model} via adapter fallback")
+                            else:
+                                logger.warning(f"HuggingFace adapter also failed for {model}")
+                        except Exception as e:
+                            logger.warning(f"HuggingFace adapter failed for {model}: {str(e)}")
+                    
+                    # Skip if neither approach worked
+                    if model not in responses:
+                        logger.warning(f"All HuggingFace approaches failed for {model}")
                         continue
                 else:
                     logger.warning(f"Unknown model type or no API configuration: {model}")
