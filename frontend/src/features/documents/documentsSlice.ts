@@ -41,9 +41,21 @@ export const fetchDocuments = createAsyncThunk<
     console.log('API client base URL:', apiClient.defaults.baseURL);
 
     // Use the configured API client instead of hardcoded localhost
-    const response = await apiClient.get<Document[]>(
+    const response = await apiClient.get<Document[] | {error: string}>(
       endpoints.documents.getAll
     );
+    
+    // Check if response contains an error
+    if (response.data && typeof response.data === 'object' && 'error' in response.data) {
+      throw new Error(response.data.error || 'Documents endpoint not available');
+    }
+    
+    // Ensure response.data is an array
+    if (!Array.isArray(response.data)) {
+      console.warn('Documents endpoint returned non-array data:', response.data);
+      return []; // Return empty array as fallback
+    }
+    
     return response.data; // Return the fetched documents
   } catch (error: any) {
     console.error('Failed to fetch documents:', error);
