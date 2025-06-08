@@ -311,7 +311,7 @@ class OrchestrationService:
                     else:
                         logger.warning(f"❌ Error response from {model}: {result.get('generated_text', '')}")
                         continue
-                elif ("llama" in model.lower() or "mistral" in model.lower() or "qwen" in model.lower() or "/" in model):
+                elif "/" in model:  # HuggingFace model ID format (org/model-name)
                     # HuggingFace models - try direct API first (free tier), then adapter if available
                     api_key = os.getenv("HUGGINGFACE_API_KEY")
                     
