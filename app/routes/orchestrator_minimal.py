@@ -2,7 +2,7 @@
 Route handlers for the orchestrator service.
 """
 
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, List
 from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel, Field
 import asyncio
@@ -18,6 +18,7 @@ class AnalysisRequest(BaseModel):
     analysis_type: str = Field(default="simple", description="Type of analysis to perform")
     options: Optional[Dict[str, Any]] = Field(default=None, description="Additional analysis options")
     user_id: Optional[str] = Field(default=None, description="User ID for cost tracking")
+    selected_models: Optional[List[str]] = Field(default=None, description="Models to use for analysis")
 
 
 class AnalysisResponse(BaseModel):
@@ -64,7 +65,8 @@ def create_router() -> APIRouter:
             pipeline_results = await orchestration_service.run_pipeline(
                 input_data=request.query,
                 options=request.options,
-                user_id=request.user_id
+                user_id=request.user_id,
+                selected_models=request.selected_models
             )
             
             # Process results into response format

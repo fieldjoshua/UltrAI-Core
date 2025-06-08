@@ -101,6 +101,7 @@ class OrchestrationService:
         input_data: Any,
         options: Optional[Dict[str, Any]] = None,
         user_id: Optional[str] = None,
+        selected_models: Optional[List[str]] = None,
     ) -> Dict[str, PipelineResult]:
         """
         Run the full analysis pipeline according to the patent specification.
@@ -119,8 +120,20 @@ class OrchestrationService:
 
         for stage in self.pipeline_stages:
             try:
-                # Run the stage
-                stage_result = await self._run_stage(stage, current_data, options)
+                # Override models for initial_response stage if selected_models provided
+                if stage.name == "initial_response" and selected_models:
+                    # Create a copy of the stage with selected models
+                    stage_copy = PipelineStage(
+                        name=stage.name,
+                        description=stage.description,
+                        required_models=selected_models,
+                        timeout_seconds=stage.timeout_seconds
+                    )
+                    stage_result = await self._run_stage(stage_copy, current_data, options)
+                else:
+                    # Use original stage configuration
+                    stage_result = await self._run_stage(stage, current_data, options)
+                
                 results[stage.name] = stage_result
 
                 if stage_result.error:
@@ -184,7 +197,16 @@ class OrchestrationService:
         try:
             # Acquire rate limit tokens for all required models
             for model in stage.required_models:
-                await self.rate_limiter.acquire(model)
+                # Register model in rate limiter if not already registered
+                try:
+                    await self.rate_limiter.acquire(model)
+                except ValueError as e:
+                    if "not registered" in str(e):
+                        # Register the model with default rate limits
+                        self.rate_limiter.register_endpoint(model, requests_per_minute=60, burst_limit=10)
+                        await self.rate_limiter.acquire(model)
+                    else:
+                        raise
 
             # Get the stage method
             method = getattr(self, stage.name, None)
