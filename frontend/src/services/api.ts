@@ -323,21 +323,82 @@ export const analyzePrompt = async (
       const modelResponses: any = {};
       const results = response.data.results;
       
-      if (results.initial_response && results.initial_response.responses) {
-        Object.entries(results.initial_response.responses).forEach(([model, content]: [string, any]) => {
+      // Check if initial_response stage has output with responses
+      if (results.initial_response && results.initial_response.output && results.initial_response.output.responses) {
+        Object.entries(results.initial_response.output.responses).forEach(([model, content]: [string, any]) => {
           modelResponses[model] = {
             response: typeof content === 'string' ? content : JSON.stringify(content),
             model: model,
             status: 'success'
           };
         });
+      } else {
+        // Fallback: check if there are any stage results we can use
+        console.log('Orchestrator response structure:', results);
+        for (const [stageName, stageResult] of Object.entries(results)) {
+          if (stageResult && typeof stageResult === 'object' && (stageResult as any).output) {
+            const output = (stageResult as any).output;
+            if (output && typeof output === 'object' && output.responses) {
+              Object.entries(output.responses).forEach(([model, content]: [string, any]) => {
+                modelResponses[model] = {
+                  response: typeof content === 'string' ? content : JSON.stringify(content),
+                  model: model,
+                  status: 'success'
+                };
+              });
+              break; // Use the first stage with responses
+            }
+          }
+        }
+      }
+
+      // Create a more readable combined response
+      let combinedResponse = 'Multimodal Analysis Results:\n\n';
+      
+      // Add individual model responses
+      if (Object.keys(modelResponses).length > 0) {
+        combinedResponse += '=== Individual Model Responses ===\n\n';
+        for (const [model, response] of Object.entries(modelResponses)) {
+          combinedResponse += `${model}:\n${(response as any).response}\n\n`;
+        }
+      }
+      
+      // Add meta-analysis if available
+      if (results.meta_analysis && results.meta_analysis.output) {
+        combinedResponse += '=== Meta-Analysis ===\n\n';
+        combinedResponse += typeof results.meta_analysis.output === 'string' 
+          ? results.meta_analysis.output 
+          : JSON.stringify(results.meta_analysis.output, null, 2);
+        combinedResponse += '\n\n';
+      }
+      
+      // Add ultra-synthesis if available
+      if (results.ultra_synthesis && results.ultra_synthesis.output) {
+        combinedResponse += '=== Ultra-Synthesis ===\n\n';
+        combinedResponse += typeof results.ultra_synthesis.output === 'string' 
+          ? results.ultra_synthesis.output 
+          : JSON.stringify(results.ultra_synthesis.output, null, 2);
+        combinedResponse += '\n\n';
+      }
+      
+      // Add hyper-level analysis if available
+      if (results.hyper_level_analysis && results.hyper_level_analysis.output) {
+        combinedResponse += '=== Hyper-Level Analysis ===\n\n';
+        combinedResponse += typeof results.hyper_level_analysis.output === 'string' 
+          ? results.hyper_level_analysis.output 
+          : JSON.stringify(results.hyper_level_analysis.output, null, 2);
+      }
+      
+      // Fallback if no structured content
+      if (combinedResponse === 'Multimodal Analysis Results:\n\n') {
+        combinedResponse = JSON.stringify(results, null, 2);
       }
 
       return {
         status: 'success',
         message: 'Multimodal analysis completed successfully',
         model_responses: modelResponses,
-        combined_response: JSON.stringify(results, null, 2),
+        combined_response: combinedResponse,
         timestamp: new Date().toISOString(),
         processing_time: response.data.processing_time
       };
