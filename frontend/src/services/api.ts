@@ -303,7 +303,8 @@ export const analyzePrompt = async (
       const orchestratorPayload = {
         query: payload.prompt,
         analysis_type: payload.pattern || 'comprehensive',
-        options: payload.options || {}
+        options: payload.options || {},
+        selected_models: payload.selected_models
       };
 
       console.log('Sending orchestrator request with payload:', orchestratorPayload);
