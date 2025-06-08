@@ -1,7 +1,6 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import apiClient from '../../services/api'; // Import the configured axios instance
 import { endpoints } from '../../services/api'; // Import endpoints definition
-import axios from 'axios';
 
 // Define types
 export interface Document {
@@ -41,9 +40,9 @@ export const fetchDocuments = createAsyncThunk<
     console.log('Fetching documents from:', endpoints.documents.getAll);
     console.log('API client base URL:', apiClient.defaults.baseURL);
 
-    // HARDCODED: Force the correct URL with port 8000
-    const response = await axios.get<Document[]>(
-      'http://localhost:8000/api/documents'
+    // Use the configured API client instead of hardcoded localhost
+    const response = await apiClient.get<Document[]>(
+      endpoints.documents.getAll
     );
     return response.data; // Return the fetched documents
   } catch (error: any) {
@@ -63,9 +62,9 @@ export const uploadDocument = createAsyncThunk(
       const formData = new FormData();
       formData.append('file', file);
 
-      // HARDCODED: Force the correct URL with port 8000
-      const response = await axios.post(
-        'http://localhost:8000/api/upload-document',
+      // Use the configured API client instead of hardcoded localhost
+      const response = await apiClient.post(
+        endpoints.documents.upload,
         formData,
         {
           headers: {
@@ -96,8 +95,8 @@ export const deleteDocument = createAsyncThunk(
   'documents/deleteDocument',
   async (documentId: string, { rejectWithValue }) => {
     try {
-      // HARDCODED: Force the correct URL with port 8000
-      await axios.delete(`http://localhost:8000/api/documents/${documentId}`);
+      // Use the configured API client instead of hardcoded localhost
+      await apiClient.delete(endpoints.documents.delete(documentId));
       return documentId;
     } catch (error: any) {
       console.error('Failed to delete document:', error);
