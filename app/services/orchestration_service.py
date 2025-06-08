@@ -73,19 +73,19 @@ class OrchestrationService:
             PipelineStage(
                 name="initial_response",
                 description="Initial response generation from multiple models",
-                required_models=["claude-3-haiku"],  # Default fallback
+                required_models=["claude-3-5-sonnet-20241022"],  # Premium default fallback
                 timeout_seconds=30,
             ),
             PipelineStage(
                 name="meta_analysis",
                 description="Meta-analysis of initial responses",
-                required_models=["claude-3-haiku"],  # Default fallback
+                required_models=["claude-3-5-sonnet-20241022"],  # Premium default fallback
                 timeout_seconds=45,
             ),
             PipelineStage(
                 name="ultra_synthesis",
                 description="Ultra-synthesis of meta-analysis results",
-                required_models=["claude-3-haiku"],  # Default fallback
+                required_models=["claude-3-5-sonnet-20241022"],  # Premium default fallback
                 timeout_seconds=60,
             ),
         ]
@@ -399,7 +399,7 @@ If you believe you can make a better response considering these other perspectiv
 Enhanced Response:"""
 
         # Use the first available model for meta-analysis
-        analysis_model = models[0] if models else "claude-3-haiku"
+        analysis_model = models[0] if models else "claude-3-5-sonnet-20241022"
         
         try:
             # Call the same model infrastructure as initial_response
@@ -461,7 +461,7 @@ Your Ultra Synthesis should maximize intelligence multiplication by leveraging t
 Ultra Synthesis™:"""
 
         # Use the first available model for synthesis
-        synthesis_model = models[0] if models else "claude-3-haiku"
+        synthesis_model = models[0] if models else "claude-3-5-sonnet-20241022"
         
         try:
             # Call the model infrastructure
