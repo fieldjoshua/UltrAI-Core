@@ -312,77 +312,24 @@ class OrchestrationService:
                         logger.warning(f"❌ Error response from {model}: {result.get('generated_text', '')}")
                         continue
                 elif "/" in model:  # HuggingFace model ID format (org/model-name)
-                    # HuggingFace models - try direct API first (free tier), then adapter if available
+                    # HuggingFace models - require API key for real responses
                     api_key = os.getenv("HUGGINGFACE_API_KEY")
                     
-                    # Direct HuggingFace Inference API (works without API key on free tier)
+                    if not api_key:
+                        logger.error(f"HuggingFace API key required for {model}. Set HUGGINGFACE_API_KEY environment variable.")
+                        continue
+                    
                     try:
-                        import httpx
-                        
-                        headers = {"Content-Type": "application/json"}
-                        if api_key:
-                            headers["Authorization"] = f"Bearer {api_key}"
-                        
-                        async with httpx.AsyncClient() as client:
-                            # Enhanced prompt for better responses
-                            enhanced_prompt = f"Question: {prompt}\n\nProvide a detailed, professional analysis:\n"
-                            
-                            hf_response = await client.post(
-                                f"https://api-inference.huggingface.co/models/{model}",
-                                json={
-                                    "inputs": enhanced_prompt,
-                                    "parameters": {
-                                        "max_new_tokens": 500,
-                                        "temperature": 0.7,
-                                        "do_sample": True,
-                                        "return_full_text": False
-                                    }
-                                },
-                                headers=headers,
-                                timeout=45.0
-                            )
-                            
-                            if hf_response.status_code == 200:
-                                hf_data = hf_response.json()
-                                
-                                if isinstance(hf_data, list) and len(hf_data) > 0:
-                                    generated_text = hf_data[0].get('generated_text', '')
-                                    # Clean up the response
-                                    cleaned_response = generated_text.replace(enhanced_prompt, '').strip()
-                                    if len(cleaned_response) > 20:  # Ensure substantial response
-                                        responses[model] = cleaned_response
-                                        logger.info(f"✅ Successfully got real response from {model} ({len(cleaned_response)} chars)")
-                                        continue
-                                    else:
-                                        logger.warning(f"Response too short from {model}, trying fallback")
-                                elif isinstance(hf_data, dict) and 'error' in hf_data:
-                                    logger.warning(f"HuggingFace API error for {model}: {hf_data['error']}")
-                                else:
-                                    logger.warning(f"Unexpected HuggingFace response format for {model}: {type(hf_data)}")
-                            elif hf_response.status_code == 503:
-                                logger.warning(f"Model {model} is loading, will try adapter fallback")
-                            else:
-                                logger.warning(f"HuggingFace API failed for {model}: {hf_response.status_code}")
-                                
-                    except Exception as hf_error:
-                        logger.warning(f"HuggingFace direct API error for {model}: {str(hf_error)}")
-                    
-                    # Fallback to adapter if direct API failed and we have an API key
-                    if api_key and model not in responses:
-                        try:
-                            adapter = HuggingFaceAdapter(api_key, model)
-                            result = await adapter.generate(prompt)
-                            if "Error:" not in result.get("generated_text", ""):
-                                responses[model] = result.get("generated_text", "Response generated successfully")
-                                logger.info(f"✅ Successfully got response from {model} via adapter fallback")
-                            else:
-                                logger.warning(f"HuggingFace adapter also failed for {model}")
-                        except Exception as e:
-                            logger.warning(f"HuggingFace adapter failed for {model}: {str(e)}")
-                    
-                    # Skip if neither approach worked
-                    if model not in responses:
-                        logger.warning(f"All HuggingFace approaches failed for {model}")
+                        adapter = HuggingFaceAdapter(api_key, model)
+                        result = await adapter.generate(prompt)
+                        if "Error:" not in result.get("generated_text", ""):
+                            responses[model] = result.get("generated_text", "Response generated successfully")
+                            logger.info(f"✅ Successfully got response from {model}")
+                        else:
+                            logger.warning(f"❌ Error response from {model}: {result.get('generated_text', '')}")
+                            continue
+                    except Exception as e:
+                        logger.error(f"HuggingFace adapter failed for {model}: {str(e)}")
                         continue
                 else:
                     logger.warning(f"Unknown model type or no API configuration: {model}")
