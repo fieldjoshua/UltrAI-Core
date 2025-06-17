@@ -422,27 +422,43 @@ class OrchestrationService:
                 if mapped_model.startswith("gpt") or mapped_model.startswith("o1"):
                     api_key = os.getenv("OPENAI_API_KEY")
                     if not api_key:
+                        # In TESTING mode, return stubbed response instead of error so downstream stages have content
+                        if os.getenv("TESTING") == "true":
+                            logger.info(
+                                f"🧪 TESTING mode – providing stubbed OpenAI response for {model}"
+                            )
+                            return model, {
+                                "generated_text": "Stubbed OpenAI response generated for testing purposes. This placeholder mimics a real model output so that pipeline synthesis logic can proceed without external API access."
+                            }
                         logger.warning(f"No OpenAI API key found for {model}, skipping")
                         return model, {"error": "No API key"}
-                    adapter = OpenAIAdapter(api_key, mapped_model)
-                    result = await adapter.generate(prompt)
-                    if "Error:" not in result.get("generated_text", ""):
-                        logger.info(
-                            f"✅ Successfully got response from {model} (using {mapped_model})"
-                        )
-                        return model, {
-                            "generated_text": result.get(
-                                "generated_text", "Response generated successfully"
+                    adapter = OpenAIAdapter(api_key, mapped_model) if api_key else None
+                    if adapter:
+                        result = await adapter.generate(prompt)
+                        if "Error:" not in result.get("generated_text", ""):
+                            logger.info(
+                                f"✅ Successfully got response from {model} (using {mapped_model})"
                             )
-                        }
-                    else:
-                        logger.warning(
-                            f"❌ Error response from {model}: {result.get('generated_text', '')}"
-                        )
-                        return model, {"error": result.get("generated_text", "")}
+                            return model, {
+                                "generated_text": result.get(
+                                    "generated_text", "Response generated successfully"
+                                )
+                            }
+                        else:
+                            logger.warning(
+                                f"❌ Error response from {model}: {result.get('generated_text', '')}"
+                            )
+                            return model, {"error": result.get("generated_text", "")}
                 elif model.startswith("claude"):
                     api_key = os.getenv("ANTHROPIC_API_KEY")
                     if not api_key:
+                        if os.getenv("TESTING") == "true":
+                            logger.info(
+                                f"🧪 TESTING mode – providing stubbed Anthropic response for {model}"
+                            )
+                            return model, {
+                                "generated_text": "Stubbed Anthropic response generated for testing purposes. This placeholder simulates actual model output enabling full pipeline flow without API access."
+                            }
                         logger.warning(
                             f"No Anthropic API key found for {model}, skipping"
                         )
@@ -472,8 +488,14 @@ class OrchestrationService:
                 elif model.startswith("gemini"):
                     api_key = os.getenv("GOOGLE_API_KEY")
                     if not api_key:
-                        logger.warning(f"No Google API key found for {model}, skipping")
-                        return model, {"error": "No API key"}
+                        if os.getenv("TESTING") == "true":
+                            logger.info(
+                                f"🧪 TESTING mode – providing stubbed Gemini response for {model}"
+                            )
+                            return model, {
+                                "generated_text": "Stubbed Gemini response generated for testing mode."
+                            }
+                        return model, {"error": "No Google API key"}
                     # Fix model name mapping for Gemini
                     mapped_model = model
                     if model == "gemini-pro":
@@ -503,6 +525,13 @@ class OrchestrationService:
                     api_key = os.getenv("HUGGINGFACE_API_KEY")
 
                     if not api_key:
+                        if os.getenv("TESTING") == "true":
+                            logger.info(
+                                f"🧪 TESTING mode – providing stubbed HF response for {model}"
+                            )
+                            return model, {
+                                "generated_text": "Stubbed HuggingFace response for testing."
+                            }
                         logger.error(
                             f"HuggingFace API key required for {model}. Set HUGGINGFACE_API_KEY environment variable."
                         )
