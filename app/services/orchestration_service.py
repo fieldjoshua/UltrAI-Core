@@ -602,11 +602,7 @@ class OrchestrationService:
                 # Provide fallback text in test mode so pipeline can proceed
                 error_msg = output.get("error", "Unknown error")
                 if os.getenv("TESTING") == "true":
-                    fallback_text = (
-                        "Request rate-limited. Please retry."
-                        if "rate" in error_msg.lower()
-                        else "Stubbed response"
-                    )
+                    fallback_text = "Stubbed response"
                     responses[model] = fallback_text
                     logger.info(f"⚠️ Using fallback response for {model} in test mode")
                 else:
