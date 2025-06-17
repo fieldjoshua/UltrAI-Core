@@ -83,7 +83,8 @@ def test_live_ultra_synthesis_via_ui(page: Page):
         else None
     ) or {}
 
-    attempted = set(responses.keys())
+    meta_attempted = set(initial.get("models_attempted", []))
+    attempted = meta_attempted or set(responses.keys())
     succeeded = {
         m
         for m, txt in responses.items()
