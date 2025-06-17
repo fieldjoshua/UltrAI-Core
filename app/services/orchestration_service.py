@@ -292,7 +292,7 @@ class OrchestrationService:
         async def execute_model(model: str) -> tuple[str, dict]:
             """Execute a single model and return (model_name, result)"""
             try:
-                if model.startswith("gpt"):
+                if model.startswith("gpt") or model.startswith("o1"):
                     api_key = os.getenv("OPENAI_API_KEY")
                     if not api_key:
                         logger.warning(f"No OpenAI API key found for {model}, skipping")
@@ -314,6 +314,10 @@ class OrchestrationService:
                     mapped_model = model
                     if model == "claude-3-sonnet":
                         mapped_model = "claude-3-sonnet-20240229"
+                    elif model == "claude-3-5-sonnet-20241022":
+                        mapped_model = "claude-3-5-sonnet-20241022"
+                    elif model == "claude-3-5-haiku-20241022":
+                        mapped_model = "claude-3-5-haiku-20241022"
                     adapter = AnthropicAdapter(api_key, mapped_model)
                     result = await adapter.generate(prompt)
                     if "Error:" not in result.get("generated_text", ""):
@@ -331,6 +335,12 @@ class OrchestrationService:
                     mapped_model = model
                     if model == "gemini-pro":
                         mapped_model = "gemini-1.5-pro"
+                    elif model == "gemini-2.0-flash-exp":
+                        mapped_model = "gemini-2.0-flash-exp"
+                    elif model == "gemini-1.5-pro":
+                        mapped_model = "gemini-1.5-pro"
+                    elif model == "gemini-1.5-flash":
+                        mapped_model = "gemini-1.5-flash"
                     adapter = GeminiAdapter(api_key, mapped_model)
                     result = await adapter.generate(prompt)
                     if "Error:" not in result.get("generated_text", ""):
@@ -467,7 +477,7 @@ Instructions: You have now seen how other AI models responded to the same query.
 Please provide your revised response. If you believe your original response was already optimal, you may keep it unchanged, but please explain briefly why you think it stands well against the peer responses."""
 
                 # Execute the peer review using the same model adapters as initial_response
-                if model.startswith("gpt"):
+                if model.startswith("gpt") or model.startswith("o1"):
                     api_key = os.getenv("OPENAI_API_KEY")
                     if not api_key:
                         return model, {"error": "No OpenAI API key"}
@@ -482,6 +492,10 @@ Please provide your revised response. If you believe your original response was 
                     mapped_model = model
                     if model == "claude-3-sonnet":
                         mapped_model = "claude-3-sonnet-20240229"
+                    elif model == "claude-3-5-sonnet-20241022":
+                        mapped_model = "claude-3-5-sonnet-20241022"
+                    elif model == "claude-3-5-haiku-20241022":
+                        mapped_model = "claude-3-5-haiku-20241022"
                     adapter = AnthropicAdapter(api_key, mapped_model)
                     result = await adapter.generate(peer_review_prompt)
                     
@@ -493,6 +507,12 @@ Please provide your revised response. If you believe your original response was 
                     mapped_model = model
                     if model == "gemini-pro":
                         mapped_model = "gemini-1.5-pro"
+                    elif model == "gemini-2.0-flash-exp":
+                        mapped_model = "gemini-2.0-flash-exp"
+                    elif model == "gemini-1.5-pro":
+                        mapped_model = "gemini-1.5-pro"
+                    elif model == "gemini-1.5-flash":
+                        mapped_model = "gemini-1.5-flash"
                     adapter = GeminiAdapter(api_key, mapped_model)
                     result = await adapter.generate(peer_review_prompt)
                     
@@ -634,7 +654,7 @@ Enhanced Response:"""
                     "stage": "meta_analysis",
                     "analysis": meta_response,
                     "model_used": analysis_model,
-                    "source_models": list(initial_responses.keys()),
+                    "source_models": list(responses_to_analyze.keys()),
                     "input_data": data
                 }
             else:

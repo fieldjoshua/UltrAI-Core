@@ -47,19 +47,49 @@ def create_router() -> APIRouter:
         try:
             # Default model configurations (fallback if registry not available)
             default_models = [
+                # OpenAI Modern Models
                 ModelInfo(
-                    name="gpt-4",
+                    name="gpt-4o",
                     provider="openai", 
                     status="available",
-                    max_tokens=8192,
-                    cost_per_1k_tokens=0.03
+                    max_tokens=128000,
+                    cost_per_1k_tokens=0.005
                 ),
                 ModelInfo(
-                    name="gpt-4-turbo",
+                    name="gpt-4o-mini",
                     provider="openai",
                     status="available", 
                     max_tokens=128000,
-                    cost_per_1k_tokens=0.01
+                    cost_per_1k_tokens=0.00015
+                ),
+                ModelInfo(
+                    name="o1-preview",
+                    provider="openai",
+                    status="available", 
+                    max_tokens=128000,
+                    cost_per_1k_tokens=0.015
+                ),
+                ModelInfo(
+                    name="o1-mini",
+                    provider="openai",
+                    status="available", 
+                    max_tokens=65536,
+                    cost_per_1k_tokens=0.003
+                ),
+                # Anthropic Modern Models  
+                ModelInfo(
+                    name="claude-3-5-sonnet-20241022",
+                    provider="anthropic",
+                    status="available",
+                    max_tokens=200000,
+                    cost_per_1k_tokens=0.003
+                ),
+                ModelInfo(
+                    name="claude-3-5-haiku-20241022",
+                    provider="anthropic",
+                    status="available",
+                    max_tokens=200000,
+                    cost_per_1k_tokens=0.0008
                 ),
                 ModelInfo(
                     name="claude-3-sonnet",
@@ -68,19 +98,27 @@ def create_router() -> APIRouter:
                     max_tokens=200000,
                     cost_per_1k_tokens=0.003
                 ),
+                # Google Modern Models
                 ModelInfo(
-                    name="claude-3-haiku",
-                    provider="anthropic",
-                    status="available",
-                    max_tokens=200000,
-                    cost_per_1k_tokens=0.00025
-                ),
-                ModelInfo(
-                    name="gemini-pro",
+                    name="gemini-2.0-flash-exp",
                     provider="google",
                     status="available",
-                    max_tokens=32768,
-                    cost_per_1k_tokens=0.0005
+                    max_tokens=1000000,
+                    cost_per_1k_tokens=0.00075
+                ),
+                ModelInfo(
+                    name="gemini-1.5-pro",
+                    provider="google",
+                    status="available",
+                    max_tokens=2000000,
+                    cost_per_1k_tokens=0.00125
+                ),
+                ModelInfo(
+                    name="gemini-1.5-flash",
+                    provider="google",
+                    status="available",
+                    max_tokens=1000000,
+                    cost_per_1k_tokens=0.000075
                 ),
                 # HuggingFace models - free tier
                 ModelInfo(
