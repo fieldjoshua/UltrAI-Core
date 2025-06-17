@@ -18,16 +18,36 @@ logger = get_logger("database", "logs/database.log")
 
 # Database connection configuration
 # Priority: use DATABASE_URL if provided (Render managed service), otherwise use individual vars
-DATABASE_URL = os.environ.get("DATABASE_URL")
+# Render might use different variable names for managed databases
+possible_db_url_vars = [
+    "DATABASE_URL",          # Standard PostgreSQL URL
+    "POSTGRES_URL",          # Alternative naming
+    "POSTGRESQL_URL",        # Another alternative
+    "DATABASE_CONNECTION_STRING",  # Descriptive naming
+    "DB_URL"                 # Short form
+]
+
+DATABASE_URL = None
+found_var_name = None
+
+for var_name in possible_db_url_vars:
+    DATABASE_URL = os.environ.get(var_name)
+    if DATABASE_URL:
+        found_var_name = var_name
+        break
 
 # Debug logging to understand what's happening
-logger.info(f"DATABASE_URL environment variable: {'SET' if DATABASE_URL else 'NOT SET'}")
+logger.info(f"Database environment variables checked: {possible_db_url_vars}")
 if DATABASE_URL:
+    logger.info(f"Found database URL in variable: {found_var_name}")
     # Don't log the full URL for security, just confirm it's not localhost
     is_localhost = "localhost" in DATABASE_URL.lower() or "127.0.0.1" in DATABASE_URL
-    logger.info(f"DATABASE_URL points to localhost: {is_localhost}")
+    logger.info(f"Database URL points to localhost: {is_localhost}")
 else:
-    logger.warning("DATABASE_URL not found in environment variables, using individual DB_* variables")
+    logger.warning("No database URL found in any environment variables, using individual DB_* variables")
+    # Log available environment variables that might be database-related
+    db_related_vars = [k for k in os.environ.keys() if any(keyword in k.upper() for keyword in ["DB", "DATABASE", "POSTGRES"])]
+    logger.info(f"Available database-related environment variables: {db_related_vars}")
 
 if not DATABASE_URL:
     # Fallback to individual environment variables for local development

@@ -41,9 +41,9 @@ class TestOpenAIAdapter:
     
     def test_openai_adapter_initialization(self):
         """Test OpenAI adapter initialization."""
-        adapter = OpenAIAdapter("test-key", "gpt-3.5-turbo")
+        adapter = OpenAIAdapter("test-key", "gpt-4")
         assert adapter.api_key == "test-key"
-        assert adapter.model == "gpt-3.5-turbo"
+        assert adapter.model == "gpt-4"
     
     @pytest.mark.asyncio
     async def test_openai_adapter_successful_response(self):
@@ -62,7 +62,7 @@ class TestOpenAIAdapter:
         with patch('app.services.llm_adapters.CLIENT.post', new_callable=AsyncMock) as mock_post:
             mock_post.return_value = mock_response
             
-            adapter = OpenAIAdapter("test-key", "gpt-3.5-turbo")
+            adapter = OpenAIAdapter("test-key", "gpt-4")
             result = await adapter.generate("Test prompt")
             
             assert result["generated_text"] == "Test response from OpenAI"
@@ -72,7 +72,7 @@ class TestOpenAIAdapter:
             call_args = mock_post.call_args
             assert call_args[0][0] == "https://api.openai.com/v1/chat/completions"
             assert call_args[1]["headers"]["Authorization"] == "Bearer test-key"
-            assert call_args[1]["json"]["model"] == "gpt-3.5-turbo"
+            assert call_args[1]["json"]["model"] == "gpt-4"
     
     @pytest.mark.asyncio
     async def test_openai_adapter_authentication_error(self):
@@ -87,7 +87,7 @@ class TestOpenAIAdapter:
                 response=mock_response
             )
             
-            adapter = OpenAIAdapter("invalid-key", "gpt-3.5-turbo")
+            adapter = OpenAIAdapter("invalid-key", "gpt-4")
             result = await adapter.generate("Test prompt")
             
             assert "Error: OpenAI API authentication failed" in result["generated_text"]
@@ -116,7 +116,7 @@ class TestOpenAIAdapter:
         with patch('app.services.llm_adapters.CLIENT.post', new_callable=AsyncMock) as mock_post:
             mock_post.side_effect = httpx.ReadTimeout("Request timed out")
             
-            adapter = OpenAIAdapter("test-key", "gpt-3.5-turbo")
+            adapter = OpenAIAdapter("test-key", "gpt-4")
             result = await adapter.generate("Test prompt")
             
             assert "Error: OpenAI request timed out" in result["generated_text"]
@@ -127,9 +127,9 @@ class TestAnthropicAdapter:
     
     def test_anthropic_adapter_initialization(self):
         """Test Anthropic adapter initialization."""
-        adapter = AnthropicAdapter("test-key", "claude-3-haiku")
+        adapter = AnthropicAdapter("test-key", "claude-3-5-sonnet-20241022")
         assert adapter.api_key == "test-key"
-        assert adapter.model == "claude-3-haiku"
+        assert adapter.model == "claude-3-5-sonnet-20241022"
     
     @pytest.mark.asyncio
     async def test_anthropic_adapter_successful_response(self):
@@ -146,7 +146,7 @@ class TestAnthropicAdapter:
         with patch('app.services.llm_adapters.CLIENT.post', new_callable=AsyncMock) as mock_post:
             mock_post.return_value = mock_response
             
-            adapter = AnthropicAdapter("test-key", "claude-3-haiku")
+            adapter = AnthropicAdapter("test-key", "claude-3-5-sonnet-20241022")
             result = await adapter.generate("Test prompt")
             
             assert result["generated_text"] == "Test response from Claude"
@@ -171,7 +171,7 @@ class TestAnthropicAdapter:
                 response=mock_response
             )
             
-            adapter = AnthropicAdapter("invalid-key", "claude-3-haiku")
+            adapter = AnthropicAdapter("invalid-key", "claude-3-5-sonnet-20241022")
             result = await adapter.generate("Test prompt")
             
             assert "Error: Anthropic API authentication failed" in result["generated_text"]
@@ -200,9 +200,9 @@ class TestGeminiAdapter:
     
     def test_gemini_adapter_initialization(self):
         """Test Gemini adapter initialization."""
-        adapter = GeminiAdapter("test-key", "gemini-pro")
+        adapter = GeminiAdapter("test-key", "gemini-1.5-pro")
         assert adapter.api_key == "test-key"
-        assert adapter.model == "gemini-pro"
+        assert adapter.model == "gemini-1.5-pro"
     
     @pytest.mark.asyncio
     async def test_gemini_adapter_successful_response(self):
@@ -223,7 +223,7 @@ class TestGeminiAdapter:
         with patch('app.services.llm_adapters.CLIENT.post', new_callable=AsyncMock) as mock_post:
             mock_post.return_value = mock_response
             
-            adapter = GeminiAdapter("test-key", "gemini-pro")
+            adapter = GeminiAdapter("test-key", "gemini-1.5-pro")
             result = await adapter.generate("Test prompt")
             
             assert result["generated_text"] == "Test response from Gemini"
@@ -247,7 +247,7 @@ class TestGeminiAdapter:
                 response=mock_response
             )
             
-            adapter = GeminiAdapter("invalid-key", "gemini-pro")
+            adapter = GeminiAdapter("invalid-key", "gemini-1.5-pro")
             result = await adapter.generate("Test prompt")
             
             assert "Error: Google Gemini API authentication failed" in result["generated_text"]
@@ -276,9 +276,9 @@ class TestHuggingFaceAdapter:
     
     def test_huggingface_adapter_initialization(self):
         """Test HuggingFace adapter initialization."""
-        adapter = HuggingFaceAdapter("test-key", "meta-llama/Llama-2-7b-chat-hf")
+        adapter = HuggingFaceAdapter("test-key", "meta-llama/Meta-Llama-3.1-70B-Instruct")
         assert adapter.api_key == "test-key"
-        assert adapter.model_id == "meta-llama/Llama-2-7b-chat-hf"
+        assert adapter.model_id == "meta-llama/Meta-Llama-3.1-70B-Instruct"
     
     @pytest.mark.asyncio
     async def test_huggingface_adapter_successful_response(self):
@@ -293,7 +293,7 @@ class TestHuggingFaceAdapter:
         with patch('app.services.llm_adapters.CLIENT.post', new_callable=AsyncMock) as mock_post:
             mock_post.return_value = mock_response
             
-            adapter = HuggingFaceAdapter("test-key", "google/flan-t5-small")
+            adapter = HuggingFaceAdapter("test-key", "meta-llama/Meta-Llama-3.1-70B-Instruct")
             result = await adapter.generate("Test prompt")
             
             assert result["generated_text"] == "Test response from HuggingFace model"
@@ -317,7 +317,7 @@ class TestHuggingFaceAdapter:
                 response=mock_response
             )
             
-            adapter = HuggingFaceAdapter("test-key", "meta-llama/Llama-2-7b-chat-hf")
+            adapter = HuggingFaceAdapter("test-key", "meta-llama/Meta-Llama-3.1-70B-Instruct")
             result = await adapter.generate("Test prompt")
             
             assert "Model is loading on HuggingFace" in result["generated_text"]
@@ -334,7 +334,7 @@ class TestHuggingFaceAdapter:
             mock_post.return_value = mock_response
             
             # Test Llama chat model
-            adapter = HuggingFaceAdapter("test-key", "meta-llama/Llama-2-7b-chat-hf")
+            adapter = HuggingFaceAdapter("test-key", "meta-llama/Meta-Llama-3.1-70B-Instruct")
             await adapter.generate("Test prompt")
             
             # Verify chat formatting
@@ -370,17 +370,17 @@ class TestLLMAdapterIntegration:
             with patch.dict('os.environ', {'OPENAI_API_KEY': 'test-key'}):
                 result = await orchestrator.initial_response(
                     "Test query", 
-                    ["gpt-3.5-turbo"], 
+                    ["gpt-4"], 
                     {}
                 )
                 
                 # Verify adapter was called correctly
-                mock_openai.assert_called_once_with("test-key", "gpt-3.5-turbo")
+                mock_openai.assert_called_once_with("test-key", "gpt-4")
                 mock_instance.generate.assert_called_once()
                 
                 # Verify response structure
                 assert "responses" in result
-                assert "gpt-3.5-turbo" in result["responses"]
+                assert "gpt-4" in result["responses"]
 
 
 @pytest.mark.e2e
@@ -397,7 +397,7 @@ class TestProductionAPIIntegration:
         if not api_key:
             pytest.skip("No OpenAI API key available for production test")
         
-        adapter = OpenAIAdapter(api_key, "gpt-3.5-turbo")
+        adapter = OpenAIAdapter(api_key, "gpt-4")
         result = await adapter.generate("What is 2+2?")
         
         # Verify real response
@@ -415,7 +415,7 @@ class TestProductionAPIIntegration:
         if not api_key:
             pytest.skip("No Anthropic API key available for production test")
         
-        adapter = AnthropicAdapter(api_key, "claude-3-haiku")
+        adapter = AnthropicAdapter(api_key, "claude-3-5-sonnet-20241022")
         result = await adapter.generate("What is the capital of France?")
         
         # Verify real response

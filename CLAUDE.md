@@ -27,6 +27,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `pytest tests/ -m "integration" -v` - Run only integration tests
 - `pytest tests/ -m "e2e" -v` - Run only end-to-end tests
 
+### Poetry Commands (Python Dependency Management)
+- `poetry install` - Install all dependencies from poetry.lock
+- `poetry run pytest` - Run tests in Poetry environment
+- `poetry add package_name` - Add new dependency
+- `poetry show --outdated` - Check for outdated packages
+
 ## Architecture Overview
 
 ### Core Application Structure
@@ -113,10 +119,11 @@ def initialize_services() -> Dict[str, Any]:
     return {"model_registry": model_registry, "prompt_service": prompt_service, "orchestration_service": orchestration_service}
 ```
 
-**Application Entry Points**:
-- `app_production.py` - Production entry point used by Render
-- `app/main.py` - Application factory with service initialization
-- `app/app.py` - FastAPI app configuration and route mounting
+**Critical Architecture Patterns**:
+- **Dependency Injection**: Services initialized in `main.py` and passed to routes
+- **Shared HTTP Client**: All LLM adapters use single `httpx.AsyncClient` with 25s timeout
+- **Graceful Degradation**: Optional services (database, cache) fail gracefully when unavailable
+- **Environment-Based Configuration**: Dev vs prod modes control feature availability
 
 ### Adding New Features
 1. Create route handler in `app/routes/`
@@ -140,6 +147,12 @@ def initialize_services() -> Dict[str, Any]:
 - Services gracefully degrade when optional dependencies unavailable
 - Rate limiter auto-registers new models dynamically
 - Frontend served as static files from `/frontend/dist/` when built
+
+**Application Entry Points**:
+- `app_development.py` - Development entry point (minimal deps, fast startup)
+- `app_production.py` - Production entry point used by Render
+- `app/main.py` - Application factory with service initialization
+- `app/app.py` - FastAPI app configuration and route mounting
 
 ## Testing Strategy
 
@@ -203,3 +216,20 @@ def initialize_services() -> Dict[str, Any]:
 **Data Models**: `app/models/` defines application vocabulary through Pydantic (API validation) and SQLAlchemy (database) models
 
 **Middleware**: `app/middleware/` handles cross-cutting concerns (auth, CSRF, security headers) for every request/response
+
+## Key Development Patterns
+
+### Error Handling Strategy
+- All LLM adapters inherit from `BaseAdapter` with consistent error handling
+- Services return structured responses with error details
+- Frontend uses error boundaries (`ErrorFallback`) for graceful degradation
+
+### Testing Strategy Integration
+- Use test markers: `@pytest.mark.unit`, `@pytest.mark.integration`, `@pytest.mark.e2e`
+- Async tests auto-detected with `asyncio_mode = auto` in pytest.ini
+- Production verification required before completing any deployment-related work
+
+### Mock Development Mode
+- `USE_MOCK=true` enables mock responses for development without API keys
+- All services support mock mode for faster development iteration
+- Mock responses maintained in service implementations

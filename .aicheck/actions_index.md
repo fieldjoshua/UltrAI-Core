@@ -6,6 +6,8 @@ This document tracks all ACTIONS in the PROJECT. All ACTIONS must be registered 
 
 | ACTION                      | Owner | Status      | Progress | Description |
 | --------------------------- | ----- | ----------- | -------- | ----------- |
+| multi-provider-model-troubleshooting | | Not Started | 0% | |
+| ultrai-production-readiness | | Not Started | 0% | |
 | create-comprehensive-orchestrator-tests | | Not Started | 0% | |
 | implement-ultra-synthesis-proper | | Not Started | 0% | |
 | fix-orchestrator-real-models | | Not Started | 0% | |
@@ -17,6 +19,8 @@ This document tracks all ACTIONS in the PROJECT. All ACTIONS must be registered 
 
 | ACTION                           | Owner | Completion Date | Description                                                                                                                    |
 | -------------------------------- | ----- | --------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| ultrai-production-readiness | | 2025-06-16 | |
+| create-comprehensive-orchestrator-tests | | 2025-06-16 | |
 | fix-orchestrator-real-models | | 2025-06-07 | |
 | build-frontend-shell | | 2025-06-07 | |
 | fix-core-functionality | | 2025-06-07 | |
