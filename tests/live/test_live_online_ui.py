@@ -46,8 +46,15 @@ def test_live_ultra_synthesis_via_ui(page: Page):
     assert ultra, "ultra_synthesis missing in live response"
     assert ultra.get("error") is None, f"Ultra-Synthesis error: {ultra.get('error')}"
 
-    synthesis_text = ultra.get("synthesis") or ultra.get("output") or ""
-    assert len(synthesis_text.split()) >= 20, "Synthesis text unexpectedly short (live)"
+    synthesis_val = ultra.get("synthesis") or ultra.get("output") or ""
+    if isinstance(synthesis_val, dict):
+        synthesis_text = synthesis_val.get("content") or synthesis_val.get("text") or ""
+    else:
+        synthesis_text = synthesis_val
+
+    assert (
+        isinstance(synthesis_text, str) and len(synthesis_text.split()) >= 20
+    ), "Synthesis text unexpectedly short (live)"
 
     # 6. Confirm UI rendered some of the synthesis
     if page.locator("[data-testid='ultra-synthesis']").count():
