@@ -39,6 +39,7 @@ def create_app() -> FastAPI:
     from app.routes.oauth_routes import oauth_router
     from app.routes.recovery_routes import recovery_router
     from app.routes.debug_routes import router as debug_router
+    from app.routes.debug_env_routes import router as debug_env_router
     from app.routes.metrics import metrics_router
 
     # Register API routers under /api prefix
@@ -55,6 +56,7 @@ def create_app() -> FastAPI:
     app.include_router(oauth_router, prefix=api_prefix)
     app.include_router(recovery_router, prefix=api_prefix)
     app.include_router(debug_router, prefix=api_prefix)
+    app.include_router(debug_env_router, prefix=api_prefix)
     app.include_router(metrics_router, prefix=api_prefix)
     
     # Serve frontend static files
