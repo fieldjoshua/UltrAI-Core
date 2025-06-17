@@ -77,25 +77,25 @@ class OrchestrationService:
                 name="initial_response",
                 description="Initial response generation from multiple models in parallel",
                 required_models=[],  # Uses user-selected models
-                timeout_seconds=30,
+                timeout_seconds=60,
             ),
             PipelineStage(
                 name="peer_review_and_revision", 
                 description="Each model reviews peer responses and revises their own answer",
                 required_models=[],  # Uses same models as initial_response
-                timeout_seconds=45,
+                timeout_seconds=90,
             ),
             PipelineStage(
                 name="meta_analysis",
                 description="Meta-analysis of peer-revised responses",
                 required_models=[],  # Uses lead model from selection
-                timeout_seconds=45,
+                timeout_seconds=60,
             ),
             PipelineStage(
                 name="ultra_synthesis",
                 description="Ultra-synthesis of meta-analysis results for final intelligence multiplication",
                 required_models=[],  # Uses lead model from selection
-                timeout_seconds=60,
+                timeout_seconds=90,
             ),
         ]
 

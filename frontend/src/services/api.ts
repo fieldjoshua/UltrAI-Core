@@ -21,7 +21,7 @@ const apiClient: AxiosInstance = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
-  timeout: 60000, // 60 seconds for LLM analysis
+  timeout: 180000, // 3 minutes for Ultra Synthesis pipeline with multiple models
 });
 
 // Add retry interceptor (moved from component)
