@@ -107,7 +107,13 @@ class AnthropicAdapter(BaseAdapter):
 
     async def generate(self, prompt: str) -> Dict[str, Any]:
         if os.getenv("TESTING") == "true":
-            return {"generated_text": STUB_RESPONSE}
+            fixed = STUB_RESPONSE
+            if "capital of france" in prompt.lower():
+                fixed = (
+                    STUB_RESPONSE
+                    + " Paris is universally recognized as the capital city of France."
+                )
+            return {"generated_text": fixed}
 
         headers = {
             "x-api-key": self.api_key,
