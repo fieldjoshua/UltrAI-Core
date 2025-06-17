@@ -9,6 +9,8 @@ from dataclasses import dataclass
 from datetime import datetime
 import asyncio
 import os
+import json
+from pathlib import Path
 
 from app.services.quality_evaluation import QualityEvaluationService, ResponseQuality
 from app.services.rate_limiter import RateLimiter
@@ -181,6 +183,19 @@ class OrchestrationService:
                 amount=total_cost,
                 description=f"Pipeline execution cost: {', '.join(results.keys())}",
             )
+
+        # Save pipeline outputs if requested in options
+        save_outputs = options.get('save_outputs', False) if options else False
+        saved_files = {}
+        if save_outputs:
+            saved_files = await self._save_pipeline_outputs(results, input_data, selected_models, user_id)
+
+        # Add saved files info to results metadata
+        if saved_files:
+            results['_metadata'] = {
+                'saved_files': saved_files,
+                'save_outputs_requested': save_outputs
+            }
 
         return results
 
@@ -809,3 +824,122 @@ Response:"""
         """
         # TODO: Implement hyper-level analysis
         return {"stage": "hyper_level_analysis", "input": data}
+
+    async def _save_pipeline_outputs(
+        self, 
+        results: Dict[str, Any], 
+        input_data: Any, 
+        selected_models: Optional[List[str]] = None,
+        user_id: Optional[str] = None
+    ) -> Dict[str, str]:
+        """
+        Save pipeline outputs as JSON and TXT files.
+        
+        Args:
+            results: Pipeline results to save
+            input_data: Original input data
+            selected_models: Models used in the pipeline
+            user_id: Optional user ID for file naming
+            
+        Returns:
+            Dict[str, str]: Paths to the saved files (json_file, txt_file)
+        """
+        try:
+            # Create outputs directory if it doesn't exist
+            outputs_dir = Path("pipeline_outputs")
+            outputs_dir.mkdir(exist_ok=True)
+            
+            # Generate timestamp for unique filenames
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            user_prefix = f"{user_id}_" if user_id else ""
+            base_filename = f"{user_prefix}pipeline_{timestamp}"
+            
+            # Prepare data for saving
+            save_data = {
+                "timestamp": datetime.now().isoformat(),
+                "input_query": str(input_data),
+                "selected_models": selected_models or [],
+                "pipeline_results": {}
+            }
+            
+            # Extract readable results from each stage
+            for stage_name, stage_result in results.items():
+                if hasattr(stage_result, 'output') and stage_result.output:
+                    save_data["pipeline_results"][stage_name] = {
+                        "stage": stage_name,
+                        "output": stage_result.output,
+                        "success": stage_result.error is None,
+                        "error": stage_result.error,
+                        "performance": stage_result.performance_metrics
+                    }
+                else:
+                    save_data["pipeline_results"][stage_name] = {
+                        "stage": stage_name,
+                        "output": stage_result,
+                        "success": True,
+                        "error": None
+                    }
+            
+            # Save as JSON
+            json_file = outputs_dir / f"{base_filename}.json"
+            with open(json_file, 'w', encoding='utf-8') as f:
+                json.dump(save_data, f, indent=2, ensure_ascii=False, default=str)
+            
+            # Save as readable TXT
+            txt_file = outputs_dir / f"{base_filename}.txt"
+            with open(txt_file, 'w', encoding='utf-8') as f:
+                f.write("=" * 80 + "\n")
+                f.write("ULTRA SYNTHESIS™ PIPELINE RESULTS\n")
+                f.write("=" * 80 + "\n\n")
+                
+                f.write(f"Timestamp: {save_data['timestamp']}\n")
+                f.write(f"Input Query: {save_data['input_query']}\n")
+                f.write(f"Selected Models: {', '.join(save_data['selected_models'])}\n\n")
+                
+                # Write each stage output
+                for stage_name, stage_data in save_data["pipeline_results"].items():
+                    f.write("-" * 60 + "\n")
+                    f.write(f"STAGE: {stage_name.upper()}\n")
+                    f.write("-" * 60 + "\n")
+                    
+                    if stage_data.get("error"):
+                        f.write(f"ERROR: {stage_data['error']}\n\n")
+                    else:
+                        output = stage_data.get("output", {})
+                        
+                        # Handle different output formats
+                        if isinstance(output, dict):
+                            if stage_name == "initial_response" and "responses" in output:
+                                f.write("INITIAL RESPONSES:\n")
+                                for model, response in output["responses"].items():
+                                    f.write(f"\n{model}:\n{response}\n")
+                            elif stage_name == "peer_review_and_revision" and "revised_responses" in output:
+                                f.write("PEER-REVISED RESPONSES:\n")
+                                for model, response in output["revised_responses"].items():
+                                    f.write(f"\n{model} (Revised):\n{response}\n")
+                            elif stage_name == "meta_analysis" and "analysis" in output:
+                                f.write("META-ANALYSIS:\n")
+                                f.write(f"{output['analysis']}\n")
+                            elif stage_name == "ultra_synthesis" and "synthesis" in output:
+                                f.write("ULTRA SYNTHESIS™:\n")
+                                f.write(f"{output['synthesis']}\n")
+                            else:
+                                f.write(f"OUTPUT:\n{json.dumps(output, indent=2, default=str)}\n")
+                        else:
+                            f.write(f"OUTPUT:\n{str(output)}\n")
+                    
+                    f.write("\n")
+            
+            logger.info(f"✅ Pipeline outputs saved:")
+            logger.info(f"   JSON: {json_file}")
+            logger.info(f"   TXT:  {txt_file}")
+            
+            return {
+                "json_file": str(json_file),
+                "txt_file": str(txt_file)
+            }
+            
+        except Exception as e:
+            logger.error(f"Failed to save pipeline outputs: {str(e)}")
+            # Don't raise the exception - saving is optional
+            return {}
