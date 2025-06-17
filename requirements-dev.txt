@@ -1,0 +1,13 @@
+-r requirements-production.txt
+-r app/tests/requirements.txt
+
+# Linting / formatting
+black
+flake8
+isort
+
+# Type checking
+mypy
+
+# Pre-commit hooks
+pre-commit
