@@ -15,8 +15,8 @@ logger = logging.getLogger(__name__)
 
 # A single, shared async client for all adapters to use
 # This is best practice for performance and resource management.
-# Timeout is set to 25 seconds for all network operations.
-CLIENT = httpx.AsyncClient(timeout=25.0)
+# Timeout is set to 45 seconds for all network operations (Ultra Synthesis pipeline needs more time).
+CLIENT = httpx.AsyncClient(timeout=45.0)
 
 
 class BaseAdapter:
