@@ -8,11 +8,13 @@ from typing import Any, Dict, List, Optional
 from dataclasses import dataclass
 from datetime import datetime
 import asyncio
+import os
 
 from app.services.quality_evaluation import QualityEvaluationService, ResponseQuality
 from app.services.rate_limiter import RateLimiter
 from app.services.token_management_service import TokenManagementService
 from app.services.transaction_service import TransactionService
+from app.services.llm_adapters import OpenAIAdapter, AnthropicAdapter, GeminiAdapter, HuggingFaceAdapter
 from app.utils.logging import get_logger
 
 logger = get_logger("orchestration_service")
@@ -69,24 +71,30 @@ class OrchestrationService:
         self.token_manager = token_manager or TokenManagementService()
         self.transaction_service = transaction_service or TransactionService()
 
-        # Define pipeline stages according to patent (will be dynamically overridden)
+        # Define pipeline stages according to correct Ultra Synthesis™ architecture
         self.pipeline_stages = [
             PipelineStage(
                 name="initial_response",
-                description="Initial response generation from multiple models",
-                required_models=["claude-3-5-sonnet-20241022"],  # Premium default fallback
+                description="Initial response generation from multiple models in parallel",
+                required_models=[],  # Uses user-selected models
                 timeout_seconds=30,
             ),
             PipelineStage(
+                name="peer_review_and_revision", 
+                description="Each model reviews peer responses and revises their own answer",
+                required_models=[],  # Uses same models as initial_response
+                timeout_seconds=45,
+            ),
+            PipelineStage(
                 name="meta_analysis",
-                description="Meta-analysis of initial responses",
-                required_models=["claude-3-5-sonnet-20241022"],  # Premium default fallback
+                description="Meta-analysis of peer-revised responses",
+                required_models=[],  # Uses lead model from selection
                 timeout_seconds=45,
             ),
             PipelineStage(
                 name="ultra_synthesis",
-                description="Ultra-synthesis of meta-analysis results",
-                required_models=["claude-3-5-sonnet-20241022"],  # Premium default fallback
+                description="Ultra-synthesis of meta-analysis results for final intelligence multiplication",
+                required_models=[],  # Uses lead model from selection
                 timeout_seconds=60,
             ),
         ]
@@ -115,13 +123,23 @@ class OrchestrationService:
 
         for stage in self.pipeline_stages:
             try:
-                # Override models for initial_response stage if selected_models provided
-                if stage.name == "initial_response" and selected_models:
+                # Override models for stages that use selected_models
+                if stage.name in ["initial_response", "peer_review_and_revision"] and selected_models:
                     # Create a copy of the stage with selected models
                     stage_copy = PipelineStage(
                         name=stage.name,
                         description=stage.description,
                         required_models=selected_models,
+                        timeout_seconds=stage.timeout_seconds
+                    )
+                    stage_result = await self._run_stage(stage_copy, current_data, options)
+                elif stage.name in ["meta_analysis", "ultra_synthesis"] and selected_models:
+                    # Use lead model for synthesis stages
+                    lead_model = selected_models[0] if selected_models else "gpt-4"
+                    stage_copy = PipelineStage(
+                        name=stage.name,
+                        description=stage.description,
+                        required_models=[lead_model],
                         timeout_seconds=stage.timeout_seconds
                     )
                     stage_result = await self._run_stage(stage_copy, current_data, options)
@@ -379,35 +397,204 @@ class OrchestrationService:
             "response_count": len(responses)
         }
 
+    async def peer_review_and_revision(
+        self, data: Any, models: List[str], options: Optional[Dict[str, Any]] = None
+    ) -> Any:
+        """
+        Peer review and revision phase - each model reviews peer responses and revises their own answer.
+        
+        This is the core of the Ultra Synthesis™ collaborative intelligence architecture.
+        Each model sees what their peers said and has the opportunity to improve their own response.
+        """
+        logger.info(f"🔄 Starting peer review and revision with {len(models)} models")
+        
+        # Extract initial responses from previous stage
+        if not isinstance(data, dict) or "responses" not in data:
+            logger.error(f"Invalid data for peer review - expected dict with 'responses', got: {type(data)}")
+            return {"stage": "peer_review_and_revision", "error": "Invalid input data - missing initial responses"}
+        
+        initial_responses = data["responses"]
+        original_prompt = data.get("prompt", "Unknown query")
+        successful_models = data.get("successful_models", [])
+        
+        logger.info(f"Initial responses from: {list(initial_responses.keys())}")
+        
+        # Only process models that succeeded in the initial response stage
+        working_models = [model for model in models if model in successful_models]
+        
+        if not working_models:
+            logger.warning("No working models available for peer review")
+            return {
+                "stage": "peer_review_and_revision", 
+                "error": "No models available for peer review",
+                "original_responses": initial_responses
+            }
+        
+        logger.info(f"Processing peer review for: {working_models}")
+        
+        # Create peer review tasks for each working model
+        async def create_peer_review_task(model: str) -> tuple[str, dict]:
+            """Create peer review prompt and get revised response for a specific model."""
+            try:
+                # Get the model's original response
+                own_response = initial_responses[model]
+                
+                # Create peer responses section (excluding the model's own response)
+                peer_responses_text = ""
+                for peer_model, peer_response in initial_responses.items():
+                    if peer_model != model:  # Don't include the model's own response as a "peer"
+                        peer_responses_text += f"\n{peer_model}: {peer_response}\n"
+                
+                # Create the peer review prompt
+                peer_review_prompt = f"""Original Query: {original_prompt}
+
+Your Original Response:
+{own_response}
+
+Peer Responses from Other Models:
+{peer_responses_text}
+
+Instructions: You have now seen how other AI models responded to the same query. Do not assume that the peer responses are necessarily factually accurate, but having seen these other versions, do you have any edits you want to make to your original draft to make it stronger, more accurate, or more comprehensive?
+
+Please provide your revised response. If you believe your original response was already optimal, you may keep it unchanged, but please explain briefly why you think it stands well against the peer responses."""
+
+                # Execute the peer review using the same model adapters as initial_response
+                if model.startswith("gpt"):
+                    api_key = os.getenv("OPENAI_API_KEY")
+                    if not api_key:
+                        return model, {"error": "No OpenAI API key"}
+                    adapter = OpenAIAdapter(api_key, model)
+                    result = await adapter.generate(peer_review_prompt)
+                    
+                elif model.startswith("claude"):
+                    api_key = os.getenv("ANTHROPIC_API_KEY")
+                    if not api_key:
+                        return model, {"error": "No Anthropic API key"}
+                    adapter = AnthropicAdapter(api_key, model)
+                    result = await adapter.generate(peer_review_prompt)
+                    
+                elif model.startswith("gemini"):
+                    api_key = os.getenv("GOOGLE_API_KEY")
+                    if not api_key:
+                        return model, {"error": "No Google API key"}
+                    adapter = GeminiAdapter(api_key, model)
+                    result = await adapter.generate(peer_review_prompt)
+                    
+                elif "/" in model:  # HuggingFace model
+                    api_key = os.getenv("HUGGINGFACE_API_KEY")
+                    if not api_key:
+                        return model, {"error": "No HuggingFace API key"}
+                    adapter = HuggingFaceAdapter(api_key, model)
+                    result = await adapter.generate(peer_review_prompt)
+                    
+                else:
+                    return model, {"error": "Unknown model type"}
+                
+                # Check for successful response
+                if "Error:" not in result.get("generated_text", ""):
+                    logger.info(f"✅ {model} completed peer review")
+                    return model, {"revised_text": result.get("generated_text", "")}
+                else:
+                    logger.warning(f"❌ {model} peer review failed: {result.get('generated_text', '')}")
+                    return model, {"error": result.get("generated_text", ""), "fallback_response": own_response}
+                    
+            except Exception as e:
+                logger.error(f"Peer review failed for {model}: {str(e)}")
+                return model, {"error": str(e), "fallback_response": initial_responses.get(model, "")}
+        
+        # Execute peer review for all working models concurrently
+        logger.info(f"🚀 Starting concurrent peer review for {len(working_models)} models")
+        tasks = [create_peer_review_task(model) for model in working_models]
+        results = await asyncio.gather(*tasks, return_exceptions=True)
+        
+        # Process results
+        revised_responses = {}
+        successful_revisions = []
+        
+        for result in results:
+            if isinstance(result, Exception):
+                logger.error(f"Peer review task failed: {str(result)}")
+                continue
+            
+            model, output = result
+            if "revised_text" in output:
+                revised_responses[model] = output["revised_text"]
+                successful_revisions.append(model)
+                logger.info(f"✅ {model} provided revised response")
+            elif "fallback_response" in output:
+                # Use original response if revision failed
+                revised_responses[model] = output["fallback_response"]
+                logger.warning(f"⚠️ {model} revision failed, using original response")
+            else:
+                logger.warning(f"❌ {model} peer review completely failed: {output.get('error', 'Unknown error')}")
+        
+        if not revised_responses:
+            logger.error("No models completed peer review successfully")
+            return {
+                "stage": "peer_review_and_revision",
+                "error": "All peer review attempts failed",
+                "original_responses": initial_responses
+            }
+        
+        logger.info(f"✅ Peer review completed for {len(revised_responses)}/{len(working_models)} models")
+        
+        # Log sample of revised responses
+        for model, response in revised_responses.items():
+            sample = response[:100] + "..." if len(response) > 100 else response
+            logger.info(f"  {model} revised: {sample}")
+        
+        return {
+            "stage": "peer_review_and_revision",
+            "original_responses": initial_responses,
+            "revised_responses": revised_responses,
+            "models_with_revisions": successful_revisions,
+            "models_attempted": working_models,
+            "successful_models": list(revised_responses.keys()),
+            "revision_count": len(revised_responses)
+        }
+
     async def meta_analysis(
         self, data: Any, models: List[str], options: Optional[Dict[str, Any]] = None
     ) -> Any:
         """
-        Meta-analysis phase - analyze and compare initial responses.
+        Meta-analysis phase - analyze and synthesize peer-revised responses.
 
         Args:
-            data: Initial responses from multiple models
-            models: List of models to use for meta-analysis
+            data: Peer review results containing revised responses
+            models: List of models to use for meta-analysis (typically lead model)
             options: Additional options
 
         Returns:
             Any: Meta-analysis results
         """
-        if not isinstance(data, dict) or 'responses' not in data:
+        # Handle both peer review results and fallback to initial responses
+        if isinstance(data, dict) and 'revised_responses' in data:
+            # New architecture: use peer-revised responses
+            responses_to_analyze = data['revised_responses']
+            # Try to get original prompt from nested original_responses, fallback to top level
+            if 'original_responses' in data and isinstance(data['original_responses'], dict):
+                original_prompt = data['original_responses'].get('prompt', 'Unknown prompt')
+            else:
+                original_prompt = 'Unknown prompt'
+            logger.info(f"Meta-analysis using {len(responses_to_analyze)} peer-revised responses")
+        elif isinstance(data, dict) and 'responses' in data:
+            # Fallback: if peer review failed, use initial responses
+            responses_to_analyze = data['responses'] 
+            original_prompt = data.get('prompt', 'Unknown prompt')
+            logger.warning("Meta-analysis falling back to initial responses (peer review may have failed)")
+        else:
             logger.warning("Invalid data structure for meta-analysis")
             return {"stage": "meta_analysis", "error": "Invalid input data structure"}
         
-        initial_responses = data['responses']
-        
-        # Create meta-analysis prompt
+        # Create meta-analysis prompt using the revised/available responses
         analysis_text = "\\n\\n".join([
             f"**{model}:** {response}" 
-            for model, response in initial_responses.items()
+            for model, response in responses_to_analyze.items()
         ])
         
         meta_prompt = f"""Several of your fellow LLMs were given the same prompt as you. Their responses are as follows. Do NOT assume that anything written is correct or properly sourced, but given these other responses, could you make your original response better? More insightful? More factual, more comprehensive when considering the initial user prompt?
 
-Original User Prompt: {data.get('prompt', 'Unknown prompt')}
+Original User Prompt: {original_prompt}
 
 Fellow LLM Responses:
 {analysis_text}
