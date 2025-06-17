@@ -1,14 +1,28 @@
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
+from fastapi.middleware.cors import CORSMiddleware
 import os
 from app.routes.health_routes import router as health_router
 from app.routes.user_routes import user_router
+from app.config_cors import get_cors_config
 
 
 def create_app() -> FastAPI:
     """Create a minimal FastAPI application with health and user routes."""
     app = FastAPI()
+    
+    # Add CORS middleware
+    cors_config = get_cors_config()
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=cors_config["allow_origins"],
+        allow_credentials=cors_config["allow_credentials"],
+        allow_methods=cors_config["allow_methods"],
+        allow_headers=cors_config["allow_headers"],
+        expose_headers=cors_config["expose_headers"],
+        max_age=cors_config["max_age"],
+    )
     # Include initial routers
     app.include_router(health_router)
     app.include_router(user_router, prefix="/api")
