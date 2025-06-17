@@ -20,6 +20,15 @@ logger = get_logger("database", "logs/database.log")
 # Priority: use DATABASE_URL if provided (Render managed service), otherwise use individual vars
 DATABASE_URL = os.environ.get("DATABASE_URL")
 
+# Debug logging to understand what's happening
+logger.info(f"DATABASE_URL environment variable: {'SET' if DATABASE_URL else 'NOT SET'}")
+if DATABASE_URL:
+    # Don't log the full URL for security, just confirm it's not localhost
+    is_localhost = "localhost" in DATABASE_URL.lower() or "127.0.0.1" in DATABASE_URL
+    logger.info(f"DATABASE_URL points to localhost: {is_localhost}")
+else:
+    logger.warning("DATABASE_URL not found in environment variables, using individual DB_* variables")
+
 if not DATABASE_URL:
     # Fallback to individual environment variables for local development
     DB_HOST = os.environ.get("DB_HOST", "localhost")
