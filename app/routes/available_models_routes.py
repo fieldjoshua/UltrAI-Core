@@ -181,11 +181,11 @@ def create_router() -> APIRouter:
             # Return minimal fallback response
             fallback_models = [
                 ModelInfo(
-                    name="gpt-4",
+                    name="gpt-4o",
                     provider="openai",
                     status="unknown",
-                    max_tokens=8192,
-                    cost_per_1k_tokens=0.03
+                    max_tokens=128000,
+                    cost_per_1k_tokens=0.005
                 )
             ]
             
