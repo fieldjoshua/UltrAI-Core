@@ -135,13 +135,31 @@ class OrchestrationService:
                         timeout_seconds=stage.timeout_seconds
                     )
                     stage_result = await self._run_stage(stage_copy, current_data, options)
-                elif stage.name in ["meta_analysis", "ultra_synthesis"] and selected_models:
-                    # Use lead model for synthesis stages
-                    lead_model = selected_models[0] if selected_models else "gpt-4"
+                elif stage.name in ["meta_analysis", "ultra_synthesis"]:
+                    # For synthesis stages, use a model that actually worked in previous stages
+                    working_model = None
+                    
+                    # Try to extract working models from current_data
+                    if isinstance(current_data, dict):
+                        if stage.name == "meta_analysis" and hasattr(current_data, 'output') and isinstance(current_data.output, dict):
+                            # Check initial_response or peer_review results
+                            if 'successful_models' in current_data.output:
+                                working_models = current_data.output['successful_models']
+                                working_model = working_models[0] if working_models else None
+                        elif stage.name == "ultra_synthesis" and hasattr(current_data, 'output') and isinstance(current_data.output, dict):
+                            # Check meta_analysis results
+                            if 'model_used' in current_data.output:
+                                working_model = current_data.output['model_used']
+                    
+                    # Fallback to first selected model, then default
+                    if not working_model:
+                        working_model = selected_models[0] if selected_models else "claude-3-5-sonnet-20241022"
+                    
+                    logger.info(f"🎯 Using {working_model} for {stage.name} stage")
                     stage_copy = PipelineStage(
                         name=stage.name,
                         description=stage.description,
-                        required_models=[lead_model],
+                        required_models=[working_model],
                         timeout_seconds=stage.timeout_seconds
                     )
                     stage_result = await self._run_stage(stage_copy, current_data, options)
