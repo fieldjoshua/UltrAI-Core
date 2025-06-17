@@ -11,7 +11,7 @@ from app.config_cors import get_cors_config
 def create_app() -> FastAPI:
     """Create a minimal FastAPI application with health and user routes."""
     app = FastAPI()
-    
+
     # Add CORS middleware
     cors_config = get_cors_config()
     app.add_middleware(
@@ -58,13 +58,23 @@ def create_app() -> FastAPI:
     app.include_router(debug_router, prefix=api_prefix)
     app.include_router(debug_env_router, prefix=api_prefix)
     app.include_router(metrics_router, prefix=api_prefix)
-    
+
+    # In TESTING mode, also expose orchestrator routes at root (no /api prefix) so Playwright can hit
+    if os.getenv("TESTING") == "true":
+        app.include_router(orchestrator_router)  # mounts at /orchestrator/*
+
     # Serve frontend static files
-    frontend_dist = os.path.join(os.path.dirname(os.path.dirname(__file__)), "frontend", "dist")
+    frontend_dist = os.path.join(
+        os.path.dirname(os.path.dirname(__file__)), "frontend", "dist"
+    )
     if os.path.exists(frontend_dist):
         # Mount static assets at root to serve JS/CSS files properly
-        app.mount("/assets", StaticFiles(directory=os.path.join(frontend_dist, "assets")), name="assets")
-        
+        app.mount(
+            "/assets",
+            StaticFiles(directory=os.path.join(frontend_dist, "assets")),
+            name="assets",
+        )
+
         @app.get("/")
         async def serve_frontend():
             """Serve the React frontend"""
@@ -72,18 +82,23 @@ def create_app() -> FastAPI:
             if os.path.exists(index_file):
                 return FileResponse(index_file)
             return {"message": "Frontend not built. Run 'cd frontend && npm run build'"}
-        
+
         @app.get("/{path:path}")
         async def serve_frontend_routes(path: str):
             """Serve React app for all non-API routes (SPA routing)"""
             # Don't intercept API routes or assets
-            if path.startswith("api/") or path.startswith("docs") or path.startswith("health") or path.startswith("assets/"):
+            if (
+                path.startswith("api/")
+                or path.startswith("docs")
+                or path.startswith("health")
+                or path.startswith("assets/")
+            ):
                 return {"error": "Route not found"}
-            
+
             # Serve index.html for all other routes (React Router handles client-side routing)
             index_file = os.path.join(frontend_dist, "index.html")
             if os.path.exists(index_file):
                 return FileResponse(index_file)
             return {"message": "Frontend not built"}
-    
+
     return app
