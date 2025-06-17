@@ -19,6 +19,7 @@ class AnalysisRequest(BaseModel):
     options: Optional[Dict[str, Any]] = Field(default=None, description="Additional analysis options")
     user_id: Optional[str] = Field(default=None, description="User ID for cost tracking")
     selected_models: Optional[List[str]] = Field(default=None, description="Models to use for analysis")
+    save_outputs: bool = Field(default=False, description="Whether to save pipeline outputs as JSON/TXT files")
 
 
 class AnalysisResponse(BaseModel):
@@ -27,6 +28,7 @@ class AnalysisResponse(BaseModel):
     results: Dict[str, Any] = Field(..., description="Analysis results")
     error: Optional[str] = Field(default=None, description="Error message if analysis failed")
     processing_time: Optional[float] = Field(default=None, description="Processing time in seconds")
+    saved_files: Optional[Dict[str, str]] = Field(default=None, description="Paths to saved output files if save_outputs was enabled")
 
 
 def create_router() -> APIRouter:
@@ -61,37 +63,57 @@ def create_router() -> APIRouter:
             
             orchestration_service = http_request.app.state.orchestration_service
             
+            # Prepare options with save_outputs flag
+            pipeline_options = request.options or {}
+            pipeline_options['save_outputs'] = request.save_outputs
+            
             # Run the analysis pipeline
             pipeline_results = await orchestration_service.run_pipeline(
                 input_data=request.query,
-                options=request.options,
+                options=pipeline_options,
                 user_id=request.user_id,
                 selected_models=request.selected_models
             )
             
             # Process results into response format
             analysis_results = {}
+            saved_files = None
+            
             for stage_name, stage_result in pipeline_results.items():
-                if stage_result.error:
+                if stage_name == '_metadata':
+                    # Extract saved files info from metadata
+                    if 'saved_files' in stage_result:
+                        saved_files = stage_result['saved_files']
+                    continue
+                    
+                if hasattr(stage_result, 'error') and stage_result.error:
                     analysis_results[stage_name] = {
                         "error": stage_result.error,
                         "status": "failed"
                     }
                 else:
+                    output = stage_result.output if hasattr(stage_result, 'output') else stage_result
+                    quality = None
+                    if hasattr(stage_result, 'quality') and stage_result.quality:
+                        quality = stage_result.quality.__dict__
+                    
                     analysis_results[stage_name] = {
-                        "output": stage_result.output,
-                        "quality": stage_result.quality.__dict__ if stage_result.quality else None,
+                        "output": output,
+                        "quality": quality,
                         "status": "completed"
                     }
             
             processing_time = time.time() - start_time
             
             logger.info(f"Analysis completed in {processing_time:.2f} seconds")
+            if saved_files:
+                logger.info(f"Output files saved: {saved_files}")
             
             return AnalysisResponse(
                 success=True,
                 results=analysis_results,
-                processing_time=processing_time
+                processing_time=processing_time,
+                saved_files=saved_files
             )
             
         except Exception as e:
