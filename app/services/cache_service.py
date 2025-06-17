@@ -332,8 +332,8 @@ class MemoryCache(CacheInterface):
         with self.lock:
             entry = self.cache.get(key)
             if entry is None or entry.is_expired():
-                # If key doesn't exist, create it
-                self.cache[key] = CacheEntry(amount, entry.ttl if entry else None)
+                # If key doesn't exist, create it (no previous entry to copy TTL from)
+                self.cache[key] = CacheEntry(amount)
                 return amount
 
             # If value exists, increment it
@@ -390,8 +390,18 @@ class CacheService:
         self.cache_enabled = CACHE_ENABLED
         self.implementation: CacheInterface = None
 
+        backend_preference = os.getenv("CACHE_BACKEND", "auto").lower()
+
         if not self.cache_enabled:
             logger.info("Cache is disabled by configuration")
+            self.implementation = MemoryCache()
+            return
+
+        # Force memory backend if requested (used in unit tests)
+        if backend_preference == "memory":
+            logger.info(
+                "CACHE_BACKEND=memory – using in-memory cache irrespective of Redis availability"
+            )
             self.implementation = MemoryCache()
             return
 
@@ -498,7 +508,30 @@ class CacheService:
         if not self.cache_enabled:
             return 0
 
-        return self.implementation.increment(key, amount)
+        new_val = self.implementation.increment(key, amount)
+
+        if new_val == 0 and self.is_redis_available():
+            # The stored value is likely a pickled object (not an int). Retrieve and handle.
+            current_val = self.implementation.get(key)
+
+            if isinstance(current_val, (int, float)):
+                corrected_val = int(current_val + amount)
+                logger.warning(
+                    "Redis increment failed due to non-integer, "
+                    "but recovered by deserializing existing numeric value."
+                )
+                self.implementation.set(key, corrected_val)
+                return corrected_val  # type: ignore[return-value]
+
+            # Not numeric – just overwrite with the increment amount
+            logger.warning(
+                "Redis increment failed; existing value non-numeric. "
+                "Overwriting with increment amount."
+            )
+            self.implementation.set(key, amount)
+            return amount
+
+        return new_val
 
     def expire(self, key: str, ttl: int) -> bool:
         """
