@@ -603,6 +603,11 @@ Please provide your revised response. If you believe your original response was 
         Returns:
             Any: Meta-analysis results
         """
+        # Debug: log the data structure we received
+        logger.info(f"🔍 Meta-analysis received data type: {type(data)}")
+        if isinstance(data, dict):
+            logger.info(f"🔍 Meta-analysis data keys: {list(data.keys())}")
+        
         # Handle both peer review results and fallback to initial responses
         if isinstance(data, dict) and 'revised_responses' in data:
             # New architecture: use peer-revised responses
@@ -612,14 +617,15 @@ Please provide your revised response. If you believe your original response was 
                 original_prompt = data['original_responses'].get('prompt', 'Unknown prompt')
             else:
                 original_prompt = 'Unknown prompt'
-            logger.info(f"Meta-analysis using {len(responses_to_analyze)} peer-revised responses")
+            logger.info(f"✅ Meta-analysis using {len(responses_to_analyze)} peer-revised responses")
+            logger.info(f"🔍 Models in revised responses: {list(responses_to_analyze.keys())}")
         elif isinstance(data, dict) and 'responses' in data:
             # Fallback: if peer review failed, use initial responses
             responses_to_analyze = data['responses'] 
             original_prompt = data.get('prompt', 'Unknown prompt')
-            logger.warning("Meta-analysis falling back to initial responses (peer review may have failed)")
+            logger.warning("⚠️ Meta-analysis falling back to initial responses (peer review may have failed)")
         else:
-            logger.warning("Invalid data structure for meta-analysis")
+            logger.error(f"❌ Invalid data structure for meta-analysis. Data: {data}")
             return {"stage": "meta_analysis", "error": "Invalid input data structure"}
         
         # Create meta-analysis prompt using the revised/available responses
@@ -628,16 +634,24 @@ Please provide your revised response. If you believe your original response was 
             for model, response in responses_to_analyze.items()
         ])
         
-        meta_prompt = f"""Several of your fellow LLMs were given the same prompt as you. Their responses are as follows. Do NOT assume that anything written is correct or properly sourced, but given these other responses, could you make your original response better? More insightful? More factual, more comprehensive when considering the initial user prompt?
+        meta_prompt = f"""META-ANALYSIS TASK
 
-Original User Prompt: {original_prompt}
+You are conducting a meta-analysis of multiple AI responses to synthesize the best insights. Your goal is to create an enhanced response that's better than any individual response.
 
-Fellow LLM Responses:
+Original User Query: {original_prompt}
+
+AI Model Responses to Analyze:
 {analysis_text}
 
-If you believe you can make a better response considering these other perspectives, please draft a new, improved response to the initial inquiry. Focus on being more comprehensive and insightful than any single response alone.
+Your Task: 
+1. Identify the strongest insights, facts, and perspectives from across all responses
+2. Note any contradictions or gaps in the responses  
+3. Create an improved, comprehensive response that incorporates the best elements
+4. Do NOT simply describe what each model said - instead, integrate their insights into a cohesive answer
 
-Enhanced Response:"""
+Focus on substance and accuracy. If responses contradict each other, use your knowledge to resolve conflicts.
+
+Write a direct, comprehensive answer to the original query that synthesizes the best insights:"""
 
         # Use the first available model for meta-analysis
         analysis_model = models[0] if models else "claude-3-5-sonnet-20241022"
@@ -684,42 +698,74 @@ Enhanced Response:"""
             logger.warning("Invalid data structure for ultra-synthesis - not a dict")
             return {"stage": "ultra_synthesis", "error": "Invalid input data structure"}
         
-        # Check if this is a failed meta-analysis result
-        if 'error' in data and data.get('error'):
-            logger.warning(f"Meta-analysis failed: {data['error']}, attempting direct synthesis from initial data")
-            if 'input_data' in data and isinstance(data['input_data'], dict) and 'responses' in data['input_data']:
-                # Use initial responses directly for synthesis
-                initial_responses = data['input_data']['responses']
-                analysis_text = "\\n\\n".join([
-                    f"**{model}:** {response}" 
-                    for model, response in initial_responses.items()
-                ])
-                meta_analysis = f"Direct synthesis from initial responses:\\n{analysis_text}"
-                source_models = list(initial_responses.keys())
-            else:
-                return {"stage": "ultra_synthesis", "error": "No valid data available for synthesis"}
-        elif 'analysis' in data:
+        # Debug: log what ultra-synthesis received
+        logger.info(f"🔍 Ultra-synthesis received data type: {type(data)}")
+        logger.info(f"🔍 Ultra-synthesis data keys: {list(data.keys())}")
+        if 'analysis' in data:
+            logger.info(f"🔍 Analysis length: {len(str(data['analysis']))}")
+        if 'error' in data:
+            logger.info(f"🔍 Error present: {data['error']}")
+        
+        # Check if this has a valid meta-analysis
+        if 'analysis' in data and data['analysis']:
             # Normal case - meta-analysis succeeded and we have the analysis
             meta_analysis = data['analysis']
             source_models = data.get('source_models', [])
+            logger.info("✅ Using meta-analysis for Ultra Synthesis")
+        elif 'error' in data and data.get('error'):
+            logger.warning(f"Meta-analysis failed: {data['error']}, cannot proceed with ultra-synthesis")
+            return {"stage": "ultra_synthesis", "error": f"Cannot synthesize due to meta-analysis failure: {data['error']}"}
+        elif 'input_data' in data and isinstance(data['input_data'], dict) and 'responses' in data['input_data']:
+            # Emergency fallback: use initial responses directly (should rarely happen)
+            logger.warning("⚠️ Emergency fallback: synthesizing directly from initial responses")
+            initial_responses = data['input_data']['responses']
+            analysis_text = "\\n\\n".join([
+                f"**{model}:** {response}" 
+                for model, response in initial_responses.items()
+            ])
+            meta_analysis = f"Multiple AI responses:\\n{analysis_text}"
+            source_models = list(initial_responses.keys())
         else:
             logger.warning(f"Invalid data structure for ultra-synthesis - data keys: {list(data.keys()) if isinstance(data, dict) else 'not a dict'}")
             return {"stage": "ultra_synthesis", "error": f"Invalid input data structure - missing analysis. Available keys: {list(data.keys()) if isinstance(data, dict) else 'not a dict'}"}
         
-        synthesis_prompt = f"""You are tasked with creating the Ultra Synthesis™: a fully-integrated intelligence synthesis that combines the relevant outputs from all methods into a cohesive whole, with recommendations that benefit from multiple cognitive frameworks. 
+        # Extract the original prompt properly
+        original_prompt = "Unknown prompt"
+        if 'input_data' in data:
+            if isinstance(data['input_data'], dict):
+                if 'prompt' in data['input_data']:
+                    original_prompt = data['input_data']['prompt']
+                elif 'revised_responses' in data['input_data']:
+                    # Get from peer review stage
+                    peer_data = data['input_data']
+                    if 'original_responses' in peer_data and isinstance(peer_data['original_responses'], dict):
+                        original_prompt = peer_data['original_responses'].get('prompt', original_prompt)
 
-The objective here is not to be necessarily the best, but the most expansive synthesization of the many outputs. While you should disregard facts or analyses that are extremely anomalous or wrong, your final Ultra Synthesis should reflect all of the relevant insights from the meta-level responses, organized in a manner that is clear and non-repetitive.
+        logger.info(f"Ultra Synthesis using original prompt: {original_prompt[:100]}...")
+        logger.info(f"Meta-analysis length: {len(str(meta_analysis))}")
+        logger.info(f"Source models: {source_models}")
 
-Original User Prompt: {data.get('input_data', {}).get('prompt', 'Unknown prompt')}
+        synthesis_prompt = f"""ULTRA SYNTHESIS™ TASK
 
-Meta-Level Enhanced Response:
+You must create a single, comprehensive response that synthesizes insights from multiple AI models. This is NOT a comparison or summary - it's a unified answer.
+
+CRITICAL INSTRUCTIONS:
+- DO NOT list different model responses
+- DO NOT copy-paste any individual response 
+- DO NOT describe what other models said
+- CREATE a single, coherent answer that incorporates the best insights
+- Answer as if YOU are the expert, not as if you're reporting what others said
+
+Original User Query: {original_prompt}
+
+Meta-Analysis of Peer-Reviewed AI Responses:
 {meta_analysis}
 
-Source Models Analyzed: {', '.join(source_models)}
+Your task: Write a direct, comprehensive answer to the user's original query. Use the meta-analysis as background knowledge, but respond in your own voice as a unified perspective. 
 
-Your Ultra Synthesis should maximize intelligence multiplication by leveraging the complementary strengths of different analytical approaches, resulting in insights and recommendations that no single method could produce.
+Begin your response immediately with content that answers the user's question - no preamble about synthesis or other models.
 
-Ultra Synthesis™:"""
+Response:"""
 
         # Use the first available model for synthesis
         synthesis_model = models[0] if models else "claude-3-5-sonnet-20241022"
