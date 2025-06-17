@@ -877,40 +877,55 @@ Multiple AI responses:
 
 Provide the best possible answer to the question above, incorporating the strongest insights from all responses. Don't describe what each AI said - just give a comprehensive, accurate answer."""
 
-        # For multiple models, try to use a working model for meta-analysis
-        # Prefer to use one of the models that already succeeded
-        successful_models = list(responses_to_analyze.keys())
-        analysis_model = (
-            successful_models[0] if successful_models else "claude-3-5-sonnet-20241022"
-        )
+        # Try multiple successful models in case the first choice is rate-limited
+        successful_models = list(responses_to_analyze.keys()) or [
+            "claude-3-5-sonnet-20241022"
+        ]
 
-        try:
-            # Call the same model infrastructure as initial_response
-            meta_result = await self.initial_response(
-                meta_prompt, [analysis_model], options
-            )
+        last_error: Optional[str] = None
 
-            if "responses" in meta_result and meta_result["responses"]:
-                meta_response = list(meta_result["responses"].values())[0]
-                logger.info(f"✅ Meta-analysis completed using {analysis_model}")
+        for analysis_model in successful_models:
+            try:
+                logger.info(f"🎯 Attempting meta-analysis with model: {analysis_model}")
 
-                return {
-                    "stage": "meta_analysis",
-                    "analysis": meta_response,
-                    "model_used": analysis_model,
-                    "source_models": list(responses_to_analyze.keys()),
-                    "input_data": data,
-                }
-            else:
-                logger.warning("Meta-analysis failed to generate response")
-                return {
-                    "stage": "meta_analysis",
-                    "error": "Failed to generate meta-analysis",
-                }
+                meta_result = await self.initial_response(
+                    meta_prompt, [analysis_model], options
+                )
 
-        except Exception as e:
-            logger.error(f"Meta-analysis error: {str(e)}")
-            return {"stage": "meta_analysis", "error": str(e)}
+                # Check for valid response structure and non-rate-limit content
+                if (
+                    "responses" in meta_result
+                    and meta_result["responses"]
+                    and all(
+                        not str(resp).lower().startswith("request rate-limited")
+                        for resp in meta_result["responses"].values()
+                    )
+                ):
+                    meta_response = list(meta_result["responses"].values())[0]
+                    logger.info(f"✅ Meta-analysis completed using {analysis_model}")
+
+                    return {
+                        "stage": "meta_analysis",
+                        "analysis": meta_response,
+                        "model_used": analysis_model,
+                        "source_models": list(responses_to_analyze.keys()),
+                        "input_data": data,
+                    }
+
+                # If response indicates rate limit or empty, try next model
+                last_error = "Rate limited or empty response"
+                logger.warning(
+                    f"⚠️ Meta-analysis with {analysis_model} unsuccessful – trying next model"
+                )
+            except Exception as e:
+                last_error = str(e)
+                logger.error(f"Meta-analysis error with {analysis_model}: {last_error}")
+
+        # If we reach here, all attempts failed
+        return {
+            "stage": "meta_analysis",
+            "error": last_error or "Failed to generate meta-analysis after retries",
+        }
 
     async def ultra_synthesis(
         self, data: Any, models: List[str], options: Optional[Dict[str, Any]] = None
@@ -1009,36 +1024,66 @@ Enhanced analysis from multiple AI models:
 
 Provide your best, most comprehensive answer to the question above."""
 
-        # Use the first available model for synthesis
-        synthesis_model = models[0] if models else "claude-3-5-sonnet-20241022"
+        candidate_models: List[str] = []
+        # Prefer the model list passed in (often selected in run_pipeline)
+        if models:
+            candidate_models.extend(models)
 
-        try:
-            # Call the model infrastructure
-            synthesis_result = await self.initial_response(
-                synthesis_prompt, [synthesis_model], options
-            )
+        # Append any meta-analysis model used
+        if "model_used" in data and data["model_used"] not in candidate_models:
+            candidate_models.append(data["model_used"])
 
-            if "responses" in synthesis_result and synthesis_result["responses"]:
-                synthesis_response = list(synthesis_result["responses"].values())[0]
-                logger.info(f"✅ Ultra-synthesis completed using {synthesis_model}")
+        # Finally, append a safe fallback
+        if "claude-3-5-sonnet-20241022" not in candidate_models:
+            candidate_models.append("claude-3-5-sonnet-20241022")
 
-                return {
-                    "stage": "ultra_synthesis",
-                    "synthesis": synthesis_response,
-                    "model_used": synthesis_model,
-                    "meta_analysis": meta_analysis,
-                    "source_models": source_models,
-                }
-            else:
-                logger.warning("Ultra-synthesis failed to generate response")
-                return {
-                    "stage": "ultra_synthesis",
-                    "error": "Failed to generate synthesis",
-                }
+        last_error: Optional[str] = None
 
-        except Exception as e:
-            logger.error(f"Ultra-synthesis error: {str(e)}")
-            return {"stage": "ultra_synthesis", "error": str(e)}
+        for synthesis_model in candidate_models:
+            try:
+                logger.info(
+                    f"🎯 Attempting ultra-synthesis with model: {synthesis_model}"
+                )
+
+                synthesis_result = await self.initial_response(
+                    synthesis_prompt, [synthesis_model], options
+                )
+
+                # Validate response and check for rate-limit message
+                if (
+                    "responses" in synthesis_result
+                    and synthesis_result["responses"]
+                    and all(
+                        not str(resp).lower().startswith("request rate-limited")
+                        for resp in synthesis_result["responses"].values()
+                    )
+                ):
+                    synthesis_response = list(synthesis_result["responses"].values())[0]
+                    logger.info(f"✅ Ultra-synthesis completed using {synthesis_model}")
+
+                    return {
+                        "stage": "ultra_synthesis",
+                        "synthesis": synthesis_response,
+                        "model_used": synthesis_model,
+                        "meta_analysis": meta_analysis,
+                        "source_models": source_models,
+                    }
+
+                last_error = "Rate limited or empty response"
+                logger.warning(
+                    f"⚠️ Ultra-synthesis with {synthesis_model} unsuccessful – trying next model"
+                )
+            except Exception as e:
+                last_error = str(e)
+                logger.error(
+                    f"Ultra-synthesis error with {synthesis_model}: {last_error}"
+                )
+
+        # All attempts failed
+        return {
+            "stage": "ultra_synthesis",
+            "error": last_error or "Failed to generate synthesis after retries",
+        }
 
     async def hyper_level_analysis(
         self, data: Any, models: List[str], options: Optional[Dict[str, Any]] = None
