@@ -3,6 +3,7 @@ import re
 import random
 import pytest
 from playwright.sync_api import Page, expect
+import json
 
 # LIVE_ONLINE test – uses the actual running web application and real LLM providers.
 # No internal stubs or TESTING shortcuts are active.
@@ -75,10 +76,24 @@ def test_live_ultra_synthesis_via_ui(page: Page):
         )
 
     # 7. Verify that every model attempted by the backend produced a response
-    initial_meta = payload.get("results", {}).get("initial_response", {})
-    attempted = set(initial_meta.get("models_attempted", []))
-    succeeded = set(initial_meta.get("successful_models", []))
+    initial = payload.get("results", {}).get("initial_response", {})
+    responses = (
+        initial.get("output", {}).get("responses")
+        if isinstance(initial.get("output"), dict)
+        else None
+    ) or {}
+
+    attempted = set(responses.keys())
+    succeeded = {
+        m
+        for m, txt in responses.items()
+        if isinstance(txt, str) and not txt.lower().startswith("error:") and txt.strip()
+    }
     missing = attempted - succeeded
-    assert (
-        not missing
-    ), f"Models attempted but with no successful response: {sorted(missing)}"
+
+    # Fail if at least one model that was attempted didn't return a usable answer.
+    assert not missing, (
+        "\nLive backend attempted models that failed: "
+        f"{', '.join(sorted(missing))}."
+        "\nFull responses: " + json.dumps(responses, indent=2)[:500]
+    )
