@@ -7,6 +7,7 @@ This service coordinates multi-model and multi-stage workflows according to the 
 from typing import Any, Dict, List, Optional
 from dataclasses import dataclass
 from datetime import datetime
+import asyncio
 
 from app.services.quality_evaluation import QualityEvaluationService, ResponseQuality
 from app.services.rate_limiter import RateLimiter
@@ -269,75 +270,92 @@ class OrchestrationService:
         responses = {}
         prompt = f"Analyze the following query and provide insights: {data}"
         
-        # Try each available model
-        for model in models:
+        # Create model execution tasks for concurrent processing
+        async def execute_model(model: str) -> tuple[str, dict]:
+            """Execute a single model and return (model_name, result)"""
             try:
                 if model.startswith("gpt"):
                     api_key = os.getenv("OPENAI_API_KEY")
                     if not api_key:
                         logger.warning(f"No OpenAI API key found for {model}, skipping")
-                        continue
+                        return model, {"error": "No API key"}
                     adapter = OpenAIAdapter(api_key, model)
                     result = await adapter.generate(prompt)
                     if "Error:" not in result.get("generated_text", ""):
-                        responses[model] = result.get("generated_text", "Response generated successfully")
                         logger.info(f"✅ Successfully got response from {model}")
+                        return model, {"generated_text": result.get("generated_text", "Response generated successfully")}
                     else:
                         logger.warning(f"❌ Error response from {model}: {result.get('generated_text', '')}")
-                        continue
+                        return model, {"error": result.get("generated_text", "")}
                 elif model.startswith("claude"):
                     api_key = os.getenv("ANTHROPIC_API_KEY")
                     if not api_key:
                         logger.warning(f"No Anthropic API key found for {model}, skipping")
-                        continue
+                        return model, {"error": "No API key"}
                     adapter = AnthropicAdapter(api_key, model)
                     result = await adapter.generate(prompt)
                     if "Error:" not in result.get("generated_text", ""):
-                        responses[model] = result.get("generated_text", "Response generated successfully")
                         logger.info(f"✅ Successfully got response from {model}")
+                        return model, {"generated_text": result.get("generated_text", "Response generated successfully")}
                     else:
                         logger.warning(f"❌ Error response from {model}: {result.get('generated_text', '')}")
-                        continue
+                        return model, {"error": result.get("generated_text", "")}
                 elif model.startswith("gemini"):
                     api_key = os.getenv("GOOGLE_API_KEY")
                     if not api_key:
                         logger.warning(f"No Google API key found for {model}, skipping")
-                        continue
+                        return model, {"error": "No API key"}
                     adapter = GeminiAdapter(api_key, model)
                     result = await adapter.generate(prompt)
                     if "Error:" not in result.get("generated_text", ""):
-                        responses[model] = result.get("generated_text", "Response generated successfully")
                         logger.info(f"✅ Successfully got response from {model}")
+                        return model, {"generated_text": result.get("generated_text", "Response generated successfully")}
                     else:
                         logger.warning(f"❌ Error response from {model}: {result.get('generated_text', '')}")
-                        continue
+                        return model, {"error": result.get("generated_text", "")}
                 elif "/" in model:  # HuggingFace model ID format (org/model-name)
                     # HuggingFace models - require API key for real responses
                     api_key = os.getenv("HUGGINGFACE_API_KEY")
                     
                     if not api_key:
                         logger.error(f"HuggingFace API key required for {model}. Set HUGGINGFACE_API_KEY environment variable.")
-                        continue
+                        return model, {"error": "No API key"}
                     
                     try:
                         adapter = HuggingFaceAdapter(api_key, model)
                         result = await adapter.generate(prompt)
                         if "Error:" not in result.get("generated_text", ""):
-                            responses[model] = result.get("generated_text", "Response generated successfully")
                             logger.info(f"✅ Successfully got response from {model}")
+                            return model, {"generated_text": result.get("generated_text", "Response generated successfully")}
                         else:
                             logger.warning(f"❌ Error response from {model}: {result.get('generated_text', '')}")
-                            continue
+                            return model, {"error": result.get("generated_text", "")}
                     except Exception as e:
                         logger.error(f"HuggingFace adapter failed for {model}: {str(e)}")
-                        continue
+                        return model, {"error": str(e)}
                 else:
                     logger.warning(f"Unknown model type or no API configuration: {model}")
-                    continue
+                    return model, {"error": "Unknown model type"}
             except Exception as e:
                 logger.error(f"Failed to get response from {model}: {str(e)}")
-                # Skip models that fail completely
+                return model, {"error": str(e)}
+
+        # Execute all models concurrently
+        logger.info(f"🚀 Starting concurrent execution of {len(models)} models: {models}")
+        tasks = [execute_model(model) for model in models]
+        results = await asyncio.gather(*tasks, return_exceptions=True)
+        
+        # Process results and collect successful responses
+        for result in results:
+            if isinstance(result, Exception):
+                logger.error(f"Task execution failed: {str(result)}")
                 continue
+            
+            model, output = result
+            if "generated_text" in output:
+                responses[model] = output["generated_text"]
+            else:
+                logger.warning(f"Model {model} failed: {output.get('error', 'Unknown error')}")
         
         # Only return results if we have at least one real response
         if not responses:
