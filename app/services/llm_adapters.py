@@ -8,7 +8,6 @@ requests and robust network timeouts.
 
 import httpx
 import logging
-import os
 from typing import Dict, Any
 
 logger = logging.getLogger(__name__)
@@ -17,12 +16,6 @@ logger = logging.getLogger(__name__)
 # This is best practice for performance and resource management.
 # Timeout is set to 45 seconds for all network operations (Ultra Synthesis pipeline needs more time).
 CLIENT = httpx.AsyncClient(timeout=45.0)
-
-STUB_RESPONSE = (
-    "Stubbed response for testing purposes. This placeholder text simulates a realistic model answer "
-    "with enough detail to satisfy tests that verify generated_text is non-empty and does not begin with "
-    "an error prefix."
-)
 
 
 class BaseAdapter:
@@ -43,9 +36,6 @@ class OpenAIAdapter(BaseAdapter):
     """Adapter for OpenAI models using httpx."""
 
     async def generate(self, prompt: str) -> Dict[str, Any]:
-        if os.getenv("TESTING") == "true":
-            return {"generated_text": STUB_RESPONSE}
-
         headers = {
             "Authorization": f"Bearer {self.api_key}",
             "Content-Type": "application/json",
@@ -80,14 +70,12 @@ class OpenAIAdapter(BaseAdapter):
                     "generated_text": f"Error: Model {self.model} not found in OpenAI API"
                 }
             elif e.response.status_code == 429:
-                # Rate limit exceeded – provide a deterministic fallback so tests don't fail
-                fallback = (
-                    "4" if "2+2" in prompt else "Request rate-limited. Please retry."
-                )
                 logger.warning(
-                    f"OpenAI API rate-limited for model {self.model}. Returning fallback response."
+                    f"OpenAI API rate-limited for model {self.model}. Returning standard retry message."
                 )
-                return {"generated_text": fallback}
+                return {
+                    "generated_text": "Error: OpenAI API rate limit exceeded. Please retry later."
+                }
             else:
                 logger.error(
                     f"OpenAI API HTTP error for model {self.model}: {e.response.status_code} - {e}"
@@ -106,15 +94,6 @@ class AnthropicAdapter(BaseAdapter):
     """Adapter for Anthropic models using httpx."""
 
     async def generate(self, prompt: str) -> Dict[str, Any]:
-        if os.getenv("TESTING") == "true":
-            fixed = STUB_RESPONSE
-            if "capital of france" in prompt.lower():
-                fixed = (
-                    STUB_RESPONSE
-                    + " Paris is universally recognized as the capital city of France."
-                )
-            return {"generated_text": fixed}
-
         headers = {
             "x-api-key": self.api_key,
             "anthropic-version": "2023-06-01",
@@ -168,9 +147,6 @@ class GeminiAdapter(BaseAdapter):
     """Adapter for Google Gemini models using httpx."""
 
     async def generate(self, prompt: str) -> Dict[str, Any]:
-        if os.getenv("TESTING") == "true":
-            return {"generated_text": STUB_RESPONSE}
-
         # Note: The URL is specific to the model and includes the API key.
         url = f"https://generativelanguage.googleapis.com/v1beta/models/{self.model}:generateContent?key={self.api_key}"
         headers = {"Content-Type": "application/json"}
@@ -230,9 +206,6 @@ class HuggingFaceAdapter(BaseAdapter):
         self.model_id = model
 
     async def generate(self, prompt: str) -> Dict[str, Any]:
-        if os.getenv("TESTING") == "true":
-            return {"generated_text": STUB_RESPONSE}
-
         url = f"https://api-inference.huggingface.co/models/{self.model_id}"
         headers = {
             "Authorization": f"Bearer {self.api_key}",

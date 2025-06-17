@@ -62,9 +62,9 @@ def create_app() -> FastAPI:
     app.include_router(debug_env_router, prefix=api_prefix)
     app.include_router(metrics_router, prefix=api_prefix)
 
-    # In TESTING mode, also expose orchestrator routes at root (no /api prefix) so Playwright can hit
-    if os.getenv("TESTING") == "true":
-        app.include_router(orchestrator_router)  # mounts at /orchestrator/*
+    # Expose orchestrator routes at root (no /api prefix) in addition to /api prefix
+    # This allows frontend clients to call either path depending on deployment config.
+    app.include_router(orchestrator_router)  # mounts at /orchestrator/*
 
     # In TESTING mode, ensure orchestrator service exists so routes work without full production init
     if os.getenv("TESTING") == "true" and not hasattr(
