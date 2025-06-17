@@ -59,15 +59,15 @@ class MockQualityEvaluator(QualityEvaluationService):
 
 # Test fixtures for mock model responses
 MOCK_MODEL_RESPONSES = {
-    "gpt-3.5-turbo": {
+    "gpt-4": {
         "renewable_energy": "Renewable energy offers three main benefits: 1) Environmental sustainability by reducing carbon emissions, 2) Long-term cost savings through reduced fuel costs, 3) Energy independence by reducing reliance on fossil fuel imports.",
         "ai_healthcare": "AI can improve healthcare through: 1) Enhanced diagnostic accuracy using machine learning algorithms, 2) Personalized treatment plans based on patient data analysis, 3) Streamlined administrative processes reducing costs and errors."
     },
-    "gpt-4": {
+    "gpt-4-turbo": {
         "renewable_energy": "The primary advantages of renewable energy include: Economic benefits through job creation and cost stability, Environmental protection via emission reduction, Technological innovation driving future energy solutions.",
         "ai_healthcare": "AI enhances healthcare outcomes by: Predictive analytics for early disease detection, Automated medical imaging analysis for faster diagnosis, Drug discovery acceleration through computational modeling."
     },
-    "claude-3-haiku": {
+    "claude-3-5-sonnet-20241022": {
         "renewable_energy": "Renewable energy provides: Sustainable power generation without resource depletion, Improved air quality and reduced health impacts, Energy security through diversified power sources.",
         "ai_healthcare": "AI improves healthcare through: Clinical decision support systems for better treatment choices, Population health management via data analytics, Precision medicine through genetic and biomarker analysis."
     }
@@ -97,26 +97,26 @@ class TestUltraSynthesisOrchestrator:
         with patch.object(orchestrator, 'initial_response') as mock_initial:
             mock_initial.return_value = {
                 "stage": "initial_response",
-                "responses": {"gpt-3.5-turbo": MOCK_MODEL_RESPONSES["gpt-3.5-turbo"]["renewable_energy"]},
+                "responses": {"gpt-4": MOCK_MODEL_RESPONSES["gpt-4"]["renewable_energy"]},
                 "prompt": "What are the benefits of renewable energy?",
-                "models_attempted": ["gpt-3.5-turbo"],
-                "successful_models": ["gpt-3.5-turbo"],
+                "models_attempted": ["gpt-4"],
+                "successful_models": ["gpt-4"],
                 "response_count": 1
             }
             
             result = await orchestrator.initial_response(
                 "What are the benefits of renewable energy?", 
-                ["gpt-3.5-turbo"], 
+                ["gpt-4"], 
                 {}
             )
             
             # Validate structure
             assert result["stage"] == "initial_response"
             assert "responses" in result
-            assert "gpt-3.5-turbo" in result["responses"]
+            assert "gpt-4" in result["responses"]
             
             # Validate content quality
-            response_text = result["responses"]["gpt-3.5-turbo"]
+            response_text = result["responses"]["gpt-4"]
             assert len(response_text) > 50  # Substantial response
             assert "renewable" in response_text.lower()
             assert "energy" in response_text.lower()
@@ -130,19 +130,19 @@ class TestUltraSynthesisOrchestrator:
             mock_initial.return_value = {
                 "stage": "initial_response",
                 "responses": {
-                    "gpt-3.5-turbo": MOCK_MODEL_RESPONSES["gpt-3.5-turbo"]["renewable_energy"],
                     "gpt-4": MOCK_MODEL_RESPONSES["gpt-4"]["renewable_energy"],
-                    "claude-3-haiku": MOCK_MODEL_RESPONSES["claude-3-haiku"]["renewable_energy"]
+                    "gpt-4-turbo": MOCK_MODEL_RESPONSES["gpt-4-turbo"]["renewable_energy"],
+                    "claude-3-5-sonnet-20241022": MOCK_MODEL_RESPONSES["claude-3-5-sonnet-20241022"]["renewable_energy"]
                 },
                 "prompt": "What are the benefits of renewable energy?",
-                "models_attempted": ["gpt-3.5-turbo", "gpt-4", "claude-3-haiku"],
-                "successful_models": ["gpt-3.5-turbo", "gpt-4", "claude-3-haiku"],
+                "models_attempted": ["gpt-4", "gpt-4-turbo", "claude-3-5-sonnet-20241022"],
+                "successful_models": ["gpt-4", "gpt-4-turbo", "claude-3-5-sonnet-20241022"],
                 "response_count": 3
             }
             
             result = await orchestrator.initial_response(
                 "What are the benefits of renewable energy?", 
-                ["gpt-3.5-turbo", "gpt-4", "claude-3-haiku"], 
+                ["gpt-4", "gpt-4-turbo", "claude-3-5-sonnet-20241022"], 
                 {}
             )
             
@@ -152,9 +152,9 @@ class TestUltraSynthesisOrchestrator:
             
             # Validate diverse content (responses should be different)
             responses = list(result["responses"].values())
-            assert responses[0] != responses[1]  # GPT-3.5 vs GPT-4
-            assert responses[1] != responses[2]  # GPT-4 vs Claude
-            assert responses[0] != responses[2]  # GPT-3.5 vs Claude
+            assert responses[0] != responses[1]  # GPT-4 vs GPT-4-turbo
+            assert responses[1] != responses[2]  # GPT-4-turbo vs Claude
+            assert responses[0] != responses[2]  # GPT-4 vs Claude
 
     @pytest.mark.asyncio
     @pytest.mark.unit  
@@ -165,8 +165,8 @@ class TestUltraSynthesisOrchestrator:
         input_data = {
             "stage": "initial_response",
             "responses": {
-                "gpt-3.5-turbo": MOCK_MODEL_RESPONSES["gpt-3.5-turbo"]["ai_healthcare"],
-                "gpt-4": MOCK_MODEL_RESPONSES["gpt-4"]["ai_healthcare"]
+                "gpt-4": MOCK_MODEL_RESPONSES["gpt-4"]["ai_healthcare"],
+                "gpt-4-turbo": MOCK_MODEL_RESPONSES["gpt-4-turbo"]["ai_healthcare"]
             },
             "prompt": "How can AI improve healthcare outcomes?"
         }
@@ -177,7 +177,7 @@ class TestUltraSynthesisOrchestrator:
                 "stage": "meta_analysis", 
                 "analysis": "Synthesizing the perspectives from multiple AI models, healthcare AI improvements span three key domains: diagnostic enhancement through machine learning and imaging analysis, treatment personalization via data analytics and predictive modeling, and operational efficiency through automation and decision support systems. The combination of these approaches creates a comprehensive healthcare AI ecosystem.",
                 "model_used": "gpt-4",
-                "source_models": ["gpt-3.5-turbo", "gpt-4"],
+                "source_models": ["gpt-4", "gpt-4-turbo"],
                 "input_data": input_data
             }
             
@@ -206,7 +206,7 @@ class TestUltraSynthesisOrchestrator:
         input_data = {
             "stage": "meta_analysis",
             "analysis": "Healthcare AI improvements include diagnostic enhancement, treatment personalization, and operational efficiency.",
-            "source_models": ["gpt-3.5-turbo", "gpt-4"],
+            "source_models": ["gpt-4", "gpt-4-turbo"],
             "input_data": {
                 "prompt": "How can AI improve healthcare outcomes?"
             }
@@ -249,10 +249,10 @@ class TestUltraSynthesisOrchestrator:
             mock_initial.return_value = {
                 "stage": "initial_response",
                 "responses": {
-                    "gpt-3.5-turbo": MOCK_MODEL_RESPONSES["gpt-3.5-turbo"]["renewable_energy"],
-                    "gpt-4": MOCK_MODEL_RESPONSES["gpt-4"]["renewable_energy"]
+                    "gpt-4": MOCK_MODEL_RESPONSES["gpt-4"]["renewable_energy"],
+                    "gpt-4-turbo": MOCK_MODEL_RESPONSES["gpt-4-turbo"]["renewable_energy"]
                 },
-                "successful_models": ["gpt-3.5-turbo", "gpt-4"],
+                "successful_models": ["gpt-4", "gpt-4-turbo"],
                 "response_count": 2
             }
             
@@ -260,7 +260,7 @@ class TestUltraSynthesisOrchestrator:
             mock_meta.return_value = {
                 "stage": "meta_analysis",
                 "analysis": "Cross-model analysis reveals renewable energy benefits span economic (job creation, cost stability), environmental (emission reduction, air quality), and strategic (energy independence, innovation) dimensions.",
-                "source_models": ["gpt-3.5-turbo", "gpt-4"]
+                "source_models": ["gpt-4", "gpt-4-turbo"]
             }
             
             # Stage 3: Comprehensive ultra-synthesis
@@ -273,7 +273,7 @@ class TestUltraSynthesisOrchestrator:
             results = await orchestrator.run_pipeline(
                 "What are the benefits of renewable energy?",
                 options={},
-                selected_models=["gpt-3.5-turbo", "gpt-4"]
+                selected_models=["gpt-4", "gpt-4-turbo"]
             )
             
             # Validate pipeline completion
@@ -308,8 +308,8 @@ class TestUltraSynthesisOrchestrator:
                         output={
                             "stage": "initial_response",
                             "responses": {
-                                "gpt-3.5-turbo": "Renewable energy reduces carbon emissions and creates green jobs.",
-                                "gpt-4": "Clean energy drives economic transformation and energy independence."
+                                "gpt-4": "Renewable energy reduces carbon emissions and creates green jobs.",
+                                "gpt-4-turbo": "Clean energy drives economic transformation and energy independence."
                             }
                         }
                     )
@@ -334,7 +334,7 @@ class TestUltraSynthesisOrchestrator:
             
             mock_run_stage.side_effect = mock_stage_execution
             
-            results = await orchestrator.run_pipeline(query, selected_models=["gpt-3.5-turbo", "gpt-4"])
+            results = await orchestrator.run_pipeline(query, selected_models=["gpt-4", "gpt-4-turbo"])
             
             # Extract content from each stage
             initial_content = results["initial_response"].output["responses"]
@@ -365,7 +365,7 @@ async def test_production_orchestrator_endpoint():
             "https://ultrai-core.onrender.com/api/orchestrator/analyze",
             json={
                 "query": "What are key benefits of electric vehicles?",
-                "selected_models": ["gpt-3.5-turbo"],
+                "selected_models": ["gpt-4"],
                 "analysis_type": "ultra_synthesis"
             },
             timeout=60.0
