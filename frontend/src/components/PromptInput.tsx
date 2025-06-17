@@ -75,6 +75,7 @@ export const PromptInput: React.FC<PromptInputProps> = ({
             aria-invalid={!!error}
             aria-describedby={error ? 'prompt-error' : undefined}
             role="textbox"
+            data-testid="prompt-input"
           />
           {error && (
             <div
@@ -93,6 +94,7 @@ export const PromptInput: React.FC<PromptInputProps> = ({
           aria-label={
             isLoading ? 'Analyzing prompt...' : 'Submit prompt for analysis'
           }
+          data-testid="run-analysis"
         >
           {isLoading ? 'Analyzing...' : 'Analyze Prompt'}
         </Button>
