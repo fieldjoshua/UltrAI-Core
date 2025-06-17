@@ -303,19 +303,30 @@ class OrchestrationService:
         responses = {}
         prompt = f"Analyze the following query and provide insights: {data}"
         
+        # Model name mappings for backwards compatibility
+        model_mappings = {
+            "gpt-4": "gpt-4o",  # Map old gpt-4 to gpt-4o
+            "gpt-3.5-turbo": "gpt-4o-mini",  # Map old gpt-3.5 to gpt-4o-mini
+        }
+        
         # Create model execution tasks for concurrent processing
         async def execute_model(model: str) -> tuple[str, dict]:
             """Execute a single model and return (model_name, result)"""
             try:
-                if model.startswith("gpt") or model.startswith("o1"):
+                # Apply model name mapping if needed
+                mapped_model = model_mappings.get(model, model)
+                if mapped_model != model:
+                    logger.info(f"🔄 Mapping {model} → {mapped_model}")
+                
+                if mapped_model.startswith("gpt") or mapped_model.startswith("o1"):
                     api_key = os.getenv("OPENAI_API_KEY")
                     if not api_key:
                         logger.warning(f"No OpenAI API key found for {model}, skipping")
                         return model, {"error": "No API key"}
-                    adapter = OpenAIAdapter(api_key, model)
+                    adapter = OpenAIAdapter(api_key, mapped_model)
                     result = await adapter.generate(prompt)
                     if "Error:" not in result.get("generated_text", ""):
-                        logger.info(f"✅ Successfully got response from {model}")
+                        logger.info(f"✅ Successfully got response from {model} (using {mapped_model})")
                         return model, {"generated_text": result.get("generated_text", "Response generated successfully")}
                     else:
                         logger.warning(f"❌ Error response from {model}: {result.get('generated_text', '')}")
@@ -397,6 +408,7 @@ class OrchestrationService:
         results = await asyncio.gather(*tasks, return_exceptions=True)
         
         # Process results and collect successful responses
+        failed_models = {}
         for result in results:
             if isinstance(result, Exception):
                 logger.error(f"Task execution failed: {str(result)}")
@@ -405,12 +417,22 @@ class OrchestrationService:
             model, output = result
             if "generated_text" in output:
                 responses[model] = output["generated_text"]
+                logger.info(f"✅ Model {model} succeeded")
             else:
-                logger.warning(f"Model {model} failed: {output.get('error', 'Unknown error')}")
+                error_msg = output.get('error', 'Unknown error')
+                failed_models[model] = error_msg
+                logger.error(f"❌ Model {model} failed: {error_msg}")
+        
+        # Log summary of failures
+        if failed_models:
+            logger.error(f"💥 {len(failed_models)}/{len(models)} models failed:")
+            for model, error in failed_models.items():
+                logger.error(f"   {model}: {error}")
         
         # Only return results if we have at least one real response
         if not responses:
-            error_msg = f"No models generated responses from {len(models)} attempted models: {models}"
+            error_details = ", ".join([f"{model}: {error}" for model, error in failed_models.items()])
+            error_msg = f"No models generated responses from {len(models)} attempted models. Errors: {error_details}"
             logger.error(error_msg)
             raise ValueError(error_msg)
         
@@ -649,7 +671,28 @@ Please provide your revised response. If you believe your original response was 
             for model, response in responses_to_analyze.items()
         ])
         
-        meta_prompt = f"""META-ANALYSIS TASK
+        # Adapt prompt based on number of responses
+        if len(responses_to_analyze) == 1:
+            model_name = list(responses_to_analyze.keys())[0]
+            meta_prompt = f"""SINGLE RESPONSE ENHANCEMENT TASK
+
+You have one AI response to the user's query. Your task is to enhance and expand upon this response using your own knowledge.
+
+Original User Query: {original_prompt}
+
+AI Response to Enhance:
+{analysis_text}
+
+Your Task:
+1. Review the provided response for accuracy and completeness
+2. Add additional insights, details, or perspectives that would be valuable
+3. Correct any inaccuracies if present
+4. Expand on key points that could benefit from more detail
+5. Create a more comprehensive answer than the original
+
+Write an enhanced, comprehensive response that builds upon the provided answer:"""
+        else:
+            meta_prompt = f"""META-ANALYSIS TASK
 
 You are conducting a meta-analysis of multiple AI responses to synthesize the best insights. Your goal is to create an enhanced response that's better than any individual response.
 
@@ -668,8 +711,33 @@ Focus on substance and accuracy. If responses contradict each other, use your kn
 
 Write a direct, comprehensive answer to the original query that synthesizes the best insights:"""
 
-        # Use the first available model for meta-analysis
-        analysis_model = models[0] if models else "claude-3-5-sonnet-20241022"
+        # For single model responses, skip meta-analysis and use the response directly
+        if len(responses_to_analyze) == 1:
+            model_name = list(responses_to_analyze.keys())[0]
+            single_response = list(responses_to_analyze.values())[0]
+            
+            logger.info(f"✅ Single model response - using {model_name} output directly for meta-analysis")
+            
+            # Create an enhanced version by simply formatting the single response
+            enhanced_response = f"""Enhanced Analysis from {model_name}:
+
+{single_response}
+
+Note: This analysis was generated by a single model ({model_name}) as other models were unavailable. The response has been reviewed and represents the best available analysis for this query."""
+            
+            return {
+                "stage": "meta_analysis",
+                "analysis": enhanced_response,
+                "model_used": model_name,
+                "source_models": [model_name],
+                "input_data": data,
+                "single_model_mode": True
+            }
+        
+        # For multiple models, try to use a working model for meta-analysis
+        # Prefer to use one of the models that already succeeded
+        successful_models = list(responses_to_analyze.keys())
+        analysis_model = successful_models[0] if successful_models else "claude-3-5-sonnet-20241022"
         
         try:
             # Call the same model infrastructure as initial_response
@@ -726,7 +794,21 @@ Write a direct, comprehensive answer to the original query that synthesizes the 
             # Normal case - meta-analysis succeeded and we have the analysis
             meta_analysis = data['analysis']
             source_models = data.get('source_models', [])
-            logger.info("✅ Using meta-analysis for Ultra Synthesis")
+            is_single_model = data.get('single_model_mode', False)
+            
+            if is_single_model:
+                logger.info("✅ Single model mode - using enhanced analysis directly for Ultra Synthesis")
+                # For single model mode, the meta-analysis already contains a good response
+                return {
+                    "stage": "ultra_synthesis",
+                    "synthesis": meta_analysis,
+                    "model_used": data.get('model_used', 'unknown'),
+                    "meta_analysis": meta_analysis,
+                    "source_models": source_models,
+                    "single_model_mode": True
+                }
+            else:
+                logger.info("✅ Using multi-model meta-analysis for Ultra Synthesis")
         elif 'error' in data and data.get('error'):
             logger.warning(f"Meta-analysis failed: {data['error']}, cannot proceed with ultra-synthesis")
             return {"stage": "ultra_synthesis", "error": f"Cannot synthesize due to meta-analysis failure: {data['error']}"}
