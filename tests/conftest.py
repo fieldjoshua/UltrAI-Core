@@ -94,11 +94,11 @@ def stub_llm_adapters(request, monkeypatch):
     validation (≥20 words).
     """
 
-    # If the current test is flagged as an integration / production / e2e test we
+    # If the current test is flagged as an integration / production / live_online test we
     if (
         request.node.get_closest_marker("integration")
         or request.node.get_closest_marker("production")
-        or request.node.get_closest_marker("e2e")
+        or request.node.get_closest_marker("live_online")
     ):
         return  # no stubbing – run against real APIs
 
