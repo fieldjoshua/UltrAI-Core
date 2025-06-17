@@ -125,7 +125,17 @@ def create_router() -> APIRouter:
                         and isinstance(output, dict)
                         and "synthesis" in output
                     ):
-                        synthesis_text = output.get("synthesis") or ""
+                        synthesis_val = output.get("synthesis")
+                        if isinstance(synthesis_val, dict):
+                            synthesis_text = (
+                                synthesis_val.get("content")
+                                or synthesis_val.get("text")
+                                or ""
+                            )
+                            # Replace dict with normalized string for downstream clients
+                            output["synthesis"] = synthesis_text
+                        else:
+                            synthesis_text = synthesis_val or ""
                         analysis_results[stage_name] = {
                             **output,  # exposes 'synthesis', 'meta_analysis', etc.
                             "output": synthesis_text,  # legacy alias expected by some clients
