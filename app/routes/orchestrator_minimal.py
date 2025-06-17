@@ -125,8 +125,10 @@ def create_router() -> APIRouter:
                         and isinstance(output, dict)
                         and "synthesis" in output
                     ):
+                        synthesis_text = output.get("synthesis") or ""
                         analysis_results[stage_name] = {
                             **output,  # exposes 'synthesis', 'meta_analysis', etc.
+                            "output": synthesis_text,  # legacy alias expected by some clients
                             "quality": quality,
                             "status": "completed",
                         }
