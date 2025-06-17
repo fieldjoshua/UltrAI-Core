@@ -16,49 +16,52 @@ from app.utils.logging import get_logger
 # Set up logger
 logger = get_logger("database", "logs/database.log")
 
-# Database connection configuration
-# Priority: use DATABASE_URL if provided (Render managed service), otherwise use individual vars
-# Render might use different variable names for managed databases
-possible_db_url_vars = [
-    "DATABASE_URL",          # Standard PostgreSQL URL
-    "POSTGRES_URL",          # Alternative naming
-    "POSTGRESQL_URL",        # Another alternative
-    "DATABASE_CONNECTION_STRING",  # Descriptive naming
-    "DB_URL"                 # Short form
-]
+def get_database_url():
+    """
+    Get database URL from environment variables at runtime.
+    This ensures we read the environment variables when they're actually available.
+    """
+    # Render might use different variable names for managed databases
+    possible_db_url_vars = [
+        "DATABASE_URL",          # Standard PostgreSQL URL
+        "POSTGRES_URL",          # Alternative naming
+        "POSTGRESQL_URL",        # Another alternative
+        "DATABASE_CONNECTION_STRING",  # Descriptive naming
+        "DB_URL"                 # Short form
+    ]
 
-DATABASE_URL = None
-found_var_name = None
+    database_url = None
+    found_var_name = None
 
-for var_name in possible_db_url_vars:
-    DATABASE_URL = os.environ.get(var_name)
-    if DATABASE_URL:
-        found_var_name = var_name
-        break
+    for var_name in possible_db_url_vars:
+        database_url = os.environ.get(var_name)
+        if database_url:
+            found_var_name = var_name
+            break
 
-# Debug logging to understand what's happening
-logger.info(f"Database environment variables checked: {possible_db_url_vars}")
-if DATABASE_URL:
-    logger.info(f"Found database URL in variable: {found_var_name}")
-    # Don't log the full URL for security, just confirm it's not localhost
-    is_localhost = "localhost" in DATABASE_URL.lower() or "127.0.0.1" in DATABASE_URL
-    logger.info(f"Database URL points to localhost: {is_localhost}")
-else:
-    logger.warning("No database URL found in any environment variables, using individual DB_* variables")
-    # Log available environment variables that might be database-related
-    db_related_vars = [k for k in os.environ.keys() if any(keyword in k.upper() for keyword in ["DB", "DATABASE", "POSTGRES"])]
-    logger.info(f"Available database-related environment variables: {db_related_vars}")
-
-if not DATABASE_URL:
-    # Fallback to individual environment variables for local development
-    DB_HOST = os.environ.get("DB_HOST", "localhost")
-    DB_PORT = os.environ.get("DB_PORT", "5432")
-    DB_NAME = os.environ.get("DB_NAME", "ultra")
-    DB_USER = os.environ.get("DB_USER", "ultrauser")
-    DB_PASSWORD = os.environ.get("DB_PASSWORD", "ultrapassword")
-    
-    # Create database URL from individual components
-    DATABASE_URL = f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
+    # Debug logging to understand what's happening
+    logger.info(f"Database environment variables checked: {possible_db_url_vars}")
+    if database_url:
+        logger.info(f"Found database URL in variable: {found_var_name}")
+        # Don't log the full URL for security, just confirm it's not localhost
+        is_localhost = "localhost" in database_url.lower() or "127.0.0.1" in database_url
+        logger.info(f"Database URL points to localhost: {is_localhost}")
+        return database_url
+    else:
+        logger.warning("No database URL found in any environment variables, using individual DB_* variables")
+        # Log available environment variables that might be database-related
+        db_related_vars = [k for k in os.environ.keys() if any(keyword in k.upper() for keyword in ["DB", "DATABASE", "POSTGRES"])]
+        logger.info(f"Available database-related environment variables: {db_related_vars}")
+        
+        # Fallback to individual environment variables for local development
+        db_host = os.environ.get("DB_HOST", "localhost")
+        db_port = os.environ.get("DB_PORT", "5432")
+        db_name = os.environ.get("DB_NAME", "ultra")
+        db_user = os.environ.get("DB_USER", "ultrauser")
+        db_password = os.environ.get("DB_PASSWORD", "ultrapassword")
+        
+        # Create database URL from individual components
+        return f"postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}"
 
 # Configuration for fallback
 ENABLE_DB_FALLBACK = os.getenv("ENABLE_DB_FALLBACK", "true").lower() in (
@@ -102,14 +105,16 @@ def get_engine():
         return _engine
 
     try:
-        logger.info(f"Creating database engine with URL: {DATABASE_URL}")
+        # Get database URL at runtime
+        database_url = get_database_url()
+        logger.info(f"Creating database engine with runtime URL (first 20 chars): {database_url[:20]}...")
 
         # Import SQLAlchemy dynamically
         sqlalchemy = sqlalchemy_dependency.get_module()
 
         # Create engine with connection pooling
         _engine = sqlalchemy.create_engine(
-            DATABASE_URL,
+            database_url,
             pool_size=5,
             max_overflow=10,
             pool_timeout=30,  # seconds
