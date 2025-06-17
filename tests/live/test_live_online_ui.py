@@ -1,5 +1,6 @@
 import os
 import re
+import random
 import pytest
 from playwright.sync_api import Page, expect
 
@@ -7,7 +8,19 @@ from playwright.sync_api import Page, expect
 # No internal stubs or TESTING shortcuts are active.
 
 BASE_URL = os.getenv("WEB_APP_URL", "http://localhost:3000")
-QUERY = "Briefly describe the Eiffel Tower"
+
+# Five diverse prompts; one will be chosen at random for every run so we
+# exercise different token counts and knowledge domains.
+PROMPTS = [
+    "Briefly describe the Eiffel Tower.",
+    "Summarize the plot of Shakespeare's Hamlet in two sentences.",
+    "Explain Newton's first law of motion as if teaching a 12-year-old.",
+    "List three key differences between HTTP/1.1 and HTTP/2.",
+    "Provide a short biography of Ada Lovelace highlighting her contributions to computing.",
+]
+
+# Pick one prompt nondeterministically (pytest shows which via test id)
+QUERY = random.choice(PROMPTS)
 
 
 @pytest.mark.live_online
@@ -61,3 +74,12 @@ def test_live_ultra_synthesis_via_ui(page: Page):
         expect(page.locator("[data-testid='ultra-synthesis']")).to_contain_text(
             synthesis_text[:30]
         )
+
+    # 7. Verify that every model attempted by the backend produced a response
+    initial_meta = payload.get("results", {}).get("initial_response", {})
+    attempted = set(initial_meta.get("models_attempted", []))
+    succeeded = set(initial_meta.get("successful_models", []))
+    missing = attempted - succeeded
+    assert (
+        not missing
+    ), f"Models attempted but with no successful response: {sorted(missing)}"
