@@ -3,6 +3,7 @@ import re
 import random
 import pytest
 from playwright.sync_api import Page, expect
+import json
 
 # LIVE_ONLINE test – uses the actual running web application and real LLM providers.
 # No internal stubs or TESTING shortcuts are active.
@@ -28,6 +29,24 @@ QUERY = random.choice(PROMPTS)
 def test_live_ultra_synthesis_via_ui(page: Page):
     """Simulate a real user running an analysis through the UI with live models."""
 
+    # Dynamically build the model list so we only request providers whose API
+    # keys are present in the environment.  This makes the test truly reflect
+    # the capabilities of the current deployment.
+
+    selected_models = []
+    if os.getenv("OPENAI_API_KEY"):
+        selected_models.extend(["gpt-4", "gpt-3.5-turbo"])
+    if os.getenv("ANTHROPIC_API_KEY"):
+        selected_models.append("claude-3-5-sonnet-20241022")
+    if os.getenv("GOOGLE_API_KEY"):
+        selected_models.append("gemini-1.5-pro")
+    if os.getenv("HF_API_TOKEN") or os.getenv("HUGGINGFACE_API_KEY"):
+        selected_models.append("meta-llama/Meta-Llama-3.1-70B-Instruct")
+
+    assert (
+        selected_models
+    ), "LIVE_ONLINE test cannot run: no provider API keys found in environment"
+
     # 1. Load homepage (front-end is assumed to be running separately)
     page.goto(BASE_URL, timeout=90_000)
 
@@ -43,7 +62,19 @@ def test_live_ultra_synthesis_via_ui(page: Page):
     else:
         page.get_by_role("button", name=re.compile(r"(run|analy)", re.I)).click()
 
-    # 4. Wait for backend response (either /orchestrator or /api/orchestrator path)
+    # Intercept the orchestrator request to inject selected_models; use
+    # Playwright request interception.
+
+    def _route_intercept(route, request):
+        if request.url.endswith("/orchestrator/analyze") and request.method == "POST":
+            original = request.post_data_json
+            original.update({"selected_models": selected_models})
+            route.continue_(post_data=json.dumps(original))
+        else:
+            route.continue_()
+
+    page.route(re.compile(r"/orchestrator/analyze"), _route_intercept)
+
     resp = page.wait_for_event(
         "response",
         lambda r: (
