@@ -17,14 +17,19 @@ from app.utils.logging import get_logger
 logger = get_logger("database", "logs/database.log")
 
 # Database connection configuration
-DB_HOST = os.environ.get("DB_HOST", "localhost")
-DB_PORT = os.environ.get("DB_PORT", "5432")
-DB_NAME = os.environ.get("DB_NAME", "ultra")
-DB_USER = os.environ.get("DB_USER", "ultrauser")
-DB_PASSWORD = os.environ.get("DB_PASSWORD", "ultrapassword")
+# Priority: use DATABASE_URL if provided (Render managed service), otherwise use individual vars
+DATABASE_URL = os.environ.get("DATABASE_URL")
 
-# Create database URL
-DATABASE_URL = f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
+if not DATABASE_URL:
+    # Fallback to individual environment variables for local development
+    DB_HOST = os.environ.get("DB_HOST", "localhost")
+    DB_PORT = os.environ.get("DB_PORT", "5432")
+    DB_NAME = os.environ.get("DB_NAME", "ultra")
+    DB_USER = os.environ.get("DB_USER", "ultrauser")
+    DB_PASSWORD = os.environ.get("DB_PASSWORD", "ultrapassword")
+    
+    # Create database URL from individual components
+    DATABASE_URL = f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
 
 # Configuration for fallback
 ENABLE_DB_FALLBACK = os.getenv("ENABLE_DB_FALLBACK", "true").lower() in (
@@ -68,7 +73,7 @@ def get_engine():
         return _engine
 
     try:
-        logger.info(f"Creating database engine for {DB_HOST}:{DB_PORT}/{DB_NAME}")
+        logger.info(f"Creating database engine with URL: {DATABASE_URL}")
 
         # Import SQLAlchemy dynamically
         sqlalchemy = sqlalchemy_dependency.get_module()
