@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Collaborative Drafting</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked@9.1.6/marked.min.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#5D5CDE',
+                        light: {
+                            bg: '#FFFFFF',
+                            surface: '#F8F9FA',
+                            text: '#1F2937'
+                        },
+                        dark: {
+                            bg: '#181818',
+                            surface: '#2D2D2D',
+                            text: '#F9FAFB'
+                        }
+                    }
+                }
+            },
+            darkMode: 'class'
+        }
+    </script>
+</head>
+<body class="bg-light-bg dark:bg-dark-bg text-light-text dark:text-dark-text min-h-screen transition-colors">
+    <div class="container mx-auto px-4 py-6 max-w-6xl">
+        <header class="mb-8 text-center">
+            <h1 class="text-3xl font-bold mb-2 text-primary">AI Collaborative Drafting</h1>
+            <p class="text-gray-600 dark:text-gray-400">Harness the collective intelligence of multiple LLMs</p>
+        </header>
+
+        <!-- LLM Selection Section -->
+        <div class="bg-light-surface dark:bg-dark-surface rounded-lg p-6 mb-6 shadow-sm">
+            <h2 class="text-lg font-semibold mb-4">Select AI Models</h2>
+            <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">Choose at least 2 AI models for collaborative drafting:</p>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 mb-4">
+                <label class="flex items-center space-x-3 p-3 border border-gray-200 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer">
+                    <input type="checkbox" class="llm-checkbox w-4 h-4 text-primary focus:ring-primary" value="GPT-4o" checked>
+                    <span class="text-sm font-medium">GPT-4o</span>
+                </label>
+                <label class="flex items-center space-x-3 p-3 border border-gray-200 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer">
+                    <input type="checkbox" class="llm-checkbox w-4 h-4 text-primary focus:ring-primary" value="Claude-Sonnet-4" checked>
+                    <span class="text-sm font-medium">Claude-Sonnet-4</span>
+                </label>
+                <label class="flex items-center space-x-3 p-3 border border-gray-200 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer">
+                    <input type="checkbox" class="llm-checkbox w-4 h-4 text-primary focus:ring-primary" value="Gemini-2.0-pro" checked>
+                    <span class="text-sm font-medium">Gemini-2.0-pro</span>
+                </label>
+                <label class="flex items-center space-x-3 p-3 border border-gray-200 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer">
+                    <input type="checkbox" class="llm-checkbox w-4 h-4 text-primary focus:ring-primary" value="llama-3.0" checked>
+                    <span class="text-sm font-medium">Llama-3.0</span>
+                </label>
+                <label class="flex items-center space-x-3 p-3 border border-gray-200 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer">
+                    <input type="checkbox" class="llm-checkbox w-4 h-4 text-primary focus:ring-primary" value="GPT-4o-mini">
+                    <span class="text-sm font-medium">GPT-4o-mini</span>
+                </label>
+                <label class="flex items-center space-x-3 p-3 border border-gray-200 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer">
+                    <input type="checkbox" class="llm-checkbox w-4 h-4 text-primary focus:ring-primary" value="o3-mini">
+                    <span class="text-sm font-medium">o3-mini</span>
+                </label>
+            </div>
+
+            <div class="mb-4">
+                <label class="block text-sm font-medium mb-2">Custom AI Models <span class="text-gray-500">(optional)</span></label>
+                <input 
+                    id="customLLMs" 
+                    type="text" 
+                    placeholder="e.g., Custom-Bot-1, Another-AI-Model" 
+                    class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-base focus:ring-2 focus:ring-primary focus:border-transparent"
+                >
+                <p class="text-xs text-gray-500 mt-1">Separate multiple models with commas</p>
+            </div>
+
+            <div id="selectionError" class="text-red-600 text-sm mb-4 hidden">Please select at least 2 AI models.</div>
+        </div>
+
+        <!-- Input Section -->
+        <div class="bg-light-surface dark:bg-dark-surface rounded-lg p-6 mb-6 shadow-sm">
+            <div class="mb-4">
+                <label for="userPrompt" class="block text-sm font-medium mb-2">Your Prompt</label>
+                <textarea 
+                    id="userPrompt" 
+                    placeholder="Enter your question or request..." 
+                    class="w-full p-4 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-base resize-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                    rows="4"
+                ></textarea>
+            </div>
+            <button 
+                id="startButton" 
+                class="w-full bg-primary text-white px-6 py-3 rounded-lg font-medium hover:bg-opacity-90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+                Start Collaborative Drafting
+            </button>
+        </div>
+
+        <!-- Progress Indicator -->
+        <div id="progressSection" class="mb-6 hidden">
+            <div class="bg-light-surface dark:bg-dark-surface rounded-lg p-4">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-sm font-medium">Progress</span>
+                    <span id="progressText" class="text-sm text-gray-600 dark:text-gray-400">Initializing...</span>
+                </div>
+                <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                    <div id="progressBar" class="bg-primary h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Results Section -->
+        <div id="resultsSection" class="space-y-6 hidden">
+            <!-- Initial Drafts -->
+            <div id="initialDrafts" class="bg-light-surface dark:bg-dark-surface rounded-lg p-6">
+                <h2 class="text-xl font-semibold mb-4">📝 Initial Drafts</h2>
+                <div id="initialDraftsContent" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+            </div>
+
+            <!-- Meta Drafts -->
+            <div id="metaDrafts" class="bg-light-surface dark:bg-dark-surface rounded-lg p-6 hidden">
+                <h2 class="text-xl font-semibold mb-4">🔄 Meta Drafts (Peer-Reviewed)</h2>
+                <div id="metaDraftsContent" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+            </div>
+
+            <!-- Ultra Draft Selection -->
+            <div id="ultraDraftSelection" class="bg-light-surface dark:bg-dark-surface rounded-lg p-6 hidden">
+                <h2 class="text-xl font-semibold mb-4">🎯 Select AI for Ultra Draft</h2>
+                <p class="text-gray-600 dark:text-gray-400 mb-4">Choose which AI should create the final draft combining the best elements:</p>
+                <div id="ultraDraftButtons" class="grid grid-cols-2 md:grid-cols-4 gap-3"></div>
+            </div>
+
+            <!-- Ultra Draft -->
+            <div id="ultraDraft" class="bg-light-surface dark:bg-dark-surface rounded-lg p-6 hidden">
+                <h2 class="text-xl font-semibold mb-4">✨ Ultra Draft</h2>
+                <div id="ultraDraftContent" class="prose prose-gray dark:prose-invert max-w-none"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Dark mode setup
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            document.documentElement.classList.add('dark');
+        }
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
+            if (event.matches) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+        });
+
+        // App state
+        const state = {
+            prompt: '',
+            initialResponses: {},
+            metaResponses: {},
+            phase: 'input', // input, initial, meta-starting, meta, ultra-ready, ultra
+            selectedUltraBot: null
+        };
+
+        let selectedBots = [];
+
+        // UI Elements
+        const elements = {
+            userPrompt: document.getElementById('userPrompt'),
+            customLLMs: document.getElementById('customLLMs'),
+            startButton: document.getElementById('startButton'),
+            selectionError: document.getElementById('selectionError'),
+            progressSection: document.getElementById('progressSection'),
+            progressBar: document.getElementById('progressBar'),
+            progressText: document.getElementById('progressText'),
+            resultsSection: document.getElementById('resultsSection'),
+            initialDrafts: document.getElementById('initialDrafts'),
+            initialDraftsContent: document.getElementById('initialDraftsContent'),
+            metaDrafts: document.getElementById('metaDrafts'),
+            metaDraftsContent: document.getElementById('metaDraftsContent'),
+            ultraDraftSelection: document.getElementById('ultraDraftSelection'),
+            ultraDraftButtons: document.getElementById('ultraDraftButtons'),
+            ultraDraft: document.getElementById('ultraDraft'),
+            ultraDraftContent: document.getElementById('ultraDraftContent')
+        };
+
+        // Utility functions
+        function updateProgress(percentage, text) {
+            elements.progressBar.style.width = `${percentage}%`;
+            elements.progressText.textContent = text;
+        }
+
+        function getSelectedBots() {
+            const checkboxes = document.querySelectorAll('.llm-checkbox:checked');
+            const checkedBots = Array.from(checkboxes).map(cb => cb.value);
+            
+            // Add custom LLMs if any
+            const customInput = elements.customLLMs.value.trim();
+            const customBots = customInput ? customInput.split(',').map(bot => bot.trim()).filter(bot => bot) : [];
+            
+            return [...checkedBots, ...customBots];
+        }
+
+        function validateSelection() {
+            selectedBots = getSelectedBots();
+            if (selectedBots.length < 2) {
+                elements.selectionError.classList.remove('hidden');
+                return false;
+            }
+            elements.selectionError.classList.add('hidden');
+            return true;
+        }
+
+        function createResponseCard(botName, content, status) {
+            const card = document.createElement('div');
+            card.className = `border border-gray-200 dark:border-gray-600 rounded-lg p-4 ${
+                status === 'complete' ? 'border-green-200 dark:border-green-700' : 
+                status === 'error' ? 'border-red-200 dark:border-red-700' : 
+                'border-yellow-200 dark:border-yellow-700'
+            }`;
+            
+            const header = document.createElement('div');
+            header.className = 'flex items-center justify-between mb-3';
+            
+            const botLabel = document.createElement('span');
+            botLabel.className = 'font-medium text-primary';
+            botLabel.textContent = botName;
+            
+            const statusBadge = document.createElement('span');
+            statusBadge.className = `px-2 py-1 text-xs rounded-full ${
+                status === 'complete' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' :
+                status === 'error' ? 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200' :
+                'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
+            }`;
+            
+            if (status === 'incomplete') {
+                statusBadge.innerHTML = `
+                    <span class="inline-flex items-center">
+                        <svg class="animate-spin -ml-1 mr-1 h-3 w-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Generating...
+                    </span>
+                `;
+            } else {
+                statusBadge.textContent = status;
+            }
+            
+            header.appendChild(botLabel);
+            header.appendChild(statusBadge);
+            
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'prose prose-sm prose-gray dark:prose-invert max-w-none';
+            contentDiv.innerHTML = marked.parse(content || (status === 'incomplete' ? '*Generating response...*' : '*No response*'));
+            
+            card.appendChild(header);
+            card.appendChild(contentDiv);
+            
+            return card;
+        }
+
+        // Handler registration
+        window.Poe.registerHandler('initial-drafts', (result, context) => {
+            result.responses.forEach(response => {
+                const normalizedBot = response.senderId;
+                state.initialResponses[normalizedBot] = {
+                    content: response.content,
+                    status: response.status,
+                    messageId: response.messageId
+                };
+                
+                updateInitialDraftsDisplay();
+            });
+
+            // Start meta drafts only when we have ALL initial responses complete
+            const completedCount = Object.values(state.initialResponses).filter(r => r.status === 'complete').length;
+            if (completedCount === selectedBots.length && state.phase === 'initial') {
+                state.phase = 'meta-starting'; // Prevent multiple calls
+                updateProgress(50, 'Starting meta drafts...');
+                startMetaDrafts();
+            }
+        });
+
+        window.Poe.registerHandler('meta-drafts', (result, context) => {
+            result.responses.forEach(response => {
+                const normalizedBot = response.senderId;
+                state.metaResponses[normalizedBot] = {
+                    content: response.content,
+                    status: response.status,
+                    messageId: response.messageId
+                };
+                
+                updateMetaDraftsDisplay();
+            });
+
+            // Show ultra draft selection as soon as we have at least 2 complete meta responses
+            const completedCount = Object.values(state.metaResponses).filter(r => r.status === 'complete').length;
+            if (completedCount >= 2 && state.phase === 'meta') {
+                state.phase = 'ultra-ready'; // Prevent multiple calls
+                updateProgress(80, 'Ready for ultra draft');
+                showUltraDraftSelection();
+            }
+        });
+
+        window.Poe.registerHandler('ultra-draft', (result, context) => {
+            const response = result.responses[0];
+            if (response.status === 'complete') {
+                elements.ultraDraftContent.innerHTML = marked.parse(response.content);
+                elements.ultraDraft.classList.remove('hidden');
+                updateProgress(100, 'Complete!');
+            } else if (response.status === 'incomplete') {
+                elements.ultraDraftContent.innerHTML = marked.parse(response.content);
+                elements.ultraDraft.classList.remove('hidden');
+            } else if (response.status === 'error') {
+                elements.ultraDraftContent.innerHTML = `<p class="text-red-600">Error generating ultra draft: ${response.statusText}</p>`;
+                elements.ultraDraft.classList.remove('hidden');
+            }
+        });
+
+        // Display functions
+        function updateInitialDraftsDisplay() {
+            elements.initialDraftsContent.innerHTML = '';
+            selectedBots.forEach(bot => {
+                const response = state.initialResponses[bot];
+                if (response) {
+                    const card = createResponseCard(bot, response.content, response.status);
+                    elements.initialDraftsContent.appendChild(card);
+                } else {
+                    const card = createResponseCard(bot, '', 'incomplete');
+                    elements.initialDraftsContent.appendChild(card);
+                }
+            });
+        }
+
+        function updateMetaDraftsDisplay() {
+            elements.metaDraftsContent.innerHTML = '';
+            selectedBots.forEach(bot => {
+                const response = state.metaResponses[bot];
+                if (response) {
+                    const card = createResponseCard(bot, response.content, response.status);
+                    elements.metaDraftsContent.appendChild(card);
+                } else {
+                    const card = createResponseCard(bot, '', 'incomplete');
+                    elements.metaDraftsContent.appendChild(card);
+                }
+            });
+        }
+
+        function showUltraDraftSelection() {
+            elements.metaDrafts.classList.remove('hidden');
+            elements.ultraDraftSelection.classList.remove('hidden');
+            
+            elements.ultraDraftButtons.innerHTML = '';
+            selectedBots.forEach(bot => {
+                const button = document.createElement('button');
+                button.className = 'px-4 py-2 border border-primary text-primary rounded-lg hover:bg-primary hover:text-white transition-colors text-sm';
+                button.textContent = bot;
+                button.onclick = () => selectUltraBot(bot);
+                elements.ultraDraftButtons.appendChild(button);
+            });
+        }
+
+        // Main workflow functions
+        async function startInitialDrafts() {
+            if (!validateSelection()) {
+                return;
+            }
+
+            state.phase = 'initial';
+            state.prompt = elements.userPrompt.value.trim();
+            
+            if (!state.prompt) {
+                alert('Please enter a prompt first.');
+                return;
+            }
+
+            elements.startButton.disabled = true;
+            elements.progressSection.classList.remove('hidden');
+            elements.resultsSection.classList.remove('hidden');
+            
+            updateProgress(10, 'Sending to selected AIs...');
+
+            const mentions = selectedBots.map(bot => `@${bot}`).join(' ');
+            const mentionsPrompt = `${mentions} ${state.prompt}`;
+
+            try {
+                await window.Poe.sendUserMessage(mentionsPrompt, {
+                    handler: 'initial-drafts',
+                    stream: true,
+                    openChat: false
+                });
+                
+                updateProgress(25, 'Receiving initial drafts...');
+                updateInitialDraftsDisplay();
+                
+                // Show a tip about the workflow
+                setTimeout(() => {
+                    if (state.phase === 'initial') {
+                        updateProgress(30, 'Waiting for all initial responses to complete...');
+                    }
+                }, 2000);
+            } catch (err) {
+                console.error('Error sending initial prompt:', err);
+                elements.progressText.textContent = 'Error: ' + err.message;
+            }
+        }
+
+        async function startMetaDrafts() {
+            state.phase = 'meta';
+            
+            // Compile all initial responses (all should be complete at this point)
+            const allResponses = selectedBots.map(bot => {
+                const response = state.initialResponses[bot];
+                return `**${bot}:**\n${response?.content || 'No response'}`;
+            }).join('\n\n---\n\n');
+
+            const metaPrompt = `Here are query results from some of your peer-LLMs for the prompt "${state.prompt}":
+
+${allResponses}
+
+Do not assume that they are necessarily factually accurate, but having seen the other versions, do you have any edits you want to make to your original draft to make it stronger/more accurate? Please provide your revised response.`;
+
+            const mentions = selectedBots.map(bot => `@${bot}`).join(' ');
+            const mentionsPrompt = `${mentions} ${metaPrompt}`;
+
+            try {
+                await window.Poe.sendUserMessage(mentionsPrompt, {
+                    handler: 'meta-drafts',
+                    stream: true,
+                    openChat: false
+                });
+                
+                updateProgress(60, 'Receiving meta drafts...');
+                updateMetaDraftsDisplay();
+                
+                // Show a tip about the optimized workflow
+                setTimeout(() => {
+                    if (state.phase === 'meta') {
+                        updateProgress(65, 'Will enable ultra draft as soon as 2+ meta drafts complete...');
+                    }
+                }, 2000);
+            } catch (err) {
+                console.error('Error sending meta prompt:', err);
+                elements.progressText.textContent = 'Error: ' + err.message;
+            }
+        }
+
+        async function selectUltraBot(botName) {
+            state.selectedUltraBot = botName;
+            state.phase = 'ultra';
+            
+            updateProgress(85, `${botName} creating ultra draft...`);
+
+            // Compile all meta responses (only include complete ones for ultra draft)
+            const allMetaResponses = selectedBots.map(bot => {
+                const response = state.metaResponses[bot];
+                if (response && response.status === 'complete') {
+                    return `**${bot} Meta Draft:**\n${response.content}`;
+                }
+                return null;
+            }).filter(Boolean).join('\n\n---\n\n');
+
+            const ultraPrompt = `You are tasked with creating the ultimate response by combining the strongest elements from these peer-reviewed drafts for the original prompt: "${state.prompt}"
+
+Here are the meta drafts from your AI colleagues:
+
+${allMetaResponses}
+
+Please create a comprehensive, well-structured response that incorporates the best insights, accuracy, and clarity from all the meta drafts above. Focus on:
+1. Factual accuracy and completeness
+2. Clear structure and flow
+3. Practical insights and actionable information
+4. Balanced perspective considering all viewpoints
+
+Provide the final, polished response:`;
+
+            try {
+                await window.Poe.sendUserMessage(`@${botName} ${ultraPrompt}`, {
+                    handler: 'ultra-draft',
+                    stream: true,
+                    openChat: false
+                });
+            } catch (err) {
+                console.error('Error sending ultra prompt:', err);
+                elements.progressText.textContent = 'Error: ' + err.message;
+            }
+        }
+
+        // Event listeners
+        elements.startButton.addEventListener('click', startInitialDrafts);
+        
+        elements.userPrompt.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+                startInitialDrafts();
+            }
+        });
+    </script>
+</body>
+</html>

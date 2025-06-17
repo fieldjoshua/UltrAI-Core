@@ -310,7 +310,11 @@ class OrchestrationService:
                     if not api_key:
                         logger.warning(f"No Anthropic API key found for {model}, skipping")
                         return model, {"error": "No API key"}
-                    adapter = AnthropicAdapter(api_key, model)
+                    # Fix model name mapping for Anthropic
+                    mapped_model = model
+                    if model == "claude-3-sonnet":
+                        mapped_model = "claude-3-sonnet-20240229"
+                    adapter = AnthropicAdapter(api_key, mapped_model)
                     result = await adapter.generate(prompt)
                     if "Error:" not in result.get("generated_text", ""):
                         logger.info(f"✅ Successfully got response from {model}")
@@ -323,7 +327,11 @@ class OrchestrationService:
                     if not api_key:
                         logger.warning(f"No Google API key found for {model}, skipping")
                         return model, {"error": "No API key"}
-                    adapter = GeminiAdapter(api_key, model)
+                    # Fix model name mapping for Gemini
+                    mapped_model = model
+                    if model == "gemini-pro":
+                        mapped_model = "gemini-1.5-pro"
+                    adapter = GeminiAdapter(api_key, mapped_model)
                     result = await adapter.generate(prompt)
                     if "Error:" not in result.get("generated_text", ""):
                         logger.info(f"✅ Successfully got response from {model}")
@@ -470,14 +478,22 @@ Please provide your revised response. If you believe your original response was 
                     api_key = os.getenv("ANTHROPIC_API_KEY")
                     if not api_key:
                         return model, {"error": "No Anthropic API key"}
-                    adapter = AnthropicAdapter(api_key, model)
+                    # Fix model name mapping for Anthropic
+                    mapped_model = model
+                    if model == "claude-3-sonnet":
+                        mapped_model = "claude-3-sonnet-20240229"
+                    adapter = AnthropicAdapter(api_key, mapped_model)
                     result = await adapter.generate(peer_review_prompt)
                     
                 elif model.startswith("gemini"):
                     api_key = os.getenv("GOOGLE_API_KEY")
                     if not api_key:
                         return model, {"error": "No Google API key"}
-                    adapter = GeminiAdapter(api_key, model)
+                    # Fix model name mapping for Gemini
+                    mapped_model = model
+                    if model == "gemini-pro":
+                        mapped_model = "gemini-1.5-pro"
+                    adapter = GeminiAdapter(api_key, mapped_model)
                     result = await adapter.generate(peer_review_prompt)
                     
                 elif "/" in model:  # HuggingFace model
