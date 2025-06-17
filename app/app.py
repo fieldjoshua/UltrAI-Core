@@ -6,6 +6,9 @@ import os
 from app.routes.health_routes import router as health_router
 from app.routes.user_routes import user_router
 from app.config_cors import get_cors_config
+from app.utils.logging import get_logger
+
+logger = get_logger("test_app_setup")
 
 
 def create_app() -> FastAPI:
@@ -62,6 +65,24 @@ def create_app() -> FastAPI:
     # In TESTING mode, also expose orchestrator routes at root (no /api prefix) so Playwright can hit
     if os.getenv("TESTING") == "true":
         app.include_router(orchestrator_router)  # mounts at /orchestrator/*
+
+    # In TESTING mode, ensure orchestrator service exists so routes work without full production init
+    if os.getenv("TESTING") == "true" and not hasattr(
+        app.state, "orchestration_service"
+    ):
+        try:
+            from app.services.orchestration_service import OrchestrationService
+            from app.services.rate_limiter import RateLimiter
+            from unittest.mock import Mock
+
+            app.state.orchestration_service = OrchestrationService(
+                model_registry=Mock(), rate_limiter=RateLimiter()
+            )
+            logger.info(
+                "🧪 TESTING mode – lightweight OrchestrationService attached to app.state"
+            )
+        except Exception as exc:
+            logger.error(f"Failed to attach testing orchestration service: {exc}")
 
     # Serve frontend static files
     frontend_dist = os.path.join(
