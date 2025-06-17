@@ -319,7 +319,8 @@ class OrchestrationService:
         from app.services.llm_adapters import OpenAIAdapter, AnthropicAdapter, GeminiAdapter, HuggingFaceAdapter
         
         responses = {}
-        prompt = f"Analyze the following query and provide insights: {data}"
+        # Use the user's query directly - no meta-prompting
+        prompt = str(data)
         
         # Model name mappings for backwards compatibility
         model_mappings = {
@@ -447,10 +448,10 @@ class OrchestrationService:
             for model, error in failed_models.items():
                 logger.error(f"   {model}: {error}")
         
-        # Only return results if we have at least one real response
-        if not responses:
+        # Ultra Synthesis™ requires at least 2 models for peer review
+        if len(responses) < 2:
             error_details = ", ".join([f"{model}: {error}" for model, error in failed_models.items()])
-            error_msg = f"No models generated responses from {len(models)} attempted models. Errors: {error_details}"
+            error_msg = f"Ultra Synthesis™ requires at least 2 models, but only {len(responses)} responded from {len(models)} attempted. Errors: {error_details}"
             logger.error(error_msg)
             raise ValueError(error_msg)
         
@@ -518,18 +519,16 @@ class OrchestrationService:
                     if peer_model != model:  # Don't include the model's own response as a "peer"
                         peer_responses_text += f"\n{peer_model}: {peer_response}\n"
                 
-                # Create the peer review prompt
-                peer_review_prompt = f"""Original Query: {original_prompt}
+                # Create the peer review prompt - more direct
+                peer_review_prompt = f"""Question: {original_prompt}
 
-Your Original Response:
+Your answer:
 {own_response}
 
-Peer Responses from Other Models:
+Other answers to the same question:
 {peer_responses_text}
 
-Instructions: You have now seen how other AI models responded to the same query. Do not assume that the peer responses are necessarily factually accurate, but having seen these other versions, do you have any edits you want to make to your original draft to make it stronger, more accurate, or more comprehensive?
-
-Please provide your revised response. If you believe your original response was already optimal, you may keep it unchanged, but please explain briefly why you think it stands well against the peer responses."""
+Having seen these other responses, provide your best answer to the original question. Improve your response if you can make it better, more accurate, or more complete."""
 
                 # Execute the peer review using the same model adapters as initial_response
                 if model.startswith("gpt") or model.startswith("o1"):
@@ -689,68 +688,13 @@ Please provide your revised response. If you believe your original response was 
             for model, response in responses_to_analyze.items()
         ])
         
-        # Adapt prompt based on number of responses
-        if len(responses_to_analyze) == 1:
-            model_name = list(responses_to_analyze.keys())[0]
-            meta_prompt = f"""SINGLE RESPONSE ENHANCEMENT TASK
+        # Meta-analysis prompt (requires multiple responses)
+        meta_prompt = f"""Question: {original_prompt}
 
-You have one AI response to the user's query. Your task is to enhance and expand upon this response using your own knowledge.
-
-Original User Query: {original_prompt}
-
-AI Response to Enhance:
+Multiple AI responses:
 {analysis_text}
 
-Your Task:
-1. Review the provided response for accuracy and completeness
-2. Add additional insights, details, or perspectives that would be valuable
-3. Correct any inaccuracies if present
-4. Expand on key points that could benefit from more detail
-5. Create a more comprehensive answer than the original
-
-Write an enhanced, comprehensive response that builds upon the provided answer:"""
-        else:
-            meta_prompt = f"""META-ANALYSIS TASK
-
-You are conducting a meta-analysis of multiple AI responses to synthesize the best insights. Your goal is to create an enhanced response that's better than any individual response.
-
-Original User Query: {original_prompt}
-
-AI Model Responses to Analyze:
-{analysis_text}
-
-Your Task: 
-1. Identify the strongest insights, facts, and perspectives from across all responses
-2. Note any contradictions or gaps in the responses  
-3. Create an improved, comprehensive response that incorporates the best elements
-4. Do NOT simply describe what each model said - instead, integrate their insights into a cohesive answer
-
-Focus on substance and accuracy. If responses contradict each other, use your knowledge to resolve conflicts.
-
-Write a direct, comprehensive answer to the original query that synthesizes the best insights:"""
-
-        # For single model responses, skip meta-analysis and use the response directly
-        if len(responses_to_analyze) == 1:
-            model_name = list(responses_to_analyze.keys())[0]
-            single_response = list(responses_to_analyze.values())[0]
-            
-            logger.info(f"✅ Single model response - using {model_name} output directly for meta-analysis")
-            
-            # Create an enhanced version by simply formatting the single response
-            enhanced_response = f"""Enhanced Analysis from {model_name}:
-
-{single_response}
-
-Note: This analysis was generated by a single model ({model_name}) as other models were unavailable. The response has been reviewed and represents the best available analysis for this query."""
-            
-            return {
-                "stage": "meta_analysis",
-                "analysis": enhanced_response,
-                "model_used": model_name,
-                "source_models": [model_name],
-                "input_data": data,
-                "single_model_mode": True
-            }
+Provide the best possible answer to the question above, incorporating the strongest insights from all responses. Don't describe what each AI said - just give a comprehensive, accurate answer."""
         
         # For multiple models, try to use a working model for meta-analysis
         # Prefer to use one of the models that already succeeded
@@ -812,21 +756,7 @@ Note: This analysis was generated by a single model ({model_name}) as other mode
             # Normal case - meta-analysis succeeded and we have the analysis
             meta_analysis = data['analysis']
             source_models = data.get('source_models', [])
-            is_single_model = data.get('single_model_mode', False)
-            
-            if is_single_model:
-                logger.info("✅ Single model mode - using enhanced analysis directly for Ultra Synthesis")
-                # For single model mode, the meta-analysis already contains a good response
-                return {
-                    "stage": "ultra_synthesis",
-                    "synthesis": meta_analysis,
-                    "model_used": data.get('model_used', 'unknown'),
-                    "meta_analysis": meta_analysis,
-                    "source_models": source_models,
-                    "single_model_mode": True
-                }
-            else:
-                logger.info("✅ Using multi-model meta-analysis for Ultra Synthesis")
+            logger.info("✅ Using meta-analysis for Ultra Synthesis")
         elif 'error' in data and data.get('error'):
             logger.warning(f"Meta-analysis failed: {data['error']}, cannot proceed with ultra-synthesis")
             return {"stage": "ultra_synthesis", "error": f"Cannot synthesize due to meta-analysis failure: {data['error']}"}
@@ -860,27 +790,12 @@ Note: This analysis was generated by a single model ({model_name}) as other mode
         logger.info(f"Meta-analysis length: {len(str(meta_analysis))}")
         logger.info(f"Source models: {source_models}")
 
-        synthesis_prompt = f"""ULTRA SYNTHESIS™ TASK
+        synthesis_prompt = f"""Question: {original_prompt}
 
-You must create a single, comprehensive response that synthesizes insights from multiple AI models. This is NOT a comparison or summary - it's a unified answer.
-
-CRITICAL INSTRUCTIONS:
-- DO NOT list different model responses
-- DO NOT copy-paste any individual response 
-- DO NOT describe what other models said
-- CREATE a single, coherent answer that incorporates the best insights
-- Answer as if YOU are the expert, not as if you're reporting what others said
-
-Original User Query: {original_prompt}
-
-Meta-Analysis of Peer-Reviewed AI Responses:
+Enhanced analysis from multiple AI models:
 {meta_analysis}
 
-Your task: Write a direct, comprehensive answer to the user's original query. Use the meta-analysis as background knowledge, but respond in your own voice as a unified perspective. 
-
-Begin your response immediately with content that answers the user's question - no preamble about synthesis or other models.
-
-Response:"""
+Provide your best, most comprehensive answer to the question above."""
 
         # Use the first available model for synthesis
         synthesis_model = models[0] if models else "claude-3-5-sonnet-20241022"
