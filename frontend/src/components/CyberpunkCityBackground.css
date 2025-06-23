@@ -36,7 +36,14 @@
 .cyberpunk-layer.background svg {
   width: 100%;
   height: auto;
-  filter: drop-shadow(0 0 4px #a374ff);
+}
+
+.cyberpunk-layer.background svg path,
+.cyberpunk-layer.background svg polygon,
+.cyberpunk-layer.background svg rect {
+  fill: #404040;
+  stroke: #606060;
+  stroke-width: 0.5px;
 }
 
 .cyberpunk-layer.midground {
@@ -52,7 +59,14 @@
 .cyberpunk-layer.midground svg {
   width: 100%;
   height: auto;
-  filter: drop-shadow(0 0 3px #00f4c0);
+}
+
+.cyberpunk-layer.midground svg path,
+.cyberpunk-layer.midground svg polygon,
+.cyberpunk-layer.midground svg rect {
+  fill: #505050;
+  stroke: #707070;
+  stroke-width: 0.5px;
 }
 
 .cyberpunk-layer.foreground {
@@ -68,7 +82,14 @@
 .cyberpunk-layer.foreground svg {
   width: 100%;
   height: auto;
-  filter: drop-shadow(0 0 3px #19df00);
+}
+
+.cyberpunk-layer.foreground svg path,
+.cyberpunk-layer.foreground svg polygon,
+.cyberpunk-layer.foreground svg rect {
+  fill: #454545;
+  stroke: #656565;
+  stroke-width: 0.5px;
 }
 
 /* ================================
@@ -78,11 +99,13 @@
 /* Purple building animations (background) */
 @keyframes building-pulse {
   0%, 100% {
-    filter: drop-shadow(0 0 4px #a374ff) drop-shadow(0 0 8px #a374ff);
-    opacity: 0.8;
+    fill: #2a1a3e;
+    stroke: #a374ff;
+    opacity: 0.9;
   }
   50% {
-    filter: drop-shadow(0 0 8px #a374ff) drop-shadow(0 0 16px #a374ff);
+    fill: #3a2a4e;
+    stroke: #b384ff;
     opacity: 1;
   }
 }
@@ -92,84 +115,94 @@
   95% { opacity: 0.3; }
 }
 
-.cyberpunk-background path {
-  stroke: #a374ff;
-  fill: #a374ff;
-  animation: building-pulse 6s ease-in-out infinite;
+.cyberpunk-background path,
+.cyberpunk-background polygon,
+.cyberpunk-background rect {
+  fill: #404040;
+  stroke: #606060;
+  stroke-width: 0.5px;
 }
 
 .cyberpunk-layer.background {
-  animation: float-gentle 8s ease-in-out infinite;
+  /* No animations for baseline */
 }
 
 /* Circuit building animations (midground) */
 @keyframes circuit-flow {
   0% { 
     stroke-dashoffset: 100; 
-    filter: drop-shadow(0 0 3px #00f4c0);
+    fill: #1a2e2a;
+    stroke: #00f4c0;
   }
   50% {
-    filter: drop-shadow(0 0 6px #00f4c0) drop-shadow(0 0 12px #00f4c0);
+    fill: #2a3e3a;
+    stroke: #10f4d0;
   }
   100% { 
     stroke-dashoffset: 0;
-    filter: drop-shadow(0 0 3px #00f4c0);
+    fill: #1a2e2a;
+    stroke: #00f4c0;
   }
 }
 
 @keyframes data-stream {
   0%, 100% { 
     stroke: #00f4c0; 
-    fill: #00f4c0;
+    fill: #1a2e2a;
   }
   50% { 
     stroke: #19df00; 
-    fill: #19df00;
+    fill: #2a3e2a;
   }
 }
 
-.cyberpunk-midground path {
-  stroke: #00f4c0;
-  fill: #00f4c0;
-  stroke-dasharray: 10, 5;
-  animation: circuit-flow 3s linear infinite, data-stream 4s ease-in-out infinite;
+.cyberpunk-midground path,
+.cyberpunk-midground polygon,
+.cyberpunk-midground rect {
+  fill: #505050;
+  stroke: #707070;
+  stroke-width: 0.5px;
 }
 
 .cyberpunk-layer.midground {
-  animation: float-medium 6s ease-in-out infinite;
+  /* No animations for baseline */
 }
 
 /* Bridge structure animations (foreground) */
 @keyframes connection-pulse {
   0%, 100% { 
     stroke: #19df00; 
-    fill: #19df00;
-    filter: drop-shadow(0 0 3px #19df00);
+    fill: #1a2e1a;
+    opacity: 0.9;
   }
   50% { 
     stroke: #00f4c0; 
-    fill: #00f4c0;
-    filter: drop-shadow(0 0 6px #00f4c0);
+    fill: #2a3e2a;
+    opacity: 1;
   }
 }
 
 @keyframes structure-glow {
   0%, 100% {
-    filter: drop-shadow(0 0 2px #19df00);
+    fill: #1a2e1a;
+    stroke: #19df00;
   }
   50% {
-    filter: drop-shadow(0 0 8px #19df00) drop-shadow(0 0 16px #19df00);
+    fill: #2a3e2a;
+    stroke: #29ef10;
   }
 }
 
-.cyberpunk-foreground path {
-  stroke: #19df00;
-  fill: #19df00;
-  animation: connection-pulse 4s ease-in-out infinite alternate, structure-glow 5s ease-in-out infinite;
+.cyberpunk-foreground path,
+.cyberpunk-foreground polygon,
+.cyberpunk-foreground rect {
+  fill: #454545;
+  stroke: #656565;
+  stroke-width: 0.5px;
 }
 
 .cyberpunk-layer.foreground {
-  animation: float-strong 4s ease-in-out infinite;
+  /* No animations for baseline */
 }
 
 /* ================================
