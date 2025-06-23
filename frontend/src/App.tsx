@@ -12,8 +12,7 @@ import ModelRunnerDemo from './pages/ModelRunnerDemo';
 import OrchestratorPage from './pages/OrchestratorPage';
 import UIPrototype from './pages/UIPrototype';
 import UniversalUI from './pages/UniversalUI';
-import NavBar from './components/layout/NavBar';
-import CyberpunkDemo from './components/CyberpunkDemo';
+import CyberpunkDemo from './pages/CyberpunkDemo';
 import CyberpunkIntegration from './components/CyberpunkIntegration';
 import CyberpunkDebug from './components/CyberpunkDebug';
 import MultimodalAnalysis from './components/MultimodalAnalysis';
@@ -50,8 +49,8 @@ const App: React.FC = () => {
   return (
     <SimpleErrorBoundary>
       <Router>
-        <div className="min-h-screen bg-background text-foreground">
-          <NavBar />
+        <div className="min-h-screen bg-background text-foreground site-background">
+          {/* NavBar removed for immersive skyline header */}
           <main className="pt-6">
             <Routes>
               <Route path="/documents" element={<DocumentsPage />} />
