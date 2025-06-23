@@ -42,9 +42,9 @@
 .cyberpunk-layer.background svg path,
 .cyberpunk-layer.background svg polygon,
 .cyberpunk-layer.background svg rect {
-  fill: #404040;
-  stroke: #606060;
-  stroke-width: 0.5px;
+  fill: #404040 !important;
+  stroke: #606060 !important;
+  stroke-width: 0.5px !important;
 }
 
 .cyberpunk-layer.midground {
@@ -65,9 +65,9 @@
 .cyberpunk-layer.midground svg path,
 .cyberpunk-layer.midground svg polygon,
 .cyberpunk-layer.midground svg rect {
-  fill: #505050;
-  stroke: #707070;
-  stroke-width: 0.5px;
+  fill: #505050 !important;
+  stroke: #707070 !important;
+  stroke-width: 0.5px !important;
 }
 
 .cyberpunk-layer.foreground {
@@ -88,9 +88,9 @@
 .cyberpunk-layer.foreground svg path,
 .cyberpunk-layer.foreground svg polygon,
 .cyberpunk-layer.foreground svg rect {
-  fill: #454545;
-  stroke: #656565;
-  stroke-width: 0.5px;
+  fill: #454545 !important;
+  stroke: #656565 !important;
+  stroke-width: 0.5px !important;
 }
 
 /* ================================
@@ -119,9 +119,9 @@
 .cyberpunk-background path,
 .cyberpunk-background polygon,
 .cyberpunk-background rect {
-  fill: #404040;
-  stroke: #606060;
-  stroke-width: 0.5px;
+  fill: #404040 !important;
+  stroke: #606060 !important;
+  stroke-width: 0.5px !important;
 }
 
 .cyberpunk-layer.background {
@@ -160,9 +160,9 @@
 .cyberpunk-midground path,
 .cyberpunk-midground polygon,
 .cyberpunk-midground rect {
-  fill: #505050;
-  stroke: #707070;
-  stroke-width: 0.5px;
+  fill: #505050 !important;
+  stroke: #707070 !important;
+  stroke-width: 0.5px !important;
 }
 
 .cyberpunk-layer.midground {
@@ -197,9 +197,9 @@
 .cyberpunk-foreground path,
 .cyberpunk-foreground polygon,
 .cyberpunk-foreground rect {
-  fill: #454545;
-  stroke: #656565;
-  stroke-width: 0.5px;
+  fill: #454545 !important;
+  stroke: #656565 !important;
+  stroke-width: 0.5px !important;
 }
 
 .cyberpunk-layer.foreground {
