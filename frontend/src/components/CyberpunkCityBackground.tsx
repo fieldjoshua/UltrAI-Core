@@ -201,7 +201,7 @@ export const CyberpunkCityBackground: React.FC<CyberpunkBackgroundProps> = ({
           <div
             key={layerName}
             className={`cyberpunk-layer ${layerName}`}
-            style={layerTransforms[layerName as keyof typeof layerTransforms]}
+            // No dynamic transforms for baseline - use CSS positioning only
           >
             <config.asset className={`cyberpunk-${layerName}`} />
           </div>
