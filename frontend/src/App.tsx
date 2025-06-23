@@ -13,6 +13,7 @@ import OrchestratorPage from './pages/OrchestratorPage';
 import UIPrototype from './pages/UIPrototype';
 import UniversalUI from './pages/UniversalUI';
 import CyberpunkDemo from './pages/CyberpunkDemo';
+import CyberpunkTest from './pages/CyberpunkTest';
 import CyberpunkIntegration from './components/CyberpunkIntegration';
 import CyberpunkDebug from './components/CyberpunkDebug';
 import MultimodalAnalysis from './components/MultimodalAnalysis';
@@ -60,6 +61,7 @@ const App: React.FC = () => {
               <Route path="/prototype" element={<UIPrototype />} />
               <Route path="/universal-ui" element={<UniversalUI />} />
               <Route path="/cyberpunk" element={<CyberpunkDemo />} />
+              <Route path="/cyberpunk-test" element={<CyberpunkTest />} />
               <Route path="/cyberpunk-integration" element={<CyberpunkIntegration />} />
               <Route path="/cyberpunk-debug" element={<CyberpunkDebug />} />
               <Route path="/multimodal" element={<MultimodalAnalysis />} />
