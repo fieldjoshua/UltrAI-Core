@@ -8,7 +8,7 @@
 set -e
 
 # AICheck version info
-AICHECK_VERSION="5.1.0"
+AICHECK_VERSION="6.0.0"
 GITHUB_REPO="fieldjoshua/AICheck_MCP"
 GITHUB_RAW_BASE="https://raw.githubusercontent.com/${GITHUB_REPO}/main"
 
@@ -27,6 +27,7 @@ function show_version() {
   echo -e "  ${GREEN}./aicheck focus${NC}          - Check for scope creep"
   echo -e "  ${GREEN}./aicheck stuck${NC}          - Get unstuck when confused"
   echo -e "  ${GREEN}./aicheck deploy${NC}         - Pre-deployment validation"
+  echo -e "  ${GREEN}./aicheck auto-iterate${NC}   - Automated test-fix-test cycles"
   echo -e "  ${GREEN}./aicheck new${NC}            - Create a new action"
   echo -e "  ${GREEN}./aicheck ACTIVE${NC}         - Set the ACTIVE action"
   echo -e "  ${GREEN}./aicheck complete${NC}       - Complete the ACTIVE action"
@@ -1826,6 +1827,863 @@ function handle_guardian() {
   esac
 }
 
+# Function to define goals for auto-iterate session
+function define_auto_iterate_goals() {
+  local goals_file=".aicheck/auto-iterate-goals.md"
+  
+  echo -e "${BRIGHT_BLURPLE}🎯 Auto-Iterate Goal Definition${NC}"
+  echo -e "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+  echo -e ""
+  echo -e "${YELLOW}The AI editor must propose specific, measurable goals for this iteration session.${NC}"
+  echo -e "${YELLOW}Goals will be subject to human approval before proceeding.${NC}"
+  echo -e ""
+  
+  # Analyze current test failures to inform goal proposal
+  echo -e "${BLUE}🔍 Analyzing current test state...${NC}"
+  local test_output=""
+  local test_result=1
+  
+  if [ -f "pyproject.toml" ] && command -v poetry >/dev/null 2>&1; then
+    echo -e "${BLUE}Running Poetry tests...${NC}"
+    test_output=$(poetry run pytest -v 2>&1)
+    test_result=$?
+  elif [ -f "package.json" ]; then
+    echo -e "${BLUE}Running npm tests...${NC}"
+    test_output=$(npm test 2>&1)
+    test_result=$?
+    echo -e "${BLUE}Test completed with exit code: $test_result${NC}"
+  else
+    echo -e "${RED}No test configuration found. Cannot proceed without tests.${NC}"
+    return 1
+  fi
+  
+  if [ $test_result -eq 0 ]; then
+    echo -e "${GREEN}✅ All tests currently pass. No iteration needed.${NC}"
+    return 0
+  fi
+  
+  # Extract failure information for goal formation
+  local failed_tests=$(echo "$test_output" | grep "FAILED" | wc -l | tr -d ' ')
+  local error_types=$(echo "$test_output" | grep -E "(ERROR|FAILED)" | head -5)
+  local key_errors=$(echo "$test_output" | grep -E "(ImportError|ModuleNotFoundError|SyntaxError|AssertionError)" | head -3)
+  
+  echo -e "${RED}Current Test State:${NC}"
+  echo -e "  Failed tests: ${RED}$failed_tests${NC}"
+  echo -e "  Key issues:"
+  echo "$error_types" | while read line; do
+    [ -n "$line" ] && echo -e "    ${RED}• $line${NC}"
+  done
+  echo ""
+  
+  # AI Editor Goal Proposal Template
+  echo -e "${PURPLE}🤖 AI EDITOR: Please propose specific goals for this auto-iterate session${NC}"
+  echo -e "${PURPLE}Required format:${NC}"
+  echo -e ""
+  echo -e "GOAL 1: [Specific, measurable objective]"
+  echo -e "  - Success criteria: [How to verify completion]"
+  echo -e "  - Approach: [High-level strategy]"
+  echo -e ""
+  echo -e "GOAL 2: [Another specific objective]"
+  echo -e "  - Success criteria: [How to verify completion]"
+  echo -e "  - Approach: [High-level strategy]"
+  echo -e ""
+  echo -e "${YELLOW}Example goals:${NC}"
+  echo -e "  • Fix all ImportError issues by updating dependencies"
+  echo -e "  • Resolve syntax errors in test files"
+  echo -e "  • Make failing assertion tests pass by correcting logic"
+  echo -e "  • Achieve 100% test pass rate"
+  echo -e ""
+  
+  # Get current active action to add template to action directory
+  local current_action=$(cat .aicheck/current_action 2>/dev/null || echo "None")
+  
+  if [ "$current_action" != "None" ] && [ "$current_action" != "AICheckExec" ]; then
+    # Add auto-iterate template to the active action's directory
+    local dir_name=$(echo "$current_action" | sed 's/\([a-z0-9]\)\([A-Z]\)/\1-\2/g' | tr '[:upper:]' '[:lower:]')
+    local action_dir=".aicheck/actions/$dir_name"
+    local template_file="$action_dir/auto-iterate-session-plan.md"
+    
+    if [ -d "$action_dir" ]; then
+      echo -e "${BLUE}Adding auto-iterate session template to active action: ${GREEN}$current_action${NC}"
+      
+      # Copy the auto-iterate action template to the action directory
+      if [ -f "templates/claude/auto-iterate-action.md" ]; then
+        cp "templates/claude/auto-iterate-action.md" "$template_file"
+        
+        # Customize template with current action details
+        sed -i.backup \
+          -e "s/\[ACTION-NAME\]/$current_action/g" \
+          -e "s/\[DATE\]/$(date +"%Y-%m-%d")/g" \
+          "$template_file"
+        rm -f "$template_file.backup"
+        
+        echo -e "${GREEN}📝 Auto-iterate template added: ${BLUE}$template_file${NC}"
+      else
+        echo -e "${YELLOW}⚠️  Auto-iterate template not found. Creating basic template...${NC}"
+        
+        cat > "$template_file" << EOF
+# Auto-Iterate Session for $current_action
+
+**Action:** $current_action  
+**Session Date:** $(date +"%Y-%m-%d %H:%M:%S")  
+**Type:** Auto-Iterate Session
+
+## Goals for This Session
+<!-- AI editor will define specific goals during auto-iterate process -->
+
+## Session Progress
+<!-- Track multiple auto-iterate sessions within this action -->
+
+## Integration with Action Plan
+<!-- How this auto-iterate session supports the main action objectives -->
+
+EOF
+        echo -e "${GREEN}📝 Basic auto-iterate template created: ${BLUE}$template_file${NC}"
+      fi
+    else
+      echo -e "${YELLOW}⚠️  Active action directory not found. Auto-iterate will work but no template added.${NC}"
+    fi
+  else
+    echo -e "${YELLOW}⚠️  No active action. Auto-iterate will work independently.${NC}"
+    echo -e "${BLUE}💡 Consider running './aicheck new ActionName' first to create an action context.${NC}"
+  fi
+  
+  # Create template goals file for AI editor to fill
+  cat > "$goals_file" << 'EOF'
+# Auto-Iterate Session Goals
+**Session Date:** $(date +"%Y-%m-%d %H:%M:%S")
+**Current Action:** $(cat .aicheck/current_action 2>/dev/null || echo "None")
+
+## Test Analysis
+**Failed Tests:** $failed_tests
+**Key Issues Identified:**
+$error_types
+
+## Proposed Goals
+<!-- AI EDITOR: Fill in specific, measurable goals below -->
+
+### GOAL 1: [Replace with specific objective]
+- **Success Criteria:** [How to verify this goal is complete]
+- **Approach:** [High-level strategy to achieve this goal]
+- **Risk Assessment:** [What could go wrong]
+
+### GOAL 2: [Replace with another specific objective]
+- **Success Criteria:** [How to verify this goal is complete]
+- **Approach:** [High-level strategy to achieve this goal]
+- **Risk Assessment:** [What could go wrong]
+
+## Constraints
+- Maximum iterations: TBD
+- Time limit: TBD
+- No changes should be committed without human approval
+- All changes must be reversible
+
+## Success Definition
+<!-- Overall session success is defined as: -->
+[ ] All proposed goals completed
+[ ] Test pass rate improved to X%
+[ ] No regressions introduced
+[ ] Code quality maintained
+
+EOF
+  
+  # Substitute variables in the template (create new file to avoid sed issues)
+  local temp_file=$(mktemp)
+  sed \
+    -e "s/\$failed_tests/$failed_tests/g" \
+    -e "s|\$error_types|$error_types|g" \
+    "$goals_file" > "$temp_file"
+  mv "$temp_file" "$goals_file"
+  
+  echo -e "${GREEN}📝 Goals template created: ${BLUE}$goals_file${NC}"
+  echo -e ""
+  echo -e "${BRIGHT_BLURPLE}NEXT STEPS:${NC}"
+  echo -e "1. ${YELLOW}AI Editor: Edit the goals file with specific, measurable objectives${NC}"
+  echo -e "2. ${YELLOW}Human: Review and approve goals before proceeding${NC}"
+  echo -e "3. ${YELLOW}Run: ./aicheck auto-iterate --execute to begin approved iteration${NC}"
+  echo -e ""
+  
+  return 2  # Special return code indicating goals need to be defined
+}
+
+# Function to approve goals before iteration
+function approve_auto_iterate_goals() {
+  local goals_file=".aicheck/auto-iterate-goals.md"
+  
+  if [ ! -f "$goals_file" ]; then
+    echo -e "${RED}No goals file found. Run './aicheck auto-iterate' first to define goals.${NC}"
+    return 1
+  fi
+  
+  echo -e "${BRIGHT_BLURPLE}🎯 Goal Approval Required${NC}"
+  echo -e "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+  echo -e ""
+  echo -e "${BLUE}Current goals:${NC}"
+  cat "$goals_file"
+  echo -e ""
+  echo -e "${YELLOW}Do you approve these goals for auto-iteration? ${NC}"
+  echo -e "${GREEN}Options:${NC}"
+  echo -e "  ${GREEN}y/yes${NC} - Approve and proceed with iteration"
+  echo -e "  ${GREEN}e/edit${NC} - Edit goals file"
+  echo -e "  ${GREEN}n/no${NC} - Cancel auto-iterate session"
+  echo -e ""
+  
+  read -p "Your choice: " approval
+  
+  case "$approval" in
+    "y"|"yes"|"Y"|"YES")
+      echo -e "${GREEN}✅ Goals approved. Proceeding with auto-iteration...${NC}"
+      return 0
+      ;;
+    "e"|"edit"|"E"|"EDIT")
+      echo -e "${BLUE}Opening goals file for editing...${NC}"
+      ${EDITOR:-nano} "$goals_file"
+      echo -e "${YELLOW}Please run approval again after editing.${NC}"
+      return 1
+      ;;
+    *)
+      echo -e "${YELLOW}Auto-iterate session cancelled.${NC}"
+      return 1
+      ;;
+  esac
+}
+
+# Function to run automated test-iterate-test cycles
+function auto_iterate() {
+  # Configuration defaults (can be overridden by config file)
+  local default_max_iterations=10
+  local default_timeout=300
+  local default_auto_continue=true
+  local default_human_timeout=30
+  local default_test_timeout=120
+  local default_enable_recovery=true
+  
+  # Check for config file
+  if [ -f ".aicheck/auto-iterate.conf" ]; then
+    source .aicheck/auto-iterate.conf
+  fi
+  
+  # Parse arguments for goal definition vs execution
+  if [[ "$1" == "--help" || "$1" == "-h" ]]; then
+    echo -e "${BRIGHT_BLURPLE}Auto-Iterate Mode - Goal-Driven Test-Fix-Test Cycles${NC}"
+    echo -e ""
+    echo -e "${GREEN}Usage:${NC}"
+    echo -e "  ./aicheck auto-iterate                    # Define goals (first step)"
+    echo -e "  ./aicheck auto-iterate --approve          # Approve defined goals"
+    echo -e "  ./aicheck auto-iterate --execute [args]   # Execute approved iteration"
+    echo -e ""
+    echo -e "${GREEN}Execution Options:${NC}"
+    echo -e "  --execute [max_iterations] [timeout]     # Run with approved goals"
+    echo -e ""
+    echo -e "${GREEN}Examples:${NC}"
+    echo -e "  ./aicheck auto-iterate                    # Step 1: Define goals"
+    echo -e "  ./aicheck auto-iterate --approve          # Step 2: Human approval"
+    echo -e "  ./aicheck auto-iterate --execute          # Step 3: Execute (defaults: $default_max_iterations iterations, ${default_timeout}s)"
+    echo -e "  ./aicheck auto-iterate --execute 5        # Execute with max 5 iterations"
+    echo -e ""
+    echo -e "${YELLOW}Workflow:${NC}"
+    echo -e "  1. AI editor analyzes failures and proposes goals"
+    echo -e "  2. Human reviews and approves goals"
+    echo -e "  3. System iterates toward approved goals"
+    echo -e "  4. Human approves any changes before git commit"
+    echo -e ""
+    echo -e "${GREEN}Config file:${NC} .aicheck/auto-iterate.conf"
+    echo -e "  default_max_iterations=$default_max_iterations"
+    echo -e "  default_timeout=$default_timeout"
+    return 0
+  fi
+  
+  # Handle different phases
+  if [[ "$1" == "--approve" ]]; then
+    approve_auto_iterate_goals
+    return $?
+  elif [[ "$1" == "--execute" ]]; then
+    shift  # Remove --execute from args
+    execute_auto_iterate "$@"
+    return $?
+  elif [[ "$1" == "--summary" ]]; then
+    # Find most recent session and generate summary
+    local recent_session=$(ls .aicheck/auto-iterate-session-*.log 2>/dev/null | sort | tail -1)
+    if [ -n "$recent_session" ]; then
+      local session_id=$(basename "$recent_session" | sed 's/auto-iterate-session-\(.*\)\.log/\1/')
+      echo -e "${BLUE}Generating summary for session: $session_id${NC}"
+      generate_iteration_summary_and_git_approval "$session_id" "manual" "manual" ".aicheck/auto-iterate-changes-$session_id.md" "$recent_session"
+    else
+      echo -e "${RED}No auto-iterate sessions found${NC}"
+      return 1
+    fi
+    return $?
+  elif [[ "$1" == "--recover" ]]; then
+    local session_id="$2"
+    echo -e "${BLUE}Recovering auto-iterate session: $session_id${NC}"
+    echo -e "${YELLOW}Recovery functionality will resume session state${NC}"
+    echo -e "${RED}Recovery implementation needed in future version${NC}"
+    return 1
+  elif [[ "$1" == "--clean-recovery" ]]; then
+    echo -e "${YELLOW}Cleaning up recovery files...${NC}"
+    rm -f .aicheck/auto-iterate-state-*.tmp
+    echo -e "${GREEN}✅ Recovery files cleaned${NC}"
+    return 0
+  else
+    # Check for interrupted sessions before starting new one
+    if check_auto_iterate_recovery; then
+      local proceed=$(get_human_input "Proceed with new session anyway? (y/n):" 30 "n")
+      if [[ ! "$proceed" =~ ^[Yy] ]]; then
+        echo -e "${YELLOW}Use recovery options above or --clean-recovery to clear${NC}"
+        return 1
+      fi
+    fi
+    
+    # Default: Goal definition phase
+    define_auto_iterate_goals
+    return $?
+  fi
+}
+
+# Function to set up signal handlers for auto-iterate recovery
+function setup_auto_iterate_signal_handlers() {
+  local session_id="$1"
+  local log_file="$2"
+  local state_file="$3"
+  
+  # Create state file for recovery
+  cat > "$state_file" << EOF
+SESSION_ID=$session_id
+LOG_FILE=$log_file
+INTERRUPTED_AT=$(date +%s)
+RECOVERY_AVAILABLE=true
+EOF
+  
+  # Set up signal handlers
+  trap "auto_iterate_graceful_shutdown $session_id $log_file $state_file" SIGINT SIGTERM SIGHUP
+}
+
+# Function to handle graceful shutdown of auto-iterate
+function auto_iterate_graceful_shutdown() {
+  local session_id="$1"
+  local log_file="$2"
+  local state_file="$3"
+  
+  echo "" >&2
+  echo -e "${YELLOW}⚠️  Auto-iterate session interrupted${NC}" >&2
+  echo "INTERRUPTED: Session $session_id stopped at $(date)" >> "$log_file"
+  
+  # Update state file
+  echo "INTERRUPTED_AT=$(date +%s)" >> "$state_file"
+  echo "RECOVERY_NEEDED=true" >> "$state_file"
+  
+  echo -e "${BLUE}Recovery information saved to: $state_file${NC}" >&2
+  echo -e "${YELLOW}To resume: ./aicheck auto-iterate --recover $session_id${NC}" >&2
+  echo -e "${YELLOW}To summarize: ./aicheck auto-iterate --summary${NC}" >&2
+  
+  exit 130  # Standard exit code for SIGINT
+}
+
+# Function to check for and handle recovery scenarios
+function check_auto_iterate_recovery() {
+  local recovery_files=$(ls .aicheck/auto-iterate-state-*.tmp 2>/dev/null | wc -l | tr -d ' ')
+  
+  if [ "$recovery_files" -gt 0 ]; then
+    echo -e "${YELLOW}⚠️  Found $recovery_files interrupted auto-iterate session(s)${NC}"
+    echo -e "${BLUE}Available recovery options:${NC}"
+    
+    for state_file in .aicheck/auto-iterate-state-*.tmp; do
+      if [ -f "$state_file" ]; then
+        source "$state_file"
+        echo -e "  ${GREEN}./aicheck auto-iterate --recover $SESSION_ID${NC} - Resume session"
+      fi
+    done
+    
+    echo -e "  ${GREEN}./aicheck auto-iterate --clean-recovery${NC} - Clear all recovery files"
+    echo ""
+    return 0
+  fi
+  return 1
+}
+
+# Function to handle timeout-aware test execution
+function run_tests_with_timeout() {
+  local test_timeout=${1:-$default_test_timeout}
+  local test_output=""
+  local test_result=1
+  
+  echo -e "${BLUE}Running tests with ${test_timeout}s timeout...${NC}"
+  
+  if [ -f "pyproject.toml" ] && command -v poetry >/dev/null 2>&1; then
+    # Use timeout command for Poetry tests
+    if command -v timeout >/dev/null 2>&1; then
+      test_output=$(timeout ${test_timeout}s poetry run pytest -v 2>&1)
+      test_result=$?
+      if [ $test_result -eq 124 ]; then
+        test_output="$test_output\nTIMEOUT: Tests exceeded ${test_timeout}s limit"
+        echo -e "${RED}⏰ Tests timed out after ${test_timeout}s${NC}"
+      fi
+    else
+      test_output=$(poetry run pytest -v 2>&1)
+      test_result=$?
+    fi
+  elif [ -f "package.json" ]; then
+    # Use timeout command for npm tests
+    if command -v timeout >/dev/null 2>&1; then
+      test_output=$(timeout ${test_timeout}s npm test 2>&1)
+      test_result=$?
+      if [ $test_result -eq 124 ]; then
+        test_output="$test_output\nTIMEOUT: Tests exceeded ${test_timeout}s limit"
+        echo -e "${RED}⏰ Tests timed out after ${test_timeout}s${NC}"
+      fi
+    else
+      test_output=$(npm test 2>&1)
+      test_result=$?
+    fi
+  else
+    test_output="No test configuration found"
+    test_result=1
+  fi
+  
+  # Return results via global variables (bash limitation workaround)
+  echo "$test_result|$test_output"
+}
+
+# Function to handle human input with appropriate timeouts
+function get_human_input() {
+  local prompt="$1"
+  local timeout_seconds=${2:-$default_human_timeout}
+  local default_value="$3"
+  
+  echo -e "${YELLOW}$prompt${NC}"
+  
+  if [ -n "$default_value" ]; then
+    echo -e "${BLUE}(Default: $default_value, timeout: ${timeout_seconds}s)${NC}"
+  else
+    echo -e "${BLUE}(Timeout: ${timeout_seconds}s)${NC}"
+  fi
+  
+  local user_input=""
+  if read -t "$timeout_seconds" -p "> " user_input; then
+    if [ -z "$user_input" ] && [ -n "$default_value" ]; then
+      echo "$default_value"
+    else
+      echo "$user_input"
+    fi
+  else
+    echo -e "\n${YELLOW}⏰ Input timeout after ${timeout_seconds}s${NC}" >&2
+    if [ -n "$default_value" ]; then
+      echo -e "${BLUE}Using default: $default_value${NC}" >&2
+      echo "$default_value"
+    else
+      echo "TIMEOUT"
+    fi
+  fi
+}
+
+# Function to execute the iteration with approved goals
+function execute_auto_iterate() {
+  local goals_file=".aicheck/auto-iterate-goals.md"
+  
+  # Check for approved goals
+  if [ ! -f "$goals_file" ]; then
+    echo -e "${RED}No goals file found. Run './aicheck auto-iterate' first to define goals.${NC}"
+    return 1
+  fi
+  
+  local max_iterations=${1:-$default_max_iterations}
+  local timeout=${2:-$default_timeout}
+  
+  # Validate inputs
+  if ! [[ "$max_iterations" =~ ^[0-9]+$ ]] || [ "$max_iterations" -eq 0 ]; then
+    echo -e "${RED}Error: max_iterations must be a positive integer${NC}"
+    return 1
+  fi
+  
+  if ! [[ "$timeout" =~ ^[0-9]+$ ]] || [ "$timeout" -eq 0 ]; then
+    echo -e "${RED}Error: timeout must be a positive integer (seconds)${NC}"
+    return 1
+  fi
+  
+  # Initialize iteration tracking
+  local iteration=1
+  local start_time=$(date +%s)
+  local session_id=$(date +%Y%m%d_%H%M%S)
+  local log_file=".aicheck/auto-iterate-session-$session_id.log"
+  local changes_file=".aicheck/auto-iterate-changes-$session_id.md"
+  local state_file=".aicheck/auto-iterate-state-$session_id.tmp"
+  local git_initial_state=$(git rev-parse HEAD 2>/dev/null || echo "NO_GIT")
+  
+  # Set up signal handlers for graceful shutdown
+  if [ "$default_enable_recovery" = true ]; then
+    setup_auto_iterate_signal_handlers "$session_id" "$log_file" "$state_file"
+  fi
+  
+  # Create detailed session log
+  mkdir -p .aicheck
+  echo "# Auto-Iterate Session Log" > "$log_file"
+  echo "Session ID: $session_id" >> "$log_file"
+  echo "Start Time: $(date)" >> "$log_file"
+  echo "Goals File: $goals_file" >> "$log_file"
+  echo "Initial Git State: $git_initial_state" >> "$log_file"
+  echo "Max Iterations: $max_iterations" >> "$log_file"
+  echo "Timeout: $timeout seconds" >> "$log_file"
+  echo "" >> "$log_file"
+  
+  # Initialize changes tracking
+  echo "# Auto-Iterate Changes Summary" > "$changes_file"
+  echo "**Session:** $session_id" >> "$changes_file"
+  echo "**Start Time:** $(date)" >> "$changes_file"
+  echo "" >> "$changes_file"
+  echo "## Goals" >> "$changes_file"
+  echo '```' >> "$changes_file"
+  cat "$goals_file" >> "$changes_file"
+  echo '```' >> "$changes_file"
+  echo "" >> "$changes_file"
+  echo "## Changes Made" >> "$changes_file"
+  
+  echo -e "${BRIGHT_BLURPLE}🚀 Starting Goal-Driven Auto-Iterate Execution${NC}"
+  echo -e "Session ID: ${BLUE}$session_id${NC}"
+  echo -e "Max iterations: ${GREEN}$max_iterations${NC}"
+  echo -e "Timeout: ${GREEN}$timeout${NC}s"
+  echo -e "Goals: ${BLUE}$goals_file${NC}"
+  echo -e ""
+  
+  # Main iteration loop
+  while [ $iteration -le $max_iterations ]; do
+    local current_time=$(date +%s)
+    local elapsed=$((current_time - start_time))
+    
+    # Check timeout
+    if [ $elapsed -gt $timeout ]; then
+      echo -e "${YELLOW}⏰ Timeout reached after ${elapsed}s${NC}"
+      echo "TIMEOUT: Session exceeded $timeout seconds" >> "$log_file"
+      break
+    fi
+    
+    echo -e "${BRIGHT_BLURPLE}Iteration $iteration/$max_iterations${NC} (${elapsed}s elapsed)"
+    echo "=== Iteration $iteration - $(date) ===" >> "$log_file"
+    
+    # Step 1: Run tests with timeout and check against goals
+    echo -e "${YELLOW}🧪 Running tests...${NC}"
+    
+    # Use timeout-aware test execution
+    local test_results=$(run_tests_with_timeout $default_test_timeout)
+    local test_result=$(echo "$test_results" | cut -d'|' -f1)
+    local test_output=$(echo "$test_results" | cut -d'|' -f2-)
+    
+    # Handle test timeout specifically
+    if [ $test_result -eq 124 ]; then
+      echo -e "${RED}❌ Tests timed out after ${default_test_timeout}s${NC}"
+      echo "TIMEOUT: Tests exceeded timeout limit" >> "$log_file"
+      
+      local timeout_action=$(get_human_input "Tests timed out. Options: (r)etry, (i)ncrease timeout, (s)kip, (q)uit:" 60 "retry")
+      
+      case "$timeout_action" in
+        "r"|"retry")
+          echo -e "${BLUE}Retrying tests...${NC}"
+          continue
+          ;;
+        "i"|"increase")
+          default_test_timeout=$((default_test_timeout * 2))
+          echo -e "${BLUE}Increased test timeout to ${default_test_timeout}s${NC}"
+          continue
+          ;;
+        "s"|"skip")
+          echo -e "${YELLOW}Skipping this iteration due to test timeout${NC}"
+          iteration=$((iteration + 1))
+          continue
+          ;;
+        *)
+          echo -e "${YELLOW}Quitting due to test timeout${NC}"
+          break
+          ;;
+      esac
+    fi
+    
+    # Log test results
+    echo "Test Exit Code: $test_result" >> "$log_file"
+    echo "Test Output:" >> "$log_file"
+    echo "$test_output" >> "$log_file"
+    echo "" >> "$log_file"
+    
+    # Check if goals are met
+    if [ $test_result -eq 0 ]; then
+      echo -e "${GREEN}✅ All tests pass! Checking if goals are fulfilled...${NC}"
+      
+      # Here we'd need AI editor to verify goals are met
+      echo -e "${PURPLE}🤖 AI EDITOR: Verify that approved goals have been achieved${NC}"
+      echo -e "${YELLOW}Review the goals in: ${BLUE}$goals_file${NC}"
+      local goals_satisfied=$(get_human_input "Are all goals satisfied? (y/n):" $default_human_timeout)
+      
+      if [[ "$goals_satisfied" =~ ^[Yy] ]]; then
+        echo -e "${GREEN}🎉 Goals achieved! Auto-iterate complete.${NC}"
+        echo "SUCCESS: All goals achieved after $iteration iteration(s)" >> "$log_file"
+        break
+      else
+        echo -e "${YELLOW}Goals not fully met. Continuing iteration...${NC}"
+      fi
+    fi
+    
+    # Step 2: Analyze failures and track changes
+    echo -e "${RED}❌ Tests still failing${NC}"
+    echo -e "${YELLOW}🔍 Analyzing failures against goals...${NC}"
+    
+    local failed_tests=$(echo "$test_output" | grep "FAILED" | wc -l | tr -d ' ')
+    local error_summary=$(echo "$test_output" | grep -E "(FAILED|ERROR|AssertionError|SyntaxError|ImportError)" | head -3)
+    
+    echo -e "${YELLOW}Failed tests: ${RED}$failed_tests${NC}"
+    if [ -n "$error_summary" ]; then
+      echo -e "${YELLOW}Key errors:${NC}"
+      echo "$error_summary" | while read line; do
+        echo -e "  ${RED}• $line${NC}"
+      done
+    fi
+    
+    # Track git changes if any
+    local git_changes=$(git status --porcelain 2>/dev/null | wc -l | tr -d ' ')
+    if [ "$git_changes" -gt 0 ]; then
+      echo "### Iteration $iteration Changes" >> "$changes_file"
+      echo "**Time:** $(date)" >> "$changes_file"
+      echo "**Test Result:** $test_result (exit code)" >> "$changes_file"
+      echo "**Files Modified:**" >> "$changes_file"
+      git status --porcelain >> "$changes_file"
+      echo "" >> "$changes_file"
+    fi
+    
+    # Step 3: Allow human intervention or automated fixes
+    echo -e "${PURPLE}Options for iteration $iteration:${NC}"
+    echo -e "  ${GREEN}c${NC} - Continue to next iteration"
+    echo -e "  ${GREEN}i${NC} - Intervene manually (pause iteration)"
+    echo -e "  ${GREEN}q${NC} - Quit iteration session"
+    echo -e "  ${GREEN}s${NC} - Summary and finish"
+    
+    local action=$(get_human_input "Action:" 15 "c")
+    
+    case "$action" in
+      "i"|"intervene")
+        echo -e "${BLUE}Pausing for manual intervention...${NC}"
+        echo "MANUAL_INTERVENTION: User requested pause at iteration $iteration" >> "$log_file"
+        echo -e "${YELLOW}Make your changes, then run:${NC}"
+        echo -e "  ${GREEN}./aicheck auto-iterate --execute $max_iterations $timeout${NC} (to resume)"
+        echo -e "  ${GREEN}./aicheck auto-iterate --summary${NC} (to finish and review)"
+        return 2
+        ;;
+      "q"|"quit")
+        echo -e "${YELLOW}Auto-iterate stopped by user${NC}"
+        echo "STOPPED: User quit at iteration $iteration" >> "$log_file"
+        break
+        ;;
+      "s"|"summary")
+        echo -e "${YELLOW}Proceeding to summary${NC}"
+        break
+        ;;
+      *)
+        echo -e "${BLUE}Continuing to next iteration...${NC}"
+        ;;
+    esac
+    
+    iteration=$((iteration + 1))
+    echo ""
+  done
+  
+  # Generate final summary and request git approval
+  generate_iteration_summary_and_git_approval "$session_id" "$iteration" "$start_time" "$changes_file" "$log_file"
+}
+
+# Function to generate summary and handle git approval
+function generate_iteration_summary_and_git_approval() {
+  local session_id="$1"
+  local final_iteration="$2"
+  local start_time="$3"
+  local changes_file="$4"
+  local log_file="$5"
+  
+  local final_time=$(date +%s)
+  local total_elapsed=$((final_time - start_time))
+  local summary_file=".aicheck/auto-iterate-summary-$session_id.md"
+  
+  echo -e "${BRIGHT_BLURPLE}📋 Auto-Iterate Session Complete${NC}"
+  echo -e "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+  
+  # Generate comprehensive summary
+  cat > "$summary_file" << EOF
+# Auto-Iterate Session Summary
+
+**Session ID:** $session_id  
+**Total Duration:** ${total_elapsed}s ($(($total_elapsed / 60))m $(($total_elapsed % 60))s)  
+**Iterations Completed:** $((final_iteration - 1))  
+**End Time:** $(date)
+
+## Session Overview
+
+### Goals Review
+EOF
+  
+  cat .aicheck/auto-iterate-goals.md >> "$summary_file"
+  
+  cat >> "$summary_file" << EOF
+
+### Changes Made
+EOF
+  
+  if [ -f "$changes_file" ]; then
+    cat "$changes_file" >> "$summary_file"
+  else
+    echo "No changes tracked during this session." >> "$summary_file"
+  fi
+  
+  cat >> "$summary_file" << EOF
+
+### Git Status
+**Files Modified:**
+\`\`\`
+$(git status --porcelain 2>/dev/null || echo "No git repository")
+\`\`\`
+
+**Git Diff Summary:**
+\`\`\`
+$(git diff --stat 2>/dev/null || echo "No changes")
+\`\`\`
+
+### Final Test Results
+\`\`\`
+$(if [ -f "pyproject.toml" ] && command -v poetry >/dev/null 2>&1; then
+    poetry run pytest --tb=short 2>&1 | tail -10
+  elif [ -f "package.json" ]; then
+    npm test 2>&1 | tail -10
+  else
+    echo "No test configuration"
+  fi)
+\`\`\`
+
+## Recommendations
+
+### Achieved
+- [ ] List what was successfully completed
+- [ ] Note any goals that were fully met
+- [ ] Document any improvements made
+
+### Still Needed
+- [ ] List remaining issues
+- [ ] Note any goals not achieved
+- [ ] Suggest next steps
+
+### Code Quality
+- [ ] No regressions introduced
+- [ ] Code follows project standards
+- [ ] Tests are comprehensive
+- [ ] Documentation updated if needed
+
+EOF
+  
+  # Display summary
+  echo -e "${BLUE}Summary generated: ${BRIGHT_BLURPLE}$summary_file${NC}"
+  echo -e ""
+  echo -e "${YELLOW}Session Statistics:${NC}"
+  echo -e "  Total time: ${GREEN}${total_elapsed}s${NC} ($(($total_elapsed / 60))m $(($total_elapsed % 60))s)"
+  echo -e "  Iterations: ${GREEN}$((final_iteration - 1))${NC}"
+  echo -e "  Log file: ${BLUE}$log_file${NC}"
+  echo -e ""
+  
+  # Check for git changes
+  local git_changes=$(git status --porcelain 2>/dev/null | wc -l | tr -d ' ')
+  if [ "$git_changes" -eq 0 ]; then
+    echo -e "${GREEN}✅ No changes to commit${NC}"
+    echo -e "${BLUE}Session complete - no git action needed${NC}"
+    return 0
+  fi
+  
+  # Git approval workflow
+  echo -e "${BRIGHT_BLURPLE}🔄 Git Commit Approval Required${NC}"
+  echo -e "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+  echo -e ""
+  echo -e "${YELLOW}Changes detected in working directory:${NC}"
+  git status --short
+  echo -e ""
+  echo -e "${YELLOW}Do you want to commit these changes? ${NC}"
+  echo -e "${GREEN}Options:${NC}"
+  echo -e "  ${GREEN}y/yes${NC} - Commit changes with auto-generated message"
+  echo -e "  ${GREEN}c/custom${NC} - Commit with custom message"
+  echo -e "  ${GREEN}r/review${NC} - Review detailed diff first"
+  echo -e "  ${GREEN}n/no${NC} - Don't commit (keep changes staged)"
+  echo -e "  ${GREEN}d/discard${NC} - Discard all changes (DANGEROUS!)"
+  echo -e ""
+  
+  local commit_choice=$(get_human_input "Your choice:" 60)
+  
+  case "$commit_choice" in
+    "y"|"yes"|"Y"|"YES")
+      # Auto-generated commit message
+      local commit_msg="Auto-iterate session $session_id: $(git status --porcelain | wc -l | tr -d ' ') files modified
+
+Auto-iterate session completed with $((final_iteration - 1)) iterations.
+Total duration: ${total_elapsed}s
+
+Changes made during automated test-fix cycles.
+See summary: $summary_file
+
+🤖 Generated with AICheck auto-iterate mode"
+      
+      git add -A
+      git commit -m "$commit_msg"
+      echo -e "${GREEN}✅ Changes committed successfully${NC}"
+      ;;
+      
+    "c"|"custom"|"C"|"CUSTOM")
+      echo -e "${BLUE}Enter custom commit message:${NC}"
+      read -p "> " custom_msg
+      if [ -n "$custom_msg" ]; then
+        git add -A
+        git commit -m "$custom_msg
+
+Auto-iterate session: $session_id
+Duration: ${total_elapsed}s, Iterations: $((final_iteration - 1))
+See summary: $summary_file"
+        echo -e "${GREEN}✅ Changes committed with custom message${NC}"
+      else
+        echo -e "${YELLOW}Empty message. Changes not committed.${NC}"
+      fi
+      ;;
+      
+    "r"|"review"|"R"|"REVIEW")
+      echo -e "${BLUE}Reviewing changes...${NC}"
+      git diff --cached
+      echo -e ""
+      echo -e "${YELLOW}Commit these changes? (y/n): ${NC}"
+      read -p "> " review_commit
+      if [[ "$review_commit" =~ ^[Yy] ]]; then
+        git commit -m "Auto-iterate session $session_id
+
+Reviewed and approved changes from automated iteration.
+Duration: ${total_elapsed}s, Iterations: $((final_iteration - 1))
+See summary: $summary_file"
+        echo -e "${GREEN}✅ Changes committed after review${NC}"
+      else
+        echo -e "${YELLOW}Changes not committed${NC}"
+      fi
+      ;;
+      
+    "d"|"discard"|"D"|"DISCARD")
+      echo -e "${RED}⚠️  This will discard ALL changes from the session!${NC}"
+      echo -e "${YELLOW}Are you absolutely sure? (type 'discard' to confirm): ${NC}"
+      read -p "> " confirm_discard
+      if [ "$confirm_discard" = "discard" ]; then
+        git reset --hard HEAD
+        git clean -fd
+        echo -e "${RED}All changes discarded${NC}"
+      else
+        echo -e "${YELLOW}Discard cancelled. Changes preserved.${NC}"
+      fi
+      ;;
+      
+    *)
+      echo -e "${YELLOW}Changes not committed. Files remain modified.${NC}"
+      echo -e "${BLUE}You can commit later using standard git commands${NC}"
+      ;;
+  esac
+  
+  echo -e ""
+  echo -e "${GREEN}Auto-iterate session complete!${NC}"
+  echo -e "${BLUE}Summary: ${BRIGHT_BLURPLE}$summary_file${NC}"
+  echo -e "${BLUE}Log: ${BRIGHT_BLURPLE}$log_file${NC}"
+}
+
 # Auto-detect new sessions and run startup checks
 # auto_session_start_check  # Temporarily disabled for testing
 
@@ -1843,232 +2701,49 @@ case "$CMD" in
     # Shortcut for action complete
     complete_action "$1"
     ;;
+  "status")
+    # Show current status
+    show_status
+    ;;
+  "stuck")
+    # Get unstuck help
+    show_status
+    echo -e ""
+    echo -e "${BRIGHT_BLURPLE}🆘 Getting Unstuck${NC}"
+    echo -e ""
+    echo -e "${YELLOW}If you're feeling lost, here's what to check:${NC}"
+    echo -e "1. ${GREEN}./aicheck status${NC} - See current action status"
+    echo -e "2. ${GREEN}./aicheck focus${NC} - Check for scope creep"
+    echo -e "3. ${GREEN}./aicheck cleanup${NC} - Clean up and optimize"
+    echo -e "4. ${GREEN}./aicheck deploy${NC} - Pre-deployment check"
+    echo -e ""
+    echo -e "${PURPLE}Need to start fresh?${NC}"
+    echo -e "• ${GREEN}./aicheck new ActionName${NC} - Create new action"
+    echo -e "• ${GREEN}./aicheck ACTIVE ActionName${NC} - Switch to action"
+    ;;
+  "focus")
+    # Check for scope creep and compliance issues
+    check_compliance
+    ;;
+  "cleanup")
+    # Clean up and optimize
+    cleanup_compliance
+    ;;
   "deploy")
     # Shortcut for deploy-check
     $0 deploy-check
     ;;
-  "action")
-    case "$1" in
-      "new")
-        create_action "$2"
-        ;;
-      "set")
-        set_active_action "$2"
-        ;;
-      "complete")
-        complete_action "$2"
-        ;;
-      *)
-        echo -e "${RED}Unknown action command: $1${NC}"
-        echo "Available commands: new, set, complete"
-        ;;
-    esac
+  "usage")
+    # Show AI usage and costs
+    mcp__aicheck__aicheck_analyzeCosts 2>/dev/null || echo -e "${YELLOW}Usage tracking not available - MCP server not connected${NC}"
     ;;
-  "dependency"|"deps")
-    case "$1" in
-      "add")
-        # Check if we're in a Poetry project
-        if [ -f "pyproject.toml" ] && [ -f ".aicheck/scripts/aicheck_deps.py" ]; then
-          python3 .aicheck/scripts/aicheck_deps.py add "$2" "$3" "$4"
-        else
-          add_dependency "$2" "$3" "$4" "$5"
-        fi
-        ;;
-      "check")
-        # Quick deployment readiness check
-        if [ -f ".aicheck/scripts/aicheck_deps.py" ]; then
-          python3 .aicheck/scripts/aicheck_deps.py check
-        else
-          echo -e "${YELLOW}Dependency guardian not available. Install AICheck in your project.${NC}"
-        fi
-        ;;
-      "fix")
-        # Auto-fix common dependency issues
-        if [ -f ".aicheck/scripts/aicheck_deps.py" ]; then
-          python3 .aicheck/scripts/aicheck_deps.py fix
-        else
-          echo -e "${YELLOW}Dependency guardian not available. Install AICheck in your project.${NC}"
-        fi
-        ;;
-      "internal")
-        add_internal_dependency "$2" "$3" "$4" "$5"
-        ;;
-      *)
-        echo -e "${RED}Unknown dependency command: $1${NC}"
-        echo "Available commands: add, check, fix, internal"
-        echo ""
-        echo "Quick commands:"
-        echo "  ${GREEN}./aicheck deps check${NC} - Check if ready to deploy"
-        echo "  ${GREEN}./aicheck deps fix${NC}   - Auto-fix dependency issues"
-        echo "  ${GREEN}./aicheck deps add <pkg> <reason>${NC} - Add with metadata"
-        ;;
-    esac
-    ;;
-  "context")
-    case "$1" in
-      "clear")
-        clear_context "$2"
-        ;;
-      "compact")
-        compact_context
-        ;;
-      "check")
-        enforce_action_boundaries
-        ;;
-      "pollution")
-        echo -e "${BRIGHT_BLURPLE}Context Pollution Analysis${NC}"
-        pollution_data=$(detect_context_pollution)
-        pollution_score=$(echo "$pollution_data" | head -1)
-        warnings=$(echo "$pollution_data" | tail -n +2)
-        echo -e "Pollution score: ${GREEN}$pollution_score/100${NC}"
-        if [ -n "$warnings" ]; then
-          echo -e "${YELLOW}$warnings${NC}"
-        fi
-        if [ "$pollution_score" -gt 30 ]; then
-          echo -e "${YELLOW}Consider running './aicheck context clear' or './aicheck context compact'${NC}"
-        fi
-        ;;
-      "cost"|"usage")
-        analyze_usage_costs
-        ;;
-      "optimize")
-        optimize_context
-        ;;
-      *)
-        echo -e "${RED}Unknown context command: $1${NC}"
-        echo "Available commands: clear [--force], compact, check, pollution, cost, optimize"
-        ;;
-    esac
-    ;;
-  "exec")
-    exec_mode
-    ;;
-  "guardian")
-    # Code Guardian System
-    handle_guardian "$@"
-    ;;
-  "status")
-    show_status
-    ;;
-  "update")
-    case "$1" in
-      "")
-        update_all
-        ;;
-      "--rules")
-        update_rules
-        ;;
-      "--self"|"--command")
-        update_aicheck_command
-        ;;
-      "--check")
-        check_for_updates
-        ;;
-      *)
-        echo -e "${RED}Unknown update option: $1${NC}"
-        echo "Available options: update, update --rules, update --self, update --check"
-        ;;
-    esac
+  "auto-iterate"|"iterate"|"auto")
+    # Auto-iterate mode: test, analyze, fix, repeat
+    auto_iterate "$1" "$2"
     ;;
   "version"|"--version")
+    # Show version information
     show_version
-    ;;
-  "reset"|"clear")
-    echo -e "${BRIGHT_BLURPLE}🧹 Cleaning up when things get messy...${NC}"
-    clear_context
-    ;;
-  "focus"|"boundaries"|"scope")
-    echo -e "${BRIGHT_BLURPLE}🎯 Checking if you're staying on track...${NC}"
-    enforce_action_boundaries
-    ;;
-  "cleanup"|"tidy"|"optimize")
-    echo -e "${BRIGHT_BLURPLE}🗂️ Tidying up old files and logs...${NC}"
-    
-    # Try auto-cleanup first (detects recent commits)
-    if ! auto_post_commit_cleanup; then
-      # Manual cleanup - still run validation
-      optimize_context
-      validate_action_completeness
-    fi
-    ;;
-  "usage"|"cost"|"budget")
-    echo -e "${BRIGHT_BLURPLE}📊 Checking Claude Code usage...${NC}"
-    analyze_usage_costs
-    ;;
-  "stuck"|"help"|"lost")
-    echo -e "${BRIGHT_BLURPLE}🆘 Getting you unstuck!${NC}"
-    echo -e ""
-    echo -e "${GREEN}Here's what's happening:${NC}"
-    show_status
-    echo -e ""
-    echo -e "${BRIGHT_BLURPLE}💡 Quick fixes:${NC}"
-    echo -e "${YELLOW}• Run ${GREEN}./aicheck focus${YELLOW} to check scope creep${NC}"
-    echo -e "${YELLOW}• Run ${GREEN}./aicheck cleanup${YELLOW} to reduce context size${NC}"
-    echo -e "${YELLOW}• Run ${GREEN}./aicheck reset${YELLOW} if really confused${NC}"
-    echo -e "${YELLOW}• Use templates in ${GREEN}.aicheck/templates/claude/${YELLOW} for common patterns${NC}"
-    ;;
-  "deploy-check"|"deploy")
-    echo -e "${BRIGHT_BLURPLE}🚀 Deployment Readiness Check${NC}"
-    echo -e ""
-    
-    # Run all deployment checks
-    all_good=true
-    
-    # Check dependencies
-    echo -e "${YELLOW}Checking dependencies...${NC}"
-    if [ -f ".aicheck/scripts/simple_dependency_check.py" ]; then
-      if python3 .aicheck/scripts/simple_dependency_check.py; then
-        echo -e "${GREEN}✅ Dependencies OK${NC}"
-      else
-        echo -e "${RED}❌ Dependency issues found${NC}"
-        all_good=false
-      fi
-    elif [ -f ".aicheck/scripts/dependency_guardian.py" ] && [ -f "pyproject.toml" ]; then
-      if python3 .aicheck/scripts/dependency_guardian.py 2>/dev/null; then
-        echo -e "${GREEN}✅ Dependencies OK${NC}"
-      else
-        echo -e "${RED}❌ Dependency issues found${NC}"
-        all_good=false
-      fi
-    fi
-    
-    # Check tests
-    echo -e "\n${YELLOW}Running tests...${NC}"
-    if [ -f "pyproject.toml" ] && command -v poetry >/dev/null 2>&1; then
-      if poetry run pytest -q; then
-        echo -e "${GREEN}✅ Tests passed${NC}"
-      else
-        echo -e "${RED}❌ Tests failed${NC}"
-        all_good=false
-      fi
-    elif [ -f "package.json" ]; then
-      if npm test; then
-        echo -e "${GREEN}✅ Tests passed${NC}"
-      else
-        echo -e "${RED}❌ Tests failed${NC}"
-        all_good=false
-      fi
-    fi
-    
-    # Check git status
-    echo -e "\n${YELLOW}Checking git status...${NC}"
-    if [ -z "$(git status --porcelain)" ]; then
-      echo -e "${GREEN}✅ Working directory clean${NC}"
-    else
-      echo -e "${YELLOW}⚠️  Uncommitted changes${NC}"
-      git status --short
-    fi
-    
-    # Final verdict
-    echo -e ""
-    if [ "$all_good" = true ]; then
-      echo -e "${GREEN}✅ Ready to deploy!${NC}"
-      echo -e "${YELLOW}Run 'git push' to deploy your changes${NC}"
-    else
-      echo -e "${RED}❌ Not ready to deploy. Fix the issues above.${NC}"
-      echo -e "${YELLOW}Run './aicheck deps fix' to auto-fix some issues${NC}"
-      exit 1
-    fi
     ;;
   *)
     echo -e "${RED}❌ Unknown command: $CMD${NC}"

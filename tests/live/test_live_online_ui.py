@@ -4,6 +4,7 @@ import random
 import pytest
 from playwright.sync_api import Page, expect
 import json
+from difflib import SequenceMatcher
 
 # LIVE_ONLINE test – uses the actual running web application and real LLM providers.
 # No internal stubs or TESTING shortcuts are active.
@@ -98,3 +99,16 @@ def test_live_ultra_synthesis_via_ui(page: Page):
         f"{', '.join(sorted(missing))}."
         "\nFull responses: " + json.dumps(responses, indent=2)[:500]
     )
+
+    # 8. Guard against copy-paste: fail if Ultra-Synthesis is ≥90 % identical to any single peer response
+    if responses:
+        worst_overlap = max(
+            SequenceMatcher(None, synthesis_text.lower(), peer.lower()).ratio()
+            for peer in responses.values()
+            if isinstance(peer, str)
+        )
+
+        assert worst_overlap < 0.90, (
+            f"Ultra-Synthesis appears to be {worst_overlap:.0%} duplicated from a peer response. "
+            "Possible copy-paste instead of synthesis."
+        )
