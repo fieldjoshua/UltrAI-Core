@@ -26,6 +26,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `pytest tests/ -m "unit" -v` - Run only unit tests
 - `pytest tests/ -m "integration" -v` - Run only integration tests
 - `pytest tests/ -m "e2e" -v` - Run only end-to-end tests
+- `./run_e2e.sh` - Run Playwright e2e tests using local Chrome browser
+- `pytest tests/ -m "live_online" -v` - Run live tests against real LLM providers
 
 ### Poetry Commands (Python Dependency Management)
 - `poetry install` - Install all dependencies from poetry.lock
@@ -166,6 +168,12 @@ def initialize_services() -> Dict[str, Any]:
 - `tests/unit/` - Fast, isolated unit tests
 - `tests/integration/` - Service integration tests
 - `tests/e2e/` - End-to-end workflow tests
+- `tests/live/` - Live tests against real LLM providers and production URLs
+
+**Live Testing Strategy**:
+- Tests marked `@pytest.mark.live_online` use real LLM providers and production endpoints
+- `./run_e2e.sh` runs Playwright tests using local Chrome installation to avoid CDN downloads
+- Live tests randomly select from diverse prompts to exercise different knowledge domains
 
 ## Production Deployment
 

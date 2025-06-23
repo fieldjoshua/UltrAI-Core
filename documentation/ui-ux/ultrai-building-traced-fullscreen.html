@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UltraAI - Building Traced Background</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            background: #0a0f1c;
+            color: #ffffff;
+            overflow-x: hidden;
+            line-height: 1.6;
+            position: relative;
+            min-height: 100vh;
+        }
+
+        /* Full-screen traced building background */
+        .building-background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 0;
+            opacity: 0.08;
+            pointer-events: none;
+        }
+
+        /* Main building structure scaled to full viewport */
+        .building-trace {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            transform-origin: center center;
+        }
+
+        /* Traced building SVG - scaled to fill screen */
+        .building-svg {
+            width: 100%;
+            height: 100%;
+            transform: scale(5) translateY(-10%);
+        }
+
+        /* Building structure paths - traced lines only */
+        .building-svg path {
+            fill: none !important;
+            stroke-width: 0.3;
+            vector-effect: non-scaling-stroke;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            stroke: rgba(0, 255, 255, 0.6);
+            filter: drop-shadow(0 0 1px rgba(0, 255, 255, 0.8));
+        }
+
+        /* Different sections of the building in different colors */
+        .building-svg .structure { stroke: rgba(0, 255, 255, 0.4); }
+        .building-svg .billboard { stroke: rgba(255, 107, 53, 0.8); stroke-width: 0.5; }
+        .building-svg .details { stroke: rgba(255, 0, 222, 0.3); }
+        .building-svg .foundation { stroke: rgba(255, 255, 255, 0.2); }
+
+        /* Additional building instances for depth */
+        .building-layer-2 {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0.04;
+            transform: scale(3) translate(20%, 15%) rotate(5deg);
+        }
+
+        .building-layer-3 {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0.03;
+            transform: scale(7) translate(-15%, -20%) rotate(-3deg);
+        }
+
+        /* Animated glow effect for the building outline */
+        @keyframes buildingGlow {
+            0%, 100% { 
+                filter: drop-shadow(0 0 2px rgba(0, 255, 255, 0.3));
+                opacity: 0.08;
+            }
+            50% { 
+                filter: drop-shadow(0 0 4px rgba(255, 107, 53, 0.4));
+                opacity: 0.12;
+            }
+        }
+
+        .building-trace {
+            animation: buildingGlow 8s ease-in-out infinite;
+        }
+
+        /* Content overlay */
+        .content {
+            position: relative;
+            z-index: 10;
+            min-height: 100vh;
+        }
+
+        /* Navigation */
+        .navbar {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(0, 255, 255, 0.3);
+            z-index: 1000;
+            padding: 20px 0;
+        }
+
+        .nav-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 30px;
+        }
+
+        .logo {
+            font-size: 32px;
+            font-weight: bold;
+            color: #00ffff;
+            text-shadow: 0 0 25px #00ffff;
+            letter-spacing: 2px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 40px;
+        }
+
+        .nav-links a {
+            color: #ffffff;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            font-size: 16px;
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: 1px solid transparent;
+        }
+
+        .nav-links a:hover {
+            color: #ff6b35;
+            text-shadow: 0 0 15px #ff6b35;
+            background: rgba(255, 107, 53, 0.1);
+            border-color: rgba(255, 107, 53, 0.3);
+        }
+
+        /* Hero Section */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 120px 30px 80px;
+            position: relative;
+            text-align: center;
+        }
+
+        .hero-container {
+            max-width: 1200px;
+            z-index: 2;
+        }
+
+        .hero-title {
+            font-size: 6rem;
+            font-weight: bold;
+            margin-bottom: 30px;
+            background: linear-gradient(45deg, #00ffff, #ff00de, #ff6b35);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: titleGlow 4s ease-in-out infinite alternate;
+            text-shadow: 0 0 50px rgba(0, 255, 255, 0.5);
+            letter-spacing: 3px;
+            line-height: 1.1;
+        }
+
+        .hero-subtitle {
+            font-size: 2.5rem;
+            color: #ff6b35;
+            margin-bottom: 40px;
+            text-shadow: 0 0 30px #ff6b35;
+            letter-spacing: 2px;
+            font-weight: bold;
+        }
+
+        .hero-description {
+            font-size: 1.4rem;
+            color: #cccccc;
+            margin-bottom: 60px;
+            max-width: 900px;
+            margin-left: auto;
+            margin-right: auto;
+            line-height: 1.8;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
+        }
+
+        .cta-button {
+            display: inline-block;
+            background: linear-gradient(45deg, #00ffff, #0099cc);
+            color: #000000;
+            padding: 25px 50px;
+            border-radius: 15px;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 20px;
+            transition: all 0.4s ease;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            box-shadow: 0 10px 40px rgba(0, 255, 255, 0.4);
+            border: 3px solid transparent;
+        }
+
+        .cta-button:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 25px 60px rgba(0, 255, 255, 0.6);
+            background: linear-gradient(45deg, #00cccc, #007799);
+            border-color: #ff00de;
+        }
+
+        /* Billboard highlight section */
+        .billboard-section {
+            padding: 100px 30px;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(10px);
+            position: relative;
+        }
+
+        .billboard-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .billboard-title {
+            font-size: 4rem;
+            color: #ff6b35;
+            margin-bottom: 30px;
+            text-shadow: 0 0 40px #ff6b35;
+            letter-spacing: 2px;
+        }
+
+        .billboard-text {
+            font-size: 1.3rem;
+            color: #ffffff;
+            max-width: 800px;
+            margin: 0 auto 40px;
+            line-height: 1.7;
+        }
+
+        .building-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 40px;
+            margin-top: 60px;
+        }
+
+        .info-card {
+            background: rgba(0, 0, 0, 0.7);
+            border: 1px solid rgba(0, 255, 255, 0.3);
+            border-radius: 15px;
+            padding: 30px;
+            transition: all 0.4s ease;
+        }
+
+        .info-card:hover {
+            transform: translateY(-10px);
+            border-color: #ff00de;
+            box-shadow: 0 20px 40px rgba(255, 0, 222, 0.3);
+        }
+
+        .info-icon {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            display: block;
+        }
+
+        .info-title {
+            font-size: 1.5rem;
+            color: #00ffff;
+            margin-bottom: 15px;
+        }
+
+        .info-description {
+            color: #cccccc;
+            line-height: 1.6;
+        }
+
+        @keyframes titleGlow {
+            0% { filter: brightness(1) hue-rotate(0deg); }
+            100% { filter: brightness(1.5) hue-rotate(25deg); }
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .hero-title {
+                font-size: 4rem;
+            }
+
+            .hero-subtitle {
+                font-size: 2rem;
+            }
+
+            .nav-links {
+                display: none;
+            }
+
+            .building-svg {
+                transform: scale(3) translateY(-5%);
+            }
+
+            .building-layer-2 {
+                transform: scale(2) translate(10%, 10%) rotate(3deg);
+            }
+
+            .building-layer-3 {
+                transform: scale(4) translate(-10%, -15%) rotate(-2deg);
+            }
+        }
+
+        /* Subtle scan lines effect */
+        .scan-lines {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 5;
+            pointer-events: none;
+            background: repeating-linear-gradient(
+                0deg,
+                transparent,
+                transparent 2px,
+                rgba(0, 255, 255, 0.02) 2px,
+                rgba(0, 255, 255, 0.02) 4px
+            );
+            animation: scanMove 2s linear infinite;
+        }
+
+        @keyframes scanMove {
+            0% { transform: translateY(0px); }
+            100% { transform: translateY(4px); }
+        }
+    </style>
+</head>
+<body>
+    <!-- Full-screen traced building background -->
+    <div class="building-background">
+        <!-- Main building layer -->
+        <div class="building-trace">
+            <svg class="building-svg" viewBox="0 0 196.45 243.35" xmlns="http://www.w3.org/2000/svg">
+                <!-- Main building structure -->
+                <path class="structure" d="M151.8,242.49c-.56-34.75-.55-69.55-1.57-104.27-43.3,2.79-86.57,5.87-129.87,8.76"/>
+                <path class="structure" d="M144.06,1.17c-36.14,10.54-72.19,21.43-108.32,31.99-1.28.37-1.57.46-1.52,1.99.19,2.81-1.2,6.79,2.27,8.12"/>
+                <path class="structure" d="M146.43,104.99c-1.8-.06-1.82,2.76-4.02,1.82-.82-.21-1.93.05-2.71.47-1.86,1.01-3.86.53-5.77.82-.23.03-.63-.08-.73-.25-.87-1.52-1.57-.42-2.58.09-1.6-1.39-3.5-.77-5.31-.68-25.14,1.75-50.18,4.74-75.22,7.59-9.9,1.11-19.82,2.05-29.74,3-4.4.63-6.92.66-5.72-4.75-.98-2.02-1.11-4.25-.59-6.35,1.12-17,.89-33.99.94-51.11,46.38-15.45,94.38-25.29,141.59-37.75,1.8,1.22.93,3.4.97,5.14-.04,26.28,0,52.42.12,78.72-1.71,1.73-4.2,2.33-6.87,2.66-.95.12-2.16-.46-2.71.51-.47.15-1.9,0-1.42.44"/>
+                
+                <!-- Building foundation and floors -->
+                <path class="foundation" d="M53.6,42.52c27.21-7.98,55-14.06,82.33-21.75,7-1.82,13.92-4.6,21.24-4.56,3.39-.31,2.33,3.37,2.5,5.56,0,24.28-.03,48.56.13,72.84-.01,3.93,1.3,10.4-4.01,11.32-3.66.18-7.73,1.75-11.24.68"/>
+                <path class="foundation" d="M195.53,10.66c.47,24.81.47,49.9,0,74.71"/>
+                <path class="foundation" d="M195.53,85.88c.54,19.53.41,39.78,0,59.47"/>
+                <path class="foundation" d="M161.55,135.85c.3,35.45-1.13,70.97-1.12,106.45"/>
+                
+                <!-- Billboard area -->
+                <path class="billboard" d="M180.66,110.74c.78.44.77,1.28,1,2,2.16,7.26,4.71,14.38,6.85,21.62,1.01,2.88,1.86,5.82,2.77,8.74.51,1.99,2.57,1.92,4.25,2.5.73,32.28.32,64.65.17,96.95-20.22-.13-40.34.44-60.52-.5"/>
+                <path class="billboard" d="M149.8,14.04c3.52-2.65,11.61-4.09,15.15-.78,2.69,3.06,12.41,7.32,12.72,10.65-.18,26.54.25,53.05-.01,79.59-.01.73.09,1.27.86,1.66,1.67,1.13,1.64,3.59,2.32,5.34-.08.11-.16.21-.24.32l-2.69-.58"/>
+                
+                <!-- Building details and windows -->
+                <path class="details" d="M43.48,64.39c.48.32,1.47-.23,1.51,1.06h-1.87c.16-4.14-.22-8.04-.87-12.23-2.19.43-4.31.85-6.39,1.27-.22,6.92.21,13.46.72,20.27.21,5.16.16,12.19-6.59,13.13-1.64.16-2.82-.46-3.1-2.02-1.83-9.62,1.17-19.66-1.38-29.19-2.71.7-7.39-.59-6.95,3.46-.37,7.53,0,15.09.44,22.61-.35,11.72,10.4,13.77,18.96,8.58,8.15-5.44,4.82-17.32,5.4-25.7"/>
+                <path class="details" d="M148.3,36.15c-1.84.99-5.68.78-5.39,3.62.95,12.84,1.77,25.73,2.78,38.55,1.93.5,7.62.07,7.7-2.56-.39-6.71-.97-13.41-1.47-20.12-.4-5.88-.98-11.74-1.35-17.62-.09-1.84-.4-1.93-2.15-1.87"/>
+                <path class="details" d="M146.05,184.2c-.08,14.58-.17,29.15-.25,43.73"/>
+                <path class="details" d="M145.8,163.34c-.45,4.03-.45,8.46,0,12.49"/>
+                
+                <!-- Additional structural elements -->
+                <path class="structure" d="M178.29,110.49c2.38,11.3,7.3,22.03,9.91,33.31-4.12-2.17-9.95-1.44-11.23-6.55-2.02-7.51-5.73-14.18-7.90-21.67,1.88-.25,3.68-.48,5.53-.73.44-.81.89-1.65,1.43-2.66.23.25.44.46.64.67"/>
+                <path class="structure" d="M47.66,40.65c-10.7,3.83-22.44,6.29-33.55,9.48-5.08,1.11-3.31,6.63-3.62,10.51-.32,20.03.19,39.99-.17,59.97-.16,1.57.58,2.34,1.79,3.01,7.1,3.27,15.09,3.78,21.88,7.97,2.29.95,1.41,4.9-1.4,4.15-1.37-1.72-3.25-1.44-5.23-1.26-.5-1.26-1.56-1.51-2.87-1.41-.72.05-1.62-.76-2.36-.57"/>
+            </svg>
+        </div>
+
+        <!-- Additional building layers for depth -->
+        <div class="building-layer-2">
+            <svg class="building-svg" viewBox="0 0 196.45 243.35" xmlns="http://www.w3.org/2000/svg">
+                <path class="structure" d="M151.8,242.49c-.56-34.75-.55-69.55-1.57-104.27-43.3,2.79-86.57,5.87-129.87,8.76"/>
+                <path class="billboard" d="M180.66,110.74c.78.44.77,1.28,1,2,2.16,7.26,4.71,14.38,6.85,21.62,1.01,2.88,1.86,5.82,2.77,8.74.51,1.99,2.57,1.92,4.25,2.5.73,32.28.32,64.65.17,96.95-20.22-.13-40.34.44-60.52-.5"/>
+                <path class="foundation" d="M195.53,10.66c.47,24.81.47,49.9,0,74.71"/>
+            </svg>
+        </div>
+
+        <div class="building-layer-3">
+            <svg class="building-svg" viewBox="0 0 196.45 243.35" xmlns="http://www.w3.org/2000/svg">
+                <path class="structure" d="M146.43,104.99c-1.8-.06-1.82,2.76-4.02,1.82-.82-.21-1.93.05-2.71.47-1.86,1.01-3.86.53-5.77.82-.23.03-.63-.08-.73-.25-.87-1.52-1.57-.42-2.58.09-1.6-1.39-3.5-.77-5.31-.68-25.14,1.75-50.18,4.74-75.22,7.59-9.9,1.11-19.82,2.05-29.74,3-4.4.63-6.92.66-5.72-4.75-.98-2.02-1.11-4.25-.59-6.35,1.12-17,.89-33.99.94-51.11,46.38-15.45,94.38-25.29,141.59-37.75,1.8,1.22.93,3.4.97,5.14-.04,26.28,0,52.42.12,78.72-1.71,1.73-4.2,2.33-6.87,2.66-.95.12-2.16-.46-2.71.51-.47.15-1.9,0-1.42.44"/>
+                <path class="billboard" d="M149.8,14.04c3.52-2.65,11.61-4.09,15.15-.78,2.69,3.06,12.41,7.32,12.72,10.65-.18,26.54.25,53.05-.01,79.59-.01.73.09,1.27.86,1.66,1.67,1.13,1.64,3.59,2.32,5.34-.08.11-.16.21-.24.32l-2.69-.58"/>
+            </svg>
+        </div>
+    </div>
+
+    <!-- Scan lines effect -->
+    <div class="scan-lines"></div>
+
+    <!-- Main Content -->
+    <div class="content">
+        <!-- Navigation -->
+        <nav class="navbar">
+            <div class="nav-container">
+                <div class="logo">ULTRA AI</div>
+                <div class="nav-links">
+                    <a href="#home">Home</a>
+                    <a href="#building">Building</a>
+                    <a href="#billboard">Billboard</a>
+                    <a href="#contact">Contact</a>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Hero Section -->
+        <section id="home" class="hero">
+            <div class="hero-container">
+                <h1 class="hero-title">ULTRA AI</h1>
+                <h2 class="hero-subtitle">MULTIPLY YOUR AI!</h2>
+                <p class="hero-description">
+                    From the towering digital architecture of tomorrow, UltraAI broadcasts the future of intelligence. 
+                    Like a massive billboard illuminating the cityscape, we amplify and multiply AI capabilities 
+                    across the urban landscape of computation.
+                </p>
+                <a href="#building" class="cta-button">Enter the Building</a>
+            </div>
+        </section>
+
+        <!-- Billboard Section -->
+        <section id="building" class="billboard-section">
+            <div class="billboard-container">
+                <h2 class="billboard-title">The UltraAI Building</h2>
+                <p class="billboard-text">
+                    Our traced line architecture represents the skeletal framework of AI intelligence - 
+                    every beam, every connection, every structural element designed to support 
+                    the massive computational billboard that is UltraAI.
+                </p>
+                
+                <div class="building-info">
+                    <div class="info-card">
+                        <span class="info-icon">🏗️</span>
+                        <h3 class="info-title">Structural Foundation</h3>
+                        <p class="info-description">
+                            Built on robust AI architecture that scales from foundation to billboard heights.
+                        </p>
+                    </div>
+                    <div class="info-card">
+                        <span class="info-icon">💡</span>
+                        <h3 class="info-title">Billboard Intelligence</h3>
+                        <p class="info-description">
+                            Your AI multiplication beacon visible across the entire computational cityscape.
+                        </p>
+                    </div>
+                    <div class="info-card">
+                        <span class="info-icon">🌃</span>
+                        <h3 class="info-title">Urban Integration</h3>
+                        <p class="info-description">
+                            Seamlessly integrated into the fabric of digital infrastructure and intelligence.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        // Building interaction effects
+        document.addEventListener('mousemove', function(e) {
+            const building = document.querySelector('.building-trace');
+            const mouseX = e.clientX / window.innerWidth;
+            const mouseY = e.clientY / window.innerHeight;
+            
+            // Subtle parallax effect on the building
+            const intensity = 0.02;
+            const offsetX = (mouseX - 0.5) * intensity * 100;
+            const offsetY = (mouseY - 0.5) * intensity * 100;
+            
+            building.style.transform = `translate(${offsetX}px, ${offsetY}px)`;
+            
+            // Adjust opacity based on mouse position
+            const baseOpacity = 0.08;
+            const variation = (mouseX * mouseY) * 0.05;
+            building.style.opacity = baseOpacity + variation;
+        });
+
+        // Smooth scrolling
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Dynamic building glow based on scroll
+        window.addEventListener('scroll', function() {
+            const scrollPercent = window.scrollY / (document.documentElement.scrollHeight - window.innerHeight);
+            const building = document.querySelector('.building-trace');
+            
+            // Increase glow as user scrolls
+            const glowIntensity = 0.08 + (scrollPercent * 0.04);
+            building.style.opacity = glowIntensity;
+        });
+    </script>
+</body>
+</html>
