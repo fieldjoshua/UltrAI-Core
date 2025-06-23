@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useMemo, CSSProperties } from 'react';
 import './CyberpunkCityBackground.css';
 
-// SVG Assets as React Components
-import Asset3333 from '../assets/cyberpunk/3333-01.svg?react';
-import Asset5555 from '../assets/cyberpunk/5555-01.svg?react';
+// SVG Assets as React Components - From /3/ directory
+import AquaAsset1 from '../assets/cyberpunk/aquaAsset 1.svg?react';
+import AquaAsset2 from '../assets/cyberpunk/aquaAsset 2.svg?react';
+import AquaAsset3 from '../assets/cyberpunk/aquaAsset 3.svg?react';
+import AquaAsset8 from '../assets/cyberpunk/aquaAsset 8.svg?react';
 
 interface MousePosition {
   x: number;
@@ -28,15 +30,23 @@ interface CyberpunkLayerConfig {
 
 const layerConfigs: Record<string, CyberpunkLayerConfig> = {
   background: {
-    asset: Asset3333,
+    asset: AquaAsset3,
     position: { x: '60%', y: '20%' },
     scale: 0.6,
     animations: ['building-pulse', 'window-flicker'],
     interactivity: true,
     parallaxSpeed: 0.1
   },
+  midground: {
+    asset: AquaAsset8,
+    position: { x: '20%', y: '30%' },
+    scale: 0.5,
+    animations: ['circuit-flow', 'data-stream'],
+    interactivity: true,
+    parallaxSpeed: 0.3
+  },
   foreground: {
-    asset: Asset5555,
+    asset: AquaAsset2,
     position: { x: '-10%', y: '40%' },
     scale: 0.4,
     animations: ['connection-pulse', 'structure-glow'],
@@ -139,10 +149,13 @@ const DataStreamParticles: React.FC<{ intensity: string }> = ({ intensity }) => 
 const StaticCyberpunkBackground: React.FC = () => (
   <div className="cyberpunk-city-background static">
     <div className="cyberpunk-layer background static">
-      <Asset3333 className="cyberpunk-background static" />
+      <AquaAsset3 className="cyberpunk-background static" />
+    </div>
+    <div className="cyberpunk-layer midground static">
+      <AquaAsset8 className="cyberpunk-midground static" />
     </div>
     <div className="cyberpunk-layer foreground static">
-      <Asset5555 className="cyberpunk-foreground static" />
+      <AquaAsset2 className="cyberpunk-foreground static" />
     </div>
   </div>
 );
@@ -162,6 +175,9 @@ export const CyberpunkCityBackground: React.FC<CyberpunkBackgroundProps> = ({
   const layerTransforms = useMemo(() => ({
     background: {
       transform: `translate3d(${mousePos.x * 10}px, ${mousePos.y * 8 + scrollY * layerConfigs.background.parallaxSpeed}px, 0) scale(${layerConfigs.background.scale})`
+    },
+    midground: {
+      transform: `translate3d(${mousePos.x * 20}px, ${mousePos.y * 15 + scrollY * layerConfigs.midground.parallaxSpeed}px, 0) scale(${layerConfigs.midground.scale})`
     },
     foreground: {
       transform: `translate3d(${mousePos.x * 30}px, ${mousePos.y * 25 + scrollY * layerConfigs.foreground.parallaxSpeed}px, 0) scale(${layerConfigs.foreground.scale})`
