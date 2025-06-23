@@ -2,9 +2,8 @@ import React, { useState, useEffect, useMemo, CSSProperties } from 'react';
 import './CyberpunkCityBackground.css';
 
 // SVG Assets as React Components
-import BridgeStructure from '../assets/cyberpunk/bridge-structure.svg?react';
-import PurpleBuilding from '../assets/cyberpunk/purple-building.svg?react';
-import CircuitBuilding from '../assets/cyberpunk/circuit-building.svg?react';
+import Asset3333 from '../assets/cyberpunk/3333-01.svg?react';
+import Asset5555 from '../assets/cyberpunk/5555-01.svg?react';
 
 interface MousePosition {
   x: number;
@@ -29,23 +28,15 @@ interface CyberpunkLayerConfig {
 
 const layerConfigs: Record<string, CyberpunkLayerConfig> = {
   background: {
-    asset: PurpleBuilding,
+    asset: Asset3333,
     position: { x: '60%', y: '20%' },
     scale: 0.6,
     animations: ['building-pulse', 'window-flicker'],
     interactivity: true,
     parallaxSpeed: 0.1
   },
-  midground: {
-    asset: CircuitBuilding,
-    position: { x: '20%', y: '30%' },
-    scale: 0.5,
-    animations: ['circuit-flow', 'data-stream'],
-    interactivity: true,
-    parallaxSpeed: 0.3
-  },
   foreground: {
-    asset: BridgeStructure,
+    asset: Asset5555,
     position: { x: '-10%', y: '40%' },
     scale: 0.4,
     animations: ['connection-pulse', 'structure-glow'],
@@ -148,13 +139,10 @@ const DataStreamParticles: React.FC<{ intensity: string }> = ({ intensity }) => 
 const StaticCyberpunkBackground: React.FC = () => (
   <div className="cyberpunk-city-background static">
     <div className="cyberpunk-layer background static">
-      <PurpleBuilding className="cyberpunk-background static" />
-    </div>
-    <div className="cyberpunk-layer midground static">
-      <CircuitBuilding className="cyberpunk-midground static" />
+      <Asset3333 className="cyberpunk-background static" />
     </div>
     <div className="cyberpunk-layer foreground static">
-      <BridgeStructure className="cyberpunk-foreground static" />
+      <Asset5555 className="cyberpunk-foreground static" />
     </div>
   </div>
 );
@@ -174,9 +162,6 @@ export const CyberpunkCityBackground: React.FC<CyberpunkBackgroundProps> = ({
   const layerTransforms = useMemo(() => ({
     background: {
       transform: `translate3d(${mousePos.x * 10}px, ${mousePos.y * 8 + scrollY * layerConfigs.background.parallaxSpeed}px, 0) scale(${layerConfigs.background.scale})`
-    },
-    midground: {
-      transform: `translate3d(${mousePos.x * 20}px, ${mousePos.y * 15 + scrollY * layerConfigs.midground.parallaxSpeed}px, 0) scale(${layerConfigs.midground.scale})`
     },
     foreground: {
       transform: `translate3d(${mousePos.x * 30}px, ${mousePos.y * 25 + scrollY * layerConfigs.foreground.parallaxSpeed}px, 0) scale(${layerConfigs.foreground.scale})`
