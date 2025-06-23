@@ -25,10 +25,10 @@
 /* Specific layer positioning and sizing */
 .cyberpunk-layer.background {
   /* Purple building - position on right side */
-  right: -100px;
-  top: 50%;
-  transform: translateY(-50%) scale(0.3);
-  width: 300px;
+  right: 0px;
+  top: 0px;
+  transform: scale(1.2);
+  width: 60vw;
   height: auto;
   z-index: 1;
 }
@@ -41,10 +41,10 @@
 
 .cyberpunk-layer.midground {
   /* Circuit building - position center-left */
-  left: 15%;
-  top: 60%;
-  transform: translateY(-50%) scale(0.4);
-  width: 200px;
+  left: 25%;
+  top: 40%;
+  transform: scale(0.8);
+  width: 30vw;
   height: auto;
   z-index: 2;
 }
@@ -57,10 +57,10 @@
 
 .cyberpunk-layer.foreground {
   /* Bridge structure - position on left side */
-  left: -50px;
-  top: 30%;
-  transform: translateY(-50%) scale(0.25);
-  width: 250px;
+  left: 0px;
+  bottom: 0px;
+  transform: scale(1.0);
+  width: 70vw;
   height: auto;
   z-index: 3;
 }
@@ -177,24 +177,24 @@
    ================================ */
 
 @keyframes float-gentle {
-  0%, 100% { transform: translateY(-50%) translateX(0px) scale(0.3); }
-  25% { transform: translateY(-50%) translateX(2px) scale(0.3); }
-  50% { transform: translateY(-50%) translateX(-1px) scale(0.3); }
-  75% { transform: translateY(-50%) translateX(1px) scale(0.3); }
+  0%, 100% { transform: translateX(0px) scale(1.2); }
+  25% { transform: translateX(2px) scale(1.2); }
+  50% { transform: translateX(-1px) scale(1.2); }
+  75% { transform: translateX(1px) scale(1.2); }
 }
 
 @keyframes float-medium {
-  0%, 100% { transform: translateY(-50%) translateX(0px) scale(0.4); }
-  25% { transform: translateY(-50%) translateX(3px) scale(0.4); }
-  50% { transform: translateY(-50%) translateX(-2px) scale(0.4); }
-  75% { transform: translateY(-50%) translateX(2px) scale(0.4); }
+  0%, 100% { transform: translateX(0px) scale(0.8); }
+  25% { transform: translateX(3px) scale(0.8); }
+  50% { transform: translateX(-2px) scale(0.8); }
+  75% { transform: translateX(2px) scale(0.8); }
 }
 
 @keyframes float-strong {
-  0%, 100% { transform: translateY(-50%) translateX(0px) scale(0.25); }
-  25% { transform: translateY(-50%) translateX(4px) scale(0.25); }
-  50% { transform: translateY(-50%) translateX(-3px) scale(0.25); }
-  75% { transform: translateY(-50%) translateX(3px) scale(0.25); }
+  0%, 100% { transform: translateX(0px) scale(1.0); }
+  25% { transform: translateX(4px) scale(1.0); }
+  50% { transform: translateX(-3px) scale(1.0); }
+  75% { transform: translateX(3px) scale(1.0); }
 }
 
 /* ================================
