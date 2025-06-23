@@ -207,12 +207,7 @@ export const CyberpunkCityBackground: React.FC<CyberpunkBackgroundProps> = ({
           </div>
         ))}
 
-        {interactive && (
-          <>
-            <InteractiveGlowEffects mousePos={mousePos} />
-            <DataStreamParticles intensity={intensity} />
-          </>
-        )}
+        {/* Interactive effects disabled for baseline */}
       </div>
       
       {children && <div className="content-overlay">{children}</div>}
