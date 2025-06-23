@@ -10,6 +10,7 @@
   overflow: hidden;
   background: radial-gradient(ellipse at center, rgba(20, 20, 30, 0.95) 0%, rgba(0, 0, 0, 0.98) 100%);
   pointer-events: none;
+  /* Trigger fresh deployment */
 }
 
 .cyberpunk-layer {
