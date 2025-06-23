@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>SVG Background Test</title>
+  <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+    }
+    .site-background {
+      min-height: 100vh;
+      width: 100vw;
+      /* Use the same CSS as your app */
+      background-image:
+        url('/assets/bridge-flush.svg'),
+        url('/assets/building-flush.svg'),
+        radial-gradient(circle at 25% 60%, rgba(255, 230, 128, 0.4), rgba(255, 153, 102, 0) 60%),
+        linear-gradient(to bottom, #0f172a 0%, #1e293b 60%, #0f172a 100%);
+      background-repeat: no-repeat, no-repeat, no-repeat, no-repeat;
+      background-position:
+        left bottom,
+        right bottom,
+        center left,
+        center;
+      background-size:
+        auto 100%,
+        auto 100%,
+        140% 140%,
+        cover;
+      animation: hueShift 40s linear infinite;
+    }
+    @keyframes hueShift {
+      0% { filter: hue-rotate(0deg); }
+      100% { filter: hue-rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <div class="site-background"></div>
+</body>
+</html>
