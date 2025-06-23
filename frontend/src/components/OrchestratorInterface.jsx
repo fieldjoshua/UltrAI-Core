@@ -36,6 +36,9 @@ const OrchestratorInterface = () => {
   const [progressStatus, setProgressStatus] = useState('idle');
   const [currentStage, setCurrentStage] = useState(0);
   const [progressMessage, setProgressMessage] = useState('');
+  
+  // State for detailed breakdown visibility
+  const [showDetailedBreakdown, setShowDetailedBreakdown] = useState(false);
 
   // Load available models and patterns on component mount
   useEffect(() => {
@@ -464,100 +467,131 @@ const OrchestratorInterface = () => {
           {/* Feather Orchestration Results */}
           {useFeatherOrchestration && results.status === 'success' && (
             <div className="space-y-6">
-              {/* Pattern and Models Used */}
-              <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-                <div className="flex justify-between items-center">
-                  <div>
-                    <h3 className="font-semibold text-blue-900">
-                      Pattern: {results.pattern_used || selectedPattern}
-                    </h3>
-                    <p className="text-sm text-blue-700">
-                      4-Stage Feather Orchestration Complete
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-sm text-blue-700">
-                      Models: {results.models_used ? results.models_used.join(', ') : selectedModels.join(', ')}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Stage 1: Initial Responses */}
-              {results.initial_responses && Object.keys(results.initial_responses).length > 0 && (
-                <div>
-                  <h3 className="text-lg font-semibold mb-3 flex items-center">
-                    <span className="bg-green-100 text-green-800 px-2 py-1 rounded-full text-sm mr-2">1</span>
-                    Initial Analysis Responses
-                  </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {Object.entries(results.initial_responses).map(([model, response]) => (
-                      <div key={model} className="bg-gray-50 p-4 rounded-lg border">
-                        <h4 className="font-medium mb-2 flex items-center">
-                          {formatModelName(model)}
-                          {leadModel && leadModel.includes(model) && (
-                            <span className="ml-2 text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded">
-                              Ultra Model
-                            </span>
-                          )}
-                        </h4>
-                        <p className="text-sm whitespace-pre-wrap text-gray-700">{response}</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Stage 2: Meta Analysis */}
-              {results.meta_responses && Object.keys(results.meta_responses).length > 0 && (
-                <div>
-                  <h3 className="text-lg font-semibold mb-3 flex items-center">
-                    <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-sm mr-2">2</span>
-                    Meta Analysis
-                  </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {Object.entries(results.meta_responses).map(([model, response]) => (
-                      <div key={model} className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-                        <h4 className="font-medium mb-2">{formatModelName(model)}</h4>
-                        <p className="text-sm whitespace-pre-wrap text-gray-700">{response}</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Stage 3: Hyper Analysis */}
-              {results.hyper_responses && Object.keys(results.hyper_responses).length > 0 && (
-                <div>
-                  <h3 className="text-lg font-semibold mb-3 flex items-center">
-                    <span className="bg-purple-100 text-purple-800 px-2 py-1 rounded-full text-sm mr-2">3</span>
-                    Hyper Synthesis
-                  </h3>
-                  <div className="space-y-4">
-                    {Object.entries(results.hyper_responses).map(([model, response]) => (
-                      <div key={model} className="bg-purple-50 p-4 rounded-lg border border-purple-200">
-                        <h4 className="font-medium mb-2">{formatModelName(model)}</h4>
-                        <p className="text-sm whitespace-pre-wrap text-gray-700">{response}</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Stage 4: Ultra Response */}
+              {/* Ultra Synthesis™ - Primary Result (Prominent Display) */}
               {results.ultra_response && (
-                <div>
-                  <h3 className="text-lg font-semibold mb-3 flex items-center">
-                    <span className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white px-2 py-1 rounded-full text-sm mr-2">4</span>
-                    Ultra Synthesis - Final Result
-                  </h3>
-                  <div className="bg-gradient-to-r from-yellow-50 to-orange-50 p-6 rounded-lg border-2 border-yellow-200">
+                <div className="mb-8">
+                  <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+                      Ultra Synthesis™
+                    </h2>
+                    <div className="text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
+                      Intelligence Multiplication Complete
+                    </div>
+                  </div>
+                  
+                  <div className="bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50 p-8 rounded-xl border-2 border-gradient-to-r from-purple-200 to-blue-200 shadow-lg">
                     <div className="prose max-w-none">
-                      <p className="whitespace-pre-wrap text-gray-800 leading-relaxed">{results.ultra_response}</p>
+                      <div 
+                        data-testid="ultra-synthesis"
+                        className="text-lg leading-relaxed text-gray-800 whitespace-pre-wrap font-medium"
+                      >
+                        {results.ultra_response}
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Analysis Summary */}
+                  <div className="mt-4 bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
+                    <div className="flex flex-wrap items-center justify-between text-sm text-gray-600">
+                      <div className="flex items-center space-x-4">
+                        <span className="font-medium">Pattern:</span>
+                        <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                          {results.pattern_used || selectedPattern}
+                        </span>
+                      </div>
+                      <div className="flex items-center space-x-4">
+                        <span className="font-medium">Models Used:</span>
+                        <span className="text-gray-700">
+                          {results.models_used ? results.models_used.join(', ') : selectedModels.join(', ')}
+                        </span>
+                      </div>
                     </div>
                   </div>
                 </div>
               )}
+
+              {/* Detailed Analysis Breakdown (Collapsible) */}
+              <div className="border-t pt-6">
+                <button
+                  onClick={() => setShowDetailedBreakdown(!showDetailedBreakdown)}
+                  className="flex items-center justify-between w-full text-left text-lg font-semibold text-gray-700 hover:text-gray-900 transition-colors"
+                >
+                  <span>Detailed Analysis Breakdown</span>
+                  <svg 
+                    className={`w-5 h-5 transform transition-transform ${showDetailedBreakdown ? 'rotate-180' : ''}`}
+                    fill="none" 
+                    stroke="currentColor" 
+                    viewBox="0 0 24 24"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+                
+                {showDetailedBreakdown && (
+                  <div className="mt-6 space-y-6">
+                    {/* Stage 1: Initial Responses */}
+                    {results.initial_responses && Object.keys(results.initial_responses).length > 0 && (
+                      <div>
+                        <h3 className="text-lg font-semibold mb-3 flex items-center">
+                          <span className="bg-green-100 text-green-800 px-2 py-1 rounded-full text-sm mr-2">1</span>
+                          Initial Analysis Responses
+                        </h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          {Object.entries(results.initial_responses).map(([model, response]) => (
+                            <div key={model} className="bg-gray-50 p-4 rounded-lg border">
+                              <h4 className="font-medium mb-2 flex items-center">
+                                {formatModelName(model)}
+                                {leadModel && leadModel.includes(model) && (
+                                  <span className="ml-2 text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded">
+                                    Ultra Model
+                                  </span>
+                                )}
+                              </h4>
+                              <p className="text-sm whitespace-pre-wrap text-gray-700">{response}</p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Stage 2: Meta Analysis */}
+                    {results.meta_responses && Object.keys(results.meta_responses).length > 0 && (
+                      <div>
+                        <h3 className="text-lg font-semibold mb-3 flex items-center">
+                          <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-sm mr-2">2</span>
+                          Meta Analysis
+                        </h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          {Object.entries(results.meta_responses).map(([model, response]) => (
+                            <div key={model} className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                              <h4 className="font-medium mb-2">{formatModelName(model)}</h4>
+                              <p className="text-sm whitespace-pre-wrap text-gray-700">{response}</p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Stage 3: Hyper Analysis */}
+                    {results.hyper_responses && Object.keys(results.hyper_responses).length > 0 && (
+                      <div>
+                        <h3 className="text-lg font-semibold mb-3 flex items-center">
+                          <span className="bg-purple-100 text-purple-800 px-2 py-1 rounded-full text-sm mr-2">3</span>
+                          Hyper Synthesis
+                        </h3>
+                        <div className="space-y-4">
+                          {Object.entries(results.hyper_responses).map(([model, response]) => (
+                            <div key={model} className="bg-purple-50 p-4 rounded-lg border border-purple-200">
+                              <h4 className="font-medium mb-2">{formatModelName(model)}</h4>
+                              <p className="text-sm whitespace-pre-wrap text-gray-700">{response}</p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
           )}
 
