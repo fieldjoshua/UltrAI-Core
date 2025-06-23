@@ -210,24 +210,24 @@
    ================================ */
 
 @keyframes float-gentle {
-  0%, 100% { transform: translateX(0px) scale(1.2); }
-  25% { transform: translateX(2px) scale(1.2); }
-  50% { transform: translateX(-1px) scale(1.2); }
-  75% { transform: translateX(1px) scale(1.2); }
+  0%, 100% { transform: translateY(-50%) translateX(0px) scale(0.8); }
+  25% { transform: translateY(-50%) translateX(2px) scale(0.8); }
+  50% { transform: translateY(-50%) translateX(-1px) scale(0.8); }
+  75% { transform: translateY(-50%) translateX(1px) scale(0.8); }
 }
 
 @keyframes float-medium {
-  0%, 100% { transform: translateX(0px) scale(0.8); }
-  25% { transform: translateX(3px) scale(0.8); }
-  50% { transform: translateX(-2px) scale(0.8); }
-  75% { transform: translateX(2px) scale(0.8); }
+  0%, 100% { transform: translateY(-50%) translateX(0px) scale(1.2); }
+  25% { transform: translateY(-50%) translateX(3px) scale(1.2); }
+  50% { transform: translateY(-50%) translateX(-2px) scale(1.2); }
+  75% { transform: translateY(-50%) translateX(2px) scale(1.2); }
 }
 
 @keyframes float-strong {
-  0%, 100% { transform: translateX(0px) scale(1.0); }
-  25% { transform: translateX(4px) scale(1.0); }
-  50% { transform: translateX(-3px) scale(1.0); }
-  75% { transform: translateX(3px) scale(1.0); }
+  0%, 100% { transform: translateY(-50%) translateX(0px) scale(0.6); }
+  25% { transform: translateY(-50%) translateX(4px) scale(0.6); }
+  50% { transform: translateY(-50%) translateX(-3px) scale(0.6); }
+  75% { transform: translateY(-50%) translateX(3px) scale(0.6); }
 }
 
 /* ================================
