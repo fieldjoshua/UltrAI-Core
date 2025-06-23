@@ -1127,16 +1127,30 @@ Having seen these other responses, provide your best answer to the original ques
         )
 
         # Meta-analysis prompt (requires multiple responses)
-        meta_prompt = f"""Question: {original_prompt}
+        meta_prompt = f"""MULTI-COGNITIVE FRAMEWORK ANALYSIS
 
-Multiple AI responses:
+Original Inquiry: {original_prompt}
+
+AI Model Responses:
 {analysis_text}
 
-Provide the best possible answer to the question above.
-• Critically verify every claim – assume none are accurate until corroborated.
-• Resolve contradictions explicitly and correct any factual errors.
-• Where helpful, cite authoritative sources or note evidence strength.
-Deliver a single, self-contained answer; avoid meta-commentary about peer responses."""
+Your task is to perform a comprehensive meta-analysis that prepares for Ultra Synthesis™ intelligence multiplication. Analyze these responses as different cognitive frameworks approaching the same problem.
+
+ANALYSIS REQUIREMENTS:
+1. **Cross-Model Validation**: Identify areas where multiple models converge (high confidence insights)
+2. **Complementary Perspectives**: Highlight how different models contribute unique valuable insights
+3. **Analytical Tensions**: Address contradictions constructively - where models disagree and why
+4. **Knowledge Integration**: Synthesize factual claims with appropriate confidence levels
+5. **Cognitive Framework Mapping**: Identify the different analytical approaches each model used
+
+OUTPUT STRUCTURE:
+- **Convergent Insights**: Where models agree (highest confidence)
+- **Complementary Analysis**: Unique valuable contributions from each perspective
+- **Constructive Tensions**: Contradictions that reveal complexity or nuance
+- **Integrated Knowledge Base**: Verified facts and evidence with confidence levels
+- **Framework Synthesis**: How different analytical approaches enhance understanding
+
+Prepare this analysis to enable true intelligence multiplication in the subsequent Ultra Synthesis™ stage."""
 
         # Try multiple successful models in case the first choice is rate-limited
         successful_models = list(responses_to_analyze.keys()) or [
@@ -1288,18 +1302,32 @@ Deliver a single, self-contained answer; avoid meta-commentary about peer respon
         logger.info(f"Meta-analysis length: {len(str(meta_analysis))}")
         logger.info(f"Source models: {source_models}")
 
-        synthesis_prompt = f"""Question: {original_prompt}
+        synthesis_prompt = f"""ULTRA SYNTHESIS™ INTELLIGENCE MULTIPLICATION TASK
 
-Enhanced analysis from multiple AI models:
+You are the final synthesizer in a multi-stage intelligence multiplication pipeline. Your role is to create a comprehensive Ultra Synthesis™ that represents true intelligence multiplication - insights that emerge from combining multiple AI cognitive frameworks that no single model could achieve alone.
+
+ORIGINAL INQUIRY: {original_prompt}
+
+MULTI-MODEL ANALYSIS INPUT:
 {meta_analysis}
 
-Given the meta-analysis paragraphs above, create the most robust, comprehensive, and accurate response to the original prompt. Be inclusive of the valuable insights presented, but remain as concise and efficient as is reasonable for the requested depth of analysis.
+ULTRA SYNTHESIS™ REQUIREMENTS:
+Your task is to create a fully-integrated intelligence synthesis that goes beyond simple combination. You must:
 
-Using the meta-analysis above, produce the final answer to the original prompt.
-• Combine all validated insights into a clear, coherent response.
-• If confidence is low on any point, qualify it as tentative.
-• Prefer structure: brief intro, main points (bullets/short paragraphs), optional next-steps or references.
-• Aim for depth and completeness while omitting redundancy – quality over quantity."""
+1. **COGNITIVE INTEGRATION**: Identify where different AI perspectives complement, contradict, or enhance each other to reveal deeper insights
+2. **EMERGENT INTELLIGENCE**: Surface new insights that emerge only from the intersection of multiple cognitive frameworks
+3. **SYNTHESIS ARCHITECTURE**: Structure your response to show how different analytical approaches contribute to a more complete understanding
+4. **COMPREHENSIVE DEPTH**: Address the full scope of the inquiry with nuanced understanding that reflects multiple ways of thinking
+5. **INTELLIGENCE MULTIPLICATION**: Demonstrate how the combined analysis produces insights greater than the sum of individual parts
+
+SYNTHESIS FRAMEWORK:
+- **Integrated Analysis**: Weave together complementary insights from different models
+- **Cognitive Convergence**: Highlight where multiple perspectives align to increase confidence
+- **Intellectual Tensions**: Address contradictions constructively to reveal complexity
+- **Emergent Insights**: Identify new understanding that emerges from the intersection
+- **Comprehensive Recommendations**: Provide actionable guidance informed by multiple cognitive frameworks
+
+Create an Ultra Synthesis™ that represents true intelligence multiplication - a response that demonstrates how multiple AI minds working together produce insights that transcend what any single model could achieve."""
 
         candidate_models: List[str] = []
         # Prefer the model list passed in (often selected in run_pipeline)
