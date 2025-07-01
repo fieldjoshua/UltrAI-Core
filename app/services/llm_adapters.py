@@ -27,6 +27,12 @@ class BaseAdapter:
         self.api_key = api_key
         self.model = model
 
+    def _mask_api_key(self, api_key: str) -> str:
+        """Mask API key for secure logging."""
+        if len(api_key) <= 8:
+            return "***"
+        return f"{api_key[:4]}***{api_key[-4:]}"
+
     async def generate(self, prompt: str) -> Dict[str, Any]:
         """Placeholder for the generate method."""
         raise NotImplementedError
@@ -58,8 +64,9 @@ class OpenAIAdapter(BaseAdapter):
             return {"generated_text": "Error: OpenAI request timed out."}
         except httpx.HTTPStatusError as e:
             if e.response.status_code == 401:
+                masked_key = self._mask_api_key(self.api_key)
                 logger.error(
-                    f"OpenAI API authentication failed for model {self.model}: Invalid API key"
+                    f"OpenAI API authentication failed for model {self.model}: Invalid API key ({masked_key})"
                 )
                 return {
                     "generated_text": "Error: OpenAI API authentication failed. Check API key."
@@ -147,9 +154,12 @@ class GeminiAdapter(BaseAdapter):
     """Adapter for Google Gemini models using httpx."""
 
     async def generate(self, prompt: str) -> Dict[str, Any]:
-        # Note: The URL is specific to the model and includes the API key.
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/{self.model}:generateContent?key={self.api_key}"
-        headers = {"Content-Type": "application/json"}
+        # SECURITY FIX: Move API key from URL to secure header
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/{self.model}:generateContent"
+        headers = {
+            "Content-Type": "application/json",
+            "x-goog-api-key": self.api_key
+        }
         payload = {"contents": [{"parts": [{"text": prompt}]}]}
         try:
             response = await CLIENT.post(url, headers=headers, json=payload)
