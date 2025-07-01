@@ -93,17 +93,19 @@ export async function processWithFeatherOrchestration({
   outputFormat = 'plain'
 }) {
   try {
-    // Prepare the request payload for sophisticated orchestration
+    // Use the real Ultra Synthesis™ API endpoint
     const payload = {
-      prompt,
-      models,
-      pattern,
-      ultra_model: ultraModel,
-      output_format: outputFormat
+      query: prompt,
+      selected_models: models || ['gpt-4o', 'claude-3-sonnet', 'gemini-1.5-pro'],
+      options: {
+        pattern: pattern,
+        ultra_model: ultraModel,
+        output_format: outputFormat
+      }
     };
 
-    // Call the sophisticated Feather orchestration API
-    const response = await fetch(`${API_BASE_URL}/orchestrator/feather`, {
+    // Call the actual orchestrator analyze API
+    const response = await fetch(`${API_BASE_URL}/api/orchestrator/analyze`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -117,8 +119,42 @@ export async function processWithFeatherOrchestration({
       throw new Error(`API error: ${response.status} - ${errorText}`);
     }
 
-    // Parse the response
-    return await response.json();
+    // Parse the response and transform to expected format
+    const data = await response.json();
+    
+    // Transform the backend response to match frontend expectations
+    const transformedResponse = {
+      status: data.success ? 'success' : 'error',
+      error: data.error || null,
+      
+      // Extract initial responses
+      initial_responses: data.results?.initial_response?.output?.responses || {},
+      
+      // Extract meta analysis  
+      meta_responses: data.results?.meta_analysis?.output ? {
+        meta_analysis: data.results.meta_analysis.output.analysis || 'No meta-analysis available'
+      } : {},
+      
+      // Extract peer review if available
+      hyper_responses: data.results?.peer_review_and_revision?.output ? {
+        peer_review: 'Peer review completed'
+      } : {},
+      
+      // Extract Ultra Synthesis™ - this is the key improvement
+      ultra_response: data.results?.ultra_synthesis?.synthesis || 
+                     data.results?.ultra_synthesis?.output || 
+                     'No Ultra Synthesis™ available',
+      
+      // Additional metadata
+      processing_time: data.processing_time || 0,
+      pattern_used: pattern,
+      models_used: data.results?.initial_response?.output?.successful_models || [],
+      
+      // Raw data for detailed view
+      raw_results: data.results
+    };
+
+    return transformedResponse;
   } catch (error) {
     console.error('Error processing with Feather orchestration:', error);
 

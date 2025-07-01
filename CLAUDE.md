@@ -18,6 +18,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `cd frontend && npm run dev` - Start frontend development server
 - `cd frontend && npm run build` - Build frontend for production
 - `cd frontend && npm run lint` - Run ESLint
+- `cd frontend && npm run preview` - Preview production build locally
 
 ### Single Test Commands
 - `pytest tests/test_specific_file.py -v` - Run specific test file
@@ -34,6 +35,29 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `poetry run pytest` - Run tests in Poetry environment
 - `poetry add package_name` - Add new dependency
 - `poetry show --outdated` - Check for outdated packages
+
+### Code Quality Commands
+- `poetry run black .` - Format Python code with Black
+- `poetry run isort .` - Sort Python imports with isort
+- `poetry run flake8 .` - Run Python linting with Flake8
+- `poetry run mypy app/` - Run type checking with MyPy
+- `cd frontend && npm run lint` - Run ESLint for TypeScript/React
+
+## Critical Development Rules (from .cursorrc)
+
+### Documentation-First Approach
+**ALWAYS** review relevant documentation before suggesting changes:
+- `documentation/CORE_README.md` - Core system documentation
+- `documentation/guidelines/DOCUMENTATION_FIRST.md` - Documentation requirements
+- `documentation/instructions/PATTERNS.md` - Required patterns for implementation
+- `documentation/logic/INTELLIGENCE_MULTIPLICATION.md` - Core system logic
+
+### No Duplication Rule
+Before creating any new functionality:
+1. Search for existing implementations using Grep/Glob tools
+2. Check hooks/ directory for reusable state logic
+3. Components must use existing hooks instead of reimplementing
+4. Files with the same name in different directories are forbidden
 
 ## Architecture Overview
 
@@ -95,6 +119,13 @@ Follow `.aicheck/RULES.md` requirements with focus on **deployment verification*
 
 ### Critical Deployment Rule
 **NO ACTION IS COMPLETE WITHOUT PRODUCTION VERIFICATION**. All work must be tested on the actual production URL (`https://ultrai-core.onrender.com`) with documented evidence before marking actions complete.
+
+### Mandatory Workflow Rules
+1. **Only ONE active action per session** - Use `./aicheck ACTIVE ActionName` to set active action
+2. **Test-Driven Development** - Write tests before implementation
+3. **Documentation-First** - All plans must be documented in action directories before coding
+4. **Production Verification Required** - Every completion requires live production testing
+5. **Git Integration** - Actions track git commits and require clean working directory
 
 ## Development Workflow
 
