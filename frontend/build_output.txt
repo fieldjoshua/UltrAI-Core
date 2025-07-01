@@ -1,0 +1,43 @@
+
+> ultraui-frontend@1.0.0 build
+> vite build
+
+API URL Vite sees: https://ultrai-core.onrender.com/api
+IS_DOCKER value: undefined
+Using API URL: https://ultrai-core.onrender.com/api
+vite v6.3.5 building for production...
+transforming...
+✓ 1681 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                                     2.36 kB │ gzip:  1.06 kB
+dist/assets/CyberpunkDemo-BCdha9Kj.css              2.73 kB │ gzip:  0.90 kB
+dist/assets/CyberpunkCityBackground-J7Gzq7Mn.css    8.98 kB │ gzip:  1.81 kB
+dist/assets/CyberpunkTheme-D-76D0_p.css             9.58 kB │ gzip:  2.83 kB
+dist/assets/index-Bsr7Ujcw.css                     76.95 kB │ gzip: 13.08 kB
+dist/assets/eye-DhkDeMDZ.js                         0.37 kB │ gzip:  0.28 kB
+dist/assets/CyberpunkTest-DvwEHtsB.js               0.50 kB │ gzip:  0.33 kB
+dist/assets/loader-circle-BwQMShM0.js               0.68 kB │ gzip:  0.37 kB
+dist/assets/circle-check-big-BaAKf7rf.js            0.74 kB │ gzip:  0.38 kB
+dist/assets/createLucideIcon-31iiauxZ.js            1.21 kB │ gzip:  0.57 kB
+dist/assets/CyberpunkIntegration-CJNgKY4C.js        1.25 kB │ gzip:  0.62 kB
+dist/assets/CyberpunkDebug-0jFHGfXd.js              1.36 kB │ gzip:  0.69 kB
+dist/assets/ModelRunnerDemo-SJQ0p-r8.js             2.61 kB │ gzip:  1.09 kB
+dist/assets/CyberpunkTheme-kqfGwD13.js              2.70 kB │ gzip:  1.08 kB
+dist/assets/aquaAsset 3-DDTdQbWT.js                 2.89 kB │ gzip:  1.51 kB
+dist/assets/aquaAsset 8-C_G7MIsT.js                 2.96 kB │ gzip:  1.54 kB
+dist/assets/CyberpunkCityBackground-DIJL332F.js     3.42 kB │ gzip:  1.20 kB
+dist/assets/UniversalContainer-PDZ1HWWH.js          4.09 kB │ gzip:  1.36 kB
+dist/assets/DocumentsPage-BAo7xjYt.js               6.27 kB │ gzip:  2.43 kB
+dist/assets/MultimodalAnalysis-F9NEsA0Y.js          8.55 kB │ gzip:  3.03 kB
+dist/assets/CyberpunkDemo-UADWTcTp.js               8.59 kB │ gzip:  2.30 kB
+dist/assets/aquaAsset 2-CIvXy6m-.js                17.30 kB │ gzip:  6.81 kB
+dist/assets/AnalysisProgress-3GGOb4wM.js           18.45 kB │ gzip:  6.82 kB
+dist/assets/SimpleAnalysis-Bouil6bg.js             18.64 kB │ gzip:  4.97 kB
+dist/assets/utils-CytzSlOG.js                      20.32 kB │ gzip:  6.85 kB
+dist/assets/OrchestratorPage-CGNOYN82.js           24.05 kB │ gzip:  7.13 kB
+dist/assets/UniversalUI-l9ON5L3P.js                24.33 kB │ gzip:  6.07 kB
+dist/assets/UIPrototype-yOlZK-n1.js                29.56 kB │ gzip:  9.15 kB
+dist/assets/aquaAsset 1-CyCjeo_x.js               156.54 kB │ gzip: 50.50 kB
+dist/assets/index-BbTdWOkr.js                     262.83 kB │ gzip: 87.49 kB
+✓ built in 1.92s

@@ -30,6 +30,9 @@ class AnalysisRequest(BaseModel):
     save_outputs: bool = Field(
         default=False, description="Whether to save pipeline outputs as JSON/TXT files"
     )
+    include_pipeline_details: bool = Field(
+        default=False, description="Include all pipeline stages (initial responses, peer review) in output. Default returns only Ultra Synthesis."
+    )
 
 
 class AnalysisResponse(BaseModel):
@@ -46,6 +49,10 @@ class AnalysisResponse(BaseModel):
     saved_files: Optional[Dict[str, str]] = Field(
         default=None,
         description="Paths to saved output files if save_outputs was enabled",
+    )
+    pipeline_info: Optional[Dict[str, Any]] = Field(
+        default=None,
+        description="Information about the pipeline execution including progress and stages"
     )
 
 
@@ -96,62 +103,104 @@ def create_router() -> APIRouter:
             # Process results into response format
             analysis_results = {}
             saved_files = None
+            ultra_synthesis_result = None
 
+            # First pass: extract ultra synthesis and metadata
             for stage_name, stage_result in pipeline_results.items():
                 if stage_name == "_metadata":
                     # Extract saved files info from metadata
                     if "saved_files" in stage_result:
                         saved_files = stage_result["saved_files"]
                     continue
-
-                if hasattr(stage_result, "error") and stage_result.error:
-                    analysis_results[stage_name] = {
-                        "error": stage_result.error,
-                        "status": "failed",
-                    }
-                else:
-                    output = (
-                        stage_result.output
-                        if hasattr(stage_result, "output")
-                        else stage_result
-                    )
-                    quality = None
-                    if hasattr(stage_result, "quality") and stage_result.quality:
-                        quality = stage_result.quality.__dict__
-
-                    # Special handling: flatten Ultra-Synthesis so 'synthesis' sits at the top level
-                    if (
-                        stage_name == "ultra_synthesis"
-                        and isinstance(output, dict)
-                        and "synthesis" in output
-                    ):
-                        synthesis_val = output.get("synthesis")
-                        if isinstance(synthesis_val, dict):
-                            synthesis_text = (
-                                synthesis_val.get("content")
-                                or synthesis_val.get("text")
-                                or ""
-                            )
-                            # Replace dict with normalized string for downstream clients
-                            output["synthesis"] = synthesis_text
-                        else:
-                            synthesis_text = synthesis_val or ""
-                        analysis_results[stage_name] = {
-                            **output,  # exposes 'synthesis', 'meta_analysis', etc.
-                            "output": synthesis_text,  # legacy alias expected by some clients
-                            "quality": quality,
-                            "status": "completed",
+                
+                if stage_name == "ultra_synthesis":
+                    # Extract Ultra Synthesis result
+                    if hasattr(stage_result, "error") and stage_result.error:
+                        ultra_synthesis_result = {
+                            "error": stage_result.error,
+                            "status": "failed",
                         }
                     else:
+                        output = (
+                            stage_result.output
+                            if hasattr(stage_result, "output")
+                            else stage_result
+                        )
+                        quality = None
+                        if hasattr(stage_result, "quality") and stage_result.quality:
+                            quality = stage_result.quality.__dict__
+
+                        if isinstance(output, dict) and "synthesis" in output:
+                            synthesis_val = output.get("synthesis")
+                            if isinstance(synthesis_val, dict):
+                                synthesis_text = (
+                                    synthesis_val.get("content")
+                                    or synthesis_val.get("text")
+                                    or ""
+                                )
+                            else:
+                                synthesis_text = synthesis_val or ""
+                            ultra_synthesis_result = synthesis_text
+                        else:
+                            ultra_synthesis_result = output
+
+            # Second pass: handle pipeline details if requested
+            if request.include_pipeline_details:
+                # Include all stages for detailed view
+                for stage_name, stage_result in pipeline_results.items():
+                    if stage_name == "_metadata":
+                        continue
+
+                    if hasattr(stage_result, "error") and stage_result.error:
+                        analysis_results[stage_name] = {
+                            "error": stage_result.error,
+                            "status": "failed",
+                        }
+                    else:
+                        output = (
+                            stage_result.output
+                            if hasattr(stage_result, "output")
+                            else stage_result
+                        )
+                        quality = None
+                        if hasattr(stage_result, "quality") and stage_result.quality:
+                            quality = stage_result.quality.__dict__
+
                         analysis_results[stage_name] = {
                             "output": output,
                             "quality": quality,
                             "status": "completed",
                         }
+            else:
+                # Return only Ultra Synthesis (default behavior)
+                if ultra_synthesis_result is not None:
+                    analysis_results = {
+                        "ultra_synthesis": ultra_synthesis_result,
+                        "status": "completed"
+                    }
+                else:
+                    analysis_results = {
+                        "error": "Ultra Synthesis stage not completed",
+                        "status": "failed"
+                    }
 
             processing_time = time.time() - start_time
 
+            # Create pipeline info
+            completed_stages = list(pipeline_results.keys())
+            if "_metadata" in completed_stages:
+                completed_stages.remove("_metadata")
+            
+            pipeline_info = {
+                "stages_completed": completed_stages,
+                "total_stages": len(completed_stages),
+                "models_used": request.selected_models or [],
+                "pipeline_type": "3-stage optimized" if len(completed_stages) >= 3 else "partial",
+                "include_details": request.include_pipeline_details
+            }
+
             logger.info(f"Analysis completed in {processing_time:.2f} seconds")
+            logger.info(f"Pipeline stages completed: {completed_stages}")
             if saved_files:
                 logger.info(f"Output files saved: {saved_files}")
 
@@ -160,6 +209,7 @@ def create_router() -> APIRouter:
                 results=analysis_results,
                 processing_time=processing_time,
                 saved_files=saved_files,
+                pipeline_info=pipeline_info,
             )
 
         except Exception as e:

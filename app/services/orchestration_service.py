@@ -378,9 +378,12 @@ class OrchestrationService:
         current_data = input_data
         total_cost = 0.0
 
-        for stage in self.pipeline_stages:
+        for i, stage in enumerate(self.pipeline_stages):
             prev_data = current_data  # snapshot input for this stage
             try:
+                # Log progress for user tracking
+                logger.info(f"🔄 PROGRESS: Stage {i+1}/{len(self.pipeline_stages)} - {stage.name}")
+                logger.info(f"📊 PIPELINE PROGRESS: {((i/len(self.pipeline_stages))*100):.0f}% complete")
                 # Skip peer review when we clearly have <2 successful models
                 if stage.name == "peer_review_and_revision":
 
@@ -1410,32 +1413,20 @@ Prepare this analysis to enable true intelligence multiplication in the subseque
         logger.info(f"Meta-analysis length: {len(str(meta_analysis))}")
         logger.info(f"Source models: {source_models}")
 
-        synthesis_prompt = f"""ULTRA SYNTHESIS™ INTELLIGENCE MULTIPLICATION TASK
+        synthesis_prompt = f"""Given the user's initial query, please review the revised drafts from all LLMs. Keep commentary to a minimum unless it helps with the original inquiry. Do not reference the process, but produce the best, most thorough answer to the original query. Include process analysis only if helpful. Do not omit ANY relevant data from the other models.
 
-You are the final synthesizer in an optimized 3-stage intelligence multiplication pipeline. Your role is to create a comprehensive Ultra Synthesis™ that represents true intelligence multiplication - insights that emerge from combining multiple peer-reviewed AI cognitive frameworks that no single model could achieve alone.
+ORIGINAL QUERY: {original_prompt}
 
-ORIGINAL INQUIRY: {original_prompt}
-
-PEER-REVIEWED MULTI-MODEL INPUT:
+REVISED LLM DRAFTS:
 {meta_analysis}
 
-ULTRA SYNTHESIS™ REQUIREMENTS:
-Your task is to create a fully-integrated intelligence synthesis working with peer-reviewed responses that have already undergone cross-model review and refinement. You must:
+Create a comprehensive Ultra Synthesis™ document that:
+- Directly answers the original query with maximum thoroughness
+- Integrates ALL relevant information from every model's response
+- Adds analytical insights only where they enhance understanding
+- Presents the most complete, actionable answer possible
 
-1. **COGNITIVE INTEGRATION**: Identify where different refined AI perspectives complement, contradict, or enhance each other to reveal deeper insights
-2. **EMERGENT INTELLIGENCE**: Surface new insights that emerge only from the intersection of these peer-reviewed cognitive frameworks  
-3. **SYNTHESIS ARCHITECTURE**: Structure your response to show how different reviewed analytical approaches contribute to a more complete understanding
-4. **COMPREHENSIVE DEPTH**: Address the full scope of the inquiry with nuanced understanding that reflects multiple peer-reviewed ways of thinking
-5. **INTELLIGENCE MULTIPLICATION**: Demonstrate how the combined peer-reviewed analysis produces insights greater than the sum of individual refined parts
-
-OPTIMIZED SYNTHESIS FRAMEWORK:
-- **Refined Integration**: Weave together complementary insights from peer-reviewed model responses
-- **Enhanced Convergence**: Highlight where multiple refined perspectives align to increase confidence
-- **Constructive Tensions**: Address contradictions in peer-reviewed responses constructively to reveal complexity
-- **Emergent Understanding**: Identify new insights that emerge from the intersection of reviewed responses
-- **Actionable Synthesis**: Provide comprehensive guidance informed by multiple peer-reviewed cognitive frameworks
-
-Create an Ultra Synthesis™ that represents optimized intelligence multiplication - a response that demonstrates how multiple peer-reviewed AI minds working together produce insights that transcend what any single model could achieve."""
+Begin with the ultra synthesis document."""
 
         candidate_models: List[str] = []
         # Prefer the model list passed in (often selected in run_pipeline)
