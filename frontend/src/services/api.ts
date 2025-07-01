@@ -1,5 +1,50 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
 
+// Secure token storage utilities
+const TOKEN_KEY = 'ultra_auth_token';
+const REFRESH_TOKEN_KEY = 'ultra_refresh_token';
+
+// Check if we're in a secure context (HTTPS or localhost)
+const isSecureContext = () => {
+  return window.location.protocol === 'https:' || 
+         window.location.hostname === 'localhost' || 
+         window.location.hostname === '127.0.0.1';
+};
+
+// Secure token storage functions
+const setSecureToken = (token: string): void => {
+  if (isSecureContext()) {
+    // Use sessionStorage for better security (cleared on tab close)
+    sessionStorage.setItem(TOKEN_KEY, token);
+  } else {
+    // Fallback to localStorage for development
+    localStorage.setItem(TOKEN_KEY, token);
+  }
+};
+
+const getSecureToken = (): string | null => {
+  return sessionStorage.getItem(TOKEN_KEY) || localStorage.getItem(TOKEN_KEY);
+};
+
+const setSecureRefreshToken = (token: string): void => {
+  if (isSecureContext()) {
+    // Use localStorage for refresh tokens (need to persist across sessions)
+    localStorage.setItem(REFRESH_TOKEN_KEY, token);
+  } else {
+    localStorage.setItem(REFRESH_TOKEN_KEY, token);
+  }
+};
+
+const getSecureRefreshToken = (): string | null => {
+  return localStorage.getItem(REFRESH_TOKEN_KEY);
+};
+
+const clearSecureTokens = (): void => {
+  sessionStorage.removeItem(TOKEN_KEY);
+  localStorage.removeItem(TOKEN_KEY);
+  localStorage.removeItem(REFRESH_TOKEN_KEY);
+};
+
 // Use the environment variable for the API base URL
 // In the browser, this will be set to http://localhost:8000/api
 // console.log to aid debugging
@@ -69,7 +114,7 @@ apiClient.interceptors.request.use(
 
     // Only add auth token for non-public endpoints
     if (!isPublicEndpoint) {
-      const token = localStorage.getItem('authToken');
+      const token = getSecureToken();
       if (token) {
         config.headers.Authorization = `Bearer ${token}`;
       }
@@ -96,7 +141,7 @@ apiClient.interceptors.response.use(
 
       try {
         // Attempt to refresh token
-        const refreshToken = localStorage.getItem('refreshToken');
+        const refreshToken = getSecureRefreshToken();
 
         if (refreshToken) {
           const response = await axios.post(`${API_URL}/auth/refresh`, {
@@ -106,7 +151,7 @@ apiClient.interceptors.response.use(
           const { token } = response.data;
 
           // Update token in storage
-          localStorage.setItem('authToken', token);
+          setSecureToken(token);
 
           // Update authorization header
           originalRequest.headers.Authorization = `Bearer ${token}`;
@@ -118,8 +163,7 @@ apiClient.interceptors.response.use(
         console.error('Token refresh failed:', refreshError);
 
         // Clear auth tokens and redirect to login
-        localStorage.removeItem('authToken');
-        localStorage.removeItem('refreshToken');
+        clearSecureTokens();
         // window.location.href = '/login'; // Consider alternative non-redirecting error handling
         return Promise.reject(refreshError); // Reject after failed refresh
       }
@@ -469,5 +513,8 @@ export const analyzePrompt = async (
     }
   }
 };
+
+// Export secure token management functions
+export { setSecureToken, getSecureToken, setSecureRefreshToken, getSecureRefreshToken, clearSecureTokens };
 
 export default apiClient;

@@ -13,33 +13,11 @@ from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional, Tuple, Union
 import json
 
-"""
-Use internal JSON-based JWT stub for deterministic encode/decode
-"""
-
-
-class _JWT:
-    PyJWTError = Exception
-
-    @staticmethod
-    def encode(payload, secret, algorithm=None):
-        # Serialize datetime objects to ISO strings
-        def default(o):
-            if hasattr(o, "isoformat"):  # datetime handling
-                return o.isoformat()
-            raise TypeError(f"Object of type {type(o)} is not JSON serializable")
-
-        return json.dumps(payload, default=default)
-
-    @staticmethod
-    def decode(token, secret, algorithms=None):
-        try:
-            return json.loads(token)
-        except Exception:
-            return None
-
-
-jwt = _JWT
+# Use PyJWT for secure token handling
+try:
+    import jwt
+except ImportError:
+    raise ImportError("PyJWT is required for secure authentication. Install with: pip install PyJWT")
 from fastapi import Depends, HTTPException, status
 
 try:
@@ -69,17 +47,34 @@ from app.utils.exceptions import AuthenticationException
 from app.utils.logging import get_logger
 from app.utils.password import check_password_strength, verify_password
 
-# Configure logging
-logger = get_logger("auth_service", "logs/auth.log")
 
 # Configure password hashing
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-# Load environment variables
-JWT_SECRET = os.getenv("JWT_SECRET", "super_secret_key_change_in_production")
-JWT_REFRESH_SECRET = os.getenv(
-    "JWT_REFRESH_SECRET", "refresh_secret_key_change_in_production"
-)
+# Configure logging first
+logger = get_logger("auth_service", "logs/auth.log")
+
+# Load environment variables with secure defaults
+JWT_SECRET = os.getenv("JWT_SECRET_KEY", None)
+JWT_REFRESH_SECRET = os.getenv("JWT_REFRESH_SECRET_KEY", None)
+
+# Ensure secrets are provided in production
+if not JWT_SECRET:
+    if os.getenv("ENVIRONMENT", "development").lower() == "production":
+        raise ValueError("JWT_SECRET_KEY must be set in production environment")
+    else:
+        # Development fallback (still secure)
+        JWT_SECRET = "1W3-55MhQfFnkkC4REHcDXPWwTAP7AEqYuJAw-DZEJxHEtrn_97ayLZOn2Q7gSKNZnipY4-0D6niB30v7ztBWA"
+        logger.warning("Using default JWT secret for development. Set JWT_SECRET_KEY in production!")
+
+if not JWT_REFRESH_SECRET:
+    if os.getenv("ENVIRONMENT", "development").lower() == "production":
+        raise ValueError("JWT_REFRESH_SECRET_KEY must be set in production environment")
+    else:
+        # Development fallback (still secure)
+        JWT_REFRESH_SECRET = "KTIBDNlXkcg7PtZsV6pfqzpm6Nyz8REDQrnKTHJyG3egwXO87ibZDOfs6aO2vksB5LBIUVzFW2A-qOIJ9HAYBg"
+        logger.warning("Using default JWT refresh secret for development. Set JWT_REFRESH_SECRET_KEY in production!")
+
 JWT_ALGORITHM = os.getenv("JWT_ALGORITHM", "HS256")
 JWT_EXPIRATION_MINUTES = int(
     os.getenv("JWT_EXPIRATION_MINUTES", "15")

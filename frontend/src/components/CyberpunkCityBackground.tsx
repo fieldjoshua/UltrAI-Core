@@ -1,11 +1,19 @@
 import React, { useState, useEffect, useMemo, CSSProperties } from 'react';
 import './CyberpunkCityBackground.css';
 
-// SVG Assets as React Components - From /3/ directory
-import AquaAsset1 from '../assets/cyberpunk/aquaAsset 1.svg?react';
-import AquaAsset2 from '../assets/cyberpunk/aquaAsset 2.svg?react';
-import AquaAsset3 from '../assets/cyberpunk/aquaAsset 3.svg?react';
-import AquaAsset8 from '../assets/cyberpunk/aquaAsset 8.svg?react';
+// Lazy load SVG assets for performance
+import { lazy, Suspense } from 'react';
+
+// Lazy load large SVG components to reduce initial bundle size
+const AquaAsset1 = lazy(() => import('../assets/cyberpunk/aquaAsset 1.svg?react'));
+const AquaAsset2 = lazy(() => import('../assets/cyberpunk/aquaAsset 2.svg?react'));
+const AquaAsset3 = lazy(() => import('../assets/cyberpunk/aquaAsset 3.svg?react'));
+const AquaAsset8 = lazy(() => import('../assets/cyberpunk/aquaAsset 8.svg?react'));
+
+// Minimal SVG placeholder for loading states
+const SVGPlaceholder = () => (
+  <div className="w-full h-full bg-gradient-to-br from-cyan-500/10 to-purple-500/10 animate-pulse rounded-lg" />
+);
 
 interface MousePosition {
   x: number;
@@ -149,13 +157,19 @@ const DataStreamParticles: React.FC<{ intensity: string }> = ({ intensity }) => 
 const StaticCyberpunkBackground: React.FC = () => (
   <div className="cyberpunk-city-background static">
     <div className="cyberpunk-layer background static">
-      <AquaAsset3 className="cyberpunk-background static" />
+      <Suspense fallback={<SVGPlaceholder />}>
+        <AquaAsset3 className="cyberpunk-background static" />
+      </Suspense>
     </div>
     <div className="cyberpunk-layer midground static">
-      <AquaAsset8 className="cyberpunk-midground static" />
+      <Suspense fallback={<SVGPlaceholder />}>
+        <AquaAsset8 className="cyberpunk-midground static" />
+      </Suspense>
     </div>
     <div className="cyberpunk-layer foreground static">
-      <AquaAsset2 className="cyberpunk-foreground static" />
+      <Suspense fallback={<SVGPlaceholder />}>
+        <AquaAsset2 className="cyberpunk-foreground static" />
+      </Suspense>
     </div>
   </div>
 );
@@ -203,7 +217,9 @@ export const CyberpunkCityBackground: React.FC<CyberpunkBackgroundProps> = ({
             className={`cyberpunk-layer ${layerName}`}
             // No dynamic transforms for baseline - use CSS positioning only
           >
-            <config.asset className={`cyberpunk-${layerName}`} />
+            <Suspense fallback={<SVGPlaceholder />}>
+              <config.asset className={`cyberpunk-${layerName}`} />
+            </Suspense>
           </div>
         ))}
 

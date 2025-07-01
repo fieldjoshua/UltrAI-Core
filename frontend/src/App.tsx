@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Suspense, lazy } from 'react';
 import {
   BrowserRouter as Router,
   Routes,
@@ -6,17 +6,30 @@ import {
   Navigate,
 } from 'react-router-dom';
 import ErrorFallback from './components/ErrorFallback';
-import DocumentsPage from './pages/DocumentsPage';
-import SimpleAnalysis from './pages/SimpleAnalysis';
-import ModelRunnerDemo from './pages/ModelRunnerDemo';
-import OrchestratorPage from './pages/OrchestratorPage';
-import UIPrototype from './pages/UIPrototype';
-import UniversalUI from './pages/UniversalUI';
-import CyberpunkDemo from './pages/CyberpunkDemo';
-import CyberpunkTest from './pages/CyberpunkTest';
-import CyberpunkIntegration from './components/CyberpunkIntegration';
-import CyberpunkDebug from './components/CyberpunkDebug';
-import MultimodalAnalysis from './components/MultimodalAnalysis';
+
+// Lazy load components for code splitting
+const MultimodalAnalysis = lazy(() => import('./components/MultimodalAnalysis'));
+
+// Archive unused components as lazy imports for potential future use
+const DocumentsPage = lazy(() => import('./pages/DocumentsPage'));
+const SimpleAnalysis = lazy(() => import('./pages/SimpleAnalysis'));
+const ModelRunnerDemo = lazy(() => import('./pages/ModelRunnerDemo'));
+const OrchestratorPage = lazy(() => import('./pages/OrchestratorPage'));
+
+// Components marked for archival (multiple UIs - keep only one active)
+const UIPrototype = lazy(() => import('./pages/UIPrototype'));
+const UniversalUI = lazy(() => import('./pages/UniversalUI'));
+const CyberpunkDemo = lazy(() => import('./pages/CyberpunkDemo'));
+const CyberpunkTest = lazy(() => import('./pages/CyberpunkTest'));
+const CyberpunkIntegration = lazy(() => import('./components/CyberpunkIntegration'));
+const CyberpunkDebug = lazy(() => import('./components/CyberpunkDebug'));
+
+// Loading component
+const LoadingSpinner = () => (
+  <div className="min-h-screen flex items-center justify-center bg-background">
+    <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
+  </div>
+);
 
 // Simple error boundary component since the imported one is causing TypeScript errors
 class SimpleErrorBoundary extends React.Component<{
@@ -53,20 +66,27 @@ const App: React.FC = () => {
         <div className="min-h-screen bg-background text-foreground site-background">
           {/* NavBar removed for immersive skyline header */}
           <main className="pt-6">
-            <Routes>
-              <Route path="/documents" element={<DocumentsPage />} />
-              <Route path="/analyze" element={<SimpleAnalysis />} />
-              <Route path="/modelrunner" element={<ModelRunnerDemo />} />
-              <Route path="/orchestrator" element={<OrchestratorPage />} />
-              <Route path="/prototype" element={<UIPrototype />} />
-              <Route path="/universal-ui" element={<UniversalUI />} />
-              <Route path="/cyberpunk" element={<CyberpunkDemo />} />
-              <Route path="/cyberpunk-test" element={<CyberpunkTest />} />
-              <Route path="/cyberpunk-integration" element={<CyberpunkIntegration />} />
-              <Route path="/cyberpunk-debug" element={<CyberpunkDebug />} />
-              <Route path="/multimodal" element={<MultimodalAnalysis />} />
-              <Route path="/" element={<Navigate to="/multimodal" replace />} />
-            </Routes>
+            <Suspense fallback={<LoadingSpinner />}>
+              <Routes>
+                {/* Primary route - main interface */}
+                <Route path="/multimodal" element={<MultimodalAnalysis />} />
+                <Route path="/" element={<Navigate to="/multimodal" replace />} />
+                
+                {/* Archive routes - available but not actively used */}
+                <Route path="/documents" element={<DocumentsPage />} />
+                <Route path="/analyze" element={<SimpleAnalysis />} />
+                <Route path="/modelrunner" element={<ModelRunnerDemo />} />
+                <Route path="/orchestrator" element={<OrchestratorPage />} />
+                
+                {/* Deprecated UI variants - marked for cleanup */}
+                <Route path="/prototype" element={<UIPrototype />} />
+                <Route path="/universal-ui" element={<UniversalUI />} />
+                <Route path="/cyberpunk" element={<CyberpunkDemo />} />
+                <Route path="/cyberpunk-test" element={<CyberpunkTest />} />
+                <Route path="/cyberpunk-integration" element={<CyberpunkIntegration />} />
+                <Route path="/cyberpunk-debug" element={<CyberpunkDebug />} />
+              </Routes>
+            </Suspense>
           </main>
         </div>
       </Router>
