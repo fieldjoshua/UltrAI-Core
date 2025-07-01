@@ -11,7 +11,7 @@ python = "^3.12"
 fastapi = "*"
 uvicorn = "*"
 pydantic = "*"
-starlette = "*"
+starlette = "^0.40.0"
 psutil = "*"
 requests = "*"
 prometheus-client = "*"
@@ -38,6 +38,7 @@ aiohttp = "*"
 numpy = "*"
 pandas = "*"
 matplotlib = "*"
+pillow = "^11.3.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "*"
@@ -67,6 +68,7 @@ isort = "*"
 flake8 = "*"
 mypy = "*"
 pre-commit = "*"
+pip-audit = "*"
 
 [build-system]
 requires = ["poetry-core>=1.6.0"]

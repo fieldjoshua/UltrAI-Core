@@ -705,8 +705,12 @@ class OrchestrationService:
                             }
                         return model, {"error": str(e)}
 
-            # Should never be reached, but satisfies static analysis tools.
-            return model, {"error": "Unexpected execution fallthrough"}
+                # Should never be reached, but satisfies static analysis tools.
+                return model, {"error": "Unexpected execution fallthrough"}
+        
+            except Exception as e:
+                logger.error(f"Unexpected error in execute_model for {model}: {str(e)}")
+                return model, {"error": f"Unexpected error: {str(e)}"}
 
         # --------------------------------------------------------------
         # Build execution tasks ONLY for models that have the necessary
