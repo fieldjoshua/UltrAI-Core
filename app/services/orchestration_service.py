@@ -22,6 +22,7 @@ from app.services.llm_adapters import (
     AnthropicAdapter,
     GeminiAdapter,
     HuggingFaceAdapter,
+    CLIENT,
 )
 from app.utils.logging import get_logger
 
@@ -85,18 +86,12 @@ class OrchestrationService:
         self.token_manager = token_manager or TokenManagementService()
         self.transaction_service = transaction_service or TransactionService()
 
-        # Define pipeline stages according to correct Ultra Synthesis™ architecture
+        # Define pipeline stages - OPTIMIZED 3-STAGE Ultra Synthesis™ architecture (meta-analysis removed)
         self.pipeline_stages = [
             PipelineStage(
                 name="initial_response",
                 description="Initial response generation from multiple models in parallel",
                 required_models=[],  # Uses user-selected models
-                timeout_seconds=60,
-            ),
-            PipelineStage(
-                name="meta_analysis",
-                description="Meta-analysis of initial responses",
-                required_models=[],
                 timeout_seconds=60,
             ),
             PipelineStage(
@@ -107,11 +102,137 @@ class OrchestrationService:
             ),
             PipelineStage(
                 name="ultra_synthesis",
-                description="Ultra-synthesis of meta-analysis results for final intelligence multiplication",
+                description="Ultra-synthesis of peer-reviewed responses for final intelligence multiplication",
                 required_models=[],  # Uses lead model from selection
                 timeout_seconds=90,
             ),
         ]
+
+    # ------------------------------------------------------------------
+    # Security: Input validation for model names
+    # ------------------------------------------------------------------
+    
+    def _validate_model_names(self, models: List[str]) -> List[str]:
+        """
+        Validate and sanitize model names to prevent injection attacks.
+        
+        Args:
+            models: List of model names to validate
+            
+        Returns:
+            List of validated model names
+            
+        Raises:
+            ValueError: If invalid model names are detected
+        """
+        ALLOWED_MODEL_PATTERNS = [
+            # OpenAI models
+            r"^gpt-[34](\.[0-9])?(-turbo)?(-instruct)?$",
+            r"^gpt-4o(-mini)?$",
+            r"^o1(-preview|-mini)?$",
+            # Anthropic models  
+            r"^claude-3(-5)?-(sonnet|haiku|opus)(-\d{8})?$",
+            # Google models
+            r"^gemini-(1\.5-)?(pro|flash)(-exp)?$",
+            r"^gemini-2\.0-flash-exp$",
+            # HuggingFace models (org/model format)
+            r"^[a-zA-Z0-9_-]+/[a-zA-Z0-9_.-]+$"
+        ]
+        
+        import re
+        validated_models = []
+        
+        for model in models:
+            # Basic safety checks
+            if not isinstance(model, str):
+                logger.warning(f"⚠️ Invalid model type: {type(model)}, skipping")
+                continue
+                
+            if len(model) > 100:  # Reasonable length limit
+                logger.warning(f"⚠️ Model name too long: {model[:50]}..., skipping")
+                continue
+                
+            # Check against allowed patterns
+            is_valid = False
+            for pattern in ALLOWED_MODEL_PATTERNS:
+                if re.match(pattern, model):
+                    is_valid = True
+                    break
+                    
+            if is_valid:
+                validated_models.append(model)
+                logger.debug(f"✅ Validated model: {model}")
+            else:
+                logger.warning(f"⚠️ Invalid model name pattern: {model}, skipping")
+                
+        return validated_models
+    
+    def _create_adapter(self, model: str, prompt_type: str = "generation"):
+        """
+        Create appropriate adapter for model with proper API key and model mapping.
+        
+        Args:
+            model: Model name to create adapter for
+            prompt_type: Type of prompt (generation, peer_review)
+            
+        Returns:
+            Tuple of (adapter, mapped_model) or (None, None) if creation fails
+        """
+        try:
+            if model.startswith("gpt") or model.startswith("o1"):
+                api_key = os.getenv("OPENAI_API_KEY")
+                if not api_key:
+                    logger.warning(f"No OpenAI API key found for {model}")
+                    return None, None
+                mapped_model = model  # OpenAI models typically don't need mapping
+                return OpenAIAdapter(api_key, mapped_model), mapped_model
+                
+            elif model.startswith("claude"):
+                api_key = os.getenv("ANTHROPIC_API_KEY")
+                if not api_key:
+                    logger.warning(f"No Anthropic API key found for {model}")
+                    return None, None
+                # Fix model name mapping for Anthropic
+                mapped_model = model
+                if model == "claude-3-sonnet":
+                    mapped_model = "claude-3-sonnet-20240229"
+                elif model == "claude-3-5-sonnet-20241022":
+                    mapped_model = "claude-3-5-sonnet-20241022"
+                elif model == "claude-3-5-haiku-20241022":
+                    mapped_model = "claude-3-5-haiku-20241022"
+                return AnthropicAdapter(api_key, mapped_model), mapped_model
+                
+            elif model.startswith("gemini"):
+                api_key = os.getenv("GOOGLE_API_KEY")
+                if not api_key:
+                    logger.warning(f"No Google API key found for {model}")
+                    return None, None
+                # Fix model name mapping for Gemini
+                mapped_model = model
+                if model == "gemini-pro":
+                    mapped_model = "gemini-1.5-pro"
+                elif model == "gemini-2.0-flash-exp":
+                    mapped_model = "gemini-2.0-flash-exp"
+                elif model == "gemini-1.5-pro":
+                    mapped_model = "gemini-1.5-pro"
+                elif model == "gemini-1.5-flash":
+                    mapped_model = "gemini-1.5-flash"
+                return GeminiAdapter(api_key, mapped_model), mapped_model
+                
+            elif "/" in model:  # HuggingFace model ID format
+                api_key = os.getenv("HUGGINGFACE_API_KEY")
+                if not api_key:
+                    logger.warning(f"No HuggingFace API key found for {model}")
+                    return None, None
+                return HuggingFaceAdapter(api_key, model), model
+                
+            else:
+                logger.warning(f"Unknown model provider for: {model}")
+                return None, None
+                
+        except Exception as e:
+            logger.error(f"Failed to create adapter for {model}: {e}")
+            return None, None
 
     # ------------------------------------------------------------------
     # Helper: choose reasonable default models only when their provider
@@ -247,6 +368,11 @@ class OrchestrationService:
         # Default model selection for test environment when none provided
         if not selected_models:
             selected_models = await self._default_models_from_env()
+        
+        # SECURITY: Validate and sanitize model names
+        selected_models = self._validate_model_names(selected_models)
+        if not selected_models:
+            raise ValueError("No valid models provided after validation")
 
         results = {}
         current_data = input_data
@@ -257,16 +383,6 @@ class OrchestrationService:
             try:
                 # Skip peer review when we clearly have <2 successful models
                 if stage.name == "peer_review_and_revision":
-                    # If meta_analysis failed previously, skip peer review entirely
-                    if (
-                        isinstance(current_data, dict)
-                        and current_data.get("stage") == "meta_analysis"
-                        and current_data.get("error")
-                    ):
-                        logger.info(
-                            "Skipping peer_review_and_revision stage – meta_analysis failed previously"
-                        )
-                        continue
 
                     # Determine how many unique successful models we have so far
                     def _extract_count(d):
@@ -312,18 +428,14 @@ class OrchestrationService:
                     # Extract a suitable model directly from the previous stage's raw dict output
                     if isinstance(current_data, dict):
                         if (
-                            stage.name == "meta_analysis"
+                            stage.name == "ultra_synthesis"
                             and "successful_models" in current_data
                         ):
+                            # Use first successful model from peer review for ultra synthesis
                             working_models = current_data["successful_models"]
                             working_model = (
                                 working_models[0] if working_models else None
                             )
-                        elif (
-                            stage.name == "ultra_synthesis"
-                            and "model_used" in current_data
-                        ):
-                            working_model = current_data["model_used"]
 
                     # Fallback to first selected model, then default
                     if not working_model:
@@ -1233,48 +1345,40 @@ Prepare this analysis to enable true intelligence multiplication in the subseque
         if "error" in data:
             logger.info(f"🔍 Error present: {data['error']}")
 
-        # Check if this has a valid meta-analysis
-        if "analysis" in data and data["analysis"]:
-            # Normal case - meta-analysis succeeded and we have the analysis
-            meta_analysis = data["analysis"]
-            source_models = data.get("source_models", [])
-            logger.info("✅ Using meta-analysis for Ultra Synthesis")
+        # NEW 3-STAGE PIPELINE: Work directly with peer-reviewed responses
+        if "revised_responses" in data and data["revised_responses"]:
+            # PRIMARY CASE: Use peer-reviewed responses for synthesis
+            revised_responses = data["revised_responses"]
+            source_models = data.get("successful_models", list(revised_responses.keys()))
+            
+            # Create analysis text from peer-reviewed responses
+            analysis_text = "\\n\\n".join([
+                f"**{model} (Peer-Reviewed):** {response}"
+                for model, response in revised_responses.items()
+            ])
+            meta_analysis = f"Peer-Reviewed Multi-Model Responses:\\n{analysis_text}"
+            logger.info("✅ Using peer-reviewed responses for Ultra Synthesis (3-stage pipeline)")
+            
+        elif "responses" in data and data["responses"]:
+            # FALLBACK: Use initial responses if peer review was skipped
+            logger.warning("⚠️ Using initial responses (peer review may have been skipped)")
+            initial_responses = data["responses"]
+            source_models = data.get("successful_models", list(initial_responses.keys()))
+            
+            analysis_text = "\\n\\n".join([
+                f"**{model}:** {response}"
+                for model, response in initial_responses.items()
+            ])
+            meta_analysis = f"Multi-Model Initial Responses:\\n{analysis_text}"
+            
         elif "error" in data and data.get("error"):
             logger.warning(
-                f"Meta-analysis failed: {data['error']}, cannot proceed with ultra-synthesis"
+                f"Previous stage failed: {data['error']}, cannot proceed with ultra-synthesis"
             )
             return {
                 "stage": "ultra_synthesis",
-                "error": f"Cannot synthesize due to meta-analysis failure: {data['error']}",
+                "error": f"Cannot synthesize due to previous stage failure: {data['error']}",
             }
-        elif (
-            "input_data" in data
-            and isinstance(data["input_data"], dict)
-            and "responses" in data["input_data"]
-        ):
-            # Emergency fallback: use initial responses directly (should rarely happen)
-            logger.warning(
-                "⚠️ Emergency fallback: synthesizing directly from initial responses"
-            )
-            initial_responses = data["input_data"]["responses"]
-            analysis_text = "\\n\\n".join(
-                [
-                    f"**{model}:** {response}"
-                    for model, response in initial_responses.items()
-                ]
-            )
-            meta_analysis = f"Multiple AI responses:\\n{analysis_text}"
-            source_models = list(initial_responses.keys())
-        elif (
-            "input" in data
-            and isinstance(data["input"], dict)
-            and "analysis" in data["input"]
-            and data["input"]["analysis"]
-        ):
-            # Peer-review wrapped meta-analysis inside 'input'
-            logger.info("✅ Using nested meta-analysis found under 'input'")
-            meta_analysis = data["input"]["analysis"]
-            source_models = data["input"].get("source_models", [])
         else:
             logger.warning(
                 f"Invalid data structure for ultra-synthesis - data keys: {list(data.keys()) if isinstance(data, dict) else 'not a dict'}"
@@ -1308,39 +1412,41 @@ Prepare this analysis to enable true intelligence multiplication in the subseque
 
         synthesis_prompt = f"""ULTRA SYNTHESIS™ INTELLIGENCE MULTIPLICATION TASK
 
-You are the final synthesizer in a multi-stage intelligence multiplication pipeline. Your role is to create a comprehensive Ultra Synthesis™ that represents true intelligence multiplication - insights that emerge from combining multiple AI cognitive frameworks that no single model could achieve alone.
+You are the final synthesizer in an optimized 3-stage intelligence multiplication pipeline. Your role is to create a comprehensive Ultra Synthesis™ that represents true intelligence multiplication - insights that emerge from combining multiple peer-reviewed AI cognitive frameworks that no single model could achieve alone.
 
 ORIGINAL INQUIRY: {original_prompt}
 
-MULTI-MODEL ANALYSIS INPUT:
+PEER-REVIEWED MULTI-MODEL INPUT:
 {meta_analysis}
 
 ULTRA SYNTHESIS™ REQUIREMENTS:
-Your task is to create a fully-integrated intelligence synthesis that goes beyond simple combination. You must:
+Your task is to create a fully-integrated intelligence synthesis working with peer-reviewed responses that have already undergone cross-model review and refinement. You must:
 
-1. **COGNITIVE INTEGRATION**: Identify where different AI perspectives complement, contradict, or enhance each other to reveal deeper insights
-2. **EMERGENT INTELLIGENCE**: Surface new insights that emerge only from the intersection of multiple cognitive frameworks
-3. **SYNTHESIS ARCHITECTURE**: Structure your response to show how different analytical approaches contribute to a more complete understanding
-4. **COMPREHENSIVE DEPTH**: Address the full scope of the inquiry with nuanced understanding that reflects multiple ways of thinking
-5. **INTELLIGENCE MULTIPLICATION**: Demonstrate how the combined analysis produces insights greater than the sum of individual parts
+1. **COGNITIVE INTEGRATION**: Identify where different refined AI perspectives complement, contradict, or enhance each other to reveal deeper insights
+2. **EMERGENT INTELLIGENCE**: Surface new insights that emerge only from the intersection of these peer-reviewed cognitive frameworks  
+3. **SYNTHESIS ARCHITECTURE**: Structure your response to show how different reviewed analytical approaches contribute to a more complete understanding
+4. **COMPREHENSIVE DEPTH**: Address the full scope of the inquiry with nuanced understanding that reflects multiple peer-reviewed ways of thinking
+5. **INTELLIGENCE MULTIPLICATION**: Demonstrate how the combined peer-reviewed analysis produces insights greater than the sum of individual refined parts
 
-SYNTHESIS FRAMEWORK:
-- **Integrated Analysis**: Weave together complementary insights from different models
-- **Cognitive Convergence**: Highlight where multiple perspectives align to increase confidence
-- **Intellectual Tensions**: Address contradictions constructively to reveal complexity
-- **Emergent Insights**: Identify new understanding that emerges from the intersection
-- **Comprehensive Recommendations**: Provide actionable guidance informed by multiple cognitive frameworks
+OPTIMIZED SYNTHESIS FRAMEWORK:
+- **Refined Integration**: Weave together complementary insights from peer-reviewed model responses
+- **Enhanced Convergence**: Highlight where multiple refined perspectives align to increase confidence
+- **Constructive Tensions**: Address contradictions in peer-reviewed responses constructively to reveal complexity
+- **Emergent Understanding**: Identify new insights that emerge from the intersection of reviewed responses
+- **Actionable Synthesis**: Provide comprehensive guidance informed by multiple peer-reviewed cognitive frameworks
 
-Create an Ultra Synthesis™ that represents true intelligence multiplication - a response that demonstrates how multiple AI minds working together produce insights that transcend what any single model could achieve."""
+Create an Ultra Synthesis™ that represents optimized intelligence multiplication - a response that demonstrates how multiple peer-reviewed AI minds working together produce insights that transcend what any single model could achieve."""
 
         candidate_models: List[str] = []
         # Prefer the model list passed in (often selected in run_pipeline)
         if models:
             candidate_models.extend(models)
 
-        # Append any meta-analysis model used
-        if "model_used" in data and data["model_used"] not in candidate_models:
-            candidate_models.append(data["model_used"])
+        # Append any successful models from peer review stage
+        if source_models:
+            for model in source_models:
+                if model not in candidate_models:
+                    candidate_models.append(model)
 
         # Finally, append a safe fallback
         if "claude-3-5-sonnet-20241022" not in candidate_models:
@@ -1525,9 +1631,6 @@ Create an Ultra Synthesis™ that represents true intelligence multiplication - 
                                     "revised_responses"
                                 ].items():
                                     f.write(f"\n{model} (Revised):\n{response}\n")
-                            elif stage_name == "meta_analysis" and "analysis" in output:
-                                f.write("META-ANALYSIS:\n")
-                                f.write(f"{output['analysis']}\n")
                             elif (
                                 stage_name == "ultra_synthesis"
                                 and "synthesis" in output
