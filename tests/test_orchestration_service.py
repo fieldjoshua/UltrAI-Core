@@ -75,18 +75,18 @@ async def test_run_pipeline_stops_on_stage_error(monkeypatch):
         transaction_service=DummyTransactionService(),
     )
 
-    # Cause the meta_analysis stage to error
-    async def fail_meta(data, models, options=None):
-        raise ValueError("meta fail")
+    # Cause the peer_review_and_revision stage to error
+    async def fail_peer_review(data, models, options=None):
+        raise ValueError("peer review fail")
 
-    monkeypatch.setattr(service, "meta_analysis", fail_meta)
+    monkeypatch.setattr(service, "peer_review_and_revision", fail_peer_review)
 
     results = await service.run_pipeline("input")
-    # Initial stage should succeed, meta stage should error, then stop
-    assert list(results.keys())[:2] == ["initial_response", "meta_analysis"]
-    meta_res = results["meta_analysis"]
-    assert meta_res.error is not None
-    assert "meta fail" in meta_res.error
+    # Initial stage should succeed, peer review stage should error, then stop
+    assert list(results.keys())[:2] == ["initial_response", "peer_review_and_revision"]
+    peer_review_res = results["peer_review_and_revision"]
+    assert peer_review_res.error is not None
+    assert "peer review fail" in peer_review_res.error
     # Should not run further stages
     assert "ultra_synthesis" not in results
     assert "hyper_level_analysis" not in results

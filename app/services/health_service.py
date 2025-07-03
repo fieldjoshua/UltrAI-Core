@@ -13,10 +13,7 @@ import socket
 import sys
 from typing import Any, Dict, List, Optional, Tuple
 
-try:
-    import psutil
-except ImportError:
-    from app.utils.stubs import psutil
+import psutil
 
 from app.config import Config
 from app.services.cache_service import cache_service

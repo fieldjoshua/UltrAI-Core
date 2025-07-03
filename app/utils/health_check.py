@@ -827,10 +827,7 @@ def check_system_health() -> Dict[str, Any]:
     Returns:
         Health check result
     """
-    try:
-        import psutil
-    except ImportError:
-        from app.utils.stubs import psutil
+    import psutil
 
     try:
         # Get system information

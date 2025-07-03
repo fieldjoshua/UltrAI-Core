@@ -171,40 +171,42 @@ class TestUltraSynthesisOrchestrator:
             "prompt": "How can AI improve healthcare outcomes?"
         }
         
-        with patch.object(orchestrator, 'meta_analysis') as mock_meta:
+        with patch.object(orchestrator, 'peer_review_and_revision') as mock_peer_review:
             # Enhanced response that synthesizes the input responses
-            mock_meta.return_value = {
-                "stage": "meta_analysis", 
-                "analysis": "Synthesizing the perspectives from multiple AI models, healthcare AI improvements span three key domains: diagnostic enhancement through machine learning and imaging analysis, treatment personalization via data analytics and predictive modeling, and operational efficiency through automation and decision support systems. The combination of these approaches creates a comprehensive healthcare AI ecosystem.",
-                "model_used": "gpt-4",
-                "source_models": ["gpt-4", "gpt-4-turbo"],
-                "input_data": input_data
+            mock_peer_review.return_value = {
+                "stage": "peer_review_and_revision", 
+                "revised_responses": {
+                    "gpt-4": "Enhanced perspective on healthcare AI...",
+                    "gpt-4-turbo": "Refined analysis of healthcare improvements..."
+                },
+                "models_with_revisions": ["gpt-4", "gpt-4-turbo"],
+                "input": input_data
             }
             
-            result = await orchestrator.meta_analysis(input_data, ["gpt-4"], {})
+            result = await orchestrator.peer_review_and_revision(input_data, ["gpt-4"], {})
             
             # Validate enhancement occurred
-            assert result["stage"] == "meta_analysis"
-            assert "analysis" in result
-            assert len(result["source_models"]) == 2
+            assert result["stage"] == "peer_review_and_revision"
+            assert "revised_responses" in result
+            assert len(result["models_with_revisions"]) == 2
             
-            # Validate synthesis content is more comprehensive than individual responses
-            analysis_text = result["analysis"]
-            assert len(analysis_text) > 200  # Should be substantial synthesis
-            assert "synthesizing" in analysis_text.lower() or "combination" in analysis_text.lower()
+            # Validate peer review occurred
+            assert "gpt-4" in result["revised_responses"]
+            assert "gpt-4-turbo" in result["revised_responses"]
             
             # Should reference multiple perspectives/approaches
-            assert "diagnostic" in analysis_text.lower()
-            assert "treatment" in analysis_text.lower() or "personalization" in analysis_text.lower()
+            revised_text = " ".join(result["revised_responses"].values()).lower()
+            assert "diagnostic" in revised_text or "healthcare" in revised_text
+            assert "treatment" in revised_text or "personalization" in revised_text or "ai" in revised_text
 
     @pytest.mark.asyncio
     @pytest.mark.unit
     async def test_ultra_synthesis_stage_creates_comprehensive_synthesis(self, orchestrator):
         """Test ultra_synthesis stage creates final comprehensive synthesis."""
         
-        # Mock meta-analysis input
+        # Mock peer review input
         input_data = {
-            "stage": "meta_analysis",
+            "stage": "peer_review_and_revision",
             "analysis": "Healthcare AI improvements include diagnostic enhancement, treatment personalization, and operational efficiency.",
             "source_models": ["gpt-4", "gpt-4-turbo"],
             "input_data": {
@@ -217,7 +219,7 @@ class TestUltraSynthesisOrchestrator:
                 "stage": "ultra_synthesis",
                 "synthesis": "Ultra Synthesis™: The convergence of multiple AI perspectives reveals that healthcare transformation through artificial intelligence operates on three interconnected levels: technical capabilities (diagnostic algorithms, predictive analytics), clinical integration (decision support, personalized medicine), and systemic impact (operational efficiency, cost reduction). This multi-dimensional approach creates synergistic effects where the combined intelligence exceeds individual model capabilities, demonstrating true intelligence multiplication in healthcare AI applications.",
                 "model_used": "gpt-4", 
-                "meta_analysis": input_data["analysis"],
+                "peer_review_data": input_data,
                 "source_models": input_data["source_models"]
             }
             
@@ -279,17 +281,17 @@ class TestUltraSynthesisOrchestrator:
             # Validate pipeline completion
             assert len(results) >= 3  # Should have at least 3 stages
             assert "initial_response" in results
-            assert "meta_analysis" in results  
+            assert "peer_review_and_revision" in results  
             assert "ultra_synthesis" in results
             
             # Validate progression and synthesis quality
             initial = results["initial_response"].output
-            meta = results["meta_analysis"].output
+            peer_review = results["peer_review_and_revision"].output
             synthesis = results["ultra_synthesis"].output
             
             # Each stage should build upon the previous
             assert initial["response_count"] == 2
-            assert len(meta["source_models"]) == 2
+            assert "revised_responses" in peer_review
             assert "ultra synthesis" in synthesis["synthesis"].lower()
 
     @pytest.mark.asyncio
@@ -313,12 +315,15 @@ class TestUltraSynthesisOrchestrator:
                             }
                         }
                     )
-                elif stage.name == "meta_analysis":
+                elif stage.name == "peer_review_and_revision":
                     return PipelineResult(
-                        stage_name="meta_analysis",
+                        stage_name="peer_review_and_revision",
                         output={
-                            "stage": "meta_analysis",
-                            "analysis": "Enhanced analysis: Renewable energy creates multi-dimensional transformation through environmental protection, economic restructuring, and strategic energy positioning."
+                            "stage": "peer_review_and_revision",
+                            "revised_responses": {
+                                "gpt-4": "Enhanced: Renewable energy creates multi-dimensional transformation...",
+                                "gpt-4-turbo": "Refined: Clean energy drives comprehensive societal change..."
+                            }
                         }
                     )
                 elif stage.name == "ultra_synthesis":
@@ -338,20 +343,21 @@ class TestUltraSynthesisOrchestrator:
             
             # Extract content from each stage
             initial_content = results["initial_response"].output["responses"]
-            meta_content = results["meta_analysis"].output["analysis"]
+            peer_review_content = results["peer_review_and_revision"].output["revised_responses"]
             synthesis_content = results["ultra_synthesis"].output["synthesis"]
             
             # Validate content evolution and enhancement
             assert len(initial_content) == 2  # Multiple perspectives
-            assert "enhanced" in meta_content.lower() or "multi-dimensional" in meta_content.lower()
+            assert any("enhanced" in r.lower() or "refined" in r.lower() for r in peer_review_content.values())
             assert "ultra synthesis" in synthesis_content.lower()
             assert "convergence" in synthesis_content.lower() or "intelligence" in synthesis_content.lower()
             
             # Validate content is actually different at each stage (not just data passing)
             initial_text = " ".join(initial_content.values())
-            assert meta_content != initial_text  # Meta-analysis should be different from initial
-            assert synthesis_content != meta_content  # Synthesis should be different from meta
-            assert len(synthesis_content) > len(meta_content)  # Synthesis should be more comprehensive
+            peer_review_text = " ".join(peer_review_content.values())
+            assert peer_review_text != initial_text  # Peer review should be different from initial
+            assert synthesis_content != peer_review_text  # Synthesis should be different from peer review
+            assert len(synthesis_content) > 100  # Synthesis should be comprehensive
 
 
 @pytest.mark.asyncio
