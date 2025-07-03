@@ -89,10 +89,18 @@ class OrchestrationService:
         self.token_manager = token_manager or TokenManagementService()
         self.transaction_service = transaction_service or TransactionService()
         
-        # Initialize new Ultra Synthesis™ optimization components
-        self.synthesis_prompt_manager = SynthesisPromptManager()
-        self.model_selector = SmartModelSelector()
-        self.synthesis_output_formatter = StructuredSynthesisOutput()
+        # Initialize new Ultra Synthesis™ optimization components with error handling
+        try:
+            self.synthesis_prompt_manager = SynthesisPromptManager()
+            self.model_selector = SmartModelSelector()
+            self.synthesis_output_formatter = StructuredSynthesisOutput()
+            self.use_enhanced_synthesis = True
+        except Exception as e:
+            logger.warning(f"Failed to initialize enhanced synthesis components: {e}")
+            self.synthesis_prompt_manager = None
+            self.model_selector = None
+            self.synthesis_output_formatter = None
+            self.use_enhanced_synthesis = False
 
         # Define pipeline stages - OPTIMIZED 3-STAGE Ultra Synthesis™ architecture (meta-analysis removed)
         self.pipeline_stages = [
@@ -1421,13 +1429,29 @@ Prepare this analysis to enable true intelligence multiplication in the subseque
         logger.info(f"Meta-analysis length: {len(str(meta_analysis))}")
         logger.info(f"Source models: {source_models}")
 
-        # Use enhanced synthesis prompt based on query type
-        synthesis_prompt = self.synthesis_prompt_manager.get_synthesis_prompt(
-            original_query=original_prompt,
-            model_responses=meta_analysis
-        )
-        
-        logger.info(f"📝 Using query type: {self.synthesis_prompt_manager.detect_query_type(original_prompt).value}")
+        # Use enhanced synthesis prompt if available, otherwise fall back to original
+        if self.use_enhanced_synthesis and self.synthesis_prompt_manager:
+            synthesis_prompt = self.synthesis_prompt_manager.get_synthesis_prompt(
+                original_query=original_prompt,
+                model_responses=meta_analysis
+            )
+            logger.info(f"📝 Using query type: {self.synthesis_prompt_manager.detect_query_type(original_prompt).value}")
+        else:
+            # Fallback to original prompt
+            synthesis_prompt = f"""Given the user's initial query, please review the revised drafts from all LLMs. Keep commentary to a minimum unless it helps with the original inquiry. Do not reference the process, but produce the best, most thorough answer to the original query. Include process analysis only if helpful. Do not omit ANY relevant data from the other models.
+
+ORIGINAL QUERY: {original_prompt}
+
+REVISED LLM DRAFTS:
+{meta_analysis}
+
+Create a comprehensive Ultra Synthesis™ document that:
+- Directly answers the original query with maximum thoroughness
+- Integrates ALL relevant information from every model's response
+- Adds analytical insights only where they enhance understanding
+- Presents the most complete, actionable answer possible
+
+Begin with the ultra synthesis document."""
 
         # Build available model list
         available_models: List[str] = []
@@ -1440,15 +1464,18 @@ Prepare this analysis to enable true intelligence multiplication in the subseque
         if "claude-3-5-sonnet-20241022" not in available_models:
             available_models.append("claude-3-5-sonnet-20241022")
         
-        # Use smart model selection based on performance and query type
-        query_type = self.synthesis_prompt_manager.detect_query_type(original_prompt)
-        candidate_models = await self.model_selector.select_best_synthesis_model(
-            available_models=available_models,
-            query_type=query_type.value,
-            recent_performers=source_models[:3] if source_models else None  # Top 3 performers from peer review
-        )
-        
-        logger.info(f"🎯 Smart model selection ranked models: {candidate_models}")
+        # Use smart model selection if available, otherwise use original order
+        if self.use_enhanced_synthesis and self.model_selector and self.synthesis_prompt_manager:
+            query_type = self.synthesis_prompt_manager.detect_query_type(original_prompt)
+            candidate_models = await self.model_selector.select_best_synthesis_model(
+                available_models=available_models,
+                query_type=query_type.value,
+                recent_performers=source_models[:3] if source_models else None  # Top 3 performers from peer review
+            )
+            logger.info(f"🎯 Smart model selection ranked models: {candidate_models}")
+        else:
+            # Fallback to original model order
+            candidate_models = available_models
 
         last_error: Optional[str] = None
 
@@ -1474,71 +1501,90 @@ Prepare this analysis to enable true intelligence multiplication in the subseque
                     synthesis_response = list(synthesis_result["responses"].values())[0]
                     logger.info(f"✅ Ultra-synthesis completed using {synthesis_model}")
                     
-                    # Track successful synthesis
-                    response_time = synthesis_result.get("timing", {}).get("total_time", 5.0)
-                    self.model_selector.update_model_performance(
-                        model=synthesis_model,
-                        success=True,
-                        quality_score=8.5,  # Can be enhanced with actual quality evaluation
-                        response_time=response_time
-                    )
+                    # Track successful synthesis if enhanced features are available
+                    if self.use_enhanced_synthesis and self.model_selector:
+                        response_time = synthesis_result.get("timing", {}).get("total_time", 5.0)
+                        self.model_selector.update_model_performance(
+                            model=synthesis_model,
+                            success=True,
+                            quality_score=8.5,  # Can be enhanced with actual quality evaluation
+                            response_time=response_time
+                        )
                     
-                    # Build model responses dict for structured output
-                    model_responses = {}
-                    if "revised_responses" in data and data["revised_responses"]:
-                        model_responses = data["revised_responses"]
-                    elif "responses" in data and data["responses"]:
-                        model_responses = data["responses"]
-                    
-                    # Format synthesis with structured output
-                    formatted_output = self.synthesis_output_formatter.format_synthesis_output(
-                        synthesis_text=synthesis_response,
-                        model_responses=model_responses,
-                        metadata={
-                            "synthesis_model": synthesis_model,
-                            "query_type": query_type.value,
-                            "models_attempted": len(available_models),
-                            "timestamp": datetime.now().isoformat(),
-                            "processing_time": response_time
-                        },
-                        include_metadata=options.get("include_metadata", False) if options else False,
-                        include_confidence=options.get("include_confidence", True) if options else True
-                    )
-
-                    return {
-                        "stage": "ultra_synthesis",
-                        "synthesis": formatted_output.get("synthesis", synthesis_response),
-                        "synthesis_enhanced": formatted_output.get("synthesis_enhanced", synthesis_response),
-                        "quality_indicators": formatted_output.get("quality_indicators", {}),
-                        "metadata": formatted_output.get("metadata", {}) if options and options.get("include_metadata") else {},
-                        "model_used": synthesis_model,
-                        "meta_analysis": meta_analysis,
-                        "source_models": source_models,
-                    }
+                    # Use enhanced output formatting if available
+                    if self.use_enhanced_synthesis and self.synthesis_output_formatter:
+                        # Build model responses dict for structured output
+                        model_responses = {}
+                        if "revised_responses" in data and data["revised_responses"]:
+                            model_responses = data["revised_responses"]
+                        elif "responses" in data and data["responses"]:
+                            model_responses = data["responses"]
+                        
+                        # Get query type if available
+                        query_type_value = "general"
+                        if self.synthesis_prompt_manager:
+                            query_type_value = self.synthesis_prompt_manager.detect_query_type(original_prompt).value
+                        
+                        # Format synthesis with structured output
+                        formatted_output = self.synthesis_output_formatter.format_synthesis_output(
+                            synthesis_text=synthesis_response,
+                            model_responses=model_responses,
+                            metadata={
+                                "synthesis_model": synthesis_model,
+                                "query_type": query_type_value,
+                                "models_attempted": len(available_models),
+                                "timestamp": datetime.now().isoformat(),
+                                "processing_time": synthesis_result.get("timing", {}).get("total_time", 5.0)
+                            },
+                            include_metadata=options.get("include_metadata", False) if options else False,
+                            include_confidence=options.get("include_confidence", True) if options else True
+                        )
+                        
+                        return {
+                            "stage": "ultra_synthesis",
+                            "synthesis": formatted_output.get("synthesis", synthesis_response),
+                            "synthesis_enhanced": formatted_output.get("synthesis_enhanced", synthesis_response),
+                            "quality_indicators": formatted_output.get("quality_indicators", {}),
+                            "metadata": formatted_output.get("metadata", {}) if options and options.get("include_metadata") else {},
+                            "model_used": synthesis_model,
+                            "meta_analysis": meta_analysis,
+                            "source_models": source_models,
+                        }
+                    else:
+                        # Fallback to original response format
+                        return {
+                            "stage": "ultra_synthesis",
+                            "synthesis": synthesis_response,
+                            "model_used": synthesis_model,
+                            "meta_analysis": meta_analysis,
+                            "source_models": source_models,
+                        }
 
                 last_error = "Rate limited or empty response"
                 logger.warning(
                     f"⚠️ Ultra-synthesis with {synthesis_model} unsuccessful – trying next model"
                 )
-                # Track failed synthesis
-                self.model_selector.update_model_performance(
-                    model=synthesis_model,
-                    success=False,
-                    quality_score=0,
-                    response_time=30.0  # Assume timeout
-                )
+                # Track failed synthesis if enhanced features are available
+                if self.use_enhanced_synthesis and self.model_selector:
+                    self.model_selector.update_model_performance(
+                        model=synthesis_model,
+                        success=False,
+                        quality_score=0,
+                        response_time=30.0  # Assume timeout
+                    )
             except Exception as e:
                 last_error = str(e)
                 logger.error(
                     f"Ultra-synthesis error with {synthesis_model}: {last_error}"
                 )
-                # Track error as failure
-                self.model_selector.update_model_performance(
-                    model=synthesis_model,
-                    success=False,
-                    quality_score=0,
-                    response_time=None
-                )
+                # Track error as failure if enhanced features are available
+                if self.use_enhanced_synthesis and self.model_selector:
+                    self.model_selector.update_model_performance(
+                        model=synthesis_model,
+                        success=False,
+                        quality_score=0,
+                        response_time=None
+                    )
 
         # All attempts failed – in testing mode, provide stubbed text so E2E can continue
         if os.getenv("TESTING") == "true":
