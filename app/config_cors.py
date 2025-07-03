@@ -3,6 +3,7 @@ CORS configuration settings for the application.
 """
 
 import os
+from typing import List
 
 
 def get_cors_config() -> dict:
@@ -18,6 +19,7 @@ def get_cors_config() -> dict:
     # Production origins
     production_origins = [
         "https://ultrai-core.onrender.com",
+        "https://ultrai-core-4lut.onrender.com",  # Render preview URL
         "https://yourdomain.com",
         "https://app.yourdomain.com"
     ]
@@ -57,3 +59,31 @@ def get_cors_config() -> dict:
         "expose_headers": ["X-Total-Count", "X-Page-Count"],
         "max_age": 600,  # 10 minutes
     }
+
+
+def is_allowed_origin(origin: str) -> bool:
+    """
+    Check if an origin should be allowed for CORS.
+    
+    Args:
+        origin: The origin to check
+        
+    Returns:
+        bool: True if the origin should be allowed
+    """
+    if not origin:
+        return False
+    
+    # Get configured origins
+    cors_config = get_cors_config()
+    allowed_origins = cors_config.get("allow_origins", [])
+    
+    # Check exact match
+    if origin in allowed_origins:
+        return True
+    
+    # Check if it's a Render subdomain
+    if ".onrender.com" in origin and origin.startswith("https://"):
+        return True
+    
+    return False

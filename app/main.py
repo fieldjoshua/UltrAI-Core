@@ -57,6 +57,7 @@ def configure_app(app: FastAPI, services: Dict[str, Any]) -> None:
     app.state.model_registry = services["model_registry"]
     app.state.prompt_service = services["prompt_service"]
     app.state.orchestration_service = services["orchestration_service"]
+    app.state.services = services  # Store all services for route access
 
     # Log startup message
     logger.info("✅ App loaded correctly")
