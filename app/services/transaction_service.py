@@ -17,11 +17,22 @@ logger = get_logger("transaction_service")
 # Redis client for persistent storage
 try:
     import redis
-    REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379")
-    redis_client = redis.from_url(REDIS_URL, decode_responses=True)
-    logger.info(f"Connected to Redis at {REDIS_URL}")
-    REDIS_AVAILABLE = True
-except (ImportError, redis.ConnectionError) as e:
+    REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379").strip()
+    
+    # Check if Redis URL is empty or invalid
+    if not REDIS_URL or REDIS_URL in ["", "None", "null"]:
+        logger.info("No Redis URL configured. Using file-based persistence.")
+        redis_client = None
+        REDIS_AVAILABLE = False
+    elif not any(REDIS_URL.startswith(scheme) for scheme in ["redis://", "rediss://", "unix://"]):
+        logger.warning(f"Invalid Redis URL format: {REDIS_URL}. Using file-based persistence.")
+        redis_client = None
+        REDIS_AVAILABLE = False
+    else:
+        redis_client = redis.from_url(REDIS_URL, decode_responses=True)
+        logger.info(f"Connected to Redis at {REDIS_URL}")
+        REDIS_AVAILABLE = True
+except (ImportError, redis.ConnectionError, ValueError) as e:
     logger.warning(f"Redis not available: {e}. Using file-based persistence as fallback.")
     redis_client = None
     REDIS_AVAILABLE = False
