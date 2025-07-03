@@ -13,26 +13,10 @@ from datetime import datetime
 from functools import wraps
 from typing import Any, Callable, Dict, List, Optional
 
-try:
-    import psutil
-except ImportError:
-    from app.utils.stubs import psutil
+import psutil
 
-# Try to import prometheus_client, use stub if not available
-try:
-    from prometheus_client import Counter, Gauge, Histogram, Info, start_http_server
-    from prometheus_client.core import REGISTRY
-except ImportError:
-    logging.warning("prometheus_client not found, using stub implementation")
-    # Use the local stub implementation
-    from app.utils.stubs.prometheus_client import (
-        Counter,
-        Histogram,
-        Gauge,
-        Info,
-        start_http_server,
-        REGISTRY,
-    )
+from prometheus_client import Counter, Gauge, Histogram, Info, start_http_server
+from prometheus_client.core import REGISTRY
 
 from fastapi import FastAPI, Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware

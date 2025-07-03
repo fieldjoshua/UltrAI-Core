@@ -41,6 +41,9 @@ def test_ultra_synthesis_via_ui(page: Page):
 
     # 5. Validate multi-provider functionality worked
     initial_response = data.get("results", {}).get("initial_response", {})
+    successful_models = []
+    models_attempted = []
+    
     if initial_response:
         initial_output = initial_response.get("output", {})
         successful_models = initial_output.get("successful_models", [])
@@ -60,16 +63,20 @@ def test_ultra_synthesis_via_ui(page: Page):
         else data.get("ultra_synthesis", {})
     )
     assert ultra, "ultra_synthesis section missing from API response"
-    assert ultra.get("error") is None, f"Ultra-Synthesis error: {ultra.get('error')}"
-
-    # When successful, response may store synthesis under 'synthesis' or 'output'
-    synthesis_text = ultra.get("synthesis") or ultra.get("output") or ""
-    if not synthesis_text and isinstance(ultra.get("meta_analysis"), str):
-        synthesis_text = ultra["meta_analysis"]
-    if isinstance(synthesis_text, dict):
-        synthesis_text = (
-            synthesis_text.get("content") or synthesis_text.get("text") or ""
-        )
+    
+    # Handle case where ultra might be a string directly
+    if isinstance(ultra, str):
+        synthesis_text = ultra
+    else:
+        assert ultra.get("error") is None, f"Ultra-Synthesis error: {ultra.get('error')}"
+        # When successful, response may store synthesis under 'synthesis' or 'output'
+        synthesis_text = ultra.get("synthesis") or ultra.get("output") or ""
+        if not synthesis_text and isinstance(ultra.get("output"), dict):
+            synthesis_text = ultra["output"].get("synthesis", "")
+        if isinstance(synthesis_text, dict):
+            synthesis_text = (
+                synthesis_text.get("content") or synthesis_text.get("text") or ""
+            )
     
     # Basic sanity: should not be empty and should not contain model header artefacts
     assert len(synthesis_text.split()) >= 20, "Ultra synthesis text unexpectedly short"

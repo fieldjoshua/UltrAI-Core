@@ -20,10 +20,7 @@ from functools import wraps
 from http import HTTPStatus
 from typing import Any, Callable, Dict, List, Optional, Type, Union
 
-try:
-    import sentry_sdk
-except ImportError:
-    from app.utils.stubs import sentry_sdk
+import sentry_sdk
 from fastapi import FastAPI, Request, Response, status
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse

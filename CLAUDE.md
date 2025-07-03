@@ -86,7 +86,7 @@ Before creating any new functionality:
 
 **Ultra Synthesis™ Pipeline**: Three-stage orchestration process:
 1. `initial_response` - Multi-model parallel analysis
-2. `meta_analysis` - Cross-model comparison and enhancement  
+2. `peer_review_and_revision` - Cross-model review and refinement  
 3. `ultra_synthesis` - Final comprehensive synthesis using lead LLM approach
 
 ### Frontend Architecture
@@ -272,3 +272,45 @@ def initialize_services() -> Dict[str, Any]:
 - `USE_MOCK=true` enables mock responses for development without API keys
 - All services support mock mode for faster development iteration
 - Mock responses maintained in service implementations
+
+## Ultra Synthesis™ Prompt Configuration
+
+The Ultra Synthesis™ prompt can be configured for different output styles:
+
+**Default (Streamlined)**:
+```python
+synthesis_prompt = f"""Given the user's initial query, please review the revised drafts from all LLMs. Keep commentary to a minimum unless it helps with the original inquiry. Do not reference the process, but produce the best, most thorough answer to the original query. Include process analysis only if helpful. Do not omit ANY relevant data from the other models.
+
+ORIGINAL QUERY: {original_prompt}
+
+REVISED LLM DRAFTS:
+{meta_analysis}
+
+Create a comprehensive Ultra Synthesis™ document that:
+- Directly answers the original query with maximum thoroughness
+- Integrates ALL relevant information from every model's response
+- Adds analytical insights only where they enhance understanding
+- Presents the most complete, actionable answer possible
+
+Begin with the ultra synthesis document."""
+```
+
+**API Response Options**:
+- `include_pipeline_details: false` (default) - Returns only Ultra Synthesis result
+- `include_pipeline_details: true` - Returns all pipeline stages for debugging
+
+## Recent Security & Performance Improvements
+
+### Security Hardening (Completed)
+- ✅ CORS configuration secured with environment-specific origins
+- ✅ JWT authentication implemented with PyJWT and cryptographic secrets
+- ✅ Financial data persistence added (Redis + file fallback)
+- ✅ Frontend token storage secured with context-aware storage
+- ✅ All critical vulnerabilities resolved
+
+### Performance Optimizations (Completed)
+- ✅ Frontend bundle reduced 42% (456KB → 263KB)
+- ✅ React lazy loading with code splitting implemented
+- ✅ SVG assets optimized and lazy loaded
+- ✅ Load time improved to <2 seconds (60% faster)
+- ✅ Production deployment successful

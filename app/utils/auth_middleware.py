@@ -14,7 +14,7 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.types import ASGIApp
 
 from app.config import Config
-from app.utils.jwt import decode_token, is_token_expired
+from app.utils.jwt_utils import decode_token, is_token_expired
 from app.utils.logging import get_logger
 
 # Configure logging

@@ -1,22 +1,14 @@
 #!/bin/bash
 
-# MCP: AICheck_Scoper  
-# Action: AICheck-Core-Development
-# DateTime: 2025-06-25 16:40:00 PDT
-# Task: Maintain and develop AICheck core governance system
-# File: aicheck
-# You may only modify this file. Stay within the current action scope.
-# Follow the approved plan and avoid scope creep.
-
 # AICheck command script
 # Provides the core functionality for AICheck MCP
-# Version: 7.0.0
-# Last Updated: 2025-06-25
+# Version: 5.0.0
+# Last Updated: 2025-01-06
 
 set -e
 
 # AICheck version info
-AICHECK_VERSION="7.2.0"
+AICHECK_VERSION="6.0.0"
 GITHUB_REPO="fieldjoshua/AICheck_MCP"
 GITHUB_RAW_BASE="https://raw.githubusercontent.com/${GITHUB_REPO}/main"
 
@@ -41,11 +33,6 @@ function show_version() {
   echo -e "  ${GREEN}./aicheck complete${NC}       - Complete the ACTIVE action"
   echo -e "  ${GREEN}./aicheck cleanup${NC}        - Optimize and fix compliance"
   echo -e "  ${GREEN}./aicheck usage${NC}          - See AI usage and costs"
-  echo -e ""
-  echo -e "${BRIGHT_BLURPLE}🤖 AI Editor Integration:${NC}"
-  echo -e "  ${GREEN}./aicheck mcp edit${NC}       - Setup MCP headers for AI coding"
-  echo -e "  ${GREEN}./aicheck edit claude <file>${NC} - Launch Claude with MCP"
-  echo -e "  ${GREEN}./aicheck edit cursor <file>${NC} - Launch Cursor with MCP"
   echo -e ""
   echo -e "${YELLOW}💡 Only one action can be ACTIVE at a time.${NC}"
 }
@@ -202,42 +189,6 @@ YELLOW="\033[0;33m"
 RED="\033[0;31m"
 CYAN="\033[0;36m"
 NC="\033[0m" # No Color
-BLUE="\033[0;34m"
-PURPLE="\033[0;35m"
-
-# Function to validate single active action principle
-function validate_single_active_action() {
-  # Only run for commands that need validation
-  local cmd=${1:-}
-  case "$cmd" in
-    "status"|"focus"|"deploy"|"complete"|"auto-iterate"|"ACTIVE"|"new")
-      # These commands need validation
-      ;;
-    *)
-      # Skip validation for other commands
-      return 0
-      ;;
-  esac
-  
-  # Count active actions
-  local index_active=$(grep -c "| .* | .* | ActiveAction | .* | .* |" .aicheck/actions_index.md 2>/dev/null || echo "0")
-  local current=$(cat .aicheck/current_action 2>/dev/null || echo "None")
-  
-  if [ "$index_active" -gt 1 ]; then
-    echo -e "${RED}⚠ ERROR: Multiple active actions detected!${NC}"
-    echo -e "${YELLOW}AICheck requires exactly ONE active action at a time.${NC}"
-    echo -e "${CYAN}Run './aicheck cleanup' to fix this issue.${NC}"
-    echo ""
-    return 1
-  elif [ "$index_active" -eq 0 ] && [ "$current" != "None" ] && [ "$current" != "" ]; then
-    echo -e "${YELLOW}⚠ WARNING: Inconsistent state detected${NC}"
-    echo -e "${CYAN}Current action is '$current' but not marked active in index.${NC}"
-    echo -e "${CYAN}Run './aicheck cleanup' to fix this issue.${NC}"
-    echo ""
-    return 1
-  fi
-  return 0
-}
 
 # Function to automatically detect context pollution
 function detect_context_pollution() {
@@ -292,13 +243,8 @@ function clear_context() {
   echo -e "Analyzing current context state..."
   
   local pollution_data=$(detect_context_pollution)
-  local pollution_score=$(echo "$pollution_data" | head -1 | grep -o '[0-9]*' || echo "0")
+  local pollution_score=$(echo "$pollution_data" | head -1)
   local warnings=$(echo "$pollution_data" | tail -n +2)
-  
-  # Ensure pollution_score is a valid number
-  if ! [[ "$pollution_score" =~ ^[0-9]+$ ]]; then
-    pollution_score=0
-  fi
   
   echo -e "Context pollution score: ${GREEN}$pollution_score/100${NC}"
   if [ -n "$warnings" ]; then
@@ -335,7 +281,7 @@ function clear_context() {
   local needs_approval=false
   local approval_actions=()
   
-  if [ "${pollution_score:-0}" -gt 50 ]; then
+  if [ "$pollution_score" -gt 50 ]; then
     needs_approval=true
     approval_actions+=("Reset all active actions to 'Not Started'")
     approval_actions+=("Clear all uncommitted git changes")
@@ -703,20 +649,7 @@ function validate_action_completeness() {
           echo -e "${GREEN}✓ Created status file${NC}"
           ;;
         "create_progress_tracking")
-          # Get action info for MCP header
-          local action_info=$(get_mcp_action_info)
-          local action_id=$(echo "$action_info" | cut -d'|' -f1)
-          local datetime=$(echo "$action_info" | cut -d'|' -f2)
-          
           cat > "$action_dir/progress.md" << PROGRESS
-<!-- MCP: AICheck_Tracker -->
-<!-- Action: $action_id -->
-<!-- DateTime: $datetime -->
-<!-- Task: Track progress for $current_action -->
-<!-- File: progress.md -->
-<!-- Track progress and document decisions as you work. -->
-<!-- Update task status and log any blockers or dependencies. -->
-
 # $current_action Progress
 
 ## Updates
@@ -749,20 +682,7 @@ PROGRESS
           echo -e "${GREEN}✓ Created RULES-compliant progress tracking${NC}"
           ;;
         "create_action_plan")
-          # Get action info for MCP header
-          local action_info=$(get_mcp_action_info)
-          local action_id=$(echo "$action_info" | cut -d'|' -f1)
-          local datetime=$(echo "$action_info" | cut -d'|' -f2)
-          
           cat > "$action_dir/$dir_name-plan.md" << PLAN
-<!-- MCP: AICheck_Planner -->
-<!-- Action: $action_id -->
-<!-- DateTime: $datetime -->
-<!-- Task: Implement $current_action -->
-<!-- File: $dir_name-plan.md -->
-<!-- Before coding, outline the steps you plan to take to complete this task. -->
-<!-- Follow the approved action plan and document any scope changes. -->
-
 # ACTION: $current_action
 
 Version: 1.0
@@ -1156,20 +1076,7 @@ function create_action() {
   mkdir -p ".aicheck/actions/$dir_name/supporting_docs/research"
   
   # Create plan file
-  # Get action info for MCP header
-  local action_info=$(get_mcp_action_info)
-  local action_id=$(echo "$action_info" | cut -d'|' -f1)
-  local datetime=$(echo "$action_info" | cut -d'|' -f2)
-  
   cat > ".aicheck/actions/$dir_name/$dir_name-plan.md" << PLAN
-<!-- MCP: AICheck_Planner -->
-<!-- Action: $action_id -->
-<!-- DateTime: $datetime -->
-<!-- Task: Implement $action_name -->
-<!-- File: $dir_name-plan.md -->
-<!-- Before coding, outline the steps you plan to take to complete this task. -->
-<!-- Follow the approved action plan and document any scope changes. -->
-
 # ACTION: $action_name
 
 Version: 1.0
@@ -1234,20 +1141,7 @@ PLAN
   echo "Not Started" > ".aicheck/actions/$dir_name/status.txt"
   
   # Create progress file
-  # Get action info for MCP header  
-  local action_info=$(get_mcp_action_info)
-  local action_id=$(echo "$action_info" | cut -d'|' -f1)
-  local datetime=$(echo "$action_info" | cut -d'|' -f2)
-  
-  echo "<!-- MCP: AICheck_Tracker -->
-<!-- Action: $action_id -->
-<!-- DateTime: $datetime -->
-<!-- Task: Track progress for $action_name -->
-<!-- File: progress.md -->
-<!-- Track progress and document decisions as you work. -->
-<!-- Update task status and log any blockers or dependencies. -->
-
-# $action_name Progress
+  echo "# $action_name Progress
 
 ## Updates
 
@@ -1307,513 +1201,21 @@ function set_active_action() {
     exit 1
   fi
   
-  # ENFORCE: First deactivate ALL other actions to ensure only one active
-  echo -e "${BLUE}Enforcing single active action rule...${NC}"
-  
-  # Find all ActiveAction entries and change them to their previous status
-  for action_dir in .aicheck/actions/*/; do
-    if [ -d "$action_dir" ]; then
-      local status_file="$action_dir/status.txt"
-      if [ -f "$status_file" ] && [ "$(cat "$status_file")" = "ActiveAction" ]; then
-        # Set to "In Progress" as default previous state
-        echo "In Progress" > "$status_file"
-      fi
-    fi
-  done
-  
-  # Update actions_index.md - change all ActiveAction/Active to In Progress
-  sed -i "" 's/| \(.*\) | \(.*\) | ActiveAction | \(.*\) | \(.*\) |/| \1 | \2 | In Progress | \3 | \4 |/g' .aicheck/actions_index.md
-  sed -i "" 's/| \(.*\) | \(.*\) | Active | \(.*\) | \(.*\) |/| \1 | \2 | In Progress | \3 | \4 |/g' .aicheck/actions_index.md
-  
   # Set as current action
   echo "$action_name" > .aicheck/current_action
   
-  # Update this action's status to ActiveAction
-  echo "ActiveAction" > ".aicheck/actions/$dir_name/status.txt"
-  
-  # Update actions_index.md for this specific action
-  sed -i "" "s/| $action_name | \(.*\) | [^|]* | \(.*\) | \(.*\) |/| $action_name | \1 | ActiveAction | \2 | \3 |/" .aicheck/actions_index.md
-  
-  # Update last updated date
-  sed -i "" "s/\*Last Updated: .*\*/\*Last Updated: $(date +"%Y-%m-%d")\*/" .aicheck/actions_index.md
-  
-  # Verify enforcement worked
-  local active_count=$(grep -c "| .* | .* | Active\(Action\)\? | .* | .* |" .aicheck/actions_index.md 2>/dev/null || echo "0")
-  if [ "$active_count" -ne 1 ]; then
-    echo -e "${RED}WARNING: Multiple active actions detected!${NC}"
-    echo -e "${YELLOW}This violates AICheck single-action principle${NC}"
+  # Update status to ActiveAction if not already
+  if [ "$(cat ".aicheck/actions/$dir_name/status.txt")" != "ActiveAction" ]; then
+    echo "ActiveAction" > ".aicheck/actions/$dir_name/status.txt"
+    
+    # Update actions_index.md
+    sed -i "" "s/| $action_name | .* | [^|]* | [^|]* | /| $action_name | | ActiveAction | 0% | /" .aicheck/actions_index.md
+    
+    # Update last updated date
+    sed -i "" "s/\*Last Updated: .*\*/\*Last Updated: $(date +"%Y-%m-%d")\*/" .aicheck/actions_index.md
   fi
   
   echo -e "${GREEN}✓ Set current action to: $action_name${NC}"
-  echo -e "${CYAN}  All other actions marked as 'In Progress' or 'Not Started'${NC}"
-}
-
-# Function to detect project type and available tools
-function detect_project_environment() {
-  local project_info=()
-  
-  # Python detection
-  if [ -f "pyproject.toml" ]; then
-    project_info+=("python-poetry")
-    [ -f "poetry.lock" ] && project_info+=("poetry-lock")
-  elif [ -f "requirements.txt" ] || [ -f "requirements-dev.txt" ]; then
-    project_info+=("python-pip")
-  elif [ -f "setup.py" ] || [ -f "setup.cfg" ]; then
-    project_info+=("python-setuptools")
-  fi
-  
-  # Node.js detection
-  if [ -f "package.json" ]; then
-    project_info+=("node")
-    [ -f "package-lock.json" ] && project_info+=("npm-lock")
-    [ -f "yarn.lock" ] && project_info+=("yarn-lock")
-    [ -f "pnpm-lock.yaml" ] && project_info+=("pnpm-lock")
-  fi
-  
-  # Build system detection
-  [ -f "Makefile" ] && project_info+=("make")
-  [ -f "Rakefile" ] && project_info+=("rake")
-  [ -f "build.gradle" ] || [ -f "build.gradle.kts" ] && project_info+=("gradle")
-  [ -f "pom.xml" ] && project_info+=("maven")
-  
-  # Testing framework detection
-  [ -f "pytest.ini" ] || [ -f ".pytest.ini" ] || [ -f "setup.cfg" ] && grep -q "pytest" setup.cfg 2>/dev/null && project_info+=("pytest")
-  [ -f "jest.config.js" ] || [ -f "jest.config.ts" ] && project_info+=("jest")
-  [ -d "tests" ] || [ -d "test" ] || [ -d "__tests__" ] && project_info+=("tests-dir")
-  
-  # Linting/formatting detection
-  [ -f ".eslintrc.js" ] || [ -f ".eslintrc.json" ] || [ -f ".eslintrc.yml" ] && project_info+=("eslint")
-  [ -f ".prettierrc" ] || [ -f ".prettierrc.js" ] || [ -f ".prettierrc.json" ] && project_info+=("prettier")
-  [ -f ".flake8" ] || [ -f "setup.cfg" ] && grep -q "flake8" setup.cfg 2>/dev/null && project_info+=("flake8")
-  [ -f "pyproject.toml" ] && grep -q "black" pyproject.toml 2>/dev/null && project_info+=("black")
-  [ -f "pyproject.toml" ] && grep -q "ruff" pyproject.toml 2>/dev/null && project_info+=("ruff")
-  
-  # Type checking detection
-  [ -f "mypy.ini" ] || [ -f ".mypy.ini" ] || ([ -f "pyproject.toml" ] && grep -q "mypy" pyproject.toml 2>/dev/null) && project_info+=("mypy")
-  [ -f "tsconfig.json" ] && project_info+=("typescript")
-  
-  # CI/CD detection
-  [ -f ".github/workflows/"*.yml ] || [ -f ".github/workflows/"*.yaml ] && project_info+=("github-actions")
-  [ -f ".gitlab-ci.yml" ] && project_info+=("gitlab-ci")
-  [ -f ".circleci/config.yml" ] && project_info+=("circleci")
-  
-  # Container detection
-  [ -f "Dockerfile" ] || [ -f "docker-compose.yml" ] || [ -f "docker-compose.yaml" ] && project_info+=("docker")
-  
-  echo "${project_info[@]}"
-}
-
-# Function to read AICheck configuration
-function read_aicheck_config() {
-  local config_file=".aicheck.config"
-  local config_key=$1
-  local default_value=$2
-  
-  if [ -f "$config_file" ]; then
-    # Simple config parser - just grep for uncommented lines
-    local value=$(grep -E "^${config_key}\s*=" "$config_file" 2>/dev/null | cut -d'=' -f2 | tr -d ' "')
-    echo "${value:-$default_value}"
-  else
-    echo "$default_value"
-  fi
-}
-
-# Function to run appropriate checks based on detected environment
-function run_smart_completion_checks() {
-  local action_name=$1
-  local dir_name=$2
-  local failed_checks=0
-  local project_env=($(detect_project_environment))
-  
-  # Read configuration
-  local mode=$(read_aicheck_config "mode" "smart")
-  local require_tests=$(read_aicheck_config "require_tests" "false")
-  local require_linting=$(read_aicheck_config "require_linting" "false")
-  
-  echo -e "\n${BRIGHT_BLURPLE}🔍 Detected project environment:${NC}"
-  echo -e "${CYAN}$(IFS=', '; echo "${project_env[*]}")${NC}\n"
-  
-  # Show mode if not default
-  if [ "$mode" != "smart" ]; then
-    echo -e "${CYAN}📋 Completion mode: $mode${NC}\n"
-  fi
-  
-  # 1. Dependency Integrity Checks
-  echo -e "${BRIGHT_BLURPLE}📦 Checking dependency integrity...${NC}"
-  
-  # Python checks
-  if [[ " ${project_env[@]} " =~ " python-poetry " ]]; then
-    echo -n "  Poetry lock file: "
-    if [ ! -f "poetry.lock" ]; then
-      echo -e "${RED}✗ Missing${NC}"
-      echo -e "  ${YELLOW}→ Run: poetry install${NC}"
-      ((failed_checks++))
-    elif poetry check >/dev/null 2>&1 && poetry lock --check >/dev/null 2>&1; then
-      echo -e "${GREEN}✓${NC}"
-    else
-      echo -e "${RED}✗ Out of sync${NC}"
-      echo -e "  ${YELLOW}→ Run: poetry lock${NC}"
-      ((failed_checks++))
-    fi
-  elif [ -f "pyproject.toml" ] && [ ! -f "poetry.lock" ]; then
-    echo "  ${YELLOW}⚠ Poetry project without lock file${NC}"
-    echo "  ${YELLOW}→ Run: poetry install to create poetry.lock${NC}"
-    echo "  ${YELLOW}→ Lock files ensure reproducible deployments${NC}"
-  fi
-  
-  # Node checks
-  if [[ " ${project_env[@]} " =~ " node " ]]; then
-    echo -n "  NPM dependencies: "
-    if [[ " ${project_env[@]} " =~ " npm-lock " ]]; then
-      if npm ls >/dev/null 2>&1; then
-        echo -e "${GREEN}✓${NC}"
-      else
-        echo -e "${RED}✗ Issues found${NC}"
-        echo -e "  ${YELLOW}→ Run: npm install${NC}"
-        ((failed_checks++))
-      fi
-    elif [[ " ${project_env[@]} " =~ " yarn-lock " ]]; then
-      if yarn check --integrity >/dev/null 2>&1; then
-        echo -e "${GREEN}✓${NC}"
-      else
-        echo -e "${RED}✗ Integrity check failed${NC}"
-        echo -e "  ${YELLOW}→ Run: yarn install${NC}"
-        ((failed_checks++))
-      fi
-    fi
-  fi
-  
-  # 2. Test Suite Checks
-  echo -e "\n${BRIGHT_BLURPLE}🧪 Checking tests...${NC}"
-  
-  if [[ " ${project_env[@]} " =~ " pytest " ]] && command -v pytest >/dev/null 2>&1; then
-    echo -n "  Python tests: "
-    if pytest -x --tb=short -q >/dev/null 2>&1; then
-      echo -e "${GREEN}✓ All tests pass${NC}"
-    else
-      echo -e "${RED}✗ Tests failing${NC}"
-      echo -e "  ${YELLOW}→ Fix failing tests before completing action${NC}"
-      ((failed_checks++))
-    fi
-  elif [[ " ${project_env[@]} " =~ " make " ]] && grep -q "^test:" Makefile 2>/dev/null; then
-    echo -n "  Make tests: "
-    if make test >/dev/null 2>&1; then
-      echo -e "${GREEN}✓ All tests pass${NC}"
-    else
-      echo -e "${RED}✗ Tests failing${NC}"
-      ((failed_checks++))
-    fi
-  elif [[ " ${project_env[@]} " =~ " node " ]] && grep -q '"test"' package.json 2>/dev/null; then
-    echo -n "  NPM tests: "
-    if npm test >/dev/null 2>&1; then
-      echo -e "${GREEN}✓ All tests pass${NC}"
-    else
-      echo -e "${RED}✗ Tests failing${NC}"
-      ((failed_checks++))
-    fi
-  else
-    echo "  ${YELLOW}⚠ No test suite detected${NC}"
-    echo "  ${YELLOW}→ Consider adding tests to verify code works before deployment${NC}"
-    # This is a warning, not a failure - teams might have other verification methods
-  fi
-  
-  # 3. Code Quality Checks
-  echo -e "\n${BRIGHT_BLURPLE}✨ Checking code quality...${NC}"
-  
-  # Python linting
-  if [[ " ${project_env[@]} " =~ " black " ]] && command -v black >/dev/null 2>&1; then
-    echo -n "  Black formatting: "
-    if black --check . >/dev/null 2>&1; then
-      echo -e "${GREEN}✓${NC}"
-    else
-      echo -e "${YELLOW}⚠ Formatting issues${NC}"
-      echo -e "  ${CYAN}→ Run: black .${NC}"
-    fi
-  fi
-  
-  if [[ " ${project_env[@]} " =~ " ruff " ]] && command -v ruff >/dev/null 2>&1; then
-    echo -n "  Ruff linting: "
-    if ruff check . >/dev/null 2>&1; then
-      echo -e "${GREEN}✓${NC}"
-    else
-      echo -e "${YELLOW}⚠ Linting issues${NC}"
-      echo -e "  ${CYAN}→ Run: ruff check --fix .${NC}"
-    fi
-  fi
-  
-  # JavaScript/TypeScript linting
-  if [[ " ${project_env[@]} " =~ " eslint " ]] && [ -f "package.json" ]; then
-    echo -n "  ESLint: "
-    if npm run lint >/dev/null 2>&1; then
-      echo -e "${GREEN}✓${NC}"
-    else
-      echo -e "${YELLOW}⚠ Linting issues${NC}"
-      echo -e "  ${CYAN}→ Run: npm run lint --fix${NC}"
-    fi
-  fi
-  
-  # Type checking
-  if [[ " ${project_env[@]} " =~ " mypy " ]] && command -v mypy >/dev/null 2>&1; then
-    echo -n "  Type checking (mypy): "
-    if mypy . >/dev/null 2>&1; then
-      echo -e "${GREEN}✓${NC}"
-    else
-      echo -e "${YELLOW}⚠ Type errors${NC}"
-      echo -e "  ${CYAN}→ Fix type errors${NC}"
-    fi
-  fi
-  
-  # 4. Git Status Checks
-  echo -e "\n${BRIGHT_BLURPLE}📝 Checking git status...${NC}"
-  
-  echo -n "  Uncommitted changes: "
-  if [ -z "$(git status --porcelain 2>/dev/null)" ]; then
-    echo -e "${GREEN}✓ Working directory clean${NC}"
-  else
-    echo -e "${YELLOW}⚠ Uncommitted changes found${NC}"
-    echo -e "  ${CYAN}→ Commit your changes${NC}"
-  fi
-  
-  echo -n "  Branch status: "
-  local ahead=$(git rev-list --count @{u}..HEAD 2>/dev/null || echo "0")
-  if [ "$ahead" -eq 0 ]; then
-    echo -e "${GREEN}✓ Up to date with remote${NC}"
-  else
-    echo -e "${YELLOW}⚠ $ahead commits ahead of remote${NC}"
-    echo -e "  ${CYAN}→ Push your commits${NC}"
-  fi
-  
-  # 5. Build Checks
-  echo -e "\n${BRIGHT_BLURPLE}🔨 Checking build...${NC}"
-  
-  if [[ " ${project_env[@]} " =~ " make " ]] && grep -q "^build:" Makefile 2>/dev/null; then
-    echo -n "  Make build: "
-    if make build >/dev/null 2>&1; then
-      echo -e "${GREEN}✓ Build successful${NC}"
-    else
-      echo -e "${RED}✗ Build failed${NC}"
-      ((failed_checks++))
-    fi
-  elif [[ " ${project_env[@]} " =~ " node " ]] && grep -q '"build"' package.json 2>/dev/null; then
-    echo -n "  NPM build: "
-    if npm run build >/dev/null 2>&1; then
-      echo -e "${GREEN}✓ Build successful${NC}"
-    else
-      echo -e "${RED}✗ Build failed${NC}"
-      ((failed_checks++))
-    fi
-  elif [[ " ${project_env[@]} " =~ " python-poetry " ]]; then
-    echo -n "  Poetry build: "
-    if poetry build >/dev/null 2>&1; then
-      echo -e "${GREEN}✓ Build successful${NC}"
-    else
-      echo -e "${RED}✗ Build failed${NC}"
-      ((failed_checks++))
-    fi
-  fi
-  
-  # 6. Deployment Readiness Assessment
-  echo -e "\n${BRIGHT_BLURPLE}🚀 Deployment Readiness Assessment${NC}"
-  
-  # Check for critical missing capabilities
-  local has_tests=0
-  local has_dependency_management=0
-  
-  if [[ " ${project_env[@]} " =~ " pytest " ]] || [[ " ${project_env[@]} " =~ " jest " ]] || \
-     [[ " ${project_env[@]} " =~ " tests-dir " ]] || ([ -f "Makefile" ] && grep -q "^test:" Makefile 2>/dev/null); then
-    has_tests=1
-  fi
-  
-  if [[ " ${project_env[@]} " =~ " poetry-lock " ]] || [[ " ${project_env[@]} " =~ " npm-lock " ]] || \
-     [[ " ${project_env[@]} " =~ " yarn-lock " ]] || [[ " ${project_env[@]} " =~ " pnpm-lock " ]]; then
-    has_dependency_management=1
-  fi
-  
-  # Summary with recommendations
-  echo -e "\n${BRIGHT_BLURPLE}📊 Completion Check Summary${NC}"
-  
-  if [ $failed_checks -eq 0 ]; then
-    echo -e "${GREEN}✅ All critical checks passed!${NC}"
-    
-    # Add warnings for missing best practices
-    if [ $has_tests -eq 0 ]; then
-      echo -e "\n${YELLOW}⚠️  Recommendation: Add automated tests${NC}"
-      echo -e "${CYAN}   Tests prevent regressions and verify code works${NC}"
-    fi
-    
-    if [ $has_dependency_management -eq 0 ] && ([[ " ${project_env[@]} " =~ " node " ]] || [[ " ${project_env[@]} " =~ " python" ]]); then
-      echo -e "\n${YELLOW}⚠️  Recommendation: Use dependency lock files${NC}"
-      echo -e "${CYAN}   Lock files ensure reproducible builds across environments${NC}"
-    fi
-    
-    return 0
-  else
-    echo -e "${RED}❌ $failed_checks critical check(s) failed${NC}"
-    echo -e "\n${YELLOW}These failures indicate potential deployment issues.${NC}"
-    echo -e "${YELLOW}Fix them or use 'y' to override if you have alternative verification.${NC}"
-    return 1
-  fi
-}
-
-# Function to clean up and optimize AICheck state
-function cleanup_and_optimize() {
-    echo -e "${BRIGHT_BLURPLE}🧹 AICheck Cleanup & Optimization${NC}"
-    echo ""
-    
-    # Run validation to identify issues
-    echo -e "${BRIGHT_BLURPLE}Analyzing current state...${NC}"
-    validate_action_completeness
-    
-    # Clean up multiple active actions
-    local active_count=$(grep -c "| .* | .* | Active\(Action\)\? | .* | .* |" .aicheck/actions_index.md 2>/dev/null || echo "0")
-    if [ "$active_count" -gt 1 ]; then
-      echo -e "\n${YELLOW}⚠ Multiple active actions detected ($active_count)${NC}"
-      echo -e "${RED}This violates AICheck's single-action principle!${NC}"
-      echo "Active actions:"
-      grep -E "\\| .* \\| .* \\| (Active|ActiveAction) \\| .* \\| .* \\|" .aicheck/actions_index.md | awk -F'|' '{print "  - " $2 " (Status: " $4 ")"}'
-      
-      echo -e "\n${CYAN}Would you like to:${NC}"
-      echo -e "  1) Keep only the current action ($(cat .aicheck/current_action 2>/dev/null || echo 'None'))"
-      echo -e "  2) Choose a different action"
-      echo -e "  3) Mark all as 'Not Started'"
-      echo -n "Choice (1-3): "
-      read choice
-      
-      case "$choice" in
-        1)
-          fix_multiple_active_actions "current"
-          ;;
-        2)
-          echo "Enter action name to keep active: "
-          read action_name
-          fix_multiple_active_actions "$action_name"
-          ;;
-        3)
-          fix_multiple_active_actions "none"
-          ;;
-        *)
-          echo -e "${YELLOW}Skipping active action cleanup${NC}"
-          ;;
-      esac
-    fi
-    
-    # Suggest git cleanup
-    local uncommitted=$(git status --porcelain 2>/dev/null | wc -l | tr -d ' ')
-    if [ "$uncommitted" -gt 0 ]; then
-      echo -e "\n${YELLOW}⚠ $uncommitted uncommitted changes${NC}"
-      echo -e "${CYAN}→ Commit or stash changes to reduce context pollution${NC}"
-    fi
-    
-    # Suggest action completion
-    local current_action=$(cat .aicheck/current_action 2>/dev/null || echo "None")
-    if [ "$current_action" != "None" ]; then
-      echo -e "\n${BRIGHT_BLURPLE}Current action: $current_action${NC}"
-      echo -e "${CYAN}→ Complete with: ./aicheck complete${NC}"
-      echo -e "${CYAN}→ Or switch with: ./aicheck ACTIVE <other-action>${NC}"
-    fi
-    
-    # Check for orphaned action directories
-    echo -e "\n${BRIGHT_BLURPLE}Checking for orphaned actions...${NC}"
-    local orphaned_count=0
-    for dir in .aicheck/actions/*/; do
-      if [ -d "$dir" ]; then
-        local action_name=$(basename "$dir")
-        # Convert directory name back to PascalCase
-        local pascal_name=$(echo "$action_name" | sed 's/-\([a-z]\)/\U\1/g' | sed 's/^./\U&/')
-        
-        if ! grep -q "| $pascal_name |" .aicheck/actions_index.md 2>/dev/null; then
-          ((orphaned_count++))
-          echo -e "${YELLOW}  - $action_name (not in index)${NC}"
-        fi
-      fi
-    done
-    
-    if [ $orphaned_count -gt 0 ]; then
-      echo -e "${CYAN}→ Found $orphaned_count orphaned action directories${NC}"
-      echo -e "${CYAN}→ These can be safely removed if no longer needed${NC}"
-    else
-      echo -e "${GREEN}✓ No orphaned actions found${NC}"
-    fi
-    
-    echo -e "\n${GREEN}✓ Cleanup analysis complete${NC}"
-}
-
-# Function to fix multiple active actions and sync state
-function fix_multiple_active_actions() {
-  local mode=$1
-  
-  echo -e "${BLUE}Synchronizing action state...${NC}"
-  
-  # First, clear ALL active statuses to ensure clean state
-  # Update actions_index.md - change all Active/ActiveAction to Not Started
-  sed -i "" 's/| \(.*\) | \(.*\) | Active | \(.*\) | \(.*\) |/| \1 | \2 | Not Started | \3 | \4 |/g' .aicheck/actions_index.md
-  sed -i "" 's/| \(.*\) | \(.*\) | ActiveAction | \(.*\) | \(.*\) |/| \1 | \2 | Not Started | \3 | \4 |/g' .aicheck/actions_index.md
-  
-  # Update all status.txt files to remove ActiveAction
-  find .aicheck/actions -name "status.txt" -exec grep -l "ActiveAction" {} \; 2>/dev/null | while read status_file; do
-    echo "Not Started" > "$status_file"
-  done
-  
-  case "$mode" in
-    "current")
-      local current=$(cat .aicheck/current_action 2>/dev/null || echo "None")
-      if [ "$current" != "None" ] && [ "$current" != "" ]; then
-        # Set this action as the ONLY active one
-        local dir_name=$(echo "$current" | sed 's/\([a-z0-9]\)\([A-Z]\)/\1-\2/g' | tr '[:upper:]' '[:lower:]')
-        if [ -d ".aicheck/actions/$dir_name" ]; then
-          echo "ActiveAction" > ".aicheck/actions/$dir_name/status.txt"
-          sed -i "" "s/| $current | \(.*\) | Not Started | \(.*\) | \(.*\) |/| $current | \1 | ActiveAction | \2 | \3 |/" .aicheck/actions_index.md
-          echo -e "${GREEN}✓ Set $current as the ONLY active action${NC}"
-        else
-          echo -e "${RED}Current action directory not found, clearing...${NC}"
-          fix_multiple_active_actions "none"
-        fi
-      else
-        fix_multiple_active_actions "none"
-      fi
-      ;;
-    "none")
-      # Clear current action
-      echo "None" > .aicheck/current_action
-      echo -e "${GREEN}✓ All actions marked as 'Not Started'${NC}"
-      echo -e "${GREEN}✓ No active action set${NC}"
-      ;;
-    *)
-      # Set specific action as active
-      local dir_name=$(echo "$mode" | sed 's/\([a-z0-9]\)\([A-Z]\)/\1-\2/g' | tr '[:upper:]' '[:lower:]')
-      if [ -d ".aicheck/actions/$dir_name" ]; then
-        # Update current_action file
-        echo "$mode" > .aicheck/current_action
-        # Update status file
-        echo "ActiveAction" > ".aicheck/actions/$dir_name/status.txt"
-        # Update index
-        sed -i "" "s/| $mode | \(.*\) | Not Started | \(.*\) | \(.*\) |/| $mode | \1 | ActiveAction | \2 | \3 |/" .aicheck/actions_index.md
-        echo -e "${GREEN}✓ Set $mode as the ONLY active action${NC}"
-      else
-        echo -e "${RED}Error: Action '$mode' not found${NC}"
-      fi
-      ;;
-  esac
-  
-  # Update last modified date
-  sed -i "" "s/\*Last Updated: .*\*/\*Last Updated: $(date +"%Y-%m-%d")\*/" .aicheck/actions_index.md
-  
-  # Final verification
-  local index_active=$(grep -c "| .* | .* | ActiveAction | .* | .* |" .aicheck/actions_index.md 2>/dev/null || echo "0")
-  local status_active=$(find .aicheck/actions -name "status.txt" -exec grep -l "ActiveAction" {} \; 2>/dev/null | wc -l | tr -d ' ')
-  local current_action=$(cat .aicheck/current_action 2>/dev/null || echo "None")
-  
-  echo -e "\n${BRIGHT_BLURPLE}State verification:${NC}"
-  echo -e "  Current action file: ${CYAN}$current_action${NC}"
-  echo -e "  Active in index: ${CYAN}$index_active${NC}"
-  echo -e "  Active status files: ${CYAN}$status_active${NC}"
-  
-  if [ "$index_active" -gt 1 ] || [ "$status_active" -gt 1 ]; then
-    echo -e "${RED}⚠ WARNING: Multiple active actions still detected!${NC}"
-    echo -e "${YELLOW}Manual intervention may be required${NC}"
-  elif [ "$index_active" -eq 0 ] && [ "$current_action" != "None" ]; then
-    echo -e "${YELLOW}⚠ WARNING: current_action is set but no action is active in index${NC}"
-  fi
 }
 
 # Function to complete an action
@@ -1844,20 +1246,47 @@ function complete_action() {
     exit 1
   fi
   
-  # Run smart completion checks
-  echo -e "${BRIGHT_BLURPLE}Running completion checks for $action_name...${NC}"
+  # Verify dependencies
+  echo -e "${BRIGHT_BLURPLE}Verifying dependencies for $action_name...${NC}"
   
-  # Run the smart completion checks function
-  run_smart_completion_checks "$action_name" "$dir_name"
+  local has_dependencies=0
+  if [ -f "documentation/dependencies/dependency_index.md" ]; then
+    # Check for dependencies in the dependency index
+    if grep -q "$action_name" documentation/dependencies/dependency_index.md; then
+      has_dependencies=1
+      echo -e "${GREEN}✓ Dependencies documented for $action_name${NC}"
+      
+      # Display documented dependencies
+      echo -e "${BRIGHT_BLURPLE}Dependencies documented:${NC}"
+      grep -A 1 -B 1 "$action_name" documentation/dependencies/dependency_index.md
+    fi
+  fi
   
-  # Check if completion checks passed
-  if [ $? -ne 0 ]; then
-    echo -e "${YELLOW}⚠️  Some completion checks failed${NC}"
+  # Check for imports in code files
+  local imports_found=0
+  local deps_dir=".aicheck/actions/$dir_name"
+  
+  if [ -d "$deps_dir" ]; then
+    # Look for Python imports
+    if find "$deps_dir" -type f -name "*.py" | xargs grep -l "^import\|^from .* import" 2>/dev/null; then
+      imports_found=1
+    fi
+    
+    # Look for JS/TS imports
+    if find "$deps_dir" -type f -name "*.js" -o -name "*.ts" -o -name "*.jsx" -o -name "*.tsx" | xargs grep -l "^import\|require(" 2>/dev/null; then
+      imports_found=1
+    fi
+  fi
+  
+  if [ $imports_found -eq 1 ] && [ $has_dependencies -eq 0 ]; then
+    echo -e "${YELLOW}WARNING: Code imports found but no dependencies documented.${NC}"
+    echo -e "${YELLOW}Please document dependencies with:${NC}"
+    echo -e "${YELLOW}./aicheck dependency add NAME VERSION JUSTIFICATION $action_name${NC}"
     echo -e "${YELLOW}Continue anyway? (y/n)${NC}"
     read -r continue_anyway
     
     if [[ $continue_anyway != "y" && $continue_anyway != "Y" ]]; then
-      echo -e "${YELLOW}Action completion aborted. Please fix the issues first.${NC}"
+      echo -e "${YELLOW}Action completion aborted. Please document dependencies first.${NC}"
       exit 0
     fi
   fi
@@ -3258,556 +2687,7 @@ See summary: $summary_file"
 # Auto-detect new sessions and run startup checks
 # auto_session_start_check  # Temporarily disabled for testing
 
-# ===============================================
-# MCP Integration Functions
-# ===============================================
-
-# Function to detect file type for MCP headers
-function detect_file_type() {
-  local file="$1"
-  local ext="${file##*.}"
-  
-  case "$ext" in
-    py|js|ts|tsx|jsx|sh|bash|zsh) echo "script" ;;
-    md|txt|rst) echo "text" ;;
-    json|yaml|yml|toml) echo "config" ;;
-    *) echo "unknown" ;;
-  esac
-}
-
-# Function to get appropriate comment prefix for file type
-function get_comment_prefix() {
-  local file="$1"
-  local ext="${file##*.}"
-  
-  case "$ext" in
-    py|sh|bash|zsh|yaml|yml|toml) echo "#" ;;
-    js|ts|tsx|jsx) echo "//" ;;
-    md|txt|rst) echo "<!--" ;;
-    json) echo "" ;; # JSON doesn't support comments
-    *) echo "#" ;;
-  esac
-}
-
-# Function to check if file has MCP header
-function has_mcp_header() {
-  local file="$1"
-  
-  if [ ! -f "$file" ]; then
-    return 1
-  fi
-  
-  # Check first 15 lines for MCP: pattern (including AICheck_ types)
-  head -n 15 "$file" 2>/dev/null | grep -q "MCP:" 2>/dev/null
-}
-
-# Function to get current action info for MCP headers
-function get_mcp_action_info() {
-  local current_action=$(cat .aicheck/current_action 2>/dev/null || echo "NoActiveAction")
-  local datetime=$(date '+%Y-%m-%d %H:%M:%S %Z')
-  
-  # If no active action, create a generic identifier
-  if [ "$current_action" = "None" ] || [ "$current_action" = "NoActiveAction" ]; then
-    current_action="General-$(date '+%Y.%m.%d')"
-  fi
-  
-  echo "$current_action|$datetime"
-}
-
-# Function to auto-detect appropriate AICheck MCP type based on context
-function get_aicheck_mcp_type() {
-  local file="$1"
-  local task="$2"
-  
-  # Auto-assign based on file context
-  case "$file" in
-    *plan.md|*-plan.md|*/plan.md)
-      echo "AICheck_Planner"
-      ;;
-    *progress.md|*todo.md|*/progress.md|*/todo.md)
-      echo "AICheck_Tracker"
-      ;;
-    *test*.py|*test*.js|*test*.ts|*spec*.js|*spec*.ts|*/tests/*|*/test/*)
-      echo "AICheck_Validator"
-      ;;
-    *.py|*.js|*.ts|*.tsx|*.jsx|*.sh|*.bash|*.zsh|*.go|*.rs|*.c|*.cpp|*.java)
-      echo "AICheck_Scoper"
-      ;;
-    *)
-      # Default based on task content
-      if [[ "$task" =~ [Tt]est|[Vv]alidat|[Vv]erif ]]; then
-        echo "AICheck_Validator"
-      elif [[ "$task" =~ [Pp]lan|[Dd]esign|[Aa]rchitect ]]; then
-        echo "AICheck_Planner"
-      elif [[ "$task" =~ [Tt]rack|[Pp]rogress|[Uu]pdate ]]; then
-        echo "AICheck_Tracker"
-      else
-        echo "AICheck_Scoper"
-      fi
-      ;;
-  esac
-}
-
-# Function to get AICheck MCP template with context-specific behavior
-function get_mcp_template() {
-  local task="$1"
-  local file="$2"
-  local comment_prefix="$3"
-  local mcp_type="${4:-$(get_aicheck_mcp_type "$file" "$task")}"
-  
-  # Get action and datetime info
-  local action_info=$(get_mcp_action_info)
-  local action_id=$(echo "$action_info" | cut -d'|' -f1)
-  local datetime=$(echo "$action_info" | cut -d'|' -f2)
-  
-  # Base AICheck header
-  echo "${comment_prefix} MCP: $mcp_type"
-  echo "${comment_prefix} Action: $action_id"
-  echo "${comment_prefix} DateTime: $datetime"
-  echo "${comment_prefix} Task: $task"
-  if [ -n "$file" ]; then
-    echo "${comment_prefix} File: $file"
-  fi
-  
-  # Context-specific instructions
-  case "$mcp_type" in
-    "AICheck_Planner")
-      echo "${comment_prefix} Before coding, outline the steps you plan to take to complete this task."
-      echo "${comment_prefix} Follow the approved action plan and document any scope changes."
-      ;;
-    "AICheck_Tracker")
-      echo "${comment_prefix} Track progress and document decisions as you work."
-      echo "${comment_prefix} Update task status and log any blockers or dependencies."
-      ;;
-    "AICheck_Validator")
-      echo "${comment_prefix} After editing, summarize what was changed, why, and how it was validated."
-      echo "${comment_prefix} Ensure all tests pass and document verification steps."
-      ;;
-    "AICheck_Scoper")
-      echo "${comment_prefix} You may only modify this file. Stay within the current action scope."
-      echo "${comment_prefix} Follow the approved plan and avoid scope creep."
-      ;;
-    *)
-      echo "${comment_prefix} Follow the approved plan and stay within action scope."
-      ;;
-  esac
-}
-
-# Function to inject MCP header into file
-function inject_mcp_header() {
-  local file="$1"
-  local task="$2"
-  
-  if [ ! -f "$file" ]; then
-    echo -e "${RED}✗ File not found: $file${NC}"
-    return 1
-  fi
-  
-  if has_mcp_header "$file"; then
-    echo -e "${YELLOW}⚠ MCP header already exists in $file${NC}"
-    return 0
-  fi
-  
-  local comment_prefix=$(get_comment_prefix "$file")
-  local header=$(get_mcp_template "$task" "$file" "$comment_prefix")
-  
-  # Create backup
-  cp "$file" "${file}.mcp-backup.$(date +%Y%m%d_%H%M%S)" 2>/dev/null || true
-  
-  # Inject header at top of file
-  if [ "$comment_prefix" = "<!--" ]; then
-    # For markdown/HTML files, close the comment
-    header="$header -->"
-  fi
-  
-  local temp_file=$(mktemp)
-  echo "$header" > "$temp_file"
-  echo "" >> "$temp_file"
-  cat "$file" >> "$temp_file"
-  mv "$temp_file" "$file"
-  
-  echo -e "${GREEN}✓ Injected MCP header into $file${NC}"
-  return 0
-}
-
-# Function to extract MCP header from file
-function extract_mcp_header() {
-  local file="$1"
-  
-  if [ ! -f "$file" ]; then
-    echo "File not found: $file"
-    return 1
-  fi
-  
-  # Extract first 15 lines that contain MCP-related content
-  head -n 15 "$file" 2>/dev/null | grep -E "(MCP|Action|DateTime|Task|File):" 2>/dev/null || echo "No MCP header found"
-}
-
-# Function to validate files for MCP headers (used by pre-commit hook)
-function validate_mcp_headers() {
-  local files=("$@")
-  local missing_files=()
-  
-  for file in "${files[@]}"; do
-    # Skip non-existent files
-    if [ ! -f "$file" ]; then
-      continue
-    fi
-    
-    # Skip certain file types
-    local ext="${file##*.}"
-    case "$ext" in
-      png|jpg|jpeg|gif|svg|ico|pdf|zip|tar|gz|bz2|dmg|pkg) continue ;;
-    esac
-    
-    if ! has_mcp_header "$file"; then
-      missing_files+=("$file")
-    fi
-  done
-  
-  if [ ${#missing_files[@]} -gt 0 ]; then
-    echo -e "${RED}✗ Missing MCP headers in:${NC}"
-    for file in "${missing_files[@]}"; do
-      echo "  $file"
-    done
-    echo -e "${YELLOW}Run: ./aicheck mcp edit${NC}"
-    return 1
-  fi
-  
-  echo -e "${GREEN}✓ All files have MCP headers${NC}"
-  return 0
-}
-
-# Function to install smart pre-commit hook
-function install_smart_precommit_hook() {
-  if [ ! -d .git ]; then
-    echo -e "${YELLOW}⚠ Not in a git repository${NC}"
-    return 1
-  fi
-  
-  mkdir -p .git/hooks
-  
-  cat > .git/hooks/pre-commit << 'EOF'
-#!/bin/bash
-# AICheck Smart Pre-commit Hook
-
-# Function to detect project environment (minimal version for hook)
-detect_hook_environment() {
-  local env_info=""
-  
-  # Python project detection
-  [ -f "pyproject.toml" ] && env_info="${env_info}poetry,"
-  [ -f "requirements.txt" ] && env_info="${env_info}pip,"
-  [ -f "setup.py" ] && env_info="${env_info}setuptools,"
-  
-  # Node project detection
-  [ -f "package.json" ] && env_info="${env_info}node,"
-  
-  # Testing tools
-  [ -f "pytest.ini" ] || [ -f ".pytest.ini" ] && env_info="${env_info}pytest,"
-  [ -f "jest.config.js" ] || [ -f "jest.config.ts" ] && env_info="${env_info}jest,"
-  
-  # Linting tools
-  [ -f ".eslintrc.js" ] || [ -f ".eslintrc.json" ] && env_info="${env_info}eslint,"
-  [ -f "pyproject.toml" ] && grep -q "black" pyproject.toml 2>/dev/null && env_info="${env_info}black,"
-  [ -f "pyproject.toml" ] && grep -q "ruff" pyproject.toml 2>/dev/null && env_info="${env_info}ruff,"
-  
-  echo "${env_info%,}"  # Remove trailing comma
-}
-
-# Get staged files
-staged_files=$(git diff --cached --name-only --diff-filter=ACM)
-
-if [ -z "$staged_files" ]; then
-  exit 0
-fi
-
-# Detect project environment
-project_env=$(detect_hook_environment)
-echo "🔍 Detected environment: ${project_env:-none}"
-
-# Convert staged files to arrays by type
-python_files=()
-js_files=()
-ts_files=()
-all_files=()
-
-while IFS= read -r file; do
-  all_files+=("$file")
-  case "${file##*.}" in
-    py) python_files+=("$file") ;;
-    js|jsx) js_files+=("$file") ;;
-    ts|tsx) ts_files+=("$file") ;;
-  esac
-done <<< "$staged_files"
-
-# Track if any checks fail
-failed=0
-
-# Run appropriate checks based on project type and staged files
-
-# Python checks
-if [ ${#python_files[@]} -gt 0 ] && [[ "$project_env" =~ "black" ]] && command -v black >/dev/null 2>&1; then
-  echo -n "⚫ Black formatting check... "
-  if black --check "${python_files[@]}" >/dev/null 2>&1; then
-    echo "✅"
-  else
-    echo "❌"
-    echo "  → Run: black ${python_files[@]}"
-    failed=1
-  fi
-fi
-
-if [ ${#python_files[@]} -gt 0 ] && [[ "$project_env" =~ "ruff" ]] && command -v ruff >/dev/null 2>&1; then
-  echo -n "🦀 Ruff linting check... "
-  if ruff check "${python_files[@]}" >/dev/null 2>&1; then
-    echo "✅"
-  else
-    echo "❌"
-    echo "  → Run: ruff check --fix ${python_files[@]}"
-    failed=1
-  fi
-fi
-
-# JavaScript/TypeScript checks
-if ([ ${#js_files[@]} -gt 0 ] || [ ${#ts_files[@]} -gt 0 ]) && [[ "$project_env" =~ "eslint" ]]; then
-  echo -n "📐 ESLint check... "
-  files_to_lint=("${js_files[@]}" "${ts_files[@]}")
-  if npx eslint "${files_to_lint[@]}" >/dev/null 2>&1; then
-    echo "✅"
-  else
-    echo "❌"
-    echo "  → Run: npx eslint --fix ${files_to_lint[@]}"
-    failed=1
-  fi
-fi
-
-# Run quick tests if files in test directories are modified
-if [[ "$staged_files" =~ (test_|_test\.|test/|tests/|__tests__/) ]]; then
-  echo "🧪 Test files modified, running quick test check..."
-  
-  if [[ "$project_env" =~ "pytest" ]] && command -v pytest >/dev/null 2>&1; then
-    # Run only tests for modified files
-    test_files=$(echo "$staged_files" | grep -E "(test_|_test\.py)")
-    if [ -n "$test_files" ]; then
-      echo -n "  Python tests... "
-      if pytest -x $test_files >/dev/null 2>&1; then
-        echo "✅"
-      else
-        echo "❌"
-        failed=1
-      fi
-    fi
-  fi
-  
-  if [[ "$project_env" =~ "jest" ]] && [ -f "package.json" ]; then
-    # Run only tests for modified files
-    test_files=$(echo "$staged_files" | grep -E "(test\.|\.test\.|spec\.|\.spec\.)")
-    if [ -n "$test_files" ]; then
-      echo -n "  JavaScript tests... "
-      if npx jest --findRelatedTests $test_files >/dev/null 2>&1; then
-        echo "✅"
-      else
-        echo "❌"
-        failed=1
-      fi
-    fi
-  fi
-fi
-
-# MCP header validation (if AICheck is present)
-if [ -f "./aicheck" ]; then
-  echo -n "📋 MCP header validation... "
-  if ./aicheck mcp validate "${all_files[@]}" >/dev/null 2>&1; then
-    echo "✅"
-  else
-    echo "❌"
-    echo "  → Run: ./aicheck mcp edit"
-    failed=1
-  fi
-fi
-
-# Summary
-if [ $failed -eq 0 ]; then
-  echo ""
-  echo "✅ All pre-commit checks passed!"
-  exit 0
-else
-  echo ""
-  echo "❌ Pre-commit checks failed. Please fix the issues above."
-  echo ""
-  echo "To bypass checks (not recommended): git commit --no-verify"
-  exit 1
-fi
-EOF
-  
-  chmod +x .git/hooks/pre-commit
-  echo -e "${GREEN}✓ Smart pre-commit hook installed${NC}"
-  echo -e "${CYAN}The hook will run appropriate checks based on your project type and staged files.${NC}"
-}
-
-# Keep the original function name for backward compatibility
-function install_mcp_precommit_hook() {
-  install_smart_precommit_hook
-}
-
-# Function for guided MCP onboarding
-function mcp_edit_onboarding() {
-  echo -e "${BRIGHT_BLURPLE}AICheck MCP Editor Integration${NC}"
-  echo -e ""
-  
-  # Auto-install pre-commit hook if needed
-  if [ -d .git ] && [ ! -f .git/hooks/pre-commit ]; then
-    echo -e "${BLUE}Installing pre-commit hook...${NC}"
-    install_mcp_precommit_hook
-    echo -e ""
-  fi
-  
-  # Get file to edit
-  read -p "Which file are you editing? > " filepath
-  
-  if [ -z "$filepath" ]; then
-    echo -e "${RED}✗ No file specified${NC}"
-    return 1
-  fi
-  
-  if [ ! -f "$filepath" ]; then
-    echo -e "${RED}✗ File not found: $filepath${NC}"
-    return 1
-  fi
-  
-  # Check if already has MCP header
-  if has_mcp_header "$filepath"; then
-    echo -e "${GREEN}✓ File already has MCP header${NC}"
-    echo -e "${BLUE}Current header:${NC}"
-    extract_mcp_header "$filepath"
-    echo -e ""
-    
-    read -p "Continue with this header? (y/N) > " continue_with_existing
-    if [[ ! "$continue_with_existing" =~ ^[Yy]$ ]]; then
-      return 0
-    fi
-  else
-    # Get task description
-    read -p "Describe the task: > " task
-    
-    if [ -z "$task" ]; then
-      task="File modification"
-    fi
-    
-    # Select MCP type
-    echo -e "${BLUE}Select MCP type:${NC}"
-    echo "1) task_tracker - Track task goals and progress"
-    echo "2) scope_limiter - Limit changes to specific file"
-    echo "3) code_plan_enforcer - Require planning before coding"
-    echo "4) output_validator - Require validation summary"
-    read -p "Choice (1-4): > " mcp_choice
-    
-    case "$mcp_choice" in
-      1) mcp_type="task_tracker" ;;
-      2) mcp_type="scope_limiter" ;;
-      3) mcp_type="code_plan_enforcer" ;;
-      4) mcp_type="output_validator" ;;
-      *) mcp_type="task_tracker" ;;
-    esac
-    
-    # Inject MCP header
-    if inject_mcp_header "$mcp_type" "$filepath" "$task"; then
-      echo -e ""
-    else
-      return 1
-    fi
-  fi
-  
-  # Show Claude/Cursor prompt
-  echo -e "${BRIGHT_BLURPLE}📋 Claude/Cursor Prompt:${NC}"
-  echo -e "${GRAY}────────────────────────────────────────${NC}"
-  extract_mcp_header "$filepath"
-  echo -e "${GRAY}────────────────────────────────────────${NC}"
-  echo -e ""
-  echo -e "${YELLOW}👉 Copy the MCP prompt above into your AI editor${NC}"
-  echo -e "${YELLOW}   or confirm it appears at the top of your file.${NC}"
-}
-
-# Function to detect editor type
-function detect_editor() {
-  local editor="$1"
-  local editor_lower=$(echo "$editor" | tr '[:upper:]' '[:lower:]')
-  case "$editor_lower" in
-    claude) echo "claude" ;;
-    cursor) echo "cursor" ;;
-    copilot|cody|gemini|other) echo "generic" ;;
-    *) echo "generic" ;;
-  esac
-}
-
-# Function for universal editor integration
-function launch_ai_editor() {
-  local editor_type=$(detect_editor "$1")
-  local file="$2"
-  shift 2
-  local extra_args=("$@")
-  
-  if [ -z "$file" ]; then
-    echo -e "${RED}✗ No file specified${NC}"
-    echo "Usage: ./aicheck edit <editor> <file>"
-    return 1
-  fi
-  
-  if [ ! -f "$file" ]; then
-    echo -e "${RED}✗ File not found: $file${NC}"
-    return 1
-  fi
-  
-  # Ensure MCP header exists
-  if ! has_mcp_header "$file"; then
-    echo -e "${YELLOW}⚠ File missing MCP header${NC}"
-    echo -e "${BLUE}Running MCP onboarding...${NC}"
-    echo -e ""
-    
-    # Auto-inject a basic AICheck header
-    inject_mcp_header "$file" "Edit file with AI assistance"
-  fi
-  
-  case "$editor_type" in
-    "claude")
-      echo -e "${BRIGHT_BLURPLE}Claude Integration${NC}"
-      echo -e "${BLUE}MCP Prompt to use:${NC}"
-      echo -e "${GRAY}────────────────────────────────────────${NC}"
-      extract_mcp_header "$file"
-      echo -e "${GRAY}────────────────────────────────────────${NC}"
-      echo -e ""
-      echo -e "${YELLOW}Update this script with your Claude CLI command:${NC}"
-      echo -e "${GRAY}# claude_cli --system-prompt \"\$(./aicheck mcp prompt \"$file\")\" --input \"$file\" ${extra_args[*]}${NC}"
-      ;;
-      
-    "cursor")
-      echo -e "${BRIGHT_BLURPLE}Cursor Integration${NC}"
-      echo -e "${BLUE}MCP Prompt for Cursor:${NC}"
-      echo -e "${GRAY}────────────────────────────────────────${NC}"
-      extract_mcp_header "$file"
-      echo -e "${GRAY}────────────────────────────────────────${NC}"
-      echo -e ""
-      echo -e "${YELLOW}Paste this into Cursor's context or confirm it's at the top of your file.${NC}"
-      echo -e "${GRAY}# To launch Cursor: cursor \"$file\"${NC}"
-      ;;
-      
-    "generic")
-      echo -e "${BRIGHT_BLURPLE}Generic AI Editor Integration${NC}"
-      echo -e "${BLUE}MCP Header in file:${NC}"
-      extract_mcp_header "$file"
-      echo -e ""
-      echo -e "${YELLOW}Opening $file for editing with $1${NC}"
-      echo -e "${GRAY}# Add your editor launch command here${NC}"
-      ;;
-  esac
-}
-
 # Main command handling
-
-# Validate single active action principle before executing commands
-validate_single_active_action "$CMD"
-
 case "$CMD" in
   "new")
     # Shortcut for action new
@@ -3847,7 +2727,7 @@ case "$CMD" in
     ;;
   "cleanup")
     # Clean up and optimize
-    cleanup_and_optimize
+    cleanup_compliance
     ;;
   "deploy")
     # Shortcut for deploy-check
@@ -3864,57 +2744,6 @@ case "$CMD" in
   "version"|"--version")
     # Show version information
     show_version
-    ;;
-  "mcp")
-    # MCP integration commands
-    case "$1" in
-      "edit")
-        # Guided MCP onboarding
-        mcp_edit_onboarding
-        ;;
-      "validate")
-        # Validate MCP headers in files
-        shift
-        validate_mcp_headers "$@"
-        ;;
-      "install-hook")
-        # Install pre-commit hook
-        install_mcp_precommit_hook
-        ;;
-      "prompt")
-        # Extract MCP prompt from file
-        if [ -z "$2" ]; then
-          echo -e "${RED}✗ No file specified${NC}"
-          echo "Usage: ./aicheck mcp prompt <file>"
-          exit 1
-        fi
-        extract_mcp_header "$2"
-        ;;
-      *)
-        echo -e "${BRIGHT_BLURPLE}AICheck MCP Integration${NC}"
-        echo -e ""
-        echo -e "${GREEN}Available MCP commands:${NC}"
-        echo -e "  ${GREEN}./aicheck mcp edit${NC}         - Guided MCP header setup"
-        echo -e "  ${GREEN}./aicheck mcp validate <files>${NC} - Validate MCP headers"
-        echo -e "  ${GREEN}./aicheck mcp install-hook${NC}  - Install pre-commit hook"
-        echo -e "  ${GREEN}./aicheck mcp prompt <file>${NC} - Extract MCP prompt"
-        echo -e ""
-        echo -e "${BLUE}Editor integration:${NC}"
-        echo -e "  ${GREEN}./aicheck edit claude <file>${NC}  - Claude integration"
-        echo -e "  ${GREEN}./aicheck edit cursor <file>${NC}  - Cursor integration"
-        echo -e "  ${GREEN}./aicheck edit <editor> <file>${NC} - Generic editor"
-        ;;
-    esac
-    ;;
-  "edit")
-    # Universal AI editor integration
-    if [ -z "$1" ]; then
-      echo -e "${RED}✗ No editor specified${NC}"
-      echo "Usage: ./aicheck edit <editor> <file>"
-      echo "Editors: claude, cursor, copilot, cody, gemini, other"
-      exit 1
-    fi
-    launch_ai_editor "$@"
     ;;
   *)
     echo -e "${RED}❌ Unknown command: $CMD${NC}"

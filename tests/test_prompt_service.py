@@ -19,7 +19,7 @@ def test_placeholder_prompt_service():
 
 
 @pytest.fixture
-async def prompt_service():
+def prompt_service():
     return PromptService(model_registry=Mock(), orchestration_service=Mock())
 
 

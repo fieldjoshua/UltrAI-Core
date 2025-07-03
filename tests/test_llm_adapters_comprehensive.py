@@ -234,11 +234,12 @@ class TestGeminiAdapter:
 
             assert result["generated_text"] == "Test response from Gemini"
 
-            # Verify correct API call with key in URL
+            # Verify correct API call with key in header
             mock_post.assert_called_once()
             call_args = mock_post.call_args
             assert "generativelanguage.googleapis.com" in call_args[0][0]
-            assert "key=test-key" in call_args[0][0]
+            assert "x-goog-api-key" in call_args[1]["headers"]
+            assert call_args[1]["headers"]["x-goog-api-key"] == "test-key"
 
     @pytest.mark.asyncio
     async def test_gemini_adapter_authentication_error(self):

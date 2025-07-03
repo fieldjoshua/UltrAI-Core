@@ -69,6 +69,7 @@ flake8 = "*"
 mypy = "*"
 pre-commit = "*"
 pip-audit = "*"
+nest-asyncio = "^1.6.0"
 
 [build-system]
 requires = ["poetry-core>=1.6.0"]

@@ -15,7 +15,7 @@ from starlette.types import ASGIApp
 from app.database.connection import get_db_session
 from app.models.base_models import ErrorResponse
 from app.services.auth_service import auth_service
-from app.utils.jwt import decode_token, is_token_expired
+from app.utils.jwt_utils import decode_token, is_token_expired
 from app.utils.logging import get_logger
 
 # Set up logger
