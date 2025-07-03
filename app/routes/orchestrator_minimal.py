@@ -7,6 +7,7 @@ from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel, Field
 
 from app.utils.logging import get_logger
+from app.services.output_formatter import OutputFormatter
 
 logger = get_logger("orchestrator_routes")
 
@@ -32,6 +33,9 @@ class AnalysisRequest(BaseModel):
     )
     include_pipeline_details: bool = Field(
         default=False, description="Include all pipeline stages (initial responses, peer review) in output. Default returns only Ultra Synthesis."
+    )
+    include_initial_responses: bool = Field(
+        default=False, description="Include initial model responses even in streamlined output"
     )
 
 
@@ -104,6 +108,9 @@ def create_router() -> APIRouter:
             analysis_results = {}
             saved_files = None
             ultra_synthesis_result = None
+            
+            # Initialize output formatter
+            formatter = OutputFormatter()
 
             # First pass: extract ultra synthesis and metadata
             for stage_name, stage_result in pipeline_results.items():
@@ -182,13 +189,46 @@ def create_router() -> APIRouter:
                             "quality": quality,
                             "status": "completed",
                         }
+                
+                # Use formatter to create enhanced output
+                formatted_output = formatter.format_pipeline_output(
+                    pipeline_results,
+                    include_initial_responses=True,
+                    include_peer_review=True,
+                    include_metadata=request.options.get("include_metadata", False) if request.options else False
+                )
+                
+                # Add formatted output to results
+                analysis_results["formatted_output"] = formatted_output
+                
             else:
                 # Return only Ultra Synthesis (default behavior)
                 if ultra_synthesis_result is not None:
+                    # Build pipeline data for formatter
+                    formatter_input = {"ultra_synthesis": {"synthesis": ultra_synthesis_result}}
+                    
+                    # Add initial responses if requested
+                    if request.include_initial_responses and "initial_response" in pipeline_results:
+                        formatter_input["initial_response"] = pipeline_results["initial_response"]
+                    
+                    # Create a formatted version
+                    simple_formatted = formatter.format_pipeline_output(
+                        formatter_input,
+                        include_initial_responses=request.include_initial_responses,
+                        include_peer_review=False,
+                        include_metadata=False
+                    )
+                    
                     analysis_results = {
                         "ultra_synthesis": ultra_synthesis_result,
+                        "formatted_synthesis": simple_formatted.get("full_document", ultra_synthesis_result),
                         "status": "completed"
                     }
+                    
+                    # Add initial responses if requested
+                    if request.include_initial_responses and "initial_responses" in simple_formatted:
+                        analysis_results["initial_responses"] = simple_formatted["initial_responses"]
+                    
                 else:
                     analysis_results = {
                         "error": "Ultra Synthesis stage not completed",
