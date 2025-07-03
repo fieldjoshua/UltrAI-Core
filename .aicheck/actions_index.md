@@ -6,6 +6,9 @@ This document tracks all ACTIONS in the PROJECT. All ACTIONS must be registered 
 
 | ACTION                      | Owner | Status      | Progress | Description |
 | --------------------------- | ----- | ----------- | -------- | ----------- |
+| ultra-synthesis-optimization | | Not Started | 0% | |
+| security-vulnerability-analysis | | Not Started | 0% | |
+| directory-cleanup-organization | | Not Started | 0% | |
 | production-system-audit-fix | | Not Started | 0% | |
 | orchestrator-security-optimization | | Not Started | 0% | |
 | orchestrator-audit | | Not Started | 0% | |

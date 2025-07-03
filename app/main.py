@@ -11,6 +11,7 @@ from app.services.prompt_service import get_prompt_service
 from app.services.orchestration_service import OrchestrationService
 from app.services.quality_evaluation import QualityEvaluationService
 from app.services.rate_limiter import RateLimiter
+from app.services.model_selection import SmartModelSelector
 from app.utils.logging import get_logger
 
 logger = get_logger("main")
@@ -26,6 +27,9 @@ def initialize_services() -> Dict[str, Any]:
 
     # Initialize rate limiter
     rate_limiter = RateLimiter()
+    
+    # Initialize model selector (shared across services)
+    model_selector = SmartModelSelector()
 
     # Initialize orchestration service with required dependencies
     orchestration_service = OrchestrationService(
@@ -43,6 +47,7 @@ def initialize_services() -> Dict[str, Any]:
         "model_registry": model_registry,
         "prompt_service": prompt_service,
         "orchestration_service": orchestration_service,
+        "model_selector": model_selector,
     }
 
 

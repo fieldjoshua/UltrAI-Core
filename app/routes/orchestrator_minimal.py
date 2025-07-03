@@ -140,7 +140,18 @@ def create_router() -> APIRouter:
                                 )
                             else:
                                 synthesis_text = synthesis_val or ""
-                            ultra_synthesis_result = synthesis_text
+                            
+                            # Include enhanced synthesis and quality indicators if available
+                            if request.include_pipeline_details:
+                                ultra_synthesis_result = {
+                                    "synthesis": synthesis_text,
+                                    "synthesis_enhanced": output.get("synthesis_enhanced", synthesis_text),
+                                    "quality_indicators": output.get("quality_indicators", {}),
+                                    "metadata": output.get("metadata", {})
+                                }
+                            else:
+                                # For streamlined output, return enhanced synthesis if available
+                                ultra_synthesis_result = output.get("synthesis_enhanced", synthesis_text)
                         else:
                             ultra_synthesis_result = output
 

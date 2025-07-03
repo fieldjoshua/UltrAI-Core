@@ -43,22 +43,6 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `poetry run mypy app/` - Run type checking with MyPy
 - `cd frontend && npm run lint` - Run ESLint for TypeScript/React
 
-## Critical Development Rules (from .cursorrc)
-
-### Documentation-First Approach
-**ALWAYS** review relevant documentation before suggesting changes:
-- `documentation/CORE_README.md` - Core system documentation
-- `documentation/guidelines/DOCUMENTATION_FIRST.md` - Documentation requirements
-- `documentation/instructions/PATTERNS.md` - Required patterns for implementation
-- `documentation/logic/INTELLIGENCE_MULTIPLICATION.md` - Core system logic
-
-### No Duplication Rule
-Before creating any new functionality:
-1. Search for existing implementations using Grep/Glob tools
-2. Check hooks/ directory for reusable state logic
-3. Components must use existing hooks instead of reimplementing
-4. Files with the same name in different directories are forbidden
-
 ## Architecture Overview
 
 ### Core Application Structure
@@ -190,8 +174,8 @@ def initialize_services() -> Dict[str, Any]:
 ## Testing Strategy
 
 **Pytest Configuration** (`pytest.ini`):
-- Async test support with `asyncio_mode = auto`
-- Test markers: `unit`, `integration`, `e2e`, `production`, `slow`, `quick`
+- Async test support with `asyncio_mode = strict`
+- Test markers: `unit`, `integration`, `e2e`, `production`, `slow`, `quick`, `live_online`, `playwright`
 - 60-second timeout for long-running tests
 - Coverage reporting excludes test files
 
@@ -200,6 +184,8 @@ def initialize_services() -> Dict[str, Any]:
 - `tests/integration/` - Service integration tests
 - `tests/e2e/` - End-to-end workflow tests
 - `tests/live/` - Live tests against real LLM providers and production URLs
+- `tests/production/` - Production endpoint validation
+- `tests/TEST_INDEX.md` - Comprehensive documentation of all 181 tests
 
 **Live Testing Strategy**:
 - Tests marked `@pytest.mark.live_online` use real LLM providers and production endpoints
@@ -225,7 +211,7 @@ def initialize_services() -> Dict[str, Any]:
 **Core Orchestration Endpoint**:
 - `POST /api/orchestrator/analyze` - Main multi-model analysis
 - Request: `{"query": "...", "selected_models": ["gpt-4", "claude-3"], "options": {...}}`
-- Response: Multi-stage pipeline results (initial_response, meta_analysis, ultra_synthesis)
+- Response: Multi-stage pipeline results (initial_response, peer_review_and_revision, ultra_synthesis)
 
 **Health Monitoring**:
 - `GET /health` - Overall system health
@@ -237,25 +223,6 @@ def initialize_services() -> Dict[str, Any]:
 - Unified adapter pattern for all LLM providers
 - Automatic rate limiting and timeout handling (25-second max per request)
 
-## Architecture Principles (from .cursor/rules)
-
-**Route Responsibility**: Routes in `app/routes/` are the "front door" - they validate requests with Pydantic models and delegate to services. They should not contain business logic.
-
-**Service Layer Logic**: `app/services/` contains the application brain:
-- `orchestration_service.py` - Core multi-step analysis controller
-- `prompt_service.py` - Main orchestrator controller (being refactored)
-- `llm_adapters.py` - Critical bridge to external LLM APIs
-
-**LLM Adapter Architecture**:
-- All adapters inherit from `BaseAdapter` requiring `api_key` and `model`
-- Shared `httpx.AsyncClient` with 25-second timeout solves hanging request issues
-- Provider-specific payload construction (OpenAI chat format, Anthropic messages, Gemini contents)
-- Consistent error handling and response parsing across all providers
-
-**Data Models**: `app/models/` defines application vocabulary through Pydantic (API validation) and SQLAlchemy (database) models
-
-**Middleware**: `app/middleware/` handles cross-cutting concerns (auth, CSRF, security headers) for every request/response
-
 ## Key Development Patterns
 
 ### Error Handling Strategy
@@ -265,7 +232,7 @@ def initialize_services() -> Dict[str, Any]:
 
 ### Testing Strategy Integration
 - Use test markers: `@pytest.mark.unit`, `@pytest.mark.integration`, `@pytest.mark.e2e`
-- Async tests auto-detected with `asyncio_mode = auto` in pytest.ini
+- Async tests auto-detected with `asyncio_mode = strict` in pytest.ini
 - Production verification required before completing any deployment-related work
 
 ### Mock Development Mode

@@ -44,6 +44,7 @@ def create_app() -> FastAPI:
     from app.routes.debug_routes import router as debug_router
     from app.routes.debug_env_routes import router as debug_env_router
     from app.routes.metrics import metrics_router
+    from app.routes.model_availability_routes import router as model_availability_router
 
     # Register API routers under /api prefix
     api_prefix = "/api"
@@ -61,6 +62,7 @@ def create_app() -> FastAPI:
     app.include_router(debug_router, prefix=api_prefix)
     app.include_router(debug_env_router, prefix=api_prefix)
     app.include_router(metrics_router, prefix=api_prefix)
+    app.include_router(model_availability_router, prefix=api_prefix)
 
     # Expose orchestrator routes at root (no /api prefix) in addition to /api prefix
     # This allows frontend clients to call either path depending on deployment config.

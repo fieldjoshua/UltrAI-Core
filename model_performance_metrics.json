@@ -1,0 +1,145 @@
+{
+  "gpt-4": {
+    "model_name": "gpt-4",
+    "successful_syntheses": 0,
+    "failed_syntheses": 0,
+    "average_quality_score": 0.0,
+    "average_response_time": 0.0,
+    "last_used": null,
+    "expertise_areas": [
+      "reasoning",
+      "technical",
+      "comprehensive",
+      "code"
+    ],
+    "availability_score": 1.0
+  },
+  "gpt-4-turbo": {
+    "model_name": "gpt-4-turbo",
+    "successful_syntheses": 0,
+    "failed_syntheses": 0,
+    "average_quality_score": 0.0,
+    "average_response_time": 0.0,
+    "last_used": null,
+    "expertise_areas": [
+      "fast",
+      "technical",
+      "comprehensive"
+    ],
+    "availability_score": 1.0
+  },
+  "gpt-4o": {
+    "model_name": "gpt-4o",
+    "successful_syntheses": 1,
+    "failed_syntheses": 0,
+    "average_quality_score": 8.5,
+    "average_response_time": 5.0,
+    "last_used": "2025-07-03T10:25:10.014573",
+    "expertise_areas": [
+      "multimodal",
+      "technical",
+      "reasoning"
+    ],
+    "availability_score": 1.0
+  },
+  "o1-preview": {
+    "model_name": "o1-preview",
+    "successful_syntheses": 0,
+    "failed_syntheses": 0,
+    "average_quality_score": 0.0,
+    "average_response_time": 0.0,
+    "last_used": null,
+    "expertise_areas": [
+      "complex_reasoning",
+      "mathematical",
+      "strategic"
+    ],
+    "availability_score": 1.0
+  },
+  "claude-3-5-sonnet-20241022": {
+    "model_name": "claude-3-5-sonnet-20241022",
+    "successful_syntheses": 0,
+    "failed_syntheses": 0,
+    "average_quality_score": 0.0,
+    "average_response_time": 0.0,
+    "last_used": null,
+    "expertise_areas": [
+      "nuanced",
+      "ethical",
+      "analytical",
+      "writing"
+    ],
+    "availability_score": 1.0
+  },
+  "claude-3-5-haiku-20241022": {
+    "model_name": "claude-3-5-haiku-20241022",
+    "successful_syntheses": 0,
+    "failed_syntheses": 0,
+    "average_quality_score": 0.0,
+    "average_response_time": 0.0,
+    "last_used": null,
+    "expertise_areas": [
+      "fast",
+      "concise",
+      "efficient"
+    ],
+    "availability_score": 1.0
+  },
+  "claude-3-opus": {
+    "model_name": "claude-3-opus",
+    "successful_syntheses": 0,
+    "failed_syntheses": 0,
+    "average_quality_score": 0.0,
+    "average_response_time": 0.0,
+    "last_used": null,
+    "expertise_areas": [
+      "comprehensive",
+      "creative",
+      "philosophical"
+    ],
+    "availability_score": 1.0
+  },
+  "gemini-1.5-pro": {
+    "model_name": "gemini-1.5-pro",
+    "successful_syntheses": 0,
+    "failed_syntheses": 0,
+    "average_quality_score": 0.0,
+    "average_response_time": 0.0,
+    "last_used": null,
+    "expertise_areas": [
+      "factual",
+      "structured",
+      "multimodal",
+      "research"
+    ],
+    "availability_score": 1.0
+  },
+  "gemini-1.5-flash": {
+    "model_name": "gemini-1.5-flash",
+    "successful_syntheses": 0,
+    "failed_syntheses": 0,
+    "average_quality_score": 0.0,
+    "average_response_time": 0.0,
+    "last_used": null,
+    "expertise_areas": [
+      "fast",
+      "efficient",
+      "factual"
+    ],
+    "availability_score": 1.0
+  },
+  "gemini-2.0-flash-exp": {
+    "model_name": "gemini-2.0-flash-exp",
+    "successful_syntheses": 0,
+    "failed_syntheses": 0,
+    "average_quality_score": 0.0,
+    "average_response_time": 0.0,
+    "last_used": null,
+    "expertise_areas": [
+      "experimental",
+      "fast",
+      "innovative"
+    ],
+    "availability_score": 1.0
+  }
+}
