@@ -10,6 +10,7 @@ from datetime import datetime, timedelta
 from dataclasses import dataclass, field
 import asyncio
 import json
+import os
 from pathlib import Path
 
 
@@ -101,9 +102,15 @@ class SmartModelSelector:
                 }
                 data[model_name] = metrics_dict
             
-            with open(self.metrics_file, 'w') as f:
-                json.dump(data, f, indent=2)
+            # Try to save to file, but don't fail if we can't (e.g., read-only filesystem)
+            try:
+                with open(self.metrics_file, 'w') as f:
+                    json.dump(data, f, indent=2)
+            except (OSError, IOError) as file_error:
+                # Silently skip file saving on read-only filesystems
+                pass
         except Exception as e:
+            # Log but don't crash
             print(f"Could not save metrics: {e}")
     
     async def select_best_synthesis_model(

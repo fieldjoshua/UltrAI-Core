@@ -15,11 +15,16 @@ def create_app() -> FastAPI:
     """Create a minimal FastAPI application with health and user routes."""
     app = FastAPI()
 
-    # Add CORS middleware
+    # Add CORS middleware with flexible configuration
     cors_config = get_cors_config()
+    
+    # For production on Render, allow all HTTPS origins temporarily
+    # This is needed because Render generates dynamic preview URLs
+    allow_origins = ["*"] if os.getenv("RENDER") else cors_config["allow_origins"]
+    
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=cors_config["allow_origins"],
+        allow_origins=allow_origins,
         allow_credentials=cors_config["allow_credentials"],
         allow_methods=cors_config["allow_methods"],
         allow_headers=cors_config["allow_headers"],
