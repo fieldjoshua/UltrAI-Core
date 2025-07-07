@@ -1,0 +1,29 @@
+--- aicheck.orig	2025-07-07 08:00:00.000000000 -0700
++++ aicheck	2025-07-07 08:30:00.000000000 -0700
+@@ -221,7 +221,7 @@
+   esac
+   
+   # Count active actions
+-  local index_active=$(grep -c "| .* | .* | ActiveAction | .* | .* |" .aicheck/actions_index.md 2>/dev/null || echo "0")
++  local index_active=$(grep -c "| .* | .* | ActiveAction | .* | .* |" .aicheck/actions_index.md 2>/dev/null | tr -d '\n' || echo "0")
+   local current=$(cat .aicheck/current_action 2>/dev/null || echo "None")
+   
+   if [ "$index_active" -gt 1 ]; then
+@@ -1337,7 +1337,7 @@
+     
+     # Count how many actions are marked as active
+     local active_count=$(grep -E "^\| [^|]+ \| [^|]+ \| (ActiveAction|In Progress) \|" "$index_file" | wc -l)
+-    
++    active_count=$(echo "$active_count" | tr -d ' \n')
+     if [ "$active_count" -gt 1 ]; then
+       echo -e "${BLUE}Enforcing single active action rule...${NC}"
+       # Mark all other actions as "Not Started"
+@@ -2117,7 +2117,7 @@
+   
+   # Context pollution checks
+   local pollution_score=0
+-  local active_actions=$(grep -c "ActiveAction\|In Progress" "$index_file" 2>/dev/null || echo 0)
++  local active_actions=$(grep -c "ActiveAction\|In Progress" "$index_file" 2>/dev/null | tr -d '\n' || echo 0)
+   
+   if [ "$active_actions" -gt 1 ]; then
+     pollution_score=$((pollution_score + 30))
