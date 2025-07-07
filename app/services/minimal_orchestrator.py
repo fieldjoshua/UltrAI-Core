@@ -12,12 +12,55 @@ import time
 import os
 from typing import Dict, List, Any, Optional
 import logging
-from app.services.llm_adapters import OpenAIAdapter, AnthropicAdapter, GeminiAdapter
+from pathlib import Path
+
+from app.services.llm_adapters import (
+    OpenAIAdapter,
+    AnthropicAdapter,
+    GeminiAdapter,
+)
 
 logger = logging.getLogger(__name__)
 
-# Timeout for individual model calls
-TIMEOUT_SECONDS = 30
+# Timeout for individual model calls (applied via asyncio.wait_for())
+TIMEOUT_SECONDS = 30  # seconds
+
+# Maximum number of simultaneous outbound LLM requests. This helps prevent hitting
+# provider-side rate-limits when the caller supplies a large model list.
+MAX_CONCURRENT_REQUESTS = 3
+
+# Rough context size guard – if a built prompt exceeds this token estimate we will
+# truncate individual peer answers starting from the longest until we fit.
+MAX_CONTEXT_TOKENS = 6000  # adjust per model context window
+
+
+# Simple word-based token estimate (≈0.75 tokens per English word on average)
+def _estimate_tokens(text: str) -> int:
+    return int(len(text.split()) * 0.75)
+
+
+TEMPLATE_CACHE: Dict[str, str] = {}
+
+
+def _load_template(name: str) -> str:
+    """Load a prompt template from app/services/prompt_templates/*.md"""
+
+    if name in TEMPLATE_CACHE:
+        return TEMPLATE_CACHE[name]
+
+    template_path = Path(__file__).parent / "prompt_templates" / f"{name}.md"
+
+    if template_path.exists():
+        content = template_path.read_text(encoding="utf-8")
+    else:
+        # Fallback to empty string; callers must handle missing template
+        logging.warning(
+            f"Prompt template {template_path} not found. Using empty template."
+        )
+        content = ""
+
+    TEMPLATE_CACHE[name] = content
+    return content
 
 
 class MinimalOrchestrator:
@@ -106,8 +149,11 @@ class MinimalOrchestrator:
 
         start_time = time.time()
         try:
-            # The new adapters handle their own timeouts internally via httpx
-            result = await adapter.generate(prompt)
+            # Apply an overall timeout guard in addition to adapter-level httpx timeout.
+            # This ensures no single model call blocks the entire orchestration run.
+            result = await asyncio.wait_for(
+                adapter.generate(prompt), timeout=TIMEOUT_SECONDS
+            )
 
             elapsed = time.time() - start_time
 
@@ -142,46 +188,111 @@ class MinimalOrchestrator:
         if not prompt:
             raise ValueError("Prompt cannot be empty")
 
-        if not models:
-            models = ["gpt4o", "claude37"]  # Default models
+        # Enforce that at least two models are provided
+        if not models or len(models) < 2:
+            raise ValueError(
+                "At least two distinct models must be specified for Ultra Synthesis."
+            )
 
+        # Determine which model will act as the synthesiser. If the caller does not
+        # specify one, choose according to a preference order so we default to the
+        # most capable model available.
         if not ultra_model:
-            ultra_model = models[0]
+            preference_order: List[str] = [
+                "gpt4o",
+                "gpt4turbo",
+                "claude3opus",
+                "claude37",
+                "gemini15",
+                "llama3",
+            ]
+
+            # Pick the first preferred model present in the supplied list; fall back
+            # to the first supplied model.
+            ultra_model = next((m for m in preference_order if m in models), models[0])
+
+        # Exclude the ultra model from the peer stages to keep synthesis neutral
+        peer_models = [m for m in models if m != ultra_model]
+
+        if not peer_models:
+            # Edge-case: caller only supplied the ultra model. Fallback to using it
+            # for all stages (previous behaviour) rather than erroring out.
+            peer_models = [ultra_model]
 
         start_time = time.time()
         model_times = {}
+        token_counts: Dict[str, int] = {}
 
-        # Stage 1: Initial responses (parallel)
-        initial_tasks = []
-        for model in models:
-            task = self._call_model(model, prompt, "initial")
-            initial_tasks.append(task)
+        # Semaphore for concurrency throttling
+        semaphore = asyncio.Semaphore(MAX_CONCURRENT_REQUESTS)
 
-        initial_results = await asyncio.gather(*initial_tasks)
+        async def _sem_call(model_name: str, _prompt: str, stage: str):
+            """Wrapper that limits concurrent API calls via a semaphore."""
+            async with semaphore:
+                return await self._call_model(model_name, _prompt, stage)
+
+        # Stage 1: Initial responses (parallel with concurrency guard)
+        initial_tasks = [_sem_call(model, prompt, "initial") for model in peer_models]
+
+        initial_results = await asyncio.gather(*initial_tasks, return_exceptions=True)
         initial_responses = {}
 
-        for model, result in zip(models, initial_results):
-            initial_responses[model] = result["response"]
-            model_times[f"{model}_initial"] = result["time"]
+        for model, result in zip(peer_models, initial_results):
+            if isinstance(result, Exception):
+                logger.error(
+                    f"Unhandled exception during initial stage for {model}: {result}"
+                )
+                response_text = f"Error: {result}"
+                time_val = 0
+            else:
+                response_text = result.get("response", "")  # type: ignore[attr-defined]
+                time_val = result.get("time", 0)  # type: ignore[attr-defined]
+
+            initial_responses[model] = response_text
+            model_times[f"{model}_initial"] = time_val
+
+        # Track token usage for meta prompt construction
+        token_counts["initial_combined"] = _estimate_tokens(
+            " ".join(initial_responses.values())
+        )
 
         # Stage 2: Meta responses (parallel)
         # Build meta prompt with all initial responses
         meta_prompt_base = self._build_meta_prompt(prompt, initial_responses)
 
-        meta_tasks = []
-        for model in models:
-            task = self._call_model(model, meta_prompt_base, "meta")
-            meta_tasks.append(task)
+        token_counts["meta_prompt"] = _estimate_tokens(meta_prompt_base)
 
-        meta_results = await asyncio.gather(*meta_tasks)
+        meta_tasks = [
+            _sem_call(model, meta_prompt_base, "meta") for model in peer_models
+        ]
+
+        meta_results = await asyncio.gather(*meta_tasks, return_exceptions=True)
         meta_responses = {}
 
-        for model, result in zip(models, meta_results):
-            meta_responses[model] = result["response"]
-            model_times[f"{model}_meta"] = result["time"]
+        for model, result in zip(peer_models, meta_results):
+            if isinstance(result, Exception):
+                logger.error(
+                    f"Unhandled exception during meta stage for {model}: {result}"
+                )
+                response_text = f"Error: {result}"
+                time_val = 0
+            else:
+                response_text = result.get("response", "")  # type: ignore[attr-defined]
+                time_val = result.get("time", 0)  # type: ignore[attr-defined]
+
+            meta_responses[model] = response_text
+            model_times[f"{model}_meta"] = time_val
+
+        # Track token usage for meta prompt construction
+        token_counts["meta_combined"] = _estimate_tokens(
+            " ".join(meta_responses.values())
+        )
 
         # Stage 3: Ultra synthesis
         ultra_prompt = self._build_ultra_prompt(prompt, meta_responses)
+
+        token_counts["ultra_prompt"] = _estimate_tokens(ultra_prompt)
+
         ultra_result = await self._call_model(ultra_model, ultra_prompt, "ultra")
 
         ultra_response = ultra_result["response"]
@@ -190,17 +301,18 @@ class MinimalOrchestrator:
         # Calculate total time
         total_time = time.time() - start_time
 
-        # Build response in format expected by frontend
+        # Build response (prunes duplicate keys, but keeps backward-compat "model_responses")
         return {
             "status": "success",
-            "model_responses": initial_responses,  # Frontend expects initial responses here
-            "meta_responses": meta_responses,  # Additional data
+            "model_responses": initial_responses,  # backward-compat key
+            "meta_responses": meta_responses,
             "ultra_response": ultra_response,
+            "ultra_model": ultra_model,
             "performance": {
                 "total_time_seconds": total_time,
                 "model_times": model_times,
+                "token_estimates": token_counts,
             },
-            "initial_responses": initial_responses,  # For testing
             "cached": False,
         }
 
@@ -208,45 +320,97 @@ class MinimalOrchestrator:
         self, original_prompt: str, initial_responses: Dict[str, str]
     ) -> str:
         """Build the meta stage prompt"""
-        responses_text = "\\n\\n".join(
+        # Truncate responses if needed to fit within context window
+        truncated_initials = self._truncate_responses(initial_responses)
+
+        responses_text = "\n\n".join(
             [
-                f"Model {model}:\\n{response}"
-                for model, response in initial_responses.items()
+                f"### {model} Answer\n{resp}"
+                for model, resp in truncated_initials.items()
             ]
         )
 
-        return (
-            f"Several of your fellow LLMs were given the same prompt as you. "
-            f"Their responses are as follows:\\n\\n{responses_text}\\n\\n"
-            f"Do NOT assume that anything written is correct or properly sourced, "
-            f"but given these other responses, could you make your original response better? "
-            f"More insightful? More factual, more comprehensive when considering the initial user prompt? "
-            f"If you do believe you can make your original response better, "
-            f"please draft a new response to the initial inquiry.\\n\\n"
-            f"Original inquiry: {original_prompt}"
+        template = _load_template("meta_prompt")
+
+        if not template:
+            # Fallback to inline default template
+            template = (
+                "SYSTEM: You are an expert reviewer who wants to improve upon peer LLM answers.\n"
+                "USER:\n"
+                "--- Original prompt ---\n"
+                "{ORIGINAL_PROMPT}\n\n"
+                "--- Peer answers (assume they may contain errors) ---\n"
+                "{RESPONSES_TEXT}\n\n"
+                "TASK: Produce an improved answer that corrects mistakes and fills gaps.\n"
+                "Limit length to what is necessary; avoid repetition."
+            )
+
+        return template.format(
+            ORIGINAL_PROMPT=original_prompt, RESPONSES_TEXT=responses_text
         )
 
     def _build_ultra_prompt(
         self, original_prompt: str, meta_responses: Dict[str, str]
     ) -> str:
         """Build the ultra synthesis prompt"""
-        responses_text = "\\n\\n".join(
+        # Truncate meta responses similarly
+        truncated_meta = self._truncate_responses(meta_responses)
+
+        responses_text = "\n\n".join(
             [
-                f"Model {model}:\\n{response}"
-                for model, response in meta_responses.items()
+                f"### {model} Revised Answer\n{resp}"
+                for model, resp in truncated_meta.items()
             ]
         )
 
-        return (
-            f"To the chosen synthesizer: You are tasked with creating the Ultra Synthesis: "
-            f"a fully-integrated intelligence synthesis that combines the relevant outputs "
-            f"from all methods into a cohesive whole, with recommendations that benefit "
-            f"from multiple cognitive frameworks. The objective here is not to be necessarily "
-            f"the best, but the most expansive synthesization of the many outputs. "
-            f"While you should disregard facts or analyses that are extremely anomalous or wrong, "
-            f"with the original prompt in mind, your final Ultra Synthesis should reflect "
-            f"all of the relevant meat from the meta level responses, organized in a manner "
-            f"that is clear and non repetitive.\\n\\n"
-            f"Original prompt: {original_prompt}\\n\\n"
-            f"Meta-level responses to synthesize:\\n{responses_text}"
+        template = _load_template("ultra_prompt")
+
+        if not template:
+            template = (
+                "SYSTEM: You are the ULTRA synthesiser. Combine the strongest points from each answer into one coherent, non-redundant response.\n"
+                "USER:\n"
+                "--- Original prompt ---\n"
+                "{ORIGINAL_PROMPT}\n\n"
+                "--- Candidate answers ---\n"
+                "{RESPONSES_TEXT}\n\n"
+                "TASK: Write a SINGLE, well-structured answer with:\n"
+                "1. Executive Summary\n2. Detailed Analysis\n3. Confidence & Open Questions\n"
+            )
+
+        return template.format(
+            ORIGINAL_PROMPT=original_prompt, RESPONSES_TEXT=responses_text
         )
+
+    # ---------------------------------------------------------------------
+    # Helper methods
+    # ---------------------------------------------------------------------
+
+    def _truncate_responses(self, responses: Dict[str, str]) -> Dict[str, str]:
+        """Ensure combined responses fit within MAX_CONTEXT_TOKENS.
+
+        The algorithm trims the longest responses by 20% chunks until the total
+        token estimate drops below the threshold. This is a simple heuristic
+        that avoids an extra LLM summarisation pass while protecting against
+        context overflow.
+        """
+
+        if _estimate_tokens(" ".join(responses.values())) <= MAX_CONTEXT_TOKENS:
+            return responses
+
+        # Work on a copy so we don't mutate original dict
+        truncated = responses.copy()
+
+        # Keep iterating until within budget or all responses very small
+        while _estimate_tokens(" ".join(truncated.values())) > MAX_CONTEXT_TOKENS:
+            # Find the key of the longest response (by token estimate)
+            longest_key = max(truncated, key=lambda k: _estimate_tokens(truncated[k]))
+            text = truncated[longest_key]
+            # Reduce length by 20%
+            new_length = int(len(text) * 0.8)
+            truncated[longest_key] = text[:new_length] + " …"
+
+            # Break if drastic truncation didn't help (avoid infinite loop)
+            if new_length < 200:  # about 150 tokens
+                break
+
+        return truncated
