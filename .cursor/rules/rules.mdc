@@ -1,12 +1,7 @@
----
-description: 
-globs: 
-alwaysApply: true
----
 ore Modules: The Application's Anatomy
 This section details the purpose of each major directory within the app folder.
 app/routes/
-Purpose: This is the entry point for all web traffic. Each file in this directory corresponds to a set of API endpoints (e.g., orchestrator_minimal.py handles requests to /api/orchestrator/*). Their job is to receive an incoming HTTP request, validate the data using Pydantic models, and pass the request to the appropriate service in the app/services layer. They are the "front door."
+Purpose: This is the entry point for all web traffic. Each file in this directory corresponds to a set of API endpoints (e.g., orchestrator_minimal.py handles requests to /api/orchestrator/\*). Their job is to receive an incoming HTTP request, validate the data using Pydantic models, and pass the request to the appropriate service in the app/services layer. They are the "front door."
 app/services/
 Purpose: This is the brain of the application. It contains all the core business logic.
 prompt_service.py will be refactored to be the main controller, creating the orchestrator.
@@ -32,6 +27,25 @@ Purpose: To communicate specifically with the OpenAI API.
 Logic: Its generate method takes a prompt, constructs the JSON payload required by the OpenAI /v1/chat/completions endpoint, adds the Authorization: Bearer <API_KEY> header, and sends the request using the httpx library. It then parses the JSON response to extract and return the generated text.
 AnthropicAdapter(BaseAdapter)
 Purpose: To communicate specifically with the Anthropic API.
+Logic: Its generate method constructs the JSON payload required by the Anthropic /v1/messages endpoint, adds the x-api-key: <API_KEY> header, and sends the request using httpx. It parses the response to return the generated text.
+GeminiAdapter(BaseAdapter)
+Purpose: To communicate specifically with the Google Gemini API.
+Logic: Its generate method constructs the JSON payload required by the Google generativelanguage.googleapis.com endpoint and, uniquely, includes the API key directly in the URL's query string. It sends the request using httpx and parses the response.
+Crucially, all of these adapters use a single, shared httpx.AsyncClient which is configured with a 25-second timeout. This solves the original "hanging request" problem at its source and makes the application resilient to unresponsive external APIs.
+
+# AICheck Integration (Always Applied)
+
+The project uses the **AICheck** action-management system. All Cursor actions **MUST** respect the governing rules in `.aicheck/RULES.md`.
+
+Key enforced points:
+
+1. Exactly one _ActiveAction_ per contributor – set / verify via `./aicheck status`.
+2. Follow the **Documentation-First / Test-Driven** workflow defined in the rulebook. New code should be accompanied by plan & tests located inside the active action directory.
+3. **Deployment verification is mandatory** before marking an action as complete (see DEPLOYMENT REQUIREMENTS section of the rulebook).
+4. Store process-specific docs in `.aicheck/actions/<action>/supporting_docs/`; move enduring docs to `/documentation/` on completion.
+5. Use `./aicheck` CLI helpers (`new`, `focus`, `complete`, `deploy`, `auto-iterate`) to manage lifecycle.
+
+Cursor's AI assistant should reference these requirements when generating code, tests, or commit messages.
 Logic: Its generate method constructs the JSON payload required by the Anthropic /v1/messages endpoint, adds the x-api-key: <API_KEY> header, and sends the request using httpx. It parses the response to return the generated text.
 GeminiAdapter(BaseAdapter)
 Purpose: To communicate specifically with the Google Gemini API.
