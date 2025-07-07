@@ -220,7 +220,8 @@ function validate_single_active_action() {
   esac
   
   # Count active actions
-  local index_active=$(grep -c "| .* | .* | ActiveAction | .* | .* |" .aicheck/actions_index.md 2>/dev/null || echo "0")
+  local index_active=$(grep -c "| .* | .* | ActiveAction | .* | .* |" .aicheck/actions_index.md 2>/dev/null | tr -d '\n')
+  index_active=${index_active:-0}
   local current=$(cat .aicheck/current_action 2>/dev/null || echo "None")
   
   if [ "$index_active" -gt 1 ]; then
@@ -1338,7 +1339,8 @@ function set_active_action() {
   sed -i "" "s/\*Last Updated: .*\*/\*Last Updated: $(date +"%Y-%m-%d")\*/" .aicheck/actions_index.md
   
   # Verify enforcement worked
-  local active_count=$(grep -c "| .* | .* | Active\(Action\)\? | .* | .* |" .aicheck/actions_index.md 2>/dev/null || echo "0")
+  local active_count=$(grep -c "| .* | .* | Active\(Action\)\? | .* | .* |" .aicheck/actions_index.md 2>/dev/null | tr -d '\n')
+  active_count=${active_count:-0}
   if [ "$active_count" -ne 1 ]; then
     echo -e "${RED}WARNING: Multiple active actions detected!${NC}"
     echo -e "${YELLOW}This violates AICheck single-action principle${NC}"
@@ -1665,7 +1667,8 @@ function cleanup_and_optimize() {
     validate_action_completeness
     
     # Clean up multiple active actions
-    local active_count=$(grep -c "| .* | .* | Active\(Action\)\? | .* | .* |" .aicheck/actions_index.md 2>/dev/null || echo "0")
+    local active_count=$(grep -c "| .* | .* | Active\(Action\)\? | .* | .* |" .aicheck/actions_index.md 2>/dev/null | tr -d '\n')
+    active_count=${active_count:-0}
     if [ "$active_count" -gt 1 ]; then
       echo -e "\n${YELLOW}⚠ Multiple active actions detected ($active_count)${NC}"
       echo -e "${RED}This violates AICheck's single-action principle!${NC}"
@@ -1799,7 +1802,8 @@ function fix_multiple_active_actions() {
   sed -i "" "s/\*Last Updated: .*\*/\*Last Updated: $(date +"%Y-%m-%d")\*/" .aicheck/actions_index.md
   
   # Final verification
-  local index_active=$(grep -c "| .* | .* | ActiveAction | .* | .* |" .aicheck/actions_index.md 2>/dev/null || echo "0")
+  local index_active=$(grep -c "| .* | .* | ActiveAction | .* | .* |" .aicheck/actions_index.md 2>/dev/null)
+  index_active=${index_active:-0}
   local status_active=$(find .aicheck/actions -name "status.txt" -exec grep -l "ActiveAction" {} \; 2>/dev/null | wc -l | tr -d ' ')
   local current_action=$(cat .aicheck/current_action 2>/dev/null || echo "None")
   
@@ -2116,7 +2120,8 @@ function show_status() {
       
       # Show dependencies
       if [ -f "documentation/dependencies/dependency_index.md" ]; then
-        local deps=$(grep -c "$current_action" documentation/dependencies/dependency_index.md || echo "0")
+        local deps=$(grep -c "$current_action" documentation/dependencies/dependency_index.md 2>/dev/null)
+        deps=${deps:-0}  # Default to 0 if empty
         if [ "$deps" -gt "0" ]; then
           echo -e "\nDependencies for $current_action:"
           grep "$current_action" documentation/dependencies/dependency_index.md
@@ -2251,7 +2256,8 @@ function handle_guardian() {
       
       # Check for blueprints
       if [ -f "$GUARDIAN_DIR/blueprints.json" ]; then
-        local blueprint_count=$(grep -c "entry_point" "$GUARDIAN_DIR/blueprints.json" 2>/dev/null || echo "0")
+        local blueprint_count=$(grep -c "entry_point" "$GUARDIAN_DIR/blueprints.json" 2>/dev/null)
+        blueprint_count=${blueprint_count:-0}
         echo -e "\nCritical Paths: ${BLUE}$blueprint_count${NC}"
       fi
       
@@ -2309,7 +2315,8 @@ function handle_guardian() {
             # Check current action context
             if [ "$current_action" != "None" ] && [ -f ".aicheck/actions/${current_action,,}/$(echo $current_action | tr '[:upper:]' '[:lower:]')-plan.md" ]; then
               echo -e "\n${BLUE}Checking action plan...${NC}"
-              local in_plan=$(grep -c "$file" ".aicheck/actions/${current_action,,}/$(echo $current_action | tr '[:upper:]' '[:lower:]')-plan.md" 2>/dev/null || echo "0")
+              local in_plan=$(grep -c "$file" ".aicheck/actions/${current_action,,}/$(echo $current_action | tr '[:upper:]' '[:lower:]')-plan.md" 2>/dev/null)
+              in_plan=${in_plan:-0}
               if [ "$in_plan" -gt 0 ]; then
                 echo -e "${GREEN}✓ File modification is part of current action plan${NC}"
               else
@@ -2366,7 +2373,8 @@ function handle_guardian() {
       local current_action=$(cat .aicheck/current_action 2>/dev/null || echo "None")
       if [ "$current_action" != "None" ]; then
         # Use AICheck's boundary checking
-        local boundary_check=$(enforce_action_boundaries 2>&1 | grep -c "outside.*action" || echo "0")
+        local boundary_check=$(enforce_action_boundaries 2>&1 | grep -c "outside.*action")
+        boundary_check=${boundary_check:-0}
         if [ "$boundary_check" -gt 0 ]; then
           echo -e "${RED}❌ Change may be outside current action boundaries${NC}"
         else
@@ -3843,7 +3851,7 @@ case "$CMD" in
     ;;
   "focus")
     # Check for scope creep and compliance issues
-    check_compliance
+    enforce_action_boundaries
     ;;
   "cleanup")
     # Clean up and optimize
