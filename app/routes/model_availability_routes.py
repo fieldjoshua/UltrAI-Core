@@ -10,7 +10,6 @@ from pydantic import BaseModel
 import time
 
 from app.services.model_availability import ModelAvailabilityChecker, AvailabilityStatus
-from app.services.model_selection import SmartModelSelector
 from app.utils.logging import get_logger
 
 logger = get_logger("model_availability_routes")
@@ -53,21 +52,21 @@ def create_router():
     ) -> ModelAvailabilityResponse:
         """
         Check availability of specified models.
-        
+
         This endpoint performs real-time availability checks for the requested models
         and optionally provides recommendations based on the query.
         """
         start_time = time.time()
-        
+
         try:
             # Get services from app state
             model_selector = None
             if hasattr(http_request.app.state, "services"):
                 model_selector = http_request.app.state.services.get("model_selector")
-            
+
             # Create availability checker
             checker = ModelAvailabilityChecker(model_selector=model_selector)
-            
+
             # Check all models
             logger.info(f"Checking availability for {len(request.models)} models")
             results = await checker.check_all_models(
@@ -75,7 +74,7 @@ def create_router():
                 query=request.query,
                 parallel=request.check_in_parallel
             )
-            
+
             # Convert to response format
             models_info = {}
             for model, availability in results.items():
@@ -87,20 +86,20 @@ def create_router():
                     recommended=availability.recommended_for_query,
                     performance_score=availability.performance_score
                 )
-            
+
             # Get summary
             summary = checker.get_availability_summary(results)
-            
+
             check_duration = time.time() - start_time
             logger.info(f"Availability check completed in {check_duration:.2f}s")
-            
+
             return ModelAvailabilityResponse(
                 success=True,
                 models=models_info,
                 summary=summary,
                 check_duration=check_duration
             )
-            
+
         except Exception as e:
             logger.error(f"Model availability check failed: {str(e)}")
             return ModelAvailabilityResponse(
@@ -110,28 +109,49 @@ def create_router():
                 check_duration=time.time() - start_time,
                 error=str(e)
             )
-    
+
     @router.get("/api/models/quick-check")
     async def quick_availability_check(
         http_request: Request,
-        models: str = Query(..., description="Comma-separated list of models to check")
+        models: Any = Query(..., description="Models to check; accepts comma-separated string or list")
     ) -> Dict[str, Any]:
         """
         Quick availability check for models (uses cache when possible).
-        
+
         This is a lighter-weight endpoint that prioritizes speed over accuracy.
         """
         try:
-            model_list = [m.strip() for m in models.split(",")]
-            
+            # Normalize models input to a list of strings
+            model_list: List[str] = []
+            if isinstance(models, str):
+                model_list = [m.strip() for m in models.split(",") if m and isinstance(m, str)]
+            elif isinstance(models, list):
+                model_list = [str(m).strip() for m in models if m is not None and str(m).strip()]
+            elif isinstance(models, dict):
+                # Accept dict with key 'models' or flatten values
+                if "models" in models and isinstance(models["models"], list):
+                    model_list = [str(m).strip() for m in models["models"] if m is not None and str(m).strip()]
+                else:
+                    # Fallback: take all values
+                    model_list = [str(v).strip() for v in models.values() if v is not None and str(v).strip()]
+            else:
+                # Last resort
+                model_list = [str(models).strip()] if models is not None else []
+
+            if not model_list:
+                return {
+                    "success": False,
+                    "error": "No models provided",
+                }
+
             # Get services
             model_selector = None
             if hasattr(http_request.app.state, "services"):
                 model_selector = http_request.app.state.services.get("model_selector")
-            
+
             # Create checker and do quick check
             checker = ModelAvailabilityChecker(model_selector=model_selector)
-            
+
             results = {}
             for model in model_list:
                 # Try cache first
@@ -148,20 +168,20 @@ def create_router():
                         "status": availability.status.value,
                         "cached": False
                     }
-            
+
             return {
                 "success": True,
                 "models": results,
                 "timestamp": time.time()
             }
-            
+
         except Exception as e:
             logger.error(f"Quick check failed: {str(e)}")
             return {
                 "success": False,
                 "error": str(e)
             }
-    
+
     @router.get("/api/models/recommendations")
     async def get_model_recommendations(
         http_request: Request,
@@ -186,12 +206,12 @@ def create_router():
                 "gemini-1.5-flash",
                 "gemini-2.0-flash-exp"
             ]
-            
+
             # Get services
             model_selector = None
             if hasattr(http_request.app.state, "services"):
                 model_selector = http_request.app.state.services.get("model_selector")
-            
+
             # Check availability with query context
             checker = ModelAvailabilityChecker(model_selector=model_selector)
             results = await checker.check_all_models(
@@ -199,7 +219,7 @@ def create_router():
                 query=query,
                 parallel=True
             )
-            
+
             # Filter and sort recommendations
             recommendations = []
             for model, availability in results.items():
@@ -210,24 +230,24 @@ def create_router():
                         "response_time": availability.response_time,
                         "reason": "High performance for query type"
                     })
-            
+
             # Sort by performance score
             recommendations.sort(key=lambda x: x.get("performance_score", 0), reverse=True)
-            
+
             return {
                 "success": True,
                 "query": query,
                 "recommendations": recommendations[:limit],
                 "total_available": sum(1 for a in results.values() if a.status == AvailabilityStatus.AVAILABLE)
             }
-            
+
         except Exception as e:
             logger.error(f"Recommendations failed: {str(e)}")
             return {
                 "success": False,
                 "error": str(e)
             }
-    
+
     return router
 
 

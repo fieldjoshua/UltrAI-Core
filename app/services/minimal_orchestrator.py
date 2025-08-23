@@ -14,24 +14,23 @@ from typing import Dict, List, Any, Optional
 import logging
 from pathlib import Path
 
+from app.config import ORCH_CONFIG
+
 from app.services.llm_adapters import (
     OpenAIAdapter,
     AnthropicAdapter,
     GeminiAdapter,
 )
 
+from app.services.cost_estimator import estimate_cost
+from app.services.output_formatter import format_output
+
 logger = logging.getLogger(__name__)
 
-# Timeout for individual model calls (applied via asyncio.wait_for())
-TIMEOUT_SECONDS = 30  # seconds
-
-# Maximum number of simultaneous outbound LLM requests. This helps prevent hitting
-# provider-side rate-limits when the caller supplies a large model list.
-MAX_CONCURRENT_REQUESTS = 3
-
-# Rough context size guard – if a built prompt exceeds this token estimate we will
-# truncate individual peer answers starting from the longest until we fit.
-MAX_CONTEXT_TOKENS = 6000  # adjust per model context window
+# Pull constants from configuration
+TIMEOUT_SECONDS = ORCH_CONFIG.TIMEOUT_SECONDS
+MAX_CONCURRENT_REQUESTS = ORCH_CONFIG.MAX_CONCURRENT_REQUESTS
+MAX_CONTEXT_TOKENS = ORCH_CONFIG.MAX_CONTEXT_TOKENS
 
 
 # Simple word-based token estimate (≈0.75 tokens per English word on average)
@@ -172,7 +171,14 @@ class MinimalOrchestrator:
             }
 
     async def orchestrate(
-        self, prompt: str, models: List[str], ultra_model: Optional[str] = None
+        self,
+        prompt: str,
+        models: List[str],
+        ultra_model: Optional[str] = None,
+        *,
+        response_format: str = "md",
+        encrypt: bool = False,
+        no_model_access: bool = False,
     ) -> Dict[str, Any]:
         """
         Orchestrate Ultra Synthesis across multiple models
@@ -181,6 +187,9 @@ class MinimalOrchestrator:
             prompt: The user's prompt
             models: List of model names to use
             ultra_model: Model to use for final synthesis (defaults to first model)
+            response_format: Format for the output response
+            encrypt: Whether to encrypt the response
+            no_model_access: Whether to redact the response
 
         Returns:
             Dict with initial_responses, meta_responses, ultra_response, and performance
@@ -301,20 +310,45 @@ class MinimalOrchestrator:
         # Calculate total time
         total_time = time.time() - start_time
 
+        # Estimate cost (assumes provider based on ultra_model mapping prefix)
+        provider_guess = "openai"
+        if ultra_model.startswith("claude"):
+            provider_guess = "anthropic"
+        elif ultra_model.startswith("gemini"):
+            provider_guess = "google"
+
+        estimated_cost = estimate_cost(token_counts, provider_guess)
+
+        # Format ultra_response before returning
+        formatted_ultra = format_output(
+            ultra_response,
+            format=response_format,  # type: ignore
+            encrypt=encrypt,
+            key=None,
+            no_model_access=no_model_access,
+        )
+
         # Build response (prunes duplicate keys, but keeps backward-compat "model_responses")
-        return {
+        base_resp = {
             "status": "success",
             "model_responses": initial_responses,  # backward-compat key
             "meta_responses": meta_responses,
-            "ultra_response": ultra_response,
+            "ultra_response": formatted_ultra,
             "ultra_model": ultra_model,
             "performance": {
                 "total_time_seconds": total_time,
                 "model_times": model_times,
                 "token_estimates": token_counts,
+                "estimated_cost_usd": estimated_cost,
             },
             "cached": False,
         }
+
+        if no_model_access:
+            # include minimal placeholder for original response when redacted
+            base_resp["_note"] = "ultra_response redacted via no_model_access"
+
+        return base_resp
 
     def _build_meta_prompt(
         self, original_prompt: str, initial_responses: Dict[str, str]
@@ -406,7 +440,7 @@ class MinimalOrchestrator:
             longest_key = max(truncated, key=lambda k: _estimate_tokens(truncated[k]))
             text = truncated[longest_key]
             # Reduce length by 20%
-            new_length = int(len(text) * 0.8)
+            new_length = int(len(text) * ORCH_CONFIG.TRUNCATION_FACTOR)
             truncated[longest_key] = text[:new_length] + " …"
 
             # Break if drastic truncation didn't help (avoid infinite loop)
