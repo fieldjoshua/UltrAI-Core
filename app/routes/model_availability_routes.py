@@ -45,7 +45,7 @@ def create_router():
     """Create the model availability router."""
     router = APIRouter()
 
-    @router.post("/api/models/check-availability")
+    @router.post("/models/check-availability")
     async def check_model_availability(
         request: ModelAvailabilityRequest,
         http_request: Request
@@ -110,7 +110,7 @@ def create_router():
                 error=str(e)
             )
 
-    @router.get("/api/models/quick-check")
+    @router.get("/models/quick-check")
     async def quick_availability_check(
         http_request: Request,
         models: Any = Query(..., description="Models to check; accepts comma-separated string or list")
@@ -182,7 +182,7 @@ def create_router():
                 "error": str(e)
             }
 
-    @router.get("/api/models/recommendations")
+    @router.get("/models/recommendations")
     async def get_model_recommendations(
         http_request: Request,
         query: str = Query(..., description="The query to get recommendations for"),
