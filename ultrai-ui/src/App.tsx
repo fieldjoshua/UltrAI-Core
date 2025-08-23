@@ -1,4 +1,3 @@
-import React from 'react';
 import UltrAIInteractiveBackground from './components/UltrAIInteractiveBackground';
 import HUD from './components/HUD';
 
@@ -8,7 +7,7 @@ export default function App() {
       <div className="p-4 border-b border-white/10">
         <HUD />
       </div>
-      
+
       {/* Demo content area */}
       <div className="flex items-center justify-center min-h-screen p-8">
         <div className="max-w-4xl mx-auto text-center">
@@ -16,7 +15,7 @@ export default function App() {
             UltrAI
           </h1>
           <p className="text-xl text-cyan-100 mb-8 max-w-2xl mx-auto">
-            Experience the power of Ultra Synthesis™ - where multiple AI models collaborate 
+            Experience the power of Ultra Synthesis™ - where multiple AI models collaborate
             to deliver unprecedented intelligence multiplication.
           </p>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">

@@ -5,7 +5,7 @@ This module provides clean, well-structured output formatting for the
 orchestration pipeline results.
 """
 
-from typing import Dict, List, Any, Optional, Literal
+from typing import Dict, List, Any, Literal
 import re
 from datetime import datetime
 import base64
@@ -82,8 +82,17 @@ class OutputFormatter:
 
     def _format_synthesis(self, synthesis_text: str) -> Dict[str, Any]:
         """Format the Ultra Synthesis text."""
-        # Clean up the synthesis text
-        cleaned_text = synthesis_text.strip()
+        # Clean up the synthesis text with robust type handling
+        try:
+            if synthesis_text is None:
+                cleaned_text = ""
+            elif isinstance(synthesis_text, str):
+                cleaned_text = synthesis_text.strip()
+            else:
+                # If a non-string (e.g., dict) is passed, convert to JSON-like string
+                cleaned_text = str(synthesis_text)
+        except Exception:
+            cleaned_text = str(synthesis_text)
 
         # Extract sections if they exist
         sections = self._extract_sections(cleaned_text)
@@ -225,6 +234,7 @@ class OutputFormatter:
 
         lines = text.split("\n")
         current_section = None
+        current_level = 1
         current_content = []
 
         for line in lines:
@@ -281,6 +291,13 @@ class OutputFormatter:
 
     def _get_preview(self, text: str, max_length: int = 150) -> str:
         """Get a preview of the text."""
+        if text is None:
+            return ""
+        if not isinstance(text, str):
+            try:
+                text = str(text)
+            except Exception:
+                return ""
         if len(text) <= max_length:
             return text
 
