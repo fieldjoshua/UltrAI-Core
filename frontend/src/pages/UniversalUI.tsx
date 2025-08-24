@@ -8,6 +8,8 @@ import {
 import UniversalContainer from '../components/universal/UniversalContainer';
 import PrimaryUIPanel from '../components/universal/PrimaryUIPanel';
 import ProgressPanel from '../components/universal/ProgressPanel';
+import GuidedChat from '../components/steps/GuidedChat';
+import ReceiptPanel from '../components/steps/ReceiptPanel';
 import { Settings, Eye } from 'lucide-react';
 
 /**
@@ -118,28 +120,20 @@ const ThemePreview: React.FC = () => {
           </div>
         </div>
 
-        {/* Interactive demo */}
+        {/* Two-box guided UI */}
         <div className="flex flex-col md:flex-row gap-8 items-start mb-24">
-          {/* Primary UI Panel */}
           <div className="w-full md:w-2/3">
-            <PrimaryUIPanel
-              placeholder="What would you like to analyze today? Enter your topic, question, or request..."
-              styleConfig={getStyleConfig('primary')}
-              onNext={handleNext}
+            <GuidedChat
+              onChangeReceipt={(items, cost) => {
+                // store to preview panel (below)
+              }}
+              onLaunch={(payload) => {
+                console.log('Launch UltrAI with:', payload);
+              }}
             />
           </div>
-
-          {/* Progress Panel */}
           <div className="w-full md:w-1/3">
-            <ProgressPanel
-              steps={DEMO_STEPS}
-              currentStep={activeStep}
-              summary={{
-                options: DEMO_OPTIONS,
-                cost: '5.75',
-              }}
-              styleConfig={getStyleConfig('progress')}
-            />
+            <ReceiptPanel items={[{ key: 'Goals', value: '' }]} costCents={0} />
           </div>
         </div>
 
