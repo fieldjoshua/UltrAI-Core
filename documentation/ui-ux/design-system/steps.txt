@@ -1,0 +1,64 @@
+
+
+1. Goals: What do you hope to accomplish with this specific inquiry? Check all that apply 
+
+Homework/Study Buddy
+Mind Dump/Notes Organization
+Image/Video Generation 
+Entertainment
+Internet Serach
+In-depth research
+Personal Assistant/Organization 
+Document Analysis 
+Statistics
+Math 
+Science 
+Coding/Computer Programming 
+Other
+
+2. Request: Direct the LLms to create, research, educate, or act in a way that will achieve your goal. Attach a file if it helps provide context.
+
+[space for text entry]
+[attachment]
+
+3. Model Selection: Pick a combination of LLMs to include in your UltrAI query or have me  choose for you based on your goals and search criteria. You will receive the individual responses from each LLM that you choose and all of the data will contribute to the final UltrAI output. 
+
+[have a series of check boxes that reflect what models are available at the time]
+
+[a button that says "Automatic: Let UltrAI choose the optimal combination]
+
+
+4. Analysis: Choose how the LLMs work to multiply their intelligence with each other. 
+
+[have a series of check boxes that reflect what Analyses are available at the time]
+
+[a button that says "Automatic: Let UltrAI choose the optimal analysis]
+
+5. Finishing touches: How do you want your output?
+
+[include a check box list of]
+
+Encrypted/Private transmission 
+Format: Word
+Format: Google Docs
+Format: Txt
+Format: Markdown
+Format: PDF
+Fact Checked
+No AI-Speak
+Sourced references 
+ . . . others? 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
