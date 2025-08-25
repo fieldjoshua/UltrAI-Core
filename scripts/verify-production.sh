@@ -6,7 +6,10 @@
 set -e  # Exit on any error
 
 # Configuration
-PRODUCTION_URL="https://ultrai-core-4lut.onrender.com"
+# Use environment-provided PRODUCTION_URL if set; otherwise default to production
+if [ -z "${PRODUCTION_URL:-}" ]; then
+PRODUCTION_URL="https://ultrai-core.onrender.com"
+fi
 
 # Colors for output
 RED='\033[0;31m'
@@ -44,9 +47,9 @@ run_test() {
     local test_name="$1"
     local test_command="$2"
     local is_critical="${3:-false}"
-    
+
     print_status "Testing: $test_name"
-    
+
     if eval "$test_command"; then
         print_success "✅ $test_name"
         ((TESTS_PASSED++))
