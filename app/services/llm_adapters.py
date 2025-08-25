@@ -22,6 +22,9 @@ CLIENT = httpx.AsyncClient(timeout=45.0)
 class BaseAdapter:
     """A simplified base adapter for all LLM providers."""
 
+    # Class-level client so wrappers can override per-adapter class
+    CLIENT = CLIENT
+
     def __init__(self, api_key: str, model: str):
         if not api_key:
             raise ValueError(f"API key for {self.__class__.__name__} is missing.")
@@ -57,7 +60,7 @@ class OpenAIAdapter(BaseAdapter):
                 "OpenAI request",
                 extra={"requestId": request_id, "model": self.model},
             )
-            response = await CLIENT.post(
+            response = await self.__class__.CLIENT.post(
                 "https://api.openai.com/v1/chat/completions",
                 headers=headers,
                 json=payload,
@@ -134,7 +137,7 @@ class AnthropicAdapter(BaseAdapter):
                 "Anthropic request",
                 extra={"requestId": CorrelationContext.get_correlation_id(), "model": self.model},
             )
-            response = await CLIENT.post(
+            response = await self.__class__.CLIENT.post(
                 "https://api.anthropic.com/v1/messages", headers=headers, json=payload
             )
             response.raise_for_status()
@@ -197,7 +200,7 @@ class GeminiAdapter(BaseAdapter):
                 "Google Gemini request",
                 extra={"requestId": CorrelationContext.get_correlation_id(), "model": self.model},
             )
-            response = await CLIENT.post(url, headers=headers, json=payload)
+            response = await self.__class__.CLIENT.post(url, headers=headers, json=payload)
             response.raise_for_status()
             data = response.json()
             return {
@@ -292,7 +295,7 @@ class HuggingFaceAdapter(BaseAdapter):
             }
 
         try:
-            response = await CLIENT.post(url, headers=headers, json=payload)
+            response = await self.__class__.CLIENT.post(url, headers=headers, json=payload)
             response.raise_for_status()
             data = response.json()
 
