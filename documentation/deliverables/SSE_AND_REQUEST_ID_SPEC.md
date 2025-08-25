@@ -43,3 +43,4 @@
 - `/api/analyze` supports SSE with the events above; non-stream mode unchanged.
 - Cost estimate available pre-run and during stream.
 - Adapters log with requestId; retries bounded with jitter.
+

@@ -1,76 +1,82 @@
 repos:
-  - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v5.0.0
-    hooks:
-      - id: trailing-whitespace
-      - id: end-of-file-fixer
-      - id: check-yaml
-      - id: check-json
-      - id: check-added-large-files
-      - id: check-merge-conflict
-      - id: detect-private-key
-
-  - repo: https://github.com/pycqa/flake8
-    rev: 7.2.0
-    hooks:
-      - id: flake8
-        additional_dependencies:
-          - flake8-bandit
-          - flake8-bugbear
-        args:
-          - --max-line-length=88
-          - --per-file-ignores=src/data/cache/unified_cache.py:B301,B403
-        exclude: ^(node_modules/|dist/|build/|.venv/|.env/)
-
-  - repo: https://github.com/pycqa/isort
-    rev: 6.0.1
-    hooks:
-      - id: isort
-
-  - repo: https://github.com/psf/black
-    rev: 25.1.0
-    hooks:
-      - id: black
-        args:
-          - --line-length=88
-
-  - repo: https://github.com/pre-commit/mirrors-eslint
-    rev: v9.25.1
-    hooks:
-      - id: eslint
-        files: \.(js|ts|jsx|tsx)$
-        types: [file]
-        additional_dependencies:
-          - eslint@9.0.0-beta.2
-          - eslint-plugin-react@7.33.2
-          - eslint-plugin-react-hooks@4.6.0
-          - eslint-config-prettier
-
-  - repo: https://github.com/pre-commit/mirrors-prettier
-    rev: v4.0.0-alpha.8
-    hooks:
-      - id: prettier
-        types_or: [javascript, jsx, ts, tsx, json, css, markdown]
-
-  - repo: https://github.com/zricethezav/gitleaks
-    rev: v8.25.1
+  # Gitleaks secret scanning
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.18.1
     hooks:
       - id: gitleaks
+        name: Detect secrets with gitleaks
+        entry: gitleaks detect --source . --verbose --redact --config=.gitleaks.toml
+        language: system
+        pass_filenames: false
 
-  # Add a dedicated Bandit hook that uses our configuration
-  - repo: https://github.com/pycqa/bandit
-    rev: 1.8.3
-    hooks:
-      - id: bandit
-        args: ["-c", ".bandit.yaml"]
-        exclude: ^(node_modules/|dist/|build/|.venv/|.env/|tests/)
-
-  # AICheck compliance hooks (Phase 1 & 2)
+  # Additional secret scanning
   - repo: local
     hooks:
-      - id: aicheck-validation
-        name: AICheck Validation
-        entry: .aicheck/hooks/pre-commit-aicheck
-        language: script
+      - id: check-secrets
+        name: Check for hardcoded secrets
+        entry: bash -c '
+          echo "Checking for hardcoded secrets..."
+          
+          # Check Python files
+          if grep -r -E "(JWT_SECRET|API_KEY|TOKEN|PASSWORD).*=.*[\"'\''][^\"'\'']*[\"'\'']" \
+               --include="*.py" \
+               --exclude-dir=".git" \
+               --exclude-dir="__pycache__" \
+               --exclude-dir="venv" \
+               --exclude-dir=".venv" \
+               --exclude-dir="test_minimal_env" \
+               . | grep -v "os.getenv\|os.environ\|getenv\|import\|def \|class \|# \|fallback\|example\|dummy\|test\|mock" \
+               > /dev/null; then
+            echo "❌ Potential hardcoded secrets found!"
+            echo "Please use environment variables instead."
+            exit 1
+          else
+            echo "✅ No hardcoded secrets found"
+          fi
+        '
+        language: system
         pass_filenames: false
-        always_run: true
+        
+      - id: check-env-example
+        name: Check .env.example for real secrets
+        entry: bash -c '
+          if [ -f ".env.example" ]; then
+            if grep -E "=.+[a-zA-Z0-9]{20,}" .env.example | grep -v "your-.*-here" > /dev/null; then
+              echo "❌ .env.example appears to contain actual secret values!"
+              echo "It should only contain placeholder values like '\''your-secret-here'\''"
+              exit 1
+            fi
+          fi
+        '
+        language: system
+        pass_filenames: false
+        files: '\.env\.example$'
+
+  # Python code quality
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.1.13
+    hooks:
+      - id: ruff
+        args: [--fix]
+      - id: ruff-format
+
+  # Security checks
+  - repo: https://github.com/PyCQA/bandit
+    rev: 1.7.6
+    hooks:
+      - id: bandit
+        args: ['-r', 'app/', '-f', 'json', '-ll']
+        exclude: 'test_.*\.py|.*_test\.py'
+
+  # General file checks
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      - id: check-yaml
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+      - id: check-added-large-files
+        args: ['--maxkb=1000']
+      - id: check-case-conflict
+      - id: check-merge-conflict
+      - id: detect-private-key

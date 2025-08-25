@@ -24,6 +24,9 @@ from app.services.llm_adapters import (
     HuggingFaceAdapter,
     CLIENT,
 )
+from app.services.resilient_llm_adapter import create_resilient_adapter
+from app.services.telemetry_service import telemetry
+from app.services.telemetry_llm_wrapper import wrap_llm_adapter_with_telemetry
 from app.services.synthesis_prompts import SynthesisPromptManager, QueryType
 from app.services.model_selection import SmartModelSelector
 from app.services.synthesis_output import StructuredSynthesisOutput
@@ -201,7 +204,10 @@ class OrchestrationService:
                     logger.warning(f"No OpenAI API key found for {model}")
                     return None, None
                 mapped_model = model  # OpenAI models typically don't need mapping
-                return OpenAIAdapter(api_key, mapped_model), mapped_model
+                adapter = OpenAIAdapter(api_key, mapped_model)
+                resilient_adapter = create_resilient_adapter(adapter)
+                telemetry_adapter = wrap_llm_adapter_with_telemetry(resilient_adapter, "openai", mapped_model)
+                return telemetry_adapter, mapped_model
                 
             elif model.startswith("claude"):
                 api_key = os.getenv("ANTHROPIC_API_KEY")
@@ -216,7 +222,10 @@ class OrchestrationService:
                     mapped_model = "claude-3-5-sonnet-20241022"
                 elif model == "claude-3-5-haiku-20241022":
                     mapped_model = "claude-3-5-haiku-20241022"
-                return AnthropicAdapter(api_key, mapped_model), mapped_model
+                adapter = AnthropicAdapter(api_key, mapped_model)
+                resilient_adapter = create_resilient_adapter(adapter)
+                telemetry_adapter = wrap_llm_adapter_with_telemetry(resilient_adapter, "anthropic", mapped_model)
+                return telemetry_adapter, mapped_model
                 
             elif model.startswith("gemini"):
                 api_key = os.getenv("GOOGLE_API_KEY")
@@ -233,14 +242,20 @@ class OrchestrationService:
                     mapped_model = "gemini-1.5-pro"
                 elif model == "gemini-1.5-flash":
                     mapped_model = "gemini-1.5-flash"
-                return GeminiAdapter(api_key, mapped_model), mapped_model
+                adapter = GeminiAdapter(api_key, mapped_model)
+                resilient_adapter = create_resilient_adapter(adapter)
+                telemetry_adapter = wrap_llm_adapter_with_telemetry(resilient_adapter, "google", mapped_model)
+                return telemetry_adapter, mapped_model
                 
             elif "/" in model:  # HuggingFace model ID format
                 api_key = os.getenv("HUGGINGFACE_API_KEY")
                 if not api_key:
                     logger.warning(f"No HuggingFace API key found for {model}")
                     return None, None
-                return HuggingFaceAdapter(api_key, model), model
+                adapter = HuggingFaceAdapter(api_key, model)
+                resilient_adapter = create_resilient_adapter(adapter)
+                telemetry_adapter = wrap_llm_adapter_with_telemetry(resilient_adapter, "huggingface", model)
+                return telemetry_adapter, model
                 
             else:
                 logger.warning(f"Unknown model provider for: {model}")
@@ -558,48 +573,50 @@ class OrchestrationService:
         error = None
         token_usage = {}
 
-        try:
-            # Acquire rate limit tokens for all required models
-            for model in stage.required_models:
-                # Register model in rate limiter if not already registered
-                try:
-                    await self.rate_limiter.acquire(model)
-                except ValueError as e:
-                    if "not registered" in str(e):
-                        # Register the model with default rate limits
-                        self.rate_limiter.register_endpoint(
-                            model, requests_per_minute=60, burst_limit=10
-                        )
+        # Use telemetry context manager to track stage duration
+        with telemetry.measure_stage(stage.name):
+            try:
+                # Acquire rate limit tokens for all required models
+                for model in stage.required_models:
+                    # Register model in rate limiter if not already registered
+                    try:
                         await self.rate_limiter.acquire(model)
-                    else:
-                        raise
+                    except ValueError as e:
+                        if "not registered" in str(e):
+                            # Register the model with default rate limits
+                            self.rate_limiter.register_endpoint(
+                                model, requests_per_minute=60, burst_limit=10
+                            )
+                            await self.rate_limiter.acquire(model)
+                        else:
+                            raise
 
-            # Get the stage method
-            method = getattr(self, stage.name, None)
-            if not callable(method):
-                raise ValueError(f"Stage method {stage.name} not found")
+                # Get the stage method
+                method = getattr(self, stage.name, None)
+                if not callable(method):
+                    raise ValueError(f"Stage method {stage.name} not found")
 
-            # Run the stage
-            stage_output = await method(input_data, stage.required_models, options)
+                # Run the stage
+                stage_output = await method(input_data, stage.required_models, options)
 
-            # Track token usage if available
-            if hasattr(stage_output, "token_usage"):
-                token_usage = stage_output.token_usage
+                # Track token usage if available
+                if hasattr(stage_output, "token_usage"):
+                    token_usage = stage_output.token_usage
 
-            # Evaluate quality if evaluator is available
-            if self.quality_evaluator:
-                quality = await self.quality_evaluator.evaluate_response(
-                    str(stage_output), context={"stage": stage.name, "options": options}
-                )
+                # Evaluate quality if evaluator is available
+                if self.quality_evaluator:
+                    quality = await self.quality_evaluator.evaluate_response(
+                        str(stage_output), context={"stage": stage.name, "options": options}
+                    )
 
-        except Exception as e:
-            error = str(e)
-            logger.error(f"Error in {stage.name}: {error}")
+            except Exception as e:
+                error = str(e)
+                logger.error(f"Error in {stage.name}: {error}")
 
-        finally:
-            # Release rate limit tokens
-            for model in stage.required_models:
-                await self.rate_limiter.release(model, success=error is None)
+            finally:
+                # Release rate limit tokens
+                for model in stage.required_models:
+                    await self.rate_limiter.release(model, success=error is None)
 
         # Calculate performance metrics
         duration = (datetime.now() - start_time).total_seconds()
@@ -672,7 +689,9 @@ class OrchestrationService:
                             }
                         logger.warning(f"No OpenAI API key found for {model}, skipping")
                         return model, {"error": "No API key"}
-                    adapter = OpenAIAdapter(api_key, mapped_model) if api_key else None
+                    base_adapter = OpenAIAdapter(api_key, mapped_model) if api_key else None
+                    resilient_adapter = create_resilient_adapter(base_adapter) if base_adapter else None
+                    adapter = wrap_llm_adapter_with_telemetry(resilient_adapter, "openai", model) if resilient_adapter else None
                     if adapter:
                         result = await adapter.generate(prompt)
                         # If OpenAI replies "model not found" try GPT-4o as a
@@ -684,7 +703,9 @@ class OrchestrationService:
                             and model == "gpt-4"
                         ):
                             logger.info("🔄 GPT-4 not available. Retrying with gpt-4o")
-                            alt_adapter = OpenAIAdapter(api_key, "gpt-4o")
+                            alt_base_adapter = OpenAIAdapter(api_key, "gpt-4o")
+                            alt_resilient_adapter = create_resilient_adapter(alt_base_adapter)
+                            alt_adapter = wrap_llm_adapter_with_telemetry(alt_resilient_adapter, "openai", "gpt-4o")
                             result = await alt_adapter.generate(prompt)
                         if "Error:" not in result.get("generated_text", ""):
                             logger.info(
@@ -727,7 +748,9 @@ class OrchestrationService:
                         mapped_model = "claude-3-5-sonnet-20241022"
                     elif model == "claude-3-5-haiku-20241022":
                         mapped_model = "claude-3-5-haiku-20241022"
-                    adapter = AnthropicAdapter(api_key, mapped_model)
+                    base_adapter = AnthropicAdapter(api_key, mapped_model)
+                    resilient_adapter = create_resilient_adapter(base_adapter)
+                    adapter = wrap_llm_adapter_with_telemetry(resilient_adapter, "anthropic", model)
                     result = await adapter.generate(prompt)
                     if "Error:" not in result.get("generated_text", ""):
                         logger.info(f"✅ Successfully got response from {model}")
@@ -767,7 +790,9 @@ class OrchestrationService:
                         mapped_model = "gemini-1.5-pro"
                     elif model == "gemini-1.5-flash":
                         mapped_model = "gemini-1.5-flash"
-                    adapter = GeminiAdapter(api_key, mapped_model)
+                    base_adapter = GeminiAdapter(api_key, mapped_model)
+                    resilient_adapter = create_resilient_adapter(base_adapter)
+                    adapter = wrap_llm_adapter_with_telemetry(resilient_adapter, "google", model)
                     result = await adapter.generate(prompt)
                     if "Error:" not in result.get("generated_text", ""):
                         logger.info(f"✅ Successfully got response from {model}")
@@ -804,7 +829,9 @@ class OrchestrationService:
                         return model, {"error": "No API key"}
 
                     try:
-                        adapter = HuggingFaceAdapter(api_key, model)
+                        base_adapter = HuggingFaceAdapter(api_key, model)
+                        resilient_adapter = create_resilient_adapter(base_adapter)
+                        adapter = wrap_llm_adapter_with_telemetry(resilient_adapter, "huggingface", model)
                         result = await adapter.generate(prompt)
                         if "Error:" not in result.get("generated_text", ""):
                             logger.info(f"✅ Successfully got response from {model}")
@@ -1031,7 +1058,8 @@ Having seen these other responses, provide your best answer to the original ques
                     api_key = os.getenv("OPENAI_API_KEY")
                     if not api_key:
                         return model, {"error": "No OpenAI API key"}
-                    adapter = OpenAIAdapter(api_key, model)
+                    base_adapter = OpenAIAdapter(api_key, model)
+                    adapter = create_resilient_adapter(base_adapter)
                     result = await adapter.generate(peer_review_prompt)
 
                 elif model.startswith("claude"):
@@ -1046,7 +1074,8 @@ Having seen these other responses, provide your best answer to the original ques
                         mapped_model = "claude-3-5-sonnet-20241022"
                     elif model == "claude-3-5-haiku-20241022":
                         mapped_model = "claude-3-5-haiku-20241022"
-                    adapter = AnthropicAdapter(api_key, mapped_model)
+                    base_adapter = AnthropicAdapter(api_key, mapped_model)
+                    adapter = create_resilient_adapter(base_adapter)
                     result = await adapter.generate(peer_review_prompt)
 
                 elif model.startswith("gemini"):
@@ -1063,14 +1092,16 @@ Having seen these other responses, provide your best answer to the original ques
                         mapped_model = "gemini-1.5-pro"
                     elif model == "gemini-1.5-flash":
                         mapped_model = "gemini-1.5-flash"
-                    adapter = GeminiAdapter(api_key, mapped_model)
+                    base_adapter = GeminiAdapter(api_key, mapped_model)
+                    adapter = create_resilient_adapter(base_adapter)
                     result = await adapter.generate(peer_review_prompt)
 
                 elif "/" in model:  # HuggingFace model
                     api_key = os.getenv("HUGGINGFACE_API_KEY")
                     if not api_key:
                         return model, {"error": "No HuggingFace API key"}
-                    adapter = HuggingFaceAdapter(api_key, model)
+                    base_adapter = HuggingFaceAdapter(api_key, model)
+                    adapter = create_resilient_adapter(base_adapter)
                     result = await adapter.generate(peer_review_prompt)
 
                 else:

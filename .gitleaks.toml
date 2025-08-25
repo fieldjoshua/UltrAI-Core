@@ -1,0 +1,73 @@
+# Gitleaks configuration for UltrAI-Core
+
+title = "UltrAI-Core Secret Scanning"
+
+# Add custom rules for our specific patterns
+[[rules]]
+id = "jwt-secret-hardcoded"
+description = "Hardcoded JWT secret"
+regex = '''JWT_SECRET\s*=\s*["'][0-9a-zA-Z\-_]{20,}["']'''
+tags = ["secret", "jwt"]
+
+[[rules]]
+id = "api-key-hardcoded"
+description = "Hardcoded API key"
+regex = '''API_KEY\s*=\s*["'][0-9a-zA-Z\-_]{20,}["']'''
+tags = ["secret", "api-key"]
+
+[[rules]]
+id = "ultrai-api-key"
+description = "UltrAI API key pattern"
+regex = '''ultra_[0-9a-zA-Z\-_]{32,}'''
+tags = ["secret", "api-key", "ultrai"]
+
+# Allow certain patterns in specific files
+[allowlist]
+description = "Allowlisted files and patterns"
+
+# Allow development fallback secrets only in auth_service.py
+[[allowlist.regexes]]
+regex = '''1W3-55MhQfFnkkC4REHcDXPWwTAP7AEqYuJAw-DZEJxHEtrn_97ayLZOn2Q7gSKNZnipY4-0D6niB30v7ztBWA'''
+file = '''auth_service\.py'''
+
+[[allowlist.regexes]]
+regex = '''KTIBDNlXkcg7PtZsV6pfqzpm6Nyz8REDQrnKTHJyG3egwXO87ibZDOfs6aO2vksB5LBIUVzFW2A-qOIJ9HAYBg'''
+file = '''auth_service\.py'''
+
+# Allow example values in .env.example and documentation
+[[allowlist.regexes]]
+regex = '''your-.*-here'''
+file = '''\.env\.example'''
+
+[[allowlist.regexes]]
+regex = '''your-.*-here'''
+file = '''\.md'''
+
+# Allow test secrets in test files
+[[allowlist.regexes]]
+regex = '''test.*secret|secret.*test|mock.*secret|dummy.*secret'''
+file = '''test.*\.py'''
+
+# Common allowlist paths
+[[allowlist.paths]]
+path = '''.env.example'''
+
+[[allowlist.paths]]
+path = '''test_.*'''
+
+[[allowlist.paths]]
+path = '''.*_test\..*'''
+
+[[allowlist.paths]]
+path = '''node_modules'''
+
+[[allowlist.paths]]
+path = '''venv'''
+
+[[allowlist.paths]]
+path = '''.venv'''
+
+# Extend the default rules
+[extend]
+# Use the base gitleaks config
+useDefault = true

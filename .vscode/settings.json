@@ -73,5 +73,9 @@
     "-v",
     "--tb=short",
     "--no-header"
-  ]
+  ],
+  "cursorpyright.analysis.extraPaths": [
+    "./backend"
+  ],
+  "cursorpyright.analysis.typeCheckingMode": "basic"
 }

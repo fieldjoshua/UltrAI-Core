@@ -9,6 +9,7 @@ requests and robust network timeouts.
 import httpx
 import logging
 from typing import Dict, Any
+from app.utils.logging import CorrelationContext
 
 logger = logging.getLogger(__name__)
 
@@ -51,6 +52,11 @@ class OpenAIAdapter(BaseAdapter):
             "messages": [{"role": "user", "content": prompt}],
         }
         try:
+            request_id = CorrelationContext.get_correlation_id()
+            logger.info(
+                "OpenAI request",
+                extra={"requestId": request_id, "model": self.model},
+            )
             response = await CLIENT.post(
                 "https://api.openai.com/v1/chat/completions",
                 headers=headers,
@@ -60,38 +66,50 @@ class OpenAIAdapter(BaseAdapter):
             data = response.json()
             return {"generated_text": data["choices"][0]["message"]["content"]}
         except httpx.ReadTimeout:
-            logger.warning(f"OpenAI request timed out for model {self.model}.")
+            logger.warning(
+                f"OpenAI request timed out for model {self.model}.",
+                extra={"requestId": CorrelationContext.get_correlation_id()},
+            )
             return {"generated_text": "Error: OpenAI request timed out."}
         except httpx.HTTPStatusError as e:
             if e.response.status_code == 401:
                 masked_key = self._mask_api_key(self.api_key)
                 logger.error(
-                    f"OpenAI API authentication failed for model {self.model}: Invalid API key ({masked_key})"
+                    f"OpenAI API authentication failed for model {self.model}: Invalid API key ({masked_key})",
+                    extra={"requestId": CorrelationContext.get_correlation_id()},
                 )
                 return {
                     "generated_text": "Error: OpenAI API authentication failed. Check API key."
                 }
             elif e.response.status_code == 404:
-                logger.error(f"OpenAI API 404 for model {self.model}: Model not found")
+                logger.error(
+                    f"OpenAI API 404 for model {self.model}: Model not found",
+                    extra={"requestId": CorrelationContext.get_correlation_id()},
+                )
                 return {
                     "generated_text": f"Error: Model {self.model} not found in OpenAI API"
                 }
             elif e.response.status_code == 429:
                 logger.warning(
-                    f"OpenAI API rate-limited for model {self.model}. Returning standard retry message."
+                    f"OpenAI API rate-limited for model {self.model}. Returning standard retry message.",
+                    extra={"requestId": CorrelationContext.get_correlation_id()},
                 )
                 return {
                     "generated_text": "Error: OpenAI API rate limit exceeded. Please retry later."
                 }
             else:
                 logger.error(
-                    f"OpenAI API HTTP error for model {self.model}: {e.response.status_code} - {e}"
+                    f"OpenAI API HTTP error for model {self.model}: {e.response.status_code} - {e}",
+                    extra={"requestId": CorrelationContext.get_correlation_id()},
                 )
                 return {
                     "generated_text": f"Error: OpenAI API HTTP {e.response.status_code}: {e}"
                 }
         except Exception as e:
-            logger.error(f"OpenAI API error for model {self.model}: {e}")
+            logger.error(
+                f"OpenAI API error for model {self.model}: {e}",
+                extra={"requestId": CorrelationContext.get_correlation_id()},
+            )
             return {
                 "generated_text": f"Error: An issue occurred with the OpenAI API: {e}"
             }
@@ -112,6 +130,10 @@ class AnthropicAdapter(BaseAdapter):
             "messages": [{"role": "user", "content": prompt}],
         }
         try:
+            logger.info(
+                "Anthropic request",
+                extra={"requestId": CorrelationContext.get_correlation_id(), "model": self.model},
+            )
             response = await CLIENT.post(
                 "https://api.anthropic.com/v1/messages", headers=headers, json=payload
             )
@@ -119,32 +141,41 @@ class AnthropicAdapter(BaseAdapter):
             data = response.json()
             return {"generated_text": data["content"][0]["text"]}
         except httpx.ReadTimeout:
-            logger.warning(f"Anthropic request timed out for model {self.model}.")
+            logger.warning(
+                f"Anthropic request timed out for model {self.model}.",
+                extra={"requestId": CorrelationContext.get_correlation_id()},
+            )
             return {"generated_text": "Error: Anthropic request timed out."}
         except httpx.HTTPStatusError as e:
             if e.response.status_code == 401:
                 logger.error(
-                    f"Anthropic API authentication failed for model {self.model}: Invalid API key"
+                    f"Anthropic API authentication failed for model {self.model}: Invalid API key",
+                    extra={"requestId": CorrelationContext.get_correlation_id()},
                 )
                 return {
                     "generated_text": "Error: Anthropic API authentication failed. Check API key."
                 }
             elif e.response.status_code == 404:
                 logger.error(
-                    f"Anthropic API 404 for model {self.model}: Model not found or invalid endpoint"
+                    f"Anthropic API 404 for model {self.model}: Model not found or invalid endpoint",
+                    extra={"requestId": CorrelationContext.get_correlation_id()},
                 )
                 return {
                     "generated_text": f"Error: Model {self.model} not found in Anthropic API"
                 }
             else:
                 logger.error(
-                    f"Anthropic API HTTP error for model {self.model}: {e.response.status_code} - {e}"
+                    f"Anthropic API HTTP error for model {self.model}: {e.response.status_code} - {e}",
+                    extra={"requestId": CorrelationContext.get_correlation_id()},
                 )
                 return {
                     "generated_text": f"Error: Anthropic API HTTP {e.response.status_code}: {e}"
                 }
         except Exception as e:
-            logger.error(f"Anthropic API error for model {self.model}: {e}")
+            logger.error(
+                f"Anthropic API error for model {self.model}: {e}",
+                extra={"requestId": CorrelationContext.get_correlation_id()},
+            )
             return {
                 "generated_text": f"Error: An issue occurred with the Anthropic API: {e}"
             }
@@ -162,6 +193,10 @@ class GeminiAdapter(BaseAdapter):
         }
         payload = {"contents": [{"parts": [{"text": prompt}]}]}
         try:
+            logger.info(
+                "Google Gemini request",
+                extra={"requestId": CorrelationContext.get_correlation_id(), "model": self.model},
+            )
             response = await CLIENT.post(url, headers=headers, json=payload)
             response.raise_for_status()
             data = response.json()
@@ -169,39 +204,49 @@ class GeminiAdapter(BaseAdapter):
                 "generated_text": data["candidates"][0]["content"]["parts"][0]["text"]
             }
         except httpx.ReadTimeout:
-            logger.warning(f"Google Gemini request timed out for model {self.model}.")
+            logger.warning(
+                f"Google Gemini request timed out for model {self.model}.",
+                extra={"requestId": CorrelationContext.get_correlation_id()},
+            )
             return {"generated_text": "Error: Google Gemini request timed out."}
         except httpx.HTTPStatusError as e:
             if e.response.status_code == 400:
                 logger.error(
-                    f"Google Gemini API 400 for model {self.model}: Bad request or invalid model"
+                    f"Google Gemini API 400 for model {self.model}: Bad request or invalid model",
+                    extra={"requestId": CorrelationContext.get_correlation_id()},
                 )
                 return {
                     "generated_text": f"Error: Invalid request or model {self.model} not available in Gemini API"
                 }
             elif e.response.status_code == 401:
                 logger.error(
-                    f"Google Gemini API authentication failed for model {self.model}: Invalid API key"
+                    f"Google Gemini API authentication failed for model {self.model}: Invalid API key",
+                    extra={"requestId": CorrelationContext.get_correlation_id()},
                 )
                 return {
                     "generated_text": "Error: Google Gemini API authentication failed. Check API key."
                 }
             elif e.response.status_code == 404:
                 logger.error(
-                    f"Google Gemini API 404 for model {self.model}: Model not found"
+                    f"Google Gemini API 404 for model {self.model}: Model not found",
+                    extra={"requestId": CorrelationContext.get_correlation_id()},
                 )
                 return {
                     "generated_text": f"Error: Model {self.model} not found in Google Gemini API"
                 }
             else:
                 logger.error(
-                    f"Google Gemini API HTTP error for model {self.model}: {e.response.status_code} - {e}"
+                    f"Google Gemini API HTTP error for model {self.model}: {e.response.status_code} - {e}",
+                    extra={"requestId": CorrelationContext.get_correlation_id()},
                 )
                 return {
                     "generated_text": f"Error: Google Gemini API HTTP {e.response.status_code}: {e}"
                 }
         except Exception as e:
-            logger.error(f"Google Gemini API error for model {self.model}: {e}")
+            logger.error(
+                f"Google Gemini API error for model {self.model}: {e}",
+                extra={"requestId": CorrelationContext.get_correlation_id()},
+            )
             return {
                 "generated_text": f"Error: An issue occurred with the Google Gemini API: {e}"
             }

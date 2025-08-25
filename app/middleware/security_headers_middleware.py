@@ -86,13 +86,13 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         Process the request and add security headers to the response
 
         Args:
-            request: FastAPI request object
+            request: FastAPI request objec
             call_next: Next middleware/route handler
 
         Returns:
             Response with security headers
         """
-        # Process the request
+        # Process the reques
         response = await call_next(request)
 
         # Skip adding headers for excluded paths
@@ -116,22 +116,33 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         if self.csp_directives:
             # Ensure critical domains are always included
             directives = dict(self.csp_directives)
-            
+
             # Always include Google Fonts in style-src
             if "style-src" in directives:
                 if "fonts.googleapis.com" not in directives["style-src"]:
                     directives["style-src"] += " https://fonts.googleapis.com"
-            
-            # Always include Google Fonts in font-src  
+
+            # Always include Google Fonts in font-src
             if "font-src" in directives:
                 if "fonts.gstatic.com" not in directives["font-src"]:
                     directives["font-src"] += " https://fonts.gstatic.com"
-                    
-            # Always include production domain in connect-src
+
+            # Always include production domains in connect-src (https/wss)
             if "connect-src" in directives:
-                if "ultrai-core-4lut.onrender.com" not in directives["connect-src"]:
-                    directives["connect-src"] += " https://ultrai-core-4lut.onrender.com wss://ultrai-core-4lut.onrender.com"
-            
+                connect = directives["connect-src"]
+                domains = [
+                    "https://ultrai-core.onrender.com",
+                    "wss://ultrai-core.onrender.com",
+                    "https://ultr-ai-core.vercel.app",
+                    "wss://ultr-ai-core.vercel.app",
+                    "https://ultrai-core-4lut.onrender.com",
+                    "wss://ultrai-core-4lut.onrender.com",
+                ]
+                for d in domains:
+                    if d not in connect:
+                        connect += f" {d}"
+                directives["connect-src"] = connect
+
             csp_value = "; ".join(
                 f"{key} {value}" for key, value in directives.items()
             )
@@ -142,7 +153,7 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         Add Strict-Transport-Security header to response
 
         Args:
-            response: FastAPI response object
+            response: FastAPI response objec
         """
         hsts_value = f"max-age={self.hsts_max_age}"
         if self.hsts_include_subdomains:
@@ -156,7 +167,7 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         Add basic security headers to response
 
         Args:
-            response: FastAPI response object
+            response: FastAPI response objec
         """
         response.headers["X-Frame-Options"] = self.frame_options
         response.headers["X-Content-Type-Options"] = self.content_type_options

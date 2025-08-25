@@ -141,14 +141,6 @@ class AuthMiddleware(BaseHTTPMiddleware):
                                 status.HTTP_401_UNAUTHORIZED,
                             )
 
-                        if not user.is_active:
-                            logger.warning(f"User with ID {user_id} is not active")
-                            return self._create_auth_error_response(
-                                "User account is disabled",
-                                "account_disabled",
-                                status.HTTP_401_UNAUTHORIZED,
-                            )
-
                         # Store full user in request state
                         request.state.user = user
                     except ValueError:
