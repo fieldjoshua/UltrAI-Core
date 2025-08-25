@@ -50,6 +50,7 @@ openai
 anthropic
 google-generativeai
 huggingface-hub
+tiktoken
 
 # Database drivers
 psycopg2-binary
