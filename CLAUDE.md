@@ -65,6 +65,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `orchestrator_minimal.py` - Core multi-model orchestration endpoint
 - `health_routes.py` - System health monitoring
 - `available_models_routes.py` - Dynamic model discovery
+- `auth_routes.py` - JWT authentication endpoints
 
 **Models Layer** (`app/models/`) - Pydantic models for API validation and SQLAlchemy models for database
 
@@ -94,18 +95,21 @@ Follow `.aicheck/RULES.md` requirements with focus on **deployment verification*
 
 ### Core Commands
 - `./aicheck status` - Check current action and system status
-- `./aicheck new ActionName` - Create new action
-- `./aicheck ACTIVE ActionName` - Set active action (only one can be active)
-- `./aicheck complete` - Complete active action with dependency verification
+- `./aicheck action new ActionName` - Create new action
+- `./aicheck action set ActionName` - Set active action (only one can be active)
+- `./aicheck action complete [ActionName]` - Complete active action with dependency verification
+- `./aicheck dependency add NAME VERSION JUSTIFICATION [ACTION]` - Add external dependency
+- `./aicheck dependency internal DEP_ACTION ACTION TYPE [DESCRIPTION]` - Add internal dependency
 - `./aicheck deploy` - Pre-deployment validation
 - `./aicheck focus` - Check for scope creep
 - `./aicheck stuck` - Get help when confused
+- `./aicheck exec` - Toggle exec mode for system maintenance
 
 ### Critical Deployment Rule
 **NO ACTION IS COMPLETE WITHOUT PRODUCTION VERIFICATION**. All work must be tested on the actual production URL (`https://ultrai-core.onrender.com`) with documented evidence before marking actions complete.
 
 ### Mandatory Workflow Rules
-1. **Only ONE active action per session** - Use `./aicheck ACTIVE ActionName` to set active action
+1. **Only ONE active action per session** - Use `./aicheck action set ActionName` to set active action
 2. **Test-Driven Development** - Write tests before implementation
 3. **Documentation-First** - All plans must be documented in action directories before coding
 4. **Production Verification Required** - Every completion requires live production testing
@@ -159,6 +163,10 @@ def initialize_services() -> Dict[str, Any]:
 - Environment variables control feature flags (ENABLE_CACHE, ENABLE_AUTH, ENABLE_RATE_LIMIT)
 - LLM API keys: OPENAI_API_KEY, ANTHROPIC_API_KEY, GOOGLE_API_KEY, HUGGINGFACE_API_KEY
 - Mock mode available via USE_MOCK/MOCK_MODE environment variables
+- Database: DATABASE_URL (PostgreSQL connection string)
+- Cache: REDIS_URL (Redis connection string)
+- Auth: JWT_SECRET (for JWT token signing)
+- Frontend: VITE_API_URL (API URL for frontend)
 
 **Key Configuration Patterns**:
 - Services gracefully degrade when optional dependencies unavailable
@@ -199,6 +207,7 @@ def initialize_services() -> Dict[str, Any]:
 - Service: `ultrai-core`
 - URL: `https://ultrai-core.onrender.com`
 - Configuration: `render.yaml` (may be overridden by dashboard settings)
+- Monitor: `https://dashboard.render.com/web/srv-cp2i4nmd3nmc73ceaphg`
 
 **Deployment Process**:
 1. Use `make deploy` to commit and push changes
@@ -212,6 +221,15 @@ def initialize_services() -> Dict[str, Any]:
 - `POST /api/orchestrator/analyze` - Main multi-model analysis
 - Request: `{"query": "...", "selected_models": ["gpt-4", "claude-3"], "options": {...}}`
 - Response: Multi-stage pipeline results (initial_response, peer_review_and_revision, ultra_synthesis)
+
+**Authentication Endpoints**:
+- `POST /api/auth/login` - Obtain JWT token
+- Request: `{"username": "...", "password": "..."}`
+- Response: `{"access_token": "...", "token_type": "bearer"}`
+
+**User Endpoints**:
+- `GET /api/user/balance` - Get user balance (JWT required)
+- Headers: `Authorization: Bearer <token>`
 
 **Health Monitoring**:
 - `GET /health` - Overall system health

@@ -6,7 +6,18 @@ import os
 from app.routes.health_routes import router as health_router
 from app.routes.user_routes import user_router
 from app.config_cors import get_cors_config
+from app.config import Config
+from app.middleware.combined_auth_middleware import setup_combined_auth_middleware
+from app.middleware.rate_limit_middleware import setup_rate_limit_middleware
+from app.middleware.security_headers_middleware import setup_security_headers_middleware
+from app.middleware.telemetry_middleware import setup_telemetry_middleware
 from app.utils.logging import get_logger
+from app.utils.structured_logging import (
+    setup_structured_logging_middleware as setup_structured_logging,
+    apply_structured_logging_middleware as apply_structured_logging,
+)
+from app.database.connection import init_db
+from app.services.model_selection_service import SmartModelSelectionService
 
 logger = get_logger("test_app_setup")
 
@@ -17,11 +28,14 @@ def create_app() -> FastAPI:
 
     # Add CORS middleware with flexible configuration
     cors_config = get_cors_config()
-    
-    # For production on Render, allow all HTTPS origins temporarily
-    # This is needed because Render generates dynamic preview URLs
-    allow_origins = ["*"] if os.getenv("RENDER") else cors_config["allow_origins"]
-    
+
+    # In production, never use wildcard; rely on configured origins
+    env = os.getenv("ENVIRONMENT", "development").lower()
+    if env == "production":
+        allow_origins = cors_config["allow_origins"]
+    else:
+        allow_origins = ["*"] if os.getenv("RENDER") else cors_config["allow_origins"]
+
     app.add_middleware(
         CORSMiddleware,
         allow_origins=allow_origins,
@@ -31,8 +45,81 @@ def create_app() -> FastAPI:
         expose_headers=cors_config["expose_headers"],
         max_age=cors_config["max_age"],
     )
-    # Include initial routers
-    app.include_router(health_router)
+
+    # Initialize database session (uses fallback if DB is unavailable)
+    try:
+        init_db()
+        logger.info("Database initialized (or fallback active)")
+    except Exception:
+        logger.error("Database initialization failed", exc_info=True)
+
+    # Apply security headers (CSP/HSTS/etc.)
+    try:
+        setup_security_headers_middleware(app)
+        logger.info("Security headers middleware enabled")
+    except Exception:
+        logger.error("Failed to enable security headers middleware", exc_info=True)
+
+    # Structured request logging (with sampling and correlation IDs)
+    try:
+        setup_structured_logging(app)
+        apply_structured_logging(app)
+        logger.info("Structured logging middleware enabled")
+    except Exception:
+        logger.error("Failed to enable structured logging middleware", exc_info=True)
+
+    # Telemetry middleware (OpenTelemetry traces and metrics)
+    try:
+        setup_telemetry_middleware(app)
+        logger.info("Telemetry middleware enabled")
+    except Exception:
+        logger.error("Failed to enable telemetry middleware", exc_info=True)
+
+    # Add authentication middleware if enabled
+    if Config.ENABLE_AUTH:
+        # Define public paths (no authentication required)
+        public_paths = [
+            "/health",
+            "/api/health",
+            "/api/auth/login",
+            "/api/auth/register",
+            "/api/auth/refresh",
+            "/api/docs",
+            "/api/redoc",
+            "/api/openapi.json",
+            "/api/analyze",  # Temporarily public for testing
+            "/api/orchestrator",  # Temporarily public for testing
+            "/api/available-models",  # Public for model discovery
+            "/api/pricing",  # Public for pricing info
+        ]
+
+        # Protected paths that require authentication
+        protected_paths = [
+            "/api/admin",
+            "/api/debug",
+        ]
+
+        # Setup combined authentication middleware
+        setup_combined_auth_middleware(app, public_paths=public_paths, protected_paths=protected_paths)
+        logger.info("Authentication middleware enabled (JWT + API Key support)")
+
+    # Add rate limiting middleware if enabled
+    if Config.ENABLE_RATE_LIMIT:
+        # Exclude paths from rate limiting
+        excluded_paths = [
+            "/health",
+            "/api/health",
+            "/api/docs",
+            "/api/redoc",
+            "/api/openapi.json",
+            "/api/metrics",
+        ]
+
+        # Setup rate limiting middleware
+        setup_rate_limit_middleware(app, excluded_paths=excluded_paths)
+        logger.info("Rate limiting middleware enabled")
+
+    # Include initial routers (mounted under API prefix below)
     app.include_router(user_router, prefix="/api")
     # Include all main application routers
     from app.routes.auth_routes import auth_router
@@ -53,6 +140,7 @@ def create_app() -> FastAPI:
 
     # Register API routers under /api prefix
     api_prefix = "/api"
+    app.include_router(health_router, prefix=api_prefix)
     app.include_router(auth_router, prefix=api_prefix)
     app.include_router(document_router, prefix=api_prefix)
     app.include_router(analyze_router, prefix=api_prefix)
@@ -69,9 +157,7 @@ def create_app() -> FastAPI:
     app.include_router(metrics_router, prefix=api_prefix)
     app.include_router(model_availability_router, prefix=api_prefix)
 
-    # Expose orchestrator routes at root (no /api prefix) in addition to /api prefix
-    # This allows frontend clients to call either path depending on deployment config.
-    app.include_router(orchestrator_router)  # mounts at /orchestrator/*
+    # Enforce single /api prefix (no root mount for orchestrator)
 
     # In TESTING mode, ensure orchestrator service exists so routes work without full production init
     if os.getenv("TESTING") == "true" and not hasattr(
@@ -90,6 +176,15 @@ def create_app() -> FastAPI:
             )
         except Exception as exc:
             logger.error(f"Failed to attach testing orchestration service: {exc}")
+
+    # Initialize shared services (e.g., smart model selection)
+    try:
+        if not hasattr(app.state, "services"):
+            app.state.services = {}
+        app.state.services["model_selector"] = SmartModelSelectionService()
+        logger.info("SmartModelSelectionService initialized")
+    except Exception:
+        logger.error("Failed to initialize SmartModelSelectionService", exc_info=True)
 
     # Serve frontend static files
     frontend_dist = os.path.join(
@@ -128,5 +223,32 @@ def create_app() -> FastAPI:
             if os.path.exists(index_file):
                 return FileResponse(index_file)
             return {"message": "Frontend not built"}
+
+    # Correlate requests with X-Request-ID
+    @app.middleware("http")
+    async def request_id_middleware(request, call_next):
+        try:
+            import uuid
+            request_id = request.headers.get("X-Request-ID") or str(uuid.uuid4())
+            # Process request
+            response = await call_next(request)
+            # Echo header
+            try:
+                response.headers["X-Request-ID"] = request_id
+            except Exception:
+                pass
+            return response
+        except Exception:
+            # Ensure a response even if middleware fails
+            from starlette.responses import JSONResponse
+            return JSONResponse(
+                status_code=500,
+                content={
+                    "status": "error",
+                    "message": "Unhandled error",
+                    "code": "INTERNAL",
+                },
+                headers={"X-Request-ID": request.headers.get("X-Request-ID", "unknown")},
+            )
 
     return app

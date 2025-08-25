@@ -1,0 +1,10 @@
+PRIORITY,Strategy,Combined Plan & Details,Substantive Disagreements
+1,Rotate Keys & Manage Secrets,"Rotate all exposed keys immediately (OpenAI, Anthropic, Google, JWT_SECRET, etc.) and implement secret scanning in the CI/CD pipeline.",No substantive disagreement.
+2,Enforce Authentication,"Set ENABLE_AUTH=true in production, protect admin endpoints behind auth, and implement refined rate limiting per user/API key.",No substantive disagreement.
+3,Implement Resilience Patterns,Add circuit breakers for external APIs and use bounded retries with exponential backoff to handle transient errors gracefully.,No substantive disagreement.
+4,Implement Structured Logging,Set up structured logging with PII scrubbing and end-to-end correlation IDs (X-Request-ID) to trace requests through the system.),No substantive disagreement.
+5,Implement Response Streaming,Return incremental tokens and status updates to the user to keep the UX responsive during LLM processing.,"There is a technical disagreement. <br> • Plan 1 suggests implementing WebSocket support for live updates. <br> • Plan 2 recommends starting with the simpler Server-Sent Events (SSE), arguing WebSockets should only be used if full-duplex communication is truly necessary."
+6,Add Cost Controls,"Implement token counting before a request is sent, provide a cost estimate, and enforce a cap per request or user.",No substantive disagreement.
+7,Standardize Route Architecture,Fix the/api/api duplication issue and standardize all routes under a single /api prefix to improve architectural hygiene.,No substantive disagreement.
+8,Automate CI/CD Testing,Add smoke tests for all OpenAPI endpoints and database connectivity tests to the CI/CD pipeline to ensure reliability before deployment.,No substantive disagreement.
+9,Implement API Versioning,"Add a route versioning strategy (e.g., /api/v1/) to prepare for future changes.","There is a disagreement on its necessity. <br> • Plan 1 considers this a ""High Priority Fix"". <br> • Plan 2 argues that this is ""not urgent until you expose breaking external APIs"" and can be skipped for now."

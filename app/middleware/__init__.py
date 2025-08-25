@@ -12,6 +12,7 @@ from .security_headers_middleware import (
     setup_security_headers_middleware,
 )
 from .validation_middleware import ValidationMiddleware, setup_validation_middleware
+from .rate_limit_middleware import RateLimitMiddleware, setup_rate_limit_middleware
 
 __all__ = [
     "setup_auth_middleware",
@@ -19,9 +20,11 @@ __all__ = [
     "setup_csrf_middleware",
     "setup_security_headers_middleware",
     "setup_validation_middleware",
+    "setup_rate_limit_middleware",
     "AuthMiddleware",
     "ApiKeyMiddleware",
     "CSRFMiddleware",
     "SecurityHeadersMiddleware",
     "ValidationMiddleware",
+    "RateLimitMiddleware",
 ]

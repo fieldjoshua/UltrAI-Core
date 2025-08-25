@@ -1,0 +1,32 @@
+name: Smoke Tests
+
+on:
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install curl and jq
+        run: sudo apt-get update && sudo apt-get install -y curl jq
+
+      - name: Run smoke verification script
+        env:
+          PRODUCTION_URL: ${{ secrets.PRODUCTION_URL }}
+        run: |
+          if [ -z "${{ secrets.PRODUCTION_URL }}" ]; then
+            echo "PRODUCTION_URL secret not set. Skipping smoke test." && exit 0
+          fi
+          export PRODUCTION_URL="${{ secrets.PRODUCTION_URL }}"
+          bash scripts/verify-production.sh || exit 1
+
+

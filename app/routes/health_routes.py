@@ -2,10 +2,12 @@
 Route handlers for the Ultra backend.
 """
 
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException, status
 from typing import Optional
 
 from app.services.health_service import HealthService
+from app.database.connection import get_db_session
+from app.database.connection import is_using_fallback
 
 
 def create_router(health_service: Optional[HealthService] = None) -> APIRouter:
@@ -46,6 +48,33 @@ def create_router(health_service: Optional[HealthService] = None) -> APIRouter:
             dict: Detailed service health information
         """
         return health_service.get_health_status(detailed=True)
+
+    @router.get("/db/ping")
+    async def db_ping():
+        """Simple DB connectivity check using SELECT 1."""
+        try:
+            with get_db_session() as session:  # type: ignore
+                # Execute a lightweight query
+                try:
+                    from app.utils.dependency_manager import sqlalchemy_dependency
+
+                    if not sqlalchemy_dependency.is_available() or is_using_fallback():
+                        # When using fallback, consider ping successful
+                        return {"status": "ok", "using_fallback": True}
+
+                    sqlalchemy = sqlalchemy_dependency.get_module()
+                    session.execute(sqlalchemy.text("SELECT 1"))
+                    return {"status": "ok", "using_fallback": False}
+                except Exception as e:
+                    raise HTTPException(
+                        status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                        detail=f"DB ping failed: {str(e)}",
+                    )
+        except Exception as e:
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail=f"DB session error: {str(e)}",
+            )
 
     # Note: Root route removed to allow frontend serving
     # API welcome available at /health instead

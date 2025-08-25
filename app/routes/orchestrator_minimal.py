@@ -56,7 +56,7 @@ class AnalysisResponse(BaseModel):
     )
     pipeline_info: Optional[Dict[str, Any]] = Field(
         default=None,
-        description="Information about the pipeline execution including progress and stages"
+        description="Information about the pipeline execution including progress and stages",
     )
 
 
@@ -96,19 +96,39 @@ def create_router() -> APIRouter:
             pipeline_options = request.options or {}
             pipeline_options["save_outputs"] = request.save_outputs
 
+            # If models not provided, select smartly
+            selected_models = request.selected_models
+            if not selected_models:
+                try:
+                    if hasattr(http_request.app.state, "services"):
+                        svc = http_request.app.state.services.get("model_selector")
+                    else:
+                        svc = None
+                    if svc:
+                        top = await svc.choose_models(
+                            query=request.query,
+                            candidate_models=None,
+                            desired_count=1,
+                            query_type=request.analysis_type,
+                        )
+                        selected_models = top
+                        logger.info(f"Auto-selected model(s): {selected_models}")
+                except Exception as e:
+                    logger.error(f"Model auto-selection failed: {e}")
+
             # Run the analysis pipeline
             pipeline_results = await orchestration_service.run_pipeline(
                 input_data=request.query,
                 options=pipeline_options,
                 user_id=request.user_id,
-                selected_models=request.selected_models,
+                selected_models=selected_models,
             )
 
             # Process results into response format
             analysis_results = {}
             saved_files = None
             ultra_synthesis_result = None
-            
+
             # Initialize output formatter
             formatter = OutputFormatter()
 
@@ -116,14 +136,16 @@ def create_router() -> APIRouter:
             if not isinstance(pipeline_results, dict):
                 logger.error(f"Pipeline returned unexpected type: {type(pipeline_results)}")
                 return AnalysisResponse(
-                    success=False, 
-                    results={}, 
-                    error="Pipeline returned invalid results format"
+                    success=False,
+                    results={},
+                    error="Pipeline returned invalid results format",
                 )
 
             # Debug logging
             logger.info(f"Pipeline results type: {type(pipeline_results)}")
-            logger.info(f"Pipeline results keys: {list(pipeline_results.keys()) if isinstance(pipeline_results, dict) else 'Not a dict'}")
+            logger.info(
+                f"Pipeline results keys: {list(pipeline_results.keys()) if isinstance(pipeline_results, dict) else 'Not a dict'}"
+            )
 
             # First pass: extract ultra synthesis and metadata
             try:
@@ -133,7 +155,7 @@ def create_router() -> APIRouter:
                         if "saved_files" in stage_result:
                             saved_files = stage_result["saved_files"]
                         continue
-                    
+
                     if stage_name == "ultra_synthesis":
                         # Extract Ultra Synthesis result
                         if hasattr(stage_result, "error") and stage_result.error:
@@ -169,13 +191,13 @@ def create_router() -> APIRouter:
                                     ultra_synthesis_result = output
                             else:
                                 ultra_synthesis_result = output
-            
+
             except Exception as e:
                 logger.error(f"Error processing pipeline results: {str(e)}", exc_info=True)
                 return AnalysisResponse(
                     success=False,
                     results={},
-                    error=f"Error processing pipeline results: {str(e)}"
+                    error=f"Error processing pipeline results: {str(e)}",
                 )
 
             # Second pass: handle pipeline details if requested
@@ -207,7 +229,7 @@ def create_router() -> APIRouter:
                                 "quality": quality,
                                 "status": "completed",
                             }
-                    
+
                 except Exception as e:
                     logger.error(f"Error processing pipeline details: {str(e)}", exc_info=True)
                     # Fall back to simple output on error
@@ -215,15 +237,15 @@ def create_router() -> APIRouter:
                         analysis_results = {
                             "ultra_synthesis": ultra_synthesis_result,
                             "status": "completed",
-                            "error": f"Could not process full pipeline details: {str(e)}"
+                            "error": f"Could not process full pipeline details: {str(e)}",
                         }
                     else:
                         return AnalysisResponse(
                             success=False,
                             results={},
-                            error=f"Error processing pipeline details: {str(e)}"
+                            error=f"Error processing pipeline details: {str(e)}",
                         )
-                
+
                 # Use formatter to create enhanced output
                 if not analysis_results.get("error"):
                     try:
@@ -231,21 +253,21 @@ def create_router() -> APIRouter:
                             pipeline_results,
                             include_initial_responses=True,
                             include_peer_review=True,
-                            include_metadata=request.options.get("include_metadata", False) if request.options else False
+                            include_metadata=request.options.get("include_metadata", False)
+                            if request.options
+                            else False,
                         )
-                        
+
                         # Add formatted output to results
                         analysis_results["formatted_output"] = formatted_output
                     except Exception as e:
                         logger.error(f"Error formatting output: {str(e)}")
-                        # Continue without formatted output
-                
             else:
                 # Return only Ultra Synthesis (default behavior)
                 if ultra_synthesis_result is not None:
                     # Build pipeline data for formatter
                     formatter_input = {"ultra_synthesis": {"synthesis": ultra_synthesis_result}}
-                    
+
                     # Add initial responses if requested
                     if request.include_initial_responses and "initial_response" in pipeline_results:
                         initial_stage = pipeline_results["initial_response"]
@@ -253,29 +275,31 @@ def create_router() -> APIRouter:
                             formatter_input["initial_response"] = initial_stage.output
                         else:
                             formatter_input["initial_response"] = initial_stage
-                    
+
                     # Create a formatted version
                     simple_formatted = formatter.format_pipeline_output(
                         formatter_input,
                         include_initial_responses=request.include_initial_responses,
                         include_peer_review=False,
-                        include_metadata=False
+                        include_metadata=False,
                     )
-                    
+
                     analysis_results = {
                         "ultra_synthesis": ultra_synthesis_result,
-                        "formatted_synthesis": simple_formatted.get("full_document", ultra_synthesis_result),
-                        "status": "completed"
+                        "formatted_synthesis": simple_formatted.get(
+                            "full_document", ultra_synthesis_result
+                        ),
+                        "status": "completed",
                     }
-                    
+
                     # Add initial responses if requested
                     if request.include_initial_responses and "initial_responses" in simple_formatted:
                         analysis_results["initial_responses"] = simple_formatted["initial_responses"]
-                    
+
                 else:
                     analysis_results = {
                         "error": "Ultra Synthesis stage not completed",
-                        "status": "failed"
+                        "status": "failed",
                     }
 
             processing_time = time.time() - start_time
@@ -284,13 +308,13 @@ def create_router() -> APIRouter:
             completed_stages = list(pipeline_results.keys())
             if "_metadata" in completed_stages:
                 completed_stages.remove("_metadata")
-            
+
             pipeline_info = {
                 "stages_completed": completed_stages,
                 "total_stages": len(completed_stages),
-                "models_used": request.selected_models or [],
+                "models_used": selected_models or [],
                 "pipeline_type": "3-stage optimized" if len(completed_stages) >= 3 else "partial",
-                "include_details": request.include_pipeline_details
+                "include_details": request.include_pipeline_details,
             }
 
             logger.info(f"Analysis completed in {processing_time:.2f} seconds")
