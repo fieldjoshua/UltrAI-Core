@@ -46,6 +46,29 @@ def create_app() -> FastAPI:
         max_age=cors_config["max_age"],
     )
 
+    # Add security headers (CSP/HSTS/etc.)
+    setup_security_headers_middleware(
+        app,
+        csp_directives={
+            "default-src": "'self'",
+            "script-src": "'self'",
+            "style-src": "'self' https://fonts.googleapis.com",
+            "img-src": "'self' data:",
+            "font-src": "'self' https://fonts.gstatic.com",
+            "connect-src": "'self'",
+            "frame-src": "'none'",
+            "object-src": "'none'",
+            "base-uri": "'self'",
+            "form-action": "'self'",
+        },
+        exclude_paths=[
+            "/api/docs",
+            "/api/redoc",
+            "/api/openapi.json",
+            "/swagger-ui",
+        ],
+    )
+
     # Initialize database session (uses fallback if DB is unavailable)
     try:
         init_db()
