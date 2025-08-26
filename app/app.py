@@ -11,6 +11,7 @@ from app.middleware.combined_auth_middleware import setup_combined_auth_middlewa
 from app.middleware.rate_limit_middleware import setup_rate_limit_middleware
 from app.middleware.security_headers_middleware import setup_security_headers_middleware
 from app.middleware.telemetry_middleware import setup_telemetry_middleware
+from app.middleware.request_id_middleware import setup_request_id_middleware
 from app.utils.logging import get_logger
 from app.utils.structured_logging import (
     setup_structured_logging_middleware as setup_structured_logging,
@@ -68,6 +69,9 @@ def create_app() -> FastAPI:
             "/swagger-ui",
         ],
     )
+
+    # Correlation IDs
+    setup_request_id_middleware(app)
 
     # Initialize database session (uses fallback if DB is unavailable)
     try:
