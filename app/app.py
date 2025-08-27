@@ -89,12 +89,7 @@ def create_app() -> FastAPI:
     except Exception:
         logger.error("Database initialization failed", exc_info=True)
 
-    # Apply security headers (CSP/HSTS/etc.)
-    try:
-        setup_security_headers_middleware(app)
-        logger.info("Security headers middleware enabled")
-    except Exception:
-        logger.error("Failed to enable security headers middleware", exc_info=True)
+    # Security headers already configured above; avoid duplicate middleware that can override CSP
 
     # Structured request logging (with sampling and correlation IDs)
     try:
