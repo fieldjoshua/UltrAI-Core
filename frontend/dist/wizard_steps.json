@@ -1,38 +1,40 @@
 [
   {
-    "title": "Step 1 of 5: Select Goal",
+    "title": "1. Select your goals",
     "color": "mint",
     "type": "checkbox",
-    "narrative": "What’s your mission today? Choose a goal for UltraAI to pursue. You can pick one or more, or define your own custom goal.",
+    "narrative": "What do you want to create?",
     "options": [
       { "label": "Document Analysis", "icon": "📄" },
       { "label": "Deep Research", "icon": "🔎" },
-      { "label": "Legal / Business Analysis", "icon": "⚖️" },
       { "label": "Academic Research & Citations", "icon": "🎓" },
       { "label": "Writing & Editing Assistance", "icon": "✍️" },
       { "label": "Brainstorming & Ideation", "icon": "💡" },
       { "label": "Code Creation / Debugging", "icon": "💻" },
       { "label": "Data Analysis & Visualization", "icon": "📊" },
       { "label": "Media Generation (Image/Video/Text)", "icon": "🎨" },
-      { "label": "Other (custom input)", "icon": "➕" }
+      { "label": "Personal Organization", "icon": "🗂️" },
+      { "label": "Internet Search", "icon": "🌐" }
     ]
   },
   {
-    "title": "Step 2 of 5: Enter Your Query",
+    "title": "2. Enter your query",
     "color": "blue",
     "type": "textarea",
-    "narrative": "Describe your task in plain language. Attach files or media for deeper analysis, or adjust advanced settings.",
+    "narrative": "What do you want AI to do? Think of your goals. What things are they made of?\nAttach a document if it helps in the creation.",
     "options": [
+      { "label": "Document Upload", "icon": "📄", "cost": 0.10 },
       { "label": "File Upload", "icon": "📎", "cost": 0.10 },
       { "label": "Multi-Doc Upload", "icon": "🗂️", "cost": 0.20 },
       { "label": "Image Upload", "icon": "🖼️", "cost": 0.15 },
       { "label": "Voice Upload", "icon": "🎤", "cost": 0.12 },
+      { "label": "Prompt Help", "icon": "💬", "cost": 0.00 },
       { "label": "Max Length / Depth", "icon": "📏", "cost": 0.05 },
       { "label": "Response Language", "icon": "🌐", "cost": 0.05 }
     ]
   },
   {
-    "title": "Step 3 of 5: Model Selection",
+    "title": "3. Model selection",
     "color": "deepblue",
     "type": "checkbox",
     "narrative": "Choose which intelligence engines to use, or let UltraAI auto-select. Modes balance cost, speed, and accuracy.",
@@ -46,42 +48,52 @@
       { "label": "Speed Mode", "icon": "⏩", "cost": 0.04 },
       { "label": "Diversity Mode", "icon": "🌈", "cost": 0.07 },
       { "label": "Specialized Models (code/image/search)", "icon": "🔧", "cost": 0.10 },
-      { "label": "Auto: Let UltraAI choose for me", "icon": "✨", "cost": 0.05 }
+      { "label": "Let Ultra decide the models for me — I am most concerned about Accuracy / Cost / Depth", "icon": "✨", "cost": 0.00 }
     ]
   },
   {
-    "title": "Step 4 of 5: Choose Analysis Mode",
+    "title": "4. Analyses",
     "color": "purple",
     "type": "groupbox",
-    "narrative": "Define how UltraAI orchestrates and refines the outputs. These modes are presented as internal cards/boxes with icons and descriptions.",
+    "narrative": "Pick how UltraAI should orchestrate, review, and refine the outputs.",
     "options": [
       {
         "label": "Intelligence Multiplier",
         "icon": "🚀",
-        "description": "Blend the best insights from all models into one cohesive output."
+        "description": "Blend the best insights from all models into one cohesive output.",
+        "cost": 0.08
       },
       {
         "label": "Fact-check & Confidence",
         "icon": "✔️",
-        "description": "Rate truthfulness across models and provide confidence scores."
+        "description": "Rate truthfulness across models and provide confidence scores.",
+        "cost": 0.10
       },
       {
         "label": "Devil’s Advocate",
         "icon": "⚔️",
-        "description": "One model critiques another to expose blind spots and biases."
+        "description": "One model critiques another to expose blind spots and biases.",
+        "cost": 0.07
       },
       {
         "label": "Convergence/Divergence",
         "icon": "🔀",
-        "description": "Highlight where models agree and where they differ significantly."
+        "description": "Highlight where models agree and where they differ significantly.",
+        "cost": 0.08
+      },
+      {
+        "label": "Let Ultra decide the analyses for me",
+        "icon": "✨",
+        "description": "Ultra chooses and tunes analysis passes based on your goals.",
+        "cost": 0.00
       }
     ]
   },
   {
-    "title": "Step 5 of 5: Add-ons & Formatting",
+    "title": "5. Add-ons & formatting",
     "color": "pink",
     "type": "checkbox",
-    "narrative": "Choose how your result is delivered, secured, and polished. Select output format, export destination, and extra features.",
+    "narrative": "Choose how your result is delivered, secured, and polished.",
     "options": [
       { "label": "PDF / Word / Markdown / Plain Text", "icon": "📄", "cost": 0.02 },
       { "label": "Google Doc / Slide Deck", "icon": "📑", "cost": 0.03 },
@@ -89,7 +101,7 @@
       { "label": "Encryption", "icon": "🔒", "cost": 0.05 },
       { "label": "Data Privacy Mode (strip PII)", "icon": "🙈", "cost": 0.04 },
       { "label": "Fact-check Confidence Report", "icon": "📊", "cost": 0.05 },
-      { "label": "Legal Compliance Mode (GDPR/HIPAA)", "icon": "⚖️", "cost": 0.06 },
+      { "label": "Legal Compliance (GDPR/HIPAA)", "icon": "⚖️", "cost": 0.06 },
       { "label": "Rewrite for Grade Level", "icon": "📘", "cost": 0.04 },
       { "label": "Summarize / Expand", "icon": "📜", "cost": 0.06 },
       { "label": "Save or Send (Email, Drive, Dropbox, Notion)", "icon": "📤", "cost": 0.03 }

@@ -112,18 +112,18 @@ export default function CyberWizard() {
   };
 
   return (
-    <div className="relative flex h-screen w-full items-center justify-center gap-8 p-6 text-white font-cyber text-sm"
+    <div className="relative flex h-screen w-full items-start justify-center gap-10 p-6 text-white font-cyber text-sm"
     >
-      {/* Background layer (overlay removed) */}
-      <div className="pointer-events-none absolute inset-0 animate-parallax-slow"
+      {/* Background layer */}
+      <div className="pointer-events-none absolute inset-0"
            style={{ backgroundImage: "url('/cityscape-background.jpeg')", backgroundSize: 'cover', backgroundPosition: 'center', zIndex: 0 }} />
 
       {/* Content layer */}
       <div className="relative z-10 flex items-start justify-center gap-8 w-full">
-      {/* Wizard Panel (left) */}
-      <div className="w-[420px] flex-none" style={{ marginTop: '25vh' }}>
+      {/* Wizard Panel (left) - wider, landscape, starts lower */}
+      <div className="w-[560px] flex-none" style={{ marginTop: '28vh' }}>
         <div
-          className={`glass-strong p-5 rounded-2xl transition-all duration-300 min-h-[48vh] animate-border-hum
+          className={`glass-strong p-5 rounded-2xl transition-all duration-300 min-h-[44vh] animate-border-hum
             ${step.color === "mint" ? "shadow-neon-mint"
             : step.color === "blue" ? "shadow-neon-blue"
             : step.color === "deepblue" ? "shadow-neon-deep"
@@ -198,49 +198,73 @@ export default function CyberWizard() {
             />
           )}
 
-          {/* Radio buttons */}
+          {/* Radio buttons single-line */}
           {step.type === "radio" && step.options?.map(o => (
-            <label key={o.label} className="block text-[11px] leading-tight">
+            <label key={o.label} className="block text-[11px] leading-tight truncate">
               <input
                 type="radio"
                 name={`radio-${currentStep}`}
                 onChange={() => addSelection(o.label, o.cost, step.color)}
               />{" "}
-              {o.icon ? `${o.icon} ` : ""}{o.label}{typeof o.cost === 'number' ? ` ($${o.cost})` : ""}
+              <span className="align-middle">
+                {o.icon ? `${o.icon} ` : ""}{o.label}{typeof o.cost === 'number' ? ` ($${o.cost})` : ""}
+              </span>
             </label>
           ))}
 
           {/* Checkbox steps using OptionCards (limit to six) */}
           {step.type === "checkbox" && step.options && (
             currentStep === 0 ? (
-              <OptionCards options={step.options.slice(0,6)} selected={selectedGoals} onToggle={handleGoalToggle} />
+              // Step 1: compress to one line each (no cards), up to 10
+              step.options.slice(0,10).map(o => (
+                <label key={o.label} className="block text-[11px] leading-tight truncate">
+                  <input
+                    type="checkbox"
+                    onChange={e => e.target.checked ? handleGoalToggle(o.label) : handleGoalToggle(o.label)}
+                    checked={selectedGoals.includes(o.label)}
+                  />{" "}
+                  <span className="align-middle">
+                    {o.icon ? `${o.icon} ` : ""}{o.label}
+                  </span>
+                </label>
+              ))
             ) : currentStep === 2 ? (
               <OptionCards options={step.options.slice(0,6)} selected={selectedModels} onToggle={handleModelToggle} />
             ) : currentStep === 4 ? (
               <OptionCards options={step.options.slice(0,6)} selected={selectedAddons} onToggle={handleAddonToggle} />
             ) : (
               step.options.slice(0,6).map(o => (
-                <label key={o.label} className="block text-[11px] leading-tight">
+                <label key={o.label} className="block text-[11px] leading-tight truncate">
                   <input
                     type="checkbox"
                     onChange={e => e.target.checked ? addSelection(o.label, o.cost, step.color) : removeSelectionCost(o.cost)}
                   />{" "}
-                  {o.icon ? `${o.icon} ` : ""}{o.label}{typeof o.cost === 'number' ? ` ($${o.cost})` : ""}
+                  <span className="align-middle">
+                    {o.icon ? `${o.icon} ` : ""}{o.label}{typeof o.cost === 'number' ? ` ($${o.cost})` : ""}
+                  </span>
                 </label>
               ))
             )
           )}
 
-          {/* Analysis Modes groupbox */}
+          {/* Analysis Modes groupbox with centered bold titles and smaller descriptions, plus cost */}
           {step.type === "groupbox" && step.options && (
-            <AnalysisModes options={step.options as any} selected={selectedAnalysisModes} onToggle={handleAnalysisToggle} />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+              {step.options.map(o => (
+                <div key={o.label} className="glass border-2 rounded-xl p-3 animate-border-hum">
+                  <div className="text-center font-bold text-sm mb-1">{o.icon ? `${o.icon} ` : ''}{o.label}</div>
+                  {o.description && <div className="text-[11px] text-foreground/80 text-center">{o.description}</div>}
+                  {typeof o.cost === 'number' && <div className="text-[11px] text-center mt-1 text-pink-400">+${o.cost.toFixed(2)}</div>}
+                </div>
+              ))}
+            </div>
           )}
 
-          {/* Auto optimize button */}
-          {(step.type === 'checkbox' || step.type === 'textarea' || step.type === 'radio') && (
+          {/* Auto optimize button green playful */}
+          {(step.type === 'checkbox' || step.type === 'textarea' || step.type === 'radio') && currentStep !== 4 && (
             <button
-              className="w-full mt-2 px-3 py-2 glass border-2 rounded text-center hover:shadow-neon-blue"
-              style={{ borderColor: colorHex, color: colorHex }}
+              className="w-full mt-2 px-3 py-2 rounded text-center font-semibold shadow-neon-mint animate-border-hum"
+              style={{ border: '2px solid #00ff9f', color: '#00ff9f', background: 'rgba(0,255,159,0.08)' }}
               onClick={() => addSelection("Auto: Let UltrAI Optimize My Query", 0, step.color)}
             >
               Auto: Let UltrAI Optimize My Query
@@ -269,8 +293,8 @@ export default function CyberWizard() {
         </div>
       </div>
 
-      {/* Summary Panel */}
-      <div className="glass-strong w-[360px] flex-none p-5 rounded-xl border-2 shadow-neon-blue animate-border-hum" style={{ marginTop: '25vh' }}>
+      {/* Summary Panel - narrower receipt style, fixed Courier font */}
+      <div className="glass-strong w-[320px] flex-none p-5 rounded-xl border-2 shadow-neon-blue animate-border-hum" style={{ marginTop: '28vh', fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace' }}>
         <h2 className="text-lg mb-3 text-center">Itemized Summary</h2>
         {/* Group by color */}
         <div className="space-y-3">
@@ -282,8 +306,8 @@ export default function CyberWizard() {
               <div key={groupColor}>
                 <div className="uppercase text-[11px] tracking-wider mb-1 text-center" style={{ color: hex }}>{groupColor}</div>
                 {items.map((s,i) => (
-                  <div key={i} className="text-sm flex items-center">
-                    <span className="flex-1" style={{ color: hex }}>{s.label}</span>
+                  <div key={i} className="text-xs flex items-center">
+                    <span className="flex-1 truncate" style={{ color: hex }}>{s.label}</span>
                     <span className="px-2 select-none opacity-50">. . . . . . . . . . . . . . .</span>
                     <span className="text-right w-16" style={{ color: hex }}>${s.cost.toFixed(2)}</span>
                   </div>
