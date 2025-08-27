@@ -54,7 +54,8 @@ def create_app() -> FastAPI:
         csp_directives={
             "default-src": "'self'",
             "script-src": "'self'",
-            "style-src": "'self' https://fonts.googleapis.com",
+            # Allow inline styles for initial loader and style attributes set by React
+            "style-src": "'self' 'unsafe-inline' https://fonts.googleapis.com",
             "img-src": "'self' data:",
             "font-src": "'self' https://fonts.gstatic.com",
             "connect-src": "'self'",
