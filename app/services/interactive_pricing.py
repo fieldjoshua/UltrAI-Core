@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import json
 
-from pricing_calculator import PricingCalculator
+from pricing_service import PricingCalculator
 
 
 def get_input(prompt, default=None, type_converter=str):

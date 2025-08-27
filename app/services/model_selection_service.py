@@ -6,7 +6,7 @@ from typing import List, Optional, Dict
 
 from app.services.model_selection import SmartModelSelector
 from app.services.model_availability import ModelAvailabilityChecker, AvailabilityStatus
-from app.services.pricing_calculator import PricingCalculator
+from app.services.pricing_service import PricingCalculator
 from app.utils.logging import get_logger
 
 logger = get_logger("model_selection_service")
