@@ -30,6 +30,7 @@ from app.services.telemetry_llm_wrapper import wrap_llm_adapter_with_telemetry
 from app.services.synthesis_prompts import SynthesisPromptManager, QueryType
 from app.services.model_selection import SmartModelSelector
 from app.services.synthesis_output import StructuredSynthesisOutput
+from app.services.cache_service import get_cache_service, cache_key
 from app.utils.logging import get_logger
 
 logger = get_logger("orchestration_service")
@@ -357,24 +358,38 @@ class OrchestrationService:
 
         healthy: List[str] = []
         now = time.time()
+        
+        logger.info(f"🔑 Checking API keys availability...")
 
         for model, key in candidates:
             if not key:
+                logger.warning(f"  ❌ {model}: No API key configured")
                 continue
+            else:
+                logger.info(f"  ✅ {model}: API key found ({key[:4]}...{key[-4:]})")
 
             cache_entry = self._model_health_cache.get(model)
             if cache_entry and now - cache_entry["ts"] < self._CACHE_TTL_SECONDS:
                 if cache_entry["ok"]:
                     healthy.append(model)
+                    logger.info(f"  📦 {model}: Using cached health status (healthy)")
+                else:
+                    logger.warning(f"  📦 {model}: Using cached health status (unhealthy)")
                 continue
 
             ok = await self._probe_model(model, key)
             self._model_health_cache[model] = {"ok": ok, "ts": now}
             if ok:
                 healthy.append(model)
+                logger.info(f"  🟢 {model}: Health check passed")
+            else:
+                logger.warning(f"  🔴 {model}: Health check failed")
 
         if not healthy:
-            healthy.append("gemini-1.5-pro")
+            logger.warning("⚠️ No healthy models found, using fallback")
+            healthy.append("gpt-4o")
+        
+        logger.info(f"✨ Healthy models available: {healthy}")
 
         return healthy
 
@@ -396,6 +411,30 @@ class OrchestrationService:
         Returns:
             Dict[str, PipelineResult]: Results from each pipeline stage
         """
+        # Check cache if caching is enabled
+        cache_service = get_cache_service()
+        cache_enabled = options.get("enable_cache", True) if options else True
+        
+        if cache_enabled:
+            # Generate cache key from inputs
+            cache_key_data = {
+                "input": str(input_data)[:500],  # Limit input size for key
+                "models": sorted(selected_models) if selected_models else [],
+                "options": options or {}
+            }
+            cache_key_str = f"pipeline:{cache_key(cache_key_data)}"
+            
+            # Try to get from cache
+            cached_result = await cache_service.get(cache_key_str)
+            if cached_result:
+                logger.info("Cache hit for pipeline request")
+                # Add cache metadata
+                for stage_result in cached_result.values():
+                    if hasattr(stage_result, "metadata"):
+                        stage_result.metadata["cached"] = True
+                        stage_result.metadata["cache_hit_at"] = datetime.utcnow().isoformat()
+                return cached_result
+        
         # Default model selection for test environment when none provided
         if not selected_models:
             selected_models = await self._default_models_from_env()
@@ -547,6 +586,13 @@ class OrchestrationService:
                 "saved_files": saved_files,
                 "save_outputs_requested": save_outputs,
             }
+
+        # Cache the results if caching is enabled and pipeline succeeded
+        if cache_enabled and not any(r.error for r in results.values() if hasattr(r, 'error')):
+            # Cache for 1 hour by default, configurable via options
+            cache_ttl = options.get("cache_ttl", 3600) if options else 3600
+            await cache_service.set(cache_key_str, results, ttl=cache_ttl)
+            logger.info(f"Cached pipeline results for {cache_ttl} seconds")
 
         return results
 

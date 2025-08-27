@@ -14,7 +14,12 @@
       { "label": "Data Analysis & Visualization", "icon": "📊" },
       { "label": "Media Generation (Image/Video/Text)", "icon": "🎨" },
       { "label": "Personal Organization", "icon": "🗂️" },
-      { "label": "Internet Search", "icon": "🌐" }
+      { "label": "Internet Search", "icon": "🌐" },
+      { "label": "Event Planning", "icon": "📅" },
+      { "label": "Travel Planning", "icon": "🧭" },
+      { "label": "News Gathering", "icon": "📰" },
+      { "label": "Social Media Post Creation", "icon": "💬" },
+      { "label": "Customer Support Drafts", "icon": "🛎️" }
     ]
   },
   {
@@ -23,14 +28,7 @@
     "type": "textarea",
     "narrative": "What do you want AI to do? Think of your goals. What things are they made of?\nAttach a document if it helps in the creation.",
     "options": [
-      { "label": "Document Upload", "icon": "📄", "cost": 0.10 },
-      { "label": "File Upload", "icon": "📎", "cost": 0.10 },
-      { "label": "Multi-Doc Upload", "icon": "🗂️", "cost": 0.20 },
-      { "label": "Image Upload", "icon": "🖼️", "cost": 0.15 },
-      { "label": "Voice Upload", "icon": "🎤", "cost": 0.12 },
-      { "label": "Prompt Help", "icon": "💬", "cost": 0.00 },
-      { "label": "Max Length / Depth", "icon": "📏", "cost": 0.05 },
-      { "label": "Response Language", "icon": "🌐", "cost": 0.05 }
+      { "label": "Upload document or media", "icon": "📎", "cost": 0.10 }
     ]
   },
   {

@@ -57,22 +57,8 @@ See `/docs` (Swagger UI) for full API reference and request/response schemas.
 - Use `/docs` for live OpenAPI reference.
 - All endpoints require JWT in `Authorization: Bearer <token>` header unless public.
 - CORS is enabled for cross-origin requests (configure as needed).
+- UX/UI implementation guide: see `frontend/UX_UI_README.md`.
 
 ## Monitoring & Alerting Checklist
 
-- Monitor `/health` for uptime and status (`status` should be `healthy` or `degraded`).
-- Monitor `/api/metrics` for Prometheus scraping.
-- Set up alerts for:
-  - HTTP 5xx errors or endpoint downtime
-  - Health status not `healthy`
-  - High error rates or latency in metrics
-- Review logs in Render dashboard or your logging solution.
-- Rotate secrets and review environment variables regularly.
-
-## Environment Variables
-
-See `.env.example` for all required and optional environment variables.
-
-## Deployment
-
-See `DEPLOYMENT_GUIDE.md` for deployment instructions and Render configuration.
+- Monitor `/health`

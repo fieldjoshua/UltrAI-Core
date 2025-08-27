@@ -12,6 +12,7 @@ from app.middleware.rate_limit_middleware import setup_rate_limit_middleware
 from app.middleware.security_headers_middleware import setup_security_headers_middleware
 from app.middleware.telemetry_middleware import setup_telemetry_middleware
 from app.middleware.request_id_middleware import setup_request_id_middleware
+from app.middleware.performance_middleware import setup_performance_middleware
 from app.utils.logging import get_logger
 from app.utils.structured_logging import (
     setup_structured_logging_middleware as setup_structured_logging,
@@ -72,6 +73,13 @@ def create_app() -> FastAPI:
 
     # Correlation IDs
     setup_request_id_middleware(app)
+    
+    # Performance optimizations (compression, caching headers)
+    try:
+        setup_performance_middleware(app)
+        logger.info("Performance optimization middleware enabled")
+    except Exception:
+        logger.error("Failed to enable performance middleware", exc_info=True)
 
     # Initialize database session (uses fallback if DB is unavailable)
     try:
@@ -164,6 +172,8 @@ def create_app() -> FastAPI:
     from app.routes.debug_env_routes import router as debug_env_router
     from app.routes.metrics import metrics_router
     from app.routes.model_availability_routes import router as model_availability_router
+    from app.routes.cache_routes import router as cache_router
+    from app.routes.test_env_routes import router as test_env_router
 
     # Register API routers under /api prefix
     api_prefix = "/api"
@@ -183,6 +193,8 @@ def create_app() -> FastAPI:
     app.include_router(debug_env_router, prefix=api_prefix)
     app.include_router(metrics_router, prefix=api_prefix)
     app.include_router(model_availability_router, prefix=api_prefix)
+    app.include_router(cache_router, prefix=api_prefix)
+    app.include_router(test_env_router, prefix=api_prefix)
 
     # Enforce single /api prefix (no root mount for orchestrator)
 

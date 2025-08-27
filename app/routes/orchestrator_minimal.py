@@ -98,23 +98,37 @@ def create_router() -> APIRouter:
 
             # If models not provided, select smartly
             selected_models = request.selected_models
+            logger.info(f"📊 Models requested by client: {selected_models}")
+            
             if not selected_models:
                 try:
-                    if hasattr(http_request.app.state, "services"):
-                        svc = http_request.app.state.services.get("model_selector")
+                    # Try to use defaults from orchestration service
+                    default_models = await orchestration_service._default_models_from_env()
+                    logger.info(f"🔍 Default models from env: {default_models}")
+                    
+                    if default_models:
+                        selected_models = default_models[:2]  # Use first 2 available models
+                        logger.info(f"✅ Using default models: {selected_models}")
                     else:
-                        svc = None
-                    if svc:
-                        top = await svc.choose_models(
-                            query=request.query,
-                            candidate_models=None,
-                            desired_count=1,
-                            query_type=request.analysis_type,
-                        )
-                        selected_models = top
-                        logger.info(f"Auto-selected model(s): {selected_models}")
+                        # Fallback to model selector service
+                        if hasattr(http_request.app.state, "services"):
+                            svc = http_request.app.state.services.get("model_selector")
+                        else:
+                            svc = None
+                        if svc:
+                            top = await svc.choose_models(
+                                query=request.query,
+                                candidate_models=None,
+                                desired_count=2,
+                                query_type=request.analysis_type,
+                            )
+                            selected_models = top
+                            logger.info(f"🤖 Auto-selected model(s): {selected_models}")
                 except Exception as e:
-                    logger.error(f"Model auto-selection failed: {e}")
+                    logger.error(f"Model selection failed: {e}")
+                    # Hard fallback to ensure we have at least one model
+                    selected_models = ["gpt-4o"]
+                    logger.warning(f"⚠️ Using fallback model: {selected_models}")
 
             # Run the analysis pipeline
             pipeline_results = await orchestration_service.run_pipeline(

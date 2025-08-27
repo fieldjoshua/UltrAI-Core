@@ -14,7 +14,8 @@ ENVIRONMENT = os.getenv("ENVIRONMENT", "development").lower()
 TESTING = os.getenv("TESTING", "false").lower() == "true"
 
 # Load appropriate .env file based on environment
-base_path = Path(os.path.dirname(__file__)).parent
+# Go up two levels to get to project root (from app/config to root)
+base_path = Path(os.path.dirname(__file__)).parent.parent
 env_files = [
     base_path / f".env.{ENVIRONMENT}.local",  # Environment-specific local overrides
     base_path / f".env.{ENVIRONMENT}",  # Environment-specific defaults

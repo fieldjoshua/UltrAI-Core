@@ -30,6 +30,10 @@ def initialize_services() -> Dict[str, Any]:
     
     # Initialize model selector (shared across services)
     model_selector = SmartModelSelector()
+    
+    # Initialize cache service (singleton, will be reused)
+    from app.services.cache_service import get_cache_service
+    cache_service = get_cache_service()
 
     # Initialize orchestration service with required dependencies
     orchestration_service = OrchestrationService(
@@ -48,6 +52,7 @@ def initialize_services() -> Dict[str, Any]:
         "prompt_service": prompt_service,
         "orchestration_service": orchestration_service,
         "model_selector": model_selector,
+        "cache_service": cache_service,
     }
 
 
