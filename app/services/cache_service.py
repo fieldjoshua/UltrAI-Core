@@ -35,6 +35,10 @@ class CacheService:
         }
         self._initialize_redis()
     
+    def is_redis_available(self) -> bool:
+        """Return True if Redis client is initialized and available."""
+        return self.redis_client is not None
+    
     def _initialize_redis(self):
         """Initialize Redis connection with retry logic."""
         if not Config.ENABLE_CACHE or not Config.REDIS_URL:
@@ -272,3 +276,7 @@ async def close_cache_service():
     if _cache_service:
         await _cache_service.close()
         _cache_service = None
+
+# Backward-compatible alias for modules importing `cache_service`
+# This provides a ready-to-use singleton instance.
+cache_service: CacheService = get_cache_service()
