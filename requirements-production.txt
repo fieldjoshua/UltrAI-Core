@@ -27,6 +27,7 @@ cachetools
 # Security & Auth
 cryptography
 passlib
+bcrypt
 python-dotenv
 
 # HTTP & Async
