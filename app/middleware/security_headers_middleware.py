@@ -54,7 +54,8 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         self.csp_directives = csp_directives or {
             "default-src": "'self'",
             "script-src": "'self'",
-            "style-src": "'self'",
+            # Allow inline <style> blocks and style attributes to avoid CSP violations for initial loader styles
+            "style-src": "'self' 'unsafe-inline'",
             "img-src": "'self' data:",
             "font-src": "'self'",
             "connect-src": "'self'",

@@ -237,6 +237,14 @@ def create_app() -> FastAPI:
             name="assets",
         )
 
+        @app.get("/wizard_steps.json")
+        async def serve_wizard_steps_json():
+            """Serve wizard steps JSON from the built frontend directory."""
+            json_file = os.path.join(frontend_dist, "wizard_steps.json")
+            if os.path.exists(json_file):
+                return FileResponse(json_file, media_type="application/json")
+            return {"error": "wizard_steps.json not found"}
+
         @app.get("/")
         async def serve_frontend():
             """Serve the React frontend"""
