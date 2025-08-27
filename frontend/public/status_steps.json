@@ -1,0 +1,63 @@
+[
+  {
+    "title": "LLMs Initializing",
+    "icon": "⚡",
+    "narrative": "UltraAI is bringing engines online…",
+    "substeps": [
+      { "label": "GPT-4", "status": "Online ✅" },
+      { "label": "Claude", "status": "Online ✅" },
+      { "label": "Gemini", "status": "Online ✅" },
+      { "label": "LLaMA", "status": "Online ✅" }
+    ],
+    "animation": "fade-in"
+  },
+  {
+    "title": "Submitting User Query",
+    "icon": "📤",
+    "narrative": "Your input is being securely packaged and transmitted into UltraAI’s orchestration pipeline.",
+    "animation": "spinner"
+  },
+  {
+    "title": "LLMs Working",
+    "icon": "🤖",
+    "narrative": "Multiple models are now analyzing your query in parallel, each generating unique perspectives.",
+    "animation": "typing-dots"
+  },
+  {
+    "title": "Receiving Initial Responses",
+    "icon": "📡",
+    "narrative": "Initial outputs are flowing back from the models. UltraAI is validating and capturing the first wave of results.",
+    "animation": "flicker"
+  },
+  {
+    "title": "Assigning Meta-Edits",
+    "icon": "⚙️",
+    "narrative": "UltraAI is assigning meta-agents to review, critique, and refine each response for clarity and accuracy.",
+    "animation": "gear-spin"
+  },
+  {
+    "title": "Receiving Meta Responses",
+    "icon": "✍️",
+    "narrative": "Meta-agents have returned their edits. UltraAI is aligning refined perspectives into a shared framework.",
+    "animation": "typing-dots"
+  },
+  {
+    "title": "Compiling UltraAI Output",
+    "icon": "🌈",
+    "narrative": "All validated responses and meta-edits are merging. UltraAI is synthesizing them into a single polished product.",
+    "animation": "progress-bar"
+  },
+  {
+    "title": "UltraAI Output Ready!",
+    "icon": "🚀",
+    "narrative": "Your UltraAI-compiled result is complete. You may now review the final output, explore earlier model iterations, and export in your preferred format.",
+    "panel": "full-width",
+    "tabs": [
+      "Final Result",
+      "Earlier Iterations",
+      "Meta-Edits",
+      "Confidence & Fact-Check Report"
+    ],
+    "animation": "glow-pulse"
+  }
+]

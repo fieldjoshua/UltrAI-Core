@@ -1,57 +1,156 @@
 services:
+  # Main web service
   - type: web
     name: ultrai-core
     runtime: python
-    plan: free
-    buildCommand: pip install poetry && poetry install --no-dev --no-interaction && cd frontend && npm ci && npm run build
-    startCommand: poetry run uvicorn app_production:app --host 0.0.0.0 --port $PORT
+    plan: free  # Change to 'starter' or higher for production
+    buildCommand: |
+      # Install Poetry
+      pip install poetry
+      # Install Python dependencies
+      poetry install --no-dev --no-interaction --no-ansi
+      # Build frontend
+      cd frontend && npm ci && npm run build && cd ..
+      # Create necessary directories
+      mkdir -p /var/log/ultrai
+    startCommand: |
+      # Run production server with proper configuration
+      poetry run uvicorn app_production:app \
+        --host 0.0.0.0 \
+        --port $PORT \
+        --workers 1 \
+        --loop uvloop \
+        --access-log \
+        --log-config monitoring/logging-config.yaml
+    
+    # Health check configuration
+    healthCheckPath: /health
+    
+    # Environment variables
     envVars:
+      # Core configuration
       - key: ENVIRONMENT
         value: production
       - key: DEBUG
-        value: false
+        value: "false"
+      - key: LOG_LEVEL
+        value: INFO
+      
+      # Feature flags
       - key: ENABLE_AUTH
-        value: true
+        value: "true"
       - key: ENABLE_RATE_LIMIT
-        value: true
+        value: "true"
       - key: ENABLE_CACHE
-        value: true
+        value: "true"
+      - key: ENABLE_TELEMETRY
+        value: "true"
       - key: MOCK_MODE
-        value: false
+        value: "false"
+      
+      # LLM configuration
       - key: DEFAULT_PROVIDER
         value: openai
       - key: DEFAULT_MODEL
-        value: gpt-4-turbo
+        value: gpt-4o
+      - key: MODEL_TIMEOUT_SECONDS
+        value: "45"
+      - key: MAX_RETRIES
+        value: "3"
+      
+      # Security
+      - key: JWT_SECRET
+        generateValue: true
+      - key: ENCRYPTION_KEY
+        generateValue: true
+      - key: ALLOWED_ORIGINS
+        value: "https://ultr-ai-core.vercel.app,https://ultrai-core.onrender.com"
+      
+      # Database
       - key: DATABASE_URL
         fromDatabase:
           name: ultrai-db
           property: connectionString
+      
+      # Redis
       - key: REDIS_URL
         fromService:
           type: redis
           name: ultrai-redis
           property: connectionString
+      
+      # LLM API Keys (set via dashboard)
       - key: OPENAI_API_KEY
         sync: false
       - key: ANTHROPIC_API_KEY
         sync: false
       - key: GOOGLE_API_KEY
         sync: false
-      - key: JWT_SECRET
-        generateValue: true
-      - key: ENCRYPTION_KEY
-        generateValue: true
+      - key: HUGGINGFACE_API_KEY
+        sync: false
+      
+      # Monitoring
+      - key: PROMETHEUS_ENABLED
+        value: "true"
+      - key: LOKI_URL
+        sync: false  # Optional: Set if using external Loki
+      - key: SENTRY_DSN
+        sync: false  # Optional: Set for error tracking
+      
+      # Rate limiting
+      - key: RATE_LIMIT_REQUESTS_PER_MINUTE
+        value: "60"
+      - key: RATE_LIMIT_BURST
+        value: "10"
+      
+      # CORS and Security
       - key: CSP_POLICY
         value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://unpkg.com; object-src 'none'; img-src 'self' data: https:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net https://unpkg.com; style-src-elem 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net https://unpkg.com; font-src 'self' https://fonts.gstatic.com https://fonts.googleapis.com; frame-src 'none'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; worker-src 'self' blob:; connect-src 'self' https://ultrai-core.onrender.com https://ultrai-core-4lut.onrender.com wss://ultrai-core.onrender.com wss://ultrai-core-4lut.onrender.com https://api.ultrai.app wss://api.ultrai.app http://localhost:* ws://localhost:*;"
-    ipAllowList: []
-
+    
+    # Scaling configuration
+    numInstances: 1  # Increase for high availability
+    
+    # Resource limits (upgrade plan for customization)
+    # disk: 512  # MB
+    # memory: 512  # MB
+    
+  # Redis cache service
   - type: redis
     name: ultrai-redis
-    plan: free
+    plan: free  # Change to 'starter' or higher for production
     maxmemoryPolicy: allkeys-lru
+    
+  # Background worker (optional - for async tasks)
+  # - type: worker
+  #   name: ultrai-worker
+  #   runtime: python
+  #   plan: free
+  #   buildCommand: pip install poetry && poetry install --no-dev --no-interaction
+  #   startCommand: poetry run python -m app.workers.background_worker
+  #   envVars:
+  #     # Copy relevant env vars from web service
+  #     - key: ENVIRONMENT
+  #       value: production
+  #     - key: REDIS_URL
+  #       fromService:
+  #         type: redis
+  #         name: ultrai-redis
+  #         property: connectionString
 
+# Database configuration
 databases:
   - name: ultrai-db
+    plan: free  # Change to 'starter' or higher for production
     databaseName: ultrai_production
     user: ultrai_user
-    plan: free
+    postgresMajorVersion: 15
+    
+# Cron jobs (optional)
+# cronJobs:
+#   - name: cleanup-old-logs
+#     schedule: "0 2 * * *"  # Daily at 2 AM
+#     buildCommand: pip install poetry && poetry install --no-dev --no-interaction
+#     startCommand: poetry run python -m app.scripts.cleanup_logs
+#     envVars:
+#       - key: ENVIRONMENT
+#         value: production

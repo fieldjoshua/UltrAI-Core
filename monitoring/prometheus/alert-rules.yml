@@ -1,0 +1,132 @@
+groups:
+  - name: ultrai_core_alerts
+    interval: 30s
+    rules:
+      # High error rate alert
+      - alert: HighErrorRate
+        expr: |
+          (
+            sum(rate(http_requests_total{status=~"5.."}[5m]))
+            /
+            sum(rate(http_requests_total[5m]))
+          ) > 0.05
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "High error rate detected"
+          description: "Error rate is above 5% for the last 5 minutes (current value: {{ $value | humanizePercentage }})"
+
+      # High latency alert
+      - alert: HighLatency
+        expr: |
+          histogram_quantile(0.95,
+            sum(rate(http_request_duration_seconds_bucket[5m])) by (le)
+          ) > 1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High request latency"
+          description: "95th percentile latency is above 1 second (current value: {{ $value | humanizeDuration }})"
+
+      # LLM provider failure alert
+      - alert: LLMProviderFailure
+        expr: |
+          (
+            sum(rate(llm_requests_total{status="error"}[5m])) by (provider)
+            /
+            sum(rate(llm_requests_total[5m])) by (provider)
+          ) > 0.1
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "LLM provider {{ $labels.provider }} has high error rate"
+          description: "Provider {{ $labels.provider }} error rate is above 10% (current value: {{ $value | humanizePercentage }})"
+
+      # High LLM cost alert
+      - alert: HighLLMCost
+        expr: |
+          increase(llm_cost_total[1h]) > 10
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High LLM costs detected"
+          description: "LLM costs in the last hour exceed $10 (current value: ${{ $value | printf \"%.2f\" }})"
+
+      # Service down alert
+      - alert: ServiceDown
+        expr: up == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Service {{ $labels.job }} is down"
+          description: "{{ $labels.instance }} has been down for more than 2 minutes"
+
+      # High memory usage
+      - alert: HighMemoryUsage
+        expr: |
+          (
+            process_resident_memory_bytes
+            /
+            process_virtual_memory_bytes
+          ) > 0.8
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High memory usage detected"
+          description: "Memory usage is above 80% (current value: {{ $value | humanizePercentage }})"
+
+      # Rate limiting triggered frequently
+      - alert: RateLimitingActive
+        expr: |
+          sum(rate(rate_limit_exceeded_total[5m])) > 10
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High rate of rate limit violations"
+          description: "More than 10 rate limit violations per minute (current value: {{ $value | humanize }})"
+
+      # Database connection pool exhausted
+      - alert: DatabaseConnectionPoolExhausted
+        expr: |
+          (
+            database_connections_active
+            /
+            database_connections_max
+          ) > 0.9
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Database connection pool nearly exhausted"
+          description: "Database connection pool usage is above 90% (current value: {{ $value | humanizePercentage }})"
+
+      # Redis unavailable
+      - alert: RedisUnavailable
+        expr: |
+          redis_up == 0
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Redis is unavailable"
+          description: "Redis has been unavailable for more than 2 minutes"
+
+      # Long running pipeline
+      - alert: LongRunningPipeline
+        expr: |
+          histogram_quantile(0.95,
+            sum(rate(pipeline_stage_duration_seconds_bucket[5m])) by (stage, le)
+          ) > 30
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Pipeline stage {{ $labels.stage }} is running slowly"
+          description: "95th percentile duration for stage {{ $labels.stage }} is above 30 seconds (current value: {{ $value | humanizeDuration }})"

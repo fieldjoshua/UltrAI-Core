@@ -18,7 +18,7 @@ export default function OptionCards({ options, selected, onToggle, multi = true 
       {options.map((opt) => (
         <div
           key={opt.label}
-          className={`glass border-2 rounded-xl p-2 cursor-pointer transition-all
+          className={`glass border-2 rounded-xl p-2 cursor-pointer transition-all animate-border-hum
             ${selected.includes(opt.label)
               ? "shadow-neon-mint border-mint-400"
               : "hover:shadow-neon-blue border-white/20"}`}

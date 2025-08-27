@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import OptionCards from "./OptionCards";
 import AnalysisModes from "./AnalysisModes";
+import StatusUpdater from "./StatusUpdater";
 
 interface StepOption { label: string; cost?: number; icon?: string; description?: string }
 interface Step {
@@ -12,16 +13,18 @@ interface Step {
   options?: StepOption[];
   baseCost?: number;
 }
+interface SummaryItem { label: string; cost: number; color: string }
 
 export default function CyberWizard() {
   const [steps, setSteps] = useState<Step[]>([]);
   const [currentStep, setCurrentStep] = useState(0);
-  const [summary, setSummary] = useState<string[]>([]);
+  const [summary, setSummary] = useState<SummaryItem[]>([]);
   const [totalCost, setTotalCost] = useState(0);
   const [selectedGoals, setSelectedGoals] = useState<string[]>([]);
   const [selectedModels, setSelectedModels] = useState<string[]>([]);
   const [selectedAddons, setSelectedAddons] = useState<string[]>([]);
   const [selectedAnalysisModes, setSelectedAnalysisModes] = useState<string[]>([]);
+  const [showStatus, setShowStatus] = useState(false);
 
   useEffect(() => {
     const load = async () => {
@@ -39,9 +42,9 @@ export default function CyberWizard() {
     load();
   }, []);
 
-  const addSelection = (label: string, cost?: number) => {
+  const addSelection = (label: string, cost: number | undefined, color: string) => {
     const appliedCost = typeof cost === 'number' ? cost : 0;
-    setSummary(prev => [...prev, `${label}: $${appliedCost.toFixed(2)}`]);
+    setSummary(prev => [...prev, { label, cost: appliedCost, color }]);
     setTotalCost(prev => prev + appliedCost);
   };
 
@@ -53,16 +56,19 @@ export default function CyberWizard() {
   if (steps.length === 0) return <div>Loading…</div>;
 
   const step = steps[currentStep];
-  const colorHex = step.color === 'mint' ? '#00ff9f'
-    : step.color === 'blue' ? '#00b8ff'
-    : step.color === 'deepblue' ? '#001eff'
-    : step.color === 'purple' ? '#bd00ff'
+  const mapColorHex = (c: string) => c === 'mint' ? '#00ff9f'
+    : c === 'blue' ? '#00b8ff'
+    : c === 'deepblue' ? '#001eff'
+    : c === 'purple' ? '#bd00ff'
     : '#d600ff';
-  const colorRGBA = step.color === 'mint' ? 'rgba(0,255,159,0.08)'
-    : step.color === 'blue' ? 'rgba(0,184,255,0.08)'
-    : step.color === 'deepblue' ? 'rgba(0,30,255,0.08)'
-    : step.color === 'purple' ? 'rgba(189,0,255,0.08)'
-    : 'rgba(214,0,255,0.08)';
+  const mapColorRGBA = (c: string, alpha: number) => c === 'mint' ? `rgba(0,255,159,${alpha})`
+    : c === 'blue' ? `rgba(0,184,255,${alpha})`
+    : c === 'deepblue' ? `rgba(0,30,255,${alpha})`
+    : c === 'purple' ? `rgba(189,0,255,${alpha})`
+    : `rgba(214,0,255,${alpha})`;
+
+  const colorHex = mapColorHex(step.color);
+  const colorRGBA = mapColorRGBA(step.color, 0.08);
 
   // Toggle handlers per step category
   const handleGoalToggle = (label: string) => {
@@ -73,7 +79,7 @@ export default function CyberWizard() {
         removeSelectionCost(cost);
         return prev.filter(l => l !== label);
       }
-      addSelection(label, cost);
+      addSelection(label, cost, step.color);
       return [...prev, label];
     });
   };
@@ -85,7 +91,7 @@ export default function CyberWizard() {
         removeSelectionCost(cost);
         return prev.filter(l => l !== label);
       }
-      addSelection(label, cost);
+      addSelection(label, cost, step.color);
       return [...prev, label];
     });
   };
@@ -97,7 +103,7 @@ export default function CyberWizard() {
         removeSelectionCost(cost);
         return prev.filter(l => l !== label);
       }
-      addSelection(label, cost);
+      addSelection(label, cost, step.color);
       return [...prev, label];
     });
   };
@@ -117,7 +123,7 @@ export default function CyberWizard() {
       {/* Wizard Panel (left) */}
       <div className="w-[420px] flex-none" style={{ marginTop: '25vh' }}>
         <div
-          className={`glass-strong p-5 rounded-2xl transition-all duration-300 min-h-[48vh]
+          className={`glass-strong p-5 rounded-2xl transition-all duration-300 min-h-[48vh] animate-border-hum
             ${step.color === "mint" ? "shadow-neon-mint"
             : step.color === "blue" ? "shadow-neon-blue"
             : step.color === "deepblue" ? "shadow-neon-deep"
@@ -131,11 +137,8 @@ export default function CyberWizard() {
             {steps.map((s, i) => {
               const isActive = i === currentStep;
               const isDone = i < currentStep;
-              const colorHex = s.color === 'mint' ? '#00ff9f'
-                : s.color === 'blue' ? '#00b8ff'
-                : s.color === 'deepblue' ? '#001eff'
-                : s.color === 'purple' ? '#bd00ff'
-                : '#d600ff';
+              const dotHex = mapColorHex(s.color);
+              const dotFill = mapColorRGBA(s.color, isActive ? 0.3 : isDone ? 0.18 : 0.08);
               const shadowClass = s.color === 'mint' ? 'shadow-neon-mint'
                 : s.color === 'blue' ? 'shadow-neon-blue'
                 : s.color === 'deepblue' ? 'shadow-neon-deep'
@@ -148,9 +151,11 @@ export default function CyberWizard() {
                     style={{
                       width: 24,
                       height: 24,
-                      backgroundColor: 'transparent',
-                      boxShadow: isActive ? `0 0 0 2px ${colorHex}, inset 0 0 8px ${colorHex}` : `0 0 0 1px ${colorHex}`,
-                      opacity: isDone || isActive ? 1 : 0.5
+                      backgroundColor: dotFill,
+                      boxShadow: isActive
+                        ? `0 0 0 2px #FFD700, 0 0 0 4px ${dotHex}, inset 0 0 8px ${dotHex}`
+                        : `0 0 0 1px ${dotHex}`,
+                      opacity: isDone || isActive ? 1 : 0.6
                     }}
                   />
                   {i < steps.length - 1 && (
@@ -158,8 +163,8 @@ export default function CyberWizard() {
                       className="mx-2"
                       style={{
                         height: 2,
-                        backgroundColor: i < currentStep ? colorHex : 'rgba(255,255,255,0.25)',
-                        boxShadow: i < currentStep ? `0 0 6px ${colorHex}` : undefined,
+                        backgroundColor: i < currentStep ? dotHex : 'rgba(255,255,255,0.25)',
+                        boxShadow: i < currentStep ? `0 0 6px ${dotHex}` : undefined,
                         flexGrow: 1
                       }}
                     />
@@ -177,7 +182,7 @@ export default function CyberWizard() {
           : step.color === 'purple' ? 'text-neon-purple'
           : 'text-neon-pink'
         } text-lg mb-3 text-center uppercase tracking-wide`}
-        style={{ borderBottom: `1px solid ${step.color === 'mint' ? '#00ff9f' : step.color === 'blue' ? '#00b8ff' : step.color === 'deepblue' ? '#001eff' : step.color === 'purple' ? '#bd00ff' : '#d600ff'}`, paddingBottom: 6 }}
+        style={{ borderBottom: `1px solid ${colorHex}`, paddingBottom: 6 }}
         >{step.title}</h2>
         {step.narrative && (
           <p className="text-xs opacity-80 mb-3 text-center">{step.narrative}</p>
@@ -189,7 +194,7 @@ export default function CyberWizard() {
             <textarea
               className="w-full h-20 glass p-2 text-white text-sm"
               placeholder="Type your query…"
-              onBlur={() => step.baseCost && addSelection("Query Entry", step.baseCost)}
+              onBlur={() => addSelection("Query Entry", step.baseCost, step.color)}
             />
           )}
 
@@ -199,26 +204,26 @@ export default function CyberWizard() {
               <input
                 type="radio"
                 name={`radio-${currentStep}`}
-                onChange={() => addSelection(o.label, o.cost)}
+                onChange={() => addSelection(o.label, o.cost, step.color)}
               />{" "}
               {o.icon ? `${o.icon} ` : ""}{o.label}{typeof o.cost === 'number' ? ` ($${o.cost})` : ""}
             </label>
           ))}
 
-          {/* Checkbox steps using OptionCards */}
+          {/* Checkbox steps using OptionCards (limit to six) */}
           {step.type === "checkbox" && step.options && (
             currentStep === 0 ? (
-              <OptionCards options={step.options} selected={selectedGoals} onToggle={handleGoalToggle} />
+              <OptionCards options={step.options.slice(0,6)} selected={selectedGoals} onToggle={handleGoalToggle} />
             ) : currentStep === 2 ? (
-              <OptionCards options={step.options} selected={selectedModels} onToggle={handleModelToggle} />
+              <OptionCards options={step.options.slice(0,6)} selected={selectedModels} onToggle={handleModelToggle} />
             ) : currentStep === 4 ? (
-              <OptionCards options={step.options} selected={selectedAddons} onToggle={handleAddonToggle} />
+              <OptionCards options={step.options.slice(0,6)} selected={selectedAddons} onToggle={handleAddonToggle} />
             ) : (
-              step.options.map(o => (
+              step.options.slice(0,6).map(o => (
                 <label key={o.label} className="block text-[11px] leading-tight">
                   <input
                     type="checkbox"
-                    onChange={e => e.target.checked ? addSelection(o.label, o.cost) : removeSelectionCost(o.cost)}
+                    onChange={e => e.target.checked ? addSelection(o.label, o.cost, step.color) : removeSelectionCost(o.cost)}
                   />{" "}
                   {o.icon ? `${o.icon} ` : ""}{o.label}{typeof o.cost === 'number' ? ` ($${o.cost})` : ""}
                 </label>
@@ -230,6 +235,17 @@ export default function CyberWizard() {
           {step.type === "groupbox" && step.options && (
             <AnalysisModes options={step.options as any} selected={selectedAnalysisModes} onToggle={handleAnalysisToggle} />
           )}
+
+          {/* Auto optimize button */}
+          {(step.type === 'checkbox' || step.type === 'textarea' || step.type === 'radio') && (
+            <button
+              className="w-full mt-2 px-3 py-2 glass border-2 rounded text-center hover:shadow-neon-blue"
+              style={{ borderColor: colorHex, color: colorHex }}
+              onClick={() => addSelection("Auto: Let UltrAI Optimize My Query", 0, step.color)}
+            >
+              Auto: Let UltrAI Optimize My Query
+            </button>
+          )}
         </div>
 
         {/* Navigation buttons */}
@@ -238,14 +254,14 @@ export default function CyberWizard() {
             disabled={currentStep===0}
             onClick={() => setCurrentStep(currentStep-1)}
             className="px-3 py-2 rounded disabled:opacity-40 border-2 bg-transparent text-sm"
-            style={{ borderColor: (step.color === 'mint' ? '#00ff9f' : step.color === 'blue' ? '#00b8ff' : step.color === 'deepblue' ? '#001eff' : step.color === 'purple' ? '#bd00ff' : '#d600ff'), color: (step.color === 'mint' ? '#00ff9f' : step.color === 'blue' ? '#00b8ff' : step.color === 'deepblue' ? '#001eff' : step.color === 'purple' ? '#bd00ff' : '#d600ff') }}
+            style={{ borderColor: colorHex, color: colorHex }}
           >
             ← Back
           </button>
           <button
             onClick={() => setCurrentStep(Math.min(currentStep+1, steps.length-1))}
             className="px-3 py-2 rounded animate-pulse-neon border-2 bg-transparent text-sm"
-            style={{ borderColor: (step.color === 'mint' ? '#00ff9f' : step.color === 'blue' ? '#00b8ff' : step.color === 'deepblue' ? '#001eff' : step.color === 'purple' ? '#bd00ff' : '#d600ff'), color: (step.color === 'mint' ? '#00ff9f' : step.color === 'blue' ? '#00b8ff' : step.color === 'deepblue' ? '#001eff' : step.color === 'purple' ? '#bd00ff' : '#d600ff') }}
+            style={{ borderColor: colorHex, color: colorHex }}
           >
             {currentStep===steps.length-1 ? "Finish" : "Next →"}
           </button>
@@ -254,18 +270,45 @@ export default function CyberWizard() {
       </div>
 
       {/* Summary Panel */}
-      <div className="glass-strong w-[360px] flex-none p-5 rounded-xl border-2 shadow-neon-blue" style={{ marginTop: '25vh' }}>
-        <h2 className="text-lg mb-3">Itemized Summary</h2>
-        {summary.map((s,i) => <div key={i} className="text-sm">{s}</div>)}
-        <div className="mt-4 font-bold text-pink-400 text-xl text-neon-pink">
+      <div className="glass-strong w-[360px] flex-none p-5 rounded-xl border-2 shadow-neon-blue animate-border-hum" style={{ marginTop: '25vh' }}>
+        <h2 className="text-lg mb-3 text-center">Itemized Summary</h2>
+        {/* Group by color */}
+        <div className="space-y-3">
+          {['mint','blue','deepblue','purple','pink'].map(groupColor => {
+            const items = summary.filter(s => s.color === groupColor);
+            if (items.length === 0) return null as any;
+            const hex = mapColorHex(groupColor);
+            return (
+              <div key={groupColor}>
+                <div className="uppercase text-[11px] tracking-wider mb-1 text-center" style={{ color: hex }}>{groupColor}</div>
+                {items.map((s,i) => (
+                  <div key={i} className="text-sm flex items-center">
+                    <span className="flex-1" style={{ color: hex }}>{s.label}</span>
+                    <span className="px-2 select-none opacity-50">. . . . . . . . . . . . . . .</span>
+                    <span className="text-right w-16" style={{ color: hex }}>${s.cost.toFixed(2)}</span>
+                  </div>
+                ))}
+              </div>
+            );
+          })}
+        </div>
+        <div className="mt-4 font-bold text-pink-400 text-xl text-neon-pink text-center">
           Total: ${totalCost.toFixed(2)}
         </div>
-        <button
-          disabled={currentStep!==steps.length-1}
-          className="w-full mt-4 px-4 py-2 glass border-2 shadow-neon-pink rounded animate-flicker text-neon-pink text-sm"
-        >
-          Proceed – Pay ${totalCost.toFixed(2)}
-        </button>
+        {!showStatus && (
+          <button
+            disabled={currentStep!==steps.length-1}
+            className="w-full mt-4 px-4 py-2 glass border-2 shadow-neon-pink rounded animate-flicker text-neon-pink text-sm"
+            onClick={() => setShowStatus(true)}
+          >
+            Proceed – Pay ${totalCost.toFixed(2)}
+          </button>
+        )}
+        {showStatus && (
+          <div className="mt-4">
+            <StatusUpdater />
+          </div>
+        )}
       </div>
       </div>
     </div>
