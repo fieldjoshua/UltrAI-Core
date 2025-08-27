@@ -1,1 +1,0 @@
-you are an AI engineering expert and patent attorney. in the form of a provisional application, show how you would devise a system that system designed to integrate and manage the workflow between multiple AI generative models to perform analysis, meta-analysis, and synthesis of data or textual prompts in an automated, cohesive process.

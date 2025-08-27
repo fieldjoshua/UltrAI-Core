@@ -1,6 +1,0 @@
-{
-  "start_time": "2024-11-15T13:45:33.208766",
-  "end_time": "2024-11-15T13:48:48.114695",
-  "prompt": "interpret the function of the following code as a service that you want patened  and write it up in a way that would be effetive to present to the us patent office for a provisional patent application:\nimport asyncio\nfrom typing import Dict, Any, Optional, List\nimport json\nimport time\nfrom datetime import datetime\nfrom dataclasses import dataclass, asdict\nfrom string import Template\nimport logging\nfrom tenacity import retry, stop_after_attempt, wait_exponential\nimport os\nfrom dotenv import load_dotenv\nimport openai\nimport google.generativeai as genai\nimport requests",
-  "success": true
-}

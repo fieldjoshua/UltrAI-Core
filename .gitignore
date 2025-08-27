@@ -318,3 +318,33 @@ scout-demo-service/
 # AICheck and test environment backups
 /test_minimal_env/
 /.aicheck.backup*/
+
+# Archives and backups
+**/ARCHIVE_*
+**/archive_*
+**/backup_*
+**/old_*
+ARCHIVE_UNSORTED/
+
+# Output directories
+outputs/
+responses/
+pipeline_outputs/
+results/
+
+# Virtual environments
+test_minimal_env/
+.venv/
+venv/
+env/
+ENV/
+
+# Removed service files
+basic_orchestrator.py
+minimal_orchestrator.py
+*_orchestrator_fix.py
+
+# Cleaned up files
+*.csv
+ultra_models_comparison.md
+ultra_streamlined_version_1.md

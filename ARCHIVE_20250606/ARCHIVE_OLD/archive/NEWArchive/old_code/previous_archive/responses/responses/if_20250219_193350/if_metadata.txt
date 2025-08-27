@@ -1,7 +1,0 @@
-{
-  "start_time": "2025-02-19T19:33:50.626436",
-  "end_time": "2025-02-19T19:38:46.015990",
-  "prompt": "Ok so if, GPT, Gemini,, Claude, Llama and adoptee DeepSeek were all siblings, what would your personalities be?",
-  "keyword": "if",
-  "success": true
-}

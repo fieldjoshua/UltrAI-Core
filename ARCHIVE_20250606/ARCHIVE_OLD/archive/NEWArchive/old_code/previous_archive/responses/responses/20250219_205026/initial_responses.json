@@ -1,5 +1,0 @@
-{
-    "chatgpt": "object ChatCompletion can't be used in 'await' expression",
-    "gemini": "module 'google.generativeai' has no attribute 'Completion'",
-    "llama": "403 Client Error: Forbidden for url: http://localhost:5000/generate"
-}

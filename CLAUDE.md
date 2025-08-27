@@ -20,18 +20,22 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `cd frontend && npm run lint` - Run ESLint
 - `cd frontend && npm run preview` - Preview production build locally
 
-### Single Test Commands
+### Test Running Commands
 - `pytest tests/test_specific_file.py -v` - Run specific test file
 - `pytest tests/test_file.py::test_function -v` - Run specific test function
 - `pytest tests/ -k "test_pattern" -v` - Run tests matching pattern
 - `pytest tests/ -m "unit" -v` - Run only unit tests
 - `pytest tests/ -m "integration" -v` - Run only integration tests
 - `pytest tests/ -m "e2e" -v` - Run only end-to-end tests
+- `pytest tests/ -m "not live_online" -v` - Run all tests except live API tests
+- `pytest tests/unit/ -v` - Run only unit tests directory
+- `pytest tests/test_file.py -s` - Run with print output visible
 - `./run_e2e.sh` - Run Playwright e2e tests using local Chrome browser
 - `pytest tests/ -m "live_online" -v` - Run live tests against real LLM providers
 
 ### Poetry Commands (Python Dependency Management)
 - `poetry install` - Install all dependencies from poetry.lock
+- `poetry install --sync` - Install and remove packages to match lock file exactly
 - `poetry run pytest` - Run tests in Poetry environment
 - `poetry add package_name` - Add new dependency
 - `poetry show --outdated` - Check for outdated packages
@@ -42,6 +46,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `poetry run flake8 .` - Run Python linting with Flake8
 - `poetry run mypy app/` - Run type checking with MyPy
 - `cd frontend && npm run lint` - Run ESLint for TypeScript/React
+
+### Common Troubleshooting Commands
+- `make clean-ports` - Kill stuck processes on ports 8000-8001
+- `poetry install --sync` - Fix dependency issues
+- `rm -rf frontend/dist && cd frontend && npm run build` - Rebuild frontend from scratch
+- `poetry cache clear pypi --all` - Clear Poetry cache for dependency issues
 
 ## Architecture Overview
 
@@ -59,7 +69,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `quality_evaluation.py` - Response quality assessment
 - `llm_adapters.py` - Unified interface for OpenAI, Anthropic, and Google APIs
 
-**LLM Adapter Pattern**: All external LLM providers use a shared `httpx.AsyncClient` with 25-second timeout to prevent hanging requests. Each adapter (OpenAI, Anthropic, Google, HuggingFace) implements provider-specific API requirements while maintaining consistent interface.
+**LLM Adapter Pattern**: All external LLM providers MUST use a shared `httpx.AsyncClient` with 45-second timeout to prevent hanging requests and connection issues. Each adapter (OpenAI, Anthropic, Google, HuggingFace) implements provider-specific API requirements while maintaining consistent interface. The shared client is initialized once and passed to all adapters. See `documentation/architecture/shared-http-client.md` for detailed explanation of why this pattern is critical.
 
 **Routes Layer** (`app/routes/`) - FastAPI route handlers that validate input and delegate to services:
 - `orchestrator_minimal.py` - Core multi-model orchestration endpoint
@@ -96,24 +106,29 @@ Follow `.aicheck/RULES.md` requirements with focus on **deployment verification*
 ### Core Commands
 - `./aicheck status` - Check current action and system status
 - `./aicheck action new ActionName` - Create new action
-- `./aicheck action set ActionName` - Set active action (only one can be active)
+- `./aicheck action set ActionName` - Set active action (only one can be active per developer)
 - `./aicheck action complete [ActionName]` - Complete active action with dependency verification
 - `./aicheck dependency add NAME VERSION JUSTIFICATION [ACTION]` - Add external dependency
 - `./aicheck dependency internal DEP_ACTION ACTION TYPE [DESCRIPTION]` - Add internal dependency
 - `./aicheck deploy` - Pre-deployment validation
 - `./aicheck focus` - Check for scope creep
 - `./aicheck stuck` - Get help when confused
-- `./aicheck exec` - Toggle exec mode for system maintenance
+- `./aicheck exec` - Toggle exec mode for system maintenance (non-action work)
 
 ### Critical Deployment Rule
 **NO ACTION IS COMPLETE WITHOUT PRODUCTION VERIFICATION**. All work must be tested on the actual production URL (`https://ultrai-core.onrender.com`) with documented evidence before marking actions complete.
 
 ### Mandatory Workflow Rules
-1. **Only ONE active action per session** - Use `./aicheck action set ActionName` to set active action
-2. **Test-Driven Development** - Write tests before implementation
-3. **Documentation-First** - All plans must be documented in action directories before coding
-4. **Production Verification Required** - Every completion requires live production testing
-5. **Git Integration** - Actions track git commits and require clean working directory
+1. **Only ONE active action per developer** - Each developer can only have one action active at a time
+2. **Every action MUST have a `todo.md` file** - Required for tracking tasks within the action
+3. **Test-Driven Development** - Write tests before implementation
+4. **Documentation-First** - All plans must be documented in action directories before coding
+5. **Production Verification Required** - Every completion requires:
+   - Live production testing on `https://ultrai-core.onrender.com`
+   - Documentation in `supporting_docs/deployment-verification.md`
+   - All tests passing
+6. **Git Integration** - Actions track git commits and require clean working directory
+7. **Poetry Required** - All Python projects MUST use Poetry for dependency management
 
 ## Development Workflow
 
@@ -142,7 +157,7 @@ def initialize_services() -> Dict[str, Any]:
 
 **Critical Architecture Patterns**:
 - **Dependency Injection**: Services initialized in `main.py` and passed to routes
-- **Shared HTTP Client**: All LLM adapters use single `httpx.AsyncClient` with 25s timeout
+- **Shared HTTP Client**: All LLM adapters MUST use single `httpx.AsyncClient` with 45s timeout
 - **Graceful Degradation**: Optional services (database, cache) fail gracefully when unavailable
 - **Environment-Based Configuration**: Dev vs prod modes control feature availability
 
@@ -167,6 +182,7 @@ def initialize_services() -> Dict[str, Any]:
 - Cache: REDIS_URL (Redis connection string)
 - Auth: JWT_SECRET (for JWT token signing)
 - Frontend: VITE_API_URL (API URL for frontend)
+- See `.env.example` for complete environment variable reference
 
 **Key Configuration Patterns**:
 - Services gracefully degrade when optional dependencies unavailable
@@ -213,7 +229,13 @@ def initialize_services() -> Dict[str, Any]:
 1. Use `make deploy` to commit and push changes
 2. Monitor build in Render dashboard
 3. Test production endpoints before marking work complete
-4. Document verification results in `supporting_docs/`
+4. Document verification results in `supporting_docs/deployment-verification.md`
+
+**Production Verification Requirements**:
+- Every deployment MUST be tested on live production URL
+- Document all test results in supporting_docs/
+- Ensure all automated tests pass before deployment
+- Verify critical user flows work correctly
 
 ## API Architecture
 
@@ -235,6 +257,11 @@ def initialize_services() -> Dict[str, Any]:
 - `GET /health` - Overall system health
 - `GET /api/orchestrator/health` - Orchestrator service health
 - `GET /api/metrics` - Prometheus metrics
+
+**API Documentation**:
+- Swagger UI available at `/docs` when server is running
+- ReDoc available at `/redoc`
+- OpenAPI JSON schema at `/api/openapi.json`
 
 **Model Integration**:
 - Dynamic model registry supports runtime model addition

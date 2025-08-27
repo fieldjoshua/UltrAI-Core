@@ -1,9 +1,0 @@
-services:
-  - type: web
-    name: ultra-api-minimal
-    runtime: python
-    buildCommand: "pip install -r requirements-ultra-minimal.txt"
-    startCommand: "gunicorn app_health_only:app --workers 1 --worker-class uvicorn.workers.UvicornWorker --bind 0.0.0.0:$PORT"
-    envVars:
-      - key: PYTHON_VERSION
-        value: 3.11.0

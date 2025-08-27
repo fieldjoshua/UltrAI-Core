@@ -1,1 +1,0 @@
-You are an AI engineering expert and patent attorney. Write a provisional patent application for a system that orchestrates multiple AI models to collaboratively analyze and synthesize information

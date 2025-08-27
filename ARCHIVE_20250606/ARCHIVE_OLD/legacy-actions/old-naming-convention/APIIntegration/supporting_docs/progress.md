@@ -1,1 +1,0 @@
-Implemented endpoint for LLM availability and configuration: Created LLM config service, routes for getting available models, model details, model status, analysis patterns, and analysis modes. These endpoints will allow the UI to retrieve information about available LLMs and their capabilities.
