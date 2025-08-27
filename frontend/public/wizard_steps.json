@@ -1,0 +1,98 @@
+[
+  {
+    "title": "Step 1 of 5: Select Goal",
+    "color": "mint",
+    "type": "checkbox",
+    "narrative": "What’s your mission today? Choose a goal for UltraAI to pursue. You can pick one or more, or define your own custom goal.",
+    "options": [
+      { "label": "Document Analysis", "icon": "📄" },
+      { "label": "Deep Research", "icon": "🔎" },
+      { "label": "Legal / Business Analysis", "icon": "⚖️" },
+      { "label": "Academic Research & Citations", "icon": "🎓" },
+      { "label": "Writing & Editing Assistance", "icon": "✍️" },
+      { "label": "Brainstorming & Ideation", "icon": "💡" },
+      { "label": "Code Creation / Debugging", "icon": "💻" },
+      { "label": "Data Analysis & Visualization", "icon": "📊" },
+      { "label": "Media Generation (Image/Video/Text)", "icon": "🎨" },
+      { "label": "Other (custom input)", "icon": "➕" }
+    ]
+  },
+  {
+    "title": "Step 2 of 5: Enter Your Query",
+    "color": "blue",
+    "type": "textarea",
+    "narrative": "Describe your task in plain language. Attach files or media for deeper analysis, or adjust advanced settings.",
+    "options": [
+      { "label": "File Upload", "icon": "📎", "cost": 0.10 },
+      { "label": "Multi-Doc Upload", "icon": "🗂️", "cost": 0.20 },
+      { "label": "Image Upload", "icon": "🖼️", "cost": 0.15 },
+      { "label": "Voice Upload", "icon": "🎤", "cost": 0.12 },
+      { "label": "Max Length / Depth", "icon": "📏", "cost": 0.05 },
+      { "label": "Response Language", "icon": "🌐", "cost": 0.05 }
+    ]
+  },
+  {
+    "title": "Step 3 of 5: Model Selection",
+    "color": "deepblue",
+    "type": "checkbox",
+    "narrative": "Choose which intelligence engines to use, or let UltraAI auto-select. Modes balance cost, speed, and accuracy.",
+    "options": [
+      { "label": "GPT-4 (accuracy)", "icon": "🤖", "cost": 0.08 },
+      { "label": "Claude (reasoning)", "icon": "🧠", "cost": 0.07 },
+      { "label": "Gemini (search-connected)", "icon": "🌐", "cost": 0.06 },
+      { "label": "LLaMA (open-source speed)", "icon": "⚡", "cost": 0.04 },
+      { "label": "Budget Mode", "icon": "💲", "cost": 0.03 },
+      { "label": "Accuracy Mode", "icon": "🎯", "cost": 0.09 },
+      { "label": "Speed Mode", "icon": "⏩", "cost": 0.04 },
+      { "label": "Diversity Mode", "icon": "🌈", "cost": 0.07 },
+      { "label": "Specialized Models (code/image/search)", "icon": "🔧", "cost": 0.10 },
+      { "label": "Auto: Let UltraAI choose for me", "icon": "✨", "cost": 0.05 }
+    ]
+  },
+  {
+    "title": "Step 4 of 5: Choose Analysis Mode",
+    "color": "purple",
+    "type": "groupbox",
+    "narrative": "Define how UltraAI orchestrates and refines the outputs. These modes are presented as internal cards/boxes with icons and descriptions.",
+    "options": [
+      {
+        "label": "Intelligence Multiplier",
+        "icon": "🚀",
+        "description": "Blend the best insights from all models into one cohesive output."
+      },
+      {
+        "label": "Fact-check & Confidence",
+        "icon": "✔️",
+        "description": "Rate truthfulness across models and provide confidence scores."
+      },
+      {
+        "label": "Devil’s Advocate",
+        "icon": "⚔️",
+        "description": "One model critiques another to expose blind spots and biases."
+      },
+      {
+        "label": "Convergence/Divergence",
+        "icon": "🔀",
+        "description": "Highlight where models agree and where they differ significantly."
+      }
+    ]
+  },
+  {
+    "title": "Step 5 of 5: Add-ons & Formatting",
+    "color": "pink",
+    "type": "checkbox",
+    "narrative": "Choose how your result is delivered, secured, and polished. Select output format, export destination, and extra features.",
+    "options": [
+      { "label": "PDF / Word / Markdown / Plain Text", "icon": "📄", "cost": 0.02 },
+      { "label": "Google Doc / Slide Deck", "icon": "📑", "cost": 0.03 },
+      { "label": "JSON / CSV Export", "icon": "🗄️", "cost": 0.02 },
+      { "label": "Encryption", "icon": "🔒", "cost": 0.05 },
+      { "label": "Data Privacy Mode (strip PII)", "icon": "🙈", "cost": 0.04 },
+      { "label": "Fact-check Confidence Report", "icon": "📊", "cost": 0.05 },
+      { "label": "Legal Compliance Mode (GDPR/HIPAA)", "icon": "⚖️", "cost": 0.06 },
+      { "label": "Rewrite for Grade Level", "icon": "📘", "cost": 0.04 },
+      { "label": "Summarize / Expand", "icon": "📜", "cost": 0.06 },
+      { "label": "Save or Send (Email, Drive, Dropbox, Notion)", "icon": "📤", "cost": 0.03 }
+    ]
+  }
+]

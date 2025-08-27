@@ -12,7 +12,8 @@ body {
   align-items: center;
   height: 100vh;
   width: 100vw;
-  background: linear-gradient(to right, #667eea, #764ba2);
+  /* Background handled by page/component (cityscape image) */
+  background: transparent;
   color: #f5f5f5;
   font-family: 'Orbitron', sans-serif;
 }
@@ -27,3 +28,70 @@ body {
 .bg-accent { background-color: #00b8ff; }
 .text-destructive { color: #ff0033; }
 .bg-destructive { background-color: #330000; }
+
+/* Animated overlay element-level effects (applies if SVG ids/classes exist) */
+.line-overlay #moon {
+  animation: moonPulse 5s ease-in-out infinite;
+  filter: drop-shadow(0 0 6px #00ff7f);
+}
+
+.line-overlay #billboard {
+  animation: billboardFlicker 3.2s steps(2, end) infinite;
+  filter: drop-shadow(0 0 8px #00ff7f);
+}
+
+.line-overlay .car {
+  animation: carGlide 8s linear infinite;
+}
+
+.line-overlay .drone {
+  animation: droneHover 6s ease-in-out infinite;
+}
+
+.line-overlay .bridge-cable {
+  animation: cableHum 2.8s ease-in-out infinite;
+}
+
+@keyframes moonPulse {
+  0%, 100% { opacity: 0.6; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.03); }
+}
+
+@keyframes billboardFlicker {
+  0%, 10%, 12%, 20%, 22%, 100% { opacity: 1; }
+  11%, 21% { opacity: 0.4; }
+}
+
+@keyframes carGlide {
+  0% { transform: translateX(-5%); }
+  100% { transform: translateX(5%); }
+}
+
+@keyframes droneHover {
+  0%, 100% { transform: translateY(0) translateX(0); }
+  50% { transform: translateY(-6px) translateX(4px); }
+}
+
+@keyframes cableHum {
+  0%, 100% { stroke-width: 1.5; }
+  50% { stroke-width: 2.5; }
+}
+
+/* General moving-dash animation across all lines to make the overlay feel alive */
+.line-overlay path,
+.line-overlay line,
+.line-overlay polyline {
+  stroke-linecap: round;
+  animation: strokeDash 6s linear infinite;
+}
+
+@keyframes strokeDash {
+  0% {
+    stroke-dasharray: 3 10;
+    stroke-dashoffset: 0;
+  }
+  100% {
+    stroke-dasharray: 3 10;
+    stroke-dashoffset: -200;
+  }
+}

@@ -35,7 +35,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ### Poetry Commands (Python Dependency Management)
 - `poetry install` - Install all dependencies from poetry.lock
-- `poetry install --sync` - Install and remove packages to match lock file exactly
+- `poetry sync` - Synchronize environment with lock file
 - `poetry run pytest` - Run tests in Poetry environment
 - `poetry add package_name` - Add new dependency
 - `poetry show --outdated` - Check for outdated packages
@@ -49,7 +49,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ### Common Troubleshooting Commands
 - `make clean-ports` - Kill stuck processes on ports 8000-8001
-- `poetry install --sync` - Fix dependency issues
+- `poetry sync` - Fix dependency issues
 - `rm -rf frontend/dist && cd frontend && npm run build` - Rebuild frontend from scratch
 - `poetry cache clear pypi --all` - Clear Poetry cache for dependency issues
 
@@ -326,3 +326,10 @@ Begin with the ultra synthesis document."""
 - ✅ SVG assets optimized and lazy loaded
 - ✅ Load time improved to <2 seconds (60% faster)
 - ✅ Production deployment successful
+
+### Recent Codebase Cleanup (Completed)
+- ✅ Repository size reduced from ~2GB to 312MB (84% reduction)
+- ✅ Removed 1.8GB of archives and backups
+- ✅ Consolidated documentation from 4,675 to 853 files
+- ✅ Unified service implementations and removed duplicates
+- ✅ Requirements files consolidated from 33 to 2

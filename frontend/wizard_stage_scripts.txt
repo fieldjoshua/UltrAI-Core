@@ -1,0 +1,51 @@
+Goals
+Title: What’s your goal?
+Subtitle: One sentence is enough. We’ll shape the plan around it.
+Chips: Summarize report | Draft outreach email | Fix code bug | Research brief | Product spec
+Field placeholder: E.g., “Create a 1‑page plan to launch a beta in 6 weeks.”
+Helper: Be specific about audience, length, and outcome.
+CTA primary: Next
+CTA secondary: Skip (I’ll decide later)
+Error: Please enter at least 8 characters.
+
+Input / Request
+Title: Provide context
+Subtitle: Paste content, link a file, or type details.
+Tabs: Text | URL | Upload
+Text placeholder: Paste source text or instructions…
+URL placeholder: https://…
+Upload note: PDF/Doc up to 10MB.
+Tone: Neutral | Friendly | Expert | Executive
+Length: Short | Medium | Long
+Constraints: Must include action items; No sensitive data; Cite sources if used
+CTA primary: Choose Models
+CTA secondary: Back
+Errors: Enter a valid URL. Add at least one input.
+
+Models
+Title: Pick models
+Subtitle: Choose quality, speed, and cost.
+Presets (radio): Balanced (GPT‑4o + Claude Sonnet) | Fast (GPT‑4o mini) | Deep (Claude Opus + Gemini 1.5)
+Advanced (checkbox): Chain-of-Thought (internal only); Cross‑review (peer critique); Diversity boost (varied prompts)
+Cost note: Est. $0.01–$0.08 per 1k tokens depending on model.
+CTA primary: Run Analysis
+CTA secondary: Back
+Error: Select at least one model.
+
+Analysis
+Title: Analysis in progress
+Status: Drafting initial answers… | Cross‑reviewing disagreements… | Merging best ideas… | Verifying consistency…
+Progress chips: Inputs ✓ | Model runs … | Peer review … | Synthesis …
+Sections: Executive Summary | Key Decisions | Risks & Mitigations | Next Actions (owners & due dates)
+CTA primary: Apply Add‑Ons
+CTA secondary: Download (PDF/Markdown)
+Graceful error: A model timed out. We continued with available outputs.
+
+Add‑Ons
+Title: Enhance your result
+Toggles: Citations; Data Guard; Priority; Rewrite for Audience (PM/Exec/Legal/Eng); Format (Deck/One‑pager/Email/PRD); Localization (ES/FR/DE/JA)
+Notes: You can re‑run add‑ons without re‑analyzing. Priority and citations may increase cost.
+CTA primary: Generate Final
+CTA secondary: Back to Results
+Success: Add‑ons applied.
+Error: Couldn’t apply add‑on. Try again or deselect it.

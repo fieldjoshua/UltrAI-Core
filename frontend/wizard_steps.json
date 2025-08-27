@@ -1,0 +1,109 @@
+[
+  {
+    "title": "Step 1 of 5: Select Goal",
+    "color": "mint",
+    "type": "checkbox",
+    "options": [
+      { "label": "Create Image/Video", "cost": 0.10 },
+      { "label": "Document Analysis", "cost": 0.15 },
+      { "label": "Personal Organization", "cost": 0.10 },
+      { "label": "Deep Research", "cost": 0.20 },
+      { "label": "Internet Search", "cost": 0.08 },
+      { "label": "Mind Dump / Notes Organization", "cost": 0.05 },
+      { "label": "Email Drafting", "cost": 0.08 },
+      { "label": "Event Planning", "cost": 0.10 },
+      { "label": "Travel Planning", "cost": 0.12 },
+      { "label": "News Gathering", "cost": 0.10 },
+      { "label": "Code Creation", "cost": 0.15 },
+      { "label": "Database Analysis", "cost": 0.18 },
+      { "label": "Legal Analysis", "cost": 0.25 },
+      { "label": "Business/Market Research", "cost": 0.20 },
+      { "label": "Academic Research / Citation Support", "cost": 0.22 },
+      { "label": "Writing Assistance", "cost": 0.12 },
+      { "label": "Brainstorming & Ideation", "cost": 0.10 },
+      { "label": "Data Visualization / Chart Generation", "cost": 0.18 },
+      { "label": "Debugging & Code Explanation", "cost": 0.20 },
+      { "label": "Social Media Post Creation", "cost": 0.08 },
+      { "label": "Customer Support Drafts", "cost": 0.10 },
+      { "label": "Other (custom input)", "cost": 0.00 }
+    ]
+  },
+  {
+    "title": "Step 2 of 5: Enter Query",
+    "color": "blue",
+    "type": "textarea",
+    "baseCost": 0.05,
+    "options": [
+      { "label": "File Upload", "cost": 0.10 },
+      { "label": "Voice Upload", "cost": 0.12 },
+      { "label": "Image Upload", "cost": 0.15 },
+      { "label": "Multi-Doc Upload", "cost": 0.20 },
+      { "label": "Advanced Setting: Max length / depth", "cost": 0.05 },
+      { "label": "Advanced Setting: Response language", "cost": 0.05 }
+    ]
+  },
+  {
+    "title": "Step 3 of 5: Model Selection",
+    "color": "deepblue",
+    "type": "checkbox",
+    "options": [
+      { "label": "GPT-4", "cost": 0.08 },
+      { "label": "Claude", "cost": 0.07 },
+      { "label": "Gemini", "cost": 0.06 },
+      { "label": "LLaMA", "cost": 0.04 },
+      { "label": "Budget Mode", "cost": 0.03 },
+      { "label": "Accuracy Mode", "cost": 0.09 },
+      { "label": "Speed Mode", "cost": 0.04 },
+      { "label": "Diversity Mode", "cost": 0.07 },
+      { "label": "Code Models (Codex, CodeLlama)", "cost": 0.10 },
+      { "label": "Image Models (DALL·E, Stable Diffusion)", "cost": 0.12 },
+      { "label": "Search-Connected Models", "cost": 0.08 },
+      { "label": "Auto: Let UltraAI choose for me", "cost": 0.05 }
+    ]
+  },
+  {
+    "title": "Step 4 of 5: Choose Analysis Mode",
+    "color": "purple",
+    "type": "checkbox",
+    "options": [
+      { "label": "Intelligence Multiplier", "cost": 0.08 },
+      { "label": "Organizer/Summarizer", "cost": 0.06 },
+      { "label": "Fact-check & Confidence", "cost": 0.10 },
+      { "label": "Devil’s Advocate", "cost": 0.07 },
+      { "label": "Convergence/Divergence", "cost": 0.08 },
+      { "label": "Tone Adjustment", "cost": 0.06 },
+      { "label": "Chain of Thought Reveal", "cost": 0.12 },
+      { "label": "Consensus Voting", "cost": 0.10 },
+      { "label": "Confidence Spectrum", "cost": 0.09 },
+      { "label": "Style Remix", "cost": 0.07 },
+      { "label": "Comparative Report", "cost": 0.11 },
+      { "label": "Custom Prompt Injection", "cost": 0.13 },
+      { "label": "Auto: Let UltraAI choose for me", "cost": 0.05 }
+    ]
+  },
+  {
+    "title": "Step 5 of 5: Add-ons & Formatting",
+    "color": "pink",
+    "type": "checkbox",
+    "options": [
+      { "label": "PDF Output", "cost": 0.02 },
+      { "label": "Word Output", "cost": 0.02 },
+      { "label": "Markdown Output", "cost": 0.02 },
+      { "label": "Google Doc Output", "cost": 0.03 },
+      { "label": "Plain Text Output", "cost": 0.01 },
+      { "label": "JSON Export", "cost": 0.02 },
+      { "label": "CSV Export", "cost": 0.02 },
+      { "label": "Slide Deck (PowerPoint/Google Slides)", "cost": 0.05 },
+      { "label": "Encryption", "cost": 0.05 },
+      { "label": "Data Privacy Mode", "cost": 0.04 },
+      { "label": "Fact-check Confidence Report", "cost": 0.05 },
+      { "label": "Redaction (PII removal)", "cost": 0.05 },
+      { "label": "Legal Compliance Mode (GDPR/HIPAA)", "cost": 0.06 },
+      { "label": "Rewrite for Grade Level", "cost": 0.04 },
+      { "label": "Summarize into Bullets", "cost": 0.03 },
+      { "label": "Expand into Full Report", "cost": 0.06 },
+      { "label": "Email Results", "cost": 0.03 },
+      { "label": "Save to Google Drive / Dropbox / Notion", "cost": 0.03 }
+    ]
+  }
+]

@@ -1,0 +1,46 @@
+[
+  {
+    "title": "Step 1 of 5: Select Goal",
+    "color": "mint",
+    "type": "checkbox",
+    "options": [
+      { "label": "Create Image/Video", "cost": 0.10 },
+      { "label": "Document Analysis", "cost": 0.15 },
+      { "label": "Deep Research", "cost": 0.20 }
+    ]
+  },
+  {
+    "title": "Step 2 of 5: Enter Query",
+    "color": "blue",
+    "type": "textarea",
+    "baseCost": 0.05
+  },
+  {
+    "title": "Step 3 of 5: Select Model",
+    "color": "deepblue",
+    "type": "radio",
+    "options": [
+      { "label": "Model A – Fast", "cost": 0.02 },
+      { "label": "Model B – Accurate", "cost": 0.04 },
+      { "label": "Auto: Let UltrAI decide", "cost": 0.03 }
+    ]
+  },
+  {
+    "title": "Step 4 of 5: Choose Analysis Mode",
+    "color": "purple",
+    "type": "checkbox",
+    "options": [
+      { "label": "Intelligence Multiplier", "cost": 0.05 },
+      { "label": "Fact-Check with Confidence", "cost": 0.08 }
+    ]
+  },
+  {
+    "title": "Step 5 of 5: Add-ons & Formatting",
+    "color": "pink",
+    "type": "checkbox",
+    "options": [
+      { "label": "PDF Output", "cost": 0.02 },
+      { "label": "Encryption", "cost": 0.05 }
+    ]
+  }
+]

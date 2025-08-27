@@ -1,0 +1,80 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Cyberpunk fonts */
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Share+Tech+Mono&display=swap');
+/* Safety fallback for old utility classes */
+.bg-background {
+    background-color: #0a0a0a; /* dark cyber background */
+  }
+
+  .border-border {
+    border-color: rgba(255, 255, 255, 0.2);
+  }
+
+/* Inline SVG overlay animations (selectors auto-tagged in LineOverlay) */
+.line-overlay #moon {
+  animation: moonPulse 5s ease-in-out infinite;
+  filter: drop-shadow(0 0 6px #00ff7f);
+}
+
+.line-overlay #billboard {
+  animation: billboardFlicker 3.2s steps(2, end) infinite;
+  filter: drop-shadow(0 0 8px #00ff7f);
+}
+
+.line-overlay .car {
+  animation: carGlide 8s linear infinite;
+}
+
+.line-overlay .drone {
+  animation: droneHover 6s ease-in-out infinite;
+}
+
+.line-overlay .bridge-cable {
+  animation: cableHum 2.8s ease-in-out infinite;
+}
+
+.line-overlay path,
+.line-overlay line,
+.line-overlay polyline {
+  stroke-linecap: round;
+  animation: strokeDash 6s linear infinite;
+}
+
+@keyframes moonPulse {
+  0%, 100% { opacity: 0.6; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.03); }
+}
+
+@keyframes billboardFlicker {
+  0%, 10%, 12%, 20%, 22%, 100% { opacity: 1; }
+  11%, 21% { opacity: 0.4; }
+}
+
+@keyframes carGlide {
+  0% { transform: translateX(-5%); }
+  100% { transform: translateX(5%); }
+}
+
+@keyframes droneHover {
+  0%, 100% { transform: translateY(0) translateX(0); }
+  50% { transform: translateY(-6px) translateX(4px); }
+}
+
+@keyframes cableHum {
+  0%, 100% { stroke-width: 1.5; }
+  50% { stroke-width: 2.5; }
+}
+
+@keyframes strokeDash {
+  0% {
+    stroke-dasharray: 3 10;
+    stroke-dashoffset: 0;
+  }
+  100% {
+    stroke-dasharray: 3 10;
+    stroke-dashoffset: -200;
+  }
+}
