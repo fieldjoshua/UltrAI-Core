@@ -38,7 +38,7 @@ class UserDB(UserBase):
     is_verified: bool = Field(False, description="Whether the user's email is verified")
 
 
-class User(UserBase):
+class User(BaseModel):
     """User model returned to clients"""
 
     id: str = Field(..., description="User ID")
@@ -90,3 +90,17 @@ class MessageResponse(BaseModel):
     status: str = Field(..., description="Response status")
     message: str = Field(..., description="Response message")
     user_id: Optional[str] = Field(None, description="User ID (if applicable)")
+
+
+class UserResponse(BaseModel):
+    """User response model used by auth routes"""
+
+    id: int = Field(..., description="User ID")
+    email: EmailStr = Field(..., description="User email")
+    username: Optional[str] = Field(None, description="Username")
+    full_name: Optional[str] = Field(None, description="Full name")
+    role: Optional[str] = Field(None, description="Role")
+    subscription_tier: Optional[str] = Field(None, description="Subscription tier")
+    account_balance: Optional[float] = Field(None, description="Account balance")
+    is_verified: Optional[bool] = Field(None, description="Email verified")
+    created_at: Optional[str] = Field(None, description="Created timestamp")
