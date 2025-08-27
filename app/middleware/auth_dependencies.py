@@ -142,6 +142,10 @@ async def get_super_admin_user(
     return current_user
 
 
+# Backward-compatible alias expected by some routes
+# Old name: get_current_admin_user → now aliases to get_admin_user
+get_current_admin_user = get_admin_user
+
 class RateLimitDependency:
     """
     Rate limiting dependency based on user tier.
