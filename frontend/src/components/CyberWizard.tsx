@@ -185,11 +185,10 @@ export default function CyberWizard() {
             style={{ borderColor: colorHex, borderWidth: 8, background: colorRGBA, boxShadow: `0 0 0 2px rgba(255,255,255,0.12) inset, 0 0 22px ${colorHex}` }}
           >
             <div className="text-center space-y-4">
-              <div className="text-[13px] tracking-[0.35em] font-extrabold text-shadow-neon-blue">ULTRAI</div>
-              <h1 className="text-2xl md:text-4xl font-extrabold">
+              <div className="text-[13px] tracking-[0.35em] font-extrabold text-shadow-neon-blue neon-flicker">ULTRAI</div>
+              <h1 className="text-2xl md:text-4xl font-extrabold neon-hover-glow">
                 <span className="text-shadow-neon-mint">Powerful</span> • <span className="text-shadow-neon-pink">Premium</span> • <span className="text-shadow-neon-blue">Personalized</span> • <span className="text-shadow-neon-mint">On‑Demand</span>
               </h1>
-              <div className="text-[12px] opacity-90">No Commitment — Easy Access — All of the Things</div>
               {step.narrative && (
                 <p className="text-[12px] md:text-[13px] leading-relaxed whitespace-pre-line opacity-95 mx-auto max-w-3xl">
                   {step.narrative}
