@@ -240,7 +240,9 @@ export default function CyberWizard() {
               </div>
 
               <h2 className={`text-white ${step.color === 'mint' ? 'text-shadow-neon-mint' : step.color === 'blue' ? 'text-shadow-neon-blue' : step.color === 'deepblue' ? 'text-shadow-neon-deep' : step.color === 'purple' ? 'text-shadow-neon-purple' : 'text-shadow-neon-pink'} text-base mb-2 text-center uppercase tracking-wide`} style={{ borderBottom: `1px solid ${colorHex}`, paddingBottom: 4 }}>{step.title}</h2>
-              {step.narrative && (<p className="text-[11px] text-white opacity-90 mb-2 text-center">{step.narrative}</p>)}
+              {step.narrative && (
+                <p className="text-[11px] text-white opacity-90 mb-2 text-center whitespace-pre-line">{step.narrative}</p>
+              )}
 
               {/* Scrollable options area */}
               <div
@@ -248,6 +250,31 @@ export default function CyberWizard() {
                 className={`relative space-y-2 mb-2 animate-fade-in overflow-auto ${showStatus ? 'opacity-50' : ''}`}
                 style={{ maxHeight: '20vh', paddingRight: 4, pointerEvents: showStatus ? 'none' : 'auto', zIndex: 30 }}
               >
+                {step.type === "intro" && (
+                  <div className="grid grid-cols-12 gap-4">
+                    <div className="col-span-7">
+                      <div className="text-[12px] leading-relaxed">
+                        <div className="mt-2 p-3 rounded-xl border border-white/20 bg-white/5 shadow-neon-mint">
+                          <div className="text-[12px] font-bold mb-1">Why UltrAI?</div>
+                          <div className="opacity-90">Multiple LLMs, orchestrated. Better quality, fewer blind spots, and flexible pricing.</div>
+                        </div>
+                        <div className="mt-2 p-3 rounded-xl border border-white/20 bg-white/5 shadow-neon-blue">
+                          <div className="text-[12px] font-bold mb-1">How it works</div>
+                          <div className="opacity-90">Pick goals, state your query, choose analysis and models, then let UltrAI synthesize the best answer.</div>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="col-span-5">
+                      <div className="glass p-3 rounded-xl text-center" style={{ fontFamily: monoStack }}>
+                        <div className="text-[12px] font-extrabold tracking-widest text-white text-shadow-neon-pink">ITEMIZED SUMMARY</div>
+                        <div className="mt-2 text-[10px] opacity-80">Pay as you go • No commitment</div>
+                        <div className="mt-3 text-[24px] font-bold text-neon-pink">Total: $0.00</div>
+                        <div className="mt-2 text-[11px] opacity-80">Some queries can be under $1</div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 {step.type === "textarea" && (<>
                   <textarea className="w-full h-16 glass p-2 text-white text-sm" placeholder="Type your query…" value={userQuery} onChange={(e) => setUserQuery(e.target.value)} onBlur={() => addSelection("Query Entry", step.baseCost, step.color)} />
                   {step.options && step.options.map(o => (

@@ -1,5 +1,12 @@
 [
   {
+    "title": "0. Welcome to UltrAI",
+    "color": "mint",
+    "type": "intro",
+    "narrative": "Welcome to UltrAI where the intelligence of multiple LLMs is multiplied. We use a unique cocktail of many leading LLMs working on the same (or strategically different) tasks to help users create the optimal output. And we're doing it for the people — with pay‑as‑you‑go options and no long‑term commitments. Some queries can be under a dollar!\n\nJoin us now with your first query.",
+    "options": []
+  },
+  {
     "title": "1. Select your goals",
     "color": "mint",
     "type": "checkbox",
