@@ -186,16 +186,19 @@ export default function CyberWizard() {
           >
             <div className="text-center space-y-4">
               <div className="text-[13px] tracking-[0.35em] font-extrabold text-shadow-neon-blue neon-flicker">ULTRAI</div>
-              <h1 className="text-2xl md:text-4xl font-extrabold neon-hover-glow">
-                <span className="text-shadow-neon-mint">Powerful</span> • <span className="text-shadow-neon-pink">Premium</span> • <span className="text-shadow-neon-blue">Personalized</span> • <span className="text-shadow-neon-mint">On‑Demand</span>
-              </h1>
+              <div className="flex flex-wrap gap-2 justify-center">
+                <span className="neon-pill neon-mint">Powerful</span>
+                <span className="neon-pill neon-pink">Premium</span>
+                <span className="neon-pill neon-blue">Personalized</span>
+                <span className="neon-pill neon-mint">On‑Demand</span>
+              </div>
               {step.narrative && (
                 <p className="text-[12px] md:text-[13px] leading-relaxed whitespace-pre-line opacity-95 mx-auto max-w-3xl">
                   {step.narrative}
                 </p>
               )}
               <div className="mt-3">
-                <button className="btn-neon text-lg font-extrabold" onClick={() => { setCurrentStep(1); setStepFadeKey(k => k + 1); }}>
+                <button className="btn-neon text-lg font-extrabold pulse-strong" onClick={() => { setCurrentStep(1); setStepFadeKey(k => k + 1); }}>
                   Start UltrAI!
                 </button>
               </div>

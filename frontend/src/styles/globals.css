@@ -130,3 +130,36 @@
 .neon-hover-glow:hover {
   filter: drop-shadow(0 0 8px #00ff9f) drop-shadow(0 0 12px #ff00d4);
 }
+
+/* Neon pill badges */
+.neon-pill {
+  display: inline-block;
+  padding: 0.3rem 0.7rem;
+  border-radius: 9999px;
+  border: 2px solid rgba(255,255,255,0.35);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  background: rgba(255,255,255,0.06);
+  backdrop-filter: blur(6px);
+}
+.neon-pill.neon-mint {
+  border-color: #00ff9f;
+  box-shadow: 0 0 10px rgba(0,255,159,0.45), inset 0 0 6px rgba(255,255,255,0.12);
+}
+.neon-pill.neon-pink {
+  border-color: #ff00d4;
+  box-shadow: 0 0 10px rgba(255,0,212,0.45), inset 0 0 6px rgba(255,255,255,0.12);
+}
+.neon-pill.neon-blue {
+  border-color: #00b8ff;
+  box-shadow: 0 0 10px rgba(0,184,255,0.45), inset 0 0 6px rgba(255,255,255,0.12);
+}
+
+/* Strong pulse utility */
+.pulse-strong {
+  animation: neonPulseStrong 1.8s ease-in-out infinite alternate;
+}
+@keyframes neonPulseStrong {
+  0% { filter: drop-shadow(0 0 6px rgba(0,255,159,0.4)) drop-shadow(0 0 8px rgba(255,0,212,0.35)); }
+  100% { filter: drop-shadow(0 0 14px rgba(0,255,159,0.7)) drop-shadow(0 0 18px rgba(255,0,212,0.6)); }
+}
