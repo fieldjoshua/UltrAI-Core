@@ -80,6 +80,14 @@ class Config:
     DEFAULT_PROVIDER = os.getenv("DEFAULT_PROVIDER", "openai")
     DEFAULT_MODEL = os.getenv("DEFAULT_MODEL", "gpt-4o")
 
+    # Timeout Settings (in seconds)
+    ORCHESTRATION_TIMEOUT = int(os.getenv("ORCHESTRATION_TIMEOUT", "90"))
+    INITIAL_RESPONSE_TIMEOUT = int(os.getenv("INITIAL_RESPONSE_TIMEOUT", "60"))
+    PEER_REVIEW_TIMEOUT = int(os.getenv("PEER_REVIEW_TIMEOUT", "90"))
+    ULTRA_SYNTHESIS_TIMEOUT = int(os.getenv("ULTRA_SYNTHESIS_TIMEOUT", "60"))
+    LLM_REQUEST_TIMEOUT = int(os.getenv("LLM_REQUEST_TIMEOUT", "45"))
+    CONCURRENT_EXECUTION_TIMEOUT = int(os.getenv("CONCURRENT_EXECUTION_TIMEOUT", "50"))
+
     # Retry configuration (aligns with legacy app.config.Config)
     MAX_RETRY_ATTEMPTS = int(os.getenv("MAX_RETRY_ATTEMPTS", "3"))
     RETRY_INITIAL_DELAY = float(os.getenv("RETRY_INITIAL_DELAY", "1.0"))
