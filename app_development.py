@@ -3,7 +3,17 @@
 import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, FileResponse, JSONResponse
+from fastapi.staticfiles import StaticFiles
+
+# Optional: lightweight logger
+try:
+    from app.utils.logging import get_logger
+    logger = get_logger("dev_app")
+except Exception:  # pragma: no cover
+    import logging
+    logger = logging.getLogger("dev_app")
+    logging.basicConfig(level=logging.INFO)
 
 # FastAPI app
 app = FastAPI(title="UltraAI Development", version="1.0.0-dev")
@@ -165,6 +175,39 @@ async def serve_frontend():
     </html>
     """
     return HTMLResponse(content=html_content)
+
+# --- Minimal static serving and API routes for local smoke tests ---
+
+try:
+    # Serve built frontend assets if available
+    frontend_dist = os.path.join(os.path.dirname(__file__), "frontend", "dist")
+    if os.path.exists(frontend_dist):
+        app.mount(
+            "/assets",
+            StaticFiles(directory=os.path.join(frontend_dist, "assets")),
+            name="assets",
+        )
+
+        @app.get("/wizard_steps.json")
+        async def serve_wizard_steps_json():
+            try:
+                json_file = os.path.join(frontend_dist, "wizard_steps.json")
+                if os.path.exists(json_file):
+                    return FileResponse(json_file, media_type="application/json")
+                return JSONResponse({"error": "wizard_steps.json not found"}, status_code=404)
+            except Exception as exc:  # safety
+                logger.error("Failed to serve wizard_steps.json", exc_info=True)
+                return JSONResponse({"error": str(exc)}, status_code=500)
+
+    # Include model availability routes at /api for quick checks
+    try:
+        from app.routes.model_availability_routes import router as model_availability_router
+        app.include_router(model_availability_router, prefix="/api")
+        logger.info("Model availability routes mounted under /api")
+    except Exception:
+        logger.warning("Model availability routes not available in dev app", exc_info=True)
+except Exception:
+    logger.warning("Failed to initialize dev static/API helpers", exc_info=True)
 
 @app.get("/api/mock")
 async def mock_endpoint():

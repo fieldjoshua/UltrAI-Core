@@ -105,7 +105,7 @@ export async function processWithFeatherOrchestration({
     };
 
     // Call the actual orchestrator analyze API
-    const response = await fetch(`${API_BASE_URL}/api/orchestrator/analyze`, {
+    const response = await fetch(`${API_BASE_URL}/orchestrator/analyze`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
