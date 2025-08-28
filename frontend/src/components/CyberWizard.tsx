@@ -163,6 +163,50 @@ export default function CyberWizard() {
 
   const monoStack = 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace';
 
+  // Step 0: Intro — render one big hero window only (no progress dots or receipt)
+  if (currentStep === 0 && step.type === 'intro') {
+    return (
+      <div className="relative flex min-h-screen w-full items-start justify-center p-0 text-white font-cyber text-sm">
+        {/* Background */}
+        <div
+          className="pointer-events-none absolute inset-0"
+          style={{
+            backgroundImage: "url('/cityscape-background.jpeg'), url('/ultrai-bg.jpg')",
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            zIndex: 0,
+          }}
+        />
+
+        {/* Single hero card */}
+        <div className="relative z-10 w-full mx-auto max-w-4xl" style={{ marginTop: '18vh' }}>
+          <div
+            className={`glass-strong p-6 rounded-2xl transition-all duration-300 animate-border-hum overflow-hidden ${step.color === 'mint' ? 'shadow-neon-mint' : 'shadow-neon-pink'}`}
+            style={{ borderColor: colorHex, borderWidth: 8, background: colorRGBA, boxShadow: `0 0 0 2px rgba(255,255,255,0.12) inset, 0 0 22px ${colorHex}` }}
+          >
+            <div className="text-center space-y-4">
+              <div className="text-[13px] tracking-[0.35em] font-extrabold text-shadow-neon-blue">ULTRAI</div>
+              <h1 className="text-2xl md:text-4xl font-extrabold">
+                <span className="text-shadow-neon-mint">Powerful</span> • <span className="text-shadow-neon-pink">Premium</span> • <span className="text-shadow-neon-blue">Personalized</span> • <span className="text-shadow-neon-mint">On‑Demand</span>
+              </h1>
+              <div className="text-[12px] opacity-90">No Commitment — Easy Access — All of the Things</div>
+              {step.narrative && (
+                <p className="text-[12px] md:text-[13px] leading-relaxed whitespace-pre-line opacity-95 mx-auto max-w-3xl">
+                  {step.narrative}
+                </p>
+              )}
+              <div className="mt-3">
+                <button className="btn-neon text-lg font-extrabold" onClick={() => { setCurrentStep(1); setStepFadeKey(k => k + 1); }}>
+                  Start UltrAI!
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   const chooseAutoModels = (pref: 'cost'|'premium'|'speed', names: string[] | null): string[] => {
     const list = Array.isArray(names) ? names : [];
     if (list.length === 0) return [];
