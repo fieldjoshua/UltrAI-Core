@@ -24,6 +24,7 @@ export default function CyberWizard() {
   const [selectedGoals, setSelectedGoals] = useState<string[]>([]);
   const [selectedInputs, setSelectedInputs] = useState<string[]>([]);
   const [selectedModels, setSelectedModels] = useState<string[]>([]);
+  const [availableModels, setAvailableModels] = useState<string[] | null>(null);
   const [selectedAddons, setSelectedAddons] = useState<string[]>([]);
   const [selectedAnalysisModes, setSelectedAnalysisModes] = useState<string[]>([]);
   const [showStatus, setShowStatus] = useState<boolean>(false);
@@ -47,6 +48,26 @@ export default function CyberWizard() {
       }
     };
     load();
+  }, []);
+
+  // Load available models for Step 3 (only show keyed models)
+  useEffect(() => {
+    const fetchAvailable = async () => {
+      try {
+        const r = await fetch("/api/available-models", { cache: "no-store" });
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        const d = await r.json();
+        if (d && Array.isArray(d.models)) {
+          setAvailableModels(d.models.map((m: any) => m.name));
+        } else {
+          setAvailableModels([]);
+        }
+      } catch (e) {
+        console.error("Failed to load available models", e);
+        setAvailableModels([]);
+      }
+    };
+    fetchAvailable();
   }, []);
 
   const addSelection = (label: string, cost: number | undefined, color: string) => {
@@ -217,12 +238,17 @@ export default function CyberWizard() {
                     </div>
                   ) : currentStep === 2 ? (
                     <div className={step.options.length >= 8 ? "grid grid-cols-2 gap-2" : "space-y-2"}>
-                      {step.options.map(o => (
+                      {(availableModels && availableModels.length > 0 ?
+                        step.options.filter(o => availableModels.includes(o.label)) : step.options
+                      ).map(o => (
                         <label key={o.label} className="flex items-center text-[11px] leading-tight truncate opacity-95 hover:opacity-100">
                           <input type="checkbox" onChange={() => handleModelToggle(o.label)} checked={selectedModels.includes(o.label)} />{" "}
                           <span className="align-middle truncate tracking-wide text-white">{o.icon ? `${o.icon} ` : ""}{o.label}{typeof o.cost === 'number' ? ` ($${o.cost})` : ""}</span>
                         </label>
                       ))}
+                      {availableModels && availableModels.length === 0 && (
+                        <div className="text-[11px] opacity-80">No models available. Add API keys to enable models.</div>
+                      )}
                     </div>
                   ) : currentStep === 4 ? (
                     <div className={step.options.length >= 8 ? "grid grid-cols-2 gap-2" : "space-y-2"}>
