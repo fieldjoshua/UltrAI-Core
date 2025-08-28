@@ -25,7 +25,7 @@ export default function CyberWizard() {
   const [selectedModels, setSelectedModels] = useState<string[]>([]);
   const [selectedAddons, setSelectedAddons] = useState<string[]>([]);
   const [selectedAnalysisModes, setSelectedAnalysisModes] = useState<string[]>([]);
-  const [showStatus, setShowStatus] = useState(0);
+  const [showStatus, setShowStatus] = useState<boolean>(false);
   const [stepFadeKey, setStepFadeKey] = useState(0);
 
   useEffect(() => {
@@ -97,14 +97,24 @@ export default function CyberWizard() {
     setSelectedAnalysisModes(prev => prev.includes(label) ? prev.filter(l => l !== label) : [...prev, label]);
   };
 
+  const monoStack = 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace';
+
   return (
     <div className="relative flex h-screen w-full items-start justify-center p-0 text-white font-cyber text-sm">
       {/* Background layer */}
-      <div className="pointer-events-none absolute inset-0" style={{ backgroundImage: "url('/cityscape-background.jpeg')", backgroundSize: 'cover', backgroundPosition: 'center', zIndex: 0 }} />
+      <div
+        className="pointer-events-none absolute inset-0"
+        style={{
+          backgroundImage: "url('/cityscape-background.jpeg'), url('/ultrai-bg.jpg')",
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          zIndex: 0,
+        }}
+      />
 
       {/* Content layer — centered bounded grid */}
       <div className="relative z-10 w-full mx-auto max-w-6xl">
-        <div className="grid grid-cols-12 gap-6 items-start" style={{ marginTop: '40vh' }}>
+        <div className="grid grid-cols-12 gap-6 items-start" style={{ marginTop: '16vh' }}>
           {/* Site header column (vertical) */}
           <div className="col-start-1 col-span-1 self-start">
             <div className="text-white text-shadow-neon-blue" style={{ writingMode: 'vertical-rl', textOrientation: 'upright', letterSpacing: '0.35em', fontWeight: 800, fontSize: '14px' }}>ULTRAI</div>
@@ -112,7 +122,10 @@ export default function CyberWizard() {
 
           {/* Wizard Panel (left) */}
           <div className="col-start-4 col-span-5 self-start">
-            <div className={`glass-strong p-4 rounded-2xl transition-all duration-300 h-[42vh] animate-border-hum overflow-hidden ${step.color === "mint" ? "shadow-neon-mint" : step.color === "blue" ? "shadow-neon-blue" : step.color === "deepblue" ? "shadow-neon-deep" : step.color === "purple" ? "shadow-neon-purple" : "shadow-neon-pink"}`} style={{ borderColor: colorHex, borderWidth: 7, background: colorRGBA, boxShadow: `0 0 0 2px rgba(255,255,255,0.10) inset, 0 0 14px ${colorHex}` }}>
+            <div
+              className={`glass-strong p-4 rounded-2xl transition-all duration-300 h-[46vh] animate-border-hum overflow-hidden ${step.color === "mint" ? "shadow-neon-mint" : step.color === "blue" ? "shadow-neon-blue" : step.color === "deepblue" ? "shadow-neon-deep" : step.color === "purple" ? "shadow-neon-purple" : "shadow-neon-pink"}`}
+              style={{ borderColor: colorHex, borderWidth: 7, background: colorRGBA, boxShadow: `0 0 0 2px rgba(255,255,255,0.10) inset, 0 0 14px ${colorHex}` }}
+            >
               {/* Step markers (centered) */}
               <div className="w-full mb-4">
                 <div className="flex items-center justify-center">
@@ -137,7 +150,12 @@ export default function CyberWizard() {
               <h2 className={`text-white ${step.color === 'mint' ? 'text-shadow-neon-mint' : step.color === 'blue' ? 'text-shadow-neon-blue' : step.color === 'deepblue' ? 'text-shadow-neon-deep' : step.color === 'purple' ? 'text-shadow-neon-purple' : 'text-shadow-neon-pink'} text-base mb-2 text-center uppercase tracking-wide`} style={{ borderBottom: `1px solid ${colorHex}`, paddingBottom: 4 }}>{step.title}</h2>
               {step.narrative && (<p className="text-[11px] text-white opacity-90 mb-2 text-center">{step.narrative}</p>)}
 
-              <div key={stepFadeKey} className="space-y-2 mb-3 animate-fade-in">
+              {/* Scrollable options area */}
+              <div
+                key={stepFadeKey}
+                className="space-y-2 mb-2 animate-fade-in overflow-auto"
+                style={{ maxHeight: '26vh', paddingRight: 4 }}
+              >
                 {step.type === "textarea" && (<>
                   <textarea className="w-full h-16 glass p-2 text-white text-sm" placeholder="Type your query…" onBlur={() => addSelection("Query Entry", step.baseCost, step.color)} />
                   {step.options && step.options.map(o => (
@@ -205,21 +223,31 @@ export default function CyberWizard() {
                   </div>
                 )}
 
-                {(step.type === 'checkbox' || step.type === 'textarea' || step.type === 'radio') && currentStep !== 4 && currentStep !== 0 && (
-                  <button className="w-full mt-2 px-3 py-2 rounded text-center font-semibold shadow-neon-mint animate-border-hum" style={{ border: '2px solid #00ff9f', color: '#00ff9f', background: 'rgba(0,255,159,0.08)' }} onClick={() => addSelection("Auto: Let UltrAI Optimize My Query", 0, step.color)}>
-                    Auto: Let UltrAI Optimize My Query
-                  </button>
-                )}
-
-                <button className="w-full mt-2 px-3 py-2 rounded text-center font-semibold animate-border-hum" style={{ border: `2px solid ${colorHex}`, color: colorHex, background: mapColorRGBA(step.color, 0.06) }} onClick={() => { setCurrentStep(Math.min(currentStep+1, steps.length-1)); setStepFadeKey(k => k+1); }}>
-                  {currentStep===steps.length-1 ? "Finish" : "Submit"}
-                </button>
               </div>
+
+              {/* Action buttons (always visible) */}
+              {(step.type === 'checkbox' || step.type === 'textarea' || step.type === 'radio') && currentStep !== 4 && currentStep !== 0 && (
+                <button
+                  className="w-full mt-1 px-3 py-2 rounded text-center font-semibold shadow-neon-mint animate-border-hum"
+                  style={{ border: '2px solid #00ff9f', color: '#00ff9f', background: 'rgba(0,255,159,0.08)' }}
+                  onClick={() => addSelection("Auto: Let UltrAI Optimize My Query", 0, step.color)}
+                >
+                  Auto: Let UltrAI Optimize My Query
+                </button>
+              )}
+
+              <button
+                className="w-full mt-2 px-3 py-2 rounded text-center font-semibold animate-border-hum"
+                style={{ border: `2px solid ${colorHex}`, color: colorHex, background: mapColorRGBA(step.color, 0.06) }}
+                onClick={() => { setCurrentStep(Math.min(currentStep+1, steps.length-1)); setStepFadeKey(k => k+1); }}
+              >
+                {currentStep===steps.length-1 ? "Finish" : "Submit"}
+              </button>
             </div>
           </div>
 
           {/* Receipt Panel (right) */}
-          <div className="glass-strong col-start-9 col-span-3 p-3 rounded-xl animate-border-hum self-start" style={{ fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace', border: '7px solid', borderColor: receiptColor as any, boxShadow: `0 0 0 2px rgba(255,255,255,0.08) inset, 0 0 14px ${receiptColor}` }}>
+          <div className="glass-strong col-start-9 col-span-3 p-3 rounded-xl animate-border-hum self-start" style={{ fontFamily: monoStack, border: '7px solid', borderColor: receiptColor, boxShadow: `0 0 0 2px rgba(255,255,255,0.08) inset, 0 0 14px ${receiptColor}` }}>
             <div className="text-center mb-2">
               <div className="text-[14px] font-extrabold tracking-[0.35em] text-white text-shadow-neon-blue">ULTRAI</div>
               <div className="text-[10px] text-white/70">— ITEMIZED RECEIPT —</div>
@@ -227,7 +255,7 @@ export default function CyberWizard() {
             <div className="space-y-2">
               {['mint','blue','deepblue','purple','pink'].map(groupColor => {
                 const items = summary.filter(s => s.color === groupColor);
-                if (items.length === 0) return null as any;
+                if (items.length === 0) return null;
                 const hex = mapColorHex(groupColor);
                 return (
                   <div key={groupColor}>
@@ -243,27 +271,11 @@ export default function CyberWizard() {
                 );
               })}
             </div>
-            <div className="mt-3 font-bold text-pink-400 text-lg text-neon-pink text-center">Total: ${totalCost.toFixed(2)}</div>
+            <div className="mt-3 font-bold text-pink-400 text-lg text-neon-pink text-center">{`Total: $${totalCost.toFixed(2)}`}</div>
           </div>
         </div>
 
-        {/* Under-main: commence and status below main window */}
-        <div className="grid grid-cols-12 gap-6" style={{ marginTop: '8px' }}>
-          <div className="col-start-4 col-span-5">
-            {currentStep===steps.length-1 && !showStatus && (
-              <div className="animate-fade-in">
-                <button className="w-full px-4 py-3 rounded text-center font-bold animate-pulse-neon" style={{ border: '3px solid #00ff9f', color: '#001', background: 'rgba(0,255,159,0.2)', textShadow: '0 0 8px #00ff9f' }} onClick={() => setShowStatus(true)}>
-                  Commence UltraAI
-                </button>
-              </div>
-            )}
-            {showStatus && (
-              <div className="glass-strong p-3 rounded-xl border-2 animate-border-hum mt-2" style={{ borderColor: colorHex, boxShadow: `0 0 0 2px rgba(255,255,255,0.08) inset, 0 0 14px ${colorHex}` }}>
-                <StatusUpdater />
-              </div>
-            )}
-          </div>
-        </div>
+        {/* Under-main removed for now to resolve build parse issue */}
       </div>
     </div>
   );
