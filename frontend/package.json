@@ -28,6 +28,7 @@
     "react-redux": "^8.0.5",
     "react-router-dom": "^6.8.0",
     "tailwind-merge": "^2.6.0",
+    "uuid": "^11.1.0",
     "zustand": "^5.0.8"
   },
   "devDependencies": {

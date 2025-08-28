@@ -192,8 +192,8 @@ export default function CyberWizard() {
                 </p>
               )}
               <div className="mt-3">
-                <button className="btn-neon text-lg font-extrabold pulse-strong" onClick={() => { setCurrentStep(1); setStepFadeKey(k => k + 1); }}>
-                  Start UltrAI!
+                <button className="btn-neon text-lg font-extrabold pulse-strong buzz" onClick={() => { setCurrentStep(1); setStepFadeKey(k => k + 1); }}>
+                  Proceed to <span className="text-shadow-neon-mint">UltrAI</span>
                 </button>
               </div>
             </div>
@@ -253,9 +253,9 @@ export default function CyberWizard() {
           </div>
 
           {/* Wizard Panel (left) */}
-          <div className="col-start-3 col-span-6 self-start">
+          <div className="col-start-2 col-span-7 self-start">
             <div
-              className={`relative z-20 glass-strong p-4 rounded-2xl transition-all duration-300 h-[38vh] animate-border-hum overflow-hidden ${step.color === "mint" ? "shadow-neon-mint" : step.color === "blue" ? "shadow-neon-blue" : step.color === "deepblue" ? "shadow-neon-deep" : step.color === "purple" ? "shadow-neon-purple" : "shadow-neon-pink"}`}
+              className={`relative z-20 glass-strong p-5 rounded-2xl transition-all duration-300 h-[44vh] animate-border-hum overflow-hidden ${step.color === "mint" ? "shadow-neon-mint" : step.color === "blue" ? "shadow-neon-blue" : step.color === "deepblue" ? "shadow-neon-deep" : step.color === "purple" ? "shadow-neon-purple" : "shadow-neon-pink"}`}
               style={{ borderColor: colorHex, borderWidth: 7, background: colorRGBA, boxShadow: `0 0 0 2px rgba(255,255,255,0.10) inset, 0 0 14px ${colorHex}` }}
             >
               {/* Step markers (centered) */}
@@ -351,8 +351,10 @@ export default function CyberWizard() {
                     </div>
                   ) : (step.title || '').includes('Model selection') ? (
                     <div className="space-y-2">
-                      {/* Auto/Manual controls driven by step options */}
+                      {/* Auto/Manual grouped boxes */}
                       <div className="grid grid-cols-2 gap-2">
+                        <div className="glass p-2 rounded-xl border border-white/20">
+                          <div className="text-[11px] uppercase tracking-wider mb-1 opacity-80">Auto selection</div>
                         <button
                           className="px-2 py-1 text-[11px] rounded border border-white/30 hover:border-white/60"
                           onClick={() => {
@@ -386,28 +388,31 @@ export default function CyberWizard() {
                             addSelection(`Auto (Speed): ${picks.join(', ')}`, est, step.color);
                           }}
                         >Auto: Speed</button>
+                        </div>
+                        <div className="glass p-2 rounded-xl border border-white/20">
+                          <div className="text-[11px] uppercase tracking-wider mb-1 opacity-80">Manual selection</div>
                         <button
                           className="px-2 py-1 text-[11px] rounded border border-white/30 hover:border-white/60"
                           onClick={() => setModelSelectionMode('manual')}
-                        >Manual selection</button>
+                        >Open manual list</button>
+                        {modelSelectionMode === 'manual' && (
+                          <div className={(availableModels?.length || 0) >= 10 ? 'grid grid-cols-2 gap-1 mt-2' : 'space-y-1 mt-2'}>
+                            {(availableModels || []).map(name => (
+                              <label key={name} className="flex items-center text-[11px] leading-tight truncate opacity-95 hover:opacity-100">
+                                <input type="checkbox" onChange={() => handleModelToggle(name)} checked={selectedModels.includes(name)} />{" "}
+                                <span className="align-middle truncate tracking-wide text-white">{name} {availableModelInfos[name] ? `( $${availableModelInfos[name].cost_per_1k_tokens}/1k )` : ''}</span>
+                              </label>
+                            ))}
+                            {availableModels && availableModels.length === 0 && (
+                              <div className="text-[11px] opacity-80">No models available. Add API keys to enable models.</div>
+                            )}
+                          </div>
+                        )}
+                        </div>
                       </div>
 
-                      {modelSelectionMode === 'manual' ? (
-                        <div className={(availableModels?.length || 0) >= 10 ? 'grid grid-cols-2 gap-1' : 'space-y-1'}>
-                          {(availableModels || []).map(name => (
-                            <label key={name} className="flex items-center text-[11px] leading-tight truncate opacity-95 hover:opacity-100">
-                              <input type="checkbox" onChange={() => handleModelToggle(name)} checked={selectedModels.includes(name)} />{" "}
-                              <span className="align-middle truncate tracking-wide text-white">{name} {availableModelInfos[name] ? `( $${availableModelInfos[name].cost_per_1k_tokens}/1k )` : ''}</span>
-                            </label>
-                          ))}
-                          {availableModels && availableModels.length === 0 && (
-                            <div className="text-[11px] opacity-80">No models available. Add API keys to enable models.</div>
-                          )}
-                        </div>
-                      ) : (
-                        <div className="text-[11px] opacity-80">
-                          Selected (Auto - {autoPreference}): {selectedModels.join(', ') || 'None yet'}
-                        </div>
+                      {modelSelectionMode !== 'manual' && (
+                        <div className="text-[11px] opacity-80 mt-2">Selected (Auto - {autoPreference}): {selectedModels.join(', ') || 'None yet'}</div>
                       )}
                     </div>
                   ) : currentStep === 4 ? (
@@ -419,7 +424,7 @@ export default function CyberWizard() {
                         return (
                           <label
                             key={o.label}
-                            className={`flex items-center text-[11px] leading-tight truncate ${disabled ? 'opacity-40 cursor-not-allowed' : 'opacity-95 hover:opacity-100'}`}
+                            className={`flex items-center text-[11px] leading-tight truncate ${disabled ? 'opacity-30 cursor-not-allowed' : 'opacity-95 hover:opacity-100'}`}
                           >
                             <input
                               type="checkbox"
