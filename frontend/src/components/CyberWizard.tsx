@@ -167,7 +167,7 @@ export default function CyberWizard() {
 
       {/* Content layer — centered bounded grid */}
       <div className="relative z-10 w-full mx-auto max-w-6xl">
-        <div className="grid grid-cols-12 gap-6 items-start" style={{ marginTop: '24vh' }}>
+        <div className="grid grid-cols-12 gap-6 items-start" style={{ marginTop: '40vh' }}>
           {/* Site header column (vertical) */}
           <div className="col-start-1 col-span-1 self-start">
             <div className="text-white text-shadow-neon-blue" style={{ writingMode: 'vertical-rl', textOrientation: 'upright', letterSpacing: '0.35em', fontWeight: 800, fontSize: '14px' }}>ULTRAI</div>
