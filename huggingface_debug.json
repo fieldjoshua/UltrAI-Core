@@ -1,0 +1,122 @@
+{
+  "success": true,
+  "results": {
+    "initial_response": {
+      "output": {
+        "stage": "initial_response",
+        "responses": {},
+        "prompt": "Hello, how are you?",
+        "models_attempted": [],
+        "successful_models": [],
+        "response_count": 0,
+        "input": "Hello, how are you?"
+      },
+      "quality": {
+        "dimensions": {
+          "coherence": {
+            "score": 7.5,
+            "justification": "Clear structure",
+            "confidence": 0.8
+          },
+          "technical_depth": {
+            "score": 8.0,
+            "justification": "Good technical analysis",
+            "confidence": 0.9
+          },
+          "strategic_value": {
+            "score": 7.0,
+            "justification": "Actionable insights",
+            "confidence": 0.7
+          },
+          "uniqueness": {
+            "score": 6.5,
+            "justification": "Some novel perspectives",
+            "confidence": 0.6
+          }
+        },
+        "overall_score": 7.25,
+        "strengths": [
+          "Clear structure",
+          "Good technical analysis"
+        ],
+        "weaknesses": [
+          "Could be more unique",
+          "Some gaps in strategic value"
+        ],
+        "recommendations": [
+          "Add more unique insights",
+          "Strengthen strategic recommendations"
+        ]
+      },
+      "status": "completed"
+    },
+    "ultra_synthesis": {
+      "output": {
+        "stage": "ultra_synthesis",
+        "error": "Invalid input data structure - missing analysis. Available keys: ['stage', 'responses', 'prompt', 'models_attempted', 'successful_models', 'response_count', 'input']",
+        "input": {
+          "stage": "initial_response",
+          "responses": {},
+          "prompt": "Hello, how are you?",
+          "models_attempted": [],
+          "successful_models": [],
+          "response_count": 0,
+          "input": "Hello, how are you?"
+        }
+      },
+      "quality": {
+        "dimensions": {
+          "coherence": {
+            "score": 7.5,
+            "justification": "Clear structure",
+            "confidence": 0.8
+          },
+          "technical_depth": {
+            "score": 8.0,
+            "justification": "Good technical analysis",
+            "confidence": 0.9
+          },
+          "strategic_value": {
+            "score": 7.0,
+            "justification": "Actionable insights",
+            "confidence": 0.7
+          },
+          "uniqueness": {
+            "score": 6.5,
+            "justification": "Some novel perspectives",
+            "confidence": 0.6
+          }
+        },
+        "overall_score": 7.25,
+        "strengths": [
+          "Clear structure",
+          "Good technical analysis"
+        ],
+        "weaknesses": [
+          "Could be more unique",
+          "Some gaps in strategic value"
+        ],
+        "recommendations": [
+          "Add more unique insights",
+          "Strengthen strategic recommendations"
+        ]
+      },
+      "status": "completed"
+    }
+  },
+  "error": null,
+  "processing_time": 0.008297204971313477,
+  "saved_files": null,
+  "pipeline_info": {
+    "stages_completed": [
+      "initial_response",
+      "ultra_synthesis"
+    ],
+    "total_stages": 2,
+    "models_used": [
+      "mistralai/Mistral-7B-Instruct-v0.1"
+    ],
+    "pipeline_type": "partial",
+    "include_details": true
+  }
+}
