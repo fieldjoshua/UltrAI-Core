@@ -101,7 +101,8 @@ export async function processWithFeatherOrchestration({
         pattern: pattern,
         ultra_model: ultraModel,
         output_format: outputFormat
-      }
+      },
+      include_pipeline_details: true  // Request full pipeline details to see all stages
     };
 
     // Call the actual orchestrator analyze API
@@ -127,28 +128,43 @@ export async function processWithFeatherOrchestration({
       status: data.success ? 'success' : 'error',
       error: data.error || null,
       
-      // Extract initial responses
-      initial_responses: data.results?.initial_response?.output?.responses || {},
+      // Extract initial responses - handle both detailed and simple formats
+      initial_responses: data.results?.initial_response?.output?.responses || 
+                        data.results?.initial_response?.responses || 
+                        {},
       
-      // Extract meta analysis  
+      // Extract peer review responses if available
+      peer_review_responses: data.results?.peer_review_and_revision?.output?.revised_responses || 
+                            data.results?.peer_review_and_revision?.revised_responses || 
+                            {},
+      
+      // Extract meta analysis (not used in 3-stage pipeline but kept for compatibility)
       meta_responses: data.results?.meta_analysis?.output ? {
         meta_analysis: data.results.meta_analysis.output.analysis || 'No meta-analysis available'
       } : {},
       
       // Extract peer review if available
       hyper_responses: data.results?.peer_review_and_revision?.output ? {
-        peer_review: 'Peer review completed'
+        peer_review: 'Peer review completed',
+        revised_responses: data.results?.peer_review_and_revision?.output?.revised_responses || {}
       } : {},
       
       // Extract Ultra Synthesis™ - this is the key improvement
-      ultra_response: data.results?.ultra_synthesis?.synthesis || 
-                     data.results?.ultra_synthesis?.output || 
+      ultra_response: data.results?.ultra_synthesis || 
+                     data.results?.formatted_synthesis ||
+                     data.results?.ultra_synthesis?.synthesis || 
+                     data.results?.ultra_synthesis?.output?.synthesis || 
                      'No Ultra Synthesis™ available',
       
       // Additional metadata
       processing_time: data.processing_time || 0,
       pattern_used: pattern,
-      models_used: data.results?.initial_response?.output?.successful_models || [],
+      models_used: data.results?.initial_response?.output?.successful_models || 
+                   data.pipeline_info?.models_used || 
+                   [],
+      
+      // Pipeline info
+      pipeline_info: data.pipeline_info || {},
       
       // Raw data for detailed view
       raw_results: data.results

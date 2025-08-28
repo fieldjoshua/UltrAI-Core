@@ -109,13 +109,12 @@ const OrchestratorInterface = () => {
     }
   };
 
-  // Simulate 4-stage progress for Feather orchestration
+  // Simulate 3-stage progress for Ultra Synthesis™ orchestration
   const simulateFeatherProgress = () => {
     const stages = [
-      { stage: 1, message: 'Initial Analysis - Getting responses from all models...' },
-      { stage: 2, message: 'Meta Analysis - Analyzing model responses...' },
-      { stage: 3, message: 'Hyper Analysis - Synthesizing meta responses...' },
-      { stage: 4, message: 'Ultra Analysis - Creating final synthesis...' }
+      { stage: 1, message: 'Stage 1: Initial Response - Getting parallel responses from selected models...' },
+      { stage: 2, message: 'Stage 2: Peer Review & Revision - Models reviewing and refining responses...' },
+      { stage: 3, message: 'Stage 3: Ultra Synthesis™ - Creating comprehensive final synthesis...' }
     ];
 
     let stageIndex = 0;
@@ -131,8 +130,8 @@ const OrchestratorInterface = () => {
       } else {
         clearInterval(progressInterval);
         setProgressStatus('complete');
-        setCurrentStage(4);
-        setProgressMessage('4-stage Feather orchestration complete');
+        setCurrentStage(3);
+        setProgressMessage('Ultra Synthesis™ orchestration complete');
       }
     }, 2000); // Update every 2 seconds
 
@@ -162,9 +161,9 @@ const OrchestratorInterface = () => {
       let response;
       
       if (useFeatherOrchestration) {
-        // Use sophisticated 4-stage Feather orchestration
+        // Use Ultra Synthesis™ 3-stage orchestration
         setProgressStatus('preparing');
-        setProgressMessage('Preparing sophisticated 4-stage orchestration...');
+        setProgressMessage('Preparing Ultra Synthesis™ pipeline...');
         
         // Start progress simulation
         const progressInterval = simulateFeatherProgress();
@@ -216,8 +215,8 @@ const OrchestratorInterface = () => {
   return (
     <div className="max-w-6xl mx-auto p-4">
       <div className="mb-6">
-        <h1 className="text-3xl font-bold mb-2">UltrAI Sophisticated Orchestrator</h1>
-        <p className="text-gray-600">Experience patent-protected 4-stage Feather analysis with advanced pattern selection</p>
+        <h1 className="text-3xl font-bold mb-2">UltrAI Orchestrator</h1>
+        <p className="text-gray-600">Experience the power of Ultra Synthesis™ - multi-model intelligence multiplication</p>
       </div>
 
       {/* Orchestration Mode Toggle */}
@@ -227,7 +226,7 @@ const OrchestratorInterface = () => {
             <h3 className="font-semibold text-blue-900">Orchestration Mode</h3>
             <p className="text-sm text-blue-700">
               {useFeatherOrchestration 
-                ? "4-Stage Feather Analysis - Sophisticated patent-protected orchestration"
+                ? "Ultra Synthesis™ - 3-Stage intelligence multiplication pipeline"
                 : "Legacy Mode - Basic multi-model comparison"
               }
             </p>
@@ -239,7 +238,7 @@ const OrchestratorInterface = () => {
               onChange={(e) => setUseFeatherOrchestration(e.target.checked)}
               className="mr-2"
             />
-            <span className="text-sm font-medium">Use Sophisticated Feather Orchestration</span>
+            <span className="text-sm font-medium">Use Ultra Synthesis™ Orchestration</span>
           </label>
         </div>
       </div>
@@ -412,8 +411,8 @@ const OrchestratorInterface = () => {
                 }`}
               >
                 {isProcessing 
-                  ? (useFeatherOrchestration ? 'Running 4-Stage Analysis...' : 'Processing...')
-                  : (useFeatherOrchestration ? 'Start Feather Orchestration' : 'Generate Response')
+                  ? (useFeatherOrchestration ? 'Running Ultra Synthesis™...' : 'Processing...')
+                  : (useFeatherOrchestration ? 'Start Ultra Synthesis™' : 'Generate Response')
                 }
               </button>
             </div>
@@ -444,7 +443,7 @@ const OrchestratorInterface = () => {
               
               <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
                 <p className="text-xs text-yellow-800">
-                  <strong>Patent-Protected:</strong> Feather analysis patterns represent sophisticated intellectual property with 4-stage orchestration workflows.
+                  <strong>Patent-Protected:</strong> Ultra Synthesis™ represents sophisticated intellectual property with 3-stage intelligence multiplication.
                 </p>
               </div>
             </div>
@@ -572,23 +571,30 @@ const OrchestratorInterface = () => {
                       </div>
                     )}
 
-                    {/* Stage 3: Hyper Analysis */}
-                    {results.hyper_responses && Object.keys(results.hyper_responses).length > 0 && (
+                    {/* Stage 2: Peer Review & Revision (3-stage pipeline) */}
+                    {results.peer_review_responses && Object.keys(results.peer_review_responses).length > 0 && (
                       <div>
                         <h3 className="text-lg font-semibold mb-3 flex items-center">
-                          <span className="bg-purple-100 text-purple-800 px-2 py-1 rounded-full text-sm mr-2">3</span>
-                          Hyper Synthesis
+                          <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-sm mr-2">2</span>
+                          Peer Review & Revision
                         </h3>
-                        <div className="space-y-4">
-                          {Object.entries(results.hyper_responses).map(([model, response]) => (
-                            <div key={model} className="bg-purple-50 p-4 rounded-lg border border-purple-200">
-                              <h4 className="font-medium mb-2">{formatModelName(model)}</h4>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          {Object.entries(results.peer_review_responses).map(([model, response]) => (
+                            <div key={model} className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                              <h4 className="font-medium mb-2 flex items-center">
+                                {formatModelName(model)}
+                                <span className="ml-2 text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded">
+                                  Peer-Reviewed
+                                </span>
+                              </h4>
                               <p className="text-sm whitespace-pre-wrap text-gray-700">{response}</p>
                             </div>
                           ))}
                         </div>
                       </div>
                     )}
+
+                    {/* Stage 3: Ultra Synthesis is shown prominently above */}
                   </div>
                 )}
               </div>
