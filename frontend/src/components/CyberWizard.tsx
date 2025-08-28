@@ -194,12 +194,25 @@ export default function CyberWizard() {
                     </div>
                   ) : currentStep === 4 ? (
                     <div className={step.options.length >= 8 ? "grid grid-cols-2 gap-2" : "space-y-2"}>
-                      {step.options.map(o => (
-                        <label key={o.label} className="flex items-center text-[11px] leading-tight truncate opacity-95 hover:opacity-100">
-                          <input type="checkbox" onChange={() => handleAddonToggle(o.label)} checked={selectedAddons.includes(o.label)} />{" "}
-                          <span className="align-middle truncate tracking-wide text-white">{o.icon ? `${o.icon} ` : ""}{o.label}{typeof o.cost === 'number' ? ` ($${o.cost})` : ""}</span>
-                        </label>
-                      ))}
+                      {step.options.map(o => {
+                        const labelLower = (o.label || "").toLowerCase();
+                        const isUltra = labelLower.includes("ultra") || labelLower.includes("intelligence") || labelLower.includes("multiplier");
+                        const disabled = !isUltra;
+                        return (
+                          <label
+                            key={o.label}
+                            className={`flex items-center text-[11px] leading-tight truncate ${disabled ? 'opacity-40 cursor-not-allowed' : 'opacity-95 hover:opacity-100'}`}
+                          >
+                            <input
+                              type="checkbox"
+                              disabled={disabled}
+                              onChange={() => { if (!disabled) handleAddonToggle(o.label); }}
+                              checked={isUltra && selectedAddons.includes(o.label)}
+                            />{" "}
+                            <span className="align-middle truncate tracking-wide text-white">{o.icon ? `${o.icon} ` : ""}{o.label}{typeof o.cost === 'number' ? ` ($${o.cost})` : ""}</span>
+                          </label>
+                        );
+                      })}
                     </div>
                   ) : (
                     step.options.map(o => (
