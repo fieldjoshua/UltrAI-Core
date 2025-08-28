@@ -1104,16 +1104,18 @@ class OrchestrationService:
                     ):  # Don't include the model's own response as a "peer"
                         peer_responses_text += f"\n{peer_model}: {peer_response}\n"
 
-                # Create the peer review prompt - more direct
-                peer_review_prompt = f"""Question: {original_prompt}
+                # Create the peer review prompt - more critical and less assumptive
+                peer_review_prompt = f"""Please review the responses from other LLMs given the same query you just completed. Do not assume anything is factual, but would you like to edit your initial response after seeing the work of your peers?
 
-Your answer:
+Original Query: {original_prompt}
+
+Your Initial Response:
 {own_response}
 
-Other answers to the same question:
+Responses from Other LLMs:
 {peer_responses_text}
 
-Having seen these other responses, provide your best answer to the original question. Improve your response if you can make it better, more accurate, or more complete."""
+After critically reviewing these peer responses, please provide your revised answer to the original query. You may keep your original response if you believe it's already optimal, or incorporate insights from the peer responses where they improve accuracy, completeness, or clarity."""
 
                 # Execute the peer review using the same model adapters as initial_response
                 if model.startswith("gpt") or model.startswith("o1"):
