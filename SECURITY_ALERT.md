@@ -10,9 +10,9 @@
 
 The following API keys were found in the `.env` file committed to the repository:
 
-1. **OpenAI API Key**: `sk-proj-zRiJHqro0MTkj3bCBzXW44ipr49shmtuCTFqvKrE7CMI7DdqXDr5I16wTIRSY1ecZZkCOBRfYAT3BlbkFJUvvHwUWW...`
-2. **Anthropic API Key**: `sk-ant-api03-a7pBDlHGUAaEKns5JLPUXjMD7kQ84gJwaBRo0IN_nWpNxQVqH8kp1Zh_V1-MeAgOFHkU...`
-3. **Google API Key**: `AIzaSyBDBKZVMHYsdNAPTnAXY71krdJPt4lhATQ`
+1. **OpenAI API Key**: `sk-proj-[REDACTED]`
+2. **Anthropic API Key**: `sk-ant-[REDACTED]`
+3. **Google API Key**: `AIza[REDACTED]`
 
 ## IMMEDIATE ACTIONS REQUIRED
 
