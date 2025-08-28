@@ -1,8 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
 import { processWithFeatherOrchestration } from "../api/orchestrator";
-import OptionCards from "./OptionCards";
-import AnalysisModes from "./AnalysisModes";
 import StatusUpdater from "./StatusUpdater";
 
 interface StepOption { label: string; cost?: number; icon?: string; description?: string }
@@ -29,7 +27,6 @@ export default function CyberWizard() {
   const [modelSelectionMode, setModelSelectionMode] = useState<'auto' | 'manual'>('auto');
   const [autoPreference, setAutoPreference] = useState<'cost' | 'premium' | 'speed'>('premium');
   const [selectedAddons, setSelectedAddons] = useState<string[]>([]);
-  const [selectedAnalysisModes, setSelectedAnalysisModes] = useState<string[]>([]);
   const [showStatus, setShowStatus] = useState<boolean>(false);
   const [stepFadeKey, setStepFadeKey] = useState(0);
   const [userQuery, setUserQuery] = useState<string>("");
@@ -156,9 +153,6 @@ export default function CyberWizard() {
     const option = step.options?.find(o => o.label === label);
     const cost = option?.cost;
     setSelectedAddons(prev => prev.includes(label) ? (removeSelectionCost(cost), prev.filter(l => l !== label)) : (addSelection(label, cost, step.color), [...prev, label]));
-  };
-  const handleAnalysisToggle = (label: string) => {
-    setSelectedAnalysisModes(prev => prev.includes(label) ? prev.filter(l => l !== label) : [...prev, label]);
   };
 
   const monoStack = 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace';
