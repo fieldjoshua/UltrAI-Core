@@ -424,28 +424,6 @@ export default function CyberWizard() {
                         <div className="text-[11px] opacity-80 mt-2">Selected (Auto - {autoPreference}): {selectedModels.join(', ') || 'None yet'}</div>
                       )}
                     </div>
-                  ) : currentStep === 4 ? (
-                    <div className={"grid grid-cols-2 gap-2"}>
-                      {step.options.map(o => {
-                        const labelLower = (o.label || "").toLowerCase();
-                        const isUltra = labelLower.includes("ultra") || labelLower.includes("intelligence") || labelLower.includes("multiplier");
-                        const disabled = !isUltra;
-                        return (
-                          <label
-                            key={o.label}
-                            className={`flex items-center text-[11px] leading-tight truncate ${disabled ? 'opacity-30 cursor-not-allowed' : 'opacity-95 hover:opacity-100'}`}
-                          >
-                            <input
-                              type="checkbox"
-                              disabled={disabled}
-                              onChange={() => { if (!disabled) handleAddonToggle(o.label); }}
-                              checked={isUltra && selectedAddons.includes(o.label)}
-                            />{" "}
-                            <span className="align-middle truncate tracking-wide text-white">{o.icon ? `${o.icon} ` : ""}{o.label}{typeof o.cost === 'number' ? ` ($${o.cost})` : ""}</span>
-                          </label>
-                        );
-                      })}
-                    </div>
                   ) : (
                     <div className="grid grid-cols-2 gap-2">
                       {step.options.map(o => (
@@ -460,13 +438,20 @@ export default function CyberWizard() {
 
                 {step.type === "groupbox" && step.options && (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                    {step.options.map(o => (
-                      <div key={o.label} className="glass border-2 rounded-xl p-2 animate-border-hum">
-                        <div className="text-center font-bold text-[13px] mb-1 text-white">{o.icon ? `${o.icon} ` : ''}{o.label}</div>
-                        {o.description && <div className="text-[11px] text-white/80 text-center leading-snug">{o.description}</div>}
-                        {typeof o.cost === 'number' && <div className="text-[11px] text-center mt-1 text-pink-400">+${o.cost.toFixed(2)}</div>}
-                      </div>
-                    ))}
+                    {step.options.map(o => {
+                      const comingSoon = (o.label || '').toLowerCase().includes('coming soon');
+                      return (
+                        <div
+                          key={o.label}
+                          className={`glass border-2 rounded-xl p-2 animate-border-hum ${comingSoon ? 'opacity-30 pointer-events-none' : ''}`}
+                          style={{ borderColor: comingSoon ? 'rgba(255,255,255,0.2)' : colorHex }}
+                        >
+                          <div className="text-center font-bold text-[13px] mb-1 text-white">{o.icon ? `${o.icon} ` : ''}{o.label}</div>
+                          {o.description && <div className="text-[11px] text-white/80 text-center leading-snug">{o.description}</div>}
+                          {typeof o.cost === 'number' && <div className="text-[11px] text-center mt-1 text-pink-400">+${o.cost.toFixed(2)}</div>}
+                        </div>
+                      );
+                    })}
                   </div>
                 )}
 
