@@ -32,59 +32,47 @@
     ]
   },
   {
-    "title": "3. Model selection",
-    "color": "deepblue",
-    "type": "checkbox",
-    "narrative": "Choose which intelligence engines to use, or let UltraAI auto-select. Modes balance cost, speed, and accuracy.",
-    "options": [
-      { "label": "GPT-4 (accuracy)", "icon": "🤖", "cost": 0.08 },
-      { "label": "Claude (reasoning)", "icon": "🧠", "cost": 0.07 },
-      { "label": "Gemini (search-connected)", "icon": "🌐", "cost": 0.06 },
-      { "label": "LLaMA (open-source speed)", "icon": "⚡", "cost": 0.04 },
-      { "label": "Budget Mode", "icon": "💲", "cost": 0.03 },
-      { "label": "Accuracy Mode", "icon": "🎯", "cost": 0.09 },
-      { "label": "Speed Mode", "icon": "⏩", "cost": 0.04 },
-      { "label": "Diversity Mode", "icon": "🌈", "cost": 0.07 },
-      { "label": "Specialized Models (code/image/search)", "icon": "🔧", "cost": 0.10 },
-      { "label": "Let Ultra decide the models for me — I am most concerned about Accuracy / Cost / Depth", "icon": "✨", "cost": 0.00 }
-    ]
-  },
-  {
-    "title": "4. Analyses",
+    "title": "3. Analyses",
     "color": "purple",
     "type": "groupbox",
     "narrative": "Pick how UltraAI should orchestrate, review, and refine the outputs.",
     "options": [
       {
-        "label": "Intelligence Multiplier",
+        "label": "UltrAI Intelligence Multiplier",
         "icon": "🚀",
         "description": "Blend the best insights from all models into one cohesive output.",
         "cost": 0.08
       },
       {
-        "label": "Fact-check & Confidence",
+        "label": "Fact-check & Confidence (Coming soon)",
         "icon": "✔️",
         "description": "Rate truthfulness across models and provide confidence scores.",
         "cost": 0.10
       },
       {
-        "label": "Devil’s Advocate",
+        "label": "Devil’s Advocate (Coming soon)",
         "icon": "⚔️",
         "description": "One model critiques another to expose blind spots and biases.",
         "cost": 0.07
       },
       {
-        "label": "Convergence/Divergence",
+        "label": "Convergence/Divergence (Coming soon)",
         "icon": "🔀",
         "description": "Highlight where models agree and where they differ significantly.",
         "cost": 0.08
-      },
-      {
-        "label": "Let Ultra decide the analyses for me",
-        "icon": "✨",
-        "description": "Ultra chooses and tunes analysis passes based on your goals.",
-        "cost": 0.00
       }
+    ]
+  },
+  {
+    "title": "4. Model selection",
+    "color": "deepblue",
+    "type": "checkbox",
+    "narrative": "Let UltrAI choose models automatically (with preferences), or manually select from available models.",
+    "options": [
+      { "label": "Auto: Cost-Saving", "icon": "💲", "cost": 0.00 },
+      { "label": "Auto: Premium Quality", "icon": "🎯", "cost": 0.00 },
+      { "label": "Auto: Speed", "icon": "⏩", "cost": 0.00 },
+      { "label": "Manual selection", "icon": "🛠️", "cost": 0.00 }
     ]
   },
   {

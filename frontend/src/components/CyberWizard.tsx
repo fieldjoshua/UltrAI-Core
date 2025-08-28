@@ -25,6 +25,9 @@ export default function CyberWizard() {
   const [selectedInputs, setSelectedInputs] = useState<string[]>([]);
   const [selectedModels, setSelectedModels] = useState<string[]>([]);
   const [availableModels, setAvailableModels] = useState<string[] | null>(null);
+  const [availableModelInfos, setAvailableModelInfos] = useState<Record<string, { provider: string; cost_per_1k_tokens: number }>>({});
+  const [modelSelectionMode, setModelSelectionMode] = useState<'auto' | 'manual'>('auto');
+  const [autoPreference, setAutoPreference] = useState<'cost' | 'premium' | 'speed'>('premium');
   const [selectedAddons, setSelectedAddons] = useState<string[]>([]);
   const [selectedAnalysisModes, setSelectedAnalysisModes] = useState<string[]>([]);
   const [showStatus, setShowStatus] = useState<boolean>(false);
@@ -58,7 +61,16 @@ export default function CyberWizard() {
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
         const d = await r.json();
         if (d && Array.isArray(d.models)) {
-          setAvailableModels(d.models.map((m: any) => m.name));
+          const names = d.models.map((m: any) => m.name);
+          setAvailableModels(names);
+          const infoMap: Record<string, { provider: string; cost_per_1k_tokens: number }> = {};
+          d.models.forEach((m: any) => {
+            infoMap[String(m.name)] = {
+              provider: String(m.provider || ''),
+              cost_per_1k_tokens: Number(m.cost_per_1k_tokens || 0),
+            };
+          });
+          setAvailableModelInfos(infoMap);
         } else {
           setAvailableModels([]);
         }
@@ -151,6 +163,33 @@ export default function CyberWizard() {
 
   const monoStack = 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace';
 
+  const chooseAutoModels = (pref: 'cost'|'premium'|'speed', names: string[] | null): string[] => {
+    const list = Array.isArray(names) ? names : [];
+    if (list.length === 0) return [];
+    const has = (n: string) => list.includes(n);
+    if (pref === 'premium') {
+      const picks = [
+        'gpt-4o',
+        'claude-3-5-sonnet-20241022',
+        'gemini-1.5-pro',
+      ].filter(has);
+      return picks.length ? picks : list.slice(0, Math.min(3, list.length));
+    }
+    if (pref === 'speed') {
+      const picks = [
+        'gpt-4o-mini',
+        'gemini-1.5-flash',
+      ].filter(has);
+      return picks.length ? picks : list.slice(0, Math.min(2, list.length));
+    }
+    // cost
+    const cheapSorted = list
+      .map(name => ({ name, cost: availableModelInfos[name]?.cost_per_1k_tokens ?? 0 }))
+      .sort((a, b) => a.cost - b.cost)
+      .map(x => x.name);
+    return cheapSorted.slice(0, Math.min(2, cheapSorted.length));
+  };
+
 
   return (
     <div className="relative flex min-h-screen w-full items-start justify-center p-0 text-white font-cyber text-sm">
@@ -236,30 +275,65 @@ export default function CyberWizard() {
                         </label>
                       ))}
                     </div>
-                  ) : currentStep === 2 ? (
-                    <div className={(step.options?.length || 0) >= 8 ? "grid grid-cols-2 gap-2" : "space-y-2"}>
-                      {(() => {
-                        const options = Array.isArray(step.options) ? step.options : [];
-                        const filtered = (availableModels && availableModels.length > 0)
-                          ? options.filter(o => availableModels.includes(String(o.label || "")))
-                          : options;
-                        if (filtered.length === 0 && availableModels && availableModels.length > 0) {
-                          return (
-                            <div className="text-[11px] opacity-80">No keyed models match this list. Add API keys or update wizard steps.</div>
-                          );
-                        }
-                        return filtered.map(o => {
-                          const label = String(o.label || "");
-                          return (
-                            <label key={label} className="flex items-center text-[11px] leading-tight truncate opacity-95 hover:opacity-100">
-                              <input type="checkbox" onChange={() => handleModelToggle(label)} checked={selectedModels.includes(label)} />{" "}
-                              <span className="align-middle truncate tracking-wide text-white">{o.icon ? `${o.icon} ` : ""}{label}{typeof o.cost === 'number' ? ` ($${o.cost})` : ""}</span>
+                  ) : (step.title || '').includes('Model selection') ? (
+                    <div className="space-y-2">
+                      {/* Auto/Manual controls driven by step options */}
+                      <div className="grid grid-cols-2 gap-2">
+                        <button
+                          className="px-2 py-1 text-[11px] rounded border border-white/30 hover:border-white/60"
+                          onClick={() => {
+                            setModelSelectionMode('auto');
+                            setAutoPreference('cost');
+                            const picks = chooseAutoModels('cost', availableModels);
+                            setSelectedModels(picks);
+                            const est = picks.reduce((sum, n) => sum + (availableModelInfos[n]?.cost_per_1k_tokens || 0), 0);
+                            addSelection(`Auto (Cost-Saving): ${picks.join(', ')}`, est, step.color);
+                          }}
+                        >Auto: Cost-Saving</button>
+                        <button
+                          className="px-2 py-1 text-[11px] rounded border border-white/30 hover:border-white/60"
+                          onClick={() => {
+                            setModelSelectionMode('auto');
+                            setAutoPreference('premium');
+                            const picks = chooseAutoModels('premium', availableModels);
+                            setSelectedModels(picks);
+                            const est = picks.reduce((sum, n) => sum + (availableModelInfos[n]?.cost_per_1k_tokens || 0), 0);
+                            addSelection(`Auto (Premium): ${picks.join(', ')}`, est, step.color);
+                          }}
+                        >Auto: Premium Quality</button>
+                        <button
+                          className="px-2 py-1 text-[11px] rounded border border-white/30 hover:border-white/60"
+                          onClick={() => {
+                            setModelSelectionMode('auto');
+                            setAutoPreference('speed');
+                            const picks = chooseAutoModels('speed', availableModels);
+                            setSelectedModels(picks);
+                            const est = picks.reduce((sum, n) => sum + (availableModelInfos[n]?.cost_per_1k_tokens || 0), 0);
+                            addSelection(`Auto (Speed): ${picks.join(', ')}`, est, step.color);
+                          }}
+                        >Auto: Speed</button>
+                        <button
+                          className="px-2 py-1 text-[11px] rounded border border-white/30 hover:border-white/60"
+                          onClick={() => setModelSelectionMode('manual')}
+                        >Manual selection</button>
+                      </div>
+
+                      {modelSelectionMode === 'manual' ? (
+                        <div className={(availableModels?.length || 0) >= 10 ? 'grid grid-cols-2 gap-1' : 'space-y-1'}>
+                          {(availableModels || []).map(name => (
+                            <label key={name} className="flex items-center text-[11px] leading-tight truncate opacity-95 hover:opacity-100">
+                              <input type="checkbox" onChange={() => handleModelToggle(name)} checked={selectedModels.includes(name)} />{" "}
+                              <span className="align-middle truncate tracking-wide text-white">{name} {availableModelInfos[name] ? `( $${availableModelInfos[name].cost_per_1k_tokens}/1k )` : ''}</span>
                             </label>
-                          );
-                        });
-                      })()}
-                      {availableModels && availableModels.length === 0 && (
-                        <div className="text-[11px] opacity-80">No models available. Add API keys to enable models.</div>
+                          ))}
+                          {availableModels && availableModels.length === 0 && (
+                            <div className="text-[11px] opacity-80">No models available. Add API keys to enable models.</div>
+                          )}
+                        </div>
+                      ) : (
+                        <div className="text-[11px] opacity-80">
+                          Selected (Auto - {autoPreference}): {selectedModels.join(', ') || 'None yet'}
+                        </div>
                       )}
                     </div>
                   ) : currentStep === 4 ? (
