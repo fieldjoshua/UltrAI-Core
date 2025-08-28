@@ -80,6 +80,18 @@ class Config:
     DEFAULT_PROVIDER = os.getenv("DEFAULT_PROVIDER", "openai")
     DEFAULT_MODEL = os.getenv("DEFAULT_MODEL", "gpt-4o")
 
+    # Retry configuration (aligns with legacy app.config.Config)
+    MAX_RETRY_ATTEMPTS = int(os.getenv("MAX_RETRY_ATTEMPTS", "3"))
+    RETRY_INITIAL_DELAY = float(os.getenv("RETRY_INITIAL_DELAY", "1.0"))
+    RETRY_MAX_DELAY = float(os.getenv("RETRY_MAX_DELAY", "60.0"))
+    RETRY_EXPONENTIAL_BASE = float(os.getenv("RETRY_EXPONENTIAL_BASE", "2.0"))
+    RATE_LIMIT_DETECTION_ENABLED = (
+        os.getenv("RATE_LIMIT_DETECTION_ENABLED", "true").lower() == "true"
+    )
+    RATE_LIMIT_RETRY_ENABLED = (
+        os.getenv("RATE_LIMIT_RETRY_ENABLED", "true").lower() == "true"
+    )
+
     # Authentication
     ENABLE_AUTH = os.getenv("ENABLE_AUTH", "true").lower() == "true"
     JWT_SECRET = os.getenv("JWT_SECRET")
