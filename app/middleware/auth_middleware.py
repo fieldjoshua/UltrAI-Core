@@ -18,6 +18,7 @@ from app.models.base_models import ErrorResponse
 from app.services.auth_service import auth_service
 from app.utils.jwt_utils import decode_token, is_token_expired
 from app.utils.logging import get_logger
+from app.config import Config
 
 # Set up logger
 logger = get_logger("auth_middleware", "logs/auth.log")
@@ -273,6 +274,11 @@ async def require_auth(request: Request) -> AuthUser:
 
     Returns an `AuthUser` constructed from `request.state` (populated by AuthMiddleware).
     """
+    # Allow anonymous access when authentication is disabled
+    if not getattr(Config, "ENABLE_AUTH", True):
+        anon = getattr(request.state, "user_id", None) or "anonymous"
+        return AuthUser(user_id=str(anon))
+
     # The middleware sets these when auth succeeds
     user_id = getattr(request.state, "user_id", None)
     is_auth = getattr(request.state, "is_authenticated", False)
