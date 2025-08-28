@@ -114,16 +114,16 @@ export default function CyberWizard() {
 
       {/* Content layer — centered bounded grid */}
       <div className="relative z-10 w-full mx-auto max-w-6xl">
-        <div className="grid grid-cols-12 gap-6 items-start" style={{ marginTop: '10vh' }}>
+        <div className="grid grid-cols-12 gap-6 items-start" style={{ marginTop: '14vh' }}>
           {/* Site header column (vertical) */}
           <div className="col-start-1 col-span-1 self-start">
             <div className="text-white text-shadow-neon-blue" style={{ writingMode: 'vertical-rl', textOrientation: 'upright', letterSpacing: '0.35em', fontWeight: 800, fontSize: '14px' }}>ULTRAI</div>
           </div>
 
           {/* Wizard Panel (left) */}
-          <div className="col-start-4 col-span-5 self-start">
+          <div className="col-start-3 col-span-6 self-start">
             <div
-              className={`relative z-20 glass-strong p-4 rounded-2xl transition-all duration-300 h-[46vh] animate-border-hum overflow-hidden ${step.color === "mint" ? "shadow-neon-mint" : step.color === "blue" ? "shadow-neon-blue" : step.color === "deepblue" ? "shadow-neon-deep" : step.color === "purple" ? "shadow-neon-purple" : "shadow-neon-pink"}`}
+              className={`relative z-20 glass-strong p-4 rounded-2xl transition-all duration-300 h-[38vh] animate-border-hum overflow-hidden ${step.color === "mint" ? "shadow-neon-mint" : step.color === "blue" ? "shadow-neon-blue" : step.color === "deepblue" ? "shadow-neon-deep" : step.color === "purple" ? "shadow-neon-purple" : "shadow-neon-pink"}`}
               style={{ borderColor: colorHex, borderWidth: 7, background: colorRGBA, boxShadow: `0 0 0 2px rgba(255,255,255,0.10) inset, 0 0 14px ${colorHex}` }}
             >
               {/* Step markers (centered) */}
@@ -154,7 +154,7 @@ export default function CyberWizard() {
               <div
                 key={stepFadeKey}
                 className="relative space-y-2 mb-2 animate-fade-in overflow-auto"
-                style={{ maxHeight: '26vh', paddingRight: 4, pointerEvents: 'auto', zIndex: 30 }}
+                style={{ maxHeight: '20vh', paddingRight: 4, pointerEvents: 'auto', zIndex: 30 }}
               >
                 {step.type === "textarea" && (<>
                   <textarea className="w-full h-16 glass p-2 text-white text-sm" placeholder="Type your query…" onBlur={() => addSelection("Query Entry", step.baseCost, step.color)} />
