@@ -9,8 +9,11 @@ from datetime import datetime
 def test_huggingface_api_direct():
     """Test the HuggingFace API directly."""
     
-    # Use the key provided by the user for testing
-    api_key = "REDACTED_HF"
+    # Read from environment instead of committing secrets
+    api_key = os.getenv("HUGGINGFACE_API_KEY")
+    if not api_key:
+        print("HUGGINGFACE_API_KEY not set. Skipping direct HF test.")
+        return
     
     model_id = "mistralai/Mistral-7B-Instruct-v0.1"
     url = f"https://api-inference.huggingface.co/models/{model_id}"

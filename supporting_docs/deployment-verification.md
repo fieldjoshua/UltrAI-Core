@@ -7,7 +7,7 @@
 - **HuggingFace Status**: NOT CONFIGURED
 - **Total Models**: 20 (should be 26 with HuggingFace)
 - **API Key Added**: Yes (in Render dashboard)
-- **Key**: REDACTED_HF
+- **Key**: [REDACTED – configure via environment variable only]
 
 ### Issue
 The HUGGINGFACE_API_KEY environment variable was added to Render dashboard but the deployment (7c624c0) that went live at 7:36 AM doesn't have access to it because:
