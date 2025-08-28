@@ -239,7 +239,14 @@ export default function CyberWizard() {
               <button
                 className="w-full mt-2 px-3 py-2 rounded text-center font-semibold animate-border-hum"
                 style={{ border: `2px solid ${colorHex}`, color: colorHex, background: mapColorRGBA(step.color, 0.06) }}
-                onClick={() => { setCurrentStep(Math.min(currentStep+1, steps.length-1)); setStepFadeKey(k => k+1); }}
+                onClick={() => {
+                  if (currentStep === steps.length - 1) {
+                    setShowStatus(true);
+                  } else {
+                    setCurrentStep(Math.min(currentStep + 1, steps.length - 1));
+                    setStepFadeKey(k => k + 1);
+                  }
+                }}
               >
                 {currentStep===steps.length-1 ? "Finish" : "Submit"}
               </button>
@@ -275,7 +282,27 @@ export default function CyberWizard() {
           </div>
         </div>
 
-        {/* Under-main removed for now to resolve build parse issue */}
+        {/* Under-main: commence and status below main window */}
+        <div className="grid grid-cols-12 gap-6" style={{ marginTop: '8px' }}>
+          <div className="col-start-4 col-span-5">
+            {currentStep===steps.length-1 && !showStatus && (
+              <div className="animate-fade-in">
+                <button
+                  className="w-full px-4 py-3 rounded text-center font-bold animate-pulse-neon"
+                  style={{ border: '3px solid #00ff9f', color: '#001', background: 'rgba(0,255,159,0.2)', textShadow: '0 0 8px #00ff9f' }}
+                  onClick={() => setShowStatus(true)}
+                >
+                  Commence UltraAI
+                </button>
+              </div>
+            )}
+            {showStatus && (
+              <div className="glass-strong p-3 rounded-xl border-2 animate-border-hum mt-2" style={{ borderColor: colorHex, boxShadow: `0 0 0 2px rgba(255,255,255,0.08) inset, 0 0 14px ${colorHex}` }}>
+                <StatusUpdater />
+              </div>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );
