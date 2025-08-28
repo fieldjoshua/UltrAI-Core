@@ -734,7 +734,11 @@ class OrchestrationService:
                                 "generated_text": STUB_RESPONSE,
                             }
                         logger.warning(f"No OpenAI API key found for {model}, skipping")
-                        return model, {"error": "No API key"}
+                        return model, {
+                            "error": "Missing API key",
+                            "error_details": f"OpenAI API key not configured. Please set OPENAI_API_KEY environment variable to use {model}.",
+                            "provider": "OpenAI"
+                        }
                     base_adapter = OpenAIAdapter(api_key, mapped_model) if api_key else None
                     resilient_adapter = create_resilient_adapter(base_adapter) if base_adapter else None
                     adapter = wrap_llm_adapter_with_telemetry(resilient_adapter, "openai", model) if resilient_adapter else None
@@ -785,7 +789,11 @@ class OrchestrationService:
                         logger.warning(
                             f"No Anthropic API key found for {model}, skipping"
                         )
-                        return model, {"error": "No API key"}
+                        return model, {
+                            "error": "Missing API key",
+                            "error_details": f"Anthropic API key not configured. Please set ANTHROPIC_API_KEY environment variable to use {model}.",
+                            "provider": "Anthropic"
+                        }
                     # Fix model name mapping for Anthropic
                     mapped_model = model
                     if model == "claude-3-sonnet":
@@ -825,7 +833,11 @@ class OrchestrationService:
                             return model, {
                                 "generated_text": "Stubbed Gemini response generated for testing mode."
                             }
-                        return model, {"error": "No Google API key"}
+                        return model, {
+                            "error": "Missing API key",
+                            "error_details": f"Google API key not configured. Please set GOOGLE_API_KEY environment variable to use {model}.",
+                            "provider": "Google"
+                        }
                     # Fix model name mapping for Gemini
                     mapped_model = model
                     if model == "gemini-pro":
@@ -872,7 +884,11 @@ class OrchestrationService:
                         logger.error(
                             f"HuggingFace API key required for {model}. Set HUGGINGFACE_API_KEY environment variable."
                         )
-                        return model, {"error": "No API key"}
+                        return model, {
+                            "error": "Missing API key",
+                            "error_details": f"HuggingFace API key not configured. Please set HUGGINGFACE_API_KEY environment variable to use {model}.",
+                            "provider": "HuggingFace"
+                        }
 
                     try:
                         base_adapter = HuggingFaceAdapter(api_key, model)
@@ -1103,7 +1119,11 @@ Having seen these other responses, provide your best answer to the original ques
                 if model.startswith("gpt") or model.startswith("o1"):
                     api_key = os.getenv("OPENAI_API_KEY")
                     if not api_key:
-                        return model, {"error": "No OpenAI API key"}
+                        return model, {
+                            "error": "Missing API key",
+                            "error_details": f"OpenAI API key not configured for peer review. Please set OPENAI_API_KEY environment variable to use {model}.",
+                            "fallback_response": own_response
+                        }
                     base_adapter = OpenAIAdapter(api_key, model)
                     adapter = create_resilient_adapter(base_adapter)
                     result = await adapter.generate(peer_review_prompt)
@@ -1111,7 +1131,11 @@ Having seen these other responses, provide your best answer to the original ques
                 elif model.startswith("claude"):
                     api_key = os.getenv("ANTHROPIC_API_KEY")
                     if not api_key:
-                        return model, {"error": "No Anthropic API key"}
+                        return model, {
+                            "error": "Missing API key",
+                            "error_details": f"Anthropic API key not configured for peer review. Please set ANTHROPIC_API_KEY environment variable to use {model}.",
+                            "fallback_response": own_response
+                        }
                     # Fix model name mapping for Anthropic
                     mapped_model = model
                     if model == "claude-3-sonnet":
@@ -1127,7 +1151,11 @@ Having seen these other responses, provide your best answer to the original ques
                 elif model.startswith("gemini"):
                     api_key = os.getenv("GOOGLE_API_KEY")
                     if not api_key:
-                        return model, {"error": "No Google API key"}
+                        return model, {
+                            "error": "Missing API key",
+                            "error_details": f"Google API key not configured for peer review. Please set GOOGLE_API_KEY environment variable to use {model}.",
+                            "fallback_response": own_response
+                        }
                     # Fix model name mapping for Gemini
                     mapped_model = model
                     if model == "gemini-pro":
@@ -1145,7 +1173,11 @@ Having seen these other responses, provide your best answer to the original ques
                 elif "/" in model:  # HuggingFace model
                     api_key = os.getenv("HUGGINGFACE_API_KEY")
                     if not api_key:
-                        return model, {"error": "No HuggingFace API key"}
+                        return model, {
+                            "error": "Missing API key",
+                            "error_details": f"HuggingFace API key not configured for peer review. Please set HUGGINGFACE_API_KEY environment variable to use {model}.",
+                            "fallback_response": own_response
+                        }
                     base_adapter = HuggingFaceAdapter(api_key, model)
                     adapter = create_resilient_adapter(base_adapter)
                     result = await adapter.generate(peer_review_prompt)

@@ -248,6 +248,69 @@ def create_router():
                 "error": str(e)
             }
 
+    @router.get("/models/api-keys-status")
+    async def get_api_keys_status(http_request: Request) -> Dict[str, Any]:
+        """
+        Check which API keys are configured (without exposing the actual keys).
+        
+        This helps diagnose why certain models aren't working.
+        """
+        import os
+        
+        api_keys_status = {
+            "openai": {
+                "configured": bool(os.getenv("OPENAI_API_KEY")),
+                "env_var": "OPENAI_API_KEY",
+                "provider": "OpenAI",
+                "models": ["gpt-4o", "gpt-4", "gpt-3.5-turbo", "o1-preview", "o1-mini"]
+            },
+            "anthropic": {
+                "configured": bool(os.getenv("ANTHROPIC_API_KEY")),
+                "env_var": "ANTHROPIC_API_KEY", 
+                "provider": "Anthropic",
+                "models": ["claude-3-5-sonnet-20241022", "claude-3-5-haiku-20241022", "claude-3-opus-20240229"]
+            },
+            "google": {
+                "configured": bool(os.getenv("GOOGLE_API_KEY")),
+                "env_var": "GOOGLE_API_KEY",
+                "provider": "Google",
+                "models": ["gemini-1.5-pro", "gemini-1.5-flash", "gemini-2.0-flash-exp"]
+            },
+            "huggingface": {
+                "configured": bool(os.getenv("HUGGINGFACE_API_KEY")),
+                "env_var": "HUGGINGFACE_API_KEY",
+                "provider": "HuggingFace",
+                "models": ["meta-llama/Meta-Llama-3-8B-Instruct", "mistralai/Mistral-7B-Instruct-v0.1"]
+            }
+        }
+        
+        # Count configured providers
+        configured_count = sum(1 for provider in api_keys_status.values() if provider["configured"])
+        total_count = len(api_keys_status)
+        
+        # List missing providers
+        missing_providers = [
+            provider["provider"] 
+            for provider in api_keys_status.values() 
+            if not provider["configured"]
+        ]
+        
+        return {
+            "status": "ok",
+            "providers": api_keys_status,
+            "summary": {
+                "total_providers": total_count,
+                "configured_providers": configured_count,
+                "missing_providers": missing_providers,
+                "all_configured": configured_count == total_count
+            },
+            "message": (
+                "All API keys configured" 
+                if configured_count == total_count 
+                else f"Missing API keys for: {', '.join(missing_providers)}"
+            )
+        }
+
     return router
 
 
