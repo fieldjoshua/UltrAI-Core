@@ -39,19 +39,17 @@ def get_database_url():
             found_var_name = var_name
             break
 
-    # Debug logging to understand what's happening
-    logger.info(f"Database environment variables checked: {possible_db_url_vars}")
+    # Debug logging without exposing sensitive information
     if database_url:
-        logger.info(f"Found database URL in variable: {found_var_name}")
-        # Don't log the full URL for security, just confirm it's not localhost
+        logger.info(f"Database URL found in environment variable: {found_var_name}")
+        # Don't log the actual URL for security
         is_localhost = "localhost" in database_url.lower() or "127.0.0.1" in database_url
-        logger.info(f"Database URL points to localhost: {is_localhost}")
+        connection_type = "local" if is_localhost else "remote"
+        logger.info(f"Database connection type: {connection_type}")
         return database_url
     else:
-        logger.warning("No database URL found in any environment variables, using individual DB_* variables")
-        # Log available environment variables that might be database-related
-        db_related_vars = [k for k in os.environ.keys() if any(keyword in k.upper() for keyword in ["DB", "DATABASE", "POSTGRES"])]
-        logger.info(f"Available database-related environment variables: {db_related_vars}")
+        logger.warning("No database URL found in standard environment variables")
+        # Don't log the actual variable names to avoid revealing configuration
         
         # Fallback to individual environment variables for local development
         db_host = os.environ.get("DB_HOST", "localhost")
@@ -107,7 +105,8 @@ def get_engine():
     try:
         # Get database URL at runtime
         database_url = get_database_url()
-        logger.info(f"Creating database engine with runtime URL (first 20 chars): {database_url[:20]}...")
+        # Don't log any part of the database URL for security
+        logger.info("Creating database engine...")
 
         # Import SQLAlchemy dynamically
         sqlalchemy = sqlalchemy_dependency.get_module()

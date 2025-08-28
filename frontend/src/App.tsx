@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-d
 import { useEffect } from "react";
 import { useAuthStore } from "./stores/authStore";
 import { ProtectedRoute } from "./components/auth/ProtectedRoute";
+import ErrorBoundary from "./components/ErrorBoundary";
 
 // Layout
 import NavBar from "./components/layout/NavBar";
@@ -42,11 +43,12 @@ function App() {
   }, [fetchCurrentUser]);
 
   return (
-    <Router>
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 md:pl-16">
-        <NavBar />
-        <main className="container mx-auto px-4 py-6">
-          <Routes>
+    <ErrorBoundary>
+      <Router>
+        <div className="min-h-screen bg-gray-50 dark:bg-gray-900 md:pl-16">
+          <NavBar />
+          <main className="container mx-auto px-4 py-6">
+            <Routes>
             {/* Public Routes */}
             <Route path="/" element={<Navigate to="/wizard" replace />} />
             <Route path="/wizard" element={<WizardPage />} />
@@ -92,6 +94,7 @@ function App() {
         </main>
       </div>
     </Router>
+    </ErrorBoundary>
   );
 }
 
