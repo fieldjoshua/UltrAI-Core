@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import { processWithFeatherOrchestration } from "../api/orchestrator";
 import OptionCards from "./OptionCards";
 import AnalysisModes from "./AnalysisModes";
 import StatusUpdater from "./StatusUpdater";
@@ -27,6 +28,10 @@ export default function CyberWizard() {
   const [selectedAnalysisModes, setSelectedAnalysisModes] = useState<string[]>([]);
   const [showStatus, setShowStatus] = useState<boolean>(false);
   const [stepFadeKey, setStepFadeKey] = useState(0);
+  const [userQuery, setUserQuery] = useState<string>("");
+  const [isRunning, setIsRunning] = useState<boolean>(false);
+  const [orchestratorResult, setOrchestratorResult] = useState<any>(null);
+  const [orchestratorError, setOrchestratorError] = useState<string | null>(null);
 
   useEffect(() => {
     const load = async () => {
@@ -99,6 +104,33 @@ export default function CyberWizard() {
 
   const monoStack = 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace';
 
+  // Kick off Ultra Synthesis pipeline when status is shown
+  useEffect(() => {
+    if (!showStatus || isRunning) return;
+    setIsRunning(true);
+    (async () => {
+      try {
+        setOrchestratorError(null);
+        const models = selectedModels.length > 0 ? selectedModels : null;
+        const res = await processWithFeatherOrchestration({
+          prompt: userQuery || "",
+          models,
+          pattern: "comparative",
+          ultraModel: null,
+          outputFormat: "plain",
+        });
+        setOrchestratorResult(res);
+        // Optionally log for now; UI can read orchestratorResult later
+        console.log("Ultra Synthesis result", res);
+      } catch (e: any) {
+        console.error("Ultra Synthesis failed", e);
+        setOrchestratorError(e?.message || String(e));
+      } finally {
+        setIsRunning(false);
+      }
+    })();
+  }, [showStatus]);
+
   return (
     <div className="relative flex min-h-screen w-full items-start justify-center p-0 text-white font-cyber text-sm">
       {/* Background layer */}
@@ -153,11 +185,11 @@ export default function CyberWizard() {
               {/* Scrollable options area */}
               <div
                 key={stepFadeKey}
-                className="relative space-y-2 mb-2 animate-fade-in overflow-auto"
-                style={{ maxHeight: '20vh', paddingRight: 4, pointerEvents: 'auto', zIndex: 30 }}
+                className={`relative space-y-2 mb-2 animate-fade-in overflow-auto ${showStatus ? 'opacity-50' : ''}`}
+                style={{ maxHeight: '20vh', paddingRight: 4, pointerEvents: showStatus ? 'none' : 'auto', zIndex: 30 }}
               >
                 {step.type === "textarea" && (<>
-                  <textarea className="w-full h-16 glass p-2 text-white text-sm" placeholder="Type your query…" onBlur={() => addSelection("Query Entry", step.baseCost, step.color)} />
+                  <textarea className="w-full h-16 glass p-2 text-white text-sm" placeholder="Type your query…" value={userQuery} onChange={(e) => setUserQuery(e.target.value)} onBlur={() => addSelection("Query Entry", step.baseCost, step.color)} />
                   {step.options && step.options.map(o => (
                     <label key={o.label} className="block text-[11px] leading-tight truncate opacity-95 hover:opacity-100">
                       <input type="checkbox" onChange={e => e.target.checked ? handleInputToggle(o.label) : handleInputToggle(o.label)} checked={selectedInputs.includes(o.label)} />{" "}
@@ -312,6 +344,17 @@ export default function CyberWizard() {
             {showStatus && (
               <div className="glass-strong p-3 rounded-xl border-2 animate-border-hum mt-2" style={{ borderColor: colorHex, boxShadow: `0 0 0 2px rgba(255,255,255,0.08) inset, 0 0 14px ${colorHex}` }}>
                 <StatusUpdater />
+                {isRunning && <div className="text-[11px] opacity-80 mt-2">Running Ultra Synthesis…</div>}
+                {!isRunning && orchestratorError && (
+                  <div className="text-[11px] text-red-400 mt-2">{orchestratorError}</div>
+                )}
+                {!isRunning && orchestratorResult && (
+                  <div className="mt-2 text-[11px] space-y-1">
+                    <div className="opacity-80">Pipeline complete. Models used: {Array.isArray(orchestratorResult.models_used) ? orchestratorResult.models_used.join(', ') : ''}</div>
+                    <div className="opacity-80">Time: {orchestratorResult.processing_time?.toFixed?.(2) || orchestratorResult.processing_time}s</div>
+                    <div className="opacity-80">Pattern: {orchestratorResult.pattern_used}</div>
+                  </div>
+                )}
               </div>
             )}
           </div>
