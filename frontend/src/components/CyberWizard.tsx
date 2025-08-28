@@ -425,7 +425,7 @@ export default function CyberWizard() {
                       )}
                     </div>
                   ) : currentStep === 4 ? (
-                    <div className={step.options.length >= 8 ? "grid grid-cols-2 gap-2" : "space-y-2"}>
+                    <div className={"grid grid-cols-2 gap-2"}>
                       {step.options.map(o => {
                         const labelLower = (o.label || "").toLowerCase();
                         const isUltra = labelLower.includes("ultra") || labelLower.includes("intelligence") || labelLower.includes("multiplier");
