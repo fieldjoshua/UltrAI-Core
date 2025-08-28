@@ -255,9 +255,10 @@ export default function CyberWizard() {
           {/* Wizard Panel (left) */}
           <div className="col-start-2 col-span-7 self-start">
             <div
-              className={`relative z-20 glass-strong p-5 rounded-2xl transition-all duration-300 h-[44vh] animate-border-hum overflow-hidden ${step.color === "mint" ? "shadow-neon-mint" : step.color === "blue" ? "shadow-neon-blue" : step.color === "deepblue" ? "shadow-neon-deep" : step.color === "purple" ? "shadow-neon-purple" : "shadow-neon-pink"}`}
+              className={`relative z-20 glass-strong p-5 rounded-2xl transition-all duration-300 h-[50vh] animate-border-hum overflow-hidden ${step.color === "mint" ? "shadow-neon-mint" : step.color === "blue" ? "shadow-neon-blue" : step.color === "deepblue" ? "shadow-neon-deep" : step.color === "purple" ? "shadow-neon-purple" : "shadow-neon-pink"}`}
               style={{ borderColor: colorHex, borderWidth: 7, background: colorRGBA, boxShadow: `0 0 0 2px rgba(255,255,255,0.10) inset, 0 0 14px ${colorHex}` }}
             >
+              <div className="flex flex-col h-full">
               {/* Step markers (centered) */}
               <div className="w-full mb-4">
                 <div className="flex items-center justify-center">
@@ -288,7 +289,7 @@ export default function CyberWizard() {
               <div
                 key={stepFadeKey}
                 className={`relative space-y-2 mb-2 animate-fade-in overflow-auto ${showStatus ? 'opacity-50' : ''}`}
-                style={{ maxHeight: '20vh', paddingRight: 4, pointerEvents: showStatus ? 'none' : 'auto', zIndex: 30 }}
+                style={{ maxHeight: '28vh', paddingRight: 4, pointerEvents: showStatus ? 'none' : 'auto' }}
               >
                 {step.type === "intro" && (
                   <>
@@ -324,20 +325,28 @@ export default function CyberWizard() {
 
                 {step.type === "textarea" && (<>
                   <textarea className="w-full h-16 glass p-2 text-white text-sm" placeholder="Type your query…" value={userQuery} onChange={(e) => setUserQuery(e.target.value)} onBlur={() => addSelection("Query Entry", step.baseCost, step.color)} />
-                  {step.options && step.options.map(o => (
-                    <label key={o.label} className="block text-[11px] leading-tight truncate opacity-95 hover:opacity-100">
-                      <input type="checkbox" onChange={e => e.target.checked ? handleInputToggle(o.label) : handleInputToggle(o.label)} checked={selectedInputs.includes(o.label)} />{" "}
-                      <span className="align-middle tracking-wide text-white">{o.icon ? `${o.icon} ` : ""}{o.label}{typeof o.cost === 'number' ? ` ($${o.cost})` : ""}</span>
-                    </label>
-                  ))}
+                  {step.options && (
+                    <div className="grid grid-cols-2 gap-2 mt-1">
+                      {step.options.map(o => (
+                        <label key={o.label} className="flex items-center text-[11px] leading-tight truncate opacity-95 hover:opacity-100">
+                          <input type="checkbox" onChange={() => handleInputToggle(o.label)} checked={selectedInputs.includes(o.label)} />{" "}
+                          <span className="align-middle truncate tracking-wide text-white">{o.icon ? `${o.icon} ` : ""}{o.label}{typeof o.cost === 'number' ? ` ($${o.cost})` : ""}</span>
+                        </label>
+                      ))}
+                    </div>
+                  )}
                 </>)}
 
-                {step.type === "radio" && step.options?.map(o => (
-                  <label key={o.label} className="block text-[11px] leading-tight truncate opacity-95 hover:opacity-100">
-                    <input type="radio" name={`radio-${currentStep}`} onChange={() => addSelection(o.label, o.cost, step.color)} />{" "}
-                    <span className="align-middle tracking-wide text-white">{o.icon ? `${o.icon} ` : ""}{o.label}{typeof o.cost === 'number' ? ` ($${o.cost})` : ""}</span>
-                  </label>
-                ))}
+                {step.type === "radio" && step.options && (
+                  <div className="grid grid-cols-2 gap-2">
+                    {step.options.map(o => (
+                      <label key={o.label} className="flex items-center text-[11px] leading-tight truncate opacity-95 hover:opacity-100">
+                        <input type="radio" name={`radio-${currentStep}`} onChange={() => addSelection(o.label, o.cost, step.color)} />{" "}
+                        <span className="align-middle truncate tracking-wide text-white">{o.icon ? `${o.icon} ` : ""}{o.label}{typeof o.cost === 'number' ? ` ($${o.cost})` : ""}</span>
+                      </label>
+                    ))}
+                  </div>
+                )}
 
                 {step.type === "checkbox" && step.options && (
                   currentStep === 0 ? (
@@ -396,7 +405,7 @@ export default function CyberWizard() {
                           onClick={() => setModelSelectionMode('manual')}
                         >Open manual list</button>
                         {modelSelectionMode === 'manual' && (
-                          <div className={(availableModels?.length || 0) >= 10 ? 'grid grid-cols-2 gap-1 mt-2' : 'space-y-1 mt-2'}>
+                          <div className={'grid grid-cols-2 gap-1 mt-2'}>
                             {(availableModels || []).map(name => (
                               <label key={name} className="flex items-center text-[11px] leading-tight truncate opacity-95 hover:opacity-100">
                                 <input type="checkbox" onChange={() => handleModelToggle(name)} checked={selectedModels.includes(name)} />{" "}
@@ -438,12 +447,14 @@ export default function CyberWizard() {
                       })}
                     </div>
                   ) : (
-                    step.options.map(o => (
-                      <label key={o.label} className="block text-[11px] leading-tight truncate opacity-95 hover:opacity-100">
-                        <input type="checkbox" onChange={e => e.target.checked ? addSelection(o.label, o.cost, step.color) : removeSelectionCost(o.cost)} />{" "}
-                        <span className="align-middle tracking-wide text-white">{o.icon ? `${o.icon} ` : ""}{o.label}{typeof o.cost === 'number' ? ` ($${o.cost})` : ""}</span>
-                      </label>
-                    ))
+                    <div className="grid grid-cols-2 gap-2">
+                      {step.options.map(o => (
+                        <label key={o.label} className="flex items-center text-[11px] leading-tight truncate opacity-95 hover:opacity-100">
+                          <input type="checkbox" onChange={e => e.target.checked ? addSelection(o.label, o.cost, step.color) : removeSelectionCost(o.cost)} />{" "}
+                          <span className="align-middle truncate tracking-wide text-white">{o.icon ? `${o.icon} ` : ""}{o.label}{typeof o.cost === 'number' ? ` ($${o.cost})` : ""}</span>
+                        </label>
+                      ))}
+                    </div>
                   )
                 )}
 
@@ -461,31 +472,34 @@ export default function CyberWizard() {
 
               </div>
 
-              {/* Action buttons (always visible) */}
-              {(step.type === 'checkbox' || step.type === 'textarea' || step.type === 'radio') && currentStep !== 4 && currentStep !== 0 && (
-                <button
-                  className="w-full mt-1 px-3 py-2 rounded text-center font-semibold shadow-neon-mint animate-border-hum"
-                  style={{ border: '2px solid #00ff9f', color: '#00ff9f', background: 'rgba(0,255,159,0.08)' }}
-                  onClick={() => addSelection("Auto: Let UltrAI Optimize My Query", 0, step.color)}
-                >
-                  Auto: Let UltrAI Optimize My Query
-                </button>
-              )}
+              {/* Action buttons (sticky footer inside panel) */}
+              <div className="mt-auto sticky bottom-0 pt-1" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.35), rgba(0,0,0,0))' }}>
+                {(step.type === 'checkbox' || step.type === 'textarea' || step.type === 'radio') && currentStep !== 4 && currentStep !== 0 && (
+                  <button
+                    className="w-full mt-1 px-3 py-2 rounded text-center font-semibold shadow-neon-mint animate-border-hum"
+                    style={{ border: '2px solid #00ff9f', color: '#00ff9f', background: 'rgba(0,255,159,0.08)' }}
+                    onClick={() => addSelection("Auto: Let UltrAI Optimize My Query", 0, step.color)}
+                  >
+                    Auto: Let UltrAI Optimize My Query
+                  </button>
+                )}
 
-              <button
-                className="w-full mt-2 px-3 py-2 rounded text-center font-semibold animate-border-hum"
-                style={{ border: `2px solid ${colorHex}`, color: colorHex, background: mapColorRGBA(step.color, 0.06) }}
-                onClick={() => {
-                  if (currentStep === steps.length - 1) {
-                    setShowStatus(true);
-                  } else {
-                    setCurrentStep(Math.min(currentStep + 1, steps.length - 1));
-                    setStepFadeKey(k => k + 1);
-                  }
-                }}
-              >
-                {currentStep===steps.length-1 ? "Finish" : "Submit"}
-              </button>
+                <button
+                  className="w-full mt-2 px-3 py-2 rounded text-center font-semibold animate-border-hum"
+                  style={{ border: `2px solid ${colorHex}`, color: colorHex, background: mapColorRGBA(step.color, 0.06) }}
+                  onClick={() => {
+                    if (currentStep === steps.length - 1) {
+                      setShowStatus(true);
+                    } else {
+                      setCurrentStep(Math.min(currentStep + 1, steps.length - 1));
+                      setStepFadeKey(k => k + 1);
+                    }
+                  }}
+                >
+                  {currentStep===steps.length-1 ? "Finish" : "Submit"}
+                </button>
+              </div>
+              </div>
             </div>
           </div>
 
