@@ -70,6 +70,32 @@ export default function CyberWizard() {
     fetchAvailable();
   }, []);
 
+  // Kick off Ultra Synthesis pipeline when status is shown (hook placed before any conditional returns)
+  useEffect(() => {
+    if (!showStatus || isRunning) return;
+    setIsRunning(true);
+    (async () => {
+      try {
+        setOrchestratorError(null);
+        const models = selectedModels.length > 0 ? selectedModels : null;
+        const res = await processWithFeatherOrchestration({
+          prompt: userQuery || "",
+          models,
+          pattern: "comparative",
+          ultraModel: null,
+          outputFormat: "plain",
+        });
+        setOrchestratorResult(res);
+        console.log("Ultra Synthesis result", res);
+      } catch (e: any) {
+        console.error("Ultra Synthesis failed", e);
+        setOrchestratorError(e?.message || String(e));
+      } finally {
+        setIsRunning(false);
+      }
+    })();
+  }, [showStatus]);
+
   const addSelection = (label: string, cost: number | undefined, color: string) => {
     const appliedCost = typeof cost === 'number' ? cost : 0;
     setSummary(prev => [...prev, { label, cost: appliedCost, color }]);
@@ -125,32 +151,6 @@ export default function CyberWizard() {
 
   const monoStack = 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace';
 
-  // Kick off Ultra Synthesis pipeline when status is shown
-  useEffect(() => {
-    if (!showStatus || isRunning) return;
-    setIsRunning(true);
-    (async () => {
-      try {
-        setOrchestratorError(null);
-        const models = selectedModels.length > 0 ? selectedModels : null;
-        const res = await processWithFeatherOrchestration({
-          prompt: userQuery || "",
-          models,
-          pattern: "comparative",
-          ultraModel: null,
-          outputFormat: "plain",
-        });
-        setOrchestratorResult(res);
-        // Optionally log for now; UI can read orchestratorResult later
-        console.log("Ultra Synthesis result", res);
-      } catch (e: any) {
-        console.error("Ultra Synthesis failed", e);
-        setOrchestratorError(e?.message || String(e));
-      } finally {
-        setIsRunning(false);
-      }
-    })();
-  }, [showStatus]);
 
   return (
     <div className="relative flex min-h-screen w-full items-start justify-center p-0 text-white font-cyber text-sm">
