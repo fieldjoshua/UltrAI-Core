@@ -7,12 +7,13 @@ and adds the authenticated user to the request state for further processing.
 
 from typing import Callable, List, Optional
 
-from fastapi import Request, Response, status
+from fastapi import Request, Response, status, HTTPException
 from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.types import ASGIApp
 
 from app.database.connection import get_db_session
+from pydantic import BaseModel
 from app.models.base_models import ErrorResponse
 from app.services.auth_service import auth_service
 from app.utils.jwt_utils import decode_token, is_token_expired
@@ -259,3 +260,25 @@ def setup_auth_middleware(
         cookie_name=cookie_name,
     )
     logger.info("Authentication middleware added to application")
+
+
+# --- FastAPI dependency & user model for routes that need auth ---
+class AuthUser(BaseModel):
+    """Minimal authenticated user model for dependency injection."""
+    user_id: str
+
+
+async def require_auth(request: Request) -> AuthUser:
+    """FastAPI dependency that ensures the request is authenticated.
+
+    Returns an `AuthUser` constructed from `request.state` (populated by AuthMiddleware).
+    """
+    # The middleware sets these when auth succeeds
+    user_id = getattr(request.state, "user_id", None)
+    is_auth = getattr(request.state, "is_authenticated", False)
+
+    if not is_auth or not user_id:
+        # Align with existing error handling style
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Unauthorized")
+
+    return AuthUser(user_id=str(user_id))
