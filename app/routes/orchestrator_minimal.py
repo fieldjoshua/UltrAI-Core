@@ -3,11 +3,12 @@ Route handlers for the orchestrator service.
 """
 
 from typing import Dict, Any, Optional, List
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, HTTPException, Request, Depends
 from pydantic import BaseModel, Field
 
 from app.utils.logging import get_logger
 from app.services.output_formatter import OutputFormatter
+from app.middleware.auth_middleware import require_auth, AuthUser
 
 logger = get_logger("orchestrator_routes")
 
@@ -70,7 +71,11 @@ def create_router() -> APIRouter:
     router = APIRouter(tags=["Orchestrator"])
 
     @router.post("/orchestrator/analyze", response_model=AnalysisResponse)
-    async def analyze_query(request: AnalysisRequest, http_request: Request):
+    async def analyze_query(
+        request: AnalysisRequest, 
+        http_request: Request,
+        current_user: AuthUser = Depends(require_auth)
+    ):
         """
         Main analysis endpoint using the orchestration service.
 

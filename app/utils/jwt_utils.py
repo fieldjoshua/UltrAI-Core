@@ -13,15 +13,22 @@ from typing import Any, Dict, Optional
 
 import jwt  # PyJWT is required
 
-# Get secret keys from environment variables or use secure defaults
-SECRET_KEY = (
-    os.getenv("JWT_SECRET_KEY")
-    or "3ed3fb79ec2d6f0a7d7a00a97a7dbd07aa09fb0dedf7b6ac7eec4260456d0d06"
-)
-REFRESH_SECRET_KEY = (
-    os.getenv("JWT_REFRESH_SECRET_KEY")
-    or "27e55f29f1d0e3dc1bb5e2d7ea12596b4b39edddd8c06ad9d55f0e9bbce3c75c"
-)
+# Get secret keys from environment variables - REQUIRED in production
+SECRET_KEY = os.getenv("JWT_SECRET_KEY")
+REFRESH_SECRET_KEY = os.getenv("JWT_REFRESH_SECRET_KEY")
+
+# Validate that secrets are configured
+if not SECRET_KEY:
+    raise ValueError(
+        "JWT_SECRET_KEY environment variable is required. "
+        "Generate a secure key with: openssl rand -hex 32"
+    )
+
+if not REFRESH_SECRET_KEY:
+    raise ValueError(
+        "JWT_REFRESH_SECRET_KEY environment variable is required. "
+        "Generate a secure key with: openssl rand -hex 32"
+    )
 
 # Token settings
 ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "15"))
