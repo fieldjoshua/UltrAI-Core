@@ -78,3 +78,43 @@
     stroke-dashoffset: -200;
   }
 }
+
+/* Neon cyberpunk CTA button */
+.btn-neon {
+  position: relative;
+  display: inline-block;
+  padding: 0.9rem 1.8rem;
+  border-radius: 14px;
+  border: 3px solid #ff00d4;
+  color: #001;
+  background: linear-gradient(90deg, rgba(255,0,212,0.35) 0%, rgba(0,255,159,0.35) 100%);
+  text-shadow: 0 0 8px #00ff9f, 0 0 12px rgba(255,0,212,0.6);
+  box-shadow: 0 0 18px rgba(255,0,212,0.55), 0 0 26px rgba(0,255,159,0.35), inset 0 0 8px rgba(255,255,255,0.15);
+  letter-spacing: 0.06em;
+  transition: transform 140ms ease, box-shadow 180ms ease, filter 180ms ease;
+  animation: neonPulse 2.2s ease-in-out infinite alternate;
+}
+.btn-neon:hover {
+  filter: saturate(1.2) brightness(1.05);
+  box-shadow: 0 0 26px rgba(255,0,212,0.75), 0 0 34px rgba(0,255,159,0.5), inset 0 0 10px rgba(255,255,255,0.25);
+}
+.btn-neon:active {
+  transform: translateY(1px) scale(0.99);
+}
+.btn-neon::before {
+  content: "";
+  position: absolute;
+  inset: -3px;
+  border-radius: 16px;
+  background: radial-gradient(60% 60% at 50% 50%, rgba(255,0,212,0.25), rgba(0,255,159,0.15) 70%, transparent 100%);
+  filter: blur(8px);
+  z-index: -1;
+}
+@keyframes neonPulse {
+  0% {
+    box-shadow: 0 0 12px rgba(255,0,212,0.45), 0 0 20px rgba(0,255,159,0.25), inset 0 0 6px rgba(255,255,255,0.12);
+  }
+  100% {
+    box-shadow: 0 0 22px rgba(255,0,212,0.75), 0 0 34px rgba(0,255,159,0.45), inset 0 0 10px rgba(255,255,255,0.22);
+  }
+}
