@@ -100,7 +100,7 @@ export default function CyberWizard() {
   const monoStack = 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace';
 
   return (
-    <div className="relative flex h-screen w-full items-start justify-center p-0 text-white font-cyber text-sm">
+    <div className="relative flex min-h-screen w-full items-start justify-center p-0 text-white font-cyber text-sm">
       {/* Background layer */}
       <div
         className="pointer-events-none absolute inset-0"

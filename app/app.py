@@ -261,6 +261,14 @@ def create_app() -> FastAPI:
             ):
                 return {"error": "Route not found"}
 
+            # If the requested path directly matches a built file in dist, serve it (e.g., images)
+            candidate = os.path.join(frontend_dist, path)
+            try:
+                if os.path.isfile(candidate):
+                    return FileResponse(candidate)
+            except Exception:
+                pass
+
             # Serve index.html for all other routes (React Router handles client-side routing)
             index_file = os.path.join(frontend_dist, "index.html")
             if os.path.exists(index_file):
