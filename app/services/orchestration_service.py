@@ -4,7 +4,7 @@ Orchestration Service
 This service coordinates multi-model and multi-stage workflows according to the UltrLLMOrchestrator patent.
 """
 
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 import asyncio
@@ -31,6 +31,8 @@ from app.services.synthesis_prompts import SynthesisPromptManager, QueryType
 from app.services.model_selection import SmartModelSelector
 from app.services.synthesis_output import StructuredSynthesisOutput
 from app.services.cache_service import get_cache_service, cache_key
+from app.services.orchestration_retry_handler import OrchestrationRetryHandler
+from app.config import Config
 from app.utils.logging import get_logger
 
 logger = get_logger("orchestration_service")
@@ -106,25 +108,28 @@ class OrchestrationService:
             self.synthesis_output_formatter = None
             self.use_enhanced_synthesis = False
 
+        # Initialize retry handler
+        self.retry_handler = OrchestrationRetryHandler()
+
         # Define pipeline stages - OPTIMIZED 3-STAGE Ultra Synthesis™ architecture (meta-analysis removed)
         self.pipeline_stages = [
             PipelineStage(
                 name="initial_response",
                 description="Initial response generation from multiple models in parallel",
                 required_models=[],  # Uses user-selected models
-                timeout_seconds=60,
+                timeout_seconds=Config.INITIAL_RESPONSE_TIMEOUT,
             ),
             PipelineStage(
                 name="peer_review_and_revision",
                 description="Each model reviews peer responses and revises their own answer",
                 required_models=[],  # Uses same models as initial_response
-                timeout_seconds=90,
+                timeout_seconds=Config.PEER_REVIEW_TIMEOUT,
             ),
             PipelineStage(
                 name="ultra_synthesis",
                 description="Ultra-synthesis of peer-reviewed responses for final intelligence multiplication",
                 required_models=[],  # Uses lead model from selection
-                timeout_seconds=90,
+                timeout_seconds=Config.ULTRA_SYNTHESIS_TIMEOUT,
             ),
         ]
 
@@ -416,9 +421,12 @@ class OrchestrationService:
         cache_enabled = options.get("enable_cache", True) if options else True
         
         if cache_enabled:
-            # Generate cache key from inputs
+            # Generate cache key from inputs using hash for long content
+            import hashlib
+            input_hash = hashlib.sha256(str(input_data).encode()).hexdigest()
             cache_key_data = {
-                "input": str(input_data)[:500],  # Limit input size for key
+                "input_hash": input_hash,
+                "input_preview": str(input_data)[:100],  # Keep preview for debugging
                 "models": sorted(selected_models) if selected_models else [],
                 "options": options or {}
             }
@@ -683,6 +691,107 @@ class OrchestrationService:
             error=error,
             token_usage=token_usage,
         )
+
+    async def _execute_model_with_retry(self, model: str, prompt: str) -> Dict[str, Any]:
+        """Execute a model with retry logic and rate limit handling.
+        
+        Args:
+            model: Model name to execute
+            prompt: Prompt to send to the model
+            
+        Returns:
+            Dict with either 'generated_text' or 'error' key
+        """
+        # Pre-validate API key
+        is_valid, error_msg = self._validate_api_key(model)
+        if not is_valid:
+            # In testing mode, return stub for missing API keys
+            if os.getenv("TESTING") == "true":
+                logger.info(f"🧪 TESTING mode – providing stubbed response for {model}")
+                return {"generated_text": STUB_RESPONSE}
+            return {"error": "Missing API key", "error_details": error_msg}
+        
+        # Determine provider from model name
+        provider = self._get_provider_from_model(model)
+        
+        # Get the adapter
+        adapter, mapped_model = self._create_adapter(model)
+        if adapter is None:
+            return {"error": "Failed to create adapter", "provider": provider}
+        
+        # Define the execution function
+        async def execute():
+            return await adapter.generate(prompt)
+        
+        # Execute with retry
+        success, result = await self.retry_handler.execute_with_retry(
+            execute, provider, model
+        )
+        
+        if success:
+            # Process successful result
+            if isinstance(result, dict) and "generated_text" in result:
+                gen_text = result.get("generated_text", "")
+                
+                # Check for error indicators in the response
+                if "Error:" in gen_text:
+                    return {"error": gen_text}
+                    
+                # Handle test mode rate limiting
+                if os.getenv("TESTING") == "true" and gen_text.lower().startswith("request rate-limited"):
+                    gen_text = STUB_RESPONSE
+                    
+                return {"generated_text": gen_text}
+            else:
+                return {"error": "Invalid response format"}
+        else:
+            # Return error from retry handler
+            return result
+
+    def _get_provider_from_model(self, model: str) -> str:
+        """Determine provider from model name."""
+        if model.startswith("gpt") or model.startswith("o1"):
+            return "openai"
+        elif model.startswith("claude"):
+            return "anthropic"
+        elif model.startswith("gemini"):
+            return "google"
+        elif "/" in model:  # HuggingFace format
+            return "huggingface"
+        else:
+            return "unknown"
+
+    def _validate_api_key(self, model: str) -> Tuple[bool, Optional[str]]:
+        """Validate if API key exists for the given model.
+        
+        Args:
+            model: Model name to validate
+            
+        Returns:
+            Tuple of (is_valid, error_message)
+        """
+        provider = self._get_provider_from_model(model)
+        
+        api_key_map = {
+            "openai": ("OPENAI_API_KEY", "OpenAI"),
+            "anthropic": ("ANTHROPIC_API_KEY", "Anthropic"),
+            "google": ("GOOGLE_API_KEY", "Google"),
+            "huggingface": ("HUGGINGFACE_API_KEY", "HuggingFace"),
+        }
+        
+        if provider == "unknown":
+            return False, f"Unknown provider for model: {model}"
+            
+        env_var, provider_name = api_key_map.get(provider, (None, None))
+        
+        if env_var and not os.getenv(env_var):
+            error_msg = (
+                f"{provider_name} API key not configured. "
+                f"Please set {env_var} environment variable to use {model}."
+            )
+            return False, error_msg
+            
+        return True, None
 
     async def initial_response(
         self, data: Any, models: List[str], options: Optional[Dict[str, Any]] = None
@@ -969,11 +1078,11 @@ class OrchestrationService:
         try:
             results = await asyncio.wait_for(
                 asyncio.gather(*async_tasks, return_exceptions=True),
-                timeout=50.0  # 50 second timeout for all models combined
+                timeout=Config.CONCURRENT_EXECUTION_TIMEOUT
             )
             logger.info(f"✅ Concurrent execution completed with {len(results)} results")
         except asyncio.TimeoutError:
-            logger.error("🚨 Concurrent model execution timed out after 50 seconds")
+            logger.error(f"🚨 Concurrent model execution timed out after {Config.CONCURRENT_EXECUTION_TIMEOUT} seconds")
             # Cancel incomplete tasks and collect partial results
             results = []
             for task in async_tasks:
