@@ -33,6 +33,7 @@ class Config:
     OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
     ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY", "")
     GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY", "")
+    HUGGINGFACE_API_KEY = os.getenv("HUGGINGFACE_API_KEY", "")
 
     # Default Model Settings
     DEFAULT_PROVIDER = os.getenv("DEFAULT_PROVIDER", "openai")
