@@ -237,15 +237,27 @@ export default function CyberWizard() {
                       ))}
                     </div>
                   ) : currentStep === 2 ? (
-                    <div className={step.options.length >= 8 ? "grid grid-cols-2 gap-2" : "space-y-2"}>
-                      {(availableModels && availableModels.length > 0 ?
-                        step.options.filter(o => availableModels.includes(o.label)) : step.options
-                      ).map(o => (
-                        <label key={o.label} className="flex items-center text-[11px] leading-tight truncate opacity-95 hover:opacity-100">
-                          <input type="checkbox" onChange={() => handleModelToggle(o.label)} checked={selectedModels.includes(o.label)} />{" "}
-                          <span className="align-middle truncate tracking-wide text-white">{o.icon ? `${o.icon} ` : ""}{o.label}{typeof o.cost === 'number' ? ` ($${o.cost})` : ""}</span>
-                        </label>
-                      ))}
+                    <div className={(step.options?.length || 0) >= 8 ? "grid grid-cols-2 gap-2" : "space-y-2"}>
+                      {(() => {
+                        const options = Array.isArray(step.options) ? step.options : [];
+                        const filtered = (availableModels && availableModels.length > 0)
+                          ? options.filter(o => availableModels.includes(String(o.label || "")))
+                          : options;
+                        if (filtered.length === 0 && availableModels && availableModels.length > 0) {
+                          return (
+                            <div className="text-[11px] opacity-80">No keyed models match this list. Add API keys or update wizard steps.</div>
+                          );
+                        }
+                        return filtered.map(o => {
+                          const label = String(o.label || "");
+                          return (
+                            <label key={label} className="flex items-center text-[11px] leading-tight truncate opacity-95 hover:opacity-100">
+                              <input type="checkbox" onChange={() => handleModelToggle(label)} checked={selectedModels.includes(label)} />{" "}
+                              <span className="align-middle truncate tracking-wide text-white">{o.icon ? `${o.icon} ` : ""}{label}{typeof o.cost === 'number' ? ` ($${o.cost})` : ""}</span>
+                            </label>
+                          );
+                        });
+                      })()}
                       {availableModels && availableModels.length === 0 && (
                         <div className="text-[11px] opacity-80">No models available. Add API keys to enable models.</div>
                       )}
