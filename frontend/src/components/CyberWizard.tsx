@@ -27,7 +27,7 @@ export default function CyberWizard() {
   const [availableModelInfos, setAvailableModelInfos] = useState<Record<string, { provider: string; cost_per_1k_tokens: number }>>({});
   const [modelSelectionMode, setModelSelectionMode] = useState<'auto' | 'manual'>('auto');
   const [autoPreference, setAutoPreference] = useState<'cost' | 'premium' | 'speed'>('premium');
-  const [selectedAddons, setSelectedAddons] = useState<string[]>([]);
+  // const [selectedAddons, setSelectedAddons] = useState<string[]>([]);
   const [showStatus, setShowStatus] = useState<boolean>(false);
   const [stepFadeKey, setStepFadeKey] = useState(0);
   const [userQuery, setUserQuery] = useState<string>("");
@@ -37,8 +37,7 @@ export default function CyberWizard() {
   const [isOptimizing, setIsOptimizing] = useState<boolean>(false);
   const [optimizationStep, setOptimizationStep] = useState<number>(0);
   const [modelStatuses, setModelStatuses] = useState<Record<string, 'checking' | 'ready' | 'error'>>({});
-  const [billboardState, setBillboardState] = useState<'idle' | 'processing' | 'complete'>('idle');
-  const [billboardMessage, setBillboardMessage] = useState<string>('');
+  // Billboard overlay disabled; remove state to avoid unused variable lints
 
   useEffect(() => {
     const load = async () => {
@@ -96,8 +95,7 @@ export default function CyberWizard() {
     (async () => {
       try {
         setOrchestratorError(null);
-        setBillboardState('processing');
-        setBillboardMessage('Initializing Ultra Synthesis™ Pipeline...');
+        // overlay disabled
         const models = selectedModels.length > 0 ? selectedModels : null;
         const res = await processWithFeatherOrchestration({
           prompt: userQuery || "",
@@ -108,13 +106,11 @@ export default function CyberWizard() {
         });
         setOrchestratorResult(res);
         console.log("Ultra Synthesis result", res);
-        setBillboardState('complete');
-        setBillboardMessage('Ultra Synthesis™ Complete!');
+        // overlay disabled
       } catch (e: any) {
         console.error("Ultra Synthesis failed", e);
         setOrchestratorError(e?.message || String(e));
-        setBillboardState('idle');
-        setBillboardMessage('');
+        // overlay disabled
       } finally {
         setIsRunning(false);
       }
@@ -123,7 +119,8 @@ export default function CyberWizard() {
 
   const addSelection = (label: string, cost: number | undefined, color: string, section?: string) => {
     const appliedCost = typeof cost === 'number' ? cost : 0;
-    setSummary(prev => [...prev, { label, cost: appliedCost, color, section: section || step.title }]);
+    const sectionVal = section || step.title;
+    setSummary(prev => [...prev, { label, cost: appliedCost, color, section: sectionVal } as SummaryItem]);
     setTotalCost(prev => prev + appliedCost);
   };
 
@@ -164,11 +161,6 @@ export default function CyberWizard() {
     const option = step.options?.find(o => o.label === label);
     const cost = option?.cost;
     setSelectedModels(prev => prev.includes(label) ? (removeSelectionCost(cost), prev.filter(l => l !== label)) : (addSelection(label, cost, step.color, step.title), [...prev, label]));
-  };
-  const handleAddonToggle = (label: string) => {
-    const option = step.options?.find(o => o.label === label);
-    const cost = option?.cost;
-    setSelectedAddons(prev => prev.includes(label) ? (removeSelectionCost(cost), prev.filter(l => l !== label)) : (addSelection(label, cost, step.color, step.title), [...prev, label]));
   };
 
   const monoStack = 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace';
@@ -579,14 +571,16 @@ export default function CyberWizard() {
                 <div
                   className={`relative p-8 rounded-2xl overflow-hidden`}
                   style={{
-                    background: `linear-gradient(0deg, ${mapColorRGBA(step.color, 0.08)}, ${mapColorRGBA(step.color, 0.08)}), rgba(0, 0, 0, 0.85)`,
-                    backdropFilter: 'blur(20px)',
-                    border: `1px solid rgba(255, 255, 255, 0.12)`,
+                    background: `linear-gradient(0deg, ${mapColorRGBA(step.color, 0.05)}, ${mapColorRGBA(step.color, 0.05)}), rgba(0, 0, 0, 0.4)`,
+                    backdropFilter: 'blur(40px)',
+                    WebkitBackdropFilter: 'blur(40px)',
+                    border: `1px solid rgba(255, 255, 255, 0.2)`,
                     minHeight: '520px',
                     boxShadow: `
-                      0 6px 28px rgba(0, 0, 0, 0.55),
-                      0 0 60px ${colorHex}14,
-                      0 0 0 1px ${colorHex}33
+                      0 8px 32px rgba(0, 0, 0, 0.3),
+                      0 0 80px ${colorHex}10,
+                      0 0 0 1px ${colorHex}20,
+                      inset 0 0 60px rgba(255, 255, 255, 0.05)
                     `,
                     clipPath: 'polygon(0 0, calc(100% - 20px) 0, 100% 20px, 100% 100%, 20px 100%, 0 calc(100% - 20px))'
                   }}
