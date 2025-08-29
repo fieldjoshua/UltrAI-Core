@@ -495,7 +495,7 @@ export default function CyberWizard() {
       
       {/* Optimization Status Boxes */}
       {isOptimizing && (
-        <div className="absolute w-full" style={{ top: '20px', zIndex: 5 }}>
+        <div className="absolute w-full" style={{ top: '10vh', zIndex: 5 }}>
           <div className="max-w-4xl mx-auto px-8">
             <div className="glass-strong p-4 rounded-xl" style={{ 
               background: 'rgba(0, 0, 0, 0.75)', 
@@ -588,7 +588,7 @@ export default function CyberWizard() {
       )}
 
       {/* Content layer — centered bounded grid */}
-      <div className="relative z-10 w-full mx-auto max-w-6xl flex-1 flex items-center" style={{ paddingTop: '40px', paddingBottom: '20px' }}>
+      <div className="relative z-10 w-full mx-auto max-w-6xl flex-1 flex items-center" style={{ paddingTop: '25vh', paddingBottom: '20px' }}>
         <div className="grid grid-cols-12 gap-6 items-start w-full">
           {/* Site header column (vertical) */}
           <div className="col-start-1 col-span-1 self-start">
