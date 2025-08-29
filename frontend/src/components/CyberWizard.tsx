@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { processWithFeatherOrchestration } from "../api/orchestrator";
 import StatusUpdater from "./StatusUpdater";
-import BridgeAnimation from "./BridgeAnimation";
+// Bridge animation disabled for professional static look
 
 interface StepOption { label: string; cost?: number; icon?: string; description?: string }
 interface Step {
@@ -13,7 +13,7 @@ interface Step {
   options?: StepOption[];
   baseCost?: number;
 }
-interface SummaryItem { label: string; cost: number; color: string }
+interface SummaryItem { label: string; cost: number; color: string; section: string }
 
 export default function CyberWizard() {
   const [steps, setSteps] = useState<Step[]>([]);
@@ -153,22 +153,22 @@ export default function CyberWizard() {
   const handleGoalToggle = (label: string) => {
     const option = step.options?.find(o => o.label === label);
     const cost = option?.cost;
-    setSelectedGoals(prev => prev.includes(label) ? (removeSelectionCost(cost), prev.filter(l => l !== label)) : (addSelection(label, cost, step.color), [...prev, label]));
+    setSelectedGoals(prev => prev.includes(label) ? (removeSelectionCost(cost), prev.filter(l => l !== label)) : (addSelection(label, cost, step.color, step.title), [...prev, label]));
   };
   const handleInputToggle = (label: string) => {
     const option = step.options?.find(o => o.label === label);
     const cost = option?.cost;
-    setSelectedInputs(prev => prev.includes(label) ? (removeSelectionCost(cost), prev.filter(l => l !== label)) : (addSelection(label, cost, step.color), [...prev, label]));
+    setSelectedInputs(prev => prev.includes(label) ? (removeSelectionCost(cost), prev.filter(l => l !== label)) : (addSelection(label, cost, step.color, step.title), [...prev, label]));
   };
   const handleModelToggle = (label: string) => {
     const option = step.options?.find(o => o.label === label);
     const cost = option?.cost;
-    setSelectedModels(prev => prev.includes(label) ? (removeSelectionCost(cost), prev.filter(l => l !== label)) : (addSelection(label, cost, step.color), [...prev, label]));
+    setSelectedModels(prev => prev.includes(label) ? (removeSelectionCost(cost), prev.filter(l => l !== label)) : (addSelection(label, cost, step.color, step.title), [...prev, label]));
   };
   const handleAddonToggle = (label: string) => {
     const option = step.options?.find(o => o.label === label);
     const cost = option?.cost;
-    setSelectedAddons(prev => prev.includes(label) ? (removeSelectionCost(cost), prev.filter(l => l !== label)) : (addSelection(label, cost, step.color), [...prev, label]));
+    setSelectedAddons(prev => prev.includes(label) ? (removeSelectionCost(cost), prev.filter(l => l !== label)) : (addSelection(label, cost, step.color, step.title), [...prev, label]));
   };
 
   const monoStack = 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace';
@@ -323,7 +323,7 @@ export default function CyberWizard() {
       setSelectedAddons([]);
       
       // Base cost for query entry
-      addSelection("Query Entry", 0, "blue");
+      addSelection("Query Entry", 0, "blue", steps[2]?.title || "2. Enter your query");
     
     // Analyze query to determine relevant goals
     const query = userQuery.toLowerCase();
@@ -377,11 +377,11 @@ export default function CyberWizard() {
     
     // Add all goals to the receipt
     allGoals.forEach(goal => {
-      addSelection(goal, 0, "mint");
+      addSelection(goal, 0, "mint", steps[1]?.title || "1. Select your goals");
     });
     
     // Always select UltrAI Intelligence Multiplier
-    addSelection("UltrAI Intelligence Multiplier", 0.08, "purple");
+    addSelection("UltrAI Intelligence Multiplier", 0.08, "purple", steps[3]?.title || "3. Analyses");
     
     // Step 3: Choose models
     setOptimizationStep(3);
@@ -403,39 +403,39 @@ export default function CyberWizard() {
     const autoModels = chooseAutoModels(modelPreference, availableModels);
     setSelectedModels(autoModels);
     const modelsCost = autoModels.reduce((sum, n) => sum + (availableModelInfos[n]?.cost_per_1k_tokens || 0), 0) * 0.1; // Estimate 0.1 for 1k tokens usage
-    addSelection(`Auto (${modelPreference}): ${autoModels.join(', ')}`, modelsCost, "deepblue");
+    addSelection(`Auto (${modelPreference}): ${autoModels.join(', ')}`, modelsCost, "deepblue", steps[4]?.title || "4. Model selection");
     
     // Select formatting options based on query and selected goals
     const formatOptions: string[] = [];
     
     if (query.includes("pdf") || query.includes("document") || allGoals.includes("Document Analysis")) {
       formatOptions.push("PDF / Word / Markdown / Plain Text");
-      addSelection("PDF / Word / Markdown / Plain Text", 0.02, "pink");
+      addSelection("PDF / Word / Markdown / Plain Text", 0.02, "pink", steps[5]?.title || "5. Add-ons & formatting");
     }
     
     if (query.includes("data") || query.includes("csv") || query.includes("json") || allGoals.includes("Data Analysis & Visualization")) {
       formatOptions.push("JSON / CSV Export");
-      addSelection("JSON / CSV Export", 0.02, "pink");
+      addSelection("JSON / CSV Export", 0.02, "pink", steps[5]?.title || "5. Add-ons & formatting");
     }
     
     if (query.includes("summary") || query.includes("summarize") || query.includes("brief")) {
       formatOptions.push("Summarize / Expand");
-      addSelection("Summarize / Expand", 0.06, "pink");
+      addSelection("Summarize / Expand", 0.06, "pink", steps[5]?.title || "5. Add-ons & formatting");
     }
     
     if (allGoals.includes("Academic Research & Citations")) {
       formatOptions.push("Fact-check Confidence Report");
-      addSelection("Fact-check Confidence Report", 0.05, "pink");
+      addSelection("Fact-check Confidence Report", 0.05, "pink", steps[5]?.title || "5. Add-ons & formatting");
     }
     
     if (query.includes("private") || query.includes("confidential") || query.includes("secure")) {
       formatOptions.push("Data Privacy Mode (strip PII)");
-      addSelection("Data Privacy Mode (strip PII)", 0.04, "pink");
+      addSelection("Data Privacy Mode (strip PII)", 0.04, "pink", steps[5]?.title || "5. Add-ons & formatting");
     }
     
     // If no specific format selected, add a default based on goals
     if (formatOptions.length === 0) {
-      addSelection("PDF / Word / Markdown / Plain Text", 0.02, "pink");
+      addSelection("PDF / Word / Markdown / Plain Text", 0.02, "pink", steps[5]?.title || "5. Add-ons & formatting");
     }
     
       // Step 4: Select formatting
@@ -469,22 +469,7 @@ export default function CyberWizard() {
       />
       
       {/* Animated Billboard Lines - Lower Right Corner */}
-      <div 
-        className="pointer-events-none fixed inset-0"
-        style={{ zIndex: 3 }}
-      >
-        <img
-          src="/overlays/billboard_lines.svg"
-          alt=""
-          className="absolute inset-0 w-full h-full"
-          style={{
-            objectFit: 'cover',
-            objectPosition: 'bottom right',
-            opacity: 0.22,
-            filter: 'brightness(1.2)'
-          }}
-        />
-      </div>
+      {/* Overlay removed */}
       
       {/* Bridge Animation - Lower Left Corner */}
       {/* Bridge animation disabled for professional static look */}
@@ -668,7 +653,7 @@ export default function CyberWizard() {
               {/* Scrollable options area */}
               <div
                 key={stepFadeKey}
-                className={`relative space-y-2 mb-2 animate-fade-in flex-1 overflow-auto ${showStatus ? 'opacity-50' : ''}`}
+                className={`relative space-y-2 mb-2 flex-1 overflow-auto ${showStatus ? 'opacity-50' : ''}`}
                 style={{ paddingRight: 4, pointerEvents: showStatus ? 'none' : 'auto' }}
               >
                 {step.type === "intro" && (
@@ -722,7 +707,7 @@ export default function CyberWizard() {
                     } 
                     value={userQuery} 
                     onChange={(e) => setUserQuery(e.target.value)} 
-                    onBlur={() => { if (userQuery.trim()) addSelection("Query Entry", step.baseCost, step.color); }}
+                    onBlur={() => { if (userQuery.trim()) addSelection("Query Entry", step.baseCost, step.color, step.title); }}
                   />
                   
                   {/* Add "Allow UltrAI to optimize my search" button after query input */}
@@ -773,7 +758,7 @@ export default function CyberWizard() {
                   <div className="grid grid-cols-2 gap-2">
                     {step.options.map(o => (
                       <label key={o.label} className="flex items-center text-[11px] leading-tight truncate opacity-95 hover:opacity-100">
-                        <input type="radio" name={`radio-${currentStep}`} onChange={() => addSelection(o.label, o.cost, step.color)} />{" "}
+                        <input type="radio" name={`radio-${currentStep}`} onChange={() => addSelection(o.label, o.cost, step.color, step.title)} />{" "}
                         <span className="align-middle truncate tracking-wide text-white">{o.icon ? `${o.icon} ` : ""}{o.label}{typeof o.cost === 'number' ? ` ($${o.cost})` : ""}</span>
                       </label>
                     ))}
@@ -804,7 +789,7 @@ export default function CyberWizard() {
                             const picks = chooseAutoModels('cost', availableModels);
                             setSelectedModels(picks);
                             const est = picks.reduce((sum, n) => sum + (availableModelInfos[n]?.cost_per_1k_tokens || 0), 0);
-                            addSelection(`Auto (Cost-Saving): ${picks.join(', ')}`, est, step.color);
+                            addSelection(`Auto (Cost-Saving): ${picks.join(', ')}`, est, step.color, step.title);
                           }}
                         >Auto: Cost-Saving</button>
                         <button
@@ -815,7 +800,7 @@ export default function CyberWizard() {
                             const picks = chooseAutoModels('premium', availableModels);
                             setSelectedModels(picks);
                             const est = picks.reduce((sum, n) => sum + (availableModelInfos[n]?.cost_per_1k_tokens || 0), 0);
-                            addSelection(`Auto (Premium): ${picks.join(', ')}`, est, step.color);
+                            addSelection(`Auto (Premium): ${picks.join(', ')}`, est, step.color, step.title);
                           }}
                         >Auto: Premium Quality</button>
                         <button
@@ -826,7 +811,7 @@ export default function CyberWizard() {
                             const picks = chooseAutoModels('speed', availableModels);
                             setSelectedModels(picks);
                             const est = picks.reduce((sum, n) => sum + (availableModelInfos[n]?.cost_per_1k_tokens || 0), 0);
-                            addSelection(`Auto (Speed): ${picks.join(', ')}`, est, step.color);
+                            addSelection(`Auto (Speed): ${picks.join(', ')}`, est, step.color, step.title);
                           }}
                         >Auto: Speed</button>
                         </div>
@@ -860,7 +845,7 @@ export default function CyberWizard() {
                     <div className="grid grid-cols-2 gap-2">
                       {step.options.map(o => (
                         <label key={o.label} className="flex items-center text-[11px] leading-tight truncate opacity-95 hover:opacity-100">
-                          <input type="checkbox" onChange={e => e.target.checked ? addSelection(o.label, o.cost, step.color) : removeSelectionCost(o.cost)} />{" "}
+                          <input type="checkbox" onChange={e => e.target.checked ? addSelection(o.label, o.cost, step.color, step.title) : removeSelectionCost(o.cost)} />{" "}
                           <span className="align-middle truncate tracking-wide text-white">{o.icon ? `${o.icon} ` : ""}{o.label}{typeof o.cost === 'number' ? ` ($${o.cost})` : ""}</span>
                         </label>
                       ))}
@@ -895,7 +880,7 @@ export default function CyberWizard() {
                   <button
                     className="w-full mt-1 px-3 py-2 rounded text-center font-semibold shadow-neon-mint animate-border-hum"
                     style={{ border: '2px solid #00ff9f', color: '#00ff9f', background: 'rgba(0,255,159,0.08)' }}
-                    onClick={() => addSelection("Auto: Let UltrAI Optimize My Query", 0, step.color)}
+                    onClick={() => addSelection("Auto: Let UltrAI Optimize My Query", 0, step.color, step.title)}
                   >
                     Auto: Let UltrAI Optimize My Query
                   </button>
@@ -942,18 +927,16 @@ export default function CyberWizard() {
               <div className="text-[10px] text-white/70">— ITEMIZED RECEIPT —</div>
             </div>
             <div className="space-y-2">
-              {['mint','blue','deepblue','purple','pink'].map(groupColor => {
-                const items = summary.filter(s => s.color === groupColor);
-                if (items.length === 0) return null;
-                const hex = mapColorHex(groupColor);
+              {steps.map(s => s.title).filter(title => summary.some(it => it.section === title)).map(sectionTitle => {
+                const items = summary.filter(it => it.section === sectionTitle);
                 return (
-                  <div key={groupColor}>
-                    <div className="uppercase text-[10px] tracking-wider mb-1 text-center" style={{ color: hex }}>{groupColor}</div>
+                  <div key={sectionTitle}>
+                    <div className="uppercase text-[10px] tracking-wider mb-1 text-center text-white/80">{sectionTitle}</div>
                     {items.map((s,i) => (
-                      <div key={i} className="text-[10px] leading-tight flex items-center">
-                        <span className="flex-auto overflow-hidden text-ellipsis whitespace-nowrap" style={{ color: hex }}>{s.label}</span>
+                      <div key={i} className="text-[10px] leading-tight flex items-center text-white/85">
+                        <span className="flex-auto overflow-hidden text-ellipsis whitespace-nowrap">{s.label}</span>
                         <span className="px-1 select-none opacity-50">. . . . . . . . . . .</span>
-                        <span className="text-right w-14" style={{ color: hex }}>${s.cost.toFixed(2)}</span>
+                        <span className="text-right w-14">${s.cost.toFixed(2)}</span>
                       </div>
                     ))}
                   </div>
@@ -970,7 +953,7 @@ export default function CyberWizard() {
         <div className="grid grid-cols-12 gap-8 mt-8">
           <div className="col-start-4 col-span-5">
             {currentStep===steps.length-1 && !showStatus && (
-              <div className="animate-fade-in">
+              <div>
                 <button
                   className="w-full px-6 py-4 rounded-xl text-center font-bold transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
                   style={{ 
