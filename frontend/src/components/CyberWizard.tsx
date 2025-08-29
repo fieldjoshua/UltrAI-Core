@@ -587,10 +587,10 @@ export default function CyberWizard() {
         </div>
       )}
 
-      {/* Main Content - Fixed Layout Below Billboard */}
-      <div className="fixed inset-0" style={{ zIndex: 10 }}>
-        <div className="relative w-full h-full flex items-center justify-center">
-          <div className="w-full max-w-6xl px-8" style={{ marginTop: '15vh' }}>
+      {/* Main Content - Below Billboard */}
+      <div className="relative z-10 w-full">
+        <div className="flex items-center justify-center min-h-screen py-20">
+          <div className="w-full max-w-6xl px-8">
             <div className="grid grid-cols-12 gap-8">
               
               {/* Wizard Panel (left) */}
