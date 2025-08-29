@@ -35,6 +35,7 @@ export default function CyberWizard() {
   const [orchestratorError, setOrchestratorError] = useState<string | null>(null);
   const [isOptimizing, setIsOptimizing] = useState<boolean>(false);
   const [optimizationStep, setOptimizationStep] = useState<number>(0);
+  const [modelStatuses, setModelStatuses] = useState<Record<string, 'checking' | 'ready' | 'error'>>({});
 
   useEffect(() => {
     const load = async () => {
@@ -63,13 +64,17 @@ export default function CyberWizard() {
           const names = d.models.map((m: any) => m.name);
           setAvailableModels(names);
           const infoMap: Record<string, { provider: string; cost_per_1k_tokens: number }> = {};
+          const statusMap: Record<string, 'checking' | 'ready' | 'error'> = {};
           d.models.forEach((m: any) => {
             infoMap[String(m.name)] = {
               provider: String(m.provider || ''),
               cost_per_1k_tokens: Number(m.cost_per_1k_tokens || 0),
             };
+            // Set all models as ready since they're returned by the API
+            statusMap[String(m.name)] = 'ready';
           });
           setAvailableModelInfos(infoMap);
+          setModelStatuses(statusMap);
         } else {
           setAvailableModels([]);
         }
@@ -462,6 +467,32 @@ export default function CyberWizard() {
         </div>
       )}
 
+      {/* Model Status Panel - Top Right */}
+      {availableModels && availableModels.length > 0 && (
+        <div className="absolute top-4 right-4 z-20">
+          <div className="glass p-3 rounded-lg" style={{ background: 'rgba(0, 0, 0, 0.7)', backdropFilter: 'blur(10px)' }}>
+            <div className="text-[11px] font-bold mb-2 text-white/80">AI Models Status</div>
+            <div className="space-y-1">
+              {Object.entries(modelStatuses).slice(0, 5).map(([model, status]) => (
+                <div key={model} className="flex items-center gap-2 text-[10px]">
+                  <div className={`w-2 h-2 rounded-full ${status === 'ready' ? 'bg-green-400' : status === 'checking' ? 'bg-yellow-400 animate-pulse' : 'bg-red-400'}`} />
+                  <span className="text-white/70">{model.split('-')[0]}</span>
+                </div>
+              ))}
+              {Object.keys(modelStatuses).length > 5 && (
+                <div className="text-[9px] text-white/50 mt-1">+{Object.keys(modelStatuses).length - 5} more ready</div>
+              )}
+            </div>
+            <div className="mt-2 pt-2 border-t border-white/10">
+              <div className="flex items-center gap-2 text-[10px] text-green-400">
+                <div className="w-2 h-2 rounded-full bg-green-400" />
+                <span>{Object.values(modelStatuses).filter(s => s === 'ready').length} models ready</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Content layer — centered bounded grid */}
       <div className="relative z-10 w-full mx-auto max-w-6xl">
         <div className="grid grid-cols-12 gap-6 items-start" style={{ marginTop: '40vh' }}>
@@ -816,31 +847,66 @@ export default function CyberWizard() {
         </div>
 
         {/* Under-main: commence and status below main window */}
-        <div className="grid grid-cols-12 gap-6" style={{ marginTop: '8px' }}>
+        <div className="grid grid-cols-12 gap-6" style={{ marginTop: '8px', minHeight: '150px' }}>
           <div className="col-start-4 col-span-5">
             {currentStep===steps.length-1 && !showStatus && (
               <div className="animate-fade-in">
                 <button
-                  className="w-full px-4 py-3 rounded text-center font-bold animate-pulse-neon"
-                  style={{ border: '3px solid #00ff9f', color: '#001', background: 'rgba(0,255,159,0.2)', textShadow: '0 0 8px #00ff9f' }}
+                  className="w-full px-6 py-4 rounded-xl text-center font-bold transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
+                  style={{ 
+                    border: '3px solid #00ff9f', 
+                    color: '#fff', 
+                    background: 'linear-gradient(135deg, rgba(0,255,159,0.2) 0%, rgba(0,255,159,0.3) 100%)', 
+                    fontSize: '16px',
+                    boxShadow: '0 0 30px rgba(0,255,159,0.4), inset 0 0 30px rgba(0,255,159,0.1)'
+                  }}
                   onClick={() => setShowStatus(true)}
                 >
-                  Commence UltraAI
+                  🚀 Commence Ultra Synthesis™
                 </button>
               </div>
             )}
             {showStatus && (
-              <div className="glass-strong p-3 rounded-xl border-2 animate-border-hum mt-2" style={{ borderColor: colorHex, boxShadow: `0 0 0 2px rgba(255,255,255,0.08) inset, 0 0 14px ${colorHex}` }}>
+              <div className="glass-strong p-4 rounded-xl border-2 animate-border-hum" style={{ 
+                borderColor: colorHex, 
+                background: 'rgba(0, 0, 0, 0.8)',
+                backdropFilter: 'blur(20px)',
+                boxShadow: `0 0 0 2px rgba(255,255,255,0.08) inset, 0 0 14px ${colorHex}` 
+              }}>
                 <StatusUpdater />
-                {isRunning && <div className="text-[11px] opacity-80 mt-2">Running Ultra Synthesis…</div>}
+                {isRunning && (
+                  <div className="flex items-center gap-2 text-[12px] text-blue-400 mt-3">
+                    <span className="animate-spin">⚡</span>
+                    <span>Running Ultra Synthesis™ Pipeline...</span>
+                  </div>
+                )}
                 {!isRunning && orchestratorError && (
-                  <div className="text-[11px] text-red-400 mt-2">{orchestratorError}</div>
+                  <div className="mt-3 p-2 bg-red-900/20 border border-red-500/50 rounded text-[11px] text-red-400">
+                    <strong>Error:</strong> {orchestratorError}
+                  </div>
                 )}
                 {!isRunning && orchestratorResult && (
-                  <div className="mt-2 text-[11px] space-y-1">
-                    <div className="opacity-80">Pipeline complete. Models used: {Array.isArray(orchestratorResult.models_used) ? orchestratorResult.models_used.join(', ') : ''}</div>
-                    <div className="opacity-80">Time: {orchestratorResult.processing_time?.toFixed?.(2) || orchestratorResult.processing_time}s</div>
-                    <div className="opacity-80">Pattern: {orchestratorResult.pattern_used}</div>
+                  <div className="mt-3 p-3 bg-green-900/20 border border-green-500/50 rounded">
+                    <div className="text-[12px] font-bold text-green-400 mb-2">✅ Ultra Synthesis™ Complete!</div>
+                    <div className="space-y-1 text-[11px]">
+                      <div className="text-white/80">
+                        <strong>Models used:</strong> {Array.isArray(orchestratorResult.models_used) ? orchestratorResult.models_used.join(', ') : 'Multiple'}
+                      </div>
+                      <div className="text-white/80">
+                        <strong>Processing time:</strong> {orchestratorResult.processing_time?.toFixed?.(2) || orchestratorResult.processing_time}s
+                      </div>
+                      <div className="text-white/80">
+                        <strong>Analysis pattern:</strong> {orchestratorResult.pattern_used || 'Comparative'}
+                      </div>
+                    </div>
+                    {orchestratorResult.ultra_response && (
+                      <div className="mt-3 pt-3 border-t border-white/10">
+                        <div className="text-[11px] font-bold text-white/90 mb-1">Result Preview:</div>
+                        <div className="text-[10px] text-white/70 line-clamp-3">
+                          {orchestratorResult.ultra_response.substring(0, 200)}...
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
