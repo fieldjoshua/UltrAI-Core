@@ -894,7 +894,7 @@ export default function CyberWizard() {
             </div>
           </div>
 
-          {/* Receipt Panel (right) */}
+          {/* Right Panel: Receipt transforms into Status after approval */}
           <div className="col-span-4">
             <div 
               className="relative p-6 rounded-2xl"
@@ -903,7 +903,8 @@ export default function CyberWizard() {
                 background: 'rgba(0, 0, 0, 0.85)',
                 backdropFilter: 'blur(20px)',
                 border: `1px solid rgba(255, 255, 255, 0.1)`,
-                minHeight: '450px',
+                minHeight: '520px',
+                width: '360px',
                 boxShadow: `
                   0 4px 24px rgba(0, 0, 0, 0.5),
                   0 0 40px ${receiptColor}10,
@@ -911,100 +912,82 @@ export default function CyberWizard() {
                 `,
                 clipPath: 'polygon(0 0, calc(100% - 20px) 0, 100% 20px, 100% 100%, 20px 100%, 0 calc(100% - 20px))'
               }}>
-            <div className="text-center mb-2">
-              <div className="text-[14px] font-extrabold tracking-[0.35em] text-white text-shadow-neon-blue">ULTRAI</div>
-              <div className="text-[10px] text-white/70">— ITEMIZED RECEIPT —</div>
-            </div>
-            <div className="space-y-2">
-              {steps.map(s => s.title).filter(title => summary.some(it => it.section === title)).map(sectionTitle => {
-                const items = summary.filter(it => it.section === sectionTitle);
-                return (
-                  <div key={sectionTitle}>
-                    <div className="uppercase text-[10px] tracking-wider mb-1 text-center text-white/80">{sectionTitle}</div>
-                    {items.map((s,i) => (
-                      <div key={i} className="text-[10px] leading-tight flex items-center text-white/85">
-                        <span className="flex-auto overflow-hidden text-ellipsis whitespace-nowrap">{s.label}</span>
-                        <span className="px-1 select-none opacity-50">. . . . . . . . . . .</span>
-                        <span className="text-right w-14">${s.cost.toFixed(2)}</span>
-                      </div>
-                    ))}
+              {!showStatus ? (
+                <>
+                  <div className="text-center mb-2">
+                    <div className="text-[14px] font-extrabold tracking-[0.35em] text-white">ULTRAI</div>
+                    <div className="text-[10px] text-white/70">— ITEMIZED RECEIPT —</div>
                   </div>
-                );
-              })}
-            </div>
-            <div className="mt-3 font-bold text-pink-400 text-lg text-center">{`Total: $${totalCost.toFixed(2)}`}</div>
+                  <div className="space-y-2" style={{ maxHeight: '360px', overflowY: 'auto', paddingRight: 6 }}>
+                    {steps.map(s => s.title).filter(title => summary.some(it => it.section === title)).map(sectionTitle => {
+                      const items = summary.filter(it => it.section === sectionTitle);
+                      return (
+                        <div key={sectionTitle}>
+                          <div className="uppercase text-[10px] tracking-wider mb-1 text-center text-white/80">{sectionTitle}</div>
+                          {items.map((s,i) => (
+                            <div key={i} className="text-[10px] leading-tight flex items-center text-white/85">
+                              <span className="flex-auto overflow-hidden text-ellipsis whitespace-nowrap">{s.label}</span>
+                              <span className="px-1 select-none opacity-50">. . . . . . . . . . .</span>
+                              <span className="text-right w-14">${s.cost.toFixed(2)}</span>
+                            </div>
+                          ))}
+                        </div>
+                      );
+                    })}
+                  </div>
+                  <div className="mt-3 font-bold text-pink-400 text-lg text-center">{`Total: $${totalCost.toFixed(2)}`}</div>
+                  <button
+                    className="w-full mt-3 px-4 py-3 rounded text-center font-semibold"
+                    style={{ border: '2px solid #00ff9f', color: '#00ff9f', background: 'rgba(0,255,159,0.08)' }}
+                    onClick={() => setShowStatus(true)}
+                  >
+                    Approve cost & Proceed
+                  </button>
+                </>
+              ) : (
+                <>
+                  <div className="text-center mb-2">
+                    <div className="text-[14px] font-extrabold tracking-[0.35em] text-white">ULTRAI</div>
+                    <div className="text-[10px] text-white/70">— STATUS —</div>
+                  </div>
+                  <div className="glass-strong p-3 rounded-xl border" style={{ borderColor: colorHex, background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(20px)' }}>
+                    <StatusUpdater />
+                    {isRunning && (
+                      <div className="flex items-center gap-2 text-[12px] text-blue-400 mt-3">
+                        <span className="">⚡</span>
+                        <span>Running Ultra Synthesis™ Pipeline...</span>
+                      </div>
+                    )}
+                    {!isRunning && orchestratorError && (
+                      <div className="mt-3 p-2 bg-red-900/20 border border-red-500/50 rounded text-[11px] text-red-400">
+                        <strong>Error:</strong> {orchestratorError}
+                      </div>
+                    )}
+                    {!isRunning && orchestratorResult && (
+                      <div className="mt-3 p-3 bg-green-900/20 border border-green-500/50 rounded">
+                        <div className="text-[12px] font-bold text-green-400 mb-2">✅ Ultra Synthesis™ Complete!</div>
+                        <div className="space-y-1 text-[11px]">
+                          <div className="text-white/80">
+                            <strong>Models used:</strong> {Array.isArray(orchestratorResult.models_used) ? orchestratorResult.models_used.join(', ') : 'Multiple'}
+                          </div>
+                          <div className="text-white/80">
+                            <strong>Processing time:</strong> {orchestratorResult.processing_time?.toFixed?.(2) || orchestratorResult.processing_time}s
+                          </div>
+                          <div className="text-white/80">
+                            <strong>Analysis pattern:</strong> {orchestratorResult.pattern_used || 'Comparative'}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </>
+              )}
             </div>
           </div>
           
         </div>
 
-        {/* Status Section Below */}
-        <div className="grid grid-cols-12 gap-8 mt-8">
-          <div className="col-start-4 col-span-5">
-            {currentStep===steps.length-1 && !showStatus && (
-              <div>
-                <button
-                  className="w-full px-6 py-4 rounded-xl text-center font-bold transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
-                  style={{ 
-                    border: '3px solid #00ff9f', 
-                    color: '#fff', 
-                    background: 'linear-gradient(135deg, rgba(0,255,159,0.2) 0%, rgba(0,255,159,0.3) 100%)', 
-                    fontSize: '16px',
-                    boxShadow: '0 0 30px rgba(0,255,159,0.4), inset 0 0 30px rgba(0,255,159,0.1)'
-                  }}
-                  onClick={() => setShowStatus(true)}
-                >
-                  🚀 Commence Ultra Synthesis™
-                </button>
-              </div>
-            )}
-            {showStatus && (
-              <div className="glass-strong p-4 rounded-xl border-2 animate-border-hum" style={{ 
-                borderColor: colorHex, 
-                background: 'rgba(0, 0, 0, 0.8)',
-                backdropFilter: 'blur(20px)',
-                boxShadow: `0 0 0 2px rgba(255,255,255,0.08) inset, 0 0 14px ${colorHex}` 
-              }}>
-                <StatusUpdater />
-                {isRunning && (
-                  <div className="flex items-center gap-2 text-[12px] text-blue-400 mt-3">
-                    <span className="animate-spin">⚡</span>
-                    <span>Running Ultra Synthesis™ Pipeline...</span>
-                  </div>
-                )}
-                {!isRunning && orchestratorError && (
-                  <div className="mt-3 p-2 bg-red-900/20 border border-red-500/50 rounded text-[11px] text-red-400">
-                    <strong>Error:</strong> {orchestratorError}
-                  </div>
-                )}
-                {!isRunning && orchestratorResult && (
-                  <div className="mt-3 p-3 bg-green-900/20 border border-green-500/50 rounded">
-                    <div className="text-[12px] font-bold text-green-400 mb-2">✅ Ultra Synthesis™ Complete!</div>
-                    <div className="space-y-1 text-[11px]">
-                      <div className="text-white/80">
-                        <strong>Models used:</strong> {Array.isArray(orchestratorResult.models_used) ? orchestratorResult.models_used.join(', ') : 'Multiple'}
-                      </div>
-                      <div className="text-white/80">
-                        <strong>Processing time:</strong> {orchestratorResult.processing_time?.toFixed?.(2) || orchestratorResult.processing_time}s
-                      </div>
-                      <div className="text-white/80">
-                        <strong>Analysis pattern:</strong> {orchestratorResult.pattern_used || 'Comparative'}
-                      </div>
-                    </div>
-                    {orchestratorResult.ultra_response && (
-                      <div className="mt-3 pt-3 border-t border-white/10">
-                        <div className="text-[11px] font-bold text-white/90 mb-1">Result Preview:</div>
-                        <div className="text-[10px] text-white/70 line-clamp-3">
-                          {orchestratorResult.ultra_response.substring(0, 200)}...
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-        </div>
+        {/* Status Section Below removed; status now appears in right panel after approval */}
         </div>
         </div>
       </div>
