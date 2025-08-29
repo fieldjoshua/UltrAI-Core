@@ -37,39 +37,56 @@ export default function AnimatedBillboard({
     <div className="fixed top-0 left-0 w-full z-50">
       {/* Main billboard container */}
       <div 
-        className="relative h-[120px] bg-black border-b-2"
+        className="relative h-[120px] overflow-hidden"
         style={{
-          borderColor: state === 'processing' ? '#00ffff' : 
-                       state === 'complete' ? '#00ff9f' : '#ff00de',
+          background: 'linear-gradient(to bottom, rgba(0,0,0,0.95), rgba(0,0,0,0.85))',
+          borderBottom: `2px solid ${state === 'processing' ? '#00ffff' : state === 'complete' ? '#00ff9f' : '#ff00de'}`,
           boxShadow: `0 0 ${state === 'processing' ? '40px' : '20px'} ${
             state === 'processing' ? '#00ffff' : 
             state === 'complete' ? '#00ff9f' : '#ff00de'
-          }`,
+          }, inset 0 -20px 40px -20px rgba(0,0,0,0.8)`,
           transition: 'all 0.5s ease'
         }}
       >
-        {/* Background grid pattern */}
+        {/* Background grid pattern - subtle */}
         <div 
-          className="absolute inset-0 opacity-10"
+          className="absolute inset-0"
           style={{
             backgroundImage: `
-              linear-gradient(to right, #ff00de 1px, transparent 1px),
-              linear-gradient(to bottom, #ff00de 1px, transparent 1px)
+              linear-gradient(to right, rgba(255,0,222,0.05) 1px, transparent 1px),
+              linear-gradient(to bottom, rgba(255,0,222,0.05) 1px, transparent 1px)
             `,
-            backgroundSize: '20px 20px',
-            animation: state === 'processing' ? 'backgroundShift 10s linear infinite' : 'none'
+            backgroundSize: '40px 40px',
+            animation: state === 'processing' ? 'backgroundShift 20s linear infinite' : 'none'
+          }}
+        />
+        
+        {/* Additional lighting effect */}
+        <div 
+          className="absolute inset-0"
+          style={{
+            background: state === 'processing' ? 
+              'radial-gradient(ellipse at bottom right, rgba(0,255,255,0.15) 0%, transparent 70%)' : 
+              'radial-gradient(ellipse at bottom right, rgba(255,0,222,0.1) 0%, transparent 70%)',
+            transition: 'all 1s ease'
           }}
         />
 
-        {/* SVG Overlay Lines */}
+        {/* Building and Billboard Lines - positioned in lower right */}
         <img
-          src="/overlays/lines.svg"
+          src="/overlays/billboard_lines.svg"
           alt=""
-          className="absolute inset-0 w-full h-full object-cover"
+          className="absolute"
           style={{
-            opacity: 0.15,
-            filter: state === 'processing' ? 'brightness(1.5)' : 'brightness(1)',
-            mixBlendMode: 'screen'
+            bottom: 0,
+            right: 0,
+            width: '70%',
+            height: 'auto',
+            maxHeight: '100%',
+            opacity: state === 'processing' ? 0.3 : 0.2,
+            filter: state === 'processing' ? 'brightness(1.8) hue-rotate(180deg)' : 'brightness(1.2)',
+            mixBlendMode: 'screen',
+            transition: 'all 0.5s ease'
           }}
         />
 
@@ -139,18 +156,42 @@ export default function AnimatedBillboard({
           />
         )}
 
-        {/* Corner decorations */}
-        <div className="absolute top-2 left-2 w-8 h-8 border-l-2 border-t-2" style={{ borderColor: '#ff00de' }} />
-        <div className="absolute top-2 right-2 w-8 h-8 border-r-2 border-t-2" style={{ borderColor: '#ff00de' }} />
-        <div className="absolute bottom-2 left-2 w-8 h-8 border-l-2 border-b-2" style={{ borderColor: '#ff00de' }} />
-        <div className="absolute bottom-2 right-2 w-8 h-8 border-r-2 border-b-2" style={{ borderColor: '#ff00de' }} />
+        {/* Corner decorations with animated glow */}
+        <div className="absolute top-2 left-2 w-8 h-8 border-l-2 border-t-2" 
+          style={{ 
+            borderColor: state === 'processing' ? '#00ffff' : '#ff00de',
+            boxShadow: state === 'processing' ? '0 0 10px #00ffff' : '0 0 5px #ff00de',
+            transition: 'all 0.5s ease'
+          }} 
+        />
+        <div className="absolute top-2 right-2 w-8 h-8 border-r-2 border-t-2" 
+          style={{ 
+            borderColor: state === 'processing' ? '#00ffff' : '#ff00de',
+            boxShadow: state === 'processing' ? '0 0 10px #00ffff' : '0 0 5px #ff00de',
+            transition: 'all 0.5s ease'
+          }} 
+        />
+        <div className="absolute bottom-2 left-2 w-8 h-8 border-l-2 border-b-2" 
+          style={{ 
+            borderColor: state === 'processing' ? '#00ffff' : '#ff00de',
+            boxShadow: state === 'processing' ? '0 0 10px #00ffff' : '0 0 5px #ff00de',
+            transition: 'all 0.5s ease'
+          }} 
+        />
+        <div className="absolute bottom-2 right-2 w-8 h-8 border-r-2 border-b-2" 
+          style={{ 
+            borderColor: state === 'processing' ? '#00ffff' : '#ff00de',
+            boxShadow: state === 'processing' ? '0 0 10px #00ffff' : '0 0 5px #ff00de',
+            transition: 'all 0.5s ease'
+          }} 
+        />
       </div>
 
       {/* Add custom animations */}
       <style jsx>{`
         @keyframes backgroundShift {
           0% { background-position: 0 0; }
-          100% { background-position: 20px 20px; }
+          100% { background-position: 40px 40px; }
         }
         
         @keyframes scan {
