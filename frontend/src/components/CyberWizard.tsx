@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo, useCallback, memo } from "react";
 import { processWithFeatherOrchestration } from "../api/orchestrator";
 import StatusUpdater from "./StatusUpdater";
 // Bridge animation disabled for professional static look
@@ -15,6 +15,23 @@ interface Step {
 }
 interface SummaryItem { label: string; cost: number; color: string; section: string }
 
+interface ReceiptSectionProps { sectionTitle: string; items: SummaryItem[] }
+
+const ReceiptSection = memo(function ReceiptSection({ sectionTitle, items }: ReceiptSectionProps) {
+  return (
+    <div>
+      <div className="uppercase text-[10px] tracking-wider mb-1 text-center text-white/80">{sectionTitle}</div>
+      {items.map((s, i) => (
+        <div key={i} className="text-[10px] leading-tight flex items-center text-white/85 hover:text-white transition-colors duration-200 group cursor-pointer">
+          <span className="flex-auto overflow-hidden text-ellipsis whitespace-nowrap group-hover:text-shadow-sm" title={s.label}>{s.label}</span>
+          <span className="px-1 select-none opacity-50 group-hover:opacity-70">. . . . . . . . . . .</span>
+          <span className="text-right w-14 group-hover:text-pink-400 transition-colors">${s.cost.toFixed(2)}</span>
+        </div>
+      ))}
+    </div>
+  );
+});
+
 export default function CyberWizard() {
   const [steps, setSteps] = useState<Step[]>([]);
   const [currentStep, setCurrentStep] = useState(0);
@@ -25,7 +42,7 @@ export default function CyberWizard() {
   const [selectedModels, setSelectedModels] = useState<string[]>([]);
   const [availableModels, setAvailableModels] = useState<string[] | null>(null);
   const [availableModelInfos, setAvailableModelInfos] = useState<Record<string, { provider: string; cost_per_1k_tokens: number }>>({});
-  const [modelSelectionMode, setModelSelectionMode] = useState<'auto' | 'manual'>('auto');
+  const [, setModelSelectionMode] = useState<'auto' | 'manual'>('auto');
   const [autoPreference, setAutoPreference] = useState<'cost' | 'premium' | 'speed'>('premium');
   // const [selectedAddons, setSelectedAddons] = useState<string[]>([]);
   const [showStatus, setShowStatus] = useState<boolean>(false);
@@ -35,14 +52,14 @@ export default function CyberWizard() {
   const [isRunning, setIsRunning] = useState<boolean>(false);
   const [orchestratorResult, setOrchestratorResult] = useState<any>(null);
   const [orchestratorError, setOrchestratorError] = useState<string | null>(null);
-  const [isOptimizing, setIsOptimizing] = useState<boolean>(false);
-  const [optimizationStep, setOptimizationStep] = useState<number>(0);
+  const [isOptimizing] = useState<boolean>(false);
+  const [optimizationStep] = useState<number>(0);
   const [modelStatuses, setModelStatuses] = useState<Record<string, 'checking' | 'ready' | 'error'>>({});
   const [bgTheme, setBgTheme] = useState<'morning' | 'afternoon' | 'sunset' | 'night'>('night');
   const [otherGoalText, setOtherGoalText] = useState<string>("");
   const [showModelList, setShowModelList] = useState<boolean>(false);
   const [addonsSubmitted, setAddonsSubmitted] = useState<boolean>(false);
-  const [lastAddedItem, setLastAddedItem] = useState<string | null>(null);
+  const [, setLastAddedItem] = useState<string | null>(null);
   // Billboard overlay disabled; remove state to avoid unused variable lints
 
   useEffect(() => {
@@ -184,30 +201,31 @@ export default function CyberWizard() {
     : c === 'pink' ? `rgba(255,0,149,${alpha})`
     : `rgba(214,0,255,${alpha})`;
 
-  const colorHex = mapColorHex(step.color);
-  const colorRGBA = mapColorRGBA(step.color, 0.08);
+  const colorHex = useMemo(() => mapColorHex(step.color), [step.color]);
   const receiptColor = '#bd00ff';
 
-  const handleGoalToggle = (label: string) => {
+  const handleGoalToggle = useCallback((label: string) => {
     const option = step.options?.find(o => o.label === label);
     const cost = option?.cost;
     setSelectedGoals(prev => prev.includes(label) ? (removeSelectionCost(cost), prev.filter(l => l !== label)) : (addSelection(label, cost, step.color, step.title), [...prev, label]));
-  };
-  const handleInputToggle = (label: string) => {
+  }, [step.options, step.color, step.title]);
+  
+  const handleInputToggle = useCallback((label: string) => {
     const option = step.options?.find(o => o.label === label);
     const cost = option?.cost;
     setSelectedInputs(prev => prev.includes(label) ? (removeSelectionCost(cost), prev.filter(l => l !== label)) : (addSelection(label, cost, step.color, step.title), [...prev, label]));
-  };
-  const handleModelToggle = (label: string) => {
+  }, [step.options, step.color, step.title]);
+  
+  const handleModelToggle = useCallback((label: string) => {
     const option = step.options?.find(o => o.label === label);
     const cost = option?.cost;
     setSelectedModels(prev => prev.includes(label) ? (removeSelectionCost(cost), prev.filter(l => l !== label)) : (addSelection(label, cost, step.color, step.title), [...prev, label]));
-  };
+  }, [step.options, step.color, step.title]);
 
   const monoStack = 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace';
 
   // Theme overlay helper to tint background by time of day
-  const themeOverlayStyle = (): any => {
+  const themeOverlayStyle = useMemo(() => {
     switch (bgTheme) {
       case 'morning':
         return {
@@ -231,9 +249,9 @@ export default function CyberWizard() {
           zIndex: 1,
         };
     }
-  };
+  }, [bgTheme]);
 
-  const themeBgUrl = (): string => {
+  const themeBgUrl = useMemo(() => {
     switch (bgTheme) {
       case 'morning':
         return '/bg-morning.jpg';
@@ -245,11 +263,22 @@ export default function CyberWizard() {
       default:
         return '/bg-night.jpg';
     }
-  };
+  }, [bgTheme]);
+
+  const selectedModelsDisplay = useMemo(() => selectedModels.join(', '), [selectedModels]);
+
+  const receiptSections = useMemo(() => {
+    return steps
+      .map(s => s.title)
+      .filter(title => summary.some(it => it.section === title))
+      .map(sectionTitle => (
+        <ReceiptSection key={sectionTitle} sectionTitle={sectionTitle} items={summary.filter(it => it.section === sectionTitle)} />
+      ));
+  }, [steps, summary]);
 
   // Step 0: Intro — render with background and billboard
   if (currentStep === 0 && step.type === 'intro') {
-    return (
+  return (
       <div className="relative flex min-h-screen w-full items-start justify-center p-0 text-white font-cyber text-sm overflow-hidden">
         {/* Animated Background */}
         <div className="absolute inset-0">
@@ -270,7 +299,7 @@ export default function CyberWizard() {
             backgroundSize: '50px 50px',
             animation: 'grid-move 20s linear infinite'
           }} />
-        </div>
+          </div>
 
         {/* Floating particles */}
         <div className="absolute inset-0 overflow-hidden">
@@ -488,153 +517,7 @@ export default function CyberWizard() {
     setUserQuery(improvedQuery);
   };
 
-  const optimizeSearch = () => {
-    setIsOptimizing(true);
-    setOptimizationStep(0);
-    
-    // Step through optimization phases
-    const runOptimization = async () => {
-      // Step 1: Analyze query
-      setOptimizationStep(1);
-      await new Promise(resolve => setTimeout(resolve, 300));
-      
-      // Clear previous selections except any manually selected goals
-      const existingGoals = [...selectedGoals];
-      setSummary([]);
-      setTotalCost(0);
-      setSelectedInputs([]);
-      setSelectedModels([]);
-      // setSelectedAddons([]);
-      
-      // Base cost for query entry
-      addSelection("Query Entry", 0, "blue", steps[2]?.title || "2. Enter your query");
-    
-    // Analyze query to determine relevant goals
-    const query = userQuery.toLowerCase();
-    const goalMap: Record<string, string[]> = {
-      "Document Analysis": ["analyze", "document", "pdf", "report", "review", "examine", "read"],
-      "Deep Research": ["research", "investigate", "study", "explore", "find", "discover", "learn"],
-      "Academic Research & Citations": ["academic", "paper", "citation", "journal", "thesis", "scholarly", "peer-reviewed"],
-      "Writing & Editing Assistance": ["write", "edit", "draft", "compose", "rewrite", "proofread", "improve"],
-      "Brainstorming & Ideation": ["idea", "brainstorm", "creative", "suggest", "concept", "innovate", "think"],
-      "Code Creation / Debugging": ["code", "debug", "program", "script", "function", "bug", "error", "python", "javascript", "java"],
-      "Data Analysis & Visualization": ["data", "analyze", "chart", "graph", "statistics", "metrics", "visualization"],
-      "Media Generation (Image/Video/Text)": ["image", "video", "generate", "create", "design", "visual", "artwork"],
-      "Personal Organization": ["organize", "plan", "schedule", "todo", "list", "manage", "track"],
-      "Internet Search": ["search", "find", "lookup", "google", "web", "online", "internet"],
-      "Event Planning": ["event", "meeting", "conference", "party", "wedding", "gathering", "occasion"],
-      "Travel Planning": ["travel", "trip", "vacation", "flight", "hotel", "itinerary", "destination"],
-      "News Gathering": ["news", "current", "latest", "today", "happening", "events", "updates"],
-      "Social Media Post Creation": ["social", "post", "twitter", "linkedin", "facebook", "instagram", "content"],
-      "Customer Support Drafts": ["support", "customer", "help", "service", "response", "reply", "answer"]
-    };
-    
-    // Select relevant goals based on query keywords
-    const autoSelectedGoals: string[] = [];
-    Object.entries(goalMap).forEach(([goal, keywords]) => {
-      if (keywords.some(keyword => query.includes(keyword))) {
-        autoSelectedGoals.push(goal);
-      }
-    });
-    
-    // If no specific goals matched, select general ones based on query structure
-    if (autoSelectedGoals.length === 0) {
-      if (query.includes("?") || query.includes("how") || query.includes("what") || query.includes("why")) {
-        autoSelectedGoals.push("Deep Research");
-      }
-      if (query.length > 100 || query.includes("help me") || query.includes("create") || query.includes("make")) {
-        autoSelectedGoals.push("Writing & Editing Assistance");
-      }
-      // If still no matches, use defaults
-      if (autoSelectedGoals.length === 0) {
-        autoSelectedGoals.push("Deep Research", "Writing & Editing Assistance");
-      }
-    }
-    
-    // Combine existing manual selections with auto-selected goals
-    const allGoals = [...new Set([...existingGoals, ...autoSelectedGoals])];
-    setSelectedGoals(allGoals);
-    
-    // Step 2: Select goals
-    setOptimizationStep(2);
-    await new Promise(resolve => setTimeout(resolve, 300));
-    
-    // Add all goals to the receipt
-    allGoals.forEach(goal => {
-      addSelection(goal, 0, "mint", steps[1]?.title || "1. Select your goals");
-    });
-    
-    // Always select UltrAI Intelligence Multiplier
-    addSelection("UltrAI Intelligence Multiplier", 0.08, "purple", steps[3]?.title || "3. Analyses");
-    
-    // Step 3: Choose models
-    setOptimizationStep(3);
-    await new Promise(resolve => setTimeout(resolve, 300));
-    
-    // Auto-select models based on query complexity and content
-    let modelPreference: 'cost' | 'premium' | 'speed' = 'premium';
-    
-    // Check for specific indicators
-    if (query.length < 50 || query.includes("quick") || query.includes("simple") || query.includes("fast")) {
-      modelPreference = 'speed';
-    } else if (query.includes("budget") || query.includes("cheap") || query.includes("economical")) {
-      modelPreference = 'cost';
-    } else if (query.includes("comprehensive") || query.includes("detailed") || query.includes("thorough") || 
-               allGoals.includes("Academic Research & Citations") || allGoals.includes("Code Creation / Debugging")) {
-      modelPreference = 'premium';
-    }
-    
-    const autoModels = chooseAutoModels(modelPreference, availableModels);
-    setSelectedModels(autoModels);
-    const modelsCost = autoModels.reduce((sum, n) => sum + (availableModelInfos[n]?.cost_per_1k_tokens || 0), 0) * 0.1; // Estimate 0.1 for 1k tokens usage
-    addSelection(`Auto (${modelPreference}): ${autoModels.join(', ')}`, modelsCost, "deepblue", steps[4]?.title || "4. Model selection");
-    
-    // Select formatting options based on query and selected goals
-    const formatOptions: string[] = [];
-    
-    if (query.includes("pdf") || query.includes("document") || allGoals.includes("Document Analysis")) {
-      formatOptions.push("PDF / Word / Markdown / Plain Text");
-      addSelection("PDF / Word / Markdown / Plain Text", 0.02, "pink", steps[5]?.title || "5. Add-ons & formatting");
-    }
-    
-    if (query.includes("data") || query.includes("csv") || query.includes("json") || allGoals.includes("Data Analysis & Visualization")) {
-      formatOptions.push("JSON / CSV Export");
-      addSelection("JSON / CSV Export", 0.02, "pink", steps[5]?.title || "5. Add-ons & formatting");
-    }
-    
-    if (query.includes("summary") || query.includes("summarize") || query.includes("brief")) {
-      formatOptions.push("Summarize / Expand");
-      addSelection("Summarize / Expand", 0.06, "pink", steps[5]?.title || "5. Add-ons & formatting");
-    }
-    
-    if (allGoals.includes("Academic Research & Citations")) {
-      formatOptions.push("Fact-check Confidence Report");
-      addSelection("Fact-check Confidence Report", 0.05, "pink", steps[5]?.title || "5. Add-ons & formatting");
-    }
-    
-    if (query.includes("private") || query.includes("confidential") || query.includes("secure")) {
-      formatOptions.push("Data Privacy Mode (strip PII)");
-      addSelection("Data Privacy Mode (strip PII)", 0.04, "pink", steps[5]?.title || "5. Add-ons & formatting");
-    }
-    
-    // If no specific format selected, add a default based on goals
-    if (formatOptions.length === 0) {
-      addSelection("PDF / Word / Markdown / Plain Text", 0.02, "pink", steps[5]?.title || "5. Add-ons & formatting");
-    }
-    
-      // Step 4: Select formatting
-      setOptimizationStep(4);
-      await new Promise(resolve => setTimeout(resolve, 300));
-      
-      // Move to the last step
-      setCurrentStep(steps.length - 1);
-      setStepFadeKey(k => k + 1);
-      setIsOptimizing(false);
-      setOptimizationStep(0);
-    };
-    
-    runOptimization();
-  };
+  // (removed unused optimizeSearch function)
 
 
   return (
@@ -643,7 +526,7 @@ export default function CyberWizard() {
       <div
         className="pointer-events-none fixed inset-0"
         style={{
-          backgroundImage: `url('${themeBgUrl()}')`,
+          backgroundImage: `url('${themeBgUrl}')`,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           backgroundAttachment: 'fixed',
@@ -651,7 +534,7 @@ export default function CyberWizard() {
         }}
       />
       {/* Theme overlay tint */}
-      <div className="pointer-events-none fixed inset-0" style={themeOverlayStyle()} />
+      <div className="pointer-events-none fixed inset-0" style={themeOverlayStyle} />
       
       {/* Animated Billboard Lines - Lower Right Corner */}
       {/* Overlay removed */}
@@ -748,8 +631,8 @@ export default function CyberWizard() {
         <div className="flex items-center justify-center" style={{ minHeight: '100vh', paddingTop: '37.5vh' }}>
           <div className="w-full max-w-6xl px-8">
             <div className="grid grid-cols-12 gap-8">
-              
-              {/* Wizard Panel (left) */}
+
+          {/* Wizard Panel (left) */}
               <div className="col-span-9">
                 <div
                   className={`glass-panel glass-grain relative p-8 rounded-2xl overflow-hidden transition-smooth will-change-transform ${
@@ -853,14 +736,14 @@ export default function CyberWizard() {
                 // Show normal wizard content
                 <>
                   {/* Step markers (centered) - exclude Step 0 (Intro) */}
-                  <div className="w-full mb-4">
-                    <div className="flex items-center justify-center">
+              <div className="w-full mb-4">
+                <div className="flex items-center justify-center">
                       {steps.map((s, idx) => ({ s, idx })).filter(x => x.idx !== 0).map(({ s, idx }) => {
                         const stepIndex = idx; // real index in steps
                         const isActive = stepIndex === currentStep;
                         const isDone = stepIndex < currentStep;
-                        const dotHex = mapColorHex(s.color);
-                        return (
+                    const dotHex = mapColorHex(s.color);
+                    return (
                           <div key={s.title} className="flex items-center">
                             <div 
                               onClick={() => { setCurrentStep(stepIndex); setStepFadeKey(k => k+1); }} 
@@ -904,12 +787,12 @@ export default function CyberWizard() {
                                   boxShadow: idx < currentStep ? `0 0 10px ${dotHex}50` : 'none'
                                 }} 
                               />
-                            )}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
 
               <h2 className={`text-white ${step.color === 'mint' ? 'text-shadow-neon-mint' : step.color === 'blue' ? 'text-shadow-neon-blue' : step.color === 'deepblue' ? 'text-shadow-neon-deep' : step.color === 'purple' ? 'text-shadow-neon-purple' : 'text-shadow-neon-pink'} text-base mb-2 text-center uppercase tracking-wide`} style={{ borderBottom: `1px solid ${colorHex}`, paddingBottom: 4 }}>{step.title}</h2>
               {step.narrative && (
@@ -1017,8 +900,8 @@ export default function CyberWizard() {
                         <label key={o.label} className="flex items-center text-[11px] leading-tight truncate opacity-95 hover:opacity-100">
                           <input type="checkbox" onChange={() => handleInputToggle(o.label)} checked={selectedInputs.includes(o.label)} />{" "}
                           <span className="align-middle truncate tracking-wide text-white">{o.icon ? `${o.icon} ` : ""}{o.label}{typeof o.cost === 'number' ? ` ($${o.cost})` : ""}</span>
-                        </label>
-                      ))}
+                    </label>
+                  ))}
                     </div>
                   )}
                   
@@ -1052,8 +935,8 @@ export default function CyberWizard() {
                       <label key={o.label} className="flex items-center text-[11px] leading-tight truncate opacity-95 hover:opacity-100">
                         <input type="radio" name={`radio-${currentStep}`} onChange={() => addSelection(o.label, o.cost, step.color, step.title)} />{" "}
                         <span className="align-middle truncate tracking-wide text-white">{o.icon ? `${o.icon} ` : ""}{o.label}{typeof o.cost === 'number' ? ` ($${o.cost})` : ""}</span>
-                      </label>
-                    ))}
+                  </label>
+                ))}
                   </div>
                 )}
 
@@ -1239,12 +1122,12 @@ export default function CyberWizard() {
                                 <label key={name} className="flex items-center text-[9px] leading-tight truncate opacity-95 hover:opacity-100">
                                   <input type="checkbox" className="mr-1 scale-75" onChange={() => handleModelToggle(name)} checked={selectedModels.includes(name)} />
                                   <span className="align-middle truncate tracking-wide text-white">{name}</span>
-                                </label>
-                              ))}
+                        </label>
+                      ))}
                               {availableModels && availableModels.length === 0 && (
                                 <div className="text-[9px] opacity-80 col-span-2">No models available. Add API keys.</div>
                               )}
-                            </div>
+                    </div>
                           </div>
                         </div>
                       </div>
@@ -1310,13 +1193,13 @@ export default function CyberWizard() {
                       </div>
                     ) : (
                       <div className="grid grid-cols-2 gap-2">
-                        {step.options.map(o => (
-                          <label key={o.label} className="flex items-center text-[11px] leading-tight truncate opacity-95 hover:opacity-100">
+                      {step.options.map(o => (
+                        <label key={o.label} className="flex items-center text-[11px] leading-tight truncate opacity-95 hover:opacity-100">
                             <input type="checkbox" onChange={(e) => e.target.checked ? addSelection(o.label, o.cost, step.color, step.title) : removeSelectionCost(o.cost)} />{" "}
-                            <span className="align-middle truncate tracking-wide text-white">{o.icon ? `${o.icon} ` : ""}{o.label}{typeof o.cost === 'number' ? ` ($${o.cost})` : ""}</span>
-                          </label>
-                        ))}
-                      </div>
+                          <span className="align-middle truncate tracking-wide text-white">{o.icon ? `${o.icon} ` : ""}{o.label}{typeof o.cost === 'number' ? ` ($${o.cost})` : ""}</span>
+                        </label>
+                      ))}
+                    </div>
                     )
                   )
                 )}
@@ -1339,13 +1222,13 @@ export default function CyberWizard() {
                           >
                             <div className="text-center mb-1">
                               <div className="font-bold text-[12px] text-white">{o.icon ? `${o.icon} ` : ''}{o.label}</div>
-                            </div>
+                      </div>
                             {o.description && <div className="text-[10px] text-white/80 text-center leading-tight">{o.description}</div>}
                             {typeof o.cost === 'number' && <div className="text-[10px] text-center mt-1 text-pink-400">+${o.cost.toFixed(2)}</div>}
                             {isLive && (
                               <div className="mt-1 flex justify-center">
                                 <input type="radio" name="analysis-choice" checked={already} onChange={() => { if (!already) addSelection(o.label, o.cost, step.color, step.title); }} />
-                              </div>
+                  </div>
                             )}
                           </div>
                         );
@@ -1425,9 +1308,9 @@ export default function CyberWizard() {
                         onClick={() => setBgTheme(t)}
                       >
                         {t}
-                      </button>
+                </button>
                     ))}
-                  </div>
+              </div>
                 </div>
                 
                 <div className="grid grid-cols-4 gap-3">
@@ -1439,31 +1322,31 @@ export default function CyberWizard() {
                     <div className="text-[10px] font-semibold text-white">Models Ready</div>
                     <div className="text-[16px] font-bold text-[#00ff9f]">
                       {availableModels ? `${availableModels.filter(m => modelStatuses[m] === 'ready').length}/${availableModels.length}` : '—'}
-                    </div>
-                  </div>
-                  
+            </div>
+          </div>
+
                   {/* Selected Models */}
                   <div className="text-center">
                     <div className="text-2xl mb-1">
                       <span style={{ color: '#00d4ff' }}>✓</span>
-                    </div>
+            </div>
                     <div className="text-[10px] font-semibold text-white">Selected</div>
                     <div className="text-[16px] font-bold text-[#00d4ff]">
                       {selectedModels.length}
-                    </div>
+                      </div>
                   </div>
                   
                   {/* Total Cost */}
                   <div className="text-center">
                     <div className="text-2xl mb-1">
                       <span style={{ color: '#ff00d4' }}>💰</span>
-                    </div>
+            </div>
                     <div className="text-[10px] font-semibold text-white">Total Cost</div>
                     <div className="text-[16px] font-bold text-[#ff00d4]">
                       ${totalCost.toFixed(2)}
-                    </div>
-                  </div>
-                  
+          </div>
+        </div>
+
                   {/* Processing Status */}
                   <div className="text-center">
                     <div className="text-2xl mb-1">
@@ -1481,7 +1364,7 @@ export default function CyberWizard() {
                   <div className="mt-3">
                     <div className="flex justify-between text-[9px] text-white/60 mb-1">
                       <span>Selected Models</span>
-                      <span>{selectedModels.join(', ')}</span>
+                      <span>{selectedModelsDisplay}</span>
                     </div>
                     <div className="h-1 bg-white/10 rounded-full overflow-hidden">
                       <div 
@@ -1522,21 +1405,7 @@ export default function CyberWizard() {
                     <div className="text-[10px] text-white/70">— ITEMIZED RECEIPT —</div>
                   </div>
                   <div className="space-y-2" style={{ maxHeight: '360px', overflowY: 'auto', paddingRight: 6 }}>
-                    {steps.map(s => s.title).filter(title => summary.some(it => it.section === title)).map(sectionTitle => {
-                      const items = summary.filter(it => it.section === sectionTitle);
-                      return (
-                        <div key={sectionTitle}>
-                          <div className="uppercase text-[10px] tracking-wider mb-1 text-center text-white/80">{sectionTitle}</div>
-                          {items.map((s,i) => (
-                            <div key={i} className="text-[10px] leading-tight flex items-center text-white/85 hover:text-white transition-colors duration-200 group cursor-pointer">
-                              <span className="flex-auto overflow-hidden text-ellipsis whitespace-nowrap group-hover:text-shadow-sm" title={s.label}>{s.label}</span>
-                              <span className="px-1 select-none opacity-50 group-hover:opacity-70">. . . . . . . . . . .</span>
-                              <span className="text-right w-14 group-hover:text-pink-400 transition-colors">${s.cost.toFixed(2)}</span>
-                            </div>
-                          ))}
-                        </div>
-                      );
-                    })}
+                    {receiptSections}
                   </div>
                   <div className="mt-3 font-bold text-pink-400 text-lg text-center transition-all duration-300 hover:scale-105" style={{
                     textShadow: '0 0 10px rgba(255, 0, 212, 0.5)'
@@ -1553,7 +1422,7 @@ export default function CyberWizard() {
                       onClick={() => setShowStatus(true)}
                     >
                       🚀 Initialize UltrAI
-                    </button>
+                </button>
                   ) : currentStep === steps.length - 1 ? (
                     <div className="mt-3 text-center text-[11px] text-white/60">
                       Submit add-ons to continue...
@@ -1561,23 +1430,23 @@ export default function CyberWizard() {
                   ) : (
                     <div className="mt-3 text-center text-[11px] text-white/60">
                       Complete all steps to proceed
-                    </div>
-                  )}
+              </div>
+            )}
                 </>
               ) : (
                 <>
                   <div className="text-center mb-2">
                     <div className="text-[14px] font-extrabold tracking-[0.35em] text-white">ULTRAI</div>
                     <div className="text-[10px] text-white/70">— PROCESSING —</div>
-                  </div>
+              </div>
                   <div className="text-center mt-8">
                     <div className="text-[12px] text-white/60">Ultra Synthesis™ in progress</div>
                     <div className="text-[10px] text-white/40 mt-2">Check the status in the main panel</div>
                   </div>
                 </>
-              )}
-            </div>
+            )}
           </div>
+        </div>
           
         </div>
 
