@@ -167,45 +167,151 @@ export default function CyberWizard() {
   // Step 0: Intro — render one big hero window only (no progress dots or receipt)
   if (currentStep === 0 && step.type === 'intro') {
     return (
-      <div className="relative flex min-h-screen w-full items-start justify-center p-0 text-white font-cyber text-sm">
-        {/* Background */}
-        <div
-          className="pointer-events-none absolute inset-0"
-          style={{
-            backgroundImage: "url('/cityscape-background.jpeg'), url('/ultrai-bg.jpg')",
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-            zIndex: 0,
-          }}
-        />
-
-        {/* Single hero card */}
-        <div className="relative z-10 w-full mx-auto max-w-4xl" style={{ marginTop: '18vh' }}>
+      <div className="relative flex min-h-screen w-full items-start justify-center p-0 text-white font-cyber text-sm overflow-hidden">
+        {/* Animated Background */}
+        <div className="absolute inset-0">
           <div
-            className={`glass-strong p-6 rounded-2xl transition-all duration-300 animate-border-hum overflow-hidden ${step.color === 'mint' ? 'shadow-neon-mint' : 'shadow-neon-pink'}`}
-            style={{ borderColor: colorHex, borderWidth: 8, background: colorRGBA, boxShadow: `0 0 0 2px rgba(255,255,255,0.12) inset, 0 0 22px ${colorHex}` }}
+            className="absolute inset-0"
+            style={{
+              backgroundImage: "url('/cityscape-background.jpeg'), url('/ultrai-bg.jpg')",
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
+              filter: 'brightness(0.6)',
+            }}
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/50 to-black" />
+        </div>
+
+        {/* Animated particles */}
+        <div className="absolute inset-0">
+          {[...Array(20)].map((_, i) => (
+            <div
+              key={i}
+              className="absolute w-1 h-1 bg-mint-400 rounded-full animate-pulse"
+              style={{
+                left: `${Math.random() * 100}%`,
+                top: `${Math.random() * 100}%`,
+                animationDelay: `${Math.random() * 5}s`,
+                animationDuration: `${3 + Math.random() * 4}s`
+              }}
+            />
+          ))}
+        </div>
+
+        {/* Hero content */}
+        <div className="relative z-10 w-full mx-auto max-w-5xl px-8" style={{ marginTop: '10vh' }}>
+          {/* Ultra AI Logo */}
+          <div className="text-center mb-12">
+            <h1 className="text-8xl font-black tracking-widest animate-fade-in" style={{ 
+              background: 'linear-gradient(135deg, #00ff9f 0%, #00b8ff 25%, #bd00ff 50%, #d600ff 75%, #00ff9f 100%)',
+              backgroundSize: '200% 200%',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              animation: 'gradient 3s ease infinite',
+              filter: 'drop-shadow(0 0 30px rgba(0,255,159,0.5))'
+            }}>
+              ULTRAI
+            </h1>
+            <p className="text-lg font-light tracking-[0.5em] text-white/80 mt-2">INTELLIGENCE MULTIPLIED</p>
+          </div>
+
+          {/* Main card */}
+          <div
+            className="relative p-8 rounded-3xl overflow-hidden"
+            style={{ 
+              background: 'rgba(0, 0, 0, 0.7)',
+              backdropFilter: 'blur(20px)',
+              border: '2px solid rgba(0,255,159,0.3)',
+              boxShadow: '0 0 80px rgba(0,255,159,0.2), inset 0 0 60px rgba(0,255,159,0.05)'
+            }}
           >
-            <div className="text-center space-y-4">
-              <div className="text-[13px] tracking-[0.35em] font-extrabold text-shadow-neon-blue neon-flicker">ULTRAI</div>
-              <div className="flex flex-wrap gap-2 justify-center">
-                <span className="neon-pill neon-mint">Powerful</span>
-                <span className="neon-pill neon-pink">Premium</span>
-                <span className="neon-pill neon-blue">Personalized</span>
-                <span className="neon-pill neon-mint">On‑Demand</span>
+            {/* Animated border gradient */}
+            <div className="absolute inset-0 rounded-3xl opacity-50" style={{
+              background: 'conic-gradient(from 0deg, #00ff9f, #00b8ff, #bd00ff, #d600ff, #00ff9f)',
+              padding: '2px',
+              WebkitMask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
+              WebkitMaskComposite: 'exclude',
+              animation: 'spin 4s linear infinite',
+            }} />
+
+            <div className="relative space-y-8">
+              {/* Feature pills */}
+              <div className="flex flex-wrap gap-3 justify-center">
+                <span className="px-6 py-2 rounded-full text-sm font-semibold bg-mint-400/20 text-mint-400 border border-mint-400/50 backdrop-blur">
+                  🚀 Multi-Model Orchestration
+                </span>
+                <span className="px-6 py-2 rounded-full text-sm font-semibold bg-blue-400/20 text-blue-400 border border-blue-400/50 backdrop-blur">
+                  ⚡ Real-time Synthesis
+                </span>
+                <span className="px-6 py-2 rounded-full text-sm font-semibold bg-purple-400/20 text-purple-400 border border-purple-400/50 backdrop-blur">
+                  🎯 Intelligent Optimization
+                </span>
+                <span className="px-6 py-2 rounded-full text-sm font-semibold bg-pink-400/20 text-pink-400 border border-pink-400/50 backdrop-blur">
+                  💎 Premium Results
+                </span>
               </div>
-              {step.narrative && (
-                <p className="text-[12px] md:text-[13px] leading-relaxed whitespace-pre-line opacity-95 mx-auto max-w-3xl">
-                  {step.narrative}
+
+              {/* Main narrative */}
+              <div className="max-w-3xl mx-auto">
+                <p className="text-lg leading-relaxed text-center text-white/90">
+                  Welcome to <span className="font-bold text-mint-400">UltrAI</span> where the intelligence of multiple LLMs is multiplied. 
+                  We orchestrate a sophisticated ensemble of leading AI models, each contributing their unique strengths 
+                  to deliver <span className="font-bold text-blue-400">unprecedented quality</span> and <span className="font-bold text-purple-400">comprehensive insights</span>.
                 </p>
-              )}
-              <div className="mt-3">
-                <button className="btn-neon text-lg font-extrabold pulse-strong buzz" onClick={() => { setCurrentStep(1); setStepFadeKey(k => k + 1); }}>
-                  Proceed to <span className="text-shadow-neon-mint">UltrAI</span>
+                <p className="text-md text-center text-white/70 mt-4">
+                  Pay-as-you-go • No commitments • Enterprise-grade results
+                </p>
+              </div>
+
+              {/* CTA Button */}
+              <div className="text-center">
+                <button 
+                  className="group relative px-12 py-5 text-xl font-bold rounded-2xl transition-all duration-300 hover:scale-105 active:scale-95"
+                  style={{
+                    background: 'linear-gradient(135deg, rgba(0,255,159,0.2) 0%, rgba(0,255,159,0.3) 100%)',
+                    border: '2px solid #00ff9f',
+                    boxShadow: '0 0 40px rgba(0,255,159,0.4), inset 0 0 20px rgba(0,255,159,0.2)'
+                  }}
+                  onClick={() => { setCurrentStep(1); setStepFadeKey(k => k + 1); }}
+                >
+                  <span className="relative z-10 flex items-center gap-3">
+                    <span>Enter Ultra Synthesis™</span>
+                    <span className="group-hover:translate-x-1 transition-transform">→</span>
+                  </span>
+                  <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-mint-400/20 to-mint-400/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                 </button>
+              </div>
+
+              {/* Trust indicators */}
+              <div className="flex justify-center gap-8 text-sm text-white/60">
+                <div className="flex items-center gap-2">
+                  <span className="text-green-400">✓</span>
+                  <span>20+ AI Models</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-green-400">✓</span>
+                  <span>Enterprise Ready</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-green-400">✓</span>
+                  <span>SOC2 Compliant</span>
+                </div>
               </div>
             </div>
           </div>
         </div>
+
+        {/* CSS for gradient animation */}
+        <style jsx>{`
+          @keyframes gradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+          }
+          @keyframes spin {
+            to { transform: rotate(360deg); }
+          }
+        `}</style>
       </div>
     );
   }
