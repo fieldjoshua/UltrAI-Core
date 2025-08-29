@@ -721,55 +721,132 @@ export default function CyberWizard() {
                   }}
                 >
               <div className="flex flex-col h-full">
-              {/* Step markers (centered) - exclude Step 0 (Intro) */}
-              <div className="w-full mb-4">
-                <div className="flex items-center justify-center">
-                  {steps.map((s, idx) => ({ s, idx })).filter(x => x.idx !== 0).map(({ s, idx }) => {
-                    const stepIndex = idx; // real index in steps
-                    const isActive = stepIndex === currentStep;
-                    const isDone = stepIndex < currentStep;
-                    const dotHex = mapColorHex(s.color);
-                    return (
-                      <div key={s.title} className="flex items-center">
-                        <div 
-                          onClick={() => { setCurrentStep(stepIndex); setStepFadeKey(k => k+1); }} 
-                          className="relative cursor-pointer group"
-                        >
-                          <div 
-                            className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 ${
-                              isActive ? 'scale-110' : 'hover:scale-105'
-                            }`}
-                            style={{ 
-                              backgroundColor: isActive ? `${dotHex}20` : isDone ? `${dotHex}15` : 'rgba(255,255,255,0.05)',
-                              border: `2px solid ${isActive ? dotHex : isDone ? dotHex : 'rgba(255,255,255,0.2)'}`,
-                              boxShadow: isActive ? `0 0 0 4px ${dotHex}20, 0 0 20px ${dotHex}40` : 'none'
-                            }}
-                          >
-                            <span className="text-[10px] font-bold" style={{ color: isActive || isDone ? dotHex : 'rgba(255,255,255,0.5)' }}>
-                              {stepIndex}
-                            </span>
+              {showStatus ? (
+                // Show status updater content
+                <>
+                  <div className="text-center mb-4">
+                    <div className="text-[16px] font-extrabold tracking-[0.35em] text-white">ULTRA SYNTHESIS™</div>
+                    <div className="text-[10px] text-white/70">— PROCESSING STATUS —</div>
+                  </div>
+                  
+                  <div className="flex-1 overflow-auto">
+                    <StatusUpdater />
+                    
+                    {isRunning && (
+                      <div className="mt-6 text-center">
+                        <div className="inline-flex items-center gap-3 text-[14px] text-blue-400">
+                          <span className="animate-spin">⚡</span>
+                          <span>Running Ultra Synthesis™ Pipeline...</span>
+                          <span className="animate-spin">⚡</span>
+                        </div>
+                        <div className="mt-3 text-[11px] text-white/60">
+                          Processing with {selectedModels.length} models
+                        </div>
+                      </div>
+                    )}
+                    
+                    {!isRunning && orchestratorError && (
+                      <div className="mt-6 p-4 bg-red-900/20 border-2 border-red-500/50 rounded-xl">
+                        <div className="text-[14px] font-bold text-red-400 mb-2">❌ Error Occurred</div>
+                        <div className="text-[12px] text-red-300">{orchestratorError}</div>
+                      </div>
+                    )}
+                    
+                    {!isRunning && orchestratorResult && (
+                      <div className="mt-6 p-6 bg-green-900/20 border-2 border-green-500/50 rounded-xl">
+                        <div className="text-[16px] font-bold text-green-400 mb-4">✅ Ultra Synthesis™ Complete!</div>
+                        <div className="space-y-3">
+                          <div className="text-white">
+                            <div className="text-[12px] font-semibold mb-1">Models Used:</div>
+                            <div className="text-[14px] text-green-300">
+                              {Array.isArray(orchestratorResult.models_used) ? orchestratorResult.models_used.join(', ') : 'Multiple'}
+                            </div>
                           </div>
-                          {/* Tooltip */}
-                          <div className="absolute -bottom-6 left-1/2 transform -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
-                            <div className="text-[9px] whitespace-nowrap bg-black/80 px-2 py-1 rounded" style={{ color: dotHex }}>
-                              {s.title.split('. ')[1]}
+                          <div className="text-white">
+                            <div className="text-[12px] font-semibold mb-1">Processing Time:</div>
+                            <div className="text-[14px] text-blue-300">
+                              {orchestratorResult.processing_time?.toFixed?.(2) || orchestratorResult.processing_time} seconds
+                            </div>
+                          </div>
+                          <div className="text-white">
+                            <div className="text-[12px] font-semibold mb-1">Analysis Pattern:</div>
+                            <div className="text-[14px] text-purple-300">
+                              {orchestratorResult.pattern_used || 'Comparative'}
                             </div>
                           </div>
                         </div>
-                        {idx < steps.length - 1 && (
-                          <div 
-                            className="w-12 h-0.5 mx-2 transition-all duration-300" 
-                            style={{ 
-                              backgroundColor: idx < currentStep ? dotHex : 'rgba(255,255,255,0.2)',
-                              boxShadow: idx < currentStep ? `0 0 10px ${dotHex}50` : 'none'
-                            }} 
-                          />
-                        )}
+                        
+                        {/* View Results Button */}
+                        <button
+                          className="w-full mt-6 px-4 py-3 rounded-lg font-semibold text-white transition-all duration-200"
+                          style={{
+                            background: 'linear-gradient(135deg, #00ff9f 0%, #00d4ff 100%)',
+                            border: '2px solid #00ff9f',
+                            boxShadow: '0 0 20px rgba(0,255,159,0.4)'
+                          }}
+                          onClick={() => {
+                            // TODO: Navigate to results view
+                            console.log('View results:', orchestratorResult);
+                          }}
+                        >
+                          📄 View Full Results
+                        </button>
                       </div>
-                    );
-                  })}
-                </div>
-              </div>
+                    )}
+                  </div>
+                </>
+              ) : (
+                // Show normal wizard content
+                <>
+                  {/* Step markers (centered) - exclude Step 0 (Intro) */}
+                  <div className="w-full mb-4">
+                    <div className="flex items-center justify-center">
+                      {steps.map((s, idx) => ({ s, idx })).filter(x => x.idx !== 0).map(({ s, idx }) => {
+                        const stepIndex = idx; // real index in steps
+                        const isActive = stepIndex === currentStep;
+                        const isDone = stepIndex < currentStep;
+                        const dotHex = mapColorHex(s.color);
+                        return (
+                          <div key={s.title} className="flex items-center">
+                            <div 
+                              onClick={() => { setCurrentStep(stepIndex); setStepFadeKey(k => k+1); }} 
+                              className="relative cursor-pointer group"
+                            >
+                              <div 
+                                className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 ${
+                                  isActive ? 'scale-110' : 'hover:scale-105'
+                                }`}
+                                style={{ 
+                                  backgroundColor: isActive ? `${dotHex}20` : isDone ? `${dotHex}15` : 'rgba(255,255,255,0.05)',
+                                  border: `2px solid ${isActive ? dotHex : isDone ? dotHex : 'rgba(255,255,255,0.2)'}`,
+                                  boxShadow: isActive ? `0 0 0 4px ${dotHex}20, 0 0 20px ${dotHex}40` : 'none'
+                                }}
+                              >
+                                <span className="text-[10px] font-bold" style={{ color: isActive || isDone ? dotHex : 'rgba(255,255,255,0.5)' }}>
+                                  {stepIndex}
+                                </span>
+                              </div>
+                              {/* Tooltip */}
+                              <div className="absolute -bottom-6 left-1/2 transform -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
+                                <div className="text-[9px] whitespace-nowrap bg-black/80 px-2 py-1 rounded" style={{ color: dotHex }}>
+                                  {s.title.split('. ')[1]}
+                                </div>
+                              </div>
+                            </div>
+                            {idx < steps.length - 1 && (
+                              <div 
+                                className="w-12 h-0.5 mx-2 transition-all duration-300" 
+                                style={{ 
+                                  backgroundColor: idx < currentStep ? dotHex : 'rgba(255,255,255,0.2)',
+                                  boxShadow: idx < currentStep ? `0 0 10px ${dotHex}50` : 'none'
+                                }} 
+                              />
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
 
               <h2 className={`text-white ${step.color === 'mint' ? 'text-shadow-neon-mint' : step.color === 'blue' ? 'text-shadow-neon-blue' : step.color === 'deepblue' ? 'text-shadow-neon-deep' : step.color === 'purple' ? 'text-shadow-neon-purple' : 'text-shadow-neon-pink'} text-base mb-2 text-center uppercase tracking-wide`} style={{ borderBottom: `1px solid ${colorHex}`, paddingBottom: 4 }}>{step.title}</h2>
               {step.narrative && (
@@ -1157,61 +1234,33 @@ export default function CyberWizard() {
                         );
                       })}
                     </div>
-                    
-                    {/* OR divider and UltrAI configure option */}
-                    <div className="mt-6">
-                      <div className="flex items-center justify-center mb-4">
-                        <div className="h-px bg-white/20 flex-1"></div>
-                        <div className="px-4 text-sm font-bold text-white/80">OR</div>
-                        <div className="h-px bg-white/20 flex-1"></div>
-                      </div>
-                      
-                      <button
-                        className="w-full px-4 py-3 rounded-lg font-semibold transition-all duration-200"
-                        style={{
-                          background: `linear-gradient(135deg, ${mapColorRGBA(step.color, 0.15)}, ${mapColorRGBA(step.color, 0.25)})`,
-                          border: `2px solid ${colorHex}`,
-                          color: colorHex,
-                          backdropFilter: 'blur(20px)',
-                          WebkitBackdropFilter: 'blur(20px)'
-                        }}
-                        onClick={() => {
-                          // Auto-select the UltrAI Intelligence Multiplier
-                          const ultraOption = step.options?.find(o => o.label.includes('UltrAI Intelligence Multiplier'));
-                          if (ultraOption && !summary.some(it => it.label === ultraOption.label)) {
-                            addSelection(ultraOption.label, ultraOption.cost, step.color, step.title);
-                          }
-                          // Move to next step
-                          setCurrentStep(Math.min(currentStep + 1, steps.length - 1));
-                          setStepFadeKey(k => k + 1);
-                        }}
-                      >
-                        🤖 Have UltrAI configure my query
-                      </button>
-                    </div>
                   </>
                 )}
 
               </div>
 
               {/* Action buttons (absolute positioned at bottom) */}
-              <div className="absolute bottom-0 left-0 right-0 p-8 pt-4" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.6), rgba(0,0,0,0))' }}>
-                <button
-                  className="w-full mt-2 px-3 py-2 rounded text-center font-semibold animate-border-hum"
-                  style={{ border: `2px solid ${colorHex}`, color: colorHex, background: mapColorRGBA(step.color, 0.06) }}
-                  onClick={() => {
-                    if (currentStep === steps.length - 1) {
-                      // Mark add-ons as submitted
-                      setAddonsSubmitted(true);
-                    } else {
-                      setCurrentStep(Math.min(currentStep + 1, steps.length - 1));
-                      setStepFadeKey(k => k + 1);
-                    }
-                  }}
-                >
-                  {currentStep===steps.length-1 ? "Submit Add-ons" : "Submit"}
-                </button>
-              </div>
+              {!showStatus && (
+                <div className="absolute bottom-0 left-0 right-0 p-8 pt-4" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.6), rgba(0,0,0,0))' }}>
+                  <button
+                    className="w-full mt-2 px-3 py-2 rounded text-center font-semibold animate-border-hum"
+                    style={{ border: `2px solid ${colorHex}`, color: colorHex, background: mapColorRGBA(step.color, 0.06) }}
+                    onClick={() => {
+                      if (currentStep === steps.length - 1) {
+                        // Mark add-ons as submitted
+                        setAddonsSubmitted(true);
+                      } else {
+                        setCurrentStep(Math.min(currentStep + 1, steps.length - 1));
+                        setStepFadeKey(k => k + 1);
+                      }
+                    }}
+                  >
+                    {currentStep===steps.length-1 ? "Submit Add-ons" : "Submit"}
+                  </button>
+                </div>
+              )}
+              </>
+              )}
               </div>
             </div>
             
@@ -1388,37 +1437,11 @@ export default function CyberWizard() {
                 <>
                   <div className="text-center mb-2">
                     <div className="text-[14px] font-extrabold tracking-[0.35em] text-white">ULTRAI</div>
-                    <div className="text-[10px] text-white/70">— STATUS —</div>
+                    <div className="text-[10px] text-white/70">— PROCESSING —</div>
                   </div>
-                  <div className="glass-strong p-3 rounded-xl border" style={{ borderColor: colorHex, background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(20px)' }}>
-                    <StatusUpdater />
-                    {isRunning && (
-                      <div className="flex items-center gap-2 text-[12px] text-blue-400 mt-3">
-                        <span className="">⚡</span>
-                        <span>Running Ultra Synthesis™ Pipeline...</span>
-                      </div>
-                    )}
-                    {!isRunning && orchestratorError && (
-                      <div className="mt-3 p-2 bg-red-900/20 border border-red-500/50 rounded text-[11px] text-red-400">
-                        <strong>Error:</strong> {orchestratorError}
-                      </div>
-                    )}
-                    {!isRunning && orchestratorResult && (
-                      <div className="mt-3 p-3 bg-green-900/20 border border-green-500/50 rounded">
-                        <div className="text-[12px] font-bold text-green-400 mb-2">✅ Ultra Synthesis™ Complete!</div>
-                        <div className="space-y-1 text-[11px]">
-                          <div className="text-white/80">
-                            <strong>Models used:</strong> {Array.isArray(orchestratorResult.models_used) ? orchestratorResult.models_used.join(', ') : 'Multiple'}
-                          </div>
-                          <div className="text-white/80">
-                            <strong>Processing time:</strong> {orchestratorResult.processing_time?.toFixed?.(2) || orchestratorResult.processing_time}s
-                          </div>
-                          <div className="text-white/80">
-                            <strong>Analysis pattern:</strong> {orchestratorResult.pattern_used || 'Comparative'}
-                          </div>
-                        </div>
-                      </div>
-                    )}
+                  <div className="text-center mt-8">
+                    <div className="text-[12px] text-white/60">Ultra Synthesis™ in progress</div>
+                    <div className="text-[10px] text-white/40 mt-2">Check the status in the main panel</div>
                   </div>
                 </>
               )}
