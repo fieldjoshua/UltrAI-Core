@@ -37,6 +37,7 @@ export default function CyberWizard() {
   const [isOptimizing, setIsOptimizing] = useState<boolean>(false);
   const [optimizationStep, setOptimizationStep] = useState<number>(0);
   const [modelStatuses, setModelStatuses] = useState<Record<string, 'checking' | 'ready' | 'error'>>({});
+  const [bgTheme, setBgTheme] = useState<'morning' | 'afternoon' | 'sunset' | 'night'>('night');
   const [otherGoalText, setOtherGoalText] = useState<string>("");
   const [showModelList, setShowModelList] = useState<boolean>(false);
   const [addonsSubmitted, setAddonsSubmitted] = useState<boolean>(false);
@@ -169,6 +170,47 @@ export default function CyberWizard() {
   };
 
   const monoStack = 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace';
+
+  // Theme overlay helper to tint background by time of day
+  const themeOverlayStyle = (): any => {
+    switch (bgTheme) {
+      case 'morning':
+        return {
+          background: 'linear-gradient(180deg, rgba(255, 210, 122, 0.25) 0%, rgba(255, 255, 255, 0) 60%)',
+          zIndex: 1,
+        };
+      case 'afternoon':
+        return {
+          background: 'linear-gradient(180deg, rgba(122, 209, 255, 0.25) 0%, rgba(255, 255, 255, 0) 60%)',
+          zIndex: 1,
+        };
+      case 'sunset':
+        return {
+          background: 'linear-gradient(180deg, rgba(255, 122, 122, 0.20) 0%, rgba(255, 0, 212, 0.15) 40%, rgba(0, 0, 0, 0) 70%)',
+          zIndex: 1,
+        };
+      case 'night':
+      default:
+        return {
+          background: 'linear-gradient(180deg, rgba(0, 17, 51, 0.20) 0%, rgba(51, 0, 68, 0.15) 40%, rgba(0, 0, 0, 0) 70%)',
+          zIndex: 1,
+        };
+    }
+  };
+
+  const themeBgUrl = (): string => {
+    switch (bgTheme) {
+      case 'morning':
+        return '/bg-morning.jpg';
+      case 'afternoon':
+        return '/bg-afternoon.jpg';
+      case 'sunset':
+        return '/bg-sunset.jpg';
+      case 'night':
+      default:
+        return '/bg-night.jpg';
+    }
+  };
 
   // Step 0: Intro — render with background and billboard
   if (currentStep === 0 && step.type === 'intro') {
@@ -562,17 +604,19 @@ export default function CyberWizard() {
 
   return (
     <div className="relative flex flex-col min-h-screen w-full text-white font-cyber text-sm">
-      {/* Background layer - full screen */}
+      {/* Background layer - full screen with theme */}
       <div
         className="pointer-events-none fixed inset-0"
         style={{
-          backgroundImage: "url('/cityscape-background.jpeg'), url('/ultrai-bg.jpg')",
+          backgroundImage: `url('${themeBgUrl()}')`,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           backgroundAttachment: 'fixed',
           zIndex: 0
         }}
       />
+      {/* Theme overlay tint */}
+      <div className="pointer-events-none fixed inset-0" style={themeOverlayStyle()} />
       
       {/* Animated Billboard Lines - Lower Right Corner */}
       {/* Overlay removed */}
@@ -1282,6 +1326,25 @@ export default function CyberWizard() {
               {!showStatus ? (
                 <>
                   <div className="text-center mb-2">
+                    {/* Theme toggle */}
+                    <div className="mb-3">
+                      <div className="text-[10px] text-white/70 text-center mb-1">Background Theme</div>
+                      <div className="grid grid-cols-4 gap-2">
+                        {(['morning','afternoon','sunset','night'] as const).map(t => (
+                          <button
+                            key={t}
+                            className={`px-2 py-1 rounded text-[10px] ${bgTheme===t ? 'font-bold' : ''}`}
+                            style={{
+                              background: bgTheme===t ? 'rgba(255,255,255,0.12)' : 'rgba(255,255,255,0.05)',
+                              border: bgTheme===t ? '1px solid rgba(255,255,255,0.3)' : '1px solid rgba(255,255,255,0.15)'
+                            }}
+                            onClick={() => setBgTheme(t)}
+                          >
+                            {t}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
                     <div className="text-[14px] font-extrabold tracking-[0.35em] text-white">ULTRAI</div>
                     <div className="text-[10px] text-white/70">— ITEMIZED RECEIPT —</div>
                   </div>
