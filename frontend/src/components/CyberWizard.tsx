@@ -210,34 +210,52 @@ export default function CyberWizard() {
         </div>
 
         {/* Hero content */}
-        <div className="relative z-10 w-full mx-auto max-w-5xl px-8" style={{ marginTop: '35vh' }}>
-          {/* Animated title */}
-          <div className="text-center mb-8 animate-slide-in-top">
-            <h1 className="text-6xl font-bold mb-2">
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-mint-400 via-blue-400 to-purple-400 animate-gradient-x">
-                ULTRA AI
-              </span>
-            </h1>
-            <div className="text-xl text-white/80 animate-fade-in" style={{ animationDelay: '0.5s' }}>
-              Intelligence Multiplication Platform
-            </div>
-          </div>
-
-          {/* Main card */}
+        <div className="relative z-10 w-full mx-auto max-w-5xl px-8" style={{ marginTop: '25vh' }}>
+          
+          {/* Main professional card */}
           <div
-            className="relative p-8 rounded-3xl overflow-hidden animate-scale-in"
+            className="relative p-12 rounded-3xl overflow-hidden animate-scale-in"
             style={{ 
-              background: 'rgba(0, 0, 0, 0.4)',
+              background: 'rgba(0, 0, 0, 0.3)',
               backdropFilter: 'blur(40px)',
               WebkitBackdropFilter: 'blur(40px)',
-              border: '2px solid transparent',
-              backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), linear-gradient(45deg, #00ff9f, #00d4ff, #bd00ff, #ff0095)`,
-              backgroundOrigin: 'border-box',
-              backgroundClip: 'padding-box, border-box',
-              boxShadow: '0 0 80px rgba(0,255,159,0.3), inset 0 0 60px rgba(0,255,159,0.05)',
+              border: '2px solid #00ff9f',
+              boxShadow: '0 0 60px rgba(0,255,159,0.2), inset 0 0 40px rgba(0,255,159,0.02)',
               animationDelay: '0.3s'
             }}
           >
+            {/* Neon Billboard at top */}
+            <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+              <div className="relative">
+                <div 
+                  className="px-8 py-3 rounded-lg animate-pulse-glow"
+                  style={{
+                    background: 'rgba(0, 0, 0, 0.8)',
+                    border: '2px solid #00ff9f',
+                    boxShadow: `
+                      0 0 20px #00ff9f,
+                      inset 0 0 20px rgba(0, 255, 159, 0.2),
+                      0 0 40px rgba(0, 255, 159, 0.4)
+                    `
+                  }}
+                >
+                  <h1 className="text-3xl font-bold tracking-wider" style={{
+                    color: '#00ff9f',
+                    textShadow: `
+                      0 0 10px #00ff9f,
+                      0 0 20px #00ff9f,
+                      0 0 30px #00ff9f,
+                      0 0 40px #00ff9f
+                    `
+                  }}>
+                    ULTRA AI
+                  </h1>
+                </div>
+                {/* Billboard legs */}
+                <div className="absolute bottom-0 left-4 w-1 h-4 bg-gray-600"></div>
+                <div className="absolute bottom-0 right-4 w-1 h-4 bg-gray-600"></div>
+              </div>
+            </div>
 
             <div className="relative space-y-8">
               {/* Feature pills */}
@@ -264,15 +282,34 @@ export default function CyberWizard() {
               </div>
 
               {/* Main narrative */}
-              <div className="max-w-3xl mx-auto">
+              <div className="max-w-3xl mx-auto mt-8">
                 <p className="text-lg leading-relaxed text-center text-white/90">
-                  Welcome to <span className="font-bold text-mint-400">UltrAI</span> where the intelligence of multiple LLMs is multiplied. 
+                  Welcome to the future of <span className="font-bold" style={{
+                    color: '#00ff9f',
+                    textShadow: '0 0 5px #00ff9f, 0 0 10px #00ff9f'
+                  }}>Intelligence Multiplication</span>. 
                   We orchestrate a sophisticated ensemble of leading AI models, each contributing their unique strengths 
-                  to deliver <span className="font-bold text-blue-400">unprecedented quality</span> and <span className="font-bold text-purple-400">comprehensive insights</span>.
+                  to deliver <span className="font-bold" style={{
+                    color: '#00d4ff',
+                    textShadow: '0 0 5px #00d4ff, 0 0 10px #00d4ff'
+                  }}>unprecedented quality</span> and <span className="font-bold" style={{
+                    color: '#bd00ff',
+                    textShadow: '0 0 5px #bd00ff, 0 0 10px #bd00ff'
+                  }}>comprehensive insights</span>.
                 </p>
-                <p className="text-md text-center text-white/70 mt-4">
-                  Pay-as-you-go • No commitments • Enterprise-grade results
-                </p>
+                <div className="flex justify-center gap-6 text-sm mt-6">
+                  <span className="text-white/80" style={{
+                    textShadow: '0 0 5px rgba(255,255,255,0.3)'
+                  }}>Pay-as-you-go</span>
+                  <span className="text-white/50">•</span>
+                  <span className="text-white/80" style={{
+                    textShadow: '0 0 5px rgba(255,255,255,0.3)'
+                  }}>No commitments</span>
+                  <span className="text-white/50">•</span>
+                  <span className="text-white/80" style={{
+                    textShadow: '0 0 5px rgba(255,255,255,0.3)'
+                  }}>Enterprise-grade</span>
+                </div>
               </div>
 
               {/* CTA Button */}
@@ -343,6 +380,29 @@ export default function CyberWizard() {
       .sort((a, b) => a.cost - b.cost)
       .map(x => x.name);
     return cheapSorted.slice(0, Math.min(2, cheapSorted.length));
+  };
+
+  const optimizeQuery = () => {
+    // This function will suggest an improved query based on the user's input
+    const query = userQuery.trim();
+    let improvedQuery = query;
+    
+    // Add context based on selected goals
+    if (selectedGoals.length > 0) {
+      improvedQuery = `For ${selectedGoals.join(', ').toLowerCase()}: ${query}`;
+    }
+    
+    // Add specificity suggestions
+    if (!query.includes('specific') && !query.includes('detailed')) {
+      improvedQuery += '. Please provide specific, detailed analysis';
+    }
+    
+    // Add format suggestions
+    if (!query.includes('format') && !query.includes('structure')) {
+      improvedQuery += ' with structured output';
+    }
+    
+    setUserQuery(improvedQuery);
   };
 
   const optimizeSearch = () => {
@@ -522,7 +582,7 @@ export default function CyberWizard() {
               background: 'rgba(0, 0, 0, 0.2)', 
               backdropFilter: 'blur(40px)',
               WebkitBackdropFilter: 'blur(40px)',
-              border: '1px solid rgba(255, 255, 255, 0.2)',
+              border: '2px solid #00ff9f',
               boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3), inset 0 0 60px rgba(255, 255, 255, 0.05)'
             }}>
               <div className="text-center mb-3">
@@ -591,7 +651,7 @@ export default function CyberWizard() {
             background: 'rgba(0, 0, 0, 0.2)', 
             backdropFilter: 'blur(40px)', 
             WebkitBackdropFilter: 'blur(40px)', 
-            border: '1px solid rgba(255, 255, 255, 0.2)',
+            border: '2px solid #00d4ff',
             boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3), inset 0 0 60px rgba(255, 255, 255, 0.05)'
           }}>
             <div className="text-[11px] font-bold mb-2 text-white/80">AI Models Status</div>
@@ -630,7 +690,7 @@ export default function CyberWizard() {
                     background: `linear-gradient(0deg, ${mapColorRGBA(step.color, 0.03)}, ${mapColorRGBA(step.color, 0.03)}), rgba(0, 0, 0, 0.2)`,
                     backdropFilter: 'blur(40px)',
                     WebkitBackdropFilter: 'blur(40px)',
-                    border: `1px solid rgba(255, 255, 255, 0.2)`,
+                    border: `2px solid ${colorHex}`,
                     minHeight: '420px',
                     boxShadow: `
                       0 8px 32px rgba(0, 0, 0, 0.3),
@@ -749,7 +809,7 @@ export default function CyberWizard() {
                     style={{
                       background: 'rgba(0, 0, 0, 0.3)',
                       backdropFilter: 'blur(10px)',
-                      border: '1px solid rgba(255, 255, 255, 0.2)',
+                      border: `2px solid ${colorHex}50`,
                       resize: 'none'
                     }}
                     placeholder={selectedGoals.length > 0 ? 
@@ -784,12 +844,12 @@ export default function CyberWizard() {
                           backdropFilter: 'blur(20px)',
                           WebkitBackdropFilter: 'blur(20px)'
                         }}
-                        onClick={optimizeSearch}
+                        onClick={optimizeQuery}
                       >
-                        🚀 Allow UltrAI to optimize my search
+                        🚀 Allow UltrAI to optimize my query
                       </button>
                       <p className="text-[10px] text-white/60 text-center mt-2">
-                        AI will analyze your query and auto-select the best options
+                        AI will suggest improvements to your query for better results
                       </p>
                     </div>
                   )}
@@ -1030,7 +1090,7 @@ export default function CyberWizard() {
                 background: 'rgba(0, 0, 0, 0.2)',
                 backdropFilter: 'blur(40px)',
                 WebkitBackdropFilter: 'blur(40px)',
-                border: `1px solid rgba(255, 255, 255, 0.2)`,
+                border: `2px solid ${receiptColor}`,
                 minHeight: '420px',
                 width: '360px',
                 boxShadow: `
