@@ -1,6 +1,11 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+/* Disable animations globally when applied to a container */
+.no-anim, .no-anim * {
+  animation: none !important;
+  transition: none !important;
+}
 
 /* Cyberpunk fonts */
 @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Share+Tech+Mono&display=swap');

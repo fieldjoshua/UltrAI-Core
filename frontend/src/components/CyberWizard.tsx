@@ -176,7 +176,7 @@ export default function CyberWizard() {
   // Step 0: Intro — render with background and billboard
   if (currentStep === 0 && step.type === 'intro') {
     return (
-      <div className="relative flex min-h-screen w-full items-start justify-center p-0 text-white font-cyber text-sm overflow-hidden">
+      <div className="no-anim relative flex min-h-screen w-full items-start justify-center p-0 text-white font-cyber text-sm overflow-hidden">
         {/* Background with billboard */}
         <div className="absolute inset-0">
           <div
@@ -236,7 +236,7 @@ export default function CyberWizard() {
               {/* CTA Button */}
               <div className="text-center">
                 <button 
-                  className="group relative px-12 py-5 text-xl font-bold rounded-2xl transition-all duration-300 hover:scale-105 active:scale-95"
+                  className="group relative px-12 py-5 text-xl font-bold rounded-2xl"
                   style={{
                     background: 'linear-gradient(135deg, rgba(0,255,159,0.2) 0%, rgba(0,255,159,0.3) 100%)',
                     border: '2px solid #00ff9f',
@@ -246,9 +246,9 @@ export default function CyberWizard() {
                 >
                   <span className="relative z-10 flex items-center gap-3">
                     <span>Enter Ultra Synthesis™</span>
-                    <span className="group-hover:translate-x-1 transition-transform">→</span>
+                    <span>→</span>
                   </span>
-                  <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-mint-400/20 to-mint-400/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                  <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-mint-400/20 to-mint-400/30" />
                 </button>
               </div>
 
@@ -471,9 +471,7 @@ export default function CyberWizard() {
       {/* Animated Billboard Lines - Lower Right Corner */}
       <div 
         className="pointer-events-none fixed inset-0"
-        style={{
-          zIndex: 3
-        }}
+        style={{ zIndex: 3 }}
       >
         <img
           src="/overlays/billboard_lines.svg"
@@ -482,16 +480,14 @@ export default function CyberWizard() {
           style={{
             objectFit: 'cover',
             objectPosition: 'bottom right',
-            opacity: billboardState === 'processing' ? 0.4 : 0.2,
-            filter: `brightness(${billboardState === 'processing' ? 1.8 : 1.2}) ${billboardState === 'processing' ? 'drop-shadow(0 0 20px #00ff00)' : ''}`,
-            animation: billboardState === 'processing' ? 'billboardPulse 2s ease-in-out infinite' : 'none',
-            transition: 'all 0.5s ease'
+            opacity: 0.22,
+            filter: 'brightness(1.2)'
           }}
         />
       </div>
       
       {/* Bridge Animation - Lower Left Corner */}
-      <BridgeAnimation state={billboardState} />
+      {/* Bridge animation disabled for professional static look */}
       
       {/* Optimization Status Boxes */}
       {isOptimizing && (
@@ -787,7 +783,7 @@ export default function CyberWizard() {
                 {step.type === "checkbox" && step.options && (
                   currentStep === 0 ? (
                     <div className="grid grid-cols-2 gap-2">
-                      {step.options.map(o => (
+                      {step.options.slice(0, 12).map(o => (
                         <label key={o.label} className="flex items-center text-[11px] leading-tight truncate opacity-95 hover:opacity-100">
                           <input type="checkbox" onChange={() => handleGoalToggle(o.label)} checked={selectedGoals.includes(o.label)} />{" "}
                           <span className="align-middle truncate tracking-wide text-white">{o.icon ? `${o.icon} ` : ""}{o.label}</span>
