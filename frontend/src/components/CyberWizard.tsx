@@ -297,8 +297,6 @@ export default function CyberWizard() {
   const optimizeSearch = () => {
     setIsOptimizing(true);
     setOptimizationStep(0);
-    setBillboardState('processing');
-    setBillboardMessage('AI Optimization in Progress...');
     
     // Step through optimization phases
     const runOptimization = async () => {
@@ -312,7 +310,7 @@ export default function CyberWizard() {
       setTotalCost(0);
       setSelectedInputs([]);
       setSelectedModels([]);
-      setSelectedAddons([]);
+      // setSelectedAddons([]);
       
       // Base cost for query entry
       addSelection("Query Entry", 0, "blue", steps[2]?.title || "2. Enter your query");
@@ -439,8 +437,6 @@ export default function CyberWizard() {
       setStepFadeKey(k => k + 1);
       setIsOptimizing(false);
       setOptimizationStep(0);
-      setBillboardState('idle');
-      setBillboardMessage('');
     };
     
     runOptimization();
@@ -471,9 +467,11 @@ export default function CyberWizard() {
         <div className="absolute w-full" style={{ top: '10vh', zIndex: 5 }}>
           <div className="max-w-4xl mx-auto px-8">
             <div className="glass-strong p-4 rounded-xl" style={{ 
-              background: 'rgba(0, 0, 0, 0.75)', 
-              backdropFilter: 'blur(20px)',
-              border: '1px solid rgba(255, 255, 255, 0.1)'
+              background: 'rgba(0, 0, 0, 0.4)', 
+              backdropFilter: 'blur(40px)',
+              WebkitBackdropFilter: 'blur(40px)',
+              border: '1px solid rgba(255, 255, 255, 0.2)',
+              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3), inset 0 0 60px rgba(255, 255, 255, 0.05)'
             }}>
               <div className="text-center mb-3">
                 <h3 className="text-sm font-bold text-white mb-1">Optimizing Your Search</h3>
@@ -537,7 +535,13 @@ export default function CyberWizard() {
       {/* Model Status Panel - Top Right */}
       {availableModels && availableModels.length > 0 && (
         <div className="absolute right-4 z-20" style={{ top: '20px' }}>
-          <div className="glass p-3 rounded-lg" style={{ background: 'rgba(0, 0, 0, 0.7)', backdropFilter: 'blur(10px)' }}>
+          <div className="glass p-3 rounded-lg" style={{ 
+            background: 'rgba(0, 0, 0, 0.4)', 
+            backdropFilter: 'blur(40px)', 
+            WebkitBackdropFilter: 'blur(40px)', 
+            border: '1px solid rgba(255, 255, 255, 0.2)',
+            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3), inset 0 0 60px rgba(255, 255, 255, 0.05)'
+          }}>
             <div className="text-[11px] font-bold mb-2 text-white/80">AI Models Status</div>
             <div className="space-y-1">
               {Object.entries(modelStatuses).slice(0, 5).map(([model, status]) => (
@@ -715,6 +719,28 @@ export default function CyberWizard() {
                       ))}
                     </div>
                   )}
+                  
+                  {/* Add optimization button for Step 2 */}
+                  {userQuery.trim() && (
+                    <div className="mt-4">
+                      <button
+                        className="w-full px-4 py-3 rounded-lg font-semibold transition-all duration-200"
+                        style={{
+                          background: 'linear-gradient(135deg, rgba(0,255,159,0.1), rgba(0,184,255,0.1))',
+                          border: '2px solid rgba(0,255,159,0.5)',
+                          color: '#00ff9f',
+                          backdropFilter: 'blur(20px)',
+                          WebkitBackdropFilter: 'blur(20px)'
+                        }}
+                        onClick={optimizeSearch}
+                      >
+                        🚀 Allow UltrAI to optimize my search
+                      </button>
+                      <p className="text-[10px] text-white/60 text-center mt-2">
+                        AI will analyze your query and auto-select the best options
+                      </p>
+                    </div>
+                  )}
                 </>)}
 
                 {step.type === "radio" && step.options && (
@@ -763,7 +789,7 @@ export default function CyberWizard() {
                             <span className="align-middle truncate tracking-wide text-white">
                               {o.icon ? `${o.icon} ` : ''}{o.label}
                             </span>
-                            <input type="checkbox" onChange={e => handleGoalToggle(o.label)} checked={selectedGoals.includes(o.label)} />
+                            <input type="checkbox" onChange={() => handleGoalToggle(o.label)} checked={selectedGoals.includes(o.label)} />
                           </label>
                         ))}
                       </div>
@@ -771,7 +797,7 @@ export default function CyberWizard() {
                       <div className="grid grid-cols-2 gap-2">
                         {step.options.map(o => (
                           <label key={o.label} className="flex items-center text-[11px] leading-tight truncate opacity-95 hover:opacity-100">
-                            <input type="checkbox" onChange={e => e.target.checked ? addSelection(o.label, o.cost, step.color, step.title) : removeSelectionCost(o.cost)} />{" "}
+                            <input type="checkbox" onChange={(e) => e.target.checked ? addSelection(o.label, o.cost, step.color, step.title) : removeSelectionCost(o.cost)} />{" "}
                             <span className="align-middle truncate tracking-wide text-white">{o.icon ? `${o.icon} ` : ""}{o.label}{typeof o.cost === 'number' ? ` ($${o.cost})` : ""}</span>
                           </label>
                         ))}
@@ -835,15 +861,17 @@ export default function CyberWizard() {
               className="relative p-6 rounded-2xl"
               style={{ 
                 fontFamily: monoStack, 
-                background: 'rgba(0, 0, 0, 0.85)',
-                backdropFilter: 'blur(20px)',
-                border: `1px solid rgba(255, 255, 255, 0.1)`,
+                background: 'rgba(0, 0, 0, 0.4)',
+                backdropFilter: 'blur(40px)',
+                WebkitBackdropFilter: 'blur(40px)',
+                border: `1px solid rgba(255, 255, 255, 0.2)`,
                 minHeight: '520px',
                 width: '360px',
                 boxShadow: `
-                  0 4px 24px rgba(0, 0, 0, 0.5),
-                  0 0 40px ${receiptColor}10,
-                  0 0 0 1px ${receiptColor}33
+                  0 8px 32px rgba(0, 0, 0, 0.3),
+                  0 0 60px ${receiptColor}10,
+                  0 0 0 1px ${receiptColor}20,
+                  inset 0 0 60px rgba(255, 255, 255, 0.05)
                 `,
                 clipPath: 'polygon(0 0, calc(100% - 20px) 0, 100% 20px, 100% 100%, 20px 100%, 0 calc(100% - 20px))'
               }}>

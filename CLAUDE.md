@@ -33,10 +33,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `./run_e2e.sh` - Run Playwright e2e tests using local Chrome browser
 - `pytest tests/ -m "live_online" -v` - Run live tests against real LLM providers
 
-### Virtual Environment Setup
+### Python Environment Setup (CRITICAL)
+**Always activate the virtual environment before running any Python commands:**
 - `source venv/bin/activate` - Activate the virtual environment (REQUIRED before running Python code)
 - `poetry shell` - Alternative: activate Poetry environment if Poetry is installed
 - `./venv/bin/python script.py` - Direct execution without activation
+- `which python` - Verify correct Python interpreter is being used
 
 ### Poetry Commands (Python Dependency Management)
 - `poetry install` - Install all dependencies from poetry.lock
@@ -59,6 +61,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `poetry cache clear pypi --all` - Clear Poetry cache for dependency issues
 - `source venv/bin/activate` - Fix import errors by activating virtual environment
 - `which python` - Check which Python interpreter is being used
+- `pip install -r requirements.txt` - Install dependencies if Poetry isn't available
 
 ## Architecture Overview
 
@@ -101,10 +104,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Production API URL: `https://ultrai-core.onrender.com`
 
 **Key Frontend Features**:
-- `MultimodalAnalysis` component - Main orchestrator interface
+- `CyberWizard` component - Main 5-step wizard interface with Ultra Synthesis™ pipeline
+- `CyberWizardPro` component - Professional version with exact SVG template positioning
+- `MultimodalAnalysis` component - Alternative orchestrator interface
 - `DocumentsPage` - Document upload and analysis
 - `OrchestratorPage` - Multi-model selection and execution
 - Error boundaries with `ErrorFallback` for graceful error handling
+- SVG overlay animations: `billboard_lines.svg`, `bridge_lines.svg`, `boxes_template.svg`
 
 ## AICheck Integration
 
@@ -202,11 +208,6 @@ def initialize_services() -> Dict[str, Any]:
 - `app/main.py` - Application factory with service initialization
 - `app/app.py` - FastAPI app configuration and route mounting
 
-**Critical: Python Environment Setup**:
-- The project uses a virtual environment at `./venv/`
-- **Always activate the virtual environment before running any Python code**: `source venv/bin/activate`
-- The project has all dependencies installed in the virtual environment
-- If you see import errors, it means the virtual environment is not activated
 
 ## Testing Strategy
 
@@ -352,19 +353,21 @@ Begin with the ultra synthesis document."""
 1. **First Time Setup**:
    ```bash
    make setup              # Install all dependencies and build frontend
-   source venv/bin/activate  # Activate Python virtual environment
+   source venv/bin/activate  # CRITICAL: Always activate Python virtual environment
    ```
 
 2. **Start Development Server**:
    ```bash
-   make dev               # Minimal dependencies, fast startup
+   source venv/bin/activate  # Always activate first!
+   make dev                 # Minimal dependencies, fast startup
    # OR
-   make prod             # Full features with database/auth
+   make prod               # Full features with database/auth
    ```
 
 3. **Run Tests**:
    ```bash
-   make test             # Run all tests
+   source venv/bin/activate  # Always activate first!
+   make test               # Run all tests
    pytest tests/ -m "not live_online" -v  # Run without live API calls
    ```
 
@@ -372,3 +375,10 @@ Begin with the ultra synthesis document."""
    ```bash
    cd frontend && npm run dev  # Start frontend dev server on port 5173
    ```
+
+## Critical Reminders
+
+- **Python Virtual Environment**: ALWAYS run `source venv/bin/activate` before any Python commands
+- **Frontend Routes**: The main wizard interface is at `/wizard` route
+- **SVG Overlays**: Located in `frontend/public/overlays/` directory
+- **Wizard Configuration**: Steps defined in `frontend/public/wizard_steps.json`
