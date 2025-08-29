@@ -275,3 +275,8 @@
   20% { transform: rotate(-0.2deg); }
   25% { transform: rotate(0deg); }
 }
+
+/* 3D flip utilities */
+.preserve-3d {
+  transform-style: preserve-3d;
+}

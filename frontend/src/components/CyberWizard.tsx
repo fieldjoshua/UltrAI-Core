@@ -38,6 +38,8 @@ export default function CyberWizard() {
   const [optimizationStep, setOptimizationStep] = useState<number>(0);
   const [modelStatuses, setModelStatuses] = useState<Record<string, 'checking' | 'ready' | 'error'>>({});
   const [otherGoalText, setOtherGoalText] = useState<string>("");
+  const [showModelList, setShowModelList] = useState<boolean>(false);
+  const [addonsSubmitted, setAddonsSubmitted] = useState<boolean>(false);
   // Billboard overlay disabled; remove state to avoid unused variable lints
 
   useEffect(() => {
@@ -656,7 +658,7 @@ export default function CyberWizard() {
             <div className="grid grid-cols-12 gap-8">
               
               {/* Wizard Panel (left) */}
-              <div className="col-span-8">
+              <div className="col-span-9">
                 <div
                   className={`relative p-8 rounded-2xl overflow-hidden`}
                   style={{
@@ -938,42 +940,84 @@ export default function CyberWizard() {
                         <div className="h-px bg-white/20 flex-1"></div>
                       </div>
                       
-                      {/* Manual selection */}
-                      <div className="glass p-2 rounded-lg border border-white/20">
-                        <button
-                          className="w-full px-2 py-1.5 rounded-md text-[11px] font-semibold transition-all duration-200"
+                      {/* Manual selection with flip */}
+                      <div className="relative" style={{ perspective: '1000px' }}>
+                        <div 
+                          className="relative transition-all duration-500 preserve-3d"
                           style={{
-                            background: modelSelectionMode === 'manual' ? `linear-gradient(135deg, ${mapColorRGBA(step.color, 0.15)}, ${mapColorRGBA(step.color, 0.25)})` : 'rgba(255,255,255,0.05)',
-                            border: `2px solid ${modelSelectionMode === 'manual' ? colorHex : 'rgba(255,255,255,0.2)'}`,
-                            color: 'white'
-                          }}
-                          onClick={() => {
-                            setModelSelectionMode('manual');
-                            setAutoPreference('');
+                            transformStyle: 'preserve-3d',
+                            transform: showModelList ? 'rotateY(180deg)' : 'rotateY(0deg)'
                           }}
                         >
-                          🛠️ Choose models manually
-                        </button>
-                        
-                        {modelSelectionMode === 'manual' && (
-                          <div className="mt-2 grid grid-cols-3 gap-1 max-h-20 overflow-y-auto">
-                            {(availableModels || []).map(name => (
-                              <label key={name} className="flex items-center text-[9px] leading-tight truncate opacity-95 hover:opacity-100">
-                                <input type="checkbox" className="mr-1 scale-75" onChange={() => handleModelToggle(name)} checked={selectedModels.includes(name)} />
-                                <span className="align-middle truncate tracking-wide text-white">{name}</span>
-                              </label>
-                            ))}
-                            {availableModels && availableModels.length === 0 && (
-                              <div className="text-[9px] opacity-80 col-span-3">No models available. Add API keys.</div>
-                            )}
+                          {/* Front side */}
+                          <div 
+                            className={`glass p-3 rounded-lg border border-white/20 ${showModelList ? 'invisible' : 'visible'}`}
+                            style={{ 
+                              backfaceVisibility: 'hidden',
+                              position: showModelList ? 'absolute' : 'relative',
+                              width: '100%'
+                            }}
+                          >
+                            <div className="text-center">
+                              <div className="text-xs font-bold text-white/80 mb-2">I want to choose the models used manually</div>
+                              <button
+                                className="px-4 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200"
+                                style={{
+                                  background: `linear-gradient(135deg, ${mapColorRGBA(step.color, 0.15)}, ${mapColorRGBA(step.color, 0.25)})`,
+                                  border: `2px solid ${colorHex}`,
+                                  color: 'white'
+                                }}
+                                onClick={() => {
+                                  setModelSelectionMode('manual');
+                                  setAutoPreference('premium');
+                                  setShowModelList(true);
+                                }}
+                              >
+                                🛠️ Show Available Models
+                              </button>
+                            </div>
                           </div>
-                        )}
+                          
+                          {/* Back side */}
+                          <div 
+                            className={`glass p-3 rounded-lg border border-white/20 ${!showModelList ? 'invisible' : 'visible'}`}
+                            style={{ 
+                              backfaceVisibility: 'hidden',
+                              transform: 'rotateY(180deg)',
+                              position: showModelList ? 'relative' : 'absolute',
+                              width: '100%',
+                              top: 0,
+                              left: 0
+                            }}
+                          >
+                            <div className="flex justify-between items-center mb-2">
+                              <div className="text-xs font-bold text-white/80">Select Models</div>
+                              <button 
+                                onClick={() => setShowModelList(false)}
+                                className="text-white/60 hover:text-white text-xs"
+                              >
+                                ✕ Close
+                              </button>
+                            </div>
+                            <div className="grid grid-cols-2 gap-1 max-h-32 overflow-y-auto">
+                              {(availableModels || []).map(name => (
+                                <label key={name} className="flex items-center text-[9px] leading-tight truncate opacity-95 hover:opacity-100">
+                                  <input type="checkbox" className="mr-1 scale-75" onChange={() => handleModelToggle(name)} checked={selectedModels.includes(name)} />
+                                  <span className="align-middle truncate tracking-wide text-white">{name}</span>
+                                </label>
+                              ))}
+                              {availableModels && availableModels.length === 0 && (
+                                <div className="text-[9px] opacity-80 col-span-2">No models available. Add API keys.</div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   ) : (
                     (step.title || '').toLowerCase().includes('select your goals') ? (
-                      <div className="space-y-4">
-                        <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-3">
+                        <div className="grid grid-cols-3 gap-2">
                           {step.options.map(o => {
                             const isSelected = selectedGoals.includes(o.label);
                             return (
@@ -983,7 +1027,7 @@ export default function CyberWizard() {
                                 onClick={() => handleGoalToggle(o.label)}
                               >
                                 <div
-                                  className="p-4 rounded-xl transition-all duration-200 hover:scale-105"
+                                  className="p-3 rounded-lg transition-all duration-200 hover:scale-105"
                                   style={{
                                     background: isSelected 
                                       ? `linear-gradient(135deg, ${mapColorRGBA(step.color, 0.2)}, ${mapColorRGBA(step.color, 0.3)})` 
@@ -994,13 +1038,13 @@ export default function CyberWizard() {
                                   }}
                                 >
                                   <div className="text-center">
-                                    <div className="text-3xl mb-2">{o.icon}</div>
-                                    <div className="text-sm font-semibold text-white">{o.label}</div>
+                                    <div className="text-2xl mb-1">{o.icon}</div>
+                                    <div className="text-xs font-semibold text-white">{o.label}</div>
                                   </div>
                                   {isSelected && (
-                                    <div className="absolute top-2 right-2">
+                                    <div className="absolute top-1 right-1">
                                       <div 
-                                        className="w-6 h-6 rounded-full flex items-center justify-center"
+                                        className="w-5 h-5 rounded-full flex items-center justify-center"
                                         style={{ background: colorHex }}
                                       >
                                         <span className="text-white text-xs">✓</span>
@@ -1113,14 +1157,15 @@ export default function CyberWizard() {
                   style={{ border: `2px solid ${colorHex}`, color: colorHex, background: mapColorRGBA(step.color, 0.06) }}
                   onClick={() => {
                     if (currentStep === steps.length - 1) {
-                      setShowStatus(true);
+                      // Mark add-ons as submitted
+                      setAddonsSubmitted(true);
                     } else {
                       setCurrentStep(Math.min(currentStep + 1, steps.length - 1));
                       setStepFadeKey(k => k + 1);
                     }
                   }}
                 >
-                  {currentStep===steps.length-1 ? "Finish" : "Submit"}
+                  {currentStep===steps.length-1 ? "Submit Add-ons" : "Submit"}
                 </button>
               </div>
               </div>
@@ -1145,43 +1190,69 @@ export default function CyberWizard() {
                 }}
               >
                 <div className="text-center mb-3">
-                  <div className="text-[12px] font-extrabold tracking-[0.35em] text-white">MODEL STATUS</div>
-                  <div className="text-[9px] text-white/70">— AVAILABLE MODELS —</div>
+                  <div className="text-[12px] font-extrabold tracking-[0.35em] text-white">SYSTEM STATUS</div>
+                  <div className="text-[9px] text-white/70">— REALTIME METRICS —</div>
                 </div>
                 
-                {availableModels === null ? (
-                  <div className="text-center text-white/60 text-xs">Loading models...</div>
-                ) : availableModels.length === 0 ? (
-                  <div className="text-center text-white/60 text-xs">No models available. Add API keys to enable models.</div>
-                ) : (
-                  <div className="grid grid-cols-3 gap-2">
-                    {availableModels.map(name => {
-                      const info = availableModelInfos[name];
-                      const status = modelStatuses[name] || 'checking';
-                      const statusColor = status === 'ready' ? '#00ff9f' : status === 'checking' ? '#00d4ff' : '#ff0095';
-                      
-                      return (
-                        <div 
-                          key={name}
-                          className="glass p-2 rounded-lg border transition-all duration-200"
-                          style={{
-                            borderColor: selectedModels.includes(name) ? colorHex : 'rgba(255,255,255,0.2)',
-                            background: selectedModels.includes(name) ? `linear-gradient(135deg, ${mapColorRGBA(step.color, 0.1)}, ${mapColorRGBA(step.color, 0.15)})` : 'rgba(255,255,255,0.02)'
-                          }}
-                        >
-                          <div className="flex items-center gap-1 mb-1">
-                            <div 
-                              className="w-1.5 h-1.5 rounded-full animate-pulse" 
-                              style={{ backgroundColor: statusColor }}
-                            />
-                            <div className="text-[10px] font-semibold text-white truncate">{name}</div>
-                          </div>
-                          <div className="text-[8px] text-white/60">
-                            {info?.provider || 'Unknown'} • ${info?.cost_per_1k_tokens || 0}/1k
-                          </div>
-                        </div>
-                      );
-                    })}
+                <div className="grid grid-cols-4 gap-3">
+                  {/* Models Summary */}
+                  <div className="text-center">
+                    <div className="text-2xl mb-1">
+                      <span style={{ color: '#00ff9f' }}>🤖</span>
+                    </div>
+                    <div className="text-[10px] font-semibold text-white">Models Ready</div>
+                    <div className="text-[16px] font-bold text-[#00ff9f]">
+                      {availableModels ? `${availableModels.filter(m => modelStatuses[m] === 'ready').length}/${availableModels.length}` : '—'}
+                    </div>
+                  </div>
+                  
+                  {/* Selected Models */}
+                  <div className="text-center">
+                    <div className="text-2xl mb-1">
+                      <span style={{ color: '#00d4ff' }}>✓</span>
+                    </div>
+                    <div className="text-[10px] font-semibold text-white">Selected</div>
+                    <div className="text-[16px] font-bold text-[#00d4ff]">
+                      {selectedModels.length}
+                    </div>
+                  </div>
+                  
+                  {/* Total Cost */}
+                  <div className="text-center">
+                    <div className="text-2xl mb-1">
+                      <span style={{ color: '#ff00d4' }}>💰</span>
+                    </div>
+                    <div className="text-[10px] font-semibold text-white">Total Cost</div>
+                    <div className="text-[16px] font-bold text-[#ff00d4]">
+                      ${totalCost.toFixed(2)}
+                    </div>
+                  </div>
+                  
+                  {/* Processing Status */}
+                  <div className="text-center">
+                    <div className="text-2xl mb-1">
+                      <span style={{ color: isRunning ? '#ffeb55' : '#00ff9f' }}>⚡</span>
+                    </div>
+                    <div className="text-[10px] font-semibold text-white">Status</div>
+                    <div className="text-[16px] font-bold" style={{ color: isRunning ? '#ffeb55' : '#00ff9f' }}>
+                      {isRunning ? 'Running' : 'Ready'}
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Progress bar for selected models */}
+                {selectedModels.length > 0 && (
+                  <div className="mt-3">
+                    <div className="flex justify-between text-[9px] text-white/60 mb-1">
+                      <span>Selected Models</span>
+                      <span>{selectedModels.join(', ')}</span>
+                    </div>
+                    <div className="h-1 bg-white/10 rounded-full overflow-hidden">
+                      <div 
+                        className="h-full bg-gradient-to-r from-[#00ff9f] via-[#00d4ff] to-[#ff00d4] transition-all duration-300"
+                        style={{ width: `${(selectedModels.length / (availableModels?.length || 1)) * 100}%` }}
+                      />
+                    </div>
                   </div>
                 )}
               </div>
@@ -1189,7 +1260,7 @@ export default function CyberWizard() {
           </div>
 
           {/* Right Panel: Receipt transforms into Status after approval */}
-          <div className="col-span-4">
+          <div className="col-span-3">
             <div 
               className="relative p-6 rounded-2xl"
               style={{ 
@@ -1199,7 +1270,7 @@ export default function CyberWizard() {
                 WebkitBackdropFilter: 'blur(40px)',
                 border: `2px solid ${receiptColor}`,
                 minHeight: '420px',
-                width: '360px',
+                width: '100%',
                 boxShadow: `
                   0 8px 32px rgba(0, 0, 0, 0.3),
                   0 0 60px ${receiptColor}10,
@@ -1232,13 +1303,23 @@ export default function CyberWizard() {
                     })}
                   </div>
                   <div className="mt-3 font-bold text-pink-400 text-lg text-center">{`Total: $${totalCost.toFixed(2)}`}</div>
-                  <button
-                    className="w-full mt-3 px-4 py-3 rounded text-center font-semibold"
-                    style={{ border: '2px solid #00ff9f', color: '#00ff9f', background: 'rgba(0,255,159,0.08)' }}
-                    onClick={() => setShowStatus(true)}
-                  >
-                    Approve cost & Proceed
-                  </button>
+                  {addonsSubmitted ? (
+                    <button
+                      className="w-full mt-3 px-4 py-3 rounded text-center font-semibold animate-pulse-glow"
+                      style={{ border: '2px solid #ff00d4', color: '#ff00d4', background: 'rgba(255,0,212,0.08)' }}
+                      onClick={() => setShowStatus(true)}
+                    >
+                      🚀 Initialize UltrAI
+                    </button>
+                  ) : currentStep === steps.length - 1 ? (
+                    <div className="mt-3 text-center text-[11px] text-white/60">
+                      Submit add-ons to continue...
+                    </div>
+                  ) : (
+                    <div className="mt-3 text-center text-[11px] text-white/60">
+                      Complete all steps to proceed
+                    </div>
+                  )}
                 </>
               ) : (
                 <>
