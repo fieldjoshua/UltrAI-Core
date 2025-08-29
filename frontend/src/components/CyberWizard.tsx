@@ -592,17 +592,18 @@ export default function CyberWizard() {
                   }}
                 >
               <div className="flex flex-col h-full">
-              {/* Step markers (centered) */}
+              {/* Step markers (centered) - exclude Step 0 (Intro) */}
               <div className="w-full mb-4">
                 <div className="flex items-center justify-center">
-                  {steps.map((s, i) => {
-                    const isActive = i === currentStep;
-                    const isDone = i < currentStep;
+                  {steps.slice(1).map((s, i) => {
+                    const stepIndex = i + 1; // real index in steps
+                    const isActive = stepIndex === currentStep;
+                    const isDone = stepIndex < currentStep;
                     const dotHex = mapColorHex(s.color);
                     return (
-                      <div key={i} className="flex items-center">
+                      <div key={s.title} className="flex items-center">
                         <div 
-                          onClick={() => { setCurrentStep(i); setStepFadeKey(k => k+1); }} 
+                          onClick={() => { setCurrentStep(stepIndex); setStepFadeKey(k => k+1); }} 
                           className="relative cursor-pointer group"
                         >
                           <div 
@@ -616,7 +617,7 @@ export default function CyberWizard() {
                             }}
                           >
                             <span className="text-[10px] font-bold" style={{ color: isActive || isDone ? dotHex : 'rgba(255,255,255,0.5)' }}>
-                              {i + 1}
+                              {stepIndex}
                             </span>
                           </div>
                           {/* Tooltip */}
@@ -626,7 +627,7 @@ export default function CyberWizard() {
                             </div>
                           </div>
                         </div>
-                        {i < steps.length - 1 && (
+                        {i < steps.slice(1).length - 1 && (
                           <div 
                             className="w-12 h-0.5 mx-2 transition-all duration-300" 
                             style={{ 
@@ -709,38 +710,6 @@ export default function CyberWizard() {
                     onChange={(e) => setUserQuery(e.target.value)} 
                     onBlur={() => { if (userQuery.trim()) addSelection("Query Entry", step.baseCost, step.color, step.title); }}
                   />
-                  
-                  {/* Add "Allow UltrAI to optimize my search" button after query input */}
-                  {userQuery && userQuery.trim().length > 0 && (
-                    <div className="mt-3">
-                      <button
-                        className="w-full px-4 py-3 rounded-lg text-center font-semibold transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
-                        style={{ 
-                          border: '2px solid #00ff9f', 
-                          color: '#00ff9f', 
-                          background: 'linear-gradient(135deg, rgba(0,255,159,0.1) 0%, rgba(0,255,159,0.15) 100%)',
-                          boxShadow: '0 0 20px rgba(0,255,159,0.2), inset 0 0 20px rgba(0,255,159,0.05)'
-                        }}
-                        onClick={() => optimizeSearch()}
-                        disabled={isOptimizing}
-                      >
-                        {isOptimizing ? (
-                          <span className="flex items-center justify-center gap-2">
-                            <span className="inline-block animate-spin">⚡</span>
-                            <span>AI is optimizing your search...</span>
-                          </span>
-                        ) : (
-                          <span className="flex items-center justify-center gap-2">
-                            <span>🚀</span>
-                            <span>Let AI optimize my search automatically</span>
-                          </span>
-                        )}
-                      </button>
-                      <p className="text-[10px] text-center mt-1 opacity-60">
-                        AI will analyze your query and select the best options for you
-                      </p>
-                    </div>
-                  )}
                   
                   {step.options && (
                     <div className="grid grid-cols-2 gap-2 mt-1">
@@ -842,14 +811,27 @@ export default function CyberWizard() {
                       )}
                     </div>
                   ) : (
-                    <div className="grid grid-cols-2 gap-2">
-                      {step.options.map(o => (
-                        <label key={o.label} className="flex items-center text-[11px] leading-tight truncate opacity-95 hover:opacity-100">
-                          <input type="checkbox" onChange={e => e.target.checked ? addSelection(o.label, o.cost, step.color, step.title) : removeSelectionCost(o.cost)} />{" "}
-                          <span className="align-middle truncate tracking-wide text-white">{o.icon ? `${o.icon} ` : ""}{o.label}{typeof o.cost === 'number' ? ` ($${o.cost})` : ""}</span>
-                        </label>
-                      ))}
-                    </div>
+                    (step.title || '').toLowerCase().includes('select your goals') ? (
+                      <div className="grid grid-cols-2 gap-3">
+                        {step.options.slice(0, 12).map(o => (
+                          <label key={o.label} className="flex items-center justify-between gap-2 text-[11px] leading-tight opacity-95 hover:opacity-100">
+                            <span className="align-middle truncate tracking-wide text-white">
+                              {o.icon ? `${o.icon} ` : ''}{o.label}
+                            </span>
+                            <input type="checkbox" onChange={e => handleGoalToggle(o.label)} checked={selectedGoals.includes(o.label)} />
+                          </label>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-2 gap-2">
+                        {step.options.map(o => (
+                          <label key={o.label} className="flex items-center text-[11px] leading-tight truncate opacity-95 hover:opacity-100">
+                            <input type="checkbox" onChange={e => e.target.checked ? addSelection(o.label, o.cost, step.color, step.title) : removeSelectionCost(o.cost)} />{" "}
+                            <span className="align-middle truncate tracking-wide text-white">{o.icon ? `${o.icon} ` : ""}{o.label}{typeof o.cost === 'number' ? ` ($${o.cost})` : ""}</span>
+                          </label>
+                        ))}
+                      </div>
+                    )
                   )
                 )}
 
@@ -857,13 +839,20 @@ export default function CyberWizard() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                     {step.options.map(o => {
                       const comingSoon = (o.label || '').toLowerCase().includes('coming soon');
+                      const isLive = !comingSoon;
+                      const already = summary.some(it => it.label === o.label && it.section === step.title);
                       return (
                         <div
                           key={o.label}
-                          className={`glass border-2 rounded-xl p-2 animate-border-hum ${comingSoon ? 'opacity-30 pointer-events-none' : ''}`}
-                          style={{ borderColor: comingSoon ? 'rgba(255,255,255,0.2)' : colorHex }}
+                          className={`glass border-2 rounded-xl p-2 ${comingSoon ? 'opacity-30 pointer-events-none' : ''}`}
+                          style={{ borderColor: isLive ? colorHex : 'rgba(255,255,255,0.2)' }}
                         >
-                          <div className="text-center font-bold text-[13px] mb-1 text-white">{o.icon ? `${o.icon} ` : ''}{o.label}</div>
+                          <div className="flex items-center justify-between mb-1">
+                            <div className="font-bold text-[13px] text-white truncate">{o.icon ? `${o.icon} ` : ''}{o.label}</div>
+                            {isLive && (
+                              <input type="radio" name="analysis-choice" checked={already} onChange={() => { if (!already) addSelection(o.label, o.cost, step.color, step.title); }} />
+                            )}
+                          </div>
                           {o.description && <div className="text-[11px] text-white/80 text-center leading-snug">{o.description}</div>}
                           {typeof o.cost === 'number' && <div className="text-[11px] text-center mt-1 text-pink-400">+${o.cost.toFixed(2)}</div>}
                         </div>
@@ -876,7 +865,7 @@ export default function CyberWizard() {
 
               {/* Action buttons (sticky footer inside panel) */}
               <div className="mt-auto sticky bottom-0 pt-1" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.35), rgba(0,0,0,0))' }}>
-                {(step.type === 'checkbox' || step.type === 'textarea' || step.type === 'radio') && currentStep !== 4 && currentStep !== 0 && (
+                {(step.type === 'checkbox' || step.type === 'textarea' || step.type === 'radio') && currentStep !== 4 && currentStep !== 0 && currentStep !== 2 && (
                   <button
                     className="w-full mt-1 px-3 py-2 rounded text-center font-semibold shadow-neon-mint animate-border-hum"
                     style={{ border: '2px solid #00ff9f', color: '#00ff9f', background: 'rgba(0,255,159,0.08)' }}
