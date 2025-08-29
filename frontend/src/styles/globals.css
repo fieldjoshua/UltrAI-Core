@@ -45,8 +45,18 @@
 }
 
 @keyframes pulse-glow {
-  0%, 100% { box-shadow: 0 0 40px rgba(0,255,159,0.4), inset 0 0 20px rgba(0,255,159,0.2); }
-  50% { box-shadow: 0 0 60px rgba(0,255,159,0.6), inset 0 0 30px rgba(0,255,159,0.3); }
+  0%, 100% { 
+    box-shadow: 0 0 40px rgba(0,255,159,0.4), 
+                inset 0 0 20px rgba(0,255,159,0.2),
+                0 4px 15px rgba(0, 0, 0, 0.3);
+    transform: translateY(0);
+  }
+  50% { 
+    box-shadow: 0 0 60px rgba(0,255,159,0.6), 
+                inset 0 0 30px rgba(0,255,159,0.3),
+                0 6px 20px rgba(0, 0, 0, 0.4);
+    transform: translateY(-2px);
+  }
 }
 
 @keyframes slide-right {
@@ -280,3 +290,56 @@
 .preserve-3d {
   transform-style: preserve-3d;
 }
+
+/* Glassmorphism base classes */
+.glass-panel {
+  background: rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  position: relative;
+}
+
+.glass-panel::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.1) 0%,
+    rgba(255, 255, 255, 0.05) 50%,
+    rgba(255, 255, 255, 0.1) 100%
+  );
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+/* Grain texture overlay */
+.glass-grain::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  opacity: 0.03;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+  pointer-events: none;
+  border-radius: inherit;
+}
+
+/* Smooth transitions */
+.transition-smooth {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Glow effects */
+.glow-mint { box-shadow: 0 0 30px rgba(0, 255, 159, 0.3); }
+.glow-blue { box-shadow: 0 0 30px rgba(0, 212, 255, 0.3); }
+.glow-purple { box-shadow: 0 0 30px rgba(189, 0, 255, 0.3); }
+.glow-pink { box-shadow: 0 0 30px rgba(255, 0, 149, 0.3); }
+
+/* Performance optimizations */
+.will-change-transform { will-change: transform; }
+.will-change-opacity { will-change: opacity; }

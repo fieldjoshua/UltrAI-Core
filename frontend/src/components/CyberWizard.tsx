@@ -293,7 +293,7 @@ export default function CyberWizard() {
             
             {/* Main professional card */}
             <div
-              className="relative p-12 rounded-3xl overflow-hidden animate-scale-in"
+              className="glass-panel glass-grain relative p-12 rounded-3xl overflow-hidden animate-scale-in transition-smooth glow-mint"
               style={{ 
                 background: 'rgba(0, 0, 0, 0.15)',
                 backdropFilter: 'blur(40px)',
@@ -315,7 +315,7 @@ export default function CyberWizard() {
                 ].map((feature, i) => (
                   <span 
                     key={i}
-                    className={`px-6 py-2 rounded-full text-sm font-semibold border backdrop-blur animate-slide-in-bottom hover:scale-105 transition-transform cursor-pointer`}
+                    className={`px-6 py-2 rounded-full text-sm font-semibold border backdrop-blur animate-slide-in-bottom hover:scale-105 transition-smooth cursor-pointer`}
                     style={{
                       background: `${mapColorRGBA(feature.color, 0.2)}`,
                       borderColor: `${mapColorHex(feature.color)}50`,
@@ -704,20 +704,26 @@ export default function CyberWizard() {
               {/* Wizard Panel (left) */}
               <div className="col-span-9">
                 <div
-                  className={`relative p-8 rounded-2xl overflow-hidden`}
+                  className={`glass-panel glass-grain relative p-8 rounded-2xl overflow-hidden transition-smooth will-change-transform ${
+                    step.color === 'mint' ? 'glow-mint' :
+                    step.color === 'blue' ? 'glow-blue' :
+                    step.color === 'purple' ? 'glow-purple' :
+                    step.color === 'pink' ? 'glow-pink' : ''
+                  }`}
                   style={{
-                    background: `linear-gradient(0deg, ${mapColorRGBA(step.color, 0.03)}, ${mapColorRGBA(step.color, 0.03)}), rgba(0, 0, 0, 0.1)`,
-                    backdropFilter: 'blur(40px)',
-                    WebkitBackdropFilter: 'blur(40px)',
-                    border: `2px solid ${colorHex}`,
+                    background: `linear-gradient(135deg, ${mapColorRGBA(step.color, 0.08)}, ${mapColorRGBA(step.color, 0.02)}), rgba(0, 0, 0, 0.05)`,
+                    backdropFilter: 'blur(20px) saturate(180%)',
+                    WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+                    border: `2px solid ${colorHex}40`,
                     height: '500px',
                     boxShadow: `
-                      0 8px 32px rgba(0, 0, 0, 0.3),
-                      0 0 80px ${colorHex}10,
-                      0 0 0 1px ${colorHex}20,
-                      inset 0 0 60px rgba(255, 255, 255, 0.05)
+                      0 8px 32px rgba(0, 0, 0, 0.4),
+                      0 0 40px ${colorHex}15,
+                      inset 0 0 40px rgba(255, 255, 255, 0.03),
+                      inset 0 1px 0 rgba(255, 255, 255, 0.1)
                     `,
-                    clipPath: 'polygon(0 0, calc(100% - 20px) 0, 100% 20px, 100% 100%, 20px 100%, 0 calc(100% - 20px))'
+                    clipPath: 'polygon(0 0, calc(100% - 20px) 0, 100% 20px, 100% 100%, 20px 100%, 0 calc(100% - 20px))',
+                    transform: showStatus ? 'scale(1.02)' : 'scale(1)',
                   }}
                 >
               <div className="flex flex-col h-full">
@@ -778,7 +784,7 @@ export default function CyberWizard() {
                         
                         {/* View Results Button */}
                         <button
-                          className="w-full mt-6 px-4 py-3 rounded-lg font-semibold text-white transition-all duration-200"
+                          className="w-full mt-6 px-4 py-3 rounded-lg font-semibold text-white transition-smooth hover:scale-[1.02] active:scale-[0.98] animate-pulse-glow"
                           style={{
                             background: 'linear-gradient(135deg, #00ff9f 0%, #00d4ff 100%)',
                             border: '2px solid #00ff9f',
@@ -813,13 +819,22 @@ export default function CyberWizard() {
                               className="relative cursor-pointer group"
                             >
                               <div 
-                                className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 ${
+                                className={`w-8 h-8 rounded-full flex items-center justify-center transition-smooth will-change-transform ${
                                   isActive ? 'scale-110' : 'hover:scale-105'
                                 }`}
                                 style={{ 
-                                  backgroundColor: isActive ? `${dotHex}20` : isDone ? `${dotHex}15` : 'rgba(255,255,255,0.05)',
+                                  background: isActive 
+                                    ? `radial-gradient(circle at 30% 30%, ${dotHex}40, ${dotHex}20)` 
+                                    : isDone 
+                                    ? `radial-gradient(circle at 30% 30%, ${dotHex}30, ${dotHex}10)`
+                                    : 'radial-gradient(circle at 30% 30%, rgba(255,255,255,0.1), rgba(255,255,255,0.05))',
                                   border: `2px solid ${isActive ? dotHex : isDone ? dotHex : 'rgba(255,255,255,0.2)'}`,
-                                  boxShadow: isActive ? `0 0 0 4px ${dotHex}20, 0 0 20px ${dotHex}40` : 'none'
+                                  boxShadow: isActive 
+                                    ? `0 0 0 4px ${dotHex}20, 0 0 30px ${dotHex}50, inset 0 0 10px ${dotHex}30` 
+                                    : isDone
+                                    ? `0 0 15px ${dotHex}30`
+                                    : 'none',
+                                  transform: isActive ? 'translateY(-2px)' : 'translateY(0)'
                                 }}
                               >
                                 <span className="text-[10px] font-bold" style={{ color: isActive || isDone ? dotHex : 'rgba(255,255,255,0.5)' }}>
@@ -897,8 +912,11 @@ export default function CyberWizard() {
                         </div>
                       </div>
                     <div className="w-full mt-4 flex items-center justify-center">
-                      <button className="btn-neon text-lg font-extrabold" onClick={() => { setCurrentStep(1); setStepFadeKey(k => k + 1); }}>
-                        Start UltrAI!
+                      <button 
+                        className="btn-neon text-lg font-extrabold transition-smooth hover:scale-105 active:scale-95" 
+                        onClick={() => { setCurrentStep(1); setStepFadeKey(k => k + 1); }}
+                      >
+                        Enter UltrAI
                       </button>
                     </div>
                   </>
@@ -937,13 +955,14 @@ export default function CyberWizard() {
                   {userQuery.trim() && (
                     <div className="mt-4">
                       <button
-                        className="w-full px-4 py-3 rounded-lg font-semibold transition-all duration-200"
+                        className="w-full px-4 py-3 rounded-lg font-semibold transition-smooth hover:scale-[1.02] active:scale-[0.98] glass-panel"
                         style={{
                           background: 'linear-gradient(135deg, rgba(0,255,159,0.1), rgba(0,184,255,0.1))',
                           border: '2px solid rgba(0,255,159,0.5)',
                           color: '#00ff9f',
                           backdropFilter: 'blur(20px)',
-                          WebkitBackdropFilter: 'blur(20px)'
+                          WebkitBackdropFilter: 'blur(20px)',
+                          boxShadow: '0 4px 15px rgba(0,255,159,0.2)'
                         }}
                         onClick={optimizeQuery}
                       >
@@ -983,7 +1002,7 @@ export default function CyberWizard() {
                       <div className="grid grid-cols-3 gap-2">
                         {/* Premium Query Box */}
                         <div
-                          className="glass border-2 rounded-lg p-3 cursor-pointer hover:scale-105 transition-all duration-200"
+                          className="glass-panel glass-grain border-2 rounded-lg p-3 cursor-pointer hover:scale-105 transition-smooth"
                           style={{
                             borderColor: autoPreference === 'premium' ? colorHex : 'rgba(255,255,255,0.2)',
                             background: autoPreference === 'premium' ? `linear-gradient(135deg, ${mapColorRGBA(step.color, 0.15)}, ${mapColorRGBA(step.color, 0.25)})` : 'rgba(255,255,255,0.05)'
@@ -1007,7 +1026,7 @@ export default function CyberWizard() {
 
                         {/* Speed Query Box */}
                         <div
-                          className="glass border-2 rounded-lg p-3 cursor-pointer hover:scale-105 transition-all duration-200"
+                          className="glass-panel glass-grain border-2 rounded-lg p-3 cursor-pointer hover:scale-105 transition-smooth"
                           style={{
                             borderColor: autoPreference === 'speed' ? colorHex : 'rgba(255,255,255,0.2)',
                             background: autoPreference === 'speed' ? `linear-gradient(135deg, ${mapColorRGBA(step.color, 0.15)}, ${mapColorRGBA(step.color, 0.25)})` : 'rgba(255,255,255,0.05)'
@@ -1031,7 +1050,7 @@ export default function CyberWizard() {
 
                         {/* Budget Query Box */}
                         <div
-                          className="glass border-2 rounded-lg p-3 cursor-pointer hover:scale-105 transition-all duration-200"
+                          className="glass-panel glass-grain border-2 rounded-lg p-3 cursor-pointer hover:scale-105 transition-smooth"
                           style={{
                             borderColor: autoPreference === 'cost' ? colorHex : 'rgba(255,255,255,0.2)',
                             background: autoPreference === 'cost' ? `linear-gradient(135deg, ${mapColorRGBA(step.color, 0.15)}, ${mapColorRGBA(step.color, 0.25)})` : 'rgba(255,255,255,0.05)'
@@ -1082,7 +1101,7 @@ export default function CyberWizard() {
                             <div className="text-center">
                               <div className="text-xs font-bold text-white/80 mb-2">I want to choose the models used manually</div>
                               <button
-                                className="px-4 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200"
+                                className="px-4 py-2 rounded-lg text-[11px] font-semibold transition-smooth hover:scale-[1.02] active:scale-[0.98]"
                                 style={{
                                   background: `linear-gradient(135deg, ${mapColorRGBA(step.color, 0.15)}, ${mapColorRGBA(step.color, 0.25)})`,
                                   border: `2px solid ${colorHex}`,
@@ -1217,8 +1236,11 @@ export default function CyberWizard() {
                         return (
                           <div
                             key={o.label}
-                            className={`glass border-2 rounded-lg p-2 ${comingSoon ? 'opacity-30 pointer-events-none' : ''}`}
-                            style={{ borderColor: isLive ? colorHex : 'rgba(255,255,255,0.2)' }}
+                            className={`glass-panel border-2 rounded-lg p-2 transition-smooth hover:scale-[1.02] ${comingSoon ? 'opacity-30 pointer-events-none' : ''} ${already ? 'glow-' + step.color : ''}`}
+                            style={{ 
+                              borderColor: isLive ? colorHex : 'rgba(255,255,255,0.2)',
+                              background: already ? mapColorRGBA(step.color, 0.1) : 'rgba(255, 255, 255, 0.05)'
+                            }}
                           >
                             <div className="text-center mb-1">
                               <div className="font-bold text-[12px] text-white">{o.icon ? `${o.icon} ` : ''}{o.label}</div>
@@ -1243,8 +1265,14 @@ export default function CyberWizard() {
               {!showStatus && (
                 <div className="absolute bottom-0 left-0 right-0 p-8 pt-4" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.6), rgba(0,0,0,0))' }}>
                   <button
-                    className="w-full mt-2 px-3 py-2 rounded text-center font-semibold animate-border-hum"
-                    style={{ border: `2px solid ${colorHex}`, color: colorHex, background: mapColorRGBA(step.color, 0.06) }}
+                    className="w-full mt-2 px-3 py-2 rounded text-center font-semibold transition-smooth hover:scale-[1.02] active:scale-[0.98]"
+                    style={{ 
+                      border: `2px solid ${colorHex}`, 
+                      color: colorHex, 
+                      background: mapColorRGBA(step.color, 0.06),
+                      boxShadow: `0 4px 15px ${colorHex}20`,
+                      backdropFilter: 'blur(10px)'
+                    }}
                     onClick={() => {
                       if (currentStep === steps.length - 1) {
                         // Mark add-ons as submitted
@@ -1267,7 +1295,7 @@ export default function CyberWizard() {
             {/* Model Status Box - Below wizard panel */}
             <div className="mt-4">
               <div 
-                className="relative p-4 rounded-2xl"
+                className="glass-panel glass-grain relative p-4 rounded-2xl transition-smooth"
                 style={{ 
                   background: 'rgba(0, 0, 0, 0.1)',
                   backdropFilter: 'blur(40px)',
@@ -1293,10 +1321,11 @@ export default function CyberWizard() {
                     {(['morning','afternoon','sunset','night'] as const).map(t => (
                       <button
                         key={t}
-                        className={`px-2 py-1 rounded text-[10px] ${bgTheme===t ? 'font-bold' : ''}`}
+                        className={`px-2 py-1 rounded text-[10px] transition-smooth hover:scale-[1.05] ${bgTheme===t ? 'font-bold' : ''}`}
                         style={{
                           background: bgTheme===t ? 'rgba(255,255,255,0.12)' : 'rgba(255,255,255,0.05)',
-                          border: bgTheme===t ? '1px solid rgba(255,255,255,0.3)' : '1px solid rgba(255,255,255,0.15)'
+                          border: bgTheme===t ? '1px solid rgba(255,255,255,0.3)' : '1px solid rgba(255,255,255,0.15)',
+                          boxShadow: bgTheme===t ? '0 0 10px rgba(255,255,255,0.2)' : 'none'
                         }}
                         onClick={() => setBgTheme(t)}
                       >
@@ -1374,7 +1403,7 @@ export default function CyberWizard() {
           {/* Right Panel: Receipt transforms into Status after approval */}
           <div className="col-span-3">
             <div 
-              className="relative p-6 rounded-2xl"
+              className="glass-panel glass-grain relative p-6 rounded-2xl transition-smooth ${showStatus ? 'animate-pulse-glow' : ''}"
               style={{ 
                 fontFamily: monoStack, 
                 background: 'rgba(0, 0, 0, 0.1)',
@@ -1417,8 +1446,13 @@ export default function CyberWizard() {
                   <div className="mt-3 font-bold text-pink-400 text-lg text-center">{`Total: $${totalCost.toFixed(2)}`}</div>
                   {addonsSubmitted ? (
                     <button
-                      className="w-full mt-3 px-4 py-3 rounded text-center font-semibold animate-pulse-glow"
-                      style={{ border: '2px solid #ff00d4', color: '#ff00d4', background: 'rgba(255,0,212,0.08)' }}
+                      className="w-full mt-3 px-4 py-3 rounded text-center font-semibold animate-pulse-glow transition-smooth hover:scale-[1.02] active:scale-[0.98]"
+                      style={{ 
+                        border: '2px solid #ff00d4', 
+                        color: '#ff00d4', 
+                        background: 'rgba(255,0,212,0.08)',
+                        boxShadow: '0 0 20px rgba(255,0,212,0.3)'
+                      }}
                       onClick={() => setShowStatus(true)}
                     >
                       🚀 Initialize UltrAI
