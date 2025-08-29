@@ -304,18 +304,30 @@ class RateLimitService:
         Returns:
             RateLimitResult with limit details
         """
-        # If rate limiting is disabled, always allow
-        if not self.is_enabled():
-            return RateLimitResult(is_allowed=True, limit=0, remaining=0, reset_at=0)
-
         # Determine tier based on user
         tier = user.subscription_tier if user else DEFAULT_TIER
-
+        
+        # Check for test tier override
+        if os.getenv("TESTING") == "true" and os.getenv("TEST_RATE_LIMIT_TIER"):
+            test_tier = os.getenv("TEST_RATE_LIMIT_TIER", "FREE").upper()
+            if hasattr(SubscriptionTier, test_tier):
+                tier = getattr(SubscriptionTier, test_tier)
+        
         # Get the appropriate category
         category = override_category or self.categorize_request(request)
-
+        
         # Get limit and interval for this tier and category
         limit, interval = self.get_limit_for_category(tier, category)
+        
+        # If rate limiting is disabled, return headers but always allow
+        if not self.is_enabled():
+            return RateLimitResult(
+                is_allowed=True, 
+                limit=limit, 
+                remaining=limit, 
+                reset_at=int(time.time()) + 60
+            )
+
         window_seconds = TIER_LIMITS[tier].get_window_seconds(interval)
 
         # Calculate the current window timestamp

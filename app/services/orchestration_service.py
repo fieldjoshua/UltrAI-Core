@@ -392,10 +392,15 @@ class OrchestrationService:
 
         if not healthy:
             logger.warning("⚠️ No healthy models found, using fallback")
-            healthy.append("gpt-4o")
+            # Enforce at least two models to preserve UltrAI multi-model value
+            healthy.extend(["gpt-4o", "gpt-3.5-turbo"])
         
         logger.info(f"✨ Healthy models available: {healthy}")
 
+        # Ensure at least two models whenever possible
+        if len(healthy) == 1:
+            backup = "gpt-3.5-turbo" if healthy[0] != "gpt-3.5-turbo" else "gpt-4o"
+            healthy.append(backup)
         return healthy
 
     async def run_pipeline(
@@ -433,7 +438,11 @@ class OrchestrationService:
             cache_key_str = f"pipeline:{cache_key(cache_key_data)}"
             
             # Try to get from cache
-            cached_result = await cache_service.get(cache_key_str)
+            # Try async getter if available, else sync
+            try:
+                cached_result = await cache_service.aget(cache_key_str)
+            except Exception:
+                cached_result = cache_service.get(cache_key_str)
             if cached_result:
                 logger.info("Cache hit for pipeline request")
                 # Add cache metadata
@@ -462,7 +471,7 @@ class OrchestrationService:
                 # Log progress for user tracking
                 logger.info(f"🔄 PROGRESS: Stage {i+1}/{len(self.pipeline_stages)} - {stage.name}")
                 logger.info(f"📊 PIPELINE PROGRESS: {((i/len(self.pipeline_stages))*100):.0f}% complete")
-                # Skip peer review when we clearly have <2 successful models
+                # Skip peer review when we clearly have <2 successful models; include placeholder result
                 if stage.name == "peer_review_and_revision":
 
                     # Determine how many unique successful models we have so far
@@ -483,8 +492,16 @@ class OrchestrationService:
                         logger.info(
                             "Skipping peer_review_and_revision stage – fewer than two working models present"
                         )
-                        # Tests expect peer_review stage to be absent when skipped
-                        current_data = prev_data
+                        results[stage.name] = PipelineResult(
+                            stage_name=stage.name,
+                            output={
+                                "stage": stage.name,
+                                "skipped": True,
+                                "reason": "Fewer than two working models present",
+                                "input": prev_data,
+                            },
+                        )
+                        current_data = results[stage.name].output
                         continue
 
                 # Override models for stages that use selected_models
@@ -599,7 +616,10 @@ class OrchestrationService:
         if cache_enabled and not any(r.error for r in results.values() if hasattr(r, 'error')):
             # Cache for 1 hour by default, configurable via options
             cache_ttl = options.get("cache_ttl", 3600) if options else 3600
-            await cache_service.set(cache_key_str, results, ttl=cache_ttl)
+            try:
+                await cache_service.aset(cache_key_str, results, ttl=cache_ttl)
+            except Exception:
+                cache_service.set(cache_key_str, results, ttl=cache_ttl)
             logger.info(f"Cached pipeline results for {cache_ttl} seconds")
 
         return results

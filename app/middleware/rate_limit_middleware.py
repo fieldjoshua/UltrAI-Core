@@ -106,7 +106,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         # Process the request
         response = await call_next(request)
 
-        # Add rate limit headers to successful responses
+        # Always add rate limit headers
         response.headers["X-RateLimit-Limit"] = str(result.limit)
         response.headers["X-RateLimit-Remaining"] = str(result.remaining)
         response.headers["X-RateLimit-Reset"] = str(result.reset_at)

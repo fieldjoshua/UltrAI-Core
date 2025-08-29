@@ -174,7 +174,10 @@ class APIFailureHandler:
         # Check cache first if enabled
         if enable_cache:
             cache_key = self._generate_cache_key(context, args, kwargs)
-            cached_response = await cache_service.get(cache_key)
+            try:
+                cached_response = await cache_service.aget(cache_key)
+            except Exception:
+                cached_response = cache_service.get(cache_key)
             if cached_response:
                 self.stats["cache_hits"] += 1
                 logger.info(f"Cache hit for {operation} on {primary_provider.value}")
@@ -188,9 +191,12 @@ class APIFailureHandler:
 
             # Cache successful response
             if enable_cache:
-                await cache_service.set(
-                    cache_key, result, ttl=self.config.get("cache_ttl", 3600)
-                )
+                try:
+                    await cache_service.aset(
+                        cache_key, result, ttl=self.config.get("cache_ttl", 3600)
+                    )
+                except Exception:
+                    cache_service.set(cache_key, result, ttl=self.config.get("cache_ttl", 3600))
 
             self.stats["successful_calls"] += 1
             self.stats["provider_statistics"][primary_provider.value]["success"] += 1
@@ -227,11 +233,18 @@ class APIFailureHandler:
 
                     # Cache successful fallback response
                     if enable_cache:
-                        await cache_service.set(
-                            cache_key,
-                            result,
-                            ttl=self.config.get("fallback_cache_ttl", 7200),
-                        )
+                        try:
+                            await cache_service.aset(
+                                cache_key,
+                                result,
+                                ttl=self.config.get("fallback_cache_ttl", 7200),
+                            )
+                        except Exception:
+                            cache_service.set(
+                                cache_key,
+                                result,
+                                ttl=self.config.get("fallback_cache_ttl", 7200),
+                            )
 
                     return result
 
@@ -247,7 +260,10 @@ class APIFailureHandler:
         # All providers failed - check for degraded response
         if enable_cache:
             # Try to get any cached response, even if expired
-            degraded_response = await cache_service.get(cache_key, ignore_ttl=True)
+            try:
+                degraded_response = await cache_service.aget(cache_key, ignore_ttl=True)
+            except Exception:
+                degraded_response = cache_service.get(cache_key, ignore_ttl=True)
             if degraded_response:
                 logger.warning(
                     f"Using degraded (expired) cache response for {operation}"

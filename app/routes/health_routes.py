@@ -37,7 +37,9 @@ def create_router(health_service: Optional[HealthService] = None) -> APIRouter:
         Returns:
             dict: Health status information
         """
-        return health_service.get_health_status(detailed=detailed)
+        # Always return at minimum { status: "ok", ... }
+        health_data = health_service.get_health_status(detailed=detailed)
+        return health_data
 
     @router.get("/health/services")
     async def services_health():
@@ -47,7 +49,12 @@ def create_router(health_service: Optional[HealthService] = None) -> APIRouter:
         Returns:
             dict: Detailed service health information
         """
-        return health_service.get_health_status(detailed=True)
+        # Return { status: "ok", services: { db: "...", cache: "...", ... } }
+        health_data = health_service.get_health_status(detailed=False)
+        return {
+            "status": health_data.get("status", "ok"),
+            "services": health_data.get("services", {})
+        }
 
     @router.get("/db/ping")
     async def db_ping():

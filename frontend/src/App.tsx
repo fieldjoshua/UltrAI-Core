@@ -1,5 +1,5 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
-import { useEffect } from "react";
+import { useEffect, lazy, Suspense } from "react";
 import { useAuthStore } from "./stores/authStore";
 import { ProtectedRoute } from "./components/auth/ProtectedRoute";
 import ErrorBoundary from "./components/ErrorBoundary";
@@ -7,23 +7,31 @@ import ErrorBoundary from "./components/ErrorBoundary";
 // Layout
 import NavBar from "./components/layout/NavBar";
 
-// Auth Pages
-import { LoginPage } from "./pages/LoginPage";
-import { RegisterPage } from "./pages/RegisterPage";
-
-// Public Pages
+// Immediate load for critical pages
 import WizardPage from "./pages/wizard";
-import SimpleAnalysis from "./pages/SimpleAnalysis";
-import UIPrototype from "./pages/UIPrototype";
-import UniversalUI from "./pages/UniversalUI";
-import Dashboard from "./pages/Dashboard";
-import Outputs from "./pages/Outputs";
-import FAQ from "./pages/FAQ";
 
-// Protected Pages
-import DocumentsPage from "./pages/DocumentsPage";
-import OrchestratorPage from "./pages/OrchestratorPage";
-import ModelRunnerDemo from "./pages/ModelRunnerDemo";
+// Lazy load all other pages
+const LoginPage = lazy(() => import("./pages/LoginPage").then(m => ({ default: m.LoginPage })));
+const RegisterPage = lazy(() => import("./pages/RegisterPage").then(m => ({ default: m.RegisterPage })));
+const SimpleAnalysis = lazy(() => import("./pages/SimpleAnalysis"));
+const UIPrototype = lazy(() => import("./pages/UIPrototype"));
+const UniversalUI = lazy(() => import("./pages/UniversalUI"));
+const Dashboard = lazy(() => import("./pages/Dashboard"));
+const Outputs = lazy(() => import("./pages/Outputs"));
+const FAQ = lazy(() => import("./pages/FAQ"));
+const DocumentsPage = lazy(() => import("./pages/DocumentsPage"));
+const OrchestratorPage = lazy(() => import("./pages/OrchestratorPage"));
+const ModelRunnerDemo = lazy(() => import("./pages/ModelRunnerDemo"));
+
+// Loading component
+const PageLoader = () => (
+  <div className="flex items-center justify-center min-h-[50vh]">
+    <div className="text-center">
+      <div className="w-12 h-12 border-4 border-mint-400 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+      <p className="text-white/60 text-sm">Loading...</p>
+    </div>
+  </div>
+);
 
 function Profile() {
   return (
@@ -48,7 +56,8 @@ function App() {
         <div className="min-h-screen bg-gray-50 dark:bg-gray-900 md:pl-16">
           <NavBar />
           <main className="container mx-auto px-4 py-6">
-            <Routes>
+            <Suspense fallback={<PageLoader />}>
+              <Routes>
             {/* Public Routes */}
             <Route path="/" element={<Navigate to="/wizard" replace />} />
             <Route path="/wizard" element={<WizardPage />} />
@@ -90,8 +99,9 @@ function App() {
 
             {/* Catch all - redirect to home */}
             <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-        </main>
+              </Routes>
+            </Suspense>
+          </main>
       </div>
     </Router>
     </ErrorBoundary>
