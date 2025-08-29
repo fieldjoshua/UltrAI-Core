@@ -396,27 +396,67 @@ export default function CyberWizard() {
       
       {/* Optimization Status Boxes - Below Billboard */}
       {isOptimizing && (
-        <div className="absolute w-full" style={{ top: '15vh', zIndex: 5 }}>
-          <div className="flex justify-center gap-4 px-8">
-            <div className={`glass p-3 rounded-lg animate-fade-in ${optimizationStep >= 1 ? 'border-mint-400' : ''}`} 
-                 style={{ animationDelay: '0ms', borderWidth: optimizationStep >= 1 ? 2 : 1 }}>
-              <div className="text-[11px] text-mint-400 font-bold mb-1">🔍 Analyzing Query</div>
-              <div className="text-[10px] opacity-80">Understanding your request...</div>
-            </div>
-            <div className={`glass p-3 rounded-lg animate-fade-in ${optimizationStep >= 2 ? 'border-blue-400' : ''}`} 
-                 style={{ animationDelay: '200ms', borderWidth: optimizationStep >= 2 ? 2 : 1 }}>
-              <div className="text-[11px] text-blue-400 font-bold mb-1">🎯 Selecting Goals</div>
-              <div className="text-[10px] opacity-80">{optimizationStep >= 2 && selectedGoals.length > 0 ? `Found ${selectedGoals.length} goals` : 'Matching objectives...'}</div>
-            </div>
-            <div className={`glass p-3 rounded-lg animate-fade-in ${optimizationStep >= 3 ? 'border-purple-400' : ''}`} 
-                 style={{ animationDelay: '400ms', borderWidth: optimizationStep >= 3 ? 2 : 1 }}>
-              <div className="text-[11px] text-purple-400 font-bold mb-1">🤖 Choosing Models</div>
-              <div className="text-[10px] opacity-80">{optimizationStep >= 3 && selectedModels.length > 0 ? `Selected ${selectedModels.length} models` : 'Optimizing AI selection...'}</div>
-            </div>
-            <div className={`glass p-3 rounded-lg animate-fade-in ${optimizationStep >= 4 ? 'border-pink-400' : ''}`} 
-                 style={{ animationDelay: '600ms', borderWidth: optimizationStep >= 4 ? 2 : 1 }}>
-              <div className="text-[11px] text-pink-400 font-bold mb-1">📄 Formatting Options</div>
-              <div className="text-[10px] opacity-80">{optimizationStep >= 4 ? 'Format selected' : 'Preparing output format...'}</div>
+        <div className="absolute w-full" style={{ top: '20vh', zIndex: 5 }}>
+          <div className="max-w-4xl mx-auto px-8">
+            <div className="glass-strong p-4 rounded-xl" style={{ 
+              background: 'rgba(0, 0, 0, 0.75)', 
+              backdropFilter: 'blur(20px)',
+              border: '1px solid rgba(255, 255, 255, 0.1)'
+            }}>
+              <div className="text-center mb-3">
+                <h3 className="text-sm font-bold text-white mb-1">Optimizing Your Search</h3>
+                <p className="text-[11px] opacity-70">AI is analyzing your request and selecting the best options</p>
+              </div>
+              
+              <div className="grid grid-cols-4 gap-3">
+                <div className={`text-center transition-all duration-300 ${optimizationStep >= 1 ? 'opacity-100' : 'opacity-40'}`}>
+                  <div className={`w-12 h-12 mx-auto mb-2 rounded-full flex items-center justify-center transition-all duration-300 ${
+                    optimizationStep >= 1 ? 'bg-mint-400/20 border-2 border-mint-400' : 'bg-white/5 border border-white/10'
+                  }`}>
+                    <span className="text-lg">🔍</span>
+                  </div>
+                  <div className="text-[10px] font-medium">Analyzing</div>
+                  <div className="text-[9px] opacity-70">Query parsed</div>
+                </div>
+                
+                <div className={`text-center transition-all duration-300 ${optimizationStep >= 2 ? 'opacity-100' : 'opacity-40'}`}>
+                  <div className={`w-12 h-12 mx-auto mb-2 rounded-full flex items-center justify-center transition-all duration-300 ${
+                    optimizationStep >= 2 ? 'bg-blue-400/20 border-2 border-blue-400' : 'bg-white/5 border border-white/10'
+                  }`}>
+                    <span className="text-lg">🎯</span>
+                  </div>
+                  <div className="text-[10px] font-medium">Goals</div>
+                  <div className="text-[9px] opacity-70">{optimizationStep >= 2 && selectedGoals.length > 0 ? `${selectedGoals.length} selected` : 'Matching...'}</div>
+                </div>
+                
+                <div className={`text-center transition-all duration-300 ${optimizationStep >= 3 ? 'opacity-100' : 'opacity-40'}`}>
+                  <div className={`w-12 h-12 mx-auto mb-2 rounded-full flex items-center justify-center transition-all duration-300 ${
+                    optimizationStep >= 3 ? 'bg-purple-400/20 border-2 border-purple-400' : 'bg-white/5 border border-white/10'
+                  }`}>
+                    <span className="text-lg">🤖</span>
+                  </div>
+                  <div className="text-[10px] font-medium">Models</div>
+                  <div className="text-[9px] opacity-70">{optimizationStep >= 3 && selectedModels.length > 0 ? `${selectedModels.length} chosen` : 'Selecting...'}</div>
+                </div>
+                
+                <div className={`text-center transition-all duration-300 ${optimizationStep >= 4 ? 'opacity-100' : 'opacity-40'}`}>
+                  <div className={`w-12 h-12 mx-auto mb-2 rounded-full flex items-center justify-center transition-all duration-300 ${
+                    optimizationStep >= 4 ? 'bg-pink-400/20 border-2 border-pink-400' : 'bg-white/5 border border-white/10'
+                  }`}>
+                    <span className="text-lg">📄</span>
+                  </div>
+                  <div className="text-[10px] font-medium">Format</div>
+                  <div className="text-[9px] opacity-70">{optimizationStep >= 4 ? 'Ready' : 'Preparing...'}</div>
+                </div>
+              </div>
+              
+              {/* Progress bar */}
+              <div className="mt-4 h-1 bg-white/10 rounded-full overflow-hidden">
+                <div 
+                  className="h-full bg-gradient-to-r from-mint-400 via-blue-400 to-purple-400 transition-all duration-500"
+                  style={{ width: `${(optimizationStep / 4) * 100}%` }}
+                />
+              </div>
             </div>
           </div>
         </div>
@@ -444,13 +484,41 @@ export default function CyberWizard() {
                     const isActive = i === currentStep;
                     const isDone = i < currentStep;
                     const dotHex = mapColorHex(s.color);
-                    const dotFill = mapColorRGBA(s.color, isActive ? 0.34 : isDone ? 0.2 : 0.1);
-                    const shadowClass = s.color === 'mint' ? 'shadow-neon-mint' : s.color === 'blue' ? 'shadow-neon-blue' : s.color === 'deepblue' ? 'shadow-neon-deep' : s.color === 'purple' ? 'shadow-neon-purple' : 'shadow-neon-pink';
                     return (
                       <div key={i} className="flex items-center">
-                        <div onClick={() => { setCurrentStep(i); setStepFadeKey(k => k+1); }} className={`rounded-full ${shadowClass} cursor-pointer hover:scale-110 transition-transform`} style={{ width: 24, height: 24, backgroundColor: dotFill, boxShadow: isActive ? `0 0 0 2px #FFD700, 0 0 0 4px ${dotHex}, inset 0 0 8px ${dotHex}` : `0 0 0 1px ${dotHex}`, opacity: isDone || isActive ? 1 : 0.75 }} />
+                        <div 
+                          onClick={() => { setCurrentStep(i); setStepFadeKey(k => k+1); }} 
+                          className="relative cursor-pointer group"
+                        >
+                          <div 
+                            className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 ${
+                              isActive ? 'scale-110' : 'hover:scale-105'
+                            }`}
+                            style={{ 
+                              backgroundColor: isActive ? `${dotHex}20` : isDone ? `${dotHex}15` : 'rgba(255,255,255,0.05)',
+                              border: `2px solid ${isActive ? dotHex : isDone ? dotHex : 'rgba(255,255,255,0.2)'}`,
+                              boxShadow: isActive ? `0 0 0 4px ${dotHex}20, 0 0 20px ${dotHex}40` : 'none'
+                            }}
+                          >
+                            <span className="text-[10px] font-bold" style={{ color: isActive || isDone ? dotHex : 'rgba(255,255,255,0.5)' }}>
+                              {i + 1}
+                            </span>
+                          </div>
+                          {/* Tooltip */}
+                          <div className="absolute -bottom-6 left-1/2 transform -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
+                            <div className="text-[9px] whitespace-nowrap bg-black/80 px-2 py-1 rounded" style={{ color: dotHex }}>
+                              {s.title.split('. ')[1]}
+                            </div>
+                          </div>
+                        </div>
                         {i < steps.length - 1 && (
-                          <div className="mx-3 cursor-pointer" onClick={() => { setCurrentStep(i+1); setStepFadeKey(k => k+1); }} style={{ height: 2, width: 56, backgroundColor: i < currentStep ? dotHex : 'rgba(255,255,255,0.3)', boxShadow: i < currentStep ? `0 0 6px ${dotHex}` : undefined }} />
+                          <div 
+                            className="w-12 h-0.5 mx-2 transition-all duration-300" 
+                            style={{ 
+                              backgroundColor: i < currentStep ? dotHex : 'rgba(255,255,255,0.2)',
+                              boxShadow: i < currentStep ? `0 0 10px ${dotHex}50` : 'none'
+                            }} 
+                          />
                         )}
                       </div>
                     );
@@ -506,22 +574,53 @@ export default function CyberWizard() {
                 )}
 
                 {step.type === "textarea" && (<>
-                  <textarea className="w-full h-16 glass p-2 text-white text-sm" placeholder="Type your query…" value={userQuery} onChange={(e) => setUserQuery(e.target.value)} onBlur={() => addSelection("Query Entry", step.baseCost, step.color)} />
+                  <textarea 
+                    className="w-full h-20 glass p-3 text-white text-sm rounded-lg transition-all duration-200 hover:border-blue-400 focus:border-blue-400 focus:outline-none" 
+                    style={{
+                      background: 'rgba(0, 0, 0, 0.3)',
+                      backdropFilter: 'blur(10px)',
+                      border: '1px solid rgba(255, 255, 255, 0.2)',
+                      resize: 'none'
+                    }}
+                    placeholder={selectedGoals.length > 0 ? 
+                      `Tell us about your ${selectedGoals[0].toLowerCase()} needs...` : 
+                      "Type your query…"
+                    } 
+                    value={userQuery} 
+                    onChange={(e) => setUserQuery(e.target.value)} 
+                    onBlur={() => { if (userQuery.trim()) addSelection("Query Entry", step.baseCost, step.color); }}
+                  />
                   
                   {/* Add "Allow UltrAI to optimize my search" button after query input */}
                   {userQuery && userQuery.trim().length > 0 && (
-                    <button
-                      className="w-full mt-2 px-3 py-2 rounded text-center font-semibold shadow-neon-mint animate-border-hum"
-                      style={{ border: '2px solid #00ff9f', color: '#00ff9f', background: 'rgba(0,255,159,0.12)' }}
-                      onClick={() => optimizeSearch()}
-                      disabled={isOptimizing}
-                    >
-                      {isOptimizing ? (
-                        <span className="animate-pulse">🤖 Optimizing your search...</span>
-                      ) : (
-                        <span>🚀 Allow UltrAI to optimize my search</span>
-                      )}
-                    </button>
+                    <div className="mt-3">
+                      <button
+                        className="w-full px-4 py-3 rounded-lg text-center font-semibold transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
+                        style={{ 
+                          border: '2px solid #00ff9f', 
+                          color: '#00ff9f', 
+                          background: 'linear-gradient(135deg, rgba(0,255,159,0.1) 0%, rgba(0,255,159,0.15) 100%)',
+                          boxShadow: '0 0 20px rgba(0,255,159,0.2), inset 0 0 20px rgba(0,255,159,0.05)'
+                        }}
+                        onClick={() => optimizeSearch()}
+                        disabled={isOptimizing}
+                      >
+                        {isOptimizing ? (
+                          <span className="flex items-center justify-center gap-2">
+                            <span className="inline-block animate-spin">⚡</span>
+                            <span>AI is optimizing your search...</span>
+                          </span>
+                        ) : (
+                          <span className="flex items-center justify-center gap-2">
+                            <span>🚀</span>
+                            <span>Let AI optimize my search automatically</span>
+                          </span>
+                        )}
+                      </button>
+                      <p className="text-[10px] text-center mt-1 opacity-60">
+                        AI will analyze your query and select the best options for you
+                      </p>
+                    </div>
                   )}
                   
                   {step.options && (
