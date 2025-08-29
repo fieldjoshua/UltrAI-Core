@@ -31,6 +31,7 @@ export default function CyberWizard() {
   const [showStatus, setShowStatus] = useState<boolean>(false);
   const [stepFadeKey, setStepFadeKey] = useState(0);
   const [userQuery, setUserQuery] = useState<string>("");
+  const [queryFocused, setQueryFocused] = useState<boolean>(false);
   const [isRunning, setIsRunning] = useState<boolean>(false);
   const [orchestratorResult, setOrchestratorResult] = useState<any>(null);
   const [orchestratorError, setOrchestratorError] = useState<string | null>(null);
@@ -41,6 +42,7 @@ export default function CyberWizard() {
   const [otherGoalText, setOtherGoalText] = useState<string>("");
   const [showModelList, setShowModelList] = useState<boolean>(false);
   const [addonsSubmitted, setAddonsSubmitted] = useState<boolean>(false);
+  const [lastAddedItem, setLastAddedItem] = useState<string | null>(null);
   // Billboard overlay disabled; remove state to avoid unused variable lints
 
   useEffect(() => {
@@ -58,6 +60,37 @@ export default function CyberWizard() {
     };
     load();
   }, []);
+
+  // Keyboard navigation
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.ctrlKey || e.metaKey) return;
+      
+      switch(e.key) {
+        case 'ArrowRight':
+          if (currentStep < steps.length - 1 && !showStatus) {
+            setCurrentStep(prev => prev + 1);
+            setStepFadeKey(k => k + 1);
+          }
+          break;
+        case 'ArrowLeft':
+          if (currentStep > 0 && !showStatus) {
+            setCurrentStep(prev => prev - 1);
+            setStepFadeKey(k => k + 1);
+          }
+          break;
+        case 'Enter':
+          if (currentStep === 0) {
+            setCurrentStep(1);
+            setStepFadeKey(k => k + 1);
+          }
+          break;
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [currentStep, steps.length, showStatus]);
 
   // Load available models for Step 3 (only show keyed models)
   useEffect(() => {
@@ -126,6 +159,8 @@ export default function CyberWizard() {
     const sectionVal = section || step.title;
     setSummary(prev => [...prev, { label, cost: appliedCost, color, section: sectionVal } as SummaryItem]);
     setTotalCost(prev => prev + appliedCost);
+    setLastAddedItem(`${sectionVal}-${label}`);
+    setTimeout(() => setLastAddedItem(null), 1000);
   };
 
   const removeSelectionCost = (cost?: number) => {
@@ -695,6 +730,19 @@ export default function CyberWizard() {
       )}
 
 
+      {/* Progress Indicator */}
+      {currentStep > 0 && (
+        <div className="fixed top-0 left-0 w-full h-1 bg-black/20 z-50">
+          <div 
+            className="h-full bg-gradient-to-r from-mint-400 via-blue-400 to-purple-400 transition-all duration-500"
+            style={{ 
+              width: `${((currentStep) / (steps.length - 1)) * 100}%`,
+              boxShadow: '0 0 10px rgba(0, 255, 159, 0.5)'
+            }}
+          />
+        </div>
+      )}
+
       {/* Main Content - Below Billboard */}
       <div className="relative z-10 w-full">
         <div className="flex items-center justify-center" style={{ minHeight: '100vh', paddingTop: '37.5vh' }}>
@@ -919,26 +967,49 @@ export default function CyberWizard() {
                         Enter UltrAI
                       </button>
                     </div>
+                    <div className="text-center mt-3 text-[10px] text-white/50 animate-pulse">
+                      Press Enter or →
+                    </div>
                   </>
                 )}
 
                 {step.type === "textarea" && (<>
-                  <textarea 
-                    className="w-full h-20 glass p-3 text-white text-sm rounded-lg transition-all duration-200 hover:border-blue-400 focus:border-blue-400 focus:outline-none" 
-                    style={{
-                      background: 'rgba(0, 0, 0, 0.3)',
-                      backdropFilter: 'blur(10px)',
-                      border: `2px solid ${colorHex}50`,
-                      resize: 'none'
-                    }}
-                    placeholder={selectedGoals.length > 0 ? 
-                      `Tell us about your ${selectedGoals[0].toLowerCase()} needs...` : 
-                      "Type your query…"
-                    } 
-                    value={userQuery} 
-                    onChange={(e) => setUserQuery(e.target.value)} 
-                    onBlur={() => { if (userQuery.trim()) addSelection("Query Entry", step.baseCost, step.color, step.title); }}
-                  />
+                  <div className="relative">
+                    <textarea 
+                      className="w-full h-20 glass p-3 text-white text-sm rounded-lg transition-all duration-200 hover:border-blue-400 focus:border-blue-400 focus:outline-none" 
+                      style={{
+                        background: queryFocused ? 'rgba(0, 0, 0, 0.4)' : 'rgba(0, 0, 0, 0.3)',
+                        backdropFilter: 'blur(10px)',
+                        border: `2px solid ${queryFocused ? colorHex : colorHex + '50'}`,
+                        resize: 'none',
+                        boxShadow: queryFocused ? `0 0 20px ${colorHex}30` : 'none'
+                      }}
+                      placeholder={selectedGoals.length > 0 ? 
+                        `Tell us about your ${selectedGoals[0].toLowerCase()} needs...` : 
+                        "Type your query…"
+                      } 
+                      value={userQuery} 
+                      onChange={(e) => setUserQuery(e.target.value)}
+                      onFocus={() => setQueryFocused(true)}
+                      onBlur={() => { 
+                        setQueryFocused(false);
+                        if (userQuery.trim()) addSelection("Query Entry", step.baseCost, step.color, step.title); 
+                      }}
+                    />
+                    {/* Character counter */}
+                    <div className="absolute bottom-2 right-2 text-[10px] transition-opacity duration-200" style={{
+                      color: userQuery.length > 500 ? '#ff00d4' : userQuery.length > 300 ? '#ffeb55' : colorHex,
+                      opacity: queryFocused || userQuery.length > 0 ? 1 : 0
+                    }}>
+                      {userQuery.length} / 1000
+                    </div>
+                    {/* Dynamic typing indicator */}
+                    {queryFocused && userQuery.length > 0 && (
+                      <div className="absolute -top-6 left-0 text-[10px] animate-fade-in" style={{ color: colorHex }}>
+                        <span className="animate-pulse">✨</span> AI is ready to enhance your query...
+                      </div>
+                    )}
+                  </div>
                   
                   {step.options && (
                     <div className="grid grid-cols-2 gap-2 mt-1">
@@ -1002,10 +1073,11 @@ export default function CyberWizard() {
                       <div className="grid grid-cols-3 gap-2">
                         {/* Premium Query Box */}
                         <div
-                          className="glass-panel glass-grain border-2 rounded-lg p-3 cursor-pointer hover:scale-105 transition-smooth"
+                          className="glass-panel glass-grain border-2 rounded-lg p-3 cursor-pointer hover:scale-105 transition-smooth group"
                           style={{
                             borderColor: autoPreference === 'premium' ? colorHex : 'rgba(255,255,255,0.2)',
-                            background: autoPreference === 'premium' ? `linear-gradient(135deg, ${mapColorRGBA(step.color, 0.15)}, ${mapColorRGBA(step.color, 0.25)})` : 'rgba(255,255,255,0.05)'
+                            background: autoPreference === 'premium' ? `linear-gradient(135deg, ${mapColorRGBA(step.color, 0.15)}, ${mapColorRGBA(step.color, 0.25)})` : 'rgba(255,255,255,0.05)',
+                            transform: autoPreference === 'premium' ? 'scale(1.02)' : 'scale(1)'
                           }}
                           onClick={() => {
                             const premiumModels = chooseAutoModels('premium', availableModels);
@@ -1018,18 +1090,24 @@ export default function CyberWizard() {
                           }}
                         >
                           <div className="text-center">
-                            <div className="text-xl mb-1">🎯</div>
+                            <div className="text-xl mb-1 transition-transform group-hover:scale-110">🎯</div>
                             <div className="text-[12px] font-bold text-white">Premium Query</div>
                             <div className="text-[9px] opacity-70 mt-1">Best quality results</div>
+                            {autoPreference === 'premium' && (
+                              <div className="mt-2">
+                                <div className="w-4 h-4 mx-auto rounded-full bg-gradient-to-r from-[#00ff9f] to-[#00d4ff] animate-pulse"></div>
+                              </div>
+                            )}
                           </div>
                         </div>
 
                         {/* Speed Query Box */}
                         <div
-                          className="glass-panel glass-grain border-2 rounded-lg p-3 cursor-pointer hover:scale-105 transition-smooth"
+                          className="glass-panel glass-grain border-2 rounded-lg p-3 cursor-pointer hover:scale-105 transition-smooth group"
                           style={{
                             borderColor: autoPreference === 'speed' ? colorHex : 'rgba(255,255,255,0.2)',
-                            background: autoPreference === 'speed' ? `linear-gradient(135deg, ${mapColorRGBA(step.color, 0.15)}, ${mapColorRGBA(step.color, 0.25)})` : 'rgba(255,255,255,0.05)'
+                            background: autoPreference === 'speed' ? `linear-gradient(135deg, ${mapColorRGBA(step.color, 0.15)}, ${mapColorRGBA(step.color, 0.25)})` : 'rgba(255,255,255,0.05)',
+                            transform: autoPreference === 'speed' ? 'scale(1.02)' : 'scale(1)'
                           }}
                           onClick={() => {
                             const speedModels = chooseAutoModels('speed', availableModels);
@@ -1042,18 +1120,24 @@ export default function CyberWizard() {
                           }}
                         >
                           <div className="text-center">
-                            <div className="text-xl mb-1">⚡</div>
+                            <div className="text-xl mb-1 transition-transform group-hover:scale-110">⚡</div>
                             <div className="text-[12px] font-bold text-white">Quick Query</div>
                             <div className="text-[9px] opacity-70 mt-1">Fast responses</div>
+                            {autoPreference === 'speed' && (
+                              <div className="mt-2">
+                                <div className="w-4 h-4 mx-auto rounded-full bg-gradient-to-r from-[#00ff9f] to-[#00d4ff] animate-pulse"></div>
+                              </div>
+                            )}
                           </div>
                         </div>
 
                         {/* Budget Query Box */}
                         <div
-                          className="glass-panel glass-grain border-2 rounded-lg p-3 cursor-pointer hover:scale-105 transition-smooth"
+                          className="glass-panel glass-grain border-2 rounded-lg p-3 cursor-pointer hover:scale-105 transition-smooth group"
                           style={{
                             borderColor: autoPreference === 'cost' ? colorHex : 'rgba(255,255,255,0.2)',
-                            background: autoPreference === 'cost' ? `linear-gradient(135deg, ${mapColorRGBA(step.color, 0.15)}, ${mapColorRGBA(step.color, 0.25)})` : 'rgba(255,255,255,0.05)'
+                            background: autoPreference === 'cost' ? `linear-gradient(135deg, ${mapColorRGBA(step.color, 0.15)}, ${mapColorRGBA(step.color, 0.25)})` : 'rgba(255,255,255,0.05)',
+                            transform: autoPreference === 'cost' ? 'scale(1.02)' : 'scale(1)'
                           }}
                           onClick={() => {
                             const budgetModels = chooseAutoModels('cost', availableModels);
@@ -1066,9 +1150,14 @@ export default function CyberWizard() {
                           }}
                         >
                           <div className="text-center">
-                            <div className="text-xl mb-1">💰</div>
+                            <div className="text-xl mb-1 transition-transform group-hover:scale-110">💰</div>
                             <div className="text-[12px] font-bold text-white">Budget Query</div>
                             <div className="text-[9px] opacity-70 mt-1">Cost-effective</div>
+                            {autoPreference === 'cost' && (
+                              <div className="mt-2">
+                                <div className="w-4 h-4 mx-auto rounded-full bg-gradient-to-r from-[#00ff9f] to-[#00d4ff] animate-pulse"></div>
+                              </div>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -1086,7 +1175,8 @@ export default function CyberWizard() {
                           className="relative transition-all duration-500 preserve-3d"
                           style={{
                             transformStyle: 'preserve-3d',
-                            transform: showModelList ? 'rotateY(180deg)' : 'rotateY(0deg)'
+                            transform: showModelList ? 'rotateY(180deg)' : 'rotateY(0deg)',
+                            minHeight: '100px'
                           }}
                         >
                           {/* Front side */}
@@ -1101,16 +1191,21 @@ export default function CyberWizard() {
                             <div className="text-center">
                               <div className="text-xs font-bold text-white/80 mb-2">I want to choose the models used manually</div>
                               <button
-                                className="px-4 py-2 rounded-lg text-[11px] font-semibold transition-smooth hover:scale-[1.02] active:scale-[0.98]"
+                                className="px-4 py-2 rounded-lg text-[11px] font-semibold transition-smooth hover:scale-[1.02] active:scale-[0.98] glass-panel"
                                 style={{
                                   background: `linear-gradient(135deg, ${mapColorRGBA(step.color, 0.15)}, ${mapColorRGBA(step.color, 0.25)})`,
                                   border: `2px solid ${colorHex}`,
-                                  color: 'white'
+                                  color: 'white',
+                                  boxShadow: `0 4px 15px ${colorHex}20`
                                 }}
-                                onClick={() => {
+                                onClick={(e) => {
                                   setModelSelectionMode('manual');
                                   setAutoPreference('premium');
                                   setShowModelList(true);
+                                  // Add ripple effect
+                                  const btn = e.currentTarget as HTMLButtonElement;
+                                  btn.classList.add('ripple-effect');
+                                  setTimeout(() => btn.classList.remove('ripple-effect'), 1500);
                                 }}
                               >
                                 🛠️ Show Available Models
@@ -1433,17 +1528,19 @@ export default function CyberWizard() {
                         <div key={sectionTitle}>
                           <div className="uppercase text-[10px] tracking-wider mb-1 text-center text-white/80">{sectionTitle}</div>
                           {items.map((s,i) => (
-                            <div key={i} className="text-[10px] leading-tight flex items-center text-white/85">
-                              <span className="flex-auto overflow-hidden text-ellipsis whitespace-nowrap">{s.label}</span>
-                              <span className="px-1 select-none opacity-50">. . . . . . . . . . .</span>
-                              <span className="text-right w-14">${s.cost.toFixed(2)}</span>
+                            <div key={i} className="text-[10px] leading-tight flex items-center text-white/85 hover:text-white transition-colors duration-200 group cursor-pointer">
+                              <span className="flex-auto overflow-hidden text-ellipsis whitespace-nowrap group-hover:text-shadow-sm" title={s.label}>{s.label}</span>
+                              <span className="px-1 select-none opacity-50 group-hover:opacity-70">. . . . . . . . . . .</span>
+                              <span className="text-right w-14 group-hover:text-pink-400 transition-colors">${s.cost.toFixed(2)}</span>
                             </div>
                           ))}
                         </div>
                       );
                     })}
                   </div>
-                  <div className="mt-3 font-bold text-pink-400 text-lg text-center">{`Total: $${totalCost.toFixed(2)}`}</div>
+                  <div className="mt-3 font-bold text-pink-400 text-lg text-center transition-all duration-300 hover:scale-105" style={{
+                    textShadow: '0 0 10px rgba(255, 0, 212, 0.5)'
+                  }}>{`Total: $${totalCost.toFixed(2)}`}</div>
                   {addonsSubmitted ? (
                     <button
                       className="w-full mt-3 px-4 py-3 rounded text-center font-semibold animate-pulse-glow transition-smooth hover:scale-[1.02] active:scale-[0.98]"
