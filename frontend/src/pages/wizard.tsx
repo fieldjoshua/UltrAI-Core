@@ -1,5 +1,5 @@
-import CyberWizardPro from "../components/CyberWizardPro";
+import CyberWizard from "../components/CyberWizard";
 
 export default function WizardPage() {
-  return <CyberWizardPro />;
+  return <CyberWizard />;
 }

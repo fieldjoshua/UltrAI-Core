@@ -3,7 +3,6 @@ import { useEffect, useState } from "react";
 import { processWithFeatherOrchestration } from "../api/orchestrator";
 import StatusUpdater from "./StatusUpdater";
 import BridgeAnimation from "./BridgeAnimation";
-import "../styles/cyberpunk-vars.css";
 
 interface StepOption { label: string; cost?: number; icon?: string; description?: string }
 interface Step {
@@ -588,23 +587,27 @@ export default function CyberWizard() {
         </div>
       )}
 
-      {/* Main Content Container - Fixed Layout */}
-      <div className="fixed inset-0 pointer-events-none" style={{ zIndex: 10 }}>
-        <div className="h-full flex items-center justify-center p-8">
-          <div className="w-full max-w-7xl pointer-events-auto">
-            <div className="grid grid-cols-12 gap-6">
+      {/* Main Content - Fixed Layout Below Billboard */}
+      <div className="fixed inset-0" style={{ zIndex: 10 }}>
+        <div className="relative w-full h-full flex items-center justify-center">
+          <div className="w-full max-w-6xl px-8" style={{ marginTop: '15vh' }}>
+            <div className="grid grid-cols-12 gap-8">
+              
               {/* Wizard Panel (left) */}
               <div className="col-span-8">
                 <div
-                  className="cyber-panel cyber-panel-cut cyber-glow"
+                  className={`relative p-8 rounded-2xl transition-all duration-300 overflow-hidden`}
                   style={{
-                    minHeight: '500px',
-                    borderColor: `${colorHex}33`,
+                    background: 'rgba(0, 0, 0, 0.85)',
+                    backdropFilter: 'blur(20px)',
+                    border: `1px solid rgba(255, 255, 255, 0.1)`,
+                    minHeight: '450px',
                     boxShadow: `
-                      0 0 40px ${colorHex}20,
-                      inset 0 0 60px rgba(0, 0, 0, 0.5),
-                      0 0 0 1px ${colorHex}66
-                    `
+                      0 4px 24px rgba(0, 0, 0, 0.5),
+                      0 0 60px ${colorHex}10,
+                      0 0 0 1px ${colorHex}33
+                    `,
+                    clipPath: 'polygon(0 0, calc(100% - 20px) 0, 100% 20px, 100% 100%, 20px 100%, 0 calc(100% - 20px))'
                   }}
                 >
               <div className="flex flex-col h-full">
@@ -922,7 +925,22 @@ export default function CyberWizard() {
           </div>
 
           {/* Receipt Panel (right) */}
-          <div className="glass-strong col-start-9 col-span-3 p-3 rounded-xl animate-border-hum self-start" style={{ fontFamily: monoStack, border: '7px solid', borderColor: receiptColor, boxShadow: `0 0 0 2px rgba(255,255,255,0.08) inset, 0 0 14px ${receiptColor}` }}>
+          <div className="col-span-4">
+            <div 
+              className="relative p-6 rounded-2xl"
+              style={{ 
+                fontFamily: monoStack, 
+                background: 'rgba(0, 0, 0, 0.85)',
+                backdropFilter: 'blur(20px)',
+                border: `1px solid rgba(255, 255, 255, 0.1)`,
+                minHeight: '450px',
+                boxShadow: `
+                  0 4px 24px rgba(0, 0, 0, 0.5),
+                  0 0 40px ${receiptColor}10,
+                  0 0 0 1px ${receiptColor}33
+                `,
+                clipPath: 'polygon(0 0, calc(100% - 20px) 0, 100% 20px, 100% 100%, 20px 100%, 0 calc(100% - 20px))'
+              }}>
             <div className="text-center mb-2">
               <div className="text-[14px] font-extrabold tracking-[0.35em] text-white text-shadow-neon-blue">ULTRAI</div>
               <div className="text-[10px] text-white/70">— ITEMIZED RECEIPT —</div>
@@ -946,12 +964,14 @@ export default function CyberWizard() {
                 );
               })}
             </div>
-            <div className="mt-3 font-bold text-pink-400 text-lg text-neon-pink text-center">{`Total: $${totalCost.toFixed(2)}`}</div>
+            <div className="mt-3 font-bold text-pink-400 text-lg text-center">{`Total: $${totalCost.toFixed(2)}`}</div>
+            </div>
           </div>
+          
         </div>
 
-        {/* Under-main: commence and status below main window */}
-        <div className="grid grid-cols-12 gap-6" style={{ marginTop: '8px', minHeight: '150px' }}>
+        {/* Status Section Below */}
+        <div className="grid grid-cols-12 gap-8 mt-8">
           <div className="col-start-4 col-span-5">
             {currentStep===steps.length-1 && !showStatus && (
               <div className="animate-fade-in">
@@ -1016,6 +1036,8 @@ export default function CyberWizard() {
               </div>
             )}
           </div>
+        </div>
+        </div>
         </div>
       </div>
     </div>

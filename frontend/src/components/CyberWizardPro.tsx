@@ -192,7 +192,7 @@ export default function CyberWizardPro() {
       <BridgeAnimation state={billboardState} />
       
       {/* Boxes Template Overlay - for positioning reference */}
-      <div className="fixed inset-0 pointer-events-none" style={{ zIndex: 5, opacity: 0 }}>
+      <div className="fixed inset-0 pointer-events-none" style={{ zIndex: 5, opacity: 0.3 }}>
         <img src="/overlays/boxes_template.svg" className="w-full h-full" />
       </div>
       
@@ -298,11 +298,67 @@ export default function CyberWizardPro() {
                   )}
                   
                   {/* Content Area */}
-                  <div className="space-y-4" key={stepFadeKey}>
-                    {/* Content will go here based on step type */}
-                    <div className="text-center" style={{ padding: SPACING.xl, color: COLORS.text.muted }}>
-                      [Step Content: {step.type}]
-                    </div>
+                  <div className="flex-1 overflow-auto" key={stepFadeKey} style={{ paddingTop: SPACING.sm }}>
+                    {/* Intro Step */}
+                    {step.type === "intro" && (
+                      <div className="text-center space-y-6">
+                        <div>
+                          <div className="text-2xl font-bold mb-2" style={{ color: currentColor }}>
+                            Welcome to the Future
+                          </div>
+                          <div className="w-24 h-px mx-auto" style={{ background: currentColor }}></div>
+                        </div>
+                        
+                        <div className="grid grid-cols-2 gap-4 max-w-2xl mx-auto">
+                          <div style={{ 
+                            background: 'rgba(0,255,159,0.05)',
+                            border: '1px solid rgba(0,255,159,0.2)',
+                            padding: SPACING.md
+                          }}>
+                            <div style={{ color: COLORS.mint, fontSize: '18px' }}>✨</div>
+                            <div style={{ color: COLORS.mint, fontWeight: 600, marginBottom: '8px' }}>Why UltrAI?</div>
+                            <div style={{ fontSize: '12px', color: COLORS.text.secondary }}>
+                              Multiple LLMs working together. Better results, fewer blind spots.
+                            </div>
+                          </div>
+                          <div style={{ 
+                            background: 'rgba(0,184,255,0.05)',
+                            border: '1px solid rgba(0,184,255,0.2)',
+                            padding: SPACING.md
+                          }}>
+                            <div style={{ color: COLORS.blue, fontSize: '18px' }}>🚀</div>
+                            <div style={{ color: COLORS.blue, fontWeight: 600, marginBottom: '8px' }}>How it works</div>
+                            <div style={{ fontSize: '12px', color: COLORS.text.secondary }}>
+                              Select goals, enter query, choose models. We handle the rest.
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <button 
+                          className="px-8 py-4"
+                          style={{
+                            background: `${currentColor}15`,
+                            border: `1px solid ${currentColor}`,
+                            color: COLORS.text.primary,
+                            fontFamily: FONTS.mono,
+                            fontSize: '16px',
+                            fontWeight: 600,
+                            cursor: 'pointer',
+                            transition: 'all 0.3s'
+                          }}
+                          onClick={() => { setCurrentStep(1); setStepFadeKey(k => k+1); }}
+                        >
+                          START ULTRAI!
+                        </button>
+                      </div>
+                    )}
+                    
+                    {/* Other step types */}
+                    {step.type !== "intro" && (
+                      <div className="text-center" style={{ padding: SPACING.xl, color: COLORS.text.muted }}>
+                        [Step Content: {step.type}]
+                      </div>
+                    )}
                   </div>
                 </Panel>
               </div>
