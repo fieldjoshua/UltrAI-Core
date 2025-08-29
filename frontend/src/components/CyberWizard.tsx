@@ -34,6 +34,7 @@ export default function CyberWizard() {
   const [orchestratorResult, setOrchestratorResult] = useState<any>(null);
   const [orchestratorError, setOrchestratorError] = useState<string | null>(null);
   const [isOptimizing, setIsOptimizing] = useState<boolean>(false);
+  const [optimizationStep, setOptimizationStep] = useState<number>(0);
 
   useEffect(() => {
     const load = async () => {
@@ -233,9 +234,14 @@ export default function CyberWizard() {
 
   const optimizeSearch = () => {
     setIsOptimizing(true);
+    setOptimizationStep(0);
     
-    // Simulate a brief delay for visual feedback
-    setTimeout(() => {
+    // Step through optimization phases
+    const runOptimization = async () => {
+      // Step 1: Analyze query
+      setOptimizationStep(1);
+      await new Promise(resolve => setTimeout(resolve, 300));
+      
       // Clear previous selections except any manually selected goals
       const existingGoals = [...selectedGoals];
       setSummary([]);
@@ -293,6 +299,10 @@ export default function CyberWizard() {
     const allGoals = [...new Set([...existingGoals, ...autoSelectedGoals])];
     setSelectedGoals(allGoals);
     
+    // Step 2: Select goals
+    setOptimizationStep(2);
+    await new Promise(resolve => setTimeout(resolve, 300));
+    
     // Add all goals to the receipt
     allGoals.forEach(goal => {
       addSelection(goal, 0, "mint");
@@ -300,6 +310,10 @@ export default function CyberWizard() {
     
     // Always select UltrAI Intelligence Multiplier
     addSelection("UltrAI Intelligence Multiplier", 0.08, "purple");
+    
+    // Step 3: Choose models
+    setOptimizationStep(3);
+    await new Promise(resolve => setTimeout(resolve, 300));
     
     // Auto-select models based on query complexity and content
     let modelPreference: 'cost' | 'premium' | 'speed' = 'premium';
@@ -352,11 +366,18 @@ export default function CyberWizard() {
       addSelection("PDF / Word / Markdown / Plain Text", 0.02, "pink");
     }
     
+      // Step 4: Select formatting
+      setOptimizationStep(4);
+      await new Promise(resolve => setTimeout(resolve, 300));
+      
       // Move to the last step
       setCurrentStep(steps.length - 1);
       setStepFadeKey(k => k + 1);
       setIsOptimizing(false);
-    }, 500); // Brief delay for visual feedback
+      setOptimizationStep(0);
+    };
+    
+    runOptimization();
   };
 
 
@@ -372,6 +393,34 @@ export default function CyberWizard() {
           zIndex: 0,
         }}
       />
+      
+      {/* Optimization Status Boxes - Below Billboard */}
+      {isOptimizing && (
+        <div className="absolute w-full" style={{ top: '15vh', zIndex: 5 }}>
+          <div className="flex justify-center gap-4 px-8">
+            <div className={`glass p-3 rounded-lg animate-fade-in ${optimizationStep >= 1 ? 'border-mint-400' : ''}`} 
+                 style={{ animationDelay: '0ms', borderWidth: optimizationStep >= 1 ? 2 : 1 }}>
+              <div className="text-[11px] text-mint-400 font-bold mb-1">🔍 Analyzing Query</div>
+              <div className="text-[10px] opacity-80">Understanding your request...</div>
+            </div>
+            <div className={`glass p-3 rounded-lg animate-fade-in ${optimizationStep >= 2 ? 'border-blue-400' : ''}`} 
+                 style={{ animationDelay: '200ms', borderWidth: optimizationStep >= 2 ? 2 : 1 }}>
+              <div className="text-[11px] text-blue-400 font-bold mb-1">🎯 Selecting Goals</div>
+              <div className="text-[10px] opacity-80">{optimizationStep >= 2 && selectedGoals.length > 0 ? `Found ${selectedGoals.length} goals` : 'Matching objectives...'}</div>
+            </div>
+            <div className={`glass p-3 rounded-lg animate-fade-in ${optimizationStep >= 3 ? 'border-purple-400' : ''}`} 
+                 style={{ animationDelay: '400ms', borderWidth: optimizationStep >= 3 ? 2 : 1 }}>
+              <div className="text-[11px] text-purple-400 font-bold mb-1">🤖 Choosing Models</div>
+              <div className="text-[10px] opacity-80">{optimizationStep >= 3 && selectedModels.length > 0 ? `Selected ${selectedModels.length} models` : 'Optimizing AI selection...'}</div>
+            </div>
+            <div className={`glass p-3 rounded-lg animate-fade-in ${optimizationStep >= 4 ? 'border-pink-400' : ''}`} 
+                 style={{ animationDelay: '600ms', borderWidth: optimizationStep >= 4 ? 2 : 1 }}>
+              <div className="text-[11px] text-pink-400 font-bold mb-1">📄 Formatting Options</div>
+              <div className="text-[10px] opacity-80">{optimizationStep >= 4 ? 'Format selected' : 'Preparing output format...'}</div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Content layer — centered bounded grid */}
       <div className="relative z-10 w-full mx-auto max-w-6xl">
@@ -411,7 +460,11 @@ export default function CyberWizard() {
 
               <h2 className={`text-white ${step.color === 'mint' ? 'text-shadow-neon-mint' : step.color === 'blue' ? 'text-shadow-neon-blue' : step.color === 'deepblue' ? 'text-shadow-neon-deep' : step.color === 'purple' ? 'text-shadow-neon-purple' : 'text-shadow-neon-pink'} text-base mb-2 text-center uppercase tracking-wide`} style={{ borderBottom: `1px solid ${colorHex}`, paddingBottom: 4 }}>{step.title}</h2>
               {step.narrative && (
-                <p className="text-[11px] text-white opacity-90 mb-2 text-center whitespace-pre-line">{step.narrative}</p>
+                <p className="text-[11px] text-white opacity-90 mb-2 text-center whitespace-pre-line">
+                  {currentStep === 2 && selectedGoals.length > 0 
+                    ? `Based on your selected goals (${selectedGoals.slice(0, 3).join(', ')}${selectedGoals.length > 3 ? '...' : ''}), tell us what you need.`
+                    : step.narrative}
+                </p>
               )}
 
               {/* Scrollable options area */}
