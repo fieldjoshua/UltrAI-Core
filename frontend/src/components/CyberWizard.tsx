@@ -37,6 +37,7 @@ export default function CyberWizard() {
   const [isOptimizing, setIsOptimizing] = useState<boolean>(false);
   const [optimizationStep, setOptimizationStep] = useState<number>(0);
   const [modelStatuses, setModelStatuses] = useState<Record<string, 'checking' | 'ready' | 'error'>>({});
+  const [otherGoalText, setOtherGoalText] = useState<string>("");
   // Billboard overlay disabled; remove state to avoid unused variable lints
 
   useEffect(() => {
@@ -212,20 +213,9 @@ export default function CyberWizard() {
         {/* Hero content */}
         <div className="relative z-10 w-full mx-auto max-w-5xl px-8" style={{ marginTop: '25vh' }}>
           
-          {/* Main professional card */}
-          <div
-            className="relative p-12 rounded-3xl overflow-hidden animate-scale-in"
-            style={{ 
-              background: 'rgba(0, 0, 0, 0.3)',
-              backdropFilter: 'blur(40px)',
-              WebkitBackdropFilter: 'blur(40px)',
-              border: '2px solid #00ff9f',
-              boxShadow: '0 0 60px rgba(0,255,159,0.2), inset 0 0 40px rgba(0,255,159,0.02)',
-              animationDelay: '0.3s'
-            }}
-          >
-            {/* Neon Billboard at top */}
-            <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+          {/* Neon Billboard sitting on top of box */}
+          <div className="relative">
+            <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-full mb-0.5">
               <div className="relative">
                 <div 
                   className="px-8 py-3 rounded-lg animate-pulse-glow"
@@ -252,10 +242,23 @@ export default function CyberWizard() {
                   </h1>
                 </div>
                 {/* Billboard legs */}
-                <div className="absolute bottom-0 left-4 w-1 h-4 bg-gray-600"></div>
-                <div className="absolute bottom-0 right-4 w-1 h-4 bg-gray-600"></div>
+                <div className="absolute -bottom-4 left-4 w-1 h-4 bg-gray-600"></div>
+                <div className="absolute -bottom-4 right-4 w-1 h-4 bg-gray-600"></div>
               </div>
             </div>
+            
+            {/* Main professional card */}
+            <div
+              className="relative p-12 rounded-3xl overflow-hidden animate-scale-in"
+              style={{ 
+                background: 'rgba(0, 0, 0, 0.15)',
+                backdropFilter: 'blur(40px)',
+                WebkitBackdropFilter: 'blur(40px)',
+                border: '2px solid #00ff9f',
+                boxShadow: '0 0 60px rgba(0,255,159,0.2), inset 0 0 40px rgba(0,255,159,0.02)',
+                animationDelay: '0.3s'
+              }}
+            >
 
             <div className="relative space-y-8">
               {/* Feature pills */}
@@ -325,7 +328,7 @@ export default function CyberWizard() {
                   onClick={() => { setCurrentStep(1); setStepFadeKey(k => k + 1); }}
                 >
                   <span className="relative z-10 flex items-center gap-3">
-                    <span>Enter Ultra Synthesis™</span>
+                    <span>Enter UltrAI</span>
                     <span className="animate-slide-right">→</span>
                   </span>
                   <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-mint-400/0 via-mint-400/30 to-mint-400/0 animate-shimmer" />
@@ -348,6 +351,7 @@ export default function CyberWizard() {
                 </div>
               </div>
             </div>
+          </div>
           </div>
         </div>
 
@@ -644,37 +648,6 @@ export default function CyberWizard() {
         </div>
       )}
 
-      {/* Model Status Panel - Top Right */}
-      {availableModels && availableModels.length > 0 && (
-        <div className="absolute right-4 z-20" style={{ top: '20px' }}>
-          <div className="glass p-3 rounded-lg" style={{ 
-            background: 'rgba(0, 0, 0, 0.2)', 
-            backdropFilter: 'blur(40px)', 
-            WebkitBackdropFilter: 'blur(40px)', 
-            border: '2px solid #00d4ff',
-            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3), inset 0 0 60px rgba(255, 255, 255, 0.05)'
-          }}>
-            <div className="text-[11px] font-bold mb-2 text-white/80">AI Models Status</div>
-            <div className="space-y-1">
-              {Object.entries(modelStatuses).slice(0, 5).map(([model, status]) => (
-                <div key={model} className="flex items-center gap-2 text-[10px]">
-                  <div className={`w-2 h-2 rounded-full ${status === 'ready' ? 'bg-green-400' : status === 'checking' ? 'bg-yellow-400 animate-pulse' : 'bg-red-400'}`} />
-                  <span className="text-white/70">{model.split('-')[0]}</span>
-                </div>
-              ))}
-              {Object.keys(modelStatuses).length > 5 && (
-                <div className="text-[9px] text-white/50 mt-1">+{Object.keys(modelStatuses).length - 5} more ready</div>
-              )}
-            </div>
-            <div className="mt-2 pt-2 border-t border-white/10">
-              <div className="flex items-center gap-2 text-[10px] text-green-400">
-                <div className="w-2 h-2 rounded-full bg-green-400" />
-                <span>{Object.values(modelStatuses).filter(s => s === 'ready').length} models ready</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Main Content - Below Billboard */}
       <div className="relative z-10 w-full">
@@ -687,11 +660,11 @@ export default function CyberWizard() {
                 <div
                   className={`relative p-8 rounded-2xl overflow-hidden`}
                   style={{
-                    background: `linear-gradient(0deg, ${mapColorRGBA(step.color, 0.03)}, ${mapColorRGBA(step.color, 0.03)}), rgba(0, 0, 0, 0.2)`,
+                    background: `linear-gradient(0deg, ${mapColorRGBA(step.color, 0.03)}, ${mapColorRGBA(step.color, 0.03)}), rgba(0, 0, 0, 0.1)`,
                     backdropFilter: 'blur(40px)',
                     WebkitBackdropFilter: 'blur(40px)',
                     border: `2px solid ${colorHex}`,
-                    minHeight: '420px',
+                    height: '500px',
                     boxShadow: `
                       0 8px 32px rgba(0, 0, 0, 0.3),
                       0 0 80px ${colorHex}10,
@@ -764,8 +737,13 @@ export default function CyberWizard() {
               {/* Scrollable options area */}
               <div
                 key={stepFadeKey}
-                className={`relative space-y-2 mb-2 flex-1 overflow-auto ${showStatus ? 'opacity-50' : ''}`}
-                style={{ paddingRight: 4, pointerEvents: showStatus ? 'none' : 'auto' }}
+                className={`relative space-y-2 overflow-auto ${showStatus ? 'opacity-50' : ''}`}
+                style={{ 
+                  paddingRight: 4, 
+                  paddingBottom: '80px',
+                  height: 'calc(100% - 140px)',
+                  pointerEvents: showStatus ? 'none' : 'auto' 
+                }}
               >
                 {step.type === "intro" && (
                   <>
@@ -878,112 +856,178 @@ export default function CyberWizard() {
                     </div>
                   ) : (step.title || '').includes('Model selection') ? (
                     <div className="space-y-4">
-                      {/* UltrAI Auto Model Selection */}
-                      <div>
-                        <h3 className="text-[13px] font-bold text-white mb-3">Have UltrAI choose my models. I want:</h3>
-                        <div className="space-y-2">
-                          <button
-                            className="w-full px-4 py-3 rounded-lg font-semibold transition-all duration-200 text-left"
-                            style={{
-                              background: `linear-gradient(135deg, ${mapColorRGBA(step.color, 0.15)}, ${mapColorRGBA(step.color, 0.25)})`,
-                              border: `2px solid ${colorHex}`,
-                              color: colorHex,
-                              backdropFilter: 'blur(20px)',
-                              WebkitBackdropFilter: 'blur(20px)'
-                            }}
-                            onClick={() => {
-                              const premiumModels = chooseAutoModels('premium', availableModels);
-                              setSelectedModels(premiumModels);
-                              setAutoPreference('premium');
-                              const modelsCost = premiumModels.reduce((sum, n) => sum + (availableModelInfos[n]?.cost_per_1k_tokens || 0), 0) * 0.1;
-                              setSummary(prev => prev.filter(item => !item.section?.includes('Model selection')));
-                              addSelection(`Premium Query: ${premiumModels.join(', ')}`, modelsCost, step.color, step.title);
-                            }}
-                          >
-                            🎯 A premium query
-                            <div className="text-[10px] opacity-70 mt-1">Best quality results with top-tier models</div>
-                          </button>
-                          
-                          <button
-                            className="w-full px-4 py-3 rounded-lg font-semibold transition-all duration-200 text-left"
-                            style={{
-                              background: `linear-gradient(135deg, ${mapColorRGBA(step.color, 0.15)}, ${mapColorRGBA(step.color, 0.25)})`,
-                              border: `2px solid ${colorHex}`,
-                              color: colorHex,
-                              backdropFilter: 'blur(20px)',
-                              WebkitBackdropFilter: 'blur(20px)'
-                            }}
-                            onClick={() => {
-                              const speedModels = chooseAutoModels('speed', availableModels);
-                              setSelectedModels(speedModels);
-                              setAutoPreference('speed');
-                              const modelsCost = speedModels.reduce((sum, n) => sum + (availableModelInfos[n]?.cost_per_1k_tokens || 0), 0) * 0.1;
-                              setSummary(prev => prev.filter(item => !item.section?.includes('Model selection')));
-                              addSelection(`Quickest Query: ${speedModels.join(', ')}`, modelsCost, step.color, step.title);
-                            }}
-                          >
-                            ⚡ The quickest query
-                            <div className="text-[10px] opacity-70 mt-1">Fast responses with efficient models</div>
-                          </button>
-                          
-                          <button
-                            className="w-full px-4 py-3 rounded-lg font-semibold transition-all duration-200 text-left"
-                            style={{
-                              background: `linear-gradient(135deg, ${mapColorRGBA(step.color, 0.15)}, ${mapColorRGBA(step.color, 0.25)})`,
-                              border: `2px solid ${colorHex}`,
-                              color: colorHex,
-                              backdropFilter: 'blur(20px)',
-                              WebkitBackdropFilter: 'blur(20px)'
-                            }}
-                            onClick={() => {
-                              const budgetModels = chooseAutoModels('cost', availableModels);
-                              setSelectedModels(budgetModels);
-                              setAutoPreference('cost');
-                              const modelsCost = budgetModels.reduce((sum, n) => sum + (availableModelInfos[n]?.cost_per_1k_tokens || 0), 0) * 0.1;
-                              setSummary(prev => prev.filter(item => !item.section?.includes('Model selection')));
-                              addSelection(`Budget Query: ${budgetModels.join(', ')}`, modelsCost, step.color, step.title);
-                            }}
-                          >
-                            💰 The most budget friendly query
-                            <div className="text-[10px] opacity-70 mt-1">Cost-effective models with good performance</div>
-                          </button>
+                      {/* Three horizontal boxes for model selection */}
+                      <div className="grid grid-cols-3 gap-2">
+                        {/* Premium Query Box */}
+                        <div
+                          className="glass border-2 rounded-lg p-3 cursor-pointer hover:scale-105 transition-all duration-200"
+                          style={{
+                            borderColor: autoPreference === 'premium' ? colorHex : 'rgba(255,255,255,0.2)',
+                            background: autoPreference === 'premium' ? `linear-gradient(135deg, ${mapColorRGBA(step.color, 0.15)}, ${mapColorRGBA(step.color, 0.25)})` : 'rgba(255,255,255,0.05)'
+                          }}
+                          onClick={() => {
+                            const premiumModels = chooseAutoModels('premium', availableModels);
+                            setSelectedModels(premiumModels);
+                            setAutoPreference('premium');
+                            setModelSelectionMode('auto');
+                            const modelsCost = premiumModels.reduce((sum, n) => sum + (availableModelInfos[n]?.cost_per_1k_tokens || 0), 0) * 0.1;
+                            setSummary(prev => prev.filter(item => !item.section?.includes('Model selection')));
+                            addSelection(`Premium Query: ${premiumModels.join(', ')}`, modelsCost, step.color, step.title);
+                          }}
+                        >
+                          <div className="text-center">
+                            <div className="text-xl mb-1">🎯</div>
+                            <div className="text-[12px] font-bold text-white">Premium Query</div>
+                            <div className="text-[9px] opacity-70 mt-1">Best quality results</div>
+                          </div>
+                        </div>
+
+                        {/* Speed Query Box */}
+                        <div
+                          className="glass border-2 rounded-lg p-3 cursor-pointer hover:scale-105 transition-all duration-200"
+                          style={{
+                            borderColor: autoPreference === 'speed' ? colorHex : 'rgba(255,255,255,0.2)',
+                            background: autoPreference === 'speed' ? `linear-gradient(135deg, ${mapColorRGBA(step.color, 0.15)}, ${mapColorRGBA(step.color, 0.25)})` : 'rgba(255,255,255,0.05)'
+                          }}
+                          onClick={() => {
+                            const speedModels = chooseAutoModels('speed', availableModels);
+                            setSelectedModels(speedModels);
+                            setAutoPreference('speed');
+                            setModelSelectionMode('auto');
+                            const modelsCost = speedModels.reduce((sum, n) => sum + (availableModelInfos[n]?.cost_per_1k_tokens || 0), 0) * 0.1;
+                            setSummary(prev => prev.filter(item => !item.section?.includes('Model selection')));
+                            addSelection(`Quickest Query: ${speedModels.join(', ')}`, modelsCost, step.color, step.title);
+                          }}
+                        >
+                          <div className="text-center">
+                            <div className="text-xl mb-1">⚡</div>
+                            <div className="text-[12px] font-bold text-white">Quick Query</div>
+                            <div className="text-[9px] opacity-70 mt-1">Fast responses</div>
+                          </div>
+                        </div>
+
+                        {/* Budget Query Box */}
+                        <div
+                          className="glass border-2 rounded-lg p-3 cursor-pointer hover:scale-105 transition-all duration-200"
+                          style={{
+                            borderColor: autoPreference === 'cost' ? colorHex : 'rgba(255,255,255,0.2)',
+                            background: autoPreference === 'cost' ? `linear-gradient(135deg, ${mapColorRGBA(step.color, 0.15)}, ${mapColorRGBA(step.color, 0.25)})` : 'rgba(255,255,255,0.05)'
+                          }}
+                          onClick={() => {
+                            const budgetModels = chooseAutoModels('cost', availableModels);
+                            setSelectedModels(budgetModels);
+                            setAutoPreference('cost');
+                            setModelSelectionMode('auto');
+                            const modelsCost = budgetModels.reduce((sum, n) => sum + (availableModelInfos[n]?.cost_per_1k_tokens || 0), 0) * 0.1;
+                            setSummary(prev => prev.filter(item => !item.section?.includes('Model selection')));
+                            addSelection(`Budget Query: ${budgetModels.join(', ')}`, modelsCost, step.color, step.title);
+                          }}
+                        >
+                          <div className="text-center">
+                            <div className="text-xl mb-1">💰</div>
+                            <div className="text-[12px] font-bold text-white">Budget Query</div>
+                            <div className="text-[9px] opacity-70 mt-1">Cost-effective</div>
+                          </div>
                         </div>
                       </div>
                       
                       {/* OR divider */}
-                      <div className="flex items-center justify-center">
+                      <div className="flex items-center justify-center my-2">
                         <div className="h-px bg-white/20 flex-1"></div>
-                        <div className="px-4 text-sm font-bold text-white/80">OR</div>
+                        <div className="px-3 text-xs font-bold text-white/80">OR</div>
                         <div className="h-px bg-white/20 flex-1"></div>
                       </div>
                       
                       {/* Manual selection */}
-                      <div className="glass p-2 rounded-xl border border-white/20">
-                        <div className="text-[11px] uppercase tracking-wider mb-1 opacity-80">Manual selection</div>
-                        <div className={'grid grid-cols-2 gap-1 mt-2'}>
-                          {(availableModels || []).map(name => (
-                            <label key={name} className="flex items-center text-[11px] leading-tight truncate opacity-95 hover:opacity-100">
-                              <input type="checkbox" onChange={() => handleModelToggle(name)} checked={selectedModels.includes(name)} />{" "}
-                              <span className="align-middle truncate tracking-wide text-white">{name} {availableModelInfos[name] ? `( $${availableModelInfos[name].cost_per_1k_tokens}/1k )` : ''}</span>
-                            </label>
-                          ))}
-                          {availableModels && availableModels.length === 0 && (
-                            <div className="text-[11px] opacity-80">No models available. Add API keys to enable models.</div>
-                          )}
-                        </div>
+                      <div className="glass p-2 rounded-lg border border-white/20">
+                        <button
+                          className="w-full px-2 py-1.5 rounded-md text-[11px] font-semibold transition-all duration-200"
+                          style={{
+                            background: modelSelectionMode === 'manual' ? `linear-gradient(135deg, ${mapColorRGBA(step.color, 0.15)}, ${mapColorRGBA(step.color, 0.25)})` : 'rgba(255,255,255,0.05)',
+                            border: `2px solid ${modelSelectionMode === 'manual' ? colorHex : 'rgba(255,255,255,0.2)'}`,
+                            color: 'white'
+                          }}
+                          onClick={() => {
+                            setModelSelectionMode('manual');
+                            setAutoPreference('');
+                          }}
+                        >
+                          🛠️ Choose models manually
+                        </button>
+                        
+                        {modelSelectionMode === 'manual' && (
+                          <div className="mt-2 grid grid-cols-3 gap-1 max-h-20 overflow-y-auto">
+                            {(availableModels || []).map(name => (
+                              <label key={name} className="flex items-center text-[9px] leading-tight truncate opacity-95 hover:opacity-100">
+                                <input type="checkbox" className="mr-1 scale-75" onChange={() => handleModelToggle(name)} checked={selectedModels.includes(name)} />
+                                <span className="align-middle truncate tracking-wide text-white">{name}</span>
+                              </label>
+                            ))}
+                            {availableModels && availableModels.length === 0 && (
+                              <div className="text-[9px] opacity-80 col-span-3">No models available. Add API keys.</div>
+                            )}
+                          </div>
+                        )}
                       </div>
                     </div>
                   ) : (
                     (step.title || '').toLowerCase().includes('select your goals') ? (
-                      <div className="grid grid-cols-2 gap-3">
-                        {step.options.slice(0, 12).map(o => (
-                          <label key={o.label} className="flex items-center justify-between gap-2 text-[11px] leading-tight opacity-95 hover:opacity-100">
-                            <span className="align-middle truncate tracking-wide text-white">
-                              {o.icon ? `${o.icon} ` : ''}{o.label}
-                            </span>
-                            <input type="checkbox" onChange={() => handleGoalToggle(o.label)} checked={selectedGoals.includes(o.label)} />
-                          </label>
-                        ))}
+                      <div className="space-y-4">
+                        <div className="grid grid-cols-2 gap-3">
+                          {step.options.map(o => {
+                            const isSelected = selectedGoals.includes(o.label);
+                            return (
+                              <div
+                                key={o.label}
+                                className="relative group cursor-pointer"
+                                onClick={() => handleGoalToggle(o.label)}
+                              >
+                                <div
+                                  className="p-4 rounded-xl transition-all duration-200 hover:scale-105"
+                                  style={{
+                                    background: isSelected 
+                                      ? `linear-gradient(135deg, ${mapColorRGBA(step.color, 0.2)}, ${mapColorRGBA(step.color, 0.3)})` 
+                                      : 'rgba(255, 255, 255, 0.05)',
+                                    backdropFilter: 'blur(20px)',
+                                    border: `2px solid ${isSelected ? colorHex : 'rgba(255,255,255,0.2)'}`,
+                                    boxShadow: isSelected ? `0 0 20px ${colorHex}40` : '0 4px 12px rgba(0,0,0,0.2)'
+                                  }}
+                                >
+                                  <div className="text-center">
+                                    <div className="text-3xl mb-2">{o.icon}</div>
+                                    <div className="text-sm font-semibold text-white">{o.label}</div>
+                                  </div>
+                                  {isSelected && (
+                                    <div className="absolute top-2 right-2">
+                                      <div 
+                                        className="w-6 h-6 rounded-full flex items-center justify-center"
+                                        style={{ background: colorHex }}
+                                      >
+                                        <span className="text-white text-xs">✓</span>
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                        {selectedGoals.includes("Other") && (
+                          <div className="mt-3">
+                            <input
+                              type="text"
+                              className="w-full px-4 py-3 rounded-xl text-sm text-white placeholder-white/50"
+                              placeholder="Describe your custom goal..."
+                              value={otherGoalText}
+                              onChange={(e) => setOtherGoalText(e.target.value)}
+                              style={{
+                                background: 'rgba(255, 255, 255, 0.05)',
+                                backdropFilter: 'blur(20px)',
+                                border: `2px solid ${colorHex}50`
+                              }}
+                            />
+                          </div>
+                        )}
                       </div>
                     ) : (
                       <div className="grid grid-cols-2 gap-2">
@@ -1000,7 +1044,7 @@ export default function CyberWizard() {
 
                 {step.type === "groupbox" && step.options && (
                   <>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                    <div className="grid grid-cols-2 gap-2">
                       {step.options.map(o => {
                         const comingSoon = (o.label || '').toLowerCase().includes('coming soon');
                         const isLive = !comingSoon;
@@ -1008,17 +1052,19 @@ export default function CyberWizard() {
                         return (
                           <div
                             key={o.label}
-                            className={`glass border-2 rounded-xl p-2 ${comingSoon ? 'opacity-30 pointer-events-none' : ''}`}
+                            className={`glass border-2 rounded-lg p-2 ${comingSoon ? 'opacity-30 pointer-events-none' : ''}`}
                             style={{ borderColor: isLive ? colorHex : 'rgba(255,255,255,0.2)' }}
                           >
-                            <div className="flex items-center justify-between mb-1">
-                              <div className="font-bold text-[13px] text-white truncate">{o.icon ? `${o.icon} ` : ''}{o.label}</div>
-                              {isLive && (
-                                <input type="radio" name="analysis-choice" checked={already} onChange={() => { if (!already) addSelection(o.label, o.cost, step.color, step.title); }} />
-                              )}
+                            <div className="text-center mb-1">
+                              <div className="font-bold text-[12px] text-white">{o.icon ? `${o.icon} ` : ''}{o.label}</div>
                             </div>
-                            {o.description && <div className="text-[11px] text-white/80 text-center leading-snug">{o.description}</div>}
-                            {typeof o.cost === 'number' && <div className="text-[11px] text-center mt-1 text-pink-400">+${o.cost.toFixed(2)}</div>}
+                            {o.description && <div className="text-[10px] text-white/80 text-center leading-tight">{o.description}</div>}
+                            {typeof o.cost === 'number' && <div className="text-[10px] text-center mt-1 text-pink-400">+${o.cost.toFixed(2)}</div>}
+                            {isLive && (
+                              <div className="mt-1 flex justify-center">
+                                <input type="radio" name="analysis-choice" checked={already} onChange={() => { if (!already) addSelection(o.label, o.cost, step.color, step.title); }} />
+                              </div>
+                            )}
                           </div>
                         );
                       })}
@@ -1060,8 +1106,8 @@ export default function CyberWizard() {
 
               </div>
 
-              {/* Action buttons (sticky footer inside panel) */}
-              <div className="mt-auto sticky bottom-0 pt-1" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.35), rgba(0,0,0,0))' }}>
+              {/* Action buttons (absolute positioned at bottom) */}
+              <div className="absolute bottom-0 left-0 right-0 p-8 pt-4" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.6), rgba(0,0,0,0))' }}>
                 <button
                   className="w-full mt-2 px-3 py-2 rounded text-center font-semibold animate-border-hum"
                   style={{ border: `2px solid ${colorHex}`, color: colorHex, background: mapColorRGBA(step.color, 0.06) }}
@@ -1079,6 +1125,67 @@ export default function CyberWizard() {
               </div>
               </div>
             </div>
+            
+            {/* Model Status Box - Below wizard panel */}
+            <div className="mt-4">
+              <div 
+                className="relative p-4 rounded-2xl"
+                style={{ 
+                  background: 'rgba(0, 0, 0, 0.1)',
+                  backdropFilter: 'blur(40px)',
+                  WebkitBackdropFilter: 'blur(40px)',
+                  border: `2px solid rgba(255, 255, 255, 0.2)`,
+                  boxShadow: `
+                    0 8px 32px rgba(0, 0, 0, 0.3),
+                    0 0 60px rgba(255, 255, 255, 0.05),
+                    0 0 0 1px rgba(255, 255, 255, 0.1),
+                    inset 0 0 60px rgba(255, 255, 255, 0.05)
+                  `,
+                  clipPath: 'polygon(0 0, calc(100% - 20px) 0, 100% 20px, 100% 100%, 20px 100%, 0 calc(100% - 20px))'
+                }}
+              >
+                <div className="text-center mb-3">
+                  <div className="text-[12px] font-extrabold tracking-[0.35em] text-white">MODEL STATUS</div>
+                  <div className="text-[9px] text-white/70">— AVAILABLE MODELS —</div>
+                </div>
+                
+                {availableModels === null ? (
+                  <div className="text-center text-white/60 text-xs">Loading models...</div>
+                ) : availableModels.length === 0 ? (
+                  <div className="text-center text-white/60 text-xs">No models available. Add API keys to enable models.</div>
+                ) : (
+                  <div className="grid grid-cols-3 gap-2">
+                    {availableModels.map(name => {
+                      const info = availableModelInfos[name];
+                      const status = modelStatuses[name] || 'checking';
+                      const statusColor = status === 'ready' ? '#00ff9f' : status === 'checking' ? '#00d4ff' : '#ff0095';
+                      
+                      return (
+                        <div 
+                          key={name}
+                          className="glass p-2 rounded-lg border transition-all duration-200"
+                          style={{
+                            borderColor: selectedModels.includes(name) ? colorHex : 'rgba(255,255,255,0.2)',
+                            background: selectedModels.includes(name) ? `linear-gradient(135deg, ${mapColorRGBA(step.color, 0.1)}, ${mapColorRGBA(step.color, 0.15)})` : 'rgba(255,255,255,0.02)'
+                          }}
+                        >
+                          <div className="flex items-center gap-1 mb-1">
+                            <div 
+                              className="w-1.5 h-1.5 rounded-full animate-pulse" 
+                              style={{ backgroundColor: statusColor }}
+                            />
+                            <div className="text-[10px] font-semibold text-white truncate">{name}</div>
+                          </div>
+                          <div className="text-[8px] text-white/60">
+                            {info?.provider || 'Unknown'} • ${info?.cost_per_1k_tokens || 0}/1k
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
 
           {/* Right Panel: Receipt transforms into Status after approval */}
@@ -1087,7 +1194,7 @@ export default function CyberWizard() {
               className="relative p-6 rounded-2xl"
               style={{ 
                 fontFamily: monoStack, 
-                background: 'rgba(0, 0, 0, 0.2)',
+                background: 'rgba(0, 0, 0, 0.1)',
                 backdropFilter: 'blur(40px)',
                 WebkitBackdropFilter: 'blur(40px)',
                 border: `2px solid ${receiptColor}`,
