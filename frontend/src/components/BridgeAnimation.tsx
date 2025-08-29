@@ -17,12 +17,8 @@ export default function BridgeAnimation({ state }: BridgeAnimationProps) {
 
   return (
     <div 
-      className="pointer-events-none absolute"
+      className="pointer-events-none fixed inset-0"
       style={{
-        bottom: 0,
-        left: 0,
-        width: '60%',
-        height: '60%',
         zIndex: 2,
       }}
     >
@@ -32,6 +28,8 @@ export default function BridgeAnimation({ state }: BridgeAnimationProps) {
         alt=""
         className="absolute inset-0 w-full h-full"
         style={{
+          objectFit: 'cover',
+          objectPosition: 'bottom left',
           opacity: 0.2,
           filter: state === 'processing' ? 'brightness(1.2)' : 'brightness(0.8)',
           transition: 'filter 0.5s ease'
@@ -42,6 +40,7 @@ export default function BridgeAnimation({ state }: BridgeAnimationProps) {
       <svg
         viewBox="0 0 3850.2 2068.65"
         className="absolute inset-0 w-full h-full"
+        preserveAspectRatio="xMinYMax slice"
         style={{
           filter: state === 'processing' ? 'brightness(1.5)' : 'brightness(1)',
           transition: 'filter 0.5s ease'

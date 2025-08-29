@@ -470,20 +470,18 @@ export default function CyberWizard() {
       
       {/* Animated Billboard Lines - Lower Right Corner */}
       <div 
-        className="pointer-events-none absolute"
+        className="pointer-events-none fixed inset-0"
         style={{
-          bottom: 0,
-          right: 0,
-          width: '70%',
-          height: '100%',
           zIndex: 3
         }}
       >
         <img
           src="/overlays/billboard_lines.svg"
           alt=""
-          className="w-full h-full object-contain object-bottom-right"
+          className="absolute inset-0 w-full h-full"
           style={{
+            objectFit: 'cover',
+            objectPosition: 'bottom right',
             opacity: billboardState === 'processing' ? 0.4 : 0.2,
             filter: `brightness(${billboardState === 'processing' ? 1.8 : 1.2}) ${billboardState === 'processing' ? 'drop-shadow(0 0 20px #00ff00)' : ''}`,
             animation: billboardState === 'processing' ? 'billboardPulse 2s ease-in-out infinite' : 'none',
