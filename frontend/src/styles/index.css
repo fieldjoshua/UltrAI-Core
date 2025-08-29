@@ -1,4 +1,6 @@
 /* Git update timestamp: 2023-04-03 */
+@import './animations.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;

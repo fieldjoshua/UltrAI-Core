@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { processWithFeatherOrchestration } from "../api/orchestrator";
 import StatusUpdater from "./StatusUpdater";
+import AnimatedBillboard from "./AnimatedBillboard";
 
 interface StepOption { label: string; cost?: number; icon?: string; description?: string }
 interface Step {
@@ -36,6 +37,8 @@ export default function CyberWizard() {
   const [isOptimizing, setIsOptimizing] = useState<boolean>(false);
   const [optimizationStep, setOptimizationStep] = useState<number>(0);
   const [modelStatuses, setModelStatuses] = useState<Record<string, 'checking' | 'ready' | 'error'>>({});
+  const [billboardState, setBillboardState] = useState<'idle' | 'processing' | 'complete'>('idle');
+  const [billboardMessage, setBillboardMessage] = useState<string>('');
 
   useEffect(() => {
     const load = async () => {
@@ -93,6 +96,8 @@ export default function CyberWizard() {
     (async () => {
       try {
         setOrchestratorError(null);
+        setBillboardState('processing');
+        setBillboardMessage('Initializing Ultra Synthesis™ Pipeline...');
         const models = selectedModels.length > 0 ? selectedModels : null;
         const res = await processWithFeatherOrchestration({
           prompt: userQuery || "",
@@ -103,9 +108,13 @@ export default function CyberWizard() {
         });
         setOrchestratorResult(res);
         console.log("Ultra Synthesis result", res);
+        setBillboardState('complete');
+        setBillboardMessage('Ultra Synthesis™ Complete!');
       } catch (e: any) {
         console.error("Ultra Synthesis failed", e);
         setOrchestratorError(e?.message || String(e));
+        setBillboardState('idle');
+        setBillboardMessage('');
       } finally {
         setIsRunning(false);
       }
@@ -164,11 +173,11 @@ export default function CyberWizard() {
 
   const monoStack = 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace';
 
-  // Step 0: Intro — render one big hero window only (no progress dots or receipt)
+  // Step 0: Intro — render with background and billboard
   if (currentStep === 0 && step.type === 'intro') {
     return (
       <div className="relative flex min-h-screen w-full items-start justify-center p-0 text-white font-cyber text-sm overflow-hidden">
-        {/* Animated Background */}
+        {/* Background with billboard */}
         <div className="absolute inset-0">
           <div
             className="absolute inset-0"
@@ -176,44 +185,13 @@ export default function CyberWizard() {
               backgroundImage: "url('/cityscape-background.jpeg'), url('/ultrai-bg.jpg')",
               backgroundSize: 'cover',
               backgroundPosition: 'center',
-              filter: 'brightness(0.6)',
             }}
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/50 to-black" />
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/80" />
         </div>
 
-        {/* Animated particles */}
-        <div className="absolute inset-0">
-          {[...Array(20)].map((_, i) => (
-            <div
-              key={i}
-              className="absolute w-1 h-1 bg-mint-400 rounded-full animate-pulse"
-              style={{
-                left: `${Math.random() * 100}%`,
-                top: `${Math.random() * 100}%`,
-                animationDelay: `${Math.random() * 5}s`,
-                animationDuration: `${3 + Math.random() * 4}s`
-              }}
-            />
-          ))}
-        </div>
-
-        {/* Hero content */}
-        <div className="relative z-10 w-full mx-auto max-w-5xl px-8" style={{ marginTop: '10vh' }}>
-          {/* Ultra AI Logo */}
-          <div className="text-center mb-12">
-            <h1 className="text-8xl font-black tracking-widest animate-fade-in" style={{ 
-              background: 'linear-gradient(135deg, #00ff9f 0%, #00b8ff 25%, #bd00ff 50%, #d600ff 75%, #00ff9f 100%)',
-              backgroundSize: '200% 200%',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              animation: 'gradient 3s ease infinite',
-              filter: 'drop-shadow(0 0 30px rgba(0,255,159,0.5))'
-            }}>
-              ULTRAI
-            </h1>
-            <p className="text-lg font-light tracking-[0.5em] text-white/80 mt-2">INTELLIGENCE MULTIPLIED</p>
-          </div>
+        {/* Hero content below billboard */}
+        <div className="relative z-10 w-full mx-auto max-w-5xl px-8" style={{ marginTop: '35vh' }}>
 
           {/* Main card */}
           <div
@@ -225,14 +203,6 @@ export default function CyberWizard() {
               boxShadow: '0 0 80px rgba(0,255,159,0.2), inset 0 0 60px rgba(0,255,159,0.05)'
             }}
           >
-            {/* Animated border gradient */}
-            <div className="absolute inset-0 rounded-3xl opacity-50" style={{
-              background: 'conic-gradient(from 0deg, #00ff9f, #00b8ff, #bd00ff, #d600ff, #00ff9f)',
-              padding: '2px',
-              WebkitMask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
-              WebkitMaskComposite: 'exclude',
-              animation: 'spin 4s linear infinite',
-            }} />
 
             <div className="relative space-y-8">
               {/* Feature pills */}
@@ -301,17 +271,6 @@ export default function CyberWizard() {
           </div>
         </div>
 
-        {/* CSS for gradient animation */}
-        <style jsx>{`
-          @keyframes gradient {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-          }
-          @keyframes spin {
-            to { transform: rotate(360deg); }
-          }
-        `}</style>
       </div>
     );
   }
@@ -346,6 +305,8 @@ export default function CyberWizard() {
   const optimizeSearch = () => {
     setIsOptimizing(true);
     setOptimizationStep(0);
+    setBillboardState('processing');
+    setBillboardMessage('AI Optimization in Progress...');
     
     // Step through optimization phases
     const runOptimization = async () => {
@@ -486,6 +447,8 @@ export default function CyberWizard() {
       setStepFadeKey(k => k + 1);
       setIsOptimizing(false);
       setOptimizationStep(0);
+      setBillboardState('idle');
+      setBillboardMessage('');
     };
     
     runOptimization();
@@ -493,7 +456,15 @@ export default function CyberWizard() {
 
 
   return (
-    <div className="relative flex min-h-screen w-full items-start justify-center p-0 text-white font-cyber text-sm">
+    <div className="relative flex flex-col min-h-screen w-full text-white font-cyber text-sm">
+      {/* Animated Billboard */}
+      <AnimatedBillboard 
+        state={billboardState} 
+        message={billboardMessage}
+        currentStep={currentStep}
+        totalSteps={steps.length}
+      />
+      
       {/* Background layer */}
       <div
         className="pointer-events-none absolute inset-0"
@@ -502,12 +473,13 @@ export default function CyberWizard() {
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           zIndex: 0,
+          top: '120px'
         }}
       />
       
       {/* Optimization Status Boxes - Below Billboard */}
       {isOptimizing && (
-        <div className="absolute w-full" style={{ top: '20vh', zIndex: 5 }}>
+        <div className="absolute w-full" style={{ top: '140px', zIndex: 5 }}>
           <div className="max-w-4xl mx-auto px-8">
             <div className="glass-strong p-4 rounded-xl" style={{ 
               background: 'rgba(0, 0, 0, 0.75)', 
@@ -575,7 +547,7 @@ export default function CyberWizard() {
 
       {/* Model Status Panel - Top Right */}
       {availableModels && availableModels.length > 0 && (
-        <div className="absolute top-4 right-4 z-20">
+        <div className="absolute right-4 z-20" style={{ top: '140px' }}>
           <div className="glass p-3 rounded-lg" style={{ background: 'rgba(0, 0, 0, 0.7)', backdropFilter: 'blur(10px)' }}>
             <div className="text-[11px] font-bold mb-2 text-white/80">AI Models Status</div>
             <div className="space-y-1">
@@ -600,8 +572,8 @@ export default function CyberWizard() {
       )}
 
       {/* Content layer — centered bounded grid */}
-      <div className="relative z-10 w-full mx-auto max-w-6xl">
-        <div className="grid grid-cols-12 gap-6 items-start" style={{ marginTop: '40vh' }}>
+      <div className="relative z-10 w-full mx-auto max-w-6xl flex-1 flex items-center" style={{ paddingTop: '140px', paddingBottom: '20px' }}>
+        <div className="grid grid-cols-12 gap-6 items-start w-full">
           {/* Site header column (vertical) */}
           <div className="col-start-1 col-span-1 self-start">
             <div className="text-white text-shadow-neon-blue" style={{ writingMode: 'vertical-rl', textOrientation: 'upright', letterSpacing: '0.35em', fontWeight: 800, fontSize: '14px' }}>ULTRAI</div>
@@ -610,8 +582,8 @@ export default function CyberWizard() {
           {/* Wizard Panel (left) */}
           <div className="col-start-2 col-span-7 self-start">
             <div
-              className={`relative z-20 glass-strong p-5 rounded-2xl transition-all duration-300 h-[50vh] animate-border-hum overflow-hidden ${step.color === "mint" ? "shadow-neon-mint" : step.color === "blue" ? "shadow-neon-blue" : step.color === "deepblue" ? "shadow-neon-deep" : step.color === "purple" ? "shadow-neon-purple" : "shadow-neon-pink"}`}
-              style={{ borderColor: colorHex, borderWidth: 7, background: colorRGBA, boxShadow: `0 0 0 2px rgba(255,255,255,0.10) inset, 0 0 14px ${colorHex}` }}
+              className={`relative z-20 glass-strong p-5 rounded-2xl transition-all duration-300 animate-border-hum overflow-hidden ${step.color === "mint" ? "shadow-neon-mint" : step.color === "blue" ? "shadow-neon-blue" : step.color === "deepblue" ? "shadow-neon-deep" : step.color === "purple" ? "shadow-neon-purple" : "shadow-neon-pink"}`}
+              style={{ borderColor: colorHex, borderWidth: 7, background: colorRGBA, boxShadow: `0 0 0 2px rgba(255,255,255,0.10) inset, 0 0 14px ${colorHex}`, minHeight: '60vh' }}
             >
               <div className="flex flex-col h-full">
               {/* Step markers (centered) */}
@@ -675,33 +647,37 @@ export default function CyberWizard() {
               {/* Scrollable options area */}
               <div
                 key={stepFadeKey}
-                className={`relative space-y-2 mb-2 animate-fade-in overflow-auto ${showStatus ? 'opacity-50' : ''}`}
-                style={{ maxHeight: '28vh', paddingRight: 4, pointerEvents: showStatus ? 'none' : 'auto' }}
+                className={`relative space-y-2 mb-2 animate-fade-in flex-1 overflow-auto ${showStatus ? 'opacity-50' : ''}`}
+                style={{ paddingRight: 4, pointerEvents: showStatus ? 'none' : 'auto' }}
               >
                 {step.type === "intro" && (
                   <>
-                    <div className="grid grid-cols-12 gap-4">
-                      <div className="col-span-7">
-                        <div className="text-[12px] leading-relaxed">
-                          <div className="mt-2 p-3 rounded-xl border border-white/20 bg-white/5 shadow-neon-mint">
-                            <div className="text-[12px] font-bold mb-1">Why UltrAI?</div>
-                            <div className="opacity-90">Multiple LLMs, orchestrated. Better quality, fewer blind spots, and flexible pricing.</div>
-                          </div>
-                          <div className="mt-2 p-3 rounded-xl border border-white/20 bg-white/5 shadow-neon-blue">
-                            <div className="text-[12px] font-bold mb-1">How it works</div>
-                            <div className="opacity-90">Pick goals, state your query, choose analysis and models, then let UltrAI synthesize the best answer.</div>
-                          </div>
+                    <div className="text-center space-y-4">
+                      <div className="inline-block">
+                        <div className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-[#ff00de] to-[#00ffff]">Welcome to the Future</div>
+                        <div className="w-24 h-1 bg-gradient-to-r from-[#ff00de] to-[#00ffff] mx-auto mt-2"></div>
+                      </div>
+                      
+                      <div className="grid grid-cols-2 gap-4 max-w-2xl mx-auto">
+                        <div className="glass p-4 rounded-xl border border-mint-400/20 bg-mint-400/5">
+                          <div className="text-mint-400 text-lg mb-2">✨</div>
+                          <div className="text-sm font-bold mb-1 text-mint-400">Why UltrAI?</div>
+                          <div className="text-xs opacity-80">Multiple LLMs working together. Better results, fewer blind spots.</div>
+                        </div>
+                        <div className="glass p-4 rounded-xl border border-blue-400/20 bg-blue-400/5">
+                          <div className="text-blue-400 text-lg mb-2">🚀</div>
+                          <div className="text-sm font-bold mb-1 text-blue-400">How it works</div>
+                          <div className="text-xs opacity-80">Select goals, enter query, choose models. We handle the rest.</div>
                         </div>
                       </div>
-                      <div className="col-span-5">
-                        <div className="glass p-3 rounded-xl text-center" style={{ fontFamily: monoStack }}>
+                      
+                      <div className="glass p-3 rounded-xl inline-block" style={{ fontFamily: monoStack }}>
                           <div className="text-[12px] font-extrabold tracking-widest text-white text-shadow-neon-pink">ITEMIZED SUMMARY</div>
                           <div className="mt-2 text-[10px] opacity-80">Pay as you go • No commitment</div>
                           <div className="mt-3 text-[24px] font-bold text-neon-pink">Total: $0.00</div>
                           <div className="mt-2 text-[11px] opacity-80">Some queries can be under $1</div>
                         </div>
                       </div>
-                    </div>
                     <div className="w-full mt-4 flex items-center justify-center">
                       <button className="btn-neon text-lg font-extrabold" onClick={() => { setCurrentStep(1); setStepFadeKey(k => k + 1); }}>
                         Start UltrAI!
