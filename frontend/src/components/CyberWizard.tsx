@@ -133,14 +133,16 @@ export default function CyberWizard() {
 
   const step = steps[currentStep];
   const mapColorHex = (c: string) => c === 'mint' ? '#00ff9f'
-    : c === 'blue' ? '#00b8ff'
-    : c === 'deepblue' ? '#001eff'
+    : c === 'blue' ? '#00d4ff'
+    : c === 'deepblue' ? '#4169ff'
     : c === 'purple' ? '#bd00ff'
+    : c === 'pink' ? '#ff0095'
     : '#d600ff';
   const mapColorRGBA = (c: string, alpha: number) => c === 'mint' ? `rgba(0,255,159,${alpha})`
-    : c === 'blue' ? `rgba(0,184,255,${alpha})`
-    : c === 'deepblue' ? `rgba(0,30,255,${alpha})`
+    : c === 'blue' ? `rgba(0,212,255,${alpha})`
+    : c === 'deepblue' ? `rgba(65,105,255,${alpha})`
     : c === 'purple' ? `rgba(189,0,255,${alpha})`
+    : c === 'pink' ? `rgba(255,0,149,${alpha})`
     : `rgba(214,0,255,${alpha})`;
 
   const colorHex = mapColorHex(step.color);
@@ -168,49 +170,97 @@ export default function CyberWizard() {
   // Step 0: Intro — render with background and billboard
   if (currentStep === 0 && step.type === 'intro') {
     return (
-      <div className="no-anim relative flex min-h-screen w-full items-start justify-center p-0 text-white font-cyber text-sm overflow-hidden">
-        {/* Background with billboard */}
+      <div className="relative flex min-h-screen w-full items-start justify-center p-0 text-white font-cyber text-sm overflow-hidden">
+        {/* Animated Background */}
         <div className="absolute inset-0">
           <div
-            className="absolute inset-0"
+            className="absolute inset-0 animate-pulse-slow"
             style={{
               backgroundImage: "url('/cityscape-background.jpeg'), url('/ultrai-bg.jpg')",
               backgroundSize: 'cover',
               backgroundPosition: 'center',
+              transform: 'scale(1.1)',
             }}
           />
           <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/80" />
+          
+          {/* Animated grid overlay */}
+          <div className="absolute inset-0" style={{
+            backgroundImage: `linear-gradient(rgba(0,255,159,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(0,255,159,0.03) 1px, transparent 1px)`,
+            backgroundSize: '50px 50px',
+            animation: 'grid-move 20s linear infinite'
+          }} />
         </div>
 
-        {/* Hero content below billboard */}
+        {/* Floating particles */}
+        <div className="absolute inset-0 overflow-hidden">
+          {[...Array(20)].map((_, i) => (
+            <div
+              key={i}
+              className="absolute w-1 h-1 bg-mint-400 rounded-full animate-float"
+              style={{
+                left: `${Math.random() * 100}%`,
+                top: `${Math.random() * 100}%`,
+                animationDelay: `${Math.random() * 10}s`,
+                animationDuration: `${15 + Math.random() * 10}s`,
+                opacity: Math.random() * 0.5 + 0.2
+              }}
+            />
+          ))}
+        </div>
+
+        {/* Hero content */}
         <div className="relative z-10 w-full mx-auto max-w-5xl px-8" style={{ marginTop: '35vh' }}>
+          {/* Animated title */}
+          <div className="text-center mb-8 animate-slide-in-top">
+            <h1 className="text-6xl font-bold mb-2">
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-mint-400 via-blue-400 to-purple-400 animate-gradient-x">
+                ULTRA AI
+              </span>
+            </h1>
+            <div className="text-xl text-white/80 animate-fade-in" style={{ animationDelay: '0.5s' }}>
+              Intelligence Multiplication Platform
+            </div>
+          </div>
 
           {/* Main card */}
           <div
-            className="relative p-8 rounded-3xl overflow-hidden"
+            className="relative p-8 rounded-3xl overflow-hidden animate-scale-in"
             style={{ 
-              background: 'rgba(0, 0, 0, 0.7)',
-              backdropFilter: 'blur(20px)',
-              border: '2px solid rgba(0,255,159,0.3)',
-              boxShadow: '0 0 80px rgba(0,255,159,0.2), inset 0 0 60px rgba(0,255,159,0.05)'
+              background: 'rgba(0, 0, 0, 0.4)',
+              backdropFilter: 'blur(40px)',
+              WebkitBackdropFilter: 'blur(40px)',
+              border: '2px solid transparent',
+              backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), linear-gradient(45deg, #00ff9f, #00d4ff, #bd00ff, #ff0095)`,
+              backgroundOrigin: 'border-box',
+              backgroundClip: 'padding-box, border-box',
+              boxShadow: '0 0 80px rgba(0,255,159,0.3), inset 0 0 60px rgba(0,255,159,0.05)',
+              animationDelay: '0.3s'
             }}
           >
 
             <div className="relative space-y-8">
               {/* Feature pills */}
               <div className="flex flex-wrap gap-3 justify-center">
-                <span className="px-6 py-2 rounded-full text-sm font-semibold bg-mint-400/20 text-mint-400 border border-mint-400/50 backdrop-blur">
-                  🚀 Multi-Model Orchestration
-                </span>
-                <span className="px-6 py-2 rounded-full text-sm font-semibold bg-blue-400/20 text-blue-400 border border-blue-400/50 backdrop-blur">
-                  ⚡ Real-time Synthesis
-                </span>
-                <span className="px-6 py-2 rounded-full text-sm font-semibold bg-purple-400/20 text-purple-400 border border-purple-400/50 backdrop-blur">
-                  🎯 Intelligent Optimization
-                </span>
-                <span className="px-6 py-2 rounded-full text-sm font-semibold bg-pink-400/20 text-pink-400 border border-pink-400/50 backdrop-blur">
-                  💎 Premium Results
-                </span>
+                {[
+                  { icon: '🚀', text: 'Multi-Model Orchestration', color: 'mint' },
+                  { icon: '⚡', text: 'Real-time Synthesis', color: 'blue' },
+                  { icon: '🎯', text: 'Intelligent Optimization', color: 'purple' },
+                  { icon: '💎', text: 'Premium Results', color: 'pink' }
+                ].map((feature, i) => (
+                  <span 
+                    key={i}
+                    className={`px-6 py-2 rounded-full text-sm font-semibold border backdrop-blur animate-slide-in-bottom hover:scale-105 transition-transform cursor-pointer`}
+                    style={{
+                      background: `${mapColorRGBA(feature.color, 0.2)}`,
+                      borderColor: `${mapColorHex(feature.color)}50`,
+                      color: mapColorHex(feature.color),
+                      animationDelay: `${0.7 + i * 0.1}s`
+                    }}
+                  >
+                    {feature.icon} {feature.text}
+                  </span>
+                ))}
               </div>
 
               {/* Main narrative */}
@@ -228,19 +278,20 @@ export default function CyberWizard() {
               {/* CTA Button */}
               <div className="text-center">
                 <button 
-                  className="group relative px-12 py-5 text-xl font-bold rounded-2xl"
+                  className="group relative px-12 py-5 text-xl font-bold rounded-2xl overflow-hidden animate-pulse-glow hover:scale-105 transition-all duration-300"
                   style={{
                     background: 'linear-gradient(135deg, rgba(0,255,159,0.2) 0%, rgba(0,255,159,0.3) 100%)',
                     border: '2px solid #00ff9f',
-                    boxShadow: '0 0 40px rgba(0,255,159,0.4), inset 0 0 20px rgba(0,255,159,0.2)'
+                    boxShadow: '0 0 40px rgba(0,255,159,0.4), inset 0 0 20px rgba(0,255,159,0.2)',
+                    animation: 'pulse-glow 2s ease-in-out infinite'
                   }}
                   onClick={() => { setCurrentStep(1); setStepFadeKey(k => k + 1); }}
                 >
                   <span className="relative z-10 flex items-center gap-3">
                     <span>Enter Ultra Synthesis™</span>
-                    <span>→</span>
+                    <span className="animate-slide-right">→</span>
                   </span>
-                  <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-mint-400/20 to-mint-400/30" />
+                  <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-mint-400/0 via-mint-400/30 to-mint-400/0 animate-shimmer" />
                 </button>
               </div>
 
@@ -566,7 +617,7 @@ export default function CyberWizard() {
 
       {/* Main Content - Below Billboard */}
       <div className="relative z-10 w-full">
-        <div className="flex items-center justify-center" style={{ minHeight: '100vh', paddingTop: '25vh' }}>
+        <div className="flex items-center justify-center" style={{ minHeight: '100vh', paddingTop: '37.5vh' }}>
           <div className="w-full max-w-6xl px-8">
             <div className="grid grid-cols-12 gap-8">
               
@@ -579,7 +630,7 @@ export default function CyberWizard() {
                     backdropFilter: 'blur(40px)',
                     WebkitBackdropFilter: 'blur(40px)',
                     border: `1px solid rgba(255, 255, 255, 0.2)`,
-                    minHeight: '520px',
+                    minHeight: '420px',
                     boxShadow: `
                       0 8px 32px rgba(0, 0, 0, 0.3),
                       0 0 80px ${colorHex}10,
@@ -865,7 +916,7 @@ export default function CyberWizard() {
                 backdropFilter: 'blur(40px)',
                 WebkitBackdropFilter: 'blur(40px)',
                 border: `1px solid rgba(255, 255, 255, 0.2)`,
-                minHeight: '520px',
+                minHeight: '420px',
                 width: '360px',
                 boxShadow: `
                   0 8px 32px rgba(0, 0, 0, 0.3),
