@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { processWithFeatherOrchestration } from "../api/orchestrator";
 import StatusUpdater from "./StatusUpdater";
 import BridgeAnimation from "./BridgeAnimation";
+import "../styles/cyberpunk-vars.css";
 
 interface StepOption { label: string; cost?: number; icon?: string; description?: string }
 interface Step {
@@ -587,20 +588,25 @@ export default function CyberWizard() {
         </div>
       )}
 
-      {/* Content layer — centered bounded grid */}
-      <div className="relative z-10 w-full mx-auto max-w-6xl flex-1 flex items-center" style={{ paddingTop: '25vh', paddingBottom: '20px' }}>
-        <div className="grid grid-cols-12 gap-6 items-start w-full">
-          {/* Site header column (vertical) */}
-          <div className="col-start-1 col-span-1 self-start">
-            <div className="text-white text-shadow-neon-blue" style={{ writingMode: 'vertical-rl', textOrientation: 'upright', letterSpacing: '0.35em', fontWeight: 800, fontSize: '14px' }}>ULTRAI</div>
-          </div>
-
-          {/* Wizard Panel (left) */}
-          <div className="col-start-2 col-span-7 self-start">
-            <div
-              className={`relative z-20 glass-strong p-5 rounded-2xl transition-all duration-300 animate-border-hum overflow-hidden ${step.color === "mint" ? "shadow-neon-mint" : step.color === "blue" ? "shadow-neon-blue" : step.color === "deepblue" ? "shadow-neon-deep" : step.color === "purple" ? "shadow-neon-purple" : "shadow-neon-pink"}`}
-              style={{ borderColor: colorHex, borderWidth: 7, background: colorRGBA, boxShadow: `0 0 0 2px rgba(255,255,255,0.10) inset, 0 0 14px ${colorHex}`, minHeight: '60vh' }}
-            >
+      {/* Main Content Container - Fixed Layout */}
+      <div className="fixed inset-0 pointer-events-none" style={{ zIndex: 10 }}>
+        <div className="h-full flex items-center justify-center p-8">
+          <div className="w-full max-w-7xl pointer-events-auto">
+            <div className="grid grid-cols-12 gap-6">
+              {/* Wizard Panel (left) */}
+              <div className="col-span-8">
+                <div
+                  className="cyber-panel cyber-panel-cut cyber-glow"
+                  style={{
+                    minHeight: '500px',
+                    borderColor: `${colorHex}33`,
+                    boxShadow: `
+                      0 0 40px ${colorHex}20,
+                      inset 0 0 60px rgba(0, 0, 0, 0.5),
+                      0 0 0 1px ${colorHex}66
+                    `
+                  }}
+                >
               <div className="flex flex-col h-full">
               {/* Step markers (centered) */}
               <div className="w-full mb-4">
