@@ -1286,6 +1286,25 @@ export default function CyberWizard() {
                   <div className="text-[12px] font-extrabold tracking-[0.35em] text-white">SYSTEM STATUS</div>
                   <div className="text-[9px] text-white/70">— REALTIME METRICS —</div>
                 </div>
+                {/* Theme toggle */}
+                <div className="mb-3">
+                  <div className="text-[10px] text-white/70 text-center mb-1">Background Theme</div>
+                  <div className="grid grid-cols-4 gap-2">
+                    {(['morning','afternoon','sunset','night'] as const).map(t => (
+                      <button
+                        key={t}
+                        className={`px-2 py-1 rounded text-[10px] ${bgTheme===t ? 'font-bold' : ''}`}
+                        style={{
+                          background: bgTheme===t ? 'rgba(255,255,255,0.12)' : 'rgba(255,255,255,0.05)',
+                          border: bgTheme===t ? '1px solid rgba(255,255,255,0.3)' : '1px solid rgba(255,255,255,0.15)'
+                        }}
+                        onClick={() => setBgTheme(t)}
+                      >
+                        {t}
+                      </button>
+                    ))}
+                  </div>
+                </div>
                 
                 <div className="grid grid-cols-4 gap-3">
                   {/* Models Summary */}
@@ -1375,25 +1394,6 @@ export default function CyberWizard() {
               {!showStatus ? (
                 <>
                   <div className="text-center mb-2">
-                    {/* Theme toggle */}
-                    <div className="mb-3">
-                      <div className="text-[10px] text-white/70 text-center mb-1">Background Theme</div>
-                      <div className="grid grid-cols-4 gap-2">
-                        {(['morning','afternoon','sunset','night'] as const).map(t => (
-                          <button
-                            key={t}
-                            className={`px-2 py-1 rounded text-[10px] ${bgTheme===t ? 'font-bold' : ''}`}
-                            style={{
-                              background: bgTheme===t ? 'rgba(255,255,255,0.12)' : 'rgba(255,255,255,0.05)',
-                              border: bgTheme===t ? '1px solid rgba(255,255,255,0.3)' : '1px solid rgba(255,255,255,0.15)'
-                            }}
-                            onClick={() => setBgTheme(t)}
-                          >
-                            {t}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
                     <div className="text-[14px] font-extrabold tracking-[0.35em] text-white">ULTRAI</div>
                     <div className="text-[10px] text-white/70">— ITEMIZED RECEIPT —</div>
                   </div>
