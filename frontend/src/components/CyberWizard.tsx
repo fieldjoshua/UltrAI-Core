@@ -121,9 +121,9 @@ export default function CyberWizard() {
     })();
   }, [showStatus]);
 
-  const addSelection = (label: string, cost: number | undefined, color: string) => {
+  const addSelection = (label: string, cost: number | undefined, color: string, section?: string) => {
     const appliedCost = typeof cost === 'number' ? cost : 0;
-    setSummary(prev => [...prev, { label, cost: appliedCost, color }]);
+    setSummary(prev => [...prev, { label, cost: appliedCost, color, section: section || step.title }]);
     setTotalCost(prev => prev + appliedCost);
   };
 
@@ -570,22 +570,22 @@ export default function CyberWizard() {
 
       {/* Main Content - Below Billboard */}
       <div className="relative z-10 w-full">
-        <div className="flex items-center justify-center min-h-screen py-20">
+        <div className="flex items-center justify-center" style={{ minHeight: '100vh', paddingTop: '25vh' }}>
           <div className="w-full max-w-6xl px-8">
             <div className="grid grid-cols-12 gap-8">
               
               {/* Wizard Panel (left) */}
               <div className="col-span-8">
                 <div
-                  className={`relative p-8 rounded-2xl transition-all duration-300 overflow-hidden`}
+                  className={`relative p-8 rounded-2xl overflow-hidden`}
                   style={{
-                    background: 'rgba(0, 0, 0, 0.85)',
+                    background: `linear-gradient(0deg, ${mapColorRGBA(step.color, 0.08)}, ${mapColorRGBA(step.color, 0.08)}), rgba(0, 0, 0, 0.85)`,
                     backdropFilter: 'blur(20px)',
-                    border: `1px solid rgba(255, 255, 255, 0.1)`,
-                    minHeight: '450px',
+                    border: `1px solid rgba(255, 255, 255, 0.12)`,
+                    minHeight: '520px',
                     boxShadow: `
-                      0 4px 24px rgba(0, 0, 0, 0.5),
-                      0 0 60px ${colorHex}10,
+                      0 6px 28px rgba(0, 0, 0, 0.55),
+                      0 0 60px ${colorHex}14,
                       0 0 0 1px ${colorHex}33
                     `,
                     clipPath: 'polygon(0 0, calc(100% - 20px) 0, 100% 20px, 100% 100%, 20px 100%, 0 calc(100% - 20px))'
@@ -746,69 +746,20 @@ export default function CyberWizard() {
                     </div>
                   ) : (step.title || '').includes('Model selection') ? (
                     <div className="space-y-2">
-                      {/* Auto/Manual grouped boxes */}
-                      <div className="grid grid-cols-2 gap-2">
-                        <div className="glass p-2 rounded-xl border border-white/20">
-                          <div className="text-[11px] uppercase tracking-wider mb-1 opacity-80">Auto selection</div>
-                        <button
-                          className="px-2 py-1 text-[11px] rounded border border-white/30 hover:border-white/60"
-                          onClick={() => {
-                            setModelSelectionMode('auto');
-                            setAutoPreference('cost');
-                            const picks = chooseAutoModels('cost', availableModels);
-                            setSelectedModels(picks);
-                            const est = picks.reduce((sum, n) => sum + (availableModelInfos[n]?.cost_per_1k_tokens || 0), 0);
-                            addSelection(`Auto (Cost-Saving): ${picks.join(', ')}`, est, step.color, step.title);
-                          }}
-                        >Auto: Cost-Saving</button>
-                        <button
-                          className="px-2 py-1 text-[11px] rounded border border-white/30 hover:border-white/60"
-                          onClick={() => {
-                            setModelSelectionMode('auto');
-                            setAutoPreference('premium');
-                            const picks = chooseAutoModels('premium', availableModels);
-                            setSelectedModels(picks);
-                            const est = picks.reduce((sum, n) => sum + (availableModelInfos[n]?.cost_per_1k_tokens || 0), 0);
-                            addSelection(`Auto (Premium): ${picks.join(', ')}`, est, step.color, step.title);
-                          }}
-                        >Auto: Premium Quality</button>
-                        <button
-                          className="px-2 py-1 text-[11px] rounded border border-white/30 hover:border-white/60"
-                          onClick={() => {
-                            setModelSelectionMode('auto');
-                            setAutoPreference('speed');
-                            const picks = chooseAutoModels('speed', availableModels);
-                            setSelectedModels(picks);
-                            const est = picks.reduce((sum, n) => sum + (availableModelInfos[n]?.cost_per_1k_tokens || 0), 0);
-                            addSelection(`Auto (Speed): ${picks.join(', ')}`, est, step.color, step.title);
-                          }}
-                        >Auto: Speed</button>
-                        </div>
-                        <div className="glass p-2 rounded-xl border border-white/20">
-                          <div className="text-[11px] uppercase tracking-wider mb-1 opacity-80">Manual selection</div>
-                        <button
-                          className="px-2 py-1 text-[11px] rounded border border-white/30 hover:border-white/60"
-                          onClick={() => setModelSelectionMode('manual')}
-                        >Open manual list</button>
-                        {modelSelectionMode === 'manual' && (
-                          <div className={'grid grid-cols-2 gap-1 mt-2'}>
-                            {(availableModels || []).map(name => (
-                              <label key={name} className="flex items-center text-[11px] leading-tight truncate opacity-95 hover:opacity-100">
-                                <input type="checkbox" onChange={() => handleModelToggle(name)} checked={selectedModels.includes(name)} />{" "}
-                                <span className="align-middle truncate tracking-wide text-white">{name} {availableModelInfos[name] ? `( $${availableModelInfos[name].cost_per_1k_tokens}/1k )` : ''}</span>
-                              </label>
-                            ))}
-                            {availableModels && availableModels.length === 0 && (
-                              <div className="text-[11px] opacity-80">No models available. Add API keys to enable models.</div>
-                            )}
-                          </div>
-                        )}
+                      <div className="glass p-2 rounded-xl border border-white/20">
+                        <div className="text-[11px] uppercase tracking-wider mb-1 opacity-80">Manual selection</div>
+                        <div className={'grid grid-cols-2 gap-1 mt-2'}>
+                          {(availableModels || []).map(name => (
+                            <label key={name} className="flex items-center text-[11px] leading-tight truncate opacity-95 hover:opacity-100">
+                              <input type="checkbox" onChange={() => handleModelToggle(name)} checked={selectedModels.includes(name)} />{" "}
+                              <span className="align-middle truncate tracking-wide text-white">{name} {availableModelInfos[name] ? `( $${availableModelInfos[name].cost_per_1k_tokens}/1k )` : ''}</span>
+                            </label>
+                          ))}
+                          {availableModels && availableModels.length === 0 && (
+                            <div className="text-[11px] opacity-80">No models available. Add API keys to enable models.</div>
+                          )}
                         </div>
                       </div>
-
-                      {modelSelectionMode !== 'manual' && (
-                        <div className="text-[11px] opacity-80 mt-2">Selected (Auto - {autoPreference}): {selectedModels.join(', ') || 'None yet'}</div>
-                      )}
                     </div>
                   ) : (
                     (step.title || '').toLowerCase().includes('select your goals') ? (
@@ -865,16 +816,6 @@ export default function CyberWizard() {
 
               {/* Action buttons (sticky footer inside panel) */}
               <div className="mt-auto sticky bottom-0 pt-1" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.35), rgba(0,0,0,0))' }}>
-                {(step.type === 'checkbox' || step.type === 'textarea' || step.type === 'radio') && currentStep !== 4 && currentStep !== 0 && currentStep !== 2 && (
-                  <button
-                    className="w-full mt-1 px-3 py-2 rounded text-center font-semibold shadow-neon-mint animate-border-hum"
-                    style={{ border: '2px solid #00ff9f', color: '#00ff9f', background: 'rgba(0,255,159,0.08)' }}
-                    onClick={() => addSelection("Auto: Let UltrAI Optimize My Query", 0, step.color, step.title)}
-                  >
-                    Auto: Let UltrAI Optimize My Query
-                  </button>
-                )}
-
                 <button
                   className="w-full mt-2 px-3 py-2 rounded text-center font-semibold animate-border-hum"
                   style={{ border: `2px solid ${colorHex}`, color: colorHex, background: mapColorRGBA(step.color, 0.06) }}
