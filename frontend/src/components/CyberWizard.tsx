@@ -595,8 +595,8 @@ export default function CyberWizard() {
               {/* Step markers (centered) - exclude Step 0 (Intro) */}
               <div className="w-full mb-4">
                 <div className="flex items-center justify-center">
-                  {steps.slice(1).map((s, i) => {
-                    const stepIndex = i + 1; // real index in steps
+                  {steps.map((s, idx) => ({ s, idx })).filter(x => x.idx !== 0).map(({ s, idx }) => {
+                    const stepIndex = idx; // real index in steps
                     const isActive = stepIndex === currentStep;
                     const isDone = stepIndex < currentStep;
                     const dotHex = mapColorHex(s.color);
@@ -627,12 +627,12 @@ export default function CyberWizard() {
                             </div>
                           </div>
                         </div>
-                        {i < steps.slice(1).length - 1 && (
+                        {idx < steps.length - 1 && (
                           <div 
                             className="w-12 h-0.5 mx-2 transition-all duration-300" 
                             style={{ 
-                              backgroundColor: i < currentStep ? dotHex : 'rgba(255,255,255,0.2)',
-                              boxShadow: i < currentStep ? `0 0 10px ${dotHex}50` : 'none'
+                              backgroundColor: idx < currentStep ? dotHex : 'rgba(255,255,255,0.2)',
+                              boxShadow: idx < currentStep ? `0 0 10px ${dotHex}50` : 'none'
                             }} 
                           />
                         )}
