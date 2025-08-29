@@ -1411,18 +1411,37 @@ export default function CyberWizard() {
                     textShadow: '0 0 10px rgba(255, 0, 212, 0.5)'
                   }}>{`Total: $${totalCost.toFixed(2)}`}</div>
                   {addonsSubmitted ? (
-                    <button
-                      className="w-full mt-3 px-4 py-3 rounded text-center font-semibold animate-pulse-glow transition-smooth hover:scale-[1.02] active:scale-[0.98]"
-                      style={{ 
-                        border: '2px solid #ff00d4', 
-                        color: '#ff00d4', 
-                        background: 'rgba(255,0,212,0.08)',
-                        boxShadow: '0 0 20px rgba(255,0,212,0.3)'
-                      }}
-                      onClick={() => setShowStatus(true)}
-                    >
-                      🚀 Initialize UltrAI
-                </button>
+                    selectedModels.length >= 2 ? (
+                      <button
+                        className="w-full mt-3 px-4 py-3 rounded text-center font-semibold animate-pulse-glow transition-smooth hover:scale-[1.02] active:scale-[0.98]"
+                        style={{ 
+                          border: '2px solid #ff00d4', 
+                          color: '#ff00d4', 
+                          background: 'rgba(255,0,212,0.08)',
+                          boxShadow: '0 0 20px rgba(255,0,212,0.3)'
+                        }}
+                        onClick={() => setShowStatus(true)}
+                      >
+                        🚀 Initialize UltrAI
+                      </button>
+                    ) : (
+                      <div className="mt-3">
+                        <button
+                          className="w-full px-4 py-3 rounded text-center font-semibold opacity-50 cursor-not-allowed"
+                          style={{ 
+                            border: '2px solid rgba(255,0,212,0.5)', 
+                            color: 'rgba(255,0,212,0.7)', 
+                            background: 'rgba(255,0,212,0.04)'
+                          }}
+                          disabled
+                        >
+                          ⚠️ Select at least 2 models
+                        </button>
+                        <p className="text-[10px] text-white/50 text-center mt-2">
+                          Ultra Synthesis™ requires multiple models for optimal results
+                        </p>
+                      </div>
+                    )
                   ) : currentStep === steps.length - 1 ? (
                     <div className="mt-3 text-center text-[11px] text-white/60">
                       Submit add-ons to continue...
