@@ -2,7 +2,6 @@
 import { useEffect, useState } from "react";
 import { processWithFeatherOrchestration } from "../api/orchestrator";
 import StatusUpdater from "./StatusUpdater";
-import AnimatedBillboard from "./AnimatedBillboard";
 import BridgeAnimation from "./BridgeAnimation";
 
 interface StepOption { label: string; cost?: number; icon?: string; description?: string }
@@ -458,14 +457,6 @@ export default function CyberWizard() {
 
   return (
     <div className="relative flex flex-col min-h-screen w-full text-white font-cyber text-sm">
-      {/* Animated Billboard */}
-      <AnimatedBillboard 
-        state={billboardState} 
-        message={billboardMessage}
-        currentStep={currentStep}
-        totalSteps={steps.length}
-      />
-      
       {/* Background layer */}
       <div
         className="pointer-events-none absolute inset-0"
@@ -473,17 +464,40 @@ export default function CyberWizard() {
           backgroundImage: "url('/cityscape-background.jpeg'), url('/ultrai-bg.jpg')",
           backgroundSize: 'cover',
           backgroundPosition: 'center',
-          zIndex: 0,
-          top: '120px'
+          zIndex: 0
         }}
       />
+      
+      {/* Animated Billboard Lines - Lower Right Corner */}
+      <div 
+        className="pointer-events-none absolute"
+        style={{
+          bottom: 0,
+          right: 0,
+          width: '70%',
+          height: '100%',
+          zIndex: 3
+        }}
+      >
+        <img
+          src="/overlays/billboard_lines.svg"
+          alt=""
+          className="w-full h-full object-contain object-bottom-right"
+          style={{
+            opacity: billboardState === 'processing' ? 0.4 : 0.2,
+            filter: `brightness(${billboardState === 'processing' ? 1.8 : 1.2}) ${billboardState === 'processing' ? 'drop-shadow(0 0 20px #00ff00)' : ''}`,
+            animation: billboardState === 'processing' ? 'billboardPulse 2s ease-in-out infinite' : 'none',
+            transition: 'all 0.5s ease'
+          }}
+        />
+      </div>
       
       {/* Bridge Animation - Lower Left Corner */}
       <BridgeAnimation state={billboardState} />
       
-      {/* Optimization Status Boxes - Below Billboard */}
+      {/* Optimization Status Boxes */}
       {isOptimizing && (
-        <div className="absolute w-full" style={{ top: '140px', zIndex: 5 }}>
+        <div className="absolute w-full" style={{ top: '20px', zIndex: 5 }}>
           <div className="max-w-4xl mx-auto px-8">
             <div className="glass-strong p-4 rounded-xl" style={{ 
               background: 'rgba(0, 0, 0, 0.75)', 
@@ -551,7 +565,7 @@ export default function CyberWizard() {
 
       {/* Model Status Panel - Top Right */}
       {availableModels && availableModels.length > 0 && (
-        <div className="absolute right-4 z-20" style={{ top: '140px' }}>
+        <div className="absolute right-4 z-20" style={{ top: '20px' }}>
           <div className="glass p-3 rounded-lg" style={{ background: 'rgba(0, 0, 0, 0.7)', backdropFilter: 'blur(10px)' }}>
             <div className="text-[11px] font-bold mb-2 text-white/80">AI Models Status</div>
             <div className="space-y-1">
@@ -576,7 +590,7 @@ export default function CyberWizard() {
       )}
 
       {/* Content layer — centered bounded grid */}
-      <div className="relative z-10 w-full mx-auto max-w-6xl flex-1 flex items-center" style={{ paddingTop: '140px', paddingBottom: '20px' }}>
+      <div className="relative z-10 w-full mx-auto max-w-6xl flex-1 flex items-center" style={{ paddingTop: '40px', paddingBottom: '20px' }}>
         <div className="grid grid-cols-12 gap-6 items-start w-full">
           {/* Site header column (vertical) */}
           <div className="col-start-1 col-span-1 self-start">

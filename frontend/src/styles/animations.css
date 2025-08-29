@@ -4,6 +4,17 @@
   100% { background-position: 20px 20px; }
 }
 
+@keyframes billboardPulse {
+  0%, 100% { 
+    opacity: 0.2;
+    filter: brightness(1.2) drop-shadow(0 0 10px #00ff00);
+  }
+  50% { 
+    opacity: 0.4;
+    filter: brightness(1.8) drop-shadow(0 0 30px #00ff00);
+  }
+}
+
 @keyframes scan {
   0% { 
     transform: translateY(-60px); 
