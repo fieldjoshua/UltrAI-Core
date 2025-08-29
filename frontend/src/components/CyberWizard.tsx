@@ -33,6 +33,7 @@ export default function CyberWizard() {
   const [isRunning, setIsRunning] = useState<boolean>(false);
   const [orchestratorResult, setOrchestratorResult] = useState<any>(null);
   const [orchestratorError, setOrchestratorError] = useState<string | null>(null);
+  const [isOptimizing, setIsOptimizing] = useState<boolean>(false);
 
   useEffect(() => {
     const load = async () => {
@@ -230,6 +231,134 @@ export default function CyberWizard() {
     return cheapSorted.slice(0, Math.min(2, cheapSorted.length));
   };
 
+  const optimizeSearch = () => {
+    setIsOptimizing(true);
+    
+    // Simulate a brief delay for visual feedback
+    setTimeout(() => {
+      // Clear previous selections except any manually selected goals
+      const existingGoals = [...selectedGoals];
+      setSummary([]);
+      setTotalCost(0);
+      setSelectedInputs([]);
+      setSelectedModels([]);
+      setSelectedAddons([]);
+      
+      // Base cost for query entry
+      addSelection("Query Entry", 0, "blue");
+    
+    // Analyze query to determine relevant goals
+    const query = userQuery.toLowerCase();
+    const goalMap: Record<string, string[]> = {
+      "Document Analysis": ["analyze", "document", "pdf", "report", "review", "examine", "read"],
+      "Deep Research": ["research", "investigate", "study", "explore", "find", "discover", "learn"],
+      "Academic Research & Citations": ["academic", "paper", "citation", "journal", "thesis", "scholarly", "peer-reviewed"],
+      "Writing & Editing Assistance": ["write", "edit", "draft", "compose", "rewrite", "proofread", "improve"],
+      "Brainstorming & Ideation": ["idea", "brainstorm", "creative", "suggest", "concept", "innovate", "think"],
+      "Code Creation / Debugging": ["code", "debug", "program", "script", "function", "bug", "error", "python", "javascript", "java"],
+      "Data Analysis & Visualization": ["data", "analyze", "chart", "graph", "statistics", "metrics", "visualization"],
+      "Media Generation (Image/Video/Text)": ["image", "video", "generate", "create", "design", "visual", "artwork"],
+      "Personal Organization": ["organize", "plan", "schedule", "todo", "list", "manage", "track"],
+      "Internet Search": ["search", "find", "lookup", "google", "web", "online", "internet"],
+      "Event Planning": ["event", "meeting", "conference", "party", "wedding", "gathering", "occasion"],
+      "Travel Planning": ["travel", "trip", "vacation", "flight", "hotel", "itinerary", "destination"],
+      "News Gathering": ["news", "current", "latest", "today", "happening", "events", "updates"],
+      "Social Media Post Creation": ["social", "post", "twitter", "linkedin", "facebook", "instagram", "content"],
+      "Customer Support Drafts": ["support", "customer", "help", "service", "response", "reply", "answer"]
+    };
+    
+    // Select relevant goals based on query keywords
+    const autoSelectedGoals: string[] = [];
+    Object.entries(goalMap).forEach(([goal, keywords]) => {
+      if (keywords.some(keyword => query.includes(keyword))) {
+        autoSelectedGoals.push(goal);
+      }
+    });
+    
+    // If no specific goals matched, select general ones based on query structure
+    if (autoSelectedGoals.length === 0) {
+      if (query.includes("?") || query.includes("how") || query.includes("what") || query.includes("why")) {
+        autoSelectedGoals.push("Deep Research");
+      }
+      if (query.length > 100 || query.includes("help me") || query.includes("create") || query.includes("make")) {
+        autoSelectedGoals.push("Writing & Editing Assistance");
+      }
+      // If still no matches, use defaults
+      if (autoSelectedGoals.length === 0) {
+        autoSelectedGoals.push("Deep Research", "Writing & Editing Assistance");
+      }
+    }
+    
+    // Combine existing manual selections with auto-selected goals
+    const allGoals = [...new Set([...existingGoals, ...autoSelectedGoals])];
+    setSelectedGoals(allGoals);
+    
+    // Add all goals to the receipt
+    allGoals.forEach(goal => {
+      addSelection(goal, 0, "mint");
+    });
+    
+    // Always select UltrAI Intelligence Multiplier
+    addSelection("UltrAI Intelligence Multiplier", 0.08, "purple");
+    
+    // Auto-select models based on query complexity and content
+    let modelPreference: 'cost' | 'premium' | 'speed' = 'premium';
+    
+    // Check for specific indicators
+    if (query.length < 50 || query.includes("quick") || query.includes("simple") || query.includes("fast")) {
+      modelPreference = 'speed';
+    } else if (query.includes("budget") || query.includes("cheap") || query.includes("economical")) {
+      modelPreference = 'cost';
+    } else if (query.includes("comprehensive") || query.includes("detailed") || query.includes("thorough") || 
+               allGoals.includes("Academic Research & Citations") || allGoals.includes("Code Creation / Debugging")) {
+      modelPreference = 'premium';
+    }
+    
+    const autoModels = chooseAutoModels(modelPreference, availableModels);
+    setSelectedModels(autoModels);
+    const modelsCost = autoModels.reduce((sum, n) => sum + (availableModelInfos[n]?.cost_per_1k_tokens || 0), 0) * 0.1; // Estimate 0.1 for 1k tokens usage
+    addSelection(`Auto (${modelPreference}): ${autoModels.join(', ')}`, modelsCost, "deepblue");
+    
+    // Select formatting options based on query and selected goals
+    const formatOptions: string[] = [];
+    
+    if (query.includes("pdf") || query.includes("document") || allGoals.includes("Document Analysis")) {
+      formatOptions.push("PDF / Word / Markdown / Plain Text");
+      addSelection("PDF / Word / Markdown / Plain Text", 0.02, "pink");
+    }
+    
+    if (query.includes("data") || query.includes("csv") || query.includes("json") || allGoals.includes("Data Analysis & Visualization")) {
+      formatOptions.push("JSON / CSV Export");
+      addSelection("JSON / CSV Export", 0.02, "pink");
+    }
+    
+    if (query.includes("summary") || query.includes("summarize") || query.includes("brief")) {
+      formatOptions.push("Summarize / Expand");
+      addSelection("Summarize / Expand", 0.06, "pink");
+    }
+    
+    if (allGoals.includes("Academic Research & Citations")) {
+      formatOptions.push("Fact-check Confidence Report");
+      addSelection("Fact-check Confidence Report", 0.05, "pink");
+    }
+    
+    if (query.includes("private") || query.includes("confidential") || query.includes("secure")) {
+      formatOptions.push("Data Privacy Mode (strip PII)");
+      addSelection("Data Privacy Mode (strip PII)", 0.04, "pink");
+    }
+    
+    // If no specific format selected, add a default based on goals
+    if (formatOptions.length === 0) {
+      addSelection("PDF / Word / Markdown / Plain Text", 0.02, "pink");
+    }
+    
+      // Move to the last step
+      setCurrentStep(steps.length - 1);
+      setStepFadeKey(k => k + 1);
+      setIsOptimizing(false);
+    }, 500); // Brief delay for visual feedback
+  };
+
 
   return (
     <div className="relative flex min-h-screen w-full items-start justify-center p-0 text-white font-cyber text-sm">
@@ -325,6 +454,23 @@ export default function CyberWizard() {
 
                 {step.type === "textarea" && (<>
                   <textarea className="w-full h-16 glass p-2 text-white text-sm" placeholder="Type your query…" value={userQuery} onChange={(e) => setUserQuery(e.target.value)} onBlur={() => addSelection("Query Entry", step.baseCost, step.color)} />
+                  
+                  {/* Add "Allow UltrAI to optimize my search" button after query input */}
+                  {userQuery && userQuery.trim().length > 0 && (
+                    <button
+                      className="w-full mt-2 px-3 py-2 rounded text-center font-semibold shadow-neon-mint animate-border-hum"
+                      style={{ border: '2px solid #00ff9f', color: '#00ff9f', background: 'rgba(0,255,159,0.12)' }}
+                      onClick={() => optimizeSearch()}
+                      disabled={isOptimizing}
+                    >
+                      {isOptimizing ? (
+                        <span className="animate-pulse">🤖 Optimizing your search...</span>
+                      ) : (
+                        <span>🚀 Allow UltrAI to optimize my search</span>
+                      )}
+                    </button>
+                  )}
+                  
                   {step.options && (
                     <div className="grid grid-cols-2 gap-2 mt-1">
                       {step.options.map(o => (
