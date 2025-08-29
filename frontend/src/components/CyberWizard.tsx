@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { processWithFeatherOrchestration } from "../api/orchestrator";
 import StatusUpdater from "./StatusUpdater";
 import AnimatedBillboard from "./AnimatedBillboard";
+import BridgeAnimation from "./BridgeAnimation";
 
 interface StepOption { label: string; cost?: number; icon?: string; description?: string }
 interface Step {
@@ -476,6 +477,9 @@ export default function CyberWizard() {
           top: '120px'
         }}
       />
+      
+      {/* Bridge Animation - Lower Left Corner */}
+      <BridgeAnimation state={billboardState} />
       
       {/* Optimization Status Boxes - Below Billboard */}
       {isOptimizing && (
