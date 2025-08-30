@@ -209,7 +209,13 @@ const SimpleAnalysis: React.FC = () => {
 
       console.log('Sending analysis request:', payload);
       const result = await analyzePrompt(payload);
-      setOutput(result.ultra_response);
+      // Ensure ultra_response is a string
+      const ultraResponse = typeof result.ultra_response === 'string' 
+        ? result.ultra_response 
+        : typeof result.ultra_response === 'object' 
+          ? JSON.stringify(result.ultra_response, null, 2)
+          : String(result.ultra_response || '');
+      setOutput(ultraResponse);
 
       // Handle individual model responses
       const individualResponses: ModelResponse[] = [];

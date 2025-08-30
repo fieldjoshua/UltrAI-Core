@@ -196,7 +196,11 @@ const MultimodalAnalysis: React.FC = () => {
                   </span>
                   {analysisResults.processing_time && (
                     <span className="text-sm text-green-600">
-                      ({typeof analysisResults.processing_time === 'number' ? analysisResults.processing_time.toFixed(2) : analysisResults.processing_time}s)
+                      ({typeof analysisResults.processing_time === 'number' 
+                        ? analysisResults.processing_time.toFixed(2) 
+                        : typeof analysisResults.processing_time === 'string'
+                          ? analysisResults.processing_time
+                          : JSON.stringify(analysisResults.processing_time)}s)
                     </span>
                   )}
                 </div>
