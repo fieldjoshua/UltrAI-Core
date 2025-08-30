@@ -339,6 +339,7 @@
 .glow-blue { box-shadow: 0 0 30px rgba(0, 212, 255, 0.3); }
 .glow-purple { box-shadow: 0 0 30px rgba(189, 0, 255, 0.3); }
 .glow-pink { box-shadow: 0 0 30px rgba(255, 0, 149, 0.3); }
+.glow-orange { box-shadow: 0 0 30px rgba(255, 102, 0, 0.4); }
 
 /* Performance optimizations */
 .will-change-transform { will-change: transform; }

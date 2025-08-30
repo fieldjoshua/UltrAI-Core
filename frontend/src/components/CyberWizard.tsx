@@ -210,7 +210,7 @@ export default function CyberWizard() {
     : `rgba(214,0,255,${alpha})`;
 
   const colorHex = useMemo(() => step ? mapColorHex(step.color) : '#00ff9f', [step]);
-  const receiptColor = '#bd00ff';
+  const receiptColor = '#ff6600'; // Cyberpunk orange
 
   const handleGoalToggle = useCallback((label: string) => {
     if (!step) return;
@@ -273,6 +273,21 @@ export default function CyberWizard() {
       case 'night':
       default:
         return '/bg-night.jpeg';
+    }
+  }, [bgTheme]);
+
+  // Glass panel darkness based on theme for better readability
+  const glassBackground = useMemo(() => {
+    switch (bgTheme) {
+      case 'morning':
+        return 'rgba(0, 0, 0, 0.35)'; // Darker for bright morning
+      case 'afternoon':
+        return 'rgba(0, 0, 0, 0.30)'; // Darker for bright afternoon
+      case 'sunset':
+        return 'rgba(0, 0, 0, 0.20)'; // Medium for sunset
+      case 'night':
+      default:
+        return 'rgba(0, 0, 0, 0.15)'; // Lighter for dark night
     }
   }, [bgTheme]);
 
@@ -421,13 +436,13 @@ export default function CyberWizard() {
             
             {/* Main professional card */}
             <div
-              className="glass-panel glass-grain relative p-12 rounded-3xl overflow-hidden animate-scale-in transition-smooth glow-mint"
+              className="glass-panel glass-grain relative p-12 rounded-3xl overflow-hidden animate-scale-in transition-smooth"
               style={{ 
-                background: 'rgba(0, 0, 0, 0.15)',
+                background: glassBackground,
                 backdropFilter: 'blur(40px)',
                 WebkitBackdropFilter: 'blur(40px)',
-                border: '2px solid #00ff9f',
-                boxShadow: '0 0 60px rgba(0,255,159,0.2), inset 0 0 40px rgba(0,255,159,0.02)',
+                border: '2px solid #ff6600',
+                boxShadow: '0 0 60px rgba(255,102,0,0.3), inset 0 0 40px rgba(255,102,0,0.05)',
                 animationDelay: '0.3s'
               }}
             >
@@ -468,8 +483,8 @@ export default function CyberWizard() {
                     color: '#00d4ff',
                     textShadow: '0 0 5px #00d4ff, 0 0 10px #00d4ff'
                   }}>unprecedented quality</span> and <span className="font-bold" style={{
-                    color: '#bd00ff',
-                    textShadow: '0 0 5px #bd00ff, 0 0 10px #bd00ff'
+                    color: '#ff6600',
+                    textShadow: '0 0 5px #ff6600, 0 0 10px #ff6600'
                   }}>comprehensive insights</span>.
                 </p>
                 <div className="flex justify-center gap-6 text-sm mt-6">
@@ -559,10 +574,10 @@ export default function CyberWizard() {
         <div className="absolute w-full" style={{ top: '10vh', zIndex: 5 }}>
           <div className="max-w-4xl mx-auto px-8">
             <div className="glass-strong p-4 rounded-xl" style={{ 
-              background: 'rgba(0, 0, 0, 0.2)', 
+              background: glassBackground, 
               backdropFilter: 'blur(40px)',
               WebkitBackdropFilter: 'blur(40px)',
-              border: '2px solid #00ff9f',
+              border: '2px solid #ff6600',
               boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3), inset 0 0 60px rgba(255, 255, 255, 0.05)'
             }}>
               <div className="text-center mb-3">
@@ -654,7 +669,7 @@ export default function CyberWizard() {
                     step.color === 'pink' ? 'glow-pink' : ''
                   }`}
                   style={{
-                    background: `linear-gradient(135deg, ${mapColorRGBA(step.color, 0.08)}, ${mapColorRGBA(step.color, 0.02)}), rgba(0, 0, 0, 0.05)`,
+                    background: `linear-gradient(135deg, ${mapColorRGBA(step.color, 0.08)}, ${mapColorRGBA(step.color, 0.02)}), ${glassBackground}`,
                     backdropFilter: 'blur(20px) saturate(180%)',
                     WebkitBackdropFilter: 'blur(20px) saturate(180%)',
                     border: `2px solid ${colorHex}40`,
@@ -879,7 +894,7 @@ export default function CyberWizard() {
                     <textarea 
                       className="w-full h-20 glass p-3 text-white text-sm rounded-lg transition-all duration-200 hover:border-blue-400 focus:border-blue-400 focus:outline-none" 
                       style={{
-                        background: queryFocused ? 'rgba(0, 0, 0, 0.4)' : 'rgba(0, 0, 0, 0.3)',
+                        background: queryFocused ? glassBackground : glassBackground,
                         backdropFilter: 'blur(10px)',
                         border: `2px solid ${queryFocused ? colorHex : colorHex + '50'}`,
                         resize: 'none',
