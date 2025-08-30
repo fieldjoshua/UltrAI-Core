@@ -150,10 +150,10 @@ export async function processWithFeatherOrchestration({
       } : {},
       
       // Extract Ultra Synthesis™ - this is the key improvement
-      ultra_response: data.results?.ultra_synthesis || 
-                     data.results?.formatted_synthesis ||
+      ultra_response: data.results?.ultra_synthesis?.output?.synthesis || 
                      data.results?.ultra_synthesis?.synthesis || 
-                     data.results?.ultra_synthesis?.output?.synthesis || 
+                     data.results?.formatted_synthesis ||
+                     (typeof data.results?.ultra_synthesis === 'string' ? data.results.ultra_synthesis : null) ||
                      'No Ultra Synthesis™ available',
       
       // Additional metadata
