@@ -58,7 +58,7 @@ class TestStreamingOrchestrationService:
         event_data = events[0].strip().replace("data: ", "")
         parsed = json.loads(event_data)
         
-        assert parsed["event"] == StreamEventType.PIPELINE_START
+        assert parsed["event"] == StreamEventType.PIPELINE_START.value
         assert parsed["sequence"] == 1
         assert "Test query" in parsed["data"]["query"]
         assert parsed["data"]["selected_models"] == ["gpt-4", "claude-3"]
@@ -80,7 +80,7 @@ class TestStreamingOrchestrationService:
         json_str = sse_output.replace("data: ", "").strip()
         parsed = json.loads(json_str)
         
-        assert parsed["event"] == StreamEventType.MODEL_START
+        assert parsed["event"] == StreamEventType.MODEL_START.value
         assert parsed["data"]["model"] == "gpt-4"
         assert "timestamp" in parsed
         assert "sequence" in parsed
@@ -107,7 +107,7 @@ class TestStreamingOrchestrationService:
                 events.append(event)
                 parsed = json.loads(event.replace("data: ", "").strip())
                 
-                if parsed["event"] in [StreamEventType.STAGE_START, StreamEventType.STAGE_COMPLETE]:
+                if parsed["event"] in [StreamEventType.STAGE_START.value, StreamEventType.STAGE_COMPLETE.value]:
                     stage_events.append(parsed)
                 
                 # Stop after a few events to avoid full pipeline
@@ -115,7 +115,7 @@ class TestStreamingOrchestrationService:
                     break
             
             # Should have stage start events
-            stage_starts = [e for e in stage_events if e["event"] == StreamEventType.STAGE_START]
+            stage_starts = [e for e in stage_events if e["event"] == StreamEventType.STAGE_START.value]
             assert len(stage_starts) > 0
             assert stage_starts[0]["data"]["stage_name"] == "initial_response"
     
@@ -155,8 +155,8 @@ class TestStreamingOrchestrationService:
         
         # Check event structure
         for event in model_events:
-            assert event.event in [StreamEventType.MODEL_RESPONSE, StreamEventType.MODEL_ERROR]
-            if event.event == StreamEventType.MODEL_RESPONSE:
+            assert event.event in [StreamEventType.MODEL_RESPONSE.value, StreamEventType.MODEL_ERROR.value]
+            if event.event == StreamEventType.MODEL_RESPONSE.value:
                 assert "model" in event.data
                 assert "response_text" in event.data
                 assert event.data["response_text"].startswith("Response from")
@@ -187,7 +187,7 @@ class TestStreamingOrchestrationService:
         # Should have pipeline start and error events
         parsed_events = [json.loads(e.replace("data: ", "").strip()) for e in events]
         
-        error_events = [e for e in parsed_events if e["event"] == StreamEventType.PIPELINE_ERROR]
+        error_events = [e for e in parsed_events if e["event"] == StreamEventType.PIPELINE_ERROR.value]
         assert len(error_events) > 0
         assert "Invalid model" in str(error_events[0]["data"])
     

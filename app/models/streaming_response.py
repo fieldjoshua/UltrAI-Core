@@ -6,11 +6,12 @@ the orchestration pipeline, enabling real-time updates to clients.
 """
 
 from typing import Optional, Dict, Any, List, Literal
+from enum import Enum
 from pydantic import BaseModel, Field
 from datetime import datetime
 
 
-class StreamEventType(str):
+class StreamEventType(str, Enum):
     """Types of events that can be streamed."""
     
     # Pipeline lifecycle events
@@ -39,7 +40,7 @@ class StreamEventType(str):
 class StreamEvent(BaseModel):
     """Base class for all streaming events."""
     
-    event: StreamEventType = Field(..., description="Type of streaming event")
+    event: str = Field(..., description="Type of streaming event")
     timestamp: datetime = Field(default_factory=datetime.utcnow, description="Event timestamp")
     sequence: int = Field(..., description="Event sequence number")
     data: Dict[str, Any] = Field(..., description="Event-specific data")
@@ -48,7 +49,7 @@ class StreamEvent(BaseModel):
 class PipelineStartEvent(StreamEvent):
     """Event sent when pipeline starts."""
     
-    event: Literal[StreamEventType.PIPELINE_START] = StreamEventType.PIPELINE_START
+    event: Literal["pipeline_start"] = "pipeline_start"
     data: Dict[str, Any] = Field(
         ...,
         description="Contains: query, selected_models, total_stages, options"
@@ -58,7 +59,7 @@ class PipelineStartEvent(StreamEvent):
 class StageStartEvent(StreamEvent):
     """Event sent when a pipeline stage starts."""
     
-    event: Literal[StreamEventType.STAGE_START] = StreamEventType.STAGE_START
+    event: Literal["stage_start"] = "stage_start"
     data: Dict[str, Any] = Field(
         ...,
         description="Contains: stage_name, stage_index, total_stages, description"
@@ -68,7 +69,7 @@ class StageStartEvent(StreamEvent):
 class ModelResponseEvent(StreamEvent):
     """Event sent when a model generates a response."""
     
-    event: Literal[StreamEventType.MODEL_RESPONSE] = StreamEventType.MODEL_RESPONSE
+    event: Literal["model_response"] = "model_response"
     data: Dict[str, Any] = Field(
         ...,
         description="Contains: model, response_text, tokens_used, response_time"
@@ -78,7 +79,7 @@ class ModelResponseEvent(StreamEvent):
 class SynthesisChunkEvent(StreamEvent):
     """Event sent for streaming synthesis text chunks."""
     
-    event: Literal[StreamEventType.SYNTHESIS_CHUNK] = StreamEventType.SYNTHESIS_CHUNK
+    event: Literal["synthesis_chunk"] = "synthesis_chunk"
     data: Dict[str, Any] = Field(
         ...,
         description="Contains: chunk_text, chunk_index, model_used"

@@ -88,7 +88,7 @@ class StreamingOrchestrationService(OrchestrationService):
         selected_models = self._validate_model_names(selected_models)
         if not selected_models:
             error_event = self._create_event(
-                StreamEventType.PIPELINE_ERROR,
+                StreamEventType.PIPELINE_ERROR.value,
                 {"error": "No valid models provided after validation"}
             )
             yield self._format_sse(error_event)
@@ -123,7 +123,7 @@ class StreamingOrchestrationService(OrchestrationService):
                     model_count = self._count_successful_models(current_data)
                     if model_count < 2:
                         skip_event = self._create_event(
-                            StreamEventType.STAGE_COMPLETE,
+                            StreamEventType.STAGE_COMPLETE.value,
                             {
                                 "stage_name": stage.name,
                                 "skipped": True,
@@ -155,7 +155,7 @@ class StreamingOrchestrationService(OrchestrationService):
                 
                 # Send stage complete event
                 complete_event = self._create_event(
-                    StreamEventType.STAGE_COMPLETE,
+                    StreamEventType.STAGE_COMPLETE.value,
                     {
                         "stage_name": stage.name,
                         "stage_index": i,
@@ -167,7 +167,7 @@ class StreamingOrchestrationService(OrchestrationService):
             except Exception as e:
                 # Send stage error event
                 error_event = self._create_event(
-                    StreamEventType.STAGE_ERROR,
+                    StreamEventType.STAGE_ERROR.value,
                     {
                         "stage_name": stage.name,
                         "stage_index": i,
@@ -179,7 +179,7 @@ class StreamingOrchestrationService(OrchestrationService):
         
         # Send pipeline complete event
         complete_event = self._create_event(
-            StreamEventType.PIPELINE_COMPLETE,
+            StreamEventType.PIPELINE_COMPLETE.value,
             {
                 "total_stages": len(self.pipeline_stages),
                 "success": True
@@ -200,7 +200,7 @@ class StreamingOrchestrationService(OrchestrationService):
             try:
                 # Send model start event
                 start_event = self._create_event(
-                    StreamEventType.MODEL_START,
+                    StreamEventType.MODEL_START.value,
                     {"model": model, "stage": "initial_response"}
                 )
                 
@@ -222,7 +222,7 @@ class StreamingOrchestrationService(OrchestrationService):
                 else:
                     # Send model error event
                     error_event = self._create_event(
-                        StreamEventType.MODEL_ERROR,
+                        StreamEventType.MODEL_ERROR.value,
                         {
                             "model": model,
                             "error": result.get("error", "Unknown error")
@@ -232,7 +232,7 @@ class StreamingOrchestrationService(OrchestrationService):
                     
             except Exception as e:
                 error_event = self._create_event(
-                    StreamEventType.MODEL_ERROR,
+                    StreamEventType.MODEL_ERROR.value,
                     {"model": model, "error": str(e)}
                 )
                 return (model, {"error": str(e)}, error_event)
@@ -267,7 +267,7 @@ class StreamingOrchestrationService(OrchestrationService):
         """Stream ultra synthesis generation."""
         # Send synthesis start event
         yield self._create_event(
-            StreamEventType.SYNTHESIS_START,
+            StreamEventType.SYNTHESIS_START.value,
             {"models_available": models}
         )
         
@@ -278,7 +278,7 @@ class StreamingOrchestrationService(OrchestrationService):
             responses_to_synthesize = data["responses"]
         else:
             yield self._create_event(
-                StreamEventType.STAGE_ERROR,
+                StreamEventType.STAGE_ERROR.value,
                 {"error": "No responses available for synthesis"}
             )
             return
@@ -321,7 +321,7 @@ class StreamingOrchestrationService(OrchestrationService):
             
             # Send synthesis complete
             yield self._create_event(
-                StreamEventType.SYNTHESIS_COMPLETE,
+                StreamEventType.SYNTHESIS_COMPLETE.value,
                 {
                     "model_used": synthesis_model,
                     "total_length": len(synthesis_text)
@@ -330,7 +330,7 @@ class StreamingOrchestrationService(OrchestrationService):
         else:
             # Send error
             yield self._create_event(
-                StreamEventType.STAGE_ERROR,
+                StreamEventType.STAGE_ERROR.value,
                 {"error": result.get("error", "Synthesis generation failed")}
             )
     
