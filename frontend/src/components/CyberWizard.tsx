@@ -211,26 +211,29 @@ export default function CyberWizard() {
     : c === 'pink' ? `rgba(255,0,149,${alpha})`
     : `rgba(214,0,255,${alpha})`;
 
-  const colorHex = useMemo(() => mapColorHex(step.color), [step.color]);
+  const colorHex = useMemo(() => step ? mapColorHex(step.color) : '#00ff9f', [step]);
   const receiptColor = '#bd00ff';
 
   const handleGoalToggle = useCallback((label: string) => {
+    if (!step) return;
     const option = step.options?.find(o => o.label === label);
     const cost = option?.cost;
     setSelectedGoals(prev => prev.includes(label) ? (removeSelectionCost(cost), prev.filter(l => l !== label)) : (addSelection(label, cost, step.color, step.title), [...prev, label]));
-  }, [step.options, step.color, step.title]);
+  }, [step]);
   
   const handleInputToggle = useCallback((label: string) => {
+    if (!step) return;
     const option = step.options?.find(o => o.label === label);
     const cost = option?.cost;
     setSelectedInputs(prev => prev.includes(label) ? (removeSelectionCost(cost), prev.filter(l => l !== label)) : (addSelection(label, cost, step.color, step.title), [...prev, label]));
-  }, [step.options, step.color, step.title]);
+  }, [step]);
   
   const handleModelToggle = useCallback((label: string) => {
+    if (!step) return;
     const option = step.options?.find(o => o.label === label);
     const cost = option?.cost;
     setSelectedModels(prev => prev.includes(label) ? (removeSelectionCost(cost), prev.filter(l => l !== label)) : (addSelection(label, cost, step.color, step.title), [...prev, label]));
-  }, [step.options, step.color, step.title]);
+  }, [step]);
 
   const monoStack = 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace';
 
@@ -286,8 +289,58 @@ export default function CyberWizard() {
       ));
   }, [steps, summary]);
 
+  const chooseAutoModels = useCallback((pref: 'cost'|'premium'|'speed', names: string[] | null): string[] => {
+    const list = Array.isArray(names) ? names : [];
+    if (list.length === 0) return [];
+    const has = (n: string) => list.includes(n);
+    if (pref === 'premium') {
+      const picks = [
+        'gpt-4o',
+        'claude-3-5-sonnet-20241022',
+        'gemini-1.5-pro',
+      ].filter(has);
+      return picks.length ? picks : list.slice(0, Math.min(3, list.length));
+    }
+    if (pref === 'speed') {
+      const picks = [
+        'gpt-4o-mini',
+        'gemini-1.5-flash',
+      ].filter(has);
+      return picks.length ? picks : list.slice(0, Math.min(2, list.length));
+    }
+    // cost
+    const cheapSorted = list
+      .map(name => ({ name, cost: availableModelInfos[name]?.cost_per_1k_tokens ?? 0 }))
+      .sort((a, b) => a.cost - b.cost)
+      .map(x => x.name);
+    return cheapSorted.slice(0, Math.min(2, cheapSorted.length));
+  }, [availableModelInfos]);
+
+  const optimizeQuery = useCallback(() => {
+    // This function will suggest an improved query based on the user's input
+    const query = userQuery.trim();
+    let improvedQuery = query;
+    
+    // Add context based on selected goals
+    if (selectedGoals.length > 0) {
+      improvedQuery = `For ${selectedGoals.join(', ').toLowerCase()}: ${query}`;
+    }
+    
+    // Add specificity suggestions
+    if (!query.includes('specific') && !query.includes('detailed')) {
+      improvedQuery += '. Please provide specific, detailed analysis';
+    }
+    
+    // Add format suggestions
+    if (!query.includes('format') && !query.includes('structure')) {
+      improvedQuery += ' with structured output';
+    }
+    
+    setUserQuery(improvedQuery);
+  }, [userQuery, selectedGoals]);
+
   // Step 0: Intro — render with background and billboard
-  if (currentStep === 0 && step.type === 'intro') {
+  if (currentStep === 0 && step && step.type === 'intro') {
   return (
       <div className="relative flex min-h-screen w-full items-start justify-center p-0 text-white font-cyber text-sm overflow-hidden">
         {/* Animated Background */}
@@ -476,58 +529,6 @@ export default function CyberWizard() {
       </div>
     );
   }
-
-  const chooseAutoModels = (pref: 'cost'|'premium'|'speed', names: string[] | null): string[] => {
-    const list = Array.isArray(names) ? names : [];
-    if (list.length === 0) return [];
-    const has = (n: string) => list.includes(n);
-    if (pref === 'premium') {
-      const picks = [
-        'gpt-4o',
-        'claude-3-5-sonnet-20241022',
-        'gemini-1.5-pro',
-      ].filter(has);
-      return picks.length ? picks : list.slice(0, Math.min(3, list.length));
-    }
-    if (pref === 'speed') {
-      const picks = [
-        'gpt-4o-mini',
-        'gemini-1.5-flash',
-      ].filter(has);
-      return picks.length ? picks : list.slice(0, Math.min(2, list.length));
-    }
-    // cost
-    const cheapSorted = list
-      .map(name => ({ name, cost: availableModelInfos[name]?.cost_per_1k_tokens ?? 0 }))
-      .sort((a, b) => a.cost - b.cost)
-      .map(x => x.name);
-    return cheapSorted.slice(0, Math.min(2, cheapSorted.length));
-  };
-
-  const optimizeQuery = () => {
-    // This function will suggest an improved query based on the user's input
-    const query = userQuery.trim();
-    let improvedQuery = query;
-    
-    // Add context based on selected goals
-    if (selectedGoals.length > 0) {
-      improvedQuery = `For ${selectedGoals.join(', ').toLowerCase()}: ${query}`;
-    }
-    
-    // Add specificity suggestions
-    if (!query.includes('specific') && !query.includes('detailed')) {
-      improvedQuery += '. Please provide specific, detailed analysis';
-    }
-    
-    // Add format suggestions
-    if (!query.includes('format') && !query.includes('structure')) {
-      improvedQuery += ' with structured output';
-    }
-    
-    setUserQuery(improvedQuery);
-  };
-
-  // (removed unused optimizeSearch function)
 
 
   return (
