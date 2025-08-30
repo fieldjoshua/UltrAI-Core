@@ -656,11 +656,102 @@ export default function CyberWizard() {
       {/* Main Content - Below Billboard */}
       <div className="relative z-10 w-full">
         <div className="flex items-center justify-center" style={{ minHeight: '100vh', paddingTop: '37.5vh' }}>
-          <div className="w-full max-w-6xl px-8">
-            <div className="grid grid-cols-12 gap-8">
+          <div className="w-full max-w-7xl px-8">
+            <div className="grid grid-cols-12 gap-4">
 
-          {/* Wizard Panel (left) */}
-              <div className="col-span-9">
+          {/* Left Panel: System Status */}
+              <div className="col-span-2">
+                {/* Model Status Box */}
+                <div 
+                  className="glass-panel glass-grain relative p-4 rounded-2xl transition-smooth"
+                  style={{ 
+                    background: glassBackground,
+                    backdropFilter: 'blur(40px)',
+                    WebkitBackdropFilter: 'blur(40px)',
+                    border: `2px solid ${colorHex}40`,
+                    boxShadow: `
+                      0 8px 32px rgba(0, 0, 0, 0.3),
+                      0 0 20px ${colorHex}10,
+                      inset 0 0 40px rgba(255, 255, 255, 0.02)
+                    `
+                  }}
+                >
+                  <h3 className="text-xs font-bold text-white mb-3 uppercase tracking-wider opacity-80">System Status</h3>
+                  
+                  {/* Model Status */}
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      <span style={{ color: colorHex }}>🤖</span>
+                      <div className="text-[10px] font-semibold text-white">Models</div>
+                    </div>
+                    <div className="text-[14px] font-bold" style={{ color: colorHex }}>
+                      {availableModels ? `${availableModels.filter(m => modelStatuses[m] === 'ready').length}/${availableModels.length}` : '—'}
+                    </div>
+                  </div>
+                  
+                  {/* Latency */}
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      <span style={{ color: colorHex }}>⚡</span>
+                      <div className="text-[10px] font-semibold text-white">Latency</div>
+                    </div>
+                    <div className="text-[14px] font-bold" style={{ color: colorHex }}>
+                      <span className="animate-pulse">~2.3s</span>
+                    </div>
+                  </div>
+                  
+                  {/* Status */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span style={{ color: colorHex }}>🔄</span>
+                      <div className="text-[10px] font-semibold text-white">Status</div>
+                    </div>
+                    <div className="text-[14px] font-bold" style={{ color: colorHex }}>
+                      {availableModels && availableModels.filter(m => modelStatuses[m] === 'ready').length >= 2 ? 'Online' : 'Offline'}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Theme Selector Box */}
+                <div 
+                  className="glass-panel glass-grain relative p-4 rounded-2xl transition-smooth mt-4"
+                  style={{ 
+                    background: glassBackground,
+                    backdropFilter: 'blur(40px)',
+                    WebkitBackdropFilter: 'blur(40px)',
+                    border: `2px solid ${colorHex}40`,
+                    boxShadow: `
+                      0 8px 32px rgba(0, 0, 0, 0.3),
+                      0 0 20px ${colorHex}10,
+                      inset 0 0 40px rgba(255, 255, 255, 0.02)
+                    `
+                  }}
+                >
+                  <h3 className="text-xs font-bold text-white mb-3 uppercase tracking-wider opacity-80">Time Theme</h3>
+                  <div className="grid grid-cols-2 gap-2">
+                    {(['morning', 'afternoon', 'sunset', 'night'] as const).map(t => (
+                      <button key={t} 
+                        onClick={() => setBgTheme(t)} 
+                        className="p-2 rounded text-center transition-smooth hover:scale-105"
+                        style={{ 
+                          background: bgTheme===t ? `${colorHex}20` : 'rgba(255,255,255,0.05)',
+                          border: bgTheme===t ? `1px solid ${colorHex}60` : '1px solid rgba(255,255,255,0.15)',
+                          color: bgTheme===t ? colorHex : 'rgba(255,255,255,0.7)',
+                          fontSize: '11px',
+                          fontWeight: bgTheme===t ? 'bold' : 'normal',
+                          textTransform: 'capitalize'
+                        }}
+                      >
+                        {t === 'morning' ? '🌅' : t === 'afternoon' ? '☀️' : t === 'sunset' ? '🌇' : '🌙'}<br/>
+                        {t}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+          {/* Wizard Panel (center) */}
+              <div className="col-span-8">
                 <div
                   className={`glass-panel glass-grain relative p-8 rounded-2xl overflow-hidden transition-smooth will-change-transform ${
                     step.color === 'mint' ? 'glow-mint' :
@@ -1313,117 +1404,10 @@ export default function CyberWizard() {
               )}
               </div>
             </div>
-            
-            {/* Model Status Box - Below wizard panel */}
-            <div className="mt-4">
-              <div 
-                className="glass-panel glass-grain relative p-4 rounded-2xl transition-smooth"
-                style={{ 
-                  background: 'rgba(0, 0, 0, 0.1)',
-                  backdropFilter: 'blur(40px)',
-                  WebkitBackdropFilter: 'blur(40px)',
-                  border: `2px solid rgba(255, 255, 255, 0.2)`,
-                  boxShadow: `
-                    0 8px 32px rgba(0, 0, 0, 0.3),
-                    0 0 60px rgba(255, 255, 255, 0.05),
-                    0 0 0 1px rgba(255, 255, 255, 0.1),
-                    inset 0 0 60px rgba(255, 255, 255, 0.05)
-                  `,
-                  clipPath: 'polygon(0 0, calc(100% - 20px) 0, 100% 20px, 100% 100%, 20px 100%, 0 calc(100% - 20px))'
-                }}
-              >
-                <div className="text-center mb-3">
-                  <div className="text-[12px] font-extrabold tracking-[0.35em] text-white">SYSTEM STATUS</div>
-                  <div className="text-[9px] text-white/70">— REALTIME METRICS —</div>
-                </div>
-                {/* Theme toggle */}
-                <div className="mb-3">
-                  <div className="text-[10px] text-white/70 text-center mb-1">Background Theme</div>
-                  <div className="grid grid-cols-4 gap-2">
-                    {(['morning','afternoon','sunset','night'] as const).map(t => (
-                      <button
-                        key={t}
-                        className={`px-2 py-1 rounded text-[10px] transition-smooth hover:scale-[1.05] ${bgTheme===t ? 'font-bold' : ''}`}
-                        style={{
-                          background: bgTheme===t ? 'rgba(255,255,255,0.12)' : 'rgba(255,255,255,0.05)',
-                          border: bgTheme===t ? '1px solid rgba(255,255,255,0.3)' : '1px solid rgba(255,255,255,0.15)',
-                          boxShadow: bgTheme===t ? '0 0 10px rgba(255,255,255,0.2)' : 'none'
-                        }}
-                        onClick={() => setBgTheme(t)}
-                      >
-                        {t}
-                </button>
-                    ))}
-              </div>
-                </div>
-                
-                <div className="grid grid-cols-4 gap-3">
-                  {/* Models Summary */}
-                  <div className="text-center">
-                    <div className="text-2xl mb-1">
-                      <span style={{ color: '#00ff9f' }}>🤖</span>
-                    </div>
-                    <div className="text-[10px] font-semibold text-white">Models Ready</div>
-                    <div className="text-[16px] font-bold text-[#00ff9f]">
-                      {availableModels ? `${availableModels.filter(m => modelStatuses[m] === 'ready').length}/${availableModels.length}` : '—'}
-            </div>
-          </div>
-
-                  {/* Selected Models */}
-                  <div className="text-center">
-                    <div className="text-2xl mb-1">
-                      <span style={{ color: '#00d4ff' }}>✓</span>
-            </div>
-                    <div className="text-[10px] font-semibold text-white">Selected</div>
-                    <div className="text-[16px] font-bold text-[#00d4ff]">
-                      {selectedModels.length}
-                      </div>
-                  </div>
-                  
-                  {/* Total Cost */}
-                  <div className="text-center">
-                    <div className="text-2xl mb-1">
-                      <span style={{ color: '#ff00d4' }}>💰</span>
-            </div>
-                    <div className="text-[10px] font-semibold text-white">Total Cost</div>
-                    <div className="text-[16px] font-bold text-[#ff00d4]">
-                      ${totalCost.toFixed(2)}
-          </div>
-        </div>
-
-                  {/* Processing Status */}
-                  <div className="text-center">
-                    <div className="text-2xl mb-1">
-                      <span style={{ color: isRunning ? '#ffeb55' : '#00ff9f' }}>⚡</span>
-                    </div>
-                    <div className="text-[10px] font-semibold text-white">Status</div>
-                    <div className="text-[16px] font-bold" style={{ color: isRunning ? '#ffeb55' : '#00ff9f' }}>
-                      {isRunning ? 'Running' : 'Ready'}
-                    </div>
-                  </div>
-                </div>
-                
-                {/* Progress bar for selected models */}
-                {selectedModels.length > 0 && (
-                  <div className="mt-3">
-                    <div className="flex justify-between text-[9px] text-white/60 mb-1">
-                      <span>Selected Models</span>
-                      <span>{selectedModelsDisplay}</span>
-                    </div>
-                    <div className="h-1 bg-white/10 rounded-full overflow-hidden">
-                      <div 
-                        className="h-full bg-gradient-to-r from-[#00ff9f] via-[#00d4ff] to-[#ff00d4] transition-all duration-300"
-                        style={{ width: `${(selectedModels.length / (availableModels?.length || 1)) * 100}%` }}
-                      />
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
           </div>
 
           {/* Right Panel: Receipt transforms into Status after approval */}
-          <div className="col-span-3">
+          <div className="col-span-2">
             <div 
               className="glass-panel glass-grain relative p-6 rounded-2xl transition-smooth ${showStatus ? 'animate-pulse-glow' : ''}"
               style={{ 
