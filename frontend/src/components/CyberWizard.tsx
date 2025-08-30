@@ -195,8 +195,6 @@ export default function CyberWizard() {
     setTotalCost(prev => Math.max(0, prev - appliedCost));
   };
 
-  if (steps.length === 0) return <div>Loading…</div>;
-
   const step = steps[currentStep];
   const mapColorHex = (c: string) => c === 'mint' ? '#00ff9f'
     : c === 'blue' ? '#00d4ff'
@@ -338,6 +336,9 @@ export default function CyberWizard() {
     
     setUserQuery(improvedQuery);
   }, [userQuery, selectedGoals]);
+
+  // Loading state check - after all hooks
+  if (steps.length === 0) return <div>Loading…</div>;
 
   // Step 0: Intro — render with background and billboard
   if (currentStep === 0 && step && step.type === 'intro') {
