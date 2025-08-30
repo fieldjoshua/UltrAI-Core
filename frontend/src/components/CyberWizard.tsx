@@ -672,11 +672,12 @@ export default function CyberWizard() {
                     background: `linear-gradient(135deg, ${mapColorRGBA(step.color, 0.08)}, ${mapColorRGBA(step.color, 0.02)}), ${glassBackground}`,
                     backdropFilter: 'blur(20px) saturate(180%)',
                     WebkitBackdropFilter: 'blur(20px) saturate(180%)',
-                    border: `2px solid ${colorHex}40`,
+                    border: `2px solid ${colorHex}80`,
                     height: '500px',
                     boxShadow: `
                       0 8px 32px rgba(0, 0, 0, 0.4),
-                      0 0 40px ${colorHex}15,
+                      0 0 40px ${colorHex}30,
+                      0 0 80px ${colorHex}15,
                       inset 0 0 40px rgba(255, 255, 255, 0.03),
                       inset 0 1px 0 rgba(255, 255, 255, 0.1)
                     `,
@@ -827,7 +828,17 @@ export default function CyberWizard() {
                 </div>
               </div>
 
-              <h2 className={`text-white ${step.color === 'mint' ? 'text-shadow-neon-mint' : step.color === 'blue' ? 'text-shadow-neon-blue' : step.color === 'deepblue' ? 'text-shadow-neon-deep' : step.color === 'purple' ? 'text-shadow-neon-purple' : 'text-shadow-neon-pink'} text-base mb-2 text-center uppercase tracking-wide`} style={{ borderBottom: `1px solid ${colorHex}`, paddingBottom: 4 }}>{step.title}</h2>
+              <h2 
+                className={`${step.color === 'mint' ? 'text-shadow-neon-mint' : step.color === 'blue' ? 'text-shadow-neon-blue' : step.color === 'deepblue' ? 'text-shadow-neon-deep' : step.color === 'purple' ? 'text-shadow-neon-purple' : 'text-shadow-neon-pink'} text-base mb-2 text-center uppercase tracking-wide`} 
+                style={{ 
+                  color: colorHex,
+                  borderBottom: `1px solid ${colorHex}`, 
+                  paddingBottom: 4,
+                  textShadow: `0 0 10px ${colorHex}60, 0 0 20px ${colorHex}40`
+                }}
+              >
+                {step.title}
+              </h2>
               {step.narrative && (
                 <p className="text-[11px] text-white opacity-90 mb-2 text-center whitespace-pre-line">
                   {currentStep === 2 && selectedGoals.length > 0 
