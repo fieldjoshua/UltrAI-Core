@@ -264,7 +264,11 @@ const MultimodalAnalysis: React.FC = () => {
                           </button>
                         </div>
                         <div className="bg-white rounded p-3 text-sm text-gray-800 whitespace-pre-wrap">
-                          {response.response}
+                          {typeof response.response === 'string' 
+                            ? response.response 
+                            : typeof response.response === 'object' && response.response !== null
+                              ? JSON.stringify(response.response, null, 2)
+                              : String(response.response || 'No response available')}
                         </div>
                       </div>
                     ))}
@@ -286,7 +290,11 @@ const MultimodalAnalysis: React.FC = () => {
                       </button>
                     </div>
                     <div className="bg-gray-50 rounded-lg p-4 text-sm text-gray-800 whitespace-pre-wrap max-h-96 overflow-y-auto">
-                      {analysisResults.combined_response}
+                      {typeof analysisResults.combined_response === 'string' 
+                        ? analysisResults.combined_response 
+                        : typeof analysisResults.combined_response === 'object' && analysisResults.combined_response !== null
+                          ? JSON.stringify(analysisResults.combined_response, null, 2)
+                          : String(analysisResults.combined_response || 'No combined response available')}
                     </div>
                   </div>
                 )}

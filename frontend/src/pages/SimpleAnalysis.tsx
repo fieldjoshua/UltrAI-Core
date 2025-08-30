@@ -550,7 +550,11 @@ const SimpleAnalysis: React.FC = () => {
                       )}
                     </div>
                     <div className="p-4 whitespace-pre-wrap">
-                      {response.response}
+                      {typeof response.response === 'string' 
+                        ? response.response 
+                        : typeof response.response === 'object' && response.response !== null
+                          ? JSON.stringify(response.response, null, 2)
+                          : String(response.response || 'No response available')}
                     </div>
                   </div>
                 ))}
@@ -714,7 +718,11 @@ const SimpleAnalysis: React.FC = () => {
                 </div>
                 <div className="p-4 overflow-auto max-h-[400px]">
                   <pre className="whitespace-pre-wrap text-sm text-gray-900 dark:text-gray-100">
-                    {modelResponse.response}
+                    {typeof modelResponse.response === 'string' 
+                      ? modelResponse.response 
+                      : typeof modelResponse.response === 'object' && modelResponse.response !== null
+                        ? JSON.stringify(modelResponse.response, null, 2)
+                        : String(modelResponse.response || 'No response available')}
                   </pre>
                 </div>
               </div>
@@ -741,7 +749,11 @@ const SimpleAnalysis: React.FC = () => {
                 </div>
                 <div className="p-4 overflow-auto max-h-[400px]">
                   <pre className="whitespace-pre-wrap text-sm text-gray-900 dark:text-gray-100">
-                    {modelResponse.response}
+                    {typeof modelResponse.response === 'string' 
+                      ? modelResponse.response 
+                      : typeof modelResponse.response === 'object' && modelResponse.response !== null
+                        ? JSON.stringify(modelResponse.response, null, 2)
+                        : String(modelResponse.response || 'No response available')}
                   </pre>
                 </div>
               </div>

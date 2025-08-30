@@ -54,7 +54,14 @@ const ModelRunnerDemo: React.FC = () => {
         model: selectedModel,
       });
 
-      setResponse(response.data.response);
+      const apiResponse = response.data.response;
+      setResponse(
+        typeof apiResponse === 'string' 
+          ? apiResponse 
+          : typeof apiResponse === 'object' && apiResponse !== null
+            ? JSON.stringify(apiResponse, null, 2)
+            : String(apiResponse || 'No response received')
+      );
     } catch (err: any) {
       console.error('Error generating response:', err);
       setError(err.response?.data?.detail || 'Failed to generate response');
