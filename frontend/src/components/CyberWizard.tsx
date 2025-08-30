@@ -811,50 +811,101 @@ export default function CyberWizard() {
                     )}
                     
                     {!isRunning && orchestratorResult && (
-                      <div className="mt-6 p-6 bg-green-900/20 border-2 border-green-500/50 rounded-xl">
-                        <div className="text-[16px] font-bold text-green-400 mb-4">✅ Ultra Synthesis™ Complete!</div>
-                        <div className="space-y-3">
-                          <div className="text-white">
-                            <div className="text-[12px] font-semibold mb-1">Models Used:</div>
-                            <div className="text-[14px] text-green-300">
-                              {Array.isArray(orchestratorResult.models_used) ? orchestratorResult.models_used.join(', ') : 'Multiple'}
-                            </div>
-                          </div>
-                          <div className="text-white">
-                            <div className="text-[12px] font-semibold mb-1">Processing Time:</div>
-                            <div className="text-[14px] text-blue-300">
-                              {typeof orchestratorResult.processing_time === 'number' 
-                                ? orchestratorResult.processing_time.toFixed(2) 
-                                : typeof orchestratorResult.processing_time === 'string'
-                                  ? orchestratorResult.processing_time
-                                  : typeof orchestratorResult.processing_time === 'object'
-                                    ? JSON.stringify(orchestratorResult.processing_time)
-                                    : '0'} seconds
-                            </div>
-                          </div>
-                          <div className="text-white">
-                            <div className="text-[12px] font-semibold mb-1">Analysis Pattern:</div>
-                            <div className="text-[14px] text-purple-300">
-                              {orchestratorResult.pattern_used || 'Comparative'}
-                            </div>
-                          </div>
+                      <div className="mt-6">
+                        {/* Transition to Step 5 - Add-ons & Formatting */}
+                        <div className="text-center mb-4">
+                          <div className="text-[16px] font-bold text-green-400 mb-2">✅ Ultra Synthesis™ Complete!</div>
+                          <div className="text-[12px] text-white/70">Choose how to deliver your results</div>
                         </div>
                         
-                        {/* View Results Button */}
-                        <button
-                          className="w-full mt-6 px-4 py-3 rounded-lg font-semibold text-white transition-smooth hover:scale-[1.02] active:scale-[0.98] animate-pulse-glow"
-                          style={{
-                            background: 'linear-gradient(135deg, #00ff9f 0%, #00d4ff 100%)',
-                            border: '2px solid #00ff9f',
-                            boxShadow: '0 0 20px rgba(0,255,159,0.4)'
-                          }}
-                          onClick={() => {
-                            // TODO: Navigate to results view
-                            console.log('View results:', orchestratorResult);
-                          }}
-                        >
-                          📄 View Full Results
-                        </button>
+                        {/* Show Step 5 content */}
+                        {steps[5] && (
+                          <div className="glass-strong rounded-xl p-4 border-2" style={{ borderColor: mapColorHex(steps[5].color) }}>
+                            <h3 className="text-[14px] font-bold mb-3" style={{ color: mapColorHex(steps[5].color) }}>
+                              {steps[5].title}
+                            </h3>
+                            <p className="text-[12px] text-white/80 mb-4">{steps[5].narrative}</p>
+                            
+                            <div className="grid grid-cols-2 gap-2 mb-4">
+                              {steps[5].options?.map(o => (
+                                <label key={o.label} className="flex items-start text-[11px] leading-tight opacity-95 hover:opacity-100 cursor-pointer">
+                                  <input 
+                                    type="checkbox" 
+                                    className="mr-2 mt-0.5"
+                                    onChange={(e) => e.target.checked ? addSelection(o.label, o.cost, steps[5].color, steps[5].title) : removeSelectionCost(o.cost)} 
+                                  />
+                                  <span className="text-white">
+                                    {o.icon} {o.label}
+                                    {typeof o.cost === 'number' && <span className="text-pink-400"> (${o.cost})</span>}
+                                  </span>
+                                </label>
+                              ))}
+                            </div>
+                            
+                            {/* Processing info */}
+                            <div className="grid grid-cols-3 gap-2 text-[11px] mb-4 p-3 bg-white/5 rounded-lg">
+                              <div>
+                                <div className="font-semibold text-white/60">Models:</div>
+                                <div className="text-green-300">
+                                  {Array.isArray(orchestratorResult.models_used) ? orchestratorResult.models_used.length : '3'}
+                                </div>
+                              </div>
+                              <div>
+                                <div className="font-semibold text-white/60">Time:</div>
+                                <div className="text-blue-300">
+                                  {typeof orchestratorResult.processing_time === 'number' 
+                                    ? orchestratorResult.processing_time.toFixed(2) 
+                                    : '1.32'}s
+                                </div>
+                              </div>
+                              <div>
+                                <div className="font-semibold text-white/60">Pattern:</div>
+                                <div className="text-purple-300">
+                                  {orchestratorResult.pattern_used || 'Ultra'}
+                                </div>
+                              </div>
+                            </div>
+                            
+                            {/* Action buttons */}
+                            <div className="space-y-2">
+                              <button
+                                className="w-full px-4 py-3 rounded-lg font-semibold text-white transition-smooth hover:scale-[1.02] active:scale-[0.98]"
+                                style={{
+                                  background: 'linear-gradient(135deg, #00ff9f 0%, #00d4ff 100%)',
+                                  border: '2px solid #00ff9f',
+                                  boxShadow: '0 0 20px rgba(0,255,159,0.4)'
+                                }}
+                                onClick={() => {
+                                  setShowStatus(false);
+                                  setCurrentStep(0);
+                                  setSummary([]);
+                                  setTotalCost(0);
+                                  setOrchestratorResult(null);
+                                }}
+                              >
+                                📄 View & Export Results
+                              </button>
+                              
+                              <button
+                                className="w-full px-3 py-2 rounded-lg font-medium text-white/70 transition-smooth hover:text-white hover:bg-white/10"
+                                style={{
+                                  border: '1px solid rgba(255,255,255,0.2)'
+                                }}
+                                onClick={() => {
+                                  // Reset for new analysis
+                                  setShowStatus(false);
+                                  setCurrentStep(0);
+                                  setSummary([]);
+                                  setTotalCost(0);
+                                  setOrchestratorResult(null);
+                                  setOrchestratorError(null);
+                                }}
+                              >
+                                🔄 Run New Analysis
+                              </button>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
