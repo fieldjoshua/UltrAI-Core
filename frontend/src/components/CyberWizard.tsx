@@ -702,7 +702,7 @@ export default function CyberWizard() {
                           <div className="text-white">
                             <div className="text-[12px] font-semibold mb-1">Processing Time:</div>
                             <div className="text-[14px] text-blue-300">
-                              {orchestratorResult.processing_time?.toFixed?.(2) || orchestratorResult.processing_time} seconds
+                              {typeof orchestratorResult.processing_time === 'number' ? orchestratorResult.processing_time.toFixed(2) : orchestratorResult.processing_time || '0'} seconds
                             </div>
                           </div>
                           <div className="text-white">

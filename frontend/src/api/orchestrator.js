@@ -157,7 +157,8 @@ export async function processWithFeatherOrchestration({
                      'No Ultra Synthesis™ available',
       
       // Additional metadata
-      processing_time: data.processing_time || 0,
+      processing_time: typeof data.processing_time === 'number' ? data.processing_time : 
+                      (typeof data.processing_time === 'object' && data.processing_time?.total ? data.processing_time.total : 0),
       pattern_used: pattern,
       models_used: data.results?.initial_response?.output?.successful_models || 
                    data.pipeline_info?.models_used || 
