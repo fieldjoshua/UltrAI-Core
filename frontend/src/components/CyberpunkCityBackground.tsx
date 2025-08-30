@@ -118,7 +118,7 @@ const InteractiveGlowEffects: React.FC<{ mousePos: MousePosition }> = ({ mousePo
       style={{
         '--mouse-x': `${mousePos.x * 100}px`,
         '--mouse-y': `${mousePos.y * 100}px`,
-        '--glow-intensity': glowIntensity
+        '--glow-intensity': `${glowIntensity}`
       } as CSSProperties}
     >
       <div className="radial-glow" />

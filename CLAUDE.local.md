@@ -10,17 +10,8 @@
   - Standardize error response format across all LLM adapters [done 2025-08-30]
   - Add streaming response support to orchestrator [done 2025-08-30]
   - Implement request ID tracking across services [done 2025-08-30]
-  - (Backlog) Memory monitoring, query-type cache TTL, A/B selection tests
+Minified React error #310; visit https://reactjs.org/docs/error-decoder.html?invariant=310 for the full message or use the non-minified dev environment for full errors and additional helpful warnings.
 
-Coordination
-- Use this section as the single source of truth; mark updates with [done]/[in-progress] + date.
-- If scope changes, update here first so both agents stay aligned.
-
----
-
-go a# Project-Specific Memory for UltraAI Core
-
-## Git Operations
 
 - I am responsible for executing git commits, adds, and pushes
 - Always remind to push changes to GitHub for deployments

@@ -158,8 +158,18 @@ export default function CyberWizard() {
           ultraModel: null,
           outputFormat: "plain",
         });
-        setOrchestratorResult(res);
-        console.log("Ultra Synthesis result", res);
+        
+        // Check if the API returned an error in the response
+        if (res.error) {
+          const errorMessage = typeof res.error === 'object' 
+            ? res.error.message || JSON.stringify(res.error)
+            : String(res.error);
+          setOrchestratorError(errorMessage);
+          setOrchestratorResult(null);
+        } else {
+          setOrchestratorResult(res);
+          console.log("Ultra Synthesis result", res);
+        }
         // overlay disabled
       } catch (e: any) {
         console.error("Ultra Synthesis failed", e);
@@ -254,14 +264,14 @@ export default function CyberWizard() {
   const themeBgUrl = useMemo(() => {
     switch (bgTheme) {
       case 'morning':
-        return '/bg-morning.jpg';
+        return '/bg-morning.jpeg';
       case 'afternoon':
         return '/bg-afternoon.jpg';
       case 'sunset':
-        return '/bg-sunset.jpg';
+        return '/bg-sunset.jpeg';
       case 'night':
       default:
-        return '/bg-night.jpg';
+        return '/bg-night.jpeg';
     }
   }, [bgTheme]);
 
