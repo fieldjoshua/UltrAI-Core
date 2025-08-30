@@ -106,20 +106,35 @@ def create_app() -> FastAPI:
     except Exception:
         logger.error("Failed to enable telemetry middleware", exc_info=True)
 
-    # Add authentication middleware if enabled
+    # Add rate limiting middleware if enabled (register before auth so auth runs first)
+    if Config.ENABLE_RATE_LIMIT:
+        # Exclude paths from rate limiting
+        excluded_paths = [
+            "/health",
+            # Don't exclude /api/health so responses include rate limit headers
+            "/api/docs",
+            "/api/redoc",
+            "/api/openapi.json",
+            "/api/metrics",
+        ]
+
+        # Setup rate limiting middleware
+        setup_rate_limit_middleware(app, excluded_paths=excluded_paths)
+        logger.info("Rate limiting middleware enabled")
+
+    # Add authentication middleware if enabled (after rate limit registration)
     if Config.ENABLE_AUTH:
         # Define public paths (no authentication required)
         public_paths = [
             "/health",
-            "/api/health",
+            # Intentionally not including /api/health so it can carry rate limit headers
             "/api/auth/login",
             "/api/auth/register",
             "/api/auth/refresh",
             "/api/docs",
             "/api/redoc",
             "/api/openapi.json",
-            "/api/analyze",  # Temporarily public for testing
-            "/api/orchestrator",  # Temporarily public for testing
+            # Keep analyze/orchestrator protected to exercise auth + rate limiting in tests
             "/api/available-models",  # Public for model discovery
             "/api/pricing",  # Public for pricing info
         ]
@@ -133,22 +148,6 @@ def create_app() -> FastAPI:
         # Setup combined authentication middleware
         setup_combined_auth_middleware(app, public_paths=public_paths, protected_paths=protected_paths)
         logger.info("Authentication middleware enabled (JWT + API Key support)")
-
-    # Add rate limiting middleware if enabled
-    if Config.ENABLE_RATE_LIMIT:
-        # Exclude paths from rate limiting
-        excluded_paths = [
-            "/health",
-            "/api/health",
-            "/api/docs",
-            "/api/redoc",
-            "/api/openapi.json",
-            "/api/metrics",
-        ]
-
-        # Setup rate limiting middleware
-        setup_rate_limit_middleware(app, excluded_paths=excluded_paths)
-        logger.info("Rate limiting middleware enabled")
 
     # Include initial routers (mounted under API prefix below)
     app.include_router(user_router, prefix="/api")

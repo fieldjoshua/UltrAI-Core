@@ -37,7 +37,6 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         super().__init__(app)
         self.excluded_paths = excluded_paths or [
             "/health",
-            "/api/health",
             "/metrics",
             "/api/metrics",
             "/api/docs",

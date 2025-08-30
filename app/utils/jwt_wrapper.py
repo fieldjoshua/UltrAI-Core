@@ -23,12 +23,15 @@ from app.utils.logging import get_logger
 logger = get_logger("jwt_wrapper", "logs/jwt.log")
 
 # Get secret keys from environment variables or use secure defaults
+# Support both JWT_SECRET_KEY and JWT_SECRET (and refresh variants) for compatibility
 SECRET_KEY = (
     os.getenv("JWT_SECRET_KEY")
+    or os.getenv("JWT_SECRET")
     or "3ed3fb79ec2d6f0a7d7a00a97a7dbd07aa09fb0dedf7b6ac7eec4260456d0d06"
 )
 REFRESH_SECRET_KEY = (
     os.getenv("JWT_REFRESH_SECRET_KEY")
+    or os.getenv("JWT_REFRESH_SECRET")
     or "27e55f29f1d0e3dc1bb5e2d7ea12596b4b39edddd8c06ad9d55f0e9bbce3c75c"
 )
 

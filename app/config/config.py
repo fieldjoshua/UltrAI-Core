@@ -86,7 +86,7 @@ class Config:
     PEER_REVIEW_TIMEOUT = int(os.getenv("PEER_REVIEW_TIMEOUT", "90"))
     ULTRA_SYNTHESIS_TIMEOUT = int(os.getenv("ULTRA_SYNTHESIS_TIMEOUT", "60"))
     LLM_REQUEST_TIMEOUT = int(os.getenv("LLM_REQUEST_TIMEOUT", "45"))
-    CONCURRENT_EXECUTION_TIMEOUT = int(os.getenv("CONCURRENT_EXECUTION_TIMEOUT", "50"))
+    CONCURRENT_EXECUTION_TIMEOUT = int(os.getenv("CONCURRENT_EXECUTION_TIMEOUT", "70"))
 
     # Retry configuration (aligns with legacy app.config.Config)
     MAX_RETRY_ATTEMPTS = int(os.getenv("MAX_RETRY_ATTEMPTS", "3"))

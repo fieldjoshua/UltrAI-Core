@@ -18,6 +18,30 @@ from redis.exceptions import RedisError, ConnectionError, TimeoutError
 from app.config import Config
 from app.utils.logging import get_logger
 
+# Optional Prometheus metrics support
+try:
+    from prometheus_client import Counter, Gauge
+
+    ULTRA_CACHE_HITS = Counter("ultra_cache_hits_total", "Total cache hits")
+    ULTRA_CACHE_MISSES = Counter("ultra_cache_misses_total", "Total cache misses")
+    ULTRA_CACHE_ERRORS = Counter("ultra_cache_errors_total", "Total cache errors")
+    ULTRA_CACHE_MEMORY_FALLBACKS = Counter(
+        "ultra_cache_memory_fallbacks_total", "Total memory fallback occurrences"
+    )
+    ULTRA_CACHE_MEMORY_SIZE = Gauge(
+        "ultra_cache_memory_size", "Number of entries in in-memory cache"
+    )
+    ULTRA_CACHE_REDIS_AVAILABLE = Gauge(
+        "ultra_cache_redis_available", "1 if Redis available, else 0"
+    )
+except Exception:  # pragma: no cover - metrics are optional
+    ULTRA_CACHE_HITS = None
+    ULTRA_CACHE_MISSES = None
+    ULTRA_CACHE_ERRORS = None
+    ULTRA_CACHE_MEMORY_FALLBACKS = None
+    ULTRA_CACHE_MEMORY_SIZE = None
+    ULTRA_CACHE_REDIS_AVAILABLE = None
+
 logger = get_logger("cache_service")
 
 
@@ -71,15 +95,23 @@ class CacheService:
                 entry = self.memory_cache[key]
                 if ignore_ttl or entry["expires_at"] > time.time():
                     self.cache_stats["memory_fallbacks"] += 1
+                    if ULTRA_CACHE_MEMORY_FALLBACKS:
+                        ULTRA_CACHE_MEMORY_FALLBACKS.inc()
+                    if ULTRA_CACHE_HITS:
+                        ULTRA_CACHE_HITS.inc()
                     return entry["value"]
                 # Expired
                 del self.memory_cache[key]
 
             self.cache_stats["misses"] += 1
+            if ULTRA_CACHE_MISSES:
+                ULTRA_CACHE_MISSES.inc()
             return None
         except Exception as e:
             logger.error(f"Cache get error: {e}")
             self.cache_stats["errors"] += 1
+            if ULTRA_CACHE_ERRORS:
+                ULTRA_CACHE_ERRORS.inc()
             return None
 
     async def aget(self, key: str, ignore_ttl: bool = False) -> Optional[Any]:
@@ -90,24 +122,34 @@ class CacheService:
                     value = await self.redis_client.get(key)
                     if value:
                         self.cache_stats["hits"] += 1
+                        if ULTRA_CACHE_HITS:
+                            ULTRA_CACHE_HITS.inc()
                         return json.loads(value)
                 except (RedisError, ConnectionError) as e:
                     logger.warning(f"Redis get error, falling back to memory: {e}")
                     self.cache_stats["errors"] += 1
+                    if ULTRA_CACHE_ERRORS:
+                        ULTRA_CACHE_ERRORS.inc()
             return self.get(key, ignore_ttl=ignore_ttl)
         except Exception as e:
             logger.error(f"Cache get error: {e}")
             self.cache_stats["errors"] += 1
+            if ULTRA_CACHE_ERRORS:
+                ULTRA_CACHE_ERRORS.inc()
             return None
     
     def set(self, key: str, value: Any, ttl: int = 3600) -> bool:
         """Synchronous set into memory cache (test path)."""
         try:
             self.memory_cache[key] = {"value": value, "expires_at": time.time() + ttl}
+            if ULTRA_CACHE_MEMORY_SIZE:
+                ULTRA_CACHE_MEMORY_SIZE.set(len(self.memory_cache))
             return True
         except Exception as e:
             logger.error(f"Cache set error: {e}")
             self.cache_stats["errors"] += 1
+            if ULTRA_CACHE_ERRORS:
+                ULTRA_CACHE_ERRORS.inc()
             return False
 
     async def aset(self, key: str, value: Any, ttl: int = 3600) -> bool:
@@ -121,10 +163,16 @@ class CacheService:
                 except (RedisError, ConnectionError) as e:
                     logger.warning(f"Redis set error, falling back to memory: {e}")
                     self.cache_stats["errors"] += 1
+                    if ULTRA_CACHE_ERRORS:
+                        ULTRA_CACHE_ERRORS.inc()
+                    if ULTRA_CACHE_MEMORY_FALLBACKS:
+                        ULTRA_CACHE_MEMORY_FALLBACKS.inc()
             return self.set(key, value, ttl)
         except Exception as e:
             logger.error(f"Cache set error: {e}")
             self.cache_stats["errors"] += 1
+            if ULTRA_CACHE_ERRORS:
+                ULTRA_CACHE_ERRORS.inc()
             return False
     
     def delete(self, key: str) -> bool:
@@ -134,6 +182,8 @@ class CacheService:
             if key in self.memory_cache:
                 del self.memory_cache[key]
                 deleted = True
+            if ULTRA_CACHE_MEMORY_SIZE:
+                ULTRA_CACHE_MEMORY_SIZE.set(len(self.memory_cache))
             return deleted
         except Exception as e:
             logger.error(f"Cache delete error: {e}")
@@ -232,7 +282,13 @@ class CacheService:
         """Get cache statistics."""
         total_requests = self.cache_stats["hits"] + self.cache_stats["misses"]
         hit_rate = (self.cache_stats["hits"] / total_requests * 100) if total_requests > 0 else 0
-        
+
+        # Update gauges if available
+        if ULTRA_CACHE_MEMORY_SIZE:
+            ULTRA_CACHE_MEMORY_SIZE.set(len(self.memory_cache))
+        if ULTRA_CACHE_REDIS_AVAILABLE:
+            ULTRA_CACHE_REDIS_AVAILABLE.set(1 if self.redis_client is not None else 0)
+
         return {
             **self.cache_stats,
             "hit_rate": round(hit_rate, 2),

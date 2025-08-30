@@ -55,8 +55,9 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 logger = get_logger("auth_service", "logs/auth.log")
 
 # Load environment variables with secure defaults
-JWT_SECRET = os.getenv("JWT_SECRET_KEY", None)
-JWT_REFRESH_SECRET = os.getenv("JWT_REFRESH_SECRET_KEY", None)
+# Support both JWT_SECRET_KEY and JWT_SECRET (and refresh variants) for compatibility
+JWT_SECRET = os.getenv("JWT_SECRET_KEY") or os.getenv("JWT_SECRET")
+JWT_REFRESH_SECRET = os.getenv("JWT_REFRESH_SECRET_KEY") or os.getenv("JWT_REFRESH_SECRET")
 
 # Ensure secrets are provided in production
 if not JWT_SECRET:

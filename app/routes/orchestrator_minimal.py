@@ -4,11 +4,13 @@ Route handlers for the orchestrator service.
 
 from typing import Dict, Any, Optional, List
 from fastapi import APIRouter, HTTPException, Request, Depends
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
 from app.utils.logging import get_logger
 from app.services.output_formatter import OutputFormatter
 from app.middleware.auth_middleware import require_auth, AuthUser
+from app.models.streaming_response import StreamingAnalysisRequest, StreamingConfig
 
 logger = get_logger("orchestrator_routes")
 
@@ -87,7 +89,13 @@ def create_router() -> APIRouter:
 
             start_time = time.time()
 
-            logger.info(f"Starting analysis for query: {request.query[:100]}...")
+            logger.info(
+                f"Starting analysis for query: {request.query[:100]}...",
+                extra={
+                    "request_id": getattr(http_request.state, "request_id", None),
+                    "correlation_id": getattr(http_request.state, "correlation_id", None)
+                }
+            )
 
             # Get orchestration service from app state
             if not hasattr(http_request.app.state, "orchestration_service"):
@@ -96,6 +104,10 @@ def create_router() -> APIRouter:
                 )
 
             orchestration_service = http_request.app.state.orchestration_service
+            
+            # Use tracked orchestration if available
+            if hasattr(orchestration_service, "set_request_context"):
+                orchestration_service.set_request_context(http_request)
 
             # Prepare options with save_outputs flag
             pipeline_options = request.options or {}
@@ -352,6 +364,111 @@ def create_router() -> APIRouter:
         except Exception as e:
             logger.error(f"Analysis failed: {str(e)}")
             return AnalysisResponse(success=False, results={}, error=str(e))
+
+    @router.post("/orchestrator/analyze/stream")
+    async def analyze_query_stream(
+        request: StreamingAnalysisRequest,
+        http_request: Request,
+        current_user: AuthUser = Depends(require_auth)
+    ):
+        """
+        Streaming analysis endpoint using Server-Sent Events.
+        
+        This endpoint provides real-time updates as the orchestration pipeline
+        processes through its stages, enabling responsive user interfaces.
+        
+        Returns:
+            StreamingResponse: Server-Sent Events stream
+        """
+        try:
+            logger.info(f"Starting streaming analysis for query: {request.query[:100]}...")
+            
+            # Get orchestration service
+            if not hasattr(http_request.app.state, "orchestration_service"):
+                raise HTTPException(
+                    status_code=503, detail="Orchestration service not available"
+                )
+            
+            orchestration_service = http_request.app.state.orchestration_service
+            
+            # Check if service supports streaming
+            if not hasattr(orchestration_service, "stream_pipeline"):
+                # Try to import and create streaming service
+                try:
+                    from app.services.streaming_orchestration_service import StreamingOrchestrationService
+                    
+                    # Create streaming service with same dependencies
+                    streaming_service = StreamingOrchestrationService(
+                        model_registry=orchestration_service.model_registry,
+                        quality_evaluator=orchestration_service.quality_evaluator,
+                        rate_limiter=orchestration_service.rate_limiter,
+                        token_manager=orchestration_service.token_manager,
+                        transaction_service=orchestration_service.transaction_service
+                    )
+                    
+                    # Store for future requests
+                    http_request.app.state.streaming_orchestration_service = streaming_service
+                    orchestration_service = streaming_service
+                    
+                except ImportError:
+                    raise HTTPException(
+                        status_code=501, 
+                        detail="Streaming not implemented. Use /orchestrator/analyze for non-streaming."
+                    )
+            
+            # Configure streaming
+            streaming_config = StreamingConfig(
+                enabled=True,
+                chunk_size=request.chunk_size,
+                synthesis_streaming="synthesis_chunks" in request.stream_stages,
+                include_partial_responses="model_responses" in request.stream_stages
+            )
+            
+            # Model selection (similar to non-streaming endpoint)
+            selected_models = request.selected_models
+            if not selected_models:
+                try:
+                    default_models = await orchestration_service._default_models_from_env()
+                    if default_models:
+                        selected_models = default_models[:2]
+                    else:
+                        selected_models = ["gpt-4o", "claude-3-5-sonnet-20241022"]
+                except Exception as e:
+                    logger.error(f"Model selection failed: {e}")
+                    selected_models = ["gpt-4o"]
+            
+            # Create async generator for streaming
+            async def event_stream():
+                """Generate Server-Sent Events."""
+                try:
+                    async for event in orchestration_service.stream_pipeline(
+                        input_data=request.query,
+                        options=request.options,
+                        user_id=request.user_id,
+                        selected_models=selected_models,
+                        stream_config=streaming_config
+                    ):
+                        yield event
+                except Exception as e:
+                    logger.error(f"Streaming error: {str(e)}")
+                    yield f"data: {{'event': 'error', 'data': {{'error': '{str(e)}'}}}}\n\n"
+            
+            # Return streaming response
+            return StreamingResponse(
+                event_stream(),
+                media_type="text/event-stream",
+                headers={
+                    "Cache-Control": "no-cache",
+                    "Connection": "keep-alive",
+                    "X-Accel-Buffering": "no"  # Disable proxy buffering
+                }
+            )
+            
+        except HTTPException:
+            raise
+        except Exception as e:
+            logger.error(f"Streaming analysis failed: {str(e)}")
+            raise HTTPException(status_code=500, detail=str(e))
 
     @router.get("/orchestrator/health")
     async def orchestrator_health(http_request: Request):

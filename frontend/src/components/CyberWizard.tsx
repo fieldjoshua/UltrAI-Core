@@ -1423,7 +1423,7 @@ export default function CyberWizard() {
                         onClick={() => setShowStatus(true)}
                       >
                         🚀 Initialize UltrAI
-                      </button>
+                </button>
                     ) : (
                       <div className="mt-3">
                         <button

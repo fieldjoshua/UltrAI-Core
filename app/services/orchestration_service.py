@@ -471,7 +471,7 @@ class OrchestrationService:
                 # Log progress for user tracking
                 logger.info(f"🔄 PROGRESS: Stage {i+1}/{len(self.pipeline_stages)} - {stage.name}")
                 logger.info(f"📊 PIPELINE PROGRESS: {((i/len(self.pipeline_stages))*100):.0f}% complete")
-                # Skip peer review when we clearly have <2 successful models; include placeholder result
+                # Enforce offline mode when we have fewer than two successful models
                 if stage.name == "peer_review_and_revision":
 
                     # Determine how many unique successful models we have so far
@@ -489,20 +489,15 @@ class OrchestrationService:
                     model_count = _extract_count(current_data)
 
                     if model_count < 2:
-                        logger.info(
-                            "Skipping peer_review_and_revision stage – fewer than two working models present"
+                        logger.error(
+                            "Insufficient healthy models (<2). Taking system offline for this request."
                         )
                         results[stage.name] = PipelineResult(
                             stage_name=stage.name,
-                            output={
-                                "stage": stage.name,
-                                "skipped": True,
-                                "reason": "Fewer than two working models present",
-                                "input": prev_data,
-                            },
+                            output=None,
+                            error="offline_insufficient_models",
                         )
-                        current_data = results[stage.name].output
-                        continue
+                        break
 
                 # Override models for stages that use selected_models
                 if (
@@ -1630,6 +1625,39 @@ Prepare this analysis to enable true intelligence multiplication in the subseque
             ])
             meta_analysis = f"Multi-Model Initial Responses:\\n{analysis_text}"
             
+        # Additional fallback: if peer-review wrapper object provided input with prior stage payload
+        elif isinstance(data.get("input"), dict) and (
+            ("revised_responses" in data["input"] and data["input"]["revised_responses"]) or
+            ("responses" in data["input"] and data["input"]["responses"]) 
+        ):
+            inner = data["input"]
+            if "revised_responses" in inner and inner["revised_responses"]:
+                revised_responses = inner["revised_responses"]
+                source_models = inner.get("successful_models", list(revised_responses.keys()))
+                analysis_text = "\n\n".join([
+                    f"**{model} (Peer-Reviewed):** {response}"
+                    for model, response in revised_responses.items()
+                ])
+                meta_analysis = f"Peer-Reviewed Multi-Model Responses:\n{analysis_text}"
+                logger.info("✅ Using nested peer-reviewed responses for Ultra Synthesis")
+            else:
+                initial_responses = inner.get("responses", {})
+                source_models = inner.get("successful_models", list(initial_responses.keys()))
+                analysis_text = "\n\n".join([
+                    f"**{model}:** {response}"
+                    for model, response in initial_responses.items()
+                ])
+                meta_analysis = f"Multi-Model Initial Responses (nested):\n{analysis_text}"
+                logger.warning("⚠️ Using nested initial responses (peer review likely skipped)")
+
+            # Optional single-model fallback gate
+            if len(source_models) < 2:
+                use_single_fallback = os.getenv("USE_SINGLE_MODEL_FALLBACK", "false").lower() == "true"
+                if use_single_fallback:
+                    logger.info("🔧 Single-model fallback enabled via USE_SINGLE_MODEL_FALLBACK=true")
+                else:
+                    logger.info("🔧 Single-model fallback not enabled; proceeding with available content")
+
         elif "error" in data and data.get("error"):
             logger.warning(
                 f"Previous stage failed: {data['error']}, cannot proceed with ultra-synthesis"

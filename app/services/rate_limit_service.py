@@ -307,8 +307,8 @@ class RateLimitService:
         # Determine tier based on user
         tier = user.subscription_tier if user else DEFAULT_TIER
         
-        # Check for test tier override
-        if os.getenv("TESTING") == "true" and os.getenv("TEST_RATE_LIMIT_TIER"):
+        # Check for test tier override (only applies to unauthenticated requests)
+        if user is None and os.getenv("TESTING") == "true" and os.getenv("TEST_RATE_LIMIT_TIER"):
             test_tier = os.getenv("TEST_RATE_LIMIT_TIER", "FREE").upper()
             if hasattr(SubscriptionTier, test_tier):
                 tier = getattr(SubscriptionTier, test_tier)

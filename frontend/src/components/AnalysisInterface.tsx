@@ -239,8 +239,8 @@ export const AnalysisInterface: React.FC = () => {
     options: AnalysisOptions
   ) => {
     try {
-      if (selectedModels.length === 0) {
-        throw new Error('Please select at least one model');
+      if (selectedModels.length < 2) {
+        throw new Error('Please select at least two models');
       }
 
       setPrompt(submittedPrompt);

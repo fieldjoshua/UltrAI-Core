@@ -1,4 +1,24 @@
-# Project-Specific Memory for UltraAI Core
+# ★ Division of Labor (Claude ↔ GPT)
+
+- GPT (Current Editor)
+  - Increase CONCURRENT_EXECUTION_TIMEOUT to 70s [done]
+  - Add route-level tests for `app/routes/orchestrator_minimal.py` [done]
+  - Implement cache hit rate metrics and expose via `/api/metrics` [done]
+  - Re-run and stabilize rate limit tests [done]
+
+- Claude (Other Editor)
+  - Standardize error response format across all LLM adapters [done 2025-08-30]
+  - Add streaming response support to orchestrator [done 2025-08-30]
+  - Implement request ID tracking across services [done 2025-08-30]
+  - (Backlog) Memory monitoring, query-type cache TTL, A/B selection tests
+
+Coordination
+- Use this section as the single source of truth; mark updates with [done]/[in-progress] + date.
+- If scope changes, update here first so both agents stay aligned.
+
+---
+
+go a# Project-Specific Memory for UltraAI Core
 
 ## Git Operations
 

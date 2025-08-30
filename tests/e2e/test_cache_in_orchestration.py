@@ -1,0 +1,264 @@
+"""
+End-to-end tests for cache usage in orchestration pipeline.
+"""
+
+import json
+import os
+from unittest.mock import AsyncMock, patch
+
+import pytest
+from fastapi.testclient import TestClient
+
+from app.app import create_app
+from app.services.cache_service import cache_key, get_cache_service
+
+
+@pytest.mark.e2e
+class TestCacheInOrchestration:
+    """Test cache behavior in orchestration workflow"""
+
+    @pytest.fixture
+    def client(self):
+        """Create test client with mocked LLMs"""
+        os.environ["TESTING"] = "true"
+        os.environ["JWT_SECRET_KEY"] = "test-secret"
+        os.environ["USE_MOCK"] = "true"  # Use mock LLMs
+        app = create_app()
+        return TestClient(app)
+
+    @pytest.fixture
+    def cache_service(self):
+        """Get cache service and clear it"""
+        service = get_cache_service()
+        service.flush()
+        service._stats = {"hits": 0, "misses": 0, "errors": 0, "memory_fallbacks": 0}
+        return service
+
+    def test_orchestration_caching_workflow(self, client, cache_service):
+        """Test that orchestration properly caches responses"""
+        # Make first request
+        request_data = {
+            "query": "What is machine learning?",
+            "selected_models": ["gpt-4", "claude-3-opus"],
+            "options": {"temperature": 0.7}
+        }
+        
+        # Track cache stats before
+        stats_before = cache_service.get_stats()
+        initial_misses = stats_before["misses"]
+        
+        # First request - should be cache miss
+        response1 = client.post("/api/orchestrator/analyze", json=request_data)
+        assert response1.status_code == 200
+        
+        # Check cache stats after first request
+        stats_after1 = cache_service.get_stats()
+        assert stats_after1["misses"] > initial_misses  # Cache miss occurred
+        
+        # Generate expected cache key
+        expected_key = cache_key(
+            "orchestration",
+            {
+                "query": request_data["query"],
+                "models": sorted(request_data["selected_models"]),
+                "options": request_data["options"]
+            }
+        )
+        
+        # Verify response was cached
+        cached_value = cache_service.get(expected_key)
+        assert cached_value is not None
+        
+        # Second identical request - should be cache hit
+        response2 = client.post("/api/orchestrator/analyze", json=request_data)
+        assert response2.status_code == 200
+        
+        # Check cache stats after second request
+        stats_after2 = cache_service.get_stats()
+        assert stats_after2["hits"] > stats_after1["hits"]  # Cache hit occurred
+        
+        # Responses should be identical
+        assert response1.json() == response2.json()
+
+    def test_orchestration_cache_invalidation_on_different_params(self, client, cache_service):
+        """Test that different parameters generate different cache keys"""
+        base_request = {
+            "query": "Explain quantum computing",
+            "selected_models": ["gpt-4", "claude-3-opus"],
+            "options": {"temperature": 0.7}
+        }
+        
+        # First request
+        response1 = client.post("/api/orchestrator/analyze", json=base_request)
+        assert response1.status_code == 200
+        result1 = response1.json()
+        
+        # Different query - should not use cache
+        different_query = base_request.copy()
+        different_query["query"] = "Explain blockchain technology"
+        response2 = client.post("/api/orchestrator/analyze", json=different_query)
+        assert response2.status_code == 200
+        result2 = response2.json()
+        
+        # Results should be different (different queries)
+        assert result1["results"]["initial_response"]["output"]["responses"] != \
+               result2["results"]["initial_response"]["output"]["responses"]
+        
+        # Different models - should not use cache
+        different_models = base_request.copy()
+        different_models["selected_models"] = ["gpt-4", "gemini-pro"]
+        response3 = client.post("/api/orchestrator/analyze", json=different_models)
+        assert response3.status_code == 200
+        
+        # Different options - should not use cache
+        different_options = base_request.copy()
+        different_options["options"]["temperature"] = 0.9
+        response4 = client.post("/api/orchestrator/analyze", json=different_options)
+        assert response4.status_code == 200
+        
+        # Check that we had multiple cache misses
+        stats = cache_service.get_stats()
+        assert stats["misses"] >= 4  # At least 4 different requests
+
+    @patch("app.services.orchestration_service.ENABLE_CACHING", False)
+    def test_orchestration_without_caching(self, client, cache_service):
+        """Test orchestration when caching is disabled"""
+        request_data = {
+            "query": "What is artificial intelligence?",
+            "selected_models": ["gpt-4", "claude-3-opus"],
+            "options": {}
+        }
+        
+        # Make two identical requests
+        response1 = client.post("/api/orchestrator/analyze", json=request_data)
+        response2 = client.post("/api/orchestrator/analyze", json=request_data)
+        
+        assert response1.status_code == 200
+        assert response2.status_code == 200
+        
+        # Cache should not have been used
+        stats = cache_service.get_stats()
+        assert stats["hits"] == 0  # No cache hits
+
+    def test_cache_ttl_in_orchestration(self, client, cache_service, monkeypatch):
+        """Test that cached orchestration responses expire"""
+        # Set very short cache TTL
+        monkeypatch.setattr("app.services.orchestration_service.CACHE_TTL", 1)  # 1 second
+        
+        request_data = {
+            "query": "Explain neural networks",
+            "selected_models": ["gpt-4", "claude-3-opus"],
+            "options": {}
+        }
+        
+        # First request
+        response1 = client.post("/api/orchestrator/analyze", json=request_data)
+        assert response1.status_code == 200
+        
+        # Immediate second request - should hit cache
+        response2 = client.post("/api/orchestrator/analyze", json=request_data)
+        assert response2.status_code == 200
+        
+        stats_before_expiry = cache_service.get_stats()
+        hits_before = stats_before_expiry["hits"]
+        
+        # Wait for cache to expire
+        import time
+        time.sleep(1.5)
+        
+        # Third request - should miss cache (expired)
+        response3 = client.post("/api/orchestrator/analyze", json=request_data)
+        assert response3.status_code == 200
+        
+        stats_after_expiry = cache_service.get_stats()
+        # Should have same number of hits (no new hit after expiry)
+        assert stats_after_expiry["hits"] == hits_before
+        assert stats_after_expiry["misses"] > stats_before_expiry["misses"]
+
+    @pytest.mark.asyncio
+    async def test_concurrent_orchestration_caching(self, client, cache_service):
+        """Test cache behavior under concurrent orchestration requests"""
+        import asyncio
+        from httpx import AsyncClient
+        
+        os.environ["USE_MOCK"] = "true"
+        app = create_app()
+        
+        async def make_request(async_client, request_id):
+            request_data = {
+                "query": "What is deep learning?",  # Same query for all
+                "selected_models": ["gpt-4", "claude-3-opus"],
+                "options": {"temperature": 0.7}
+            }
+            response = await async_client.post("/api/orchestrator/analyze", json=request_data)
+            return response.status_code, request_id
+        
+        async with AsyncClient(app=app, base_url="http://test") as async_client:
+            # Make 10 concurrent requests with same parameters
+            tasks = [make_request(async_client, i) for i in range(10)]
+            results = await asyncio.gather(*tasks)
+        
+        # All should succeed
+        assert all(status == 200 for status, _ in results)
+        
+        # Check cache stats
+        stats = cache_service.get_stats()
+        # Should have at least 1 miss (first request) and multiple hits
+        assert stats["misses"] >= 1
+        assert stats["hits"] >= 5  # At least some should hit cache
+
+    def test_cache_clear_affects_orchestration(self, client, cache_service):
+        """Test that clearing cache affects orchestration"""
+        request_data = {
+            "query": "Explain machine learning algorithms",
+            "selected_models": ["gpt-4", "claude-3-opus"],
+            "options": {}
+        }
+        
+        # First request - cache miss
+        response1 = client.post("/api/orchestrator/analyze", json=request_data)
+        assert response1.status_code == 200
+        
+        # Second request - cache hit
+        response2 = client.post("/api/orchestrator/analyze", json=request_data)
+        assert response2.status_code == 200
+        
+        stats_before_clear = cache_service.get_stats()
+        assert stats_before_clear["hits"] > 0
+        
+        # Clear cache
+        client.post("/cache/clear", json={})
+        
+        # Third request - cache miss again
+        response3 = client.post("/api/orchestrator/analyze", json=request_data)
+        assert response3.status_code == 200
+        
+        # Should have more misses after cache clear
+        stats_after_clear = cache_service.get_stats()
+        assert stats_after_clear["misses"] > stats_before_clear["misses"]
+
+    def test_cache_pattern_clear_orchestration(self, client, cache_service):
+        """Test pattern-based cache clearing for orchestration"""
+        # Make requests with different queries
+        queries = [
+            "What is AI?",
+            "What is ML?",
+            "What is DL?"
+        ]
+        
+        for query in queries:
+            request_data = {
+                "query": query,
+                "selected_models": ["gpt-4", "claude-3-opus"],
+                "options": {}
+            }
+            response = client.post("/api/orchestrator/analyze", json=request_data)
+            assert response.status_code == 200
+        
+        # Clear only orchestration cache
+        result = client.post("/cache/clear", json={"pattern": "orchestration:*"})
+        assert result.status_code == 200
+        
+        # All orchestration entries should be cleared
+        cleared_count = result.json()["cleared"]
+        assert cleared_count >= len(queries)

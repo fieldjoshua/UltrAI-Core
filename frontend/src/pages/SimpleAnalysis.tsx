@@ -187,8 +187,8 @@ const SimpleAnalysis: React.FC = () => {
       return;
     }
 
-    if (selectedModels.length === 0) {
-      setError('Please select at least one model');
+    if (selectedModels.length < 2) {
+      setError('Please select at least two models');
       return;
     }
 

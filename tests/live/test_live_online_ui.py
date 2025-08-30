@@ -27,6 +27,10 @@ QUERY = random.choice(PROMPTS)
 
 @pytest.mark.live_online
 @pytest.mark.playwright
+@pytest.mark.skipif(
+    not os.getenv("OPENAI_API_KEY") or not os.getenv("ANTHROPIC_API_KEY"),
+    reason="Live UI test requires OPENAI_API_KEY and ANTHROPIC_API_KEY"
+)
 def test_live_ultra_synthesis_via_ui(page: Page):
     """Simulate a real user running an analysis through the UI with live models."""
 

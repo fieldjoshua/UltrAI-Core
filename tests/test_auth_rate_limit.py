@@ -22,6 +22,10 @@ from app.database.models.user import SubscriptionTier, User
 from app.services.auth_service import auth_service
 from app.services.rate_limit_service import rate_limit_service
 
+# Set test environment variables
+os.environ["TESTING"] = "true"
+os.environ["JWT_SECRET_KEY"] = "test-secret-key"
+
 
 @pytest.fixture
 def mock_user():
@@ -39,6 +43,8 @@ def test_app():
     # Force auth and rate limiting to be enabled
     Config.ENABLE_AUTH = True
     Config.ENABLE_RATE_LIMIT = True
+    # Set test tier for consistent testing
+    os.environ["TEST_RATE_LIMIT_TIER"] = "BASIC"
     
     app = create_app()
     return app
@@ -199,8 +205,13 @@ class TestRateLimiting:
         response = client.get("/api/health")
         assert response.status_code == 200
         
-        # Rate limit headers should still be present but with 0 values
-        assert response.headers.get("X-RateLimit-Limit") == "0"
+        # Rate limit headers should still be present with tier-based limits
+        # When Redis is down, should show the configured limit (not 0)
+        assert "X-RateLimit-Limit" in response.headers
+        assert "X-RateLimit-Remaining" in response.headers
+        assert "X-RateLimit-Reset" in response.headers
+        # For unauthenticated (FREE tier), general limit is 60
+        assert int(response.headers["X-RateLimit-Limit"]) > 0
 
 
 @pytest.mark.integration
@@ -237,6 +248,7 @@ class TestAuthRateLimitIntegration:
         
         # Check basic tier limits (300 req/min for general API)
         assert response.headers["X-RateLimit-Limit"] == "300"
+        assert response.headers["X-RateLimit-Remaining"] == "299"  # First request
         
         # Mock token validation for premium user
         mock_decode.return_value = {"sub": "2", "type": "access"}
@@ -270,3 +282,23 @@ class TestAuthRateLimitIntegration:
         # No rate limit headers should be present
         response = client.get("/api/health")
         assert "X-RateLimit-Limit" not in response.headers
+    
+    @patch.object(rate_limit_service, 'redis')
+    def test_rate_limit_tier_override_in_testing(self, mock_redis, monkeypatch):
+        """Test that TEST_RATE_LIMIT_TIER env var overrides tier in testing"""
+        # Set testing mode and tier override
+        monkeypatch.setenv("TESTING", "true")
+        monkeypatch.setenv("TEST_RATE_LIMIT_TIER", "PREMIUM")
+        Config.ENABLE_RATE_LIMIT = True
+        
+        app = create_app()
+        client = TestClient(app)
+        
+        # Mock Redis
+        mock_redis.incr.return_value = 1
+        
+        # Make unauthenticated request (normally FREE tier)
+        response = client.get("/api/orchestrator/test")
+        
+        # Should get PREMIUM tier limits (1000) instead of FREE (60)
+        assert response.headers["X-RateLimit-Limit"] == "1000"
