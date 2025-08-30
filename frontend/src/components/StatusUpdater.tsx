@@ -47,34 +47,63 @@ export default function StatusUpdater() {
     : 'animate-fade-in';
 
   return (
-    <div className={`glass-strong rounded-xl p-4 border-2 animate-border-hum ${animClass}`}>
-      <div className="flex items-center gap-3">
-        <div className="text-xl">{s.icon}</div>
-        <h3 className="text-sm font-bold tracking-wide uppercase">{s.title}</h3>
-      </div>
-      {s.narrative && <p className="text-xs opacity-80 mt-1">{s.narrative}</p>}
-      {s.substeps && (
-        <div className="mt-2 space-y-1">
-          {s.substeps.map((ss) => (
-            <div key={ss.label} className="flex justify-between text-xs">
-              <span className="opacity-80">{ss.label}</span>
-              <span className="text-neon-mint">{ss.status}</span>
+    <div className={`glass-strong rounded-xl p-6 border-2 animate-border-hum ${animClass} relative overflow-hidden`}>
+      {/* Background accent glow */}
+      <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/5 via-transparent to-orange-500/5 pointer-events-none" />
+      
+      {/* Content centered */}
+      <div className="relative z-10 text-center">
+        {/* Icon with glow effect */}
+        <div className="text-3xl mb-3 inline-block">
+          <span className="inline-block animate-bounce-subtle drop-shadow-[0_0_20px_rgba(255,102,0,0.6)]">
+            {s.icon}
+          </span>
+        </div>
+        
+        {/* Title with gradient text */}
+        <h3 className="text-lg font-bold tracking-wider uppercase bg-gradient-to-r from-cyan-400 to-orange-400 bg-clip-text text-transparent">
+          {s.title}
+        </h3>
+        
+        {/* Narrative with better spacing */}
+        {s.narrative && (
+          <p className="text-sm opacity-90 mt-3 max-w-md mx-auto leading-relaxed text-white/80">
+            {s.narrative}
+          </p>
+        )}
+        
+        {/* Substeps as centered cards */}
+        {s.substeps && (
+          <div className="mt-4 grid grid-cols-2 gap-2 max-w-sm mx-auto">
+            {s.substeps.map((ss) => (
+              <div key={ss.label} className="bg-white/5 rounded-lg p-2 border border-white/10">
+                <span className="text-xs opacity-70 block">{ss.label}</span>
+                <span className="text-sm font-semibold text-cyan-400">{ss.status}</span>
+              </div>
+            ))}
+          </div>
+        )}
+        
+        {/* Enhanced progress bar */}
+        {s.animation === 'progress-bar' && (
+          <div className="mt-4 max-w-xs mx-auto">
+            <div className="h-2 bg-white/10 rounded-full overflow-hidden backdrop-blur-sm">
+              <div className="h-full bg-gradient-to-r from-cyan-400 to-orange-400 animate-[progressFill_1.5s_ease-in-out_forwards] shadow-[0_0_10px_rgba(255,102,0,0.5)]"></div>
             </div>
-          ))}
-        </div>
-      )}
-      {s.animation === 'progress-bar' && (
-        <div className="mt-3 h-1 bg-white/10 rounded overflow-hidden">
-          <div className="h-full bg-pink-400 animate-[progressFill_1.5s_ease-in-out_forwards]"></div>
-        </div>
-      )}
-      {s.tabs && (
-        <div className="mt-3 flex flex-wrap gap-2">
-          {s.tabs.map(tab => (
-            <span key={tab} className="px-2 py-1 text-[11px] border rounded border-white/20">{tab}</span>
-          ))}
-        </div>
-      )}
+          </div>
+        )}
+        
+        {/* Tabs as pills */}
+        {s.tabs && (
+          <div className="mt-4 flex flex-wrap gap-2 justify-center">
+            {s.tabs.map(tab => (
+              <span key={tab} className="px-3 py-1.5 text-xs font-medium border rounded-full border-white/20 bg-white/5 hover:bg-white/10 transition-colors">
+                {tab}
+              </span>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
