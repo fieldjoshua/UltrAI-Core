@@ -668,12 +668,13 @@ export default function CyberWizard() {
                     background: glassBackground,
                     backdropFilter: 'blur(40px)',
                     WebkitBackdropFilter: 'blur(40px)',
-                    border: `2px solid ${colorHex}40`,
+                    border: `2px solid ${colorHex}60`,
                     boxShadow: `
                       0 8px 32px rgba(0, 0, 0, 0.3),
-                      0 0 20px ${colorHex}10,
+                      0 0 20px ${colorHex}20,
                       inset 0 0 40px rgba(255, 255, 255, 0.02)
-                    `
+                    `,
+                    clipPath: 'polygon(0 0, calc(100% - 15px) 0, 100% 15px, 100% 100%, 15px 100%, 0 calc(100% - 15px))'
                   }}
                 >
                   <h3 className="text-xs font-bold text-white mb-3 uppercase tracking-wider opacity-80">System Status</h3>
@@ -719,12 +720,13 @@ export default function CyberWizard() {
                     background: glassBackground,
                     backdropFilter: 'blur(40px)',
                     WebkitBackdropFilter: 'blur(40px)',
-                    border: `2px solid ${colorHex}40`,
+                    border: `2px solid ${colorHex}60`,
                     boxShadow: `
                       0 8px 32px rgba(0, 0, 0, 0.3),
-                      0 0 20px ${colorHex}10,
+                      0 0 20px ${colorHex}20,
                       inset 0 0 40px rgba(255, 255, 255, 0.02)
-                    `
+                    `,
+                    clipPath: 'polygon(0 0, calc(100% - 15px) 0, 100% 15px, 100% 100%, 15px 100%, 0 calc(100% - 15px))'
                   }}
                 >
                   <h3 className="text-xs font-bold text-white mb-3 uppercase tracking-wider opacity-80">Time Theme</h3>
@@ -751,7 +753,7 @@ export default function CyberWizard() {
               </div>
 
           {/* Wizard Panel (center) */}
-              <div className="col-span-8">
+              <div className="col-span-7">
                 <div
                   className={`glass-panel glass-grain relative p-8 rounded-2xl overflow-hidden transition-smooth will-change-transform ${
                     step.color === 'mint' ? 'glow-mint' :
@@ -1407,7 +1409,7 @@ export default function CyberWizard() {
           </div>
 
           {/* Right Panel: Receipt transforms into Status after approval */}
-          <div className="col-span-2">
+          <div className="col-span-3">
             <div 
               className="glass-panel glass-grain relative p-6 rounded-2xl transition-smooth ${showStatus ? 'animate-pulse-glow' : ''}"
               style={{ 
