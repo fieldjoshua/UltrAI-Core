@@ -777,7 +777,7 @@ export default function CyberWizard() {
                                     : isDone 
                                     ? `radial-gradient(circle at 30% 30%, ${dotHex}30, ${dotHex}10)`
                                     : 'radial-gradient(circle at 30% 30%, rgba(255,255,255,0.1), rgba(255,255,255,0.05))',
-                                  border: `2px solid ${isActive ? dotHex : isDone ? dotHex : 'rgba(255,255,255,0.2)'}`,
+                                  border: `2px solid ${isActive ? dotHex : isDone ? dotHex : dotHex + '40'}`,
                                   boxShadow: isActive 
                                     ? `0 0 0 4px ${dotHex}20, 0 0 30px ${dotHex}50, inset 0 0 10px ${dotHex}30` 
                                     : isDone
@@ -976,7 +976,7 @@ export default function CyberWizard() {
                         <div
                           className="glass-panel glass-grain border-2 rounded-lg p-3 cursor-pointer hover:scale-105 transition-smooth group"
                           style={{
-                            borderColor: autoPreference === 'premium' ? colorHex : 'rgba(255,255,255,0.2)',
+                            borderColor: autoPreference === 'premium' ? colorHex : colorHex + '40',
                             background: autoPreference === 'premium' ? `linear-gradient(135deg, ${mapColorRGBA(step.color, 0.15)}, ${mapColorRGBA(step.color, 0.25)})` : 'rgba(255,255,255,0.05)',
                             transform: autoPreference === 'premium' ? 'scale(1.02)' : 'scale(1)'
                           }}
@@ -1006,7 +1006,7 @@ export default function CyberWizard() {
                         <div
                           className="glass-panel glass-grain border-2 rounded-lg p-3 cursor-pointer hover:scale-105 transition-smooth group"
                           style={{
-                            borderColor: autoPreference === 'speed' ? colorHex : 'rgba(255,255,255,0.2)',
+                            borderColor: autoPreference === 'speed' ? colorHex : colorHex + '40',
                             background: autoPreference === 'speed' ? `linear-gradient(135deg, ${mapColorRGBA(step.color, 0.15)}, ${mapColorRGBA(step.color, 0.25)})` : 'rgba(255,255,255,0.05)',
                             transform: autoPreference === 'speed' ? 'scale(1.02)' : 'scale(1)'
                           }}
@@ -1036,7 +1036,7 @@ export default function CyberWizard() {
                         <div
                           className="glass-panel glass-grain border-2 rounded-lg p-3 cursor-pointer hover:scale-105 transition-smooth group"
                           style={{
-                            borderColor: autoPreference === 'cost' ? colorHex : 'rgba(255,255,255,0.2)',
+                            borderColor: autoPreference === 'cost' ? colorHex : colorHex + '40',
                             background: autoPreference === 'cost' ? `linear-gradient(135deg, ${mapColorRGBA(step.color, 0.15)}, ${mapColorRGBA(step.color, 0.25)})` : 'rgba(255,255,255,0.05)',
                             transform: autoPreference === 'cost' ? 'scale(1.02)' : 'scale(1)'
                           }}
@@ -1169,8 +1169,8 @@ export default function CyberWizard() {
                                       ? `linear-gradient(135deg, ${mapColorRGBA(step.color, 0.2)}, ${mapColorRGBA(step.color, 0.3)})` 
                                       : 'rgba(255, 255, 255, 0.05)',
                                     backdropFilter: 'blur(20px)',
-                                    border: `2px solid ${isSelected ? colorHex : 'rgba(255,255,255,0.2)'}`,
-                                    boxShadow: isSelected ? `0 0 20px ${colorHex}40` : '0 4px 12px rgba(0,0,0,0.2)'
+                                    border: `2px solid ${isSelected ? colorHex : colorHex + '40'}`,
+                                    boxShadow: isSelected ? `0 0 20px ${colorHex}40` : `0 4px 12px ${colorHex}20`
                                   }}
                                 >
                                   <div className="text-center">
@@ -1234,7 +1234,7 @@ export default function CyberWizard() {
                             key={o.label}
                             className={`glass-panel border-2 rounded-lg p-2 transition-smooth hover:scale-[1.02] ${comingSoon ? 'opacity-30 pointer-events-none' : ''} ${already ? 'glow-' + step.color : ''}`}
                             style={{ 
-                              borderColor: isLive ? colorHex : 'rgba(255,255,255,0.2)',
+                              borderColor: isLive ? colorHex : colorHex + '40',
                               background: already ? mapColorRGBA(step.color, 0.1) : 'rgba(255, 255, 255, 0.05)'
                             }}
                           >
