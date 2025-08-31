@@ -61,8 +61,23 @@ export default function CyberWizard() {
   const [addonsSubmitted, setAddonsSubmitted] = useState<boolean>(false);
   const [, setLastAddedItem] = useState<string | null>(null);
   // Billboard overlay disabled; remove state to avoid unused variable lints
-  const [isDemoMode, setIsDemoMode] = useState<boolean>(false);
+  // Check if we're in demo/mock mode based on environment
+  const isDemoMode = import.meta.env.VITE_API_MODE === 'mock' || import.meta.env.VITE_DEMO_MODE === 'true';
 
+  // Auto-populate demo data when in demo mode
+  useEffect(() => {
+    if (isDemoMode && userQuery === "") {
+      // Pre-fill demo data
+      setUserQuery("What are the best strategies for sustainable urban transportation?");
+      setSelectedModels(["gpt-4-turbo-preview", "claude-3-opus-20240229", "gemini-1.5-pro-latest"]);
+      setSelectedGoals(["Creative ideas", "Deep analysis"]);
+      setSummary([
+        { label: "Creative ideas", cost: 0.05, color: "mint", section: "1. Goals" },
+        { label: "Deep analysis", cost: 0.08, color: "mint", section: "1. Goals" }
+      ]);
+      setTotalCost(0.13);
+    }
+  }, [isDemoMode]);
 
   useEffect(() => {
     const load = async () => {
@@ -970,6 +985,9 @@ The convergence of autonomous vehicles, renewable energy, and smart city infrast
                       <div className="inline-block">
                         <div className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-[#ff00de] to-[#00ffff]">Welcome to the Future</div>
                         <div className="w-24 h-1 bg-gradient-to-r from-[#ff00de] to-[#00ffff] mx-auto mt-2"></div>
+                        {isDemoMode && (
+                          <div className="mt-2 text-[10px] text-green-300/70">Demo Environment</div>
+                        )}
                       </div>
                       
                       <div className="grid grid-cols-2 gap-4 max-w-2xl mx-auto">
@@ -998,41 +1016,6 @@ The convergence of autonomous vehicles, renewable energy, and smart city infrast
                         onClick={() => { setCurrentStep(1); setStepFadeKey(k => k + 1); }}
                       >
                         Enter UltrAI
-                      </button>
-                      
-                      {/* Demo Mode Toggle */}
-                      <button
-                        className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 ${
-                          isDemoMode 
-                            ? 'bg-gradient-to-r from-green-500/20 to-emerald-500/20 border-2 border-green-400 text-green-300' 
-                            : 'glass border-2 border-white/20 text-white/70 hover:border-white/40 hover:text-white'
-                        }`}
-                        onClick={() => {
-                          setIsDemoMode(!isDemoMode);
-                          if (!isDemoMode) {
-                            // Set demo query when enabling demo mode
-                            setUserQuery("What are the best strategies for sustainable urban transportation?");
-                            // Pre-select some models for demo
-                            setSelectedModels(["gpt-4-turbo-preview", "claude-3-opus-20240229", "gemini-1.5-pro-latest"]);
-                            // Pre-select some goals
-                            setSelectedGoals(["Creative ideas", "Deep analysis"]);
-                            // Add to summary
-                            setSummary([
-                              { label: "Creative ideas", cost: 0.05, color: "mint", section: "1. Goals" },
-                              { label: "Deep analysis", cost: 0.08, color: "mint", section: "1. Goals" }
-                            ]);
-                            setTotalCost(0.13);
-                          } else {
-                            // Clear demo data when disabling
-                            setUserQuery("");
-                            setSelectedModels([]);
-                            setSelectedGoals([]);
-                            setSummary([]);
-                            setTotalCost(0);
-                          }
-                        }}
-                      >
-                        {isDemoMode ? '✅ Demo Mode Active' : '🎮 Try Demo Mode'}
                       </button>
                     </div>
                     <div className="text-center mt-3 text-[10px] text-white/50 animate-pulse">
