@@ -22,6 +22,8 @@ interface StatusUpdaterProps {
   selectedAddons?: Array<{ label: string }>;
   onViewResults?: () => void;
   onStartNew?: () => void;
+  hasError?: boolean;
+  errorStep?: number;
 }
 
 export default function StatusUpdater({ 
@@ -29,7 +31,9 @@ export default function StatusUpdater({
   orchestratorResult, 
   selectedAddons = [],
   onViewResults,
-  onStartNew 
+  onStartNew,
+  hasError = false,
+  errorStep = 0
 }: StatusUpdaterProps) {
   const [steps, setSteps] = useState<StatusStep[]>([]);
   const [idx, setIdx] = useState(0);
@@ -55,9 +59,14 @@ export default function StatusUpdater({
       setIdx(steps.length - 1);
       return;
     }
+    // If error, stop at the error step
+    if (hasError && errorStep > 0) {
+      setIdx(Math.min(errorStep, steps.length - 1));
+      return;
+    }
     const t = setTimeout(() => setIdx(i => Math.min(i + 1, steps.length - 1)), 1500);
     return () => clearTimeout(t);
-  }, [steps, idx, isComplete]);
+  }, [steps, idx, isComplete, hasError, errorStep]);
 
   if (steps.length === 0) return null;
   const s = steps[idx];
@@ -70,10 +79,13 @@ export default function StatusUpdater({
     : s.animation === 'glow-pulse' ? 'animate-pulse-neon'
     : 'animate-fade-in';
 
+  const borderColor = hasError && idx === errorStep ? 'border-red-500/50' : 'animate-border-hum';
+  const glowColor = hasError && idx === errorStep ? 'from-red-500/10 via-transparent to-red-500/10' : 'from-cyan-500/5 via-transparent to-orange-500/5';
+  
   return (
-    <div className={`glass-strong rounded-xl p-6 border-2 animate-border-hum ${animClass} relative overflow-hidden`}>
+    <div className={`glass-strong rounded-xl p-6 border-2 ${borderColor} ${animClass} relative overflow-hidden`}>
       {/* Background accent glow */}
-      <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/5 via-transparent to-orange-500/5 pointer-events-none" />
+      <div className={`absolute inset-0 bg-gradient-to-br ${glowColor} pointer-events-none`} />
       
       {/* Content centered */}
       <div className="relative z-10 text-center">

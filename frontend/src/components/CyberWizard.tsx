@@ -788,24 +788,27 @@ export default function CyberWizard() {
                   </div>
                   
                   <div className="flex-1 overflow-auto">
-                    <StatusUpdater 
-                      isComplete={!isRunning && !!orchestratorResult}
-                      orchestratorResult={orchestratorResult}
-                      selectedAddons={summary.filter(item => item.section === "5. Add-ons & formatting")}
-                      onViewResults={() => {
-                        // TODO: Navigate to results view
-                        console.log('View results:', orchestratorResult);
-                      }}
-                      onStartNew={() => {
-                        // Reset for new analysis
-                        setShowStatus(false);
-                        setCurrentStep(0);
-                        setSummary([]);
-                        setTotalCost(0);
-                        setOrchestratorResult(null);
-                        setOrchestratorError(null);
-                      }}
-                    />
+                    {/* Only show StatusUpdater if running OR successfully completed (no error) */}
+                    {(isRunning || (!isRunning && !!orchestratorResult && !orchestratorError)) && (
+                      <StatusUpdater 
+                        isComplete={!isRunning && !!orchestratorResult && !orchestratorError}
+                        orchestratorResult={orchestratorResult}
+                        selectedAddons={summary.filter(item => item.section === "5. Add-ons & formatting")}
+                        onViewResults={() => {
+                          // TODO: Navigate to results view
+                          console.log('View results:', orchestratorResult);
+                        }}
+                        onStartNew={() => {
+                          // Reset for new analysis
+                          setShowStatus(false);
+                          setCurrentStep(0);
+                          setSummary([]);
+                          setTotalCost(0);
+                          setOrchestratorResult(null);
+                          setOrchestratorError(null);
+                        }}
+                      />
+                    )}
                     
                     {isRunning && !orchestratorResult && (
                       <div className="mt-6 text-center">
