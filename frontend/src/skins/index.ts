@@ -9,6 +9,9 @@ export function loadSkin(skin: string) {
     case "morning":
       import("./morning.css");
       break;
+    case "minimalist":
+      import("./minimalist.css");
+      break;
     default:
       import("./night.css");
   }

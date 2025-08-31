@@ -15,9 +15,13 @@ export default function SkinSwitcher() {
   useEffect(() => {
     try {
       loadSkin(skin);
+      // Update body class for skin-specific styles
+      document.body.className = document.body.className.replace(/skin-\w+/g, '');
+      document.body.classList.add(`skin-${skin}`);
     } catch (e) {
       // Fallback to default skin if dynamic import fails
       loadSkin(config.defaultSkin);
+      document.body.classList.add(`skin-${config.defaultSkin}`);
     }
   }, [skin]);
 

@@ -1,6 +1,6 @@
 export type AppMode = "staging" | "production" | "playground";
 export type ApiMode = "live" | "mock";
-export type Skin = "night" | "afternoon" | "sunset" | "morning";
+export type Skin = "night" | "afternoon" | "sunset" | "morning" | "minimalist";
 
 export interface AppConfig {
   appMode: AppMode;
@@ -17,7 +17,7 @@ export const config: AppConfig = {
   appMode: envAppMode,
   apiMode: envApiMode,
   defaultSkin: envDefaultSkin,
-  availableSkins: ["night", "afternoon", "sunset", "morning"],
+  availableSkins: ["night", "afternoon", "sunset", "morning", "minimalist"],
 };
 
 

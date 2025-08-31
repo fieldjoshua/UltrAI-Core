@@ -70,8 +70,11 @@ const apiClient: AxiosInstance = axios.create({
 
 // If in demo/mock mode, install a lightweight mock adapter
 if (appConfig.apiMode === 'mock') {
+  const latencyMs = Number(import.meta.env.VITE_MOCK_LATENCY_MS || 500);
+
   apiClient.interceptors.request.use(async (cfg) => {
-    // No-op; could tag requests if needed
+    // Simulate latency
+    await new Promise((r) => setTimeout(r, isNaN(latencyMs) ? 0 : latencyMs));
     return cfg;
   });
 
@@ -161,8 +164,14 @@ The convergence of autonomous vehicles, renewable energy, and smart city infrast
         return { ...error, status: 200, data: { status: 'ok', mode: 'mock' }, config: error.config, request: error.request } as any;
       }
 
-      // Default: pass through original error
-      return Promise.reject(error);
+      // Default: return a 501-like stub to surface missing mocks clearly
+      const notImplemented = {
+        status: 501,
+        data: { error: 'MOCK_NOT_IMPLEMENTED', message: `No mock for ${url}` },
+        config: error.config,
+        request: error.request,
+      } as any;
+      return notImplemented;
     }
   );
 }
