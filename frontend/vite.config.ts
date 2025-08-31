@@ -34,6 +34,10 @@ export default defineConfig(({ mode }) => {
       port: 3009, // Still attempts this port first
       open: true,
     },
+    build: {
+      // Enable production sourcemaps to debug minified errors in prod
+      sourcemap: true,
+    },
     define: {
       // Use the loaded env variable directly
       'import.meta.env.VITE_API_URL': JSON.stringify(apiUrl),
