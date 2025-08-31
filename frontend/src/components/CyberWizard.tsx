@@ -61,6 +61,7 @@ export default function CyberWizard() {
   const [addonsSubmitted, setAddonsSubmitted] = useState<boolean>(false);
   const [, setLastAddedItem] = useState<string | null>(null);
   // Billboard overlay disabled; remove state to avoid unused variable lints
+  const [isDemoMode, setIsDemoMode] = useState<boolean>(false);
 
   useEffect(() => {
     const load = async () => {
@@ -77,6 +78,58 @@ export default function CyberWizard() {
     };
     load();
   }, []);
+
+  // Demo mode simulation
+  const simulateDemoResponse = () => {
+    return {
+      final_result: `Based on my multi-model analysis using advanced intelligence multiplication techniques, here's a comprehensive response to your query about sustainable urban transportation:
+
+**Key Findings:**
+1. **Electric Public Transit**: Cities implementing electric bus fleets have seen 40% reduction in emissions
+2. **Bike Infrastructure**: Protected bike lanes increase cycling adoption by 75%
+3. **Smart Traffic Management**: AI-powered traffic systems reduce congestion by 25%
+
+**Recommendations:**
+- Prioritize investment in electric mass transit systems
+- Create dedicated cycling infrastructure with physical barriers
+- Implement dynamic pricing for parking to discourage car use
+- Develop integrated mobility apps for seamless multi-modal journeys
+
+**Future Outlook:**
+The convergence of autonomous vehicles, renewable energy, and smart city infrastructure will revolutionize urban mobility by 2030.
+
+*This analysis synthesized insights from GPT-4, Claude 3, and Gemini Pro to provide a comprehensive perspective.*`,
+      models_used: ["gpt-4-turbo-preview", "claude-3-opus-20240229", "gemini-1.5-pro-latest"],
+      processing_time: 4.73,
+      pattern_used: "comparative",
+      initial_responses: [
+        {
+          model: "gpt-4-turbo-preview",
+          response: "Focus on electric public transportation and cycling infrastructure..."
+        },
+        {
+          model: "claude-3-opus-20240229",
+          response: "Sustainable urban transport requires integrated planning..."
+        },
+        {
+          model: "gemini-1.5-pro-latest",
+          response: "Smart traffic management systems can significantly reduce emissions..."
+        }
+      ],
+      meta_responses: [
+        {
+          model: "gpt-4-turbo-preview",
+          critique: "Added specific statistics and implementation timelines"
+        },
+        {
+          model: "claude-3-opus-20240229",
+          critique: "Enhanced policy recommendations with global best practices"
+        }
+      ],
+      confidence_score: 0.92,
+      fact_check_status: "verified"
+    };
+  };
 
   // Keyboard navigation
   useEffect(() => {
@@ -149,37 +202,44 @@ export default function CyberWizard() {
     (async () => {
       try {
         setOrchestratorError(null);
-        // overlay disabled
-        const models = selectedModels.length > 0 ? selectedModels : null;
-        const res = await processWithFeatherOrchestration({
-          prompt: userQuery || "",
-          models,
-          pattern: "comparative",
-          ultraModel: null,
-          outputFormat: "plain",
-        });
         
-        // Check if the API returned an error in the response
-        if (res.error) {
-          const errorMessage = typeof res.error === 'object' 
-            ? res.error.message || JSON.stringify(res.error)
-            : String(res.error);
-          setOrchestratorError(errorMessage);
-          setOrchestratorResult(null);
+        if (isDemoMode) {
+          // Simulate processing delay for demo
+          await new Promise(resolve => setTimeout(resolve, 8000)); // 8 seconds to show all steps
+          const demoResult = simulateDemoResponse();
+          setOrchestratorResult(demoResult);
+          console.log("Demo Ultra Synthesis result", demoResult);
         } else {
-          setOrchestratorResult(res);
-          console.log("Ultra Synthesis result", res);
+          // Real API call
+          const models = selectedModels.length > 0 ? selectedModels : null;
+          const res = await processWithFeatherOrchestration({
+            prompt: userQuery || "",
+            models,
+            pattern: "comparative",
+            ultraModel: null,
+            outputFormat: "plain",
+          });
+          
+          // Check if the API returned an error in the response
+          if (res.error) {
+            const errorMessage = typeof res.error === 'object' 
+              ? res.error.message || JSON.stringify(res.error)
+              : String(res.error);
+            setOrchestratorError(errorMessage);
+            setOrchestratorResult(null);
+          } else {
+            setOrchestratorResult(res);
+            console.log("Ultra Synthesis result", res);
+          }
         }
-        // overlay disabled
       } catch (e: any) {
         console.error("Ultra Synthesis failed", e);
         setOrchestratorError(e?.message || String(e));
-        // overlay disabled
       } finally {
         setIsRunning(false);
       }
     })();
-  }, [showStatus]);
+  }, [showStatus, isDemoMode]);
 
   const addSelection = (label: string, cost: number | undefined, color: string, section?: string) => {
     const appliedCost = typeof cost === 'number' ? cost : 0;
@@ -785,6 +845,11 @@ export default function CyberWizard() {
                   <div className="text-center mb-4">
                     <div className="text-[16px] font-extrabold tracking-[0.35em] text-white">ULTRA SYNTHESIS™</div>
                     <div className="text-[10px] text-white/70">— PROCESSING STATUS —</div>
+                    {isDemoMode && (
+                      <div className="mt-2 inline-flex items-center gap-2 px-3 py-1 rounded-full bg-green-500/20 border border-green-400/50">
+                        <span className="text-green-300 text-[11px] font-medium">🎮 DEMO MODE</span>
+                      </div>
+                    )}
                   </div>
                   
                   <div className="flex-1 overflow-auto">
@@ -951,12 +1016,47 @@ export default function CyberWizard() {
                           <div className="mt-2 text-[11px] opacity-80">Some queries can be under $1</div>
                         </div>
                       </div>
-                    <div className="w-full mt-4 flex items-center justify-center">
+                    <div className="w-full mt-4 flex flex-col items-center justify-center gap-3">
                       <button 
                         className="btn-neon text-lg font-extrabold transition-smooth hover:scale-105 active:scale-95" 
                         onClick={() => { setCurrentStep(1); setStepFadeKey(k => k + 1); }}
                       >
                         Enter UltrAI
+                      </button>
+                      
+                      {/* Demo Mode Toggle */}
+                      <button
+                        className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 ${
+                          isDemoMode 
+                            ? 'bg-gradient-to-r from-green-500/20 to-emerald-500/20 border-2 border-green-400 text-green-300' 
+                            : 'glass border-2 border-white/20 text-white/70 hover:border-white/40 hover:text-white'
+                        }`}
+                        onClick={() => {
+                          setIsDemoMode(!isDemoMode);
+                          if (!isDemoMode) {
+                            // Set demo query when enabling demo mode
+                            setUserQuery("What are the best strategies for sustainable urban transportation?");
+                            // Pre-select some models for demo
+                            setSelectedModels(["gpt-4-turbo-preview", "claude-3-opus-20240229", "gemini-1.5-pro-latest"]);
+                            // Pre-select some goals
+                            setSelectedGoals(["Creative ideas", "Deep analysis"]);
+                            // Add to summary
+                            setSummary([
+                              { label: "Creative ideas", cost: 0.05, color: "mint", section: "1. Goals" },
+                              { label: "Deep analysis", cost: 0.08, color: "mint", section: "1. Goals" }
+                            ]);
+                            setTotalCost(0.13);
+                          } else {
+                            // Clear demo data when disabling
+                            setUserQuery("");
+                            setSelectedModels([]);
+                            setSelectedGoals([]);
+                            setSummary([]);
+                            setTotalCost(0);
+                          }
+                        }}
+                      >
+                        {isDemoMode ? '✅ Demo Mode Active' : '🎮 Try Demo Mode'}
                       </button>
                     </div>
                     <div className="text-center mt-3 text-[10px] text-white/50 animate-pulse">
