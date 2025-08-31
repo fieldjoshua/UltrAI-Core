@@ -40,21 +40,69 @@
 
 /* Override global styles for minimalist theme */
 body.skin-minimalist {
-  background: var(--skin-bg-primary);
+  background-color: #f5f5f5;
+  background-image: 
+    repeating-linear-gradient(
+      45deg,
+      transparent,
+      transparent 35px,
+      rgba(255, 255, 255, 0.5) 35px,
+      rgba(255, 255, 255, 0.5) 70px
+    ),
+    linear-gradient(
+      to bottom,
+      #f5f5f5,
+      #efefef
+    );
+  background-attachment: fixed;
   color: var(--skin-text-primary);
+  position: relative;
+}
+
+/* Add subtle paper texture overlay */
+body.skin-minimalist::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: 
+    repeating-linear-gradient(
+      90deg,
+      rgba(0, 0, 0, 0.03),
+      rgba(0, 0, 0, 0.03) 1px,
+      transparent 1px,
+      transparent 2px
+    ),
+    repeating-linear-gradient(
+      0deg,
+      rgba(0, 0, 0, 0.03),
+      rgba(0, 0, 0, 0.03) 1px,
+      transparent 1px,
+      transparent 2px
+    );
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Ensure content is above texture */
+body.skin-minimalist > * {
+  position: relative;
+  z-index: 2;
 }
 
 /* Glass effects - simplified to subtle borders and shadows */
 .skin-minimalist .glass {
-  background: var(--skin-bg-primary);
-  backdrop-filter: none;
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(4px);
   border: 1px solid var(--skin-border-light);
   box-shadow: var(--skin-shadow-sm);
 }
 
 .skin-minimalist .glass-strong {
-  background: var(--skin-bg-secondary);
-  backdrop-filter: none;
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(6px);
   border: 1px solid var(--skin-border-medium);
   box-shadow: var(--skin-shadow-md);
 }
