@@ -788,9 +788,26 @@ export default function CyberWizard() {
                   </div>
                   
                   <div className="flex-1 overflow-auto">
-                    <StatusUpdater />
+                    <StatusUpdater 
+                      isComplete={!isRunning && !!orchestratorResult}
+                      orchestratorResult={orchestratorResult}
+                      selectedAddons={summary.filter(item => item.section === "5. Add-ons & formatting")}
+                      onViewResults={() => {
+                        // TODO: Navigate to results view
+                        console.log('View results:', orchestratorResult);
+                      }}
+                      onStartNew={() => {
+                        // Reset for new analysis
+                        setShowStatus(false);
+                        setCurrentStep(0);
+                        setSummary([]);
+                        setTotalCost(0);
+                        setOrchestratorResult(null);
+                        setOrchestratorError(null);
+                      }}
+                    />
                     
-                    {isRunning && (
+                    {isRunning && !orchestratorResult && (
                       <div className="mt-6 text-center">
                         <div className="inline-flex items-center gap-3 text-[14px] text-blue-400">
                           <span className="animate-spin">⚡</span>
@@ -807,103 +824,6 @@ export default function CyberWizard() {
                       <div className="mt-6 p-4 bg-red-900/20 border-2 border-red-500/50 rounded-xl">
                         <div className="text-[14px] font-bold text-red-400 mb-2">❌ Error Occurred</div>
                         <div className="text-[12px] text-red-300">{orchestratorError}</div>
-                      </div>
-                    )}
-                    
-                    {!isRunning && orchestratorResult && (
-                      <div className="mt-6 p-6 bg-gradient-to-br from-green-900/20 to-emerald-900/20 border-2 border-green-500/50 rounded-xl relative overflow-hidden">
-                        {/* Success glow effect */}
-                        <div className="absolute inset-0 bg-gradient-to-r from-green-400/5 via-transparent to-emerald-400/5 animate-pulse pointer-events-none" />
-                        
-                        <div className="relative z-10">
-                          <div className="text-center mb-6">
-                            <div className="inline-block animate-bounce-subtle mb-2">
-                              <span className="text-3xl drop-shadow-[0_0_20px_rgba(34,197,94,0.6)]">✅</span>
-                            </div>
-                            <div className="text-[18px] font-bold bg-gradient-to-r from-green-400 to-emerald-400 bg-clip-text text-transparent">
-                              Ultra Synthesis™ Complete!
-                            </div>
-                            <div className="text-[12px] text-white/70 mt-1">Your results are ready</div>
-                          </div>
-                          
-                          {/* Processing stats in cards */}
-                          <div className="grid grid-cols-3 gap-3 mb-6">
-                            <div className="bg-white/5 rounded-lg p-3 text-center border border-white/10">
-                              <div className="text-2xl mb-1">🤖</div>
-                              <div className="text-[10px] font-semibold text-white/60 uppercase tracking-wider">Models Used</div>
-                              <div className="text-[14px] font-bold text-green-300 mt-1">
-                                {Array.isArray(orchestratorResult.models_used) ? orchestratorResult.models_used.length : '3'}
-                              </div>
-                            </div>
-                            <div className="bg-white/5 rounded-lg p-3 text-center border border-white/10">
-                              <div className="text-2xl mb-1">⚡</div>
-                              <div className="text-[10px] font-semibold text-white/60 uppercase tracking-wider">Processing Time</div>
-                              <div className="text-[14px] font-bold text-blue-300 mt-1">
-                                {typeof orchestratorResult.processing_time === 'number' 
-                                  ? orchestratorResult.processing_time.toFixed(2) 
-                                  : '1.32'}s
-                              </div>
-                            </div>
-                            <div className="bg-white/5 rounded-lg p-3 text-center border border-white/10">
-                              <div className="text-2xl mb-1">🎯</div>
-                              <div className="text-[10px] font-semibold text-white/60 uppercase tracking-wider">Pattern</div>
-                              <div className="text-[14px] font-bold text-purple-300 mt-1">
-                                {orchestratorResult.pattern_used || 'Ultra'}
-                              </div>
-                            </div>
-                          </div>
-                          
-                          {/* Selected add-ons reminder */}
-                          {summary.filter(item => item.section === "5. Add-ons & formatting").length > 0 && (
-                            <div className="mb-4 p-3 bg-white/5 rounded-lg border border-white/10">
-                              <div className="text-[11px] font-semibold text-white/60 mb-2">Selected Add-ons:</div>
-                              <div className="flex flex-wrap gap-2">
-                                {summary.filter(item => item.section === "5. Add-ons & formatting").map((addon, idx) => (
-                                  <span key={idx} className="text-[10px] px-2 py-1 rounded-full bg-pink-500/20 text-pink-300 border border-pink-500/30">
-                                    {addon.label}
-                                  </span>
-                                ))}
-                              </div>
-                            </div>
-                          )}
-                          
-                          {/* Action buttons */}
-                          <div className="space-y-2">
-                            <button
-                              className="w-full px-4 py-3 rounded-lg font-semibold text-white transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] relative group"
-                              style={{
-                                background: 'linear-gradient(135deg, #00ff9f 0%, #00d4ff 100%)',
-                                border: '2px solid transparent',
-                                backgroundClip: 'padding-box',
-                              }}
-                              onClick={() => {
-                                // TODO: Navigate to results view
-                                console.log('View results:', orchestratorResult);
-                              }}
-                            >
-                              <span className="relative z-10">📄 View Full Results</span>
-                              <div className="absolute inset-0 rounded-lg bg-gradient-to-r from-green-400 to-blue-400 opacity-0 group-hover:opacity-50 blur-xl transition-opacity duration-300" />
-                            </button>
-                            
-                            <button
-                              className="w-full px-3 py-2 rounded-lg font-medium text-white/70 transition-all duration-300 hover:text-white hover:bg-white/10"
-                              style={{
-                                border: '1px solid rgba(255,255,255,0.2)'
-                              }}
-                              onClick={() => {
-                                // Reset for new analysis
-                                setShowStatus(false);
-                                setCurrentStep(0);
-                                setSummary([]);
-                                setTotalCost(0);
-                                setOrchestratorResult(null);
-                                setOrchestratorError(null);
-                              }}
-                            >
-                              🔄 Start New Analysis
-                            </button>
-                          </div>
-                        </div>
                       </div>
                     )}
                   </div>

@@ -34,6 +34,7 @@ from app.services.cache_service import get_cache_service, cache_key
 from app.services.orchestration_retry_handler import OrchestrationRetryHandler
 from app.config import Config
 from app.utils.logging import get_logger
+from app.utils.sentry_integration import sentry_context
 
 logger = get_logger("orchestration_service")
 
@@ -392,15 +393,29 @@ class OrchestrationService:
 
         if not healthy:
             logger.warning("⚠️ No healthy models found, using fallback")
-            # Enforce at least two models to preserve UltrAI multi-model value
-            healthy.extend(["gpt-4o", "gpt-3.5-turbo"])
+            # Only enforce multiple models if required by configuration
+            if Config.MINIMUM_MODELS_REQUIRED > 1:
+                healthy.extend(["gpt-4o", "gpt-3.5-turbo"])
+            else:
+                # Try to add at least one model for single-model fallback
+                healthy.append("gpt-4o")
         
         logger.info(f"✨ Healthy models available: {healthy}")
 
-        # Ensure at least two models whenever possible
-        if len(healthy) == 1:
-            backup = "gpt-3.5-turbo" if healthy[0] != "gpt-3.5-turbo" else "gpt-4o"
-            healthy.append(backup)
+        # Only ensure multiple models if required by configuration
+        if len(healthy) < Config.MINIMUM_MODELS_REQUIRED and Config.MINIMUM_MODELS_REQUIRED > 1:
+            # Try to add backup models to meet minimum requirement
+            backup_models = ["gpt-3.5-turbo", "gpt-4o", "claude-3-sonnet-20240229"]
+            for backup in backup_models:
+                if backup not in healthy:
+                    healthy.append(backup)
+                    if len(healthy) >= Config.MINIMUM_MODELS_REQUIRED:
+                        break
+        
+        # Log if operating in single-model mode
+        if len(healthy) == 1 and Config.ENABLE_SINGLE_MODEL_FALLBACK:
+            logger.warning(f"🔧 Operating in single-model mode with: {healthy[0]}")
+        
         return healthy
 
     async def run_pipeline(
@@ -471,7 +486,7 @@ class OrchestrationService:
                 # Log progress for user tracking
                 logger.info(f"🔄 PROGRESS: Stage {i+1}/{len(self.pipeline_stages)} - {stage.name}")
                 logger.info(f"📊 PIPELINE PROGRESS: {((i/len(self.pipeline_stages))*100):.0f}% complete")
-                # Enforce offline mode when we have fewer than two successful models
+                # Check if we should skip peer review for single-model scenarios
                 if stage.name == "peer_review_and_revision":
 
                     # Determine how many unique successful models we have so far
@@ -488,16 +503,53 @@ class OrchestrationService:
 
                     model_count = _extract_count(current_data)
 
-                    if model_count < 2:
-                        logger.error(
-                            "Insufficient healthy models (<2). Taking system offline for this request."
-                        )
-                        results[stage.name] = PipelineResult(
-                            stage_name=stage.name,
-                            output=None,
-                            error="offline_insufficient_models",
-                        )
-                        break
+                    # Skip peer review if we have fewer models than required minimum
+                    if model_count < Config.MINIMUM_MODELS_REQUIRED:
+                        if Config.ENABLE_SINGLE_MODEL_FALLBACK and model_count >= 1:
+                            logger.warning(
+                                f"⚠️ Only {model_count} model(s) available. Skipping peer review stage."
+                            )
+                            # Pass through the current data to next stage
+                            results[stage.name] = PipelineResult(
+                                stage_name=stage.name,
+                                output={
+                                    "stage": "peer_review_and_revision",
+                                    "skipped": True,
+                                    "reason": f"Insufficient models ({model_count} < {Config.MINIMUM_MODELS_REQUIRED})",
+                                    "input": current_data
+                                },
+                                error=None,
+                            )
+                            # Update current_data to pass through
+                            current_data = results[stage.name].output
+                            continue
+                        else:
+                            # SERVICE IS DOWN - Not enough models for multi-model intelligence
+                            logger.error(
+                                f"🚨 SERVICE UNAVAILABLE: Only {model_count} model(s) available. "
+                                f"UltrAI requires at least {Config.MINIMUM_MODELS_REQUIRED} models for operation."
+                            )
+                            error_msg = (
+                                f"Service temporarily unavailable. UltrAI requires at least {Config.MINIMUM_MODELS_REQUIRED} "
+                                f"different AI models to provide multi-model intelligence multiplication. "
+                                f"Currently only {model_count} model(s) are operational."
+                            )
+                            results[stage.name] = PipelineResult(
+                                stage_name=stage.name,
+                                output=None,
+                                error="service_unavailable",
+                                performance_metrics={"reason": "insufficient_models", "available": model_count, "required": Config.MINIMUM_MODELS_REQUIRED}
+                            )
+                            # Return early with service unavailable error
+                            return {
+                                "error": "SERVICE_UNAVAILABLE",
+                                "message": error_msg,
+                                "details": {
+                                    "models_required": Config.MINIMUM_MODELS_REQUIRED,
+                                    "models_available": model_count,
+                                    "service_status": "degraded"
+                                }
+                            }
 
                 # Override models for stages that use selected_models
                 if (
@@ -644,6 +696,14 @@ class OrchestrationService:
 
         # Use telemetry context manager to track stage duration
         with telemetry.measure_stage(stage.name):
+            # Add Sentry context for better error tracking
+            sentry_context.set_orchestration_context(
+                models=stage.required_models,
+                stage=stage.name,
+                query_type=options.get("query_type", "unknown") if options else "unknown",
+                model_count=len(stage.required_models)
+            )
+            
             try:
                 # Acquire rate limit tokens for all required models
                 for model in stage.required_models:
@@ -697,6 +757,20 @@ class OrchestrationService:
                 for model in stage.required_models
             },
         }
+        
+        # Check for performance issues and alert
+        expected_duration = stage.timeout_seconds * 0.8  # Alert at 80% of timeout
+        if duration > expected_duration and error is None:
+            sentry_context.capture_performance_warning(
+                f"Stage {stage.name} took {duration:.2f}s (expected < {expected_duration:.2f}s)",
+                duration=duration,
+                threshold=expected_duration,
+                stage=stage.name,
+                additional_data={
+                    "models": stage.required_models,
+                    "token_usage": token_usage
+                }
+            )
 
         return PipelineResult(
             stage_name=stage.name,
@@ -1054,6 +1128,16 @@ class OrchestrationService:
         
             except Exception as e:
                 logger.error(f"Unexpected error in execute_model for {model}: {str(e)}")
+                # Track model error in Sentry
+                sentry_context.capture_model_error(
+                    model=model,
+                    error=e,
+                    stage="initial_response",
+                    additional_data={
+                        "prompt_length": len(prompt),
+                        "provider": self._get_provider_from_model(model)
+                    }
+                )
                 return model, {"error": f"Unexpected error: {str(e)}"}
 
         # --------------------------------------------------------------
@@ -1141,14 +1225,20 @@ class OrchestrationService:
                     failed_models[model] = error_msg
                     logger.error(f"❌ Model {model} failed: {error_msg}")
 
-        # If fewer than two models responded, log a warning but continue.
-        # Down-stream stages will auto-skip peer review when only one model is available.
-        if len(responses) < 2:
-            warning_msg = (
-                f"Only {len(responses)} model(s) produced a response out of {len(models)} attempted. "
-                "Peer-review stage will be skipped."
-            )
-            logger.warning(warning_msg)
+        # Check if we have enough models for full pipeline
+        if len(responses) < Config.MINIMUM_MODELS_REQUIRED:
+            if Config.ENABLE_SINGLE_MODEL_FALLBACK and len(responses) >= 1:
+                warning_msg = (
+                    f"Only {len(responses)} model(s) produced a response (minimum required: {Config.MINIMUM_MODELS_REQUIRED}). "
+                    "Operating in degraded mode - peer review will be skipped."
+                )
+                logger.warning(warning_msg)
+            else:
+                warning_msg = (
+                    f"Only {len(responses)} model(s) produced a response out of {len(models)} attempted. "
+                    f"Minimum required: {Config.MINIMUM_MODELS_REQUIRED}"
+                )
+                logger.error(warning_msg)
 
         logger.info(
             f"✅ Real responses from {len(responses)}/{len(models)} models: {list(responses.keys())}"
@@ -1209,6 +1299,22 @@ class OrchestrationService:
                 "stage": "peer_review_and_revision",
                 "error": "No models available for peer review",
                 "original_responses": initial_responses,
+            }
+        
+        # Check if we have enough models for peer review
+        if len(working_models) < 2:
+            logger.warning(f"⚠️ Only {len(working_models)} model available - peer review requires multiple models")
+            # Return the original responses without peer review
+            return {
+                "stage": "peer_review_and_revision",
+                "skipped": True,
+                "reason": "Insufficient models for peer review",
+                "original_responses": initial_responses,
+                "revised_responses": initial_responses,  # Pass through original responses
+                "models_with_revisions": [],
+                "models_attempted": working_models,
+                "successful_models": list(initial_responses.keys()),
+                "revision_count": 0,
             }
 
         logger.info(f"Processing peer review for: {working_models}")

@@ -20,12 +20,18 @@ from app.utils.structured_logging import (
 )
 from app.database.connection import init_db
 from app.services.model_selection_service import SmartModelSelectionService
+from app.utils.sentry_integration import init_sentry
 
 logger = get_logger("test_app_setup")
 
 
 def create_app() -> FastAPI:
     """Create a minimal FastAPI application with health and user routes."""
+    # Initialize Sentry before creating app for early error catching
+    sentry_enabled = init_sentry()
+    if sentry_enabled:
+        logger.info("Sentry error tracking and APM enabled")
+    
     app = FastAPI()
 
     # Add CORS middleware with flexible configuration

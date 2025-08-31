@@ -2,6 +2,7 @@
 Route handlers for the orchestrator service.
 """
 
+import time
 from typing import Dict, Any, Optional, List
 from fastapi import APIRouter, HTTPException, Request, Depends
 from fastapi.responses import StreamingResponse
@@ -71,6 +72,66 @@ def create_router() -> APIRouter:
         APIRouter: The configured router
     """
     router = APIRouter(tags=["Orchestrator"])
+
+    @router.get("/orchestrator/status")
+    async def get_service_status(http_request: Request):
+        """
+        Check the service status including model availability.
+        
+        Returns:
+            dict: Service status with model counts and health
+        """
+        try:
+            if not hasattr(http_request.app.state, "orchestration_service"):
+                return {
+                    "status": "error",
+                    "message": "Orchestration service not initialized",
+                    "service_available": False
+                }
+            
+            orchestration_service = http_request.app.state.orchestration_service
+            
+            # Get available models
+            available_models = await orchestration_service._default_models_from_env()
+            model_count = len(available_models)
+            
+            # Determine service status
+            from app.config import Config
+            required_models = Config.MINIMUM_MODELS_REQUIRED
+            
+            if model_count >= required_models:
+                status = "healthy"
+                service_available = True
+                message = f"Service operational with {model_count} models"
+            elif model_count >= 1 and Config.ENABLE_SINGLE_MODEL_FALLBACK:
+                status = "degraded"
+                service_available = True
+                message = f"Service in degraded mode with only {model_count} model(s)"
+            else:
+                status = "unavailable"
+                service_available = False
+                message = f"Service unavailable. Only {model_count} model(s) available, {required_models} required"
+            
+            return {
+                "status": status,
+                "service_available": service_available,
+                "message": message,
+                "models": {
+                    "available": available_models,
+                    "count": model_count,
+                    "required": required_models,
+                    "single_model_fallback": Config.ENABLE_SINGLE_MODEL_FALLBACK
+                },
+                "timestamp": time.time()
+            }
+            
+        except Exception as e:
+            logger.error(f"Error checking service status: {e}")
+            return {
+                "status": "error",
+                "message": str(e),
+                "service_available": False
+            }
 
     @router.post("/orchestrator/analyze", response_model=AnalysisResponse)
     async def analyze_query(
@@ -154,6 +215,19 @@ def create_router() -> APIRouter:
                 user_id=request.user_id,
                 selected_models=selected_models,
             )
+
+            # Check for SERVICE_UNAVAILABLE error
+            if isinstance(pipeline_results, dict) and pipeline_results.get("error") == "SERVICE_UNAVAILABLE":
+                logger.error(f"Service unavailable: {pipeline_results.get('message')}")
+                # Return 503 Service Unavailable
+                raise HTTPException(
+                    status_code=503,
+                    detail={
+                        "error": "SERVICE_UNAVAILABLE",
+                        "message": pipeline_results.get("message", "Service temporarily unavailable"),
+                        "details": pipeline_results.get("details", {})
+                    }
+                )
 
             # Process results into response format
             analysis_results = {}

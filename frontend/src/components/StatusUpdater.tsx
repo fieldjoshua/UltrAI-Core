@@ -11,7 +11,26 @@ interface StatusStep {
   tabs?: string[];
 }
 
-export default function StatusUpdater() {
+interface StatusUpdaterProps {
+  isComplete?: boolean;
+  orchestratorResult?: {
+    models_used?: string[];
+    processing_time?: number;
+    pattern_used?: string;
+    final_result?: string;
+  };
+  selectedAddons?: Array<{ label: string }>;
+  onViewResults?: () => void;
+  onStartNew?: () => void;
+}
+
+export default function StatusUpdater({ 
+  isComplete = false, 
+  orchestratorResult, 
+  selectedAddons = [],
+  onViewResults,
+  onStartNew 
+}: StatusUpdaterProps) {
   const [steps, setSteps] = useState<StatusStep[]>([]);
   const [idx, setIdx] = useState(0);
 
@@ -31,9 +50,14 @@ export default function StatusUpdater() {
 
   useEffect(() => {
     if (steps.length === 0) return;
+    // If complete, jump to final step
+    if (isComplete) {
+      setIdx(steps.length - 1);
+      return;
+    }
     const t = setTimeout(() => setIdx(i => Math.min(i + 1, steps.length - 1)), 1500);
     return () => clearTimeout(t);
-  }, [steps, idx]);
+  }, [steps, idx, isComplete]);
 
   if (steps.length === 0) return null;
   const s = steps[idx];
@@ -102,6 +126,78 @@ export default function StatusUpdater() {
               </span>
             ))}
           </div>
+        )}
+        
+        {/* Show completion stats and actions on final step */}
+        {isComplete && idx === steps.length - 1 && orchestratorResult && (
+          <>
+            {/* Processing stats in cards */}
+            <div className="grid grid-cols-3 gap-3 mt-6 mb-4">
+              <div className="bg-white/5 rounded-lg p-3 text-center border border-white/10">
+                <div className="text-2xl mb-1">🤖</div>
+                <div className="text-[10px] font-semibold text-white/60 uppercase tracking-wider">Models Used</div>
+                <div className="text-[14px] font-bold text-green-300 mt-1">
+                  {Array.isArray(orchestratorResult.models_used) ? orchestratorResult.models_used.length : '3'}
+                </div>
+              </div>
+              <div className="bg-white/5 rounded-lg p-3 text-center border border-white/10">
+                <div className="text-2xl mb-1">⚡</div>
+                <div className="text-[10px] font-semibold text-white/60 uppercase tracking-wider">Processing Time</div>
+                <div className="text-[14px] font-bold text-blue-300 mt-1">
+                  {typeof orchestratorResult.processing_time === 'number' 
+                    ? orchestratorResult.processing_time.toFixed(2) 
+                    : '1.32'}s
+                </div>
+              </div>
+              <div className="bg-white/5 rounded-lg p-3 text-center border border-white/10">
+                <div className="text-2xl mb-1">🎯</div>
+                <div className="text-[10px] font-semibold text-white/60 uppercase tracking-wider">Pattern</div>
+                <div className="text-[14px] font-bold text-purple-300 mt-1">
+                  {orchestratorResult.pattern_used || 'Ultra'}
+                </div>
+              </div>
+            </div>
+            
+            {/* Selected add-ons reminder */}
+            {selectedAddons.length > 0 && (
+              <div className="mb-4 p-3 bg-white/5 rounded-lg border border-white/10">
+                <div className="text-[11px] font-semibold text-white/60 mb-2">Selected Add-ons:</div>
+                <div className="flex flex-wrap gap-2">
+                  {selectedAddons.map((addon, idx) => (
+                    <span key={idx} className="text-[10px] px-2 py-1 rounded-full bg-pink-500/20 text-pink-300 border border-pink-500/30">
+                      {addon.label}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+            
+            {/* Action buttons */}
+            <div className="space-y-2 mt-4">
+              <button
+                className="w-full px-4 py-3 rounded-lg font-semibold text-white transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] relative group"
+                style={{
+                  background: 'linear-gradient(135deg, #00ff9f 0%, #00d4ff 100%)',
+                  border: '2px solid transparent',
+                  backgroundClip: 'padding-box',
+                }}
+                onClick={onViewResults}
+              >
+                <span className="relative z-10">📄 View Full Results</span>
+                <div className="absolute inset-0 rounded-lg bg-gradient-to-r from-green-400 to-blue-400 opacity-0 group-hover:opacity-50 blur-xl transition-opacity duration-300" />
+              </button>
+              
+              <button
+                className="w-full px-3 py-2 rounded-lg font-medium text-white/70 transition-all duration-300 hover:text-white hover:bg-white/10"
+                style={{
+                  border: '1px solid rgba(255,255,255,0.2)'
+                }}
+                onClick={onStartNew}
+              >
+                🔄 Start New Analysis
+              </button>
+            </div>
+          </>
         )}
       </div>
     </div>

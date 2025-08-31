@@ -63,8 +63,78 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `which python` - Check which Python interpreter is being used
 - `pip install -r requirements.txt` - Install dependencies if Poetry isn't available
 
-## Architectural Memories
+## High-Level Architecture
 
-- At least two models have to be functioning for UltrAI to be viable 
+### Core Application Structure
+The Ultra project implements an LLM orchestration system with intelligence multiplication patterns:
 
-## Remaining file content continues as in the original...
+**Backend Architecture (FastAPI):**
+- `app/routes/` - API endpoint handlers (the "front door") - validate requests and delegate to services
+- `app/services/` - Core business logic layer containing:
+  - `minimal_orchestrator.py` - Multi-step analysis coordinator (initial → meta → ultra)
+  - `llm_adapters.py` - Unified interface for external LLM providers (OpenAI, Anthropic, Gemini, HuggingFace)
+  - `auth_service.py` - JWT authentication and API key management
+  - `model_registry.py` - Dynamic model discovery and management
+- `app/models/` - Data shape definitions (Pydantic for API, SQLAlchemy for database)
+- `app/middleware/` - Request/response interceptors (auth, CSRF, security headers, telemetry)
+- `app/database/` - PostgreSQL connection management and Alembic migrations
+- `app/utils/` - Shared utilities (logging, error handling, common functions)
+
+**Frontend Architecture (React + Vite):**
+- Vite-based build with React Router for SPA navigation
+- Zustand for state management
+- Tailwind CSS for styling
+- TypeScript throughout
+
+**Key Architectural Patterns:**
+- All LLM adapters share a single `httpx.AsyncClient` with 25-second timeout to prevent hanging requests
+- Intelligence multiplication: Multiple LLMs analyze the same prompt in stages for enhanced outputs
+- Redis caching with local memory fallback
+- Environment-based configuration (development vs production)
+- Frontend served by backend in production mode
+
+### AICheck Action Management System
+The project uses AICheck for structured development workflow:
+
+**AICheck Commands:**
+- `./aicheck status` - Show current action status
+- `./aicheck action new ActionName` - Create new action
+- `./aicheck action set ActionName` - Set active action
+- `./aicheck action complete` - Complete action with verification
+- `./aicheck exec` - Toggle exec mode for maintenance
+
+**AICheck Principles:**
+1. **One ActiveAction Rule** - Only one action can be active per contributor
+2. **Documentation-First** - Plan thoroughly in `.aicheck/actions/[action]/[action]-plan.md` before coding
+3. **Test-Driven** - Write tests before implementation
+4. **Deployment Verification** - Actions aren't complete until verified in production
+5. **Supporting Docs** - Process docs go in `.aicheck/actions/[action]/supporting_docs/`
+
+**AICheck Directory Structure:**
+```
+.aicheck/
+├── actions/                    # All project actions
+│   └── [action-name]/         
+│       ├── [action-name]-plan.md
+│       ├── todo.md
+│       └── supporting_docs/
+├── current_action             # Current active action
+├── actions_index.md           # Master list of actions
+├── rules.md                   # AICheck system rules
+└── templates/                 # Action templates
+```
+
+### Critical Operational Requirements
+- At least two LLM models must be functioning for UltrAI to be viable
+- All external API communications use shared httpx client with timeout protection
+- Environment variables required for all sensitive configuration
+- JWT + API key authentication on all protected endpoints
+- Rate limiting enforced per user/endpoint
+- Request ID tracking across all services for debugging
+
+### Deployment
+- Production runs on Render.com with GitHub-based continuous deployment
+- Service name: `ultrai-core`
+- URL: `https://ultrai-core.onrender.com/`
+- Frontend built and served by backend in production
+- Use `make deploy` to commit and push changes for automatic deployment

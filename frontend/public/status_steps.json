@@ -48,8 +48,8 @@
     "animation": "progress-bar"
   },
   {
-    "title": "UltraAI Output Ready!",
-    "icon": "🚀",
+    "title": "Ultra Synthesis™ Complete!",
+    "icon": "✅",
     "narrative": "Your UltraAI-compiled result is complete. You may now review the final output, explore earlier model iterations, and export in your preferred format.",
     "panel": "full-width",
     "tabs": [

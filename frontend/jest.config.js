@@ -21,6 +21,8 @@ export default {
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
     '\\.(css|less|scss|sass)$': '<rootDir>/src/test/__mocks__/styleMock.js',
+    '^@/services/api$': '<rootDir>/src/test/__mocks__/apiClientMock.ts',
+    '^@reduxjs/toolkit$': '<rootDir>/src/test/__mocks__/rtkMock.js',
   },
   setupFilesAfterEnv: ['<rootDir>/src/test/setupTests.ts'],
   collectCoverage: true,
