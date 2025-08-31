@@ -81,6 +81,7 @@ The demo mode is already implemented in the CyberWizard component:
 ## Benefits
 
 - No API keys required
-- Consistent demo experience
+- Reflects the current production app without real API keys
 - Isolated from production
 - Easy to maintain and update
+- Shows actual UI/UX flow with simulated responses
