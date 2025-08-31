@@ -1,4 +1,5 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
+import { config as appConfig } from '../config';
 
 // Secure token storage utilities
 const TOKEN_KEY = 'ultra_auth_token';
@@ -48,9 +49,7 @@ const clearSecureTokens = (): void => {
 // Use the environment variable for the API base URL
 // In the browser, this will be set to http://localhost:8000/api
 // console.log to aid debugging
-console.log('API URL from env:', import.meta.env.VITE_API_URL);
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api'; // Fallback just in case
-console.log('Using API URL:', API_URL);
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
 
 // Configuration for API calls (moved from component)
 const API_CONFIG = {
@@ -60,7 +59,7 @@ const API_CONFIG = {
   retryStatusCodes: [408, 429, 500, 502, 503, 504], // Status codes to retry on
 };
 
-// Create and configure axios instance (moved from component)
+// Create and configure axios instance (supports mock mode)
 const apiClient: AxiosInstance = axios.create({
   baseURL: API_CONFIG.baseURL,
   headers: {
@@ -68,6 +67,105 @@ const apiClient: AxiosInstance = axios.create({
   },
   timeout: 180000, // 3 minutes for Ultra Synthesis pipeline with multiple models
 });
+
+// If in demo/mock mode, install a lightweight mock adapter
+if (appConfig.apiMode === 'mock') {
+  apiClient.interceptors.request.use(async (cfg) => {
+    // No-op; could tag requests if needed
+    return cfg;
+  });
+
+  apiClient.interceptors.response.use(
+    (response) => response,
+    async (error) => {
+      const url = (error?.config?.url || '') as string;
+      // Provide minimal mock responses for known endpoints
+      if (url.includes('/available-models')) {
+        return {
+          ...error,
+          status: 200,
+          data: {
+            models: [
+              { name: 'gpt-4', provider: 'openai', status: 'mock', max_tokens: 8192, cost_per_1k_tokens: 0.0 },
+              { name: 'claude-3-sonnet', provider: 'anthropic', status: 'mock', max_tokens: 200000, cost_per_1k_tokens: 0.0 },
+              { name: 'gemini-pro', provider: 'google', status: 'mock', max_tokens: 32768, cost_per_1k_tokens: 0.0 }
+            ],
+            total_count: 3,
+            healthy_count: 3
+          },
+          config: error.config,
+          request: error.request,
+        } as any;
+      }
+
+      if (url.includes('/orchestrator/analyze')) {
+        const mockData = {
+          success: true,
+          processing_time: 4.73,
+          results: {
+            initial_response: {
+              output: {
+                responses: {
+                  'gpt-4-turbo-preview': 'Focus on electric public transportation and cycling infrastructure. Cities that invest in electric bus fleets and protected bike lanes see significant emission reductions and improved quality of life.',
+                  'claude-3-opus-20240229': 'Sustainable urban transport requires integrated planning that combines mass transit, cycling infrastructure, and smart traffic management. Key is reducing car dependency through convenient alternatives.',
+                  'gemini-1.5-pro-latest': 'Smart traffic management systems using AI can reduce congestion by 25%. Combined with investment in public transit and bike infrastructure, cities can achieve carbon neutrality in transport by 2030.'
+                },
+                successful_models: ['gpt-4-turbo-preview', 'claude-3-opus-20240229', 'gemini-1.5-pro-latest']
+              }
+            },
+            peer_review_and_revision: {
+              output: {
+                revised_responses: {
+                  'gpt-4-turbo-preview': 'Added specific statistics: Cities implementing electric bus fleets have seen 40% reduction in emissions. Protected bike lanes increase cycling adoption by 75%.',
+                  'claude-3-opus-20240229': 'Enhanced with policy recommendations: Implement dynamic parking pricing, develop integrated mobility apps, and create car-free zones in city centers.'
+                }
+              }
+            },
+            ultra_synthesis: {
+              output: {
+                synthesis: `Based on my multi-model analysis using advanced intelligence multiplication techniques, here's a comprehensive response to your query about sustainable urban transportation:
+
+**Key Findings:**
+1. **Electric Public Transit**: Cities implementing electric bus fleets have seen 40% reduction in emissions
+2. **Bike Infrastructure**: Protected bike lanes increase cycling adoption by 75%
+3. **Smart Traffic Management**: AI-powered traffic systems reduce congestion by 25%
+
+**Recommendations:**
+- Prioritize investment in electric mass transit systems
+- Create dedicated cycling infrastructure with physical barriers
+- Implement dynamic pricing for parking to discourage car use
+- Develop integrated mobility apps for seamless multi-modal journeys
+
+**Future Outlook:**
+The convergence of autonomous vehicles, renewable energy, and smart city infrastructure will revolutionize urban mobility by 2030.
+
+*This analysis synthesized insights from GPT-4, Claude 3, and Gemini Pro to provide a comprehensive perspective.*`
+              }
+            },
+            formatted_synthesis: 'Ultra Synthesis™ Complete'
+          },
+          pipeline_info: {
+            models_used: ['gpt-4-turbo-preview', 'claude-3-opus-20240229', 'gemini-1.5-pro-latest'],
+            pattern: 'comparative'
+          }
+        };
+        return { ...error, status: 200, data: mockData, config: error.config, request: error.request } as any;
+      }
+
+      if (url.includes('/analyze')) {
+        const mockSimple = { success: true, model_used: 'gpt-4', analysis: 'Mock simple analysis result' };
+        return { ...error, status: 200, data: mockSimple, config: error.config, request: error.request } as any;
+      }
+
+      if (url.includes('/health')) {
+        return { ...error, status: 200, data: { status: 'ok', mode: 'mock' }, config: error.config, request: error.request } as any;
+      }
+
+      // Default: pass through original error
+      return Promise.reject(error);
+    }
+  );
+}
 
 // Add retry interceptor (moved from component)
 apiClient.interceptors.response.use(undefined, async (error) => {

@@ -63,6 +63,7 @@ export default function CyberWizard() {
   // Billboard overlay disabled; remove state to avoid unused variable lints
   const [isDemoMode, setIsDemoMode] = useState<boolean>(false);
 
+
   useEffect(() => {
     const load = async () => {
       try {
@@ -79,57 +80,6 @@ export default function CyberWizard() {
     load();
   }, []);
 
-  // Demo mode simulation
-  const simulateDemoResponse = () => {
-    return {
-      final_result: `Based on my multi-model analysis using advanced intelligence multiplication techniques, here's a comprehensive response to your query about sustainable urban transportation:
-
-**Key Findings:**
-1. **Electric Public Transit**: Cities implementing electric bus fleets have seen 40% reduction in emissions
-2. **Bike Infrastructure**: Protected bike lanes increase cycling adoption by 75%
-3. **Smart Traffic Management**: AI-powered traffic systems reduce congestion by 25%
-
-**Recommendations:**
-- Prioritize investment in electric mass transit systems
-- Create dedicated cycling infrastructure with physical barriers
-- Implement dynamic pricing for parking to discourage car use
-- Develop integrated mobility apps for seamless multi-modal journeys
-
-**Future Outlook:**
-The convergence of autonomous vehicles, renewable energy, and smart city infrastructure will revolutionize urban mobility by 2030.
-
-*This analysis synthesized insights from GPT-4, Claude 3, and Gemini Pro to provide a comprehensive perspective.*`,
-      models_used: ["gpt-4-turbo-preview", "claude-3-opus-20240229", "gemini-1.5-pro-latest"],
-      processing_time: 4.73,
-      pattern_used: "comparative",
-      initial_responses: [
-        {
-          model: "gpt-4-turbo-preview",
-          response: "Focus on electric public transportation and cycling infrastructure..."
-        },
-        {
-          model: "claude-3-opus-20240229",
-          response: "Sustainable urban transport requires integrated planning..."
-        },
-        {
-          model: "gemini-1.5-pro-latest",
-          response: "Smart traffic management systems can significantly reduce emissions..."
-        }
-      ],
-      meta_responses: [
-        {
-          model: "gpt-4-turbo-preview",
-          critique: "Added specific statistics and implementation timelines"
-        },
-        {
-          model: "claude-3-opus-20240229",
-          critique: "Enhanced policy recommendations with global best practices"
-        }
-      ],
-      confidence_score: 0.92,
-      fact_check_status: "verified"
-    };
-  };
 
   // Keyboard navigation
   useEffect(() => {
@@ -204,9 +154,35 @@ The convergence of autonomous vehicles, renewable energy, and smart city infrast
         setOrchestratorError(null);
         
         if (isDemoMode) {
-          // Simulate processing delay for demo
+          // For demo mode, use the separate demo service
+          // You can configure this to point to your demo Render service
           await new Promise(resolve => setTimeout(resolve, 8000)); // 8 seconds to show all steps
-          const demoResult = simulateDemoResponse();
+          
+          // Simulate a successful response for demo
+          const demoResult = {
+            status: 'success',
+            ultra_response: `Based on my multi-model analysis using advanced intelligence multiplication techniques, here's a comprehensive response to your query about sustainable urban transportation:
+
+**Key Findings:**
+1. **Electric Public Transit**: Cities implementing electric bus fleets have seen 40% reduction in emissions
+2. **Bike Infrastructure**: Protected bike lanes increase cycling adoption by 75%
+3. **Smart Traffic Management**: AI-powered traffic systems reduce congestion by 25%
+
+**Recommendations:**
+- Prioritize investment in electric mass transit systems
+- Create dedicated cycling infrastructure with physical barriers
+- Implement dynamic pricing for parking to discourage car use
+- Develop integrated mobility apps for seamless multi-modal journeys
+
+**Future Outlook:**
+The convergence of autonomous vehicles, renewable energy, and smart city infrastructure will revolutionize urban mobility by 2030.
+
+*This analysis synthesized insights from GPT-4, Claude 3, and Gemini Pro to provide a comprehensive perspective.*`,
+            models_used: ["gpt-4-turbo-preview", "claude-3-opus-20240229", "gemini-1.5-pro-latest"],
+            processing_time: 4.73,
+            pattern_used: "comparative"
+          };
+          
           setOrchestratorResult(demoResult);
           console.log("Demo Ultra Synthesis result", demoResult);
         } else {
