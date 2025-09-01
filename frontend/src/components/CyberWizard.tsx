@@ -384,10 +384,10 @@ The convergence of autonomous vehicles, renewable energy, and smart city infrast
       case 'afternoon':
         return 'rgba(0, 0, 0, 0.30)'; // Darker for bright afternoon
       case 'sunset':
-        return 'rgba(0, 0, 0, 0.20)'; // Medium for sunset
+        return 'rgba(0, 0, 0, 0.25)'; // Slightly darker for better contrast
       case 'night':
       default:
-        return 'rgba(0, 0, 0, 0.15)'; // Lighter for dark night
+        return 'rgba(0, 0, 0, 0.25)'; // Darker for night to improve legibility
     }
   }, [bgTheme]);
 
@@ -583,16 +583,16 @@ The convergence of autonomous vehicles, renewable energy, and smart city infrast
                     textShadow: '0 0 5px #ff6600, 0 0 10px #ff6600'
                   }}>comprehensive insights</span>.
                 </p>
-                <div className="flex justify-center gap-6 text-sm mt-6">
-                  <span className="text-white/80" style={{
+                <div className="flex justify-center gap-6 text-sm mt-6 text-white/90">
+                  <span className="text-white" style={{
                     textShadow: '0 0 5px rgba(255,255,255,0.3)'
                   }}>Pay-as-you-go</span>
-                  <span className="text-white/50">•</span>
-                  <span className="text-white/80" style={{
+                  <span className="text-white/70">•</span>
+                  <span className="text-white" style={{
                     textShadow: '0 0 5px rgba(255,255,255,0.3)'
                   }}>No commitments</span>
-                  <span className="text-white/50">•</span>
-                  <span className="text-white/80" style={{
+                  <span className="text-white/70">•</span>
+                  <span className="text-white" style={{
                     textShadow: '0 0 5px rgba(255,255,255,0.3)'
                   }}>Enterprise-grade</span>
                 </div>
@@ -614,7 +614,7 @@ The convergence of autonomous vehicles, renewable energy, and smart city infrast
               </div>
 
               {/* Trust indicators */}
-              <div className="flex justify-center gap-8 text-sm text-white/60">
+              <div className="flex justify-center gap-8 text-sm text-white/80">
                 <div className="flex items-center gap-2">
                   <span className="text-green-400">✓</span>
                   <span>20+ AI Models</span>
@@ -942,7 +942,7 @@ The convergence of autonomous vehicles, renewable energy, and smart city infrast
                 <>
                   <div className="text-center mb-4">
                     <div className="text-[16px] font-extrabold tracking-[0.35em] text-white">ULTRA SYNTHESIS™</div>
-                    <div className="text-[10px] text-white/70">— PROCESSING STATUS —</div>
+                    <div className="text-[10px] text-white/90">— PROCESSING STATUS —</div>
                     {isDemoMode && (
                       <div className="mt-2 inline-flex items-center gap-2 px-3 py-1 rounded-full bg-green-500/20 border border-green-400/50">
                         <span className="text-green-300 text-[11px] font-medium">🎮 DEMO MODE</span>
@@ -980,7 +980,7 @@ The convergence of autonomous vehicles, renewable energy, and smart city infrast
                           <span>Running Ultra Synthesis™ Pipeline...</span>
                           <span className="animate-spin">⚡</span>
                         </div>
-                        <div className="mt-3 text-[11px] text-white/60">
+                        <div className="mt-3 text-[11px] text-white/80">
                           Processing with {selectedModels.length} models
                         </div>
                       </div>
@@ -1067,7 +1067,7 @@ The convergence of autonomous vehicles, renewable energy, and smart city infrast
                 {step.title}
               </h2>
               {step.narrative && (
-                <p className="text-[11px] text-white opacity-90 mb-2 text-center whitespace-pre-line">
+                <p className="text-[11px] text-white opacity-95 mb-2 text-center whitespace-pre-line">
                   {currentStep === 2 && selectedGoals.length > 0 
                     ? `Based on your selected goals (${selectedGoals.slice(0, 3).join(', ')}${selectedGoals.length > 3 ? '...' : ''}), tell us what you need.`
                     : step.narrative}
@@ -1148,7 +1148,7 @@ The convergence of autonomous vehicles, renewable energy, and smart city infrast
                     </div>
                     {/* Dynamic typing indicator */}
                     {queryFocused && userQuery.length > 0 && (
-                      <div className="absolute -top-6 left-0 text-[10px] animate-fade-in" style={{ color: colorHex }}>
+                      <div className="absolute -top-6 left-0 text-[10px] animate-fade-in text-white" style={{ color: undefined }}>
                         <span className="animate-pulse">✨</span> AI is ready to enhance your query...
                       </div>
                     )}
