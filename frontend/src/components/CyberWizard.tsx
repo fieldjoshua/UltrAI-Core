@@ -640,6 +640,10 @@ The convergence of autonomous vehicles, renewable energy, and smart city infrast
 
   return (
     <div className="relative flex flex-col min-h-screen w-full text-white font-cyber text-sm">
+      {/* Skip link for keyboard users */}
+      <a href="#main-content" className="sr-only focus:not-sr-only fixed top-2 left-2 z-50 bg-black text-white px-3 py-2 rounded">
+        Skip to content
+      </a>
       {/* Background layer - only show for time-based skins */}
       {!isNonTimeSkin && (
         <>
@@ -833,7 +837,7 @@ The convergence of autonomous vehicles, renewable energy, and smart city infrast
       )}
 
       {/* Main Content - Below Billboard */}
-      <div className="relative z-10 w-full">
+      <div id="main-content" role="main" className="relative z-10 w-full">
         <div className="flex items-center justify-center" style={{ minHeight: '100vh', paddingTop: isNonTimeSkin ? '25vh' : '37.5vh' }}>
           <div className="w-full max-w-7xl px-8">
             {steps.length === 0 ? (
@@ -1010,6 +1014,9 @@ The convergence of autonomous vehicles, renewable energy, and smart city infrast
                             <div 
                               onClick={() => { setCurrentStep(stepIndex); setStepFadeKey(k => k+1); }} 
                               className="relative cursor-pointer group"
+                              role="button"
+                              tabIndex={0}
+                              aria-label={`Go to step ${stepIndex}: ${s.title}`}
                             >
                               <div 
                                 className={`w-8 h-8 rounded-full flex items-center justify-center transition-smooth will-change-transform ${
@@ -1122,7 +1129,7 @@ The convergence of autonomous vehicles, renewable energy, and smart city infrast
                         Enter UltrAI
                       </button>
                     </div>
-                    <div className="text-center mt-3 text-[10px] text-white/50 animate-pulse">
+                    <div className="text-center mt-3 text-[10px] text-white/80 animate-pulse">
                       Press Enter or →
                     </div>
                   </>
