@@ -9,9 +9,12 @@ export interface AppConfig {
   availableSkins: Skin[];
 }
 
-const envAppMode = (import.meta.env.VITE_APP_MODE as AppMode) || "staging";
-const envApiMode = (import.meta.env.VITE_API_MODE as ApiMode) || "live";
-const envDefaultSkin = (import.meta.env.VITE_DEFAULT_SKIN as Skin) || "night";
+// Support Vite env in browser and Jest (where we polyfill globalThis["import"].meta.env)
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const viteEnv: any = (globalThis as any)["import"]?.meta?.env ?? {};
+const envAppMode = (viteEnv.VITE_APP_MODE as AppMode) || "staging";
+const envApiMode = (viteEnv.VITE_API_MODE as ApiMode) || "live";
+const envDefaultSkin = (viteEnv.VITE_DEFAULT_SKIN as Skin) || "night";
 
 export const config: AppConfig = {
   appMode: envAppMode,

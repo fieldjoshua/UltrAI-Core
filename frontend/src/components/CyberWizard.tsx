@@ -1,7 +1,13 @@
 "use client";
 import { useEffect, useState, useMemo, useCallback, memo } from "react";
+import { Button } from "./ui/button";
+import { Checkbox } from "./ui/checkbox";
+import { Card } from "./ui/card";
 import { processWithFeatherOrchestration } from "../api/orchestrator";
 import StatusUpdater from "./StatusUpdater";
+import { RadioGroup, RadioGroupItem } from "./ui/radio-group";
+import { Textarea } from "./ui/textarea";
+import { Input } from "./ui/input";
 // Bridge animation disabled for professional static look
 
 interface StepOption { label: string; cost?: number; icon?: string; description?: string }
@@ -40,7 +46,7 @@ export default function CyberWizard() {
       ?.replace('skin-', '') || 'night';
   });
   
-  const isMinimalistSkin = currentSkin === 'minimalist';
+  // Minimalist skin flag removed (not used)
   const isNonTimeSkin = currentSkin === 'minimalist' || currentSkin === 'business';
   
   // Watch for skin changes
@@ -130,6 +136,26 @@ export default function CyberWizard() {
     load();
   }, []);
 
+  if (steps.length === 0) {
+    return (
+      <div className="max-w-5xl mx-auto p-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="space-y-3">
+            <div className="animate-pulse h-6 w-40 bg-gray-200/60 dark:bg-gray-700/50 rounded" />
+            <div className="animate-pulse h-28 w-full bg-gray-200/60 dark:bg-gray-700/50 rounded" />
+          </div>
+          <div className="space-y-3">
+            <div className="animate-pulse h-6 w-32 bg-gray-200/60 dark:bg-gray-700/50 rounded" />
+            <div className="animate-pulse h-28 w-full bg-gray-200/60 dark:bg-gray-700/50 rounded" />
+          </div>
+          <div className="space-y-3">
+            <div className="animate-pulse h-6 w-24 bg-gray-200/60 dark:bg-gray-700/50 rounded" />
+            <div className="animate-pulse h-28 w-full bg-gray-200/60 dark:bg-gray-700/50 rounded" />
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   // Keyboard navigation
   useEffect(() => {
@@ -247,10 +273,11 @@ The convergence of autonomous vehicles, renewable energy, and smart city infrast
           });
           
           // Check if the API returned an error in the response
-          if (res.error) {
-            const errorMessage = typeof res.error === 'object' 
-              ? res.error.message || JSON.stringify(res.error)
-              : String(res.error);
+          if ((res as any)?.error) {
+            const errVal: any = (res as any).error;
+            const errorMessage = typeof errVal === 'object' 
+              ? errVal?.message || JSON.stringify(errVal)
+              : String(errVal);
             setOrchestratorError(errorMessage);
             setOrchestratorResult(null);
           } else {
@@ -383,8 +410,7 @@ The convergence of autonomous vehicles, renewable energy, and smart city infrast
     }
   }, [bgTheme]);
 
-  const selectedModelsDisplay = useMemo(() => selectedModels.join(', '), [selectedModels]);
-
+  // Selected models display memo removed (not used)
   const receiptSections = useMemo(() => {
     return steps
       .map(s => s.title)
@@ -596,22 +622,17 @@ The convergence of autonomous vehicles, renewable energy, and smart city infrast
 
               {/* CTA Button */}
               <div className="text-center">
-                <button 
-                  className="group relative px-12 py-5 text-xl font-bold rounded-2xl overflow-hidden animate-pulse-glow hover:scale-105 transition-all duration-300"
-                  style={{
-                    background: 'linear-gradient(135deg, rgba(0,255,159,0.2) 0%, rgba(0,255,159,0.3) 100%)',
-                    border: '2px solid #00ff9f',
-                    boxShadow: '0 0 40px rgba(0,255,159,0.4), inset 0 0 20px rgba(0,255,159,0.2)',
-                    animation: 'pulse-glow 2s ease-in-out infinite'
-                  }}
+                <Button
+                  variant="primary"
+                  size="lg"
                   onClick={() => { setCurrentStep(1); setStepFadeKey(k => k + 1); }}
+                  className="px-12 py-5 text-xl font-bold"
                 >
-                  <span className="relative z-10 flex items-center gap-3">
+                  <span className="flex items-center gap-3 justify-center">
                     <span>Enter UltrAI</span>
-                    <span className="animate-slide-right">→</span>
+                    <span>→</span>
                   </span>
-                  <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-mint-400/0 via-mint-400/30 to-mint-400/0 animate-shimmer" />
-                </button>
+                </Button>
               </div>
 
               {/* Trust indicators */}
@@ -842,8 +863,7 @@ The convergence of autonomous vehicles, renewable energy, and smart city infrast
           {/* Left Panel: System Status */}
               <div className="col-span-2">
                 {/* Model Status Box */}
-                <div 
-                  className="glass-panel glass-grain relative p-4 rounded-2xl transition-smooth"
+                <Card className="relative p-4 rounded-2xl transition-smooth"
                   style={{ 
                     background: glassBackground,
                     backdropFilter: 'blur(40px)',
@@ -891,7 +911,7 @@ The convergence of autonomous vehicles, renewable energy, and smart city infrast
                       {availableModels && availableModels.filter(m => modelStatuses[m] === 'ready').length >= 2 ? 'Online' : 'Offline'}
                     </div>
                   </div>
-                </div>
+                </Card>
 
                 {/* Theme selector removed - now managed by SkinSwitcher */}
               </div>
@@ -899,7 +919,7 @@ The convergence of autonomous vehicles, renewable energy, and smart city infrast
           {/* Wizard Panel (center) */}
               <div className="col-span-7">
                 <div
-                  className={`glass-panel glass-grain relative p-8 rounded-2xl overflow-hidden transition-smooth will-change-transform ${
+                  className={`relative p-8 rounded-2xl overflow-hidden transition-smooth will-change-transform ${
                     step.color === 'mint' ? 'glow-mint' :
                     step.color === 'blue' ? 'glow-blue' :
                     step.color === 'purple' ? 'glow-purple' :
@@ -1047,8 +1067,7 @@ The convergence of autonomous vehicles, renewable energy, and smart city infrast
                 style={{ 
                   color: colorHex,
                   borderBottom: `1px solid ${colorHex}`, 
-                  paddingBottom: 4,
-                  textShadow: `0 0 10px ${colorHex}60, 0 0 20px ${colorHex}40`
+                  paddingBottom: 4
                 }}
               >
                 {step.title}
@@ -1064,10 +1083,8 @@ The convergence of autonomous vehicles, renewable energy, and smart city infrast
               {/* Scrollable options area */}
               <div
                 key={stepFadeKey}
-                className={`relative space-y-2 overflow-auto ${showStatus ? 'opacity-50' : ''}`}
+                className={`relative space-y-2 overflow-auto pr-1 pb-20 ${showStatus ? 'opacity-50' : ''}`}
                 style={{ 
-                  paddingRight: 4, 
-                  paddingBottom: '80px',
                   height: 'calc(100% - 140px)',
                   pointerEvents: showStatus ? 'none' : 'auto' 
                 }}
@@ -1119,26 +1136,14 @@ The convergence of autonomous vehicles, renewable energy, and smart city infrast
 
                 {step.type === "textarea" && (<>
                   <div className="relative">
-                    <textarea 
-                      className="w-full h-20 glass p-3 text-white text-sm rounded-lg transition-all duration-200 hover:border-blue-400 focus:border-blue-400 focus:outline-none" 
-                      style={{
-                        background: queryFocused ? glassBackground : glassBackground,
-                        backdropFilter: 'blur(10px)',
-                        border: `2px solid ${queryFocused ? colorHex : colorHex + '50'}`,
-                        resize: 'none',
-                        boxShadow: queryFocused ? `0 0 20px ${colorHex}30` : 'none'
-                      }}
+                    <Textarea 
                       placeholder={selectedGoals.length > 0 ? 
-                        `Tell us about your ${selectedGoals[0].toLowerCase()} needs...` : 
-                        "Type your query…"
-                      } 
-                      value={userQuery} 
+                        `e.g. A ${selectedGoals[0].toLowerCase()} analysis of...` :
+                        'What do you need? Be as specific as possible.'}
+                      value={userQuery}
                       onChange={(e) => setUserQuery(e.target.value)}
                       onFocus={() => setQueryFocused(true)}
-                      onBlur={() => { 
-                        setQueryFocused(false);
-                        if (userQuery.trim()) addSelection("Query Entry", step.baseCost, step.color, step.title); 
-                      }}
+                      onBlur={() => setQueryFocused(false)}
                     />
                     {/* Character counter */}
                     <div className="absolute bottom-2 right-2 text-[10px] transition-opacity duration-200" style={{
@@ -1159,7 +1164,7 @@ The convergence of autonomous vehicles, renewable energy, and smart city infrast
                     <div className="grid grid-cols-2 gap-2 mt-1">
                       {step.options.map(o => (
                         <label key={o.label} className="flex items-center text-[11px] leading-tight truncate opacity-95 hover:opacity-100">
-                          <input type="checkbox" onChange={() => handleInputToggle(o.label)} checked={selectedInputs.includes(o.label)} />{" "}
+                          <Checkbox onChange={() => handleInputToggle(o.label)} checked={selectedInputs.includes(o.label)} />{" "}
                           <span className="align-middle truncate tracking-wide text-white">{o.icon ? `${o.icon} ` : ""}{o.label}{typeof o.cost === 'number' ? ` ($${o.cost})` : ""}</span>
                     </label>
                   ))}
@@ -1169,20 +1174,9 @@ The convergence of autonomous vehicles, renewable energy, and smart city infrast
                   {/* Add optimization button for Step 2 */}
                   {userQuery.trim() && (
                     <div className="mt-4">
-                      <button
-                        className="w-full px-4 py-3 rounded-lg font-semibold transition-smooth hover:scale-[1.02] active:scale-[0.98] glass-panel"
-                        style={{
-                          background: 'linear-gradient(135deg, rgba(0,255,159,0.1), rgba(0,184,255,0.1))',
-                          border: '2px solid rgba(0,255,159,0.5)',
-                          color: '#00ff9f',
-                          backdropFilter: 'blur(20px)',
-                          WebkitBackdropFilter: 'blur(20px)',
-                          boxShadow: '0 4px 15px rgba(0,255,159,0.2)'
-                        }}
-                        onClick={optimizeQuery}
-                      >
+                      <Button variant="secondary" fullWidth onClick={optimizeQuery}>
                         🚀 Allow UltrAI to optimize my query
-                      </button>
+                      </Button>
                       <p className="text-[10px] text-white/60 text-center mt-2">
                         AI will suggest improvements to your query for better results
                       </p>
@@ -1192,12 +1186,14 @@ The convergence of autonomous vehicles, renewable energy, and smart city infrast
 
                 {step.type === "radio" && step.options && (
                   <div className="grid grid-cols-2 gap-2">
-                    {step.options.map(o => (
-                      <label key={o.label} className="flex items-center text-[11px] leading-tight truncate opacity-95 hover:opacity-100">
-                        <input type="radio" name={`radio-${currentStep}`} onChange={() => addSelection(o.label, o.cost, step.color, step.title)} />{" "}
-                        <span className="align-middle truncate tracking-wide text-white">{o.icon ? `${o.icon} ` : ""}{o.label}{typeof o.cost === 'number' ? ` ($${o.cost})` : ""}</span>
-                  </label>
-                ))}
+                    <RadioGroup onValueChange={(val) => addSelection(val, step.options?.find(s => s.label===val)?.cost, step.color, step.title)}>
+                      {step.options.map(o => (
+                        <label key={o.label} className="flex items-center text-[11px] leading-tight truncate opacity-95 hover:opacity-100 gap-2">
+                          <RadioGroupItem value={o.label} id={`radio-${currentStep}-${o.label}`} />
+                          <span className="align-middle truncate tracking-wide text-white">{o.icon ? `${o.icon} ` : ""}{o.label}{typeof o.cost === 'number' ? ` ($${o.cost})` : ""}</span>
+                        </label>
+                      ))}
+                    </RadioGroup>
                   </div>
                 )}
 
@@ -1206,7 +1202,7 @@ The convergence of autonomous vehicles, renewable energy, and smart city infrast
                     <div className="grid grid-cols-2 gap-2">
                       {step.options.slice(0, 12).map(o => (
                         <label key={o.label} className="flex items-center text-[11px] leading-tight truncate opacity-95 hover:opacity-100">
-                          <input type="checkbox" onChange={() => handleGoalToggle(o.label)} checked={selectedGoals.includes(o.label)} />{" "}
+                          <Checkbox onChange={() => handleGoalToggle(o.label)} checked={selectedGoals.includes(o.label)} />{" "}
                           <span className="align-middle truncate tracking-wide text-white">{o.icon ? `${o.icon} ` : ""}{o.label}</span>
                         </label>
                       ))}
@@ -1381,7 +1377,7 @@ The convergence of autonomous vehicles, renewable energy, and smart city infrast
                             <div className="grid grid-cols-2 gap-1 max-h-32 overflow-y-auto">
                               {(availableModels || []).map(name => (
                                 <label key={name} className="flex items-center text-[9px] leading-tight truncate opacity-95 hover:opacity-100">
-                                  <input type="checkbox" className="mr-1 scale-75" onChange={() => handleModelToggle(name)} checked={selectedModels.includes(name)} />
+                                  <Checkbox className="mr-1 scale-75" onChange={() => handleModelToggle(name)} checked={selectedModels.includes(name)} />
                                   <span className="align-middle truncate tracking-wide text-white">{name}</span>
                         </label>
                       ))}
@@ -1437,17 +1433,10 @@ The convergence of autonomous vehicles, renewable energy, and smart city infrast
                         </div>
                         {selectedGoals.includes("Other") && (
                           <div className="mt-3">
-                            <input
-                              type="text"
-                              className="w-full px-4 py-3 rounded-xl text-sm text-white placeholder-white/50"
+                            <Input
                               placeholder="Describe your custom goal..."
                               value={otherGoalText}
                               onChange={(e) => setOtherGoalText(e.target.value)}
-                              style={{
-                                background: 'rgba(255, 255, 255, 0.05)',
-                                backdropFilter: 'blur(20px)',
-                                border: `2px solid ${colorHex}50`
-                              }}
                             />
                           </div>
                         )}
@@ -1534,8 +1523,8 @@ The convergence of autonomous vehicles, renewable energy, and smart city infrast
 
           {/* Right Panel: Receipt transforms into Status after approval */}
           <div className="col-span-3">
-            <div 
-              className="glass-panel glass-grain relative p-6 rounded-2xl transition-smooth ${showStatus ? 'animate-pulse-glow' : ''}"
+            <Card 
+              className="relative p-6 rounded-2xl transition-smooth"
               style={{ 
                 fontFamily: monoStack, 
                 background: 'rgba(0, 0, 0, 0.1)',
@@ -1618,13 +1607,13 @@ The convergence of autonomous vehicles, renewable energy, and smart city infrast
                   </div>
                 </>
             )}
+            </Card>
           </div>
         </div>
           
         </div>
 
         {/* Status Section Below removed; status now appears in right panel after approval */}
-        </div>
         </div>
       </div>
     </div>
