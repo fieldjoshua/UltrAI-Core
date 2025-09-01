@@ -92,6 +92,13 @@ export default function CyberWizard() {
   // Sync bgTheme with currentSkin for non-minimalist skins
   const [bgTheme, setBgTheme] = useState<'morning' | 'afternoon' | 'sunset' | 'night'>('night');
   
+  // Set document title for accessibility and SEO
+  useEffect(() => {
+    const previousTitle = document.title;
+    document.title = 'UltrAI – Wizard';
+    return () => { document.title = previousTitle; };
+  }, []);
+  
   useEffect(() => {
     if (!isNonTimeSkin && ['morning', 'afternoon', 'sunset', 'night'].includes(currentSkin)) {
       setBgTheme(currentSkin as any);
@@ -979,6 +986,7 @@ export default function CyberWizard() {
                               className="relative cursor-pointer group"
                               role="button"
                               tabIndex={0}
+                              aria-current={isActive ? 'step' : undefined}
                               aria-label={`Go to step ${stepIndex}: ${s.title}`}
                             >
                               <div 
