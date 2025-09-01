@@ -49,7 +49,10 @@ const clearSecureTokens = (): void => {
 // Use the environment variable for the API base URL
 // In the browser, this will be set to http://localhost:8000/api
 // console.log to aid debugging
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
+// Jest-safe env resolution (setupEnv.ts defines globalThis["import"].meta.env)
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const viteEnvApi: any = (globalThis as any)["import"]?.meta?.env ?? {};
+const API_URL = viteEnvApi.VITE_API_URL || 'http://localhost:8000/api';
 
 // Configuration for API calls (moved from component)
 const API_CONFIG = {
@@ -70,7 +73,7 @@ const apiClient: AxiosInstance = axios.create({
 
 // If in demo/mock mode, install a lightweight mock adapter
 if (appConfig.apiMode === 'mock') {
-  const latencyMs = Number(import.meta.env.VITE_MOCK_LATENCY_MS || 500);
+  const latencyMs = Number(viteEnvApi.VITE_MOCK_LATENCY_MS ?? 500);
 
   apiClient.interceptors.request.use(async (cfg) => {
     // Simulate latency

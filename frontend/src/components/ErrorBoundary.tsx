@@ -108,4 +108,7 @@ class ErrorBoundary extends Component<Props, State> {
   }
 }
 
+// Export unconnected class for testing
+export { ErrorBoundary as UnconnectedErrorBoundary };
+
 export default connect(null, { setGlobalError })(ErrorBoundary);
