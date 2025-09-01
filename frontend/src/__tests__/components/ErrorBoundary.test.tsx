@@ -1,13 +1,11 @@
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { jest } from '@jest/globals';
-import ErrorBoundary from '@/components/ErrorBoundary';
-
-// Minimal connected component fallback by mocking connect to a passthrough
+// Mock connect before importing component
 jest.mock('react-redux', () => ({ connect: () => (c: any) => c }));
 jest.mock('@/features/errors/errorsSlice', () => ({ setGlobalError: () => ({ type: 'noop' }) }));
-jest.mock('../../features/errors/errorsSlice', () => ({ setGlobalError: () => ({ type: 'noop' }) }));
 jest.mock('@reduxjs/toolkit', () => ({ createSlice: (...args: any[]) => ({ actions: {}, reducer: () => ({}) }) }));
+import { UnconnectedErrorBoundary as ErrorBoundary } from '@/components/ErrorBoundary';
 
 const Boom: React.FC = () => {
   throw new Error('boom');
@@ -15,8 +13,9 @@ const Boom: React.FC = () => {
 
 describe('ErrorBoundary', () => {
   it('catches errors and shows fallback', () => {
+    const onSetGlobalError = jest.fn();
     render(
-      <ErrorBoundary>
+      <ErrorBoundary setGlobalError={onSetGlobalError as any}>
         <Boom />
       </ErrorBoundary>
     );

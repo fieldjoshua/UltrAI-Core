@@ -1,0 +1,1 @@
+:root{--bg: #1a1325;--fg: #ffe9d6}body{background-color:var(--bg);color:var(--fg)}body.skin-sunset:not(:has(.font-cyber)){background-image:url(/bg-sunset.jpeg);background-size:cover;background-position:center;background-attachment:fixed}

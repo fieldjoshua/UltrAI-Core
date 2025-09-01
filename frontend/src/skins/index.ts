@@ -12,6 +12,9 @@ export function loadSkin(skin: string) {
     case "minimalist":
       import("./minimalist.css");
       break;
+    case "business":
+      import("./business.css");
+      break;
     default:
       import("./night.css");
   }

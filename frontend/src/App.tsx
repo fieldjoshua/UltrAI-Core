@@ -3,7 +3,6 @@ import { useEffect, lazy, Suspense } from "react";
 import { useAuthStore } from "./stores/authStore";
 import { ProtectedRoute } from "./components/auth/ProtectedRoute";
 import ErrorBoundary from "./components/ErrorBoundary";
-import SkinSwitcher from "./components/SkinSwitcher";
 
 // Layout
 import NavBar from "./components/layout/NavBar";
@@ -56,7 +55,6 @@ function App() {
       <Router>
         <div className="min-h-screen bg-gray-50 dark:bg-gray-900 md:pl-16">
           <NavBar />
-          <SkinSwitcher />
           <main className="container mx-auto px-4 py-6">
             <Suspense fallback={<PageLoader />}>
               <Routes>

@@ -7,6 +7,7 @@ export default {
   testMatch: ['<rootDir>/src/__tests__/**/*.test.ts?(x)'],
   testPathIgnorePatterns: ['/node_modules/', '<rootDir>/src/components/__tests__/'],
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json'],
+  setupFiles: ['<rootDir>/src/test/setupEnv.ts'],
   transform: {
     '^.+\\.(ts|tsx)$': [
       'ts-jest',

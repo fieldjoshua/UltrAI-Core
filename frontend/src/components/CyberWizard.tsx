@@ -1,7 +1,13 @@
 "use client";
 import { useEffect, useState, useMemo, useCallback, memo } from "react";
-import { processWithFeatherOrchestration } from "../api/orchestrator";
+import { Button } from "./ui/button";
+import { Checkbox } from "./ui/checkbox";
+import { Card } from "./ui/card";
+import { processWithFeatherOrchestration, getAvailableModels } from "../api/orchestrator";
 import StatusUpdater from "./StatusUpdater";
+import { RadioGroup, RadioGroupItem } from "./ui/radio-group";
+import { Textarea } from "./ui/textarea";
+import { Input } from "./ui/input";
 // Bridge animation disabled for professional static look
 
 interface StepOption { label: string; cost?: number; icon?: string; description?: string }
@@ -33,6 +39,34 @@ const ReceiptSection = memo(function ReceiptSection({ sectionTitle, items }: Rec
 });
 
 export default function CyberWizard() {
+  // Track current skin and update when it changes
+  const [currentSkin, setCurrentSkin] = useState(() => {
+    return Array.from(document.body.classList)
+      .find(cls => cls.startsWith('skin-'))
+      ?.replace('skin-', '') || 'night';
+  });
+  
+  // Minimalist skin flag removed (not used)
+  const isNonTimeSkin = currentSkin === 'minimalist' || currentSkin === 'business';
+  
+  // Watch for skin changes
+  useEffect(() => {
+    const observer = new MutationObserver(() => {
+      const newSkin = Array.from(document.body.classList)
+        .find(cls => cls.startsWith('skin-'))
+        ?.replace('skin-', '') || 'night';
+      if (newSkin !== currentSkin) {
+        setCurrentSkin(newSkin);
+      }
+    });
+    
+    observer.observe(document.body, {
+      attributes: true,
+      attributeFilter: ['class']
+    });
+    
+    return () => observer.disconnect();
+  }, [currentSkin]);
   const [steps, setSteps] = useState<Step[]>([]);
   const [currentStep, setCurrentStep] = useState(0);
   const [summary, setSummary] = useState<SummaryItem[]>([]);
@@ -55,7 +89,21 @@ export default function CyberWizard() {
   const [isOptimizing] = useState<boolean>(false);
   const [optimizationStep] = useState<number>(0);
   const [modelStatuses, setModelStatuses] = useState<Record<string, 'checking' | 'ready' | 'error'>>({});
+  // Sync bgTheme with currentSkin for non-minimalist skins
   const [bgTheme, setBgTheme] = useState<'morning' | 'afternoon' | 'sunset' | 'night'>('night');
+  
+  // Set document title for accessibility and SEO
+  useEffect(() => {
+    const previousTitle = document.title;
+    document.title = 'UltrAI – Wizard';
+    return () => { document.title = previousTitle; };
+  }, []);
+  
+  useEffect(() => {
+    if (!isNonTimeSkin && ['morning', 'afternoon', 'sunset', 'night'].includes(currentSkin)) {
+      setBgTheme(currentSkin as any);
+    }
+  }, [currentSkin, isNonTimeSkin]);
   const [otherGoalText, setOtherGoalText] = useState<string>("");
   const [showModelList, setShowModelList] = useState<boolean>(false);
   const [addonsSubmitted, setAddonsSubmitted] = useState<boolean>(false);
@@ -95,6 +143,7 @@ export default function CyberWizard() {
     load();
   }, []);
 
+  
 
   // Keyboard navigation
   useEffect(() => {
@@ -131,23 +180,31 @@ export default function CyberWizard() {
   useEffect(() => {
     const fetchAvailable = async () => {
       try {
-        const r = await fetch("/api/available-models", { cache: "no-store" });
-        if (!r.ok) throw new Error(`HTTP ${r.status}`);
-        const d = await r.json();
+        const d = await getAvailableModels();
         if (d && Array.isArray(d.models)) {
-          const names = d.models.map((m: any) => m.name);
-          setAvailableModels(names);
-          const infoMap: Record<string, { provider: string; cost_per_1k_tokens: number }> = {};
+          setAvailableModels(d.models);
           const statusMap: Record<string, 'checking' | 'ready' | 'error'> = {};
-          d.models.forEach((m: any) => {
-            infoMap[String(m.name)] = {
-              provider: String(m.provider || ''),
-              cost_per_1k_tokens: Number(m.cost_per_1k_tokens || 0),
-            };
-            // Set all models as ready since they're returned by the API
-            statusMap[String(m.name)] = 'ready';
-          });
-          setAvailableModelInfos(infoMap);
+          
+          // Check if we have modelInfos in the response
+          if (d.modelInfos) {
+            setAvailableModelInfos(d.modelInfos);
+            // Set all models as ready
+            d.models.forEach((modelName: string) => {
+              statusMap[modelName] = 'ready';
+            });
+          } else {
+            // Legacy format - create info map from models array
+            const infoMap: Record<string, { provider: string; cost_per_1k_tokens: number }> = {};
+            d.models.forEach((m: any) => {
+              const name = typeof m === 'string' ? m : m.name;
+              infoMap[name] = {
+                provider: m.provider || '',
+                cost_per_1k_tokens: m.cost_per_1k_tokens || 0,
+              };
+              statusMap[name] = 'ready';
+            });
+            setAvailableModelInfos(infoMap);
+          }
           setModelStatuses(statusMap);
         } else {
           setAvailableModels([]);
@@ -168,60 +225,27 @@ export default function CyberWizard() {
       try {
         setOrchestratorError(null);
         
-        if (isDemoMode) {
-          // For demo mode, use the separate demo service
-          // You can configure this to point to your demo Render service
-          await new Promise(resolve => setTimeout(resolve, 8000)); // 8 seconds to show all steps
-          
-          // Simulate a successful response for demo
-          const demoResult = {
-            status: 'success',
-            ultra_response: `Based on my multi-model analysis using advanced intelligence multiplication techniques, here's a comprehensive response to your query about sustainable urban transportation:
-
-**Key Findings:**
-1. **Electric Public Transit**: Cities implementing electric bus fleets have seen 40% reduction in emissions
-2. **Bike Infrastructure**: Protected bike lanes increase cycling adoption by 75%
-3. **Smart Traffic Management**: AI-powered traffic systems reduce congestion by 25%
-
-**Recommendations:**
-- Prioritize investment in electric mass transit systems
-- Create dedicated cycling infrastructure with physical barriers
-- Implement dynamic pricing for parking to discourage car use
-- Develop integrated mobility apps for seamless multi-modal journeys
-
-**Future Outlook:**
-The convergence of autonomous vehicles, renewable energy, and smart city infrastructure will revolutionize urban mobility by 2030.
-
-*This analysis synthesized insights from GPT-4, Claude 3, and Gemini Pro to provide a comprehensive perspective.*`,
-            models_used: ["gpt-4-turbo-preview", "claude-3-opus-20240229", "gemini-1.5-pro-latest"],
-            processing_time: 4.73,
-            pattern_used: "comparative"
-          };
-          
-          setOrchestratorResult(demoResult);
-          console.log("Demo Ultra Synthesis result", demoResult);
+        // Use the orchestrator API (which will use mock in demo mode)
+        const models = selectedModels.length > 0 ? selectedModels : null;
+        const res = await processWithFeatherOrchestration({
+          prompt: userQuery || "",
+          models,
+          pattern: "comparative",
+          ultraModel: null,
+          outputFormat: "plain",
+        });
+        
+        // Check if the API returned an error in the response
+        if ((res as any)?.error) {
+          const errVal: any = (res as any).error;
+          const errorMessage = typeof errVal === 'object' 
+            ? errVal?.message || JSON.stringify(errVal)
+            : String(errVal);
+          setOrchestratorError(errorMessage);
+          setOrchestratorResult(null);
         } else {
-          // Real API call
-          const models = selectedModels.length > 0 ? selectedModels : null;
-          const res = await processWithFeatherOrchestration({
-            prompt: userQuery || "",
-            models,
-            pattern: "comparative",
-            ultraModel: null,
-            outputFormat: "plain",
-          });
-          
-          // Check if the API returned an error in the response
-          if (res.error) {
-            const errorMessage = typeof res.error === 'object' 
-              ? res.error.message || JSON.stringify(res.error)
-              : String(res.error);
-            setOrchestratorError(errorMessage);
-            setOrchestratorResult(null);
-          } else {
-            setOrchestratorResult(res);
-            console.log("Ultra Synthesis result", res);
-          }
+          setOrchestratorResult(res);
+          console.log("Ultra Synthesis result", res);
         }
       } catch (e: any) {
         console.error("Ultra Synthesis failed", e);
@@ -230,7 +254,7 @@ The convergence of autonomous vehicles, renewable energy, and smart city infrast
         setIsRunning(false);
       }
     })();
-  }, [showStatus, isDemoMode]);
+  }, [showStatus, userQuery, selectedModels]);
 
   const addSelection = (label: string, cost: number | undefined, color: string, section?: string) => {
     const appliedCost = typeof cost === 'number' ? cost : 0;
@@ -260,28 +284,28 @@ The convergence of autonomous vehicles, renewable energy, and smart city infrast
     : c === 'pink' ? `rgba(255,0,149,${alpha})`
     : `rgba(214,0,255,${alpha})`;
 
-  const colorHex = useMemo(() => step ? mapColorHex(step.color) : '#00ff9f', [step]);
+  const colorHex = useMemo(() => step?.color ? mapColorHex(step.color) : '#00ff9f', [step]);
   const receiptColor = '#ff6600'; // Cyberpunk orange
 
   const handleGoalToggle = useCallback((label: string) => {
     if (!step) return;
     const option = step.options?.find(o => o.label === label);
     const cost = option?.cost;
-    setSelectedGoals(prev => prev.includes(label) ? (removeSelectionCost(cost), prev.filter(l => l !== label)) : (addSelection(label, cost, step.color, step.title), [...prev, label]));
+    setSelectedGoals(prev => prev.includes(label) ? (removeSelectionCost(cost), prev.filter(l => l !== label)) : (addSelection(label, cost, step?.color || 'mint', step?.title || ''), [...prev, label]));
   }, [step]);
   
   const handleInputToggle = useCallback((label: string) => {
     if (!step) return;
     const option = step.options?.find(o => o.label === label);
     const cost = option?.cost;
-    setSelectedInputs(prev => prev.includes(label) ? (removeSelectionCost(cost), prev.filter(l => l !== label)) : (addSelection(label, cost, step.color, step.title), [...prev, label]));
+    setSelectedInputs(prev => prev.includes(label) ? (removeSelectionCost(cost), prev.filter(l => l !== label)) : (addSelection(label, cost, step?.color || 'blue', step?.title || ''), [...prev, label]));
   }, [step]);
   
   const handleModelToggle = useCallback((label: string) => {
     if (!step) return;
     const option = step.options?.find(o => o.label === label);
     const cost = option?.cost;
-    setSelectedModels(prev => prev.includes(label) ? (removeSelectionCost(cost), prev.filter(l => l !== label)) : (addSelection(label, cost, step.color, step.title), [...prev, label]));
+    setSelectedModels(prev => prev.includes(label) ? (removeSelectionCost(cost), prev.filter(l => l !== label)) : (addSelection(label, cost, step?.color || 'deepblue', step?.title || ''), [...prev, label]));
   }, [step]);
 
   const monoStack = 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace';
@@ -314,17 +338,23 @@ The convergence of autonomous vehicles, renewable energy, and smart city infrast
   }, [bgTheme]);
 
   const themeBgUrl = useMemo(() => {
+    let url;
     switch (bgTheme) {
       case 'morning':
-        return '/bg-morning.jpeg';
+        url = '/bg-morning.jpeg';
+        break;
       case 'afternoon':
-        return '/bg-afternoon.jpg';
+        url = '/bg-afternoon.jpg';
+        break;
       case 'sunset':
-        return '/bg-sunset.jpeg';
+        url = '/bg-sunset.jpeg';
+        break;
       case 'night':
       default:
-        return '/bg-night.jpeg';
+        url = '/bg-night.jpeg';
+        break;
     }
+    return url;
   }, [bgTheme]);
 
   // Glass panel darkness based on theme for better readability
@@ -335,15 +365,14 @@ The convergence of autonomous vehicles, renewable energy, and smart city infrast
       case 'afternoon':
         return 'rgba(0, 0, 0, 0.30)'; // Darker for bright afternoon
       case 'sunset':
-        return 'rgba(0, 0, 0, 0.20)'; // Medium for sunset
+        return 'rgba(0, 0, 0, 0.25)'; // Slightly darker for better contrast
       case 'night':
       default:
-        return 'rgba(0, 0, 0, 0.15)'; // Lighter for dark night
+        return 'rgba(0, 0, 0, 0.25)'; // Darker for night to improve legibility
     }
   }, [bgTheme]);
 
-  const selectedModelsDisplay = useMemo(() => selectedModels.join(', '), [selectedModels]);
-
+  // Selected models display memo removed (not used)
   const receiptSections = useMemo(() => {
     return steps
       .map(s => s.title)
@@ -403,8 +432,17 @@ The convergence of autonomous vehicles, renewable energy, and smart city infrast
     setUserQuery(improvedQuery);
   }, [userQuery, selectedGoals]);
 
-  // Loading state check - after all hooks
-  if (steps.length === 0) return <div>Loading…</div>;
+  // Show loading state while steps are being loaded
+  if (steps.length === 0) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
+          <p className="text-white opacity-70">Loading UltrAI...</p>
+        </div>
+      </div>
+    );
+  }
 
   // Step 0: Intro — render with background and billboard
   if (currentStep === 0 && step && step.type === 'intro') {
@@ -538,16 +576,16 @@ The convergence of autonomous vehicles, renewable energy, and smart city infrast
                     textShadow: '0 0 5px #ff6600, 0 0 10px #ff6600'
                   }}>comprehensive insights</span>.
                 </p>
-                <div className="flex justify-center gap-6 text-sm mt-6">
-                  <span className="text-white/80" style={{
+                <div className="flex justify-center gap-6 text-sm mt-6 text-white/90">
+                  <span className="text-white" style={{
                     textShadow: '0 0 5px rgba(255,255,255,0.3)'
                   }}>Pay-as-you-go</span>
-                  <span className="text-white/50">•</span>
-                  <span className="text-white/80" style={{
+                  <span className="text-white/70">•</span>
+                  <span className="text-white" style={{
                     textShadow: '0 0 5px rgba(255,255,255,0.3)'
                   }}>No commitments</span>
-                  <span className="text-white/50">•</span>
-                  <span className="text-white/80" style={{
+                  <span className="text-white/70">•</span>
+                  <span className="text-white" style={{
                     textShadow: '0 0 5px rgba(255,255,255,0.3)'
                   }}>Enterprise-grade</span>
                 </div>
@@ -555,26 +593,21 @@ The convergence of autonomous vehicles, renewable energy, and smart city infrast
 
               {/* CTA Button */}
               <div className="text-center">
-                <button 
-                  className="group relative px-12 py-5 text-xl font-bold rounded-2xl overflow-hidden animate-pulse-glow hover:scale-105 transition-all duration-300"
-                  style={{
-                    background: 'linear-gradient(135deg, rgba(0,255,159,0.2) 0%, rgba(0,255,159,0.3) 100%)',
-                    border: '2px solid #00ff9f',
-                    boxShadow: '0 0 40px rgba(0,255,159,0.4), inset 0 0 20px rgba(0,255,159,0.2)',
-                    animation: 'pulse-glow 2s ease-in-out infinite'
-                  }}
+                <Button
+                  variant="primary"
+                  size="lg"
                   onClick={() => { setCurrentStep(1); setStepFadeKey(k => k + 1); }}
+                  className="px-12 py-5 text-xl font-bold"
                 >
-                  <span className="relative z-10 flex items-center gap-3">
+                  <span className="flex items-center gap-3 justify-center">
                     <span>Enter UltrAI</span>
-                    <span className="animate-slide-right">→</span>
+                    <span>→</span>
                   </span>
-                  <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-mint-400/0 via-mint-400/30 to-mint-400/0 animate-shimmer" />
-                </button>
+                </Button>
               </div>
 
               {/* Trust indicators */}
-              <div className="flex justify-center gap-8 text-sm text-white/60">
+              <div className="flex justify-center gap-8 text-sm text-white/80">
                 <div className="flex items-center gap-2">
                   <span className="text-green-400">✓</span>
                   <span>20+ AI Models</span>
@@ -600,19 +633,111 @@ The convergence of autonomous vehicles, renewable energy, and smart city infrast
 
   return (
     <div className="relative flex flex-col min-h-screen w-full text-white font-cyber text-sm">
-      {/* Background layer - full screen with theme */}
-      <div
-        className="pointer-events-none fixed inset-0"
-        style={{
-          backgroundImage: `url('${themeBgUrl}')`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          backgroundAttachment: 'fixed',
-          zIndex: 0
-        }}
-      />
-      {/* Theme overlay tint */}
-      <div className="pointer-events-none fixed inset-0" style={themeOverlayStyle} />
+      {/* Skip link for keyboard users */}
+      <a href="#main-content" className="sr-only focus:not-sr-only fixed top-2 left-2 z-50 bg-black text-white px-3 py-2 rounded">
+        Skip to content
+      </a>
+      {/* Background layer - only show for time-based skins */}
+      {!isNonTimeSkin && (
+        <>
+          <div
+            className="pointer-events-none fixed inset-0"
+            style={{
+              backgroundImage: `url('${themeBgUrl}')`,
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
+              backgroundAttachment: 'fixed',
+              zIndex: 0
+            }}
+          />
+          {/* Theme overlay tint */}
+          <div className="pointer-events-none fixed inset-0" style={themeOverlayStyle} />
+        </>
+      )}
+      
+      {/* UltrAI Billboard Logo - Show for non-time themes */}
+      {isNonTimeSkin && (
+        <div className="fixed top-10 left-1/2 transform -translate-x-1/2 z-10">
+          <div className="relative">
+            {/* Billboard structure based on actual logo */}
+            <svg width="280" height="180" viewBox="0 0 280 180" className={currentSkin === 'minimalist' ? 'drop-shadow-2xl' : 'drop-shadow-lg'}>
+              {/* Main billboard panel with 3D effect */}
+              <g>
+                {/* Back panel shadow */}
+                <rect x="35" y="25" width="210" height="80" 
+                  fill="rgba(0,0,0,0.3)" rx="2" />
+                
+                {/* Main billboard back */}
+                <rect x="30" y="20" width="220" height="85" 
+                  fill={currentSkin === 'minimalist' ? '#1a1a1a' : '#2c3e50'} 
+                  rx="3" />
+                
+                {/* Billboard front face */}
+                <rect x="35" y="25" width="210" height="75" 
+                  fill={currentSkin === 'minimalist' ? '#ffffff' : '#ecf0f1'} 
+                  stroke={currentSkin === 'minimalist' ? '#000000' : '#34495e'}
+                  strokeWidth="3" rx="2" />
+                
+                {/* Inner frame */}
+                <rect x="40" y="30" width="200" height="65" 
+                  fill="none"
+                  stroke={currentSkin === 'minimalist' ? '#000000' : '#34495e'}
+                  strokeWidth="1" rx="1" />
+              </g>
+              
+              {/* UltrAI text with better typography */}
+              <text x="140" y="70" 
+                fontFamily={currentSkin === 'business' ? "'Helvetica Neue', Arial, sans-serif" : "'Courier New', monospace"}
+                fontSize="36" fontWeight="bold" textAnchor="middle"
+                fill={currentSkin === 'minimalist' ? '#000000' : '#2c3e50'}>
+                UltrAI
+              </text>
+              
+              {/* Support structure */}
+              <g>
+                {/* Left support */}
+                <rect x="60" y="105" width="12" height="60" 
+                  fill={currentSkin === 'minimalist' ? '#000000' : '#34495e'} />
+                <rect x="62" y="107" width="8" height="56" 
+                  fill={currentSkin === 'minimalist' ? '#333333' : '#2c3e50'} />
+                
+                {/* Right support */}
+                <rect x="208" y="105" width="12" height="60" 
+                  fill={currentSkin === 'minimalist' ? '#000000' : '#34495e'} />
+                <rect x="210" y="107" width="8" height="56" 
+                  fill={currentSkin === 'minimalist' ? '#333333' : '#2c3e50'} />
+                
+                {/* Cross braces */}
+                <line x1="72" y1="120" x2="208" y2="150" 
+                  stroke={currentSkin === 'minimalist' ? '#666666' : '#7f8c8d'} 
+                  strokeWidth="2" />
+                <line x1="72" y1="150" x2="208" y2="120" 
+                  stroke={currentSkin === 'minimalist' ? '#666666' : '#7f8c8d'} 
+                  strokeWidth="2" />
+              </g>
+              
+              {/* Ground/base */}
+              <rect x="20" y="165" width="240" height="8" 
+                fill={currentSkin === 'minimalist' ? '#000000' : '#2c3e50'} rx="1" />
+              <rect x="40" y="168" width="200" height="2" 
+                fill={currentSkin === 'minimalist' ? '#333333' : '#34495e'} />
+              
+              {/* Lights on top */}
+              <g>
+                <ellipse cx="80" cy="15" rx="8" ry="6" 
+                  fill={currentSkin === 'minimalist' ? '#333333' : '#2c3e50'} />
+                <ellipse cx="80" cy="13" rx="6" ry="4" 
+                  fill="#00ff00" opacity="0.9" />
+                
+                <ellipse cx="200" cy="15" rx="8" ry="6" 
+                  fill={currentSkin === 'minimalist' ? '#333333' : '#2c3e50'} />
+                <ellipse cx="200" cy="13" rx="6" ry="4" 
+                  fill="#00ff00" opacity="0.9" />
+              </g>
+            </svg>
+          </div>
+        </div>
+      )}
       
       {/* Animated Billboard Lines - Lower Right Corner */}
       {/* Overlay removed */}
@@ -705,16 +830,16 @@ The convergence of autonomous vehicles, renewable energy, and smart city infrast
       )}
 
       {/* Main Content - Below Billboard */}
-      <div className="relative z-10 w-full">
-        <div className="flex items-center justify-center" style={{ minHeight: '100vh', paddingTop: '37.5vh' }}>
+      <div className="relative z-10 w-full" id="main-content" role="main">
+        <h1 className="sr-only">UltrAI Wizard</h1>
+        <div className="flex items-center justify-center" style={{ minHeight: '100vh', paddingTop: isNonTimeSkin ? '25vh' : '37.5vh' }}>
           <div className="w-full max-w-7xl px-8">
             <div className="grid grid-cols-12 gap-4">
 
           {/* Left Panel: System Status */}
               <div className="col-span-2">
                 {/* Model Status Box */}
-                <div 
-                  className="glass-panel glass-grain relative p-4 rounded-2xl transition-smooth"
+                <Card className="relative p-4 rounded-2xl transition-smooth"
                   style={{ 
                     background: glassBackground,
                     backdropFilter: 'blur(40px)',
@@ -728,7 +853,7 @@ The convergence of autonomous vehicles, renewable energy, and smart city infrast
                     clipPath: 'polygon(0 0, calc(100% - 15px) 0, 100% 15px, 100% 100%, 15px 100%, 0 calc(100% - 15px))'
                   }}
                 >
-                  <h3 className="text-xs font-bold text-white mb-3 uppercase tracking-wider opacity-80">System Status</h3>
+                  <div role="heading" aria-level={2} className="text-xs font-bold text-white mb-3 uppercase tracking-wider opacity-80">System Status</div>
                   
                   {/* Model Status */}
                   <div className="flex items-center justify-between mb-3">
@@ -762,51 +887,15 @@ The convergence of autonomous vehicles, renewable energy, and smart city infrast
                       {availableModels && availableModels.filter(m => modelStatuses[m] === 'ready').length >= 2 ? 'Online' : 'Offline'}
                     </div>
                   </div>
-                </div>
+                </Card>
 
-                {/* Theme Selector Box */}
-                <div 
-                  className="glass-panel glass-grain relative p-4 rounded-2xl transition-smooth mt-4"
-                  style={{ 
-                    background: glassBackground,
-                    backdropFilter: 'blur(40px)',
-                    WebkitBackdropFilter: 'blur(40px)',
-                    border: `2px solid ${colorHex}60`,
-                    boxShadow: `
-                      0 8px 32px rgba(0, 0, 0, 0.3),
-                      0 0 20px ${colorHex}20,
-                      inset 0 0 40px rgba(255, 255, 255, 0.02)
-                    `,
-                    clipPath: 'polygon(0 0, calc(100% - 15px) 0, 100% 15px, 100% 100%, 15px 100%, 0 calc(100% - 15px))'
-                  }}
-                >
-                  <h3 className="text-xs font-bold text-white mb-3 uppercase tracking-wider opacity-80">Time Theme</h3>
-                  <div className="grid grid-cols-2 gap-2">
-                    {(['morning', 'afternoon', 'sunset', 'night'] as const).map(t => (
-                      <button key={t} 
-                        onClick={() => setBgTheme(t)} 
-                        className="p-2 rounded text-center transition-smooth hover:scale-105"
-                        style={{ 
-                          background: bgTheme===t ? `${colorHex}20` : 'rgba(255,255,255,0.05)',
-                          border: bgTheme===t ? `1px solid ${colorHex}60` : '1px solid rgba(255,255,255,0.15)',
-                          color: bgTheme===t ? colorHex : 'rgba(255,255,255,0.7)',
-                          fontSize: '11px',
-                          fontWeight: bgTheme===t ? 'bold' : 'normal',
-                          textTransform: 'capitalize'
-                        }}
-                      >
-                        {t === 'morning' ? '🌅' : t === 'afternoon' ? '☀️' : t === 'sunset' ? '🌇' : '🌙'}<br/>
-                        {t}
-                      </button>
-                    ))}
-                  </div>
-                </div>
+                {/* Theme selector removed - now managed by SkinSwitcher */}
               </div>
 
           {/* Wizard Panel (center) */}
               <div className="col-span-7">
                 <div
-                  className={`glass-panel glass-grain relative p-8 rounded-2xl overflow-hidden transition-smooth will-change-transform ${
+                  className={`relative p-8 rounded-2xl overflow-hidden transition-smooth will-change-transform ${
                     step.color === 'mint' ? 'glow-mint' :
                     step.color === 'blue' ? 'glow-blue' :
                     step.color === 'purple' ? 'glow-purple' :
@@ -835,7 +924,7 @@ The convergence of autonomous vehicles, renewable energy, and smart city infrast
                 <>
                   <div className="text-center mb-4">
                     <div className="text-[16px] font-extrabold tracking-[0.35em] text-white">ULTRA SYNTHESIS™</div>
-                    <div className="text-[10px] text-white/70">— PROCESSING STATUS —</div>
+                    <div className="text-[10px] text-white/90">— PROCESSING STATUS —</div>
                     {isDemoMode && (
                       <div className="mt-2 inline-flex items-center gap-2 px-3 py-1 rounded-full bg-green-500/20 border border-green-400/50">
                         <span className="text-green-300 text-[11px] font-medium">🎮 DEMO MODE</span>
@@ -873,7 +962,7 @@ The convergence of autonomous vehicles, renewable energy, and smart city infrast
                           <span>Running Ultra Synthesis™ Pipeline...</span>
                           <span className="animate-spin">⚡</span>
                         </div>
-                        <div className="mt-3 text-[11px] text-white/60">
+                        <div className="mt-3 text-[11px] text-white/80">
                           Processing with {selectedModels.length} models
                         </div>
                       </div>
@@ -892,7 +981,7 @@ The convergence of autonomous vehicles, renewable energy, and smart city infrast
                 <>
                   {/* Step markers (centered) - exclude Step 0 (Intro) */}
               <div className="w-full mb-4">
-                <div className="flex items-center justify-center">
+                <nav aria-label="Wizard steps" className="flex items-center justify-center">
                       {steps.map((s, idx) => ({ s, idx })).filter(x => x.idx !== 0).map(({ s, idx }) => {
                         const stepIndex = idx; // real index in steps
                         const isActive = stepIndex === currentStep;
@@ -903,6 +992,10 @@ The convergence of autonomous vehicles, renewable energy, and smart city infrast
                             <div 
                               onClick={() => { setCurrentStep(stepIndex); setStepFadeKey(k => k+1); }} 
                               className="relative cursor-pointer group"
+                              role="button"
+                              tabIndex={0}
+                              aria-current={isActive ? 'step' : undefined}
+                              aria-label={`Go to step ${stepIndex}: ${s.title}`}
                             >
                               <div 
                                 className={`w-8 h-8 rounded-full flex items-center justify-center transition-smooth will-change-transform ${
@@ -946,7 +1039,7 @@ The convergence of autonomous vehicles, renewable energy, and smart city infrast
                       </div>
                     );
                   })}
-                </div>
+                </nav>
               </div>
 
               <h2 
@@ -954,14 +1047,13 @@ The convergence of autonomous vehicles, renewable energy, and smart city infrast
                 style={{ 
                   color: colorHex,
                   borderBottom: `1px solid ${colorHex}`, 
-                  paddingBottom: 4,
-                  textShadow: `0 0 10px ${colorHex}60, 0 0 20px ${colorHex}40`
+                  paddingBottom: 4
                 }}
               >
                 {step.title}
               </h2>
               {step.narrative && (
-                <p className="text-[11px] text-white opacity-90 mb-2 text-center whitespace-pre-line">
+                <p className="text-[11px] text-white opacity-95 mb-2 text-center whitespace-pre-line">
                   {currentStep === 2 && selectedGoals.length > 0 
                     ? `Based on your selected goals (${selectedGoals.slice(0, 3).join(', ')}${selectedGoals.length > 3 ? '...' : ''}), tell us what you need.`
                     : step.narrative}
@@ -971,10 +1063,8 @@ The convergence of autonomous vehicles, renewable energy, and smart city infrast
               {/* Scrollable options area */}
               <div
                 key={stepFadeKey}
-                className={`relative space-y-2 overflow-auto ${showStatus ? 'opacity-50' : ''}`}
+                className={`relative space-y-2 overflow-auto pr-1 pb-20 ${showStatus ? 'opacity-50' : ''}`}
                 style={{ 
-                  paddingRight: 4, 
-                  paddingBottom: '80px',
                   height: 'calc(100% - 140px)',
                   pointerEvents: showStatus ? 'none' : 'auto' 
                 }}
@@ -1018,7 +1108,7 @@ The convergence of autonomous vehicles, renewable energy, and smart city infrast
                         Enter UltrAI
                       </button>
                     </div>
-                    <div className="text-center mt-3 text-[10px] text-white/50 animate-pulse">
+                    <div className="text-center mt-3 text-[10px] text-white/80 animate-pulse">
                       Press Enter or →
                     </div>
                   </>
@@ -1026,26 +1116,14 @@ The convergence of autonomous vehicles, renewable energy, and smart city infrast
 
                 {step.type === "textarea" && (<>
                   <div className="relative">
-                    <textarea 
-                      className="w-full h-20 glass p-3 text-white text-sm rounded-lg transition-all duration-200 hover:border-blue-400 focus:border-blue-400 focus:outline-none" 
-                      style={{
-                        background: queryFocused ? glassBackground : glassBackground,
-                        backdropFilter: 'blur(10px)',
-                        border: `2px solid ${queryFocused ? colorHex : colorHex + '50'}`,
-                        resize: 'none',
-                        boxShadow: queryFocused ? `0 0 20px ${colorHex}30` : 'none'
-                      }}
+                    <Textarea 
                       placeholder={selectedGoals.length > 0 ? 
-                        `Tell us about your ${selectedGoals[0].toLowerCase()} needs...` : 
-                        "Type your query…"
-                      } 
-                      value={userQuery} 
+                        `e.g. A ${selectedGoals[0].toLowerCase()} analysis of...` :
+                        'What do you need? Be as specific as possible.'}
+                      value={userQuery}
                       onChange={(e) => setUserQuery(e.target.value)}
                       onFocus={() => setQueryFocused(true)}
-                      onBlur={() => { 
-                        setQueryFocused(false);
-                        if (userQuery.trim()) addSelection("Query Entry", step.baseCost, step.color, step.title); 
-                      }}
+                      onBlur={() => setQueryFocused(false)}
                     />
                     {/* Character counter */}
                     <div className="absolute bottom-2 right-2 text-[10px] transition-opacity duration-200" style={{
@@ -1056,7 +1134,7 @@ The convergence of autonomous vehicles, renewable energy, and smart city infrast
                     </div>
                     {/* Dynamic typing indicator */}
                     {queryFocused && userQuery.length > 0 && (
-                      <div className="absolute -top-6 left-0 text-[10px] animate-fade-in" style={{ color: colorHex }}>
+                      <div className="absolute -top-6 left-0 text-[10px] animate-fade-in text-white" style={{ color: undefined }}>
                         <span className="animate-pulse">✨</span> AI is ready to enhance your query...
                       </div>
                     )}
@@ -1066,7 +1144,7 @@ The convergence of autonomous vehicles, renewable energy, and smart city infrast
                     <div className="grid grid-cols-2 gap-2 mt-1">
                       {step.options.map(o => (
                         <label key={o.label} className="flex items-center text-[11px] leading-tight truncate opacity-95 hover:opacity-100">
-                          <input type="checkbox" onChange={() => handleInputToggle(o.label)} checked={selectedInputs.includes(o.label)} />{" "}
+                          <Checkbox onChange={() => handleInputToggle(o.label)} checked={selectedInputs.includes(o.label)} />{" "}
                           <span className="align-middle truncate tracking-wide text-white">{o.icon ? `${o.icon} ` : ""}{o.label}{typeof o.cost === 'number' ? ` ($${o.cost})` : ""}</span>
                     </label>
                   ))}
@@ -1076,20 +1154,9 @@ The convergence of autonomous vehicles, renewable energy, and smart city infrast
                   {/* Add optimization button for Step 2 */}
                   {userQuery.trim() && (
                     <div className="mt-4">
-                      <button
-                        className="w-full px-4 py-3 rounded-lg font-semibold transition-smooth hover:scale-[1.02] active:scale-[0.98] glass-panel"
-                        style={{
-                          background: 'linear-gradient(135deg, rgba(0,255,159,0.1), rgba(0,184,255,0.1))',
-                          border: '2px solid rgba(0,255,159,0.5)',
-                          color: '#00ff9f',
-                          backdropFilter: 'blur(20px)',
-                          WebkitBackdropFilter: 'blur(20px)',
-                          boxShadow: '0 4px 15px rgba(0,255,159,0.2)'
-                        }}
-                        onClick={optimizeQuery}
-                      >
+                      <Button variant="secondary" onClick={optimizeQuery} className="w-full">
                         🚀 Allow UltrAI to optimize my query
-                      </button>
+                      </Button>
                       <p className="text-[10px] text-white/60 text-center mt-2">
                         AI will suggest improvements to your query for better results
                       </p>
@@ -1099,12 +1166,14 @@ The convergence of autonomous vehicles, renewable energy, and smart city infrast
 
                 {step.type === "radio" && step.options && (
                   <div className="grid grid-cols-2 gap-2">
-                    {step.options.map(o => (
-                      <label key={o.label} className="flex items-center text-[11px] leading-tight truncate opacity-95 hover:opacity-100">
-                        <input type="radio" name={`radio-${currentStep}`} onChange={() => addSelection(o.label, o.cost, step.color, step.title)} />{" "}
-                        <span className="align-middle truncate tracking-wide text-white">{o.icon ? `${o.icon} ` : ""}{o.label}{typeof o.cost === 'number' ? ` ($${o.cost})` : ""}</span>
-                  </label>
-                ))}
+                    <RadioGroup onValueChange={(val) => addSelection(val, step.options?.find(s => s.label===val)?.cost, step.color, step.title)}>
+                      {step.options.map(o => (
+                        <label key={o.label} className="flex items-center text-[11px] leading-tight truncate opacity-95 hover:opacity-100 gap-2">
+                          <RadioGroupItem value={o.label} id={`radio-${currentStep}-${o.label}`} />
+                          <span className="align-middle truncate tracking-wide text-white">{o.icon ? `${o.icon} ` : ""}{o.label}{typeof o.cost === 'number' ? ` ($${o.cost})` : ""}</span>
+                        </label>
+                      ))}
+                    </RadioGroup>
                   </div>
                 )}
 
@@ -1113,7 +1182,7 @@ The convergence of autonomous vehicles, renewable energy, and smart city infrast
                     <div className="grid grid-cols-2 gap-2">
                       {step.options.slice(0, 12).map(o => (
                         <label key={o.label} className="flex items-center text-[11px] leading-tight truncate opacity-95 hover:opacity-100">
-                          <input type="checkbox" onChange={() => handleGoalToggle(o.label)} checked={selectedGoals.includes(o.label)} />{" "}
+                          <Checkbox onChange={() => handleGoalToggle(o.label)} checked={selectedGoals.includes(o.label)} />{" "}
                           <span className="align-middle truncate tracking-wide text-white">{o.icon ? `${o.icon} ` : ""}{o.label}</span>
                         </label>
                       ))}
@@ -1288,7 +1357,7 @@ The convergence of autonomous vehicles, renewable energy, and smart city infrast
                             <div className="grid grid-cols-2 gap-1 max-h-32 overflow-y-auto">
                               {(availableModels || []).map(name => (
                                 <label key={name} className="flex items-center text-[9px] leading-tight truncate opacity-95 hover:opacity-100">
-                                  <input type="checkbox" className="mr-1 scale-75" onChange={() => handleModelToggle(name)} checked={selectedModels.includes(name)} />
+                                  <Checkbox className="mr-1 scale-75" onChange={() => handleModelToggle(name)} checked={selectedModels.includes(name)} />
                                   <span className="align-middle truncate tracking-wide text-white">{name}</span>
                         </label>
                       ))}
@@ -1344,17 +1413,10 @@ The convergence of autonomous vehicles, renewable energy, and smart city infrast
                         </div>
                         {selectedGoals.includes("Other") && (
                           <div className="mt-3">
-                            <input
-                              type="text"
-                              className="w-full px-4 py-3 rounded-xl text-sm text-white placeholder-white/50"
+                            <Input
                               placeholder="Describe your custom goal..."
                               value={otherGoalText}
                               onChange={(e) => setOtherGoalText(e.target.value)}
-                              style={{
-                                background: 'rgba(255, 255, 255, 0.05)',
-                                backdropFilter: 'blur(20px)',
-                                border: `2px solid ${colorHex}50`
-                              }}
                             />
                           </div>
                         )}
@@ -1441,8 +1503,8 @@ The convergence of autonomous vehicles, renewable energy, and smart city infrast
 
           {/* Right Panel: Receipt transforms into Status after approval */}
           <div className="col-span-3">
-            <div 
-              className="glass-panel glass-grain relative p-6 rounded-2xl transition-smooth ${showStatus ? 'animate-pulse-glow' : ''}"
+            <Card 
+              className="relative p-6 rounded-2xl transition-smooth"
               style={{ 
                 fontFamily: monoStack, 
                 background: 'rgba(0, 0, 0, 0.1)',
@@ -1510,28 +1572,27 @@ The convergence of autonomous vehicles, renewable energy, and smart city infrast
                   ) : (
                     <div className="mt-3 text-center text-[11px] text-white/60">
                       Complete all steps to proceed
-              </div>
-            )}
+                    </div>
+                  )}
                 </>
               ) : (
                 <>
                   <div className="text-center mb-2">
                     <div className="text-[14px] font-extrabold tracking-[0.35em] text-white">ULTRAI</div>
                     <div className="text-[10px] text-white/70">— PROCESSING —</div>
-              </div>
+                  </div>
                   <div className="text-center mt-8">
                     <div className="text-[12px] text-white/60">Ultra Synthesis™ in progress</div>
                     <div className="text-[10px] text-white/40 mt-2">Check the status in the main panel</div>
                   </div>
                 </>
-            )}
+              )}
+            </Card>
           </div>
         </div>
-          
         </div>
 
         {/* Status Section Below removed; status now appears in right panel after approval */}
-        </div>
         </div>
       </div>
     </div>
