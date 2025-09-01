@@ -210,61 +210,27 @@ export default function CyberWizard() {
       try {
         setOrchestratorError(null);
         
-        if (isDemoMode) {
-          // For demo mode, use the separate demo service
-          // You can configure this to point to your demo Render service
-          await new Promise(resolve => setTimeout(resolve, 8000)); // 8 seconds to show all steps
-          
-          // Simulate a successful response for demo
-          const demoResult = {
-            status: 'success',
-            ultra_response: `Based on my multi-model analysis using advanced intelligence multiplication techniques, here's a comprehensive response to your query about sustainable urban transportation:
-
-**Key Findings:**
-1. **Electric Public Transit**: Cities implementing electric bus fleets have seen 40% reduction in emissions
-2. **Bike Infrastructure**: Protected bike lanes increase cycling adoption by 75%
-3. **Smart Traffic Management**: AI-powered traffic systems reduce congestion by 25%
-
-**Recommendations:**
-- Prioritize investment in electric mass transit systems
-- Create dedicated cycling infrastructure with physical barriers
-- Implement dynamic pricing for parking to discourage car use
-- Develop integrated mobility apps for seamless multi-modal journeys
-
-**Future Outlook:**
-The convergence of autonomous vehicles, renewable energy, and smart city infrastructure will revolutionize urban mobility by 2030.
-
-*This analysis synthesized insights from GPT-4, Claude 3, and Gemini Pro to provide a comprehensive perspective.*`,
-            models_used: ["gpt-4-turbo-preview", "claude-3-opus-20240229", "gemini-1.5-pro-latest"],
-            processing_time: 4.73,
-            pattern_used: "comparative"
-          };
-          
-          setOrchestratorResult(demoResult);
-          console.log("Demo Ultra Synthesis result", demoResult);
+        // Use the orchestrator API (which will use mock in demo mode)
+        const models = selectedModels.length > 0 ? selectedModels : null;
+        const res = await processWithFeatherOrchestration({
+          prompt: userQuery || "",
+          models,
+          pattern: "comparative",
+          ultraModel: null,
+          outputFormat: "plain",
+        });
+        
+        // Check if the API returned an error in the response
+        if ((res as any)?.error) {
+          const errVal: any = (res as any).error;
+          const errorMessage = typeof errVal === 'object' 
+            ? errVal?.message || JSON.stringify(errVal)
+            : String(errVal);
+          setOrchestratorError(errorMessage);
+          setOrchestratorResult(null);
         } else {
-          // Real API call
-          const models = selectedModels.length > 0 ? selectedModels : null;
-          const res = await processWithFeatherOrchestration({
-            prompt: userQuery || "",
-            models,
-            pattern: "comparative",
-            ultraModel: null,
-            outputFormat: "plain",
-          });
-          
-          // Check if the API returned an error in the response
-          if ((res as any)?.error) {
-            const errVal: any = (res as any).error;
-            const errorMessage = typeof errVal === 'object' 
-              ? errVal?.message || JSON.stringify(errVal)
-              : String(errVal);
-            setOrchestratorError(errorMessage);
-            setOrchestratorResult(null);
-          } else {
-            setOrchestratorResult(res);
-            console.log("Ultra Synthesis result", res);
-          }
+          setOrchestratorResult(res);
+          console.log("Ultra Synthesis result", res);
         }
       } catch (e: any) {
         console.error("Ultra Synthesis failed", e);
@@ -273,7 +239,7 @@ The convergence of autonomous vehicles, renewable energy, and smart city infrast
         setIsRunning(false);
       }
     })();
-  }, [showStatus, isDemoMode]);
+  }, [showStatus, userQuery, selectedModels]);
 
   const addSelection = (label: string, cost: number | undefined, color: string, section?: string) => {
     const appliedCost = typeof cost === 'number' ? cost : 0;
@@ -837,25 +803,10 @@ The convergence of autonomous vehicles, renewable energy, and smart city infrast
       )}
 
       {/* Main Content - Below Billboard */}
-      <div id="main-content" role="main" className="relative z-10 w-full">
+      <div className="relative z-10 w-full" id="main-content" role="main">
+        <h1 className="sr-only">UltrAI Wizard</h1>
         <div className="flex items-center justify-center" style={{ minHeight: '100vh', paddingTop: isNonTimeSkin ? '25vh' : '37.5vh' }}>
           <div className="w-full max-w-7xl px-8">
-            {steps.length === 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="space-y-3">
-                  <div className="animate-pulse h-6 w-40 bg-gray-200/60 dark:bg-gray-700/50 rounded" />
-                  <div className="animate-pulse h-28 w-full bg-gray-200/60 dark:bg-gray-700/50 rounded" />
-                </div>
-                <div className="space-y-3">
-                  <div className="animate-pulse h-6 w-32 bg-gray-200/60 dark:bg-gray-700/50 rounded" />
-                  <div className="animate-pulse h-28 w-full bg-gray-200/60 dark:bg-gray-700/50 rounded" />
-                </div>
-                <div className="space-y-3">
-                  <div className="animate-pulse h-6 w-24 bg-gray-200/60 dark:bg-gray-700/50 rounded" />
-                  <div className="animate-pulse h-28 w-full bg-gray-200/60 dark:bg-gray-700/50 rounded" />
-                </div>
-              </div>
-            ) : (
             <div className="grid grid-cols-12 gap-4">
 
           {/* Left Panel: System Status */}
@@ -1003,7 +954,7 @@ The convergence of autonomous vehicles, renewable energy, and smart city infrast
                 <>
                   {/* Step markers (centered) - exclude Step 0 (Intro) */}
               <div className="w-full mb-4">
-                <div className="flex items-center justify-center">
+                <nav aria-label="Wizard steps" className="flex items-center justify-center">
                       {steps.map((s, idx) => ({ s, idx })).filter(x => x.idx !== 0).map(({ s, idx }) => {
                         const stepIndex = idx; // real index in steps
                         const isActive = stepIndex === currentStep;
@@ -1060,7 +1011,7 @@ The convergence of autonomous vehicles, renewable energy, and smart city infrast
                       </div>
                     );
                   })}
-                </div>
+                </nav>
               </div>
 
               <h2 
@@ -1593,26 +1544,24 @@ The convergence of autonomous vehicles, renewable energy, and smart city infrast
                   ) : (
                     <div className="mt-3 text-center text-[11px] text-white/60">
                       Complete all steps to proceed
-              </div>
-            )}
+                    </div>
+                  )}
                 </>
               ) : (
                 <>
                   <div className="text-center mb-2">
                     <div className="text-[14px] font-extrabold tracking-[0.35em] text-white">ULTRAI</div>
                     <div className="text-[10px] text-white/70">— PROCESSING —</div>
-              </div>
+                  </div>
                   <div className="text-center mt-8">
                     <div className="text-[12px] text-white/60">Ultra Synthesis™ in progress</div>
                     <div className="text-[10px] text-white/40 mt-2">Check the status in the main panel</div>
                   </div>
                 </>
-            )}
+              )}
             </Card>
           </div>
         </div>
-            )}
-          
         </div>
 
         {/* Status Section Below removed; status now appears in right panel after approval */}
