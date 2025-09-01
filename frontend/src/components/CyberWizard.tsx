@@ -136,26 +136,7 @@ export default function CyberWizard() {
     load();
   }, []);
 
-  if (steps.length === 0) {
-    return (
-      <div className="max-w-5xl mx-auto p-6">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="space-y-3">
-            <div className="animate-pulse h-6 w-40 bg-gray-200/60 dark:bg-gray-700/50 rounded" />
-            <div className="animate-pulse h-28 w-full bg-gray-200/60 dark:bg-gray-700/50 rounded" />
-          </div>
-          <div className="space-y-3">
-            <div className="animate-pulse h-6 w-32 bg-gray-200/60 dark:bg-gray-700/50 rounded" />
-            <div className="animate-pulse h-28 w-full bg-gray-200/60 dark:bg-gray-700/50 rounded" />
-          </div>
-          <div className="space-y-3">
-            <div className="animate-pulse h-6 w-24 bg-gray-200/60 dark:bg-gray-700/50 rounded" />
-            <div className="animate-pulse h-28 w-full bg-gray-200/60 dark:bg-gray-700/50 rounded" />
-          </div>
-        </div>
-      </div>
-    );
-  }
+  
 
   // Keyboard navigation
   useEffect(() => {
@@ -469,9 +450,6 @@ The convergence of autonomous vehicles, renewable energy, and smart city infrast
     
     setUserQuery(improvedQuery);
   }, [userQuery, selectedGoals]);
-
-  // Loading state check - after all hooks
-  if (steps.length === 0) return <div>Loading…</div>;
 
   // Step 0: Intro — render with background and billboard
   if (currentStep === 0 && step && step.type === 'intro') {
@@ -858,6 +836,22 @@ The convergence of autonomous vehicles, renewable energy, and smart city infrast
       <div className="relative z-10 w-full">
         <div className="flex items-center justify-center" style={{ minHeight: '100vh', paddingTop: isNonTimeSkin ? '25vh' : '37.5vh' }}>
           <div className="w-full max-w-7xl px-8">
+            {steps.length === 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="space-y-3">
+                  <div className="animate-pulse h-6 w-40 bg-gray-200/60 dark:bg-gray-700/50 rounded" />
+                  <div className="animate-pulse h-28 w-full bg-gray-200/60 dark:bg-gray-700/50 rounded" />
+                </div>
+                <div className="space-y-3">
+                  <div className="animate-pulse h-6 w-32 bg-gray-200/60 dark:bg-gray-700/50 rounded" />
+                  <div className="animate-pulse h-28 w-full bg-gray-200/60 dark:bg-gray-700/50 rounded" />
+                </div>
+                <div className="space-y-3">
+                  <div className="animate-pulse h-6 w-24 bg-gray-200/60 dark:bg-gray-700/50 rounded" />
+                  <div className="animate-pulse h-28 w-full bg-gray-200/60 dark:bg-gray-700/50 rounded" />
+                </div>
+              </div>
+            ) : (
             <div className="grid grid-cols-12 gap-4">
 
           {/* Left Panel: System Status */}
@@ -1174,7 +1168,7 @@ The convergence of autonomous vehicles, renewable energy, and smart city infrast
                   {/* Add optimization button for Step 2 */}
                   {userQuery.trim() && (
                     <div className="mt-4">
-                      <Button variant="secondary" fullWidth onClick={optimizeQuery}>
+                      <Button variant="secondary" onClick={optimizeQuery} className="w-full">
                         🚀 Allow UltrAI to optimize my query
                       </Button>
                       <p className="text-[10px] text-white/60 text-center mt-2">
@@ -1610,6 +1604,7 @@ The convergence of autonomous vehicles, renewable energy, and smart city infrast
             </Card>
           </div>
         </div>
+            )}
           
         </div>
 
