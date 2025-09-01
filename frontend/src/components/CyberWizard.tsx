@@ -640,7 +640,7 @@ The convergence of autonomous vehicles, renewable energy, and smart city infrast
 
 
   return (
-    <div className="relative flex flex-col min-h-screen w-full text-white font-cyber text-sm">
+    <div className={`relative flex flex-col min-h-screen w-full text-white font-cyber text-sm ${isNonTimeSkin ? '-mt-[25vh]' : ''}`}>
       {/* Background layer - only show for time-based skins */}
       {!isNonTimeSkin && (
         <>
@@ -661,7 +661,7 @@ The convergence of autonomous vehicles, renewable energy, and smart city infrast
       
       {/* UltrAI Billboard Logo - Show for non-time themes */}
       {isNonTimeSkin && (
-        <div className="fixed top-8 left-1/2 transform -translate-x-1/2 z-10">
+        <div className="fixed top-20 left-1/2 transform -translate-x-1/2 z-10">
           <div className="relative">
             {/* Billboard structure */}
             <svg width="200" height="120" viewBox="0 0 200 120" className="drop-shadow-2xl">
@@ -791,7 +791,7 @@ The convergence of autonomous vehicles, renewable energy, and smart city infrast
 
       {/* Main Content - Below Billboard */}
       <div className="relative z-10 w-full">
-        <div className="flex items-center justify-center" style={{ minHeight: '100vh', paddingTop: '37.5vh' }}>
+        <div className="flex items-center justify-center" style={{ minHeight: '100vh', paddingTop: isNonTimeSkin ? '12.5vh' : '37.5vh' }}>
           <div className="w-full max-w-7xl px-8">
             <div className="grid grid-cols-12 gap-4">
 
