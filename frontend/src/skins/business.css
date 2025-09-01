@@ -1,0 +1,194 @@
+/* Business skin - Professional with standard fonts and basic colors */
+
+/* Root variables */
+:root {
+  /* Primary colors - professional business palette */
+  --skin-primary: #003366;
+  --skin-secondary: #2C5282;
+  --skin-accent: #1A73E8;
+  --skin-accent-hover: #1557B0;
+  
+  /* Text colors */
+  --skin-text-primary: #1A202C;
+  --skin-text-secondary: #4A5568;
+  --skin-text-light: #718096;
+  
+  /* Backgrounds */
+  --skin-bg-primary: #FFFFFF;
+  --skin-bg-secondary: #F7FAFC;
+  --skin-bg-tertiary: #EDF2F7;
+  
+  /* Borders */
+  --skin-border-light: #E2E8F0;
+  --skin-border-medium: #CBD5E0;
+  --skin-border-dark: #A0AEC0;
+  
+  /* Status colors */
+  --skin-success: #38A169;
+  --skin-warning: #D69E2E;
+  --skin-error: #E53E3E;
+  --skin-info: #3182CE;
+  
+  /* Shadows - professional depth */
+  --skin-shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --skin-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --skin-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --skin-shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  
+  /* Transitions */
+  --skin-transition: all 0.15s ease-in-out;
+}
+
+/* Override global styles for business theme */
+body.skin-business {
+  background-color: var(--skin-bg-secondary);
+  background-image: linear-gradient(180deg, #FFFFFF 0%, #F7FAFC 100%);
+  color: var(--skin-text-primary);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+/* Typography - standard business fonts */
+body.skin-business h1,
+body.skin-business h2,
+body.skin-business h3,
+body.skin-business h4,
+body.skin-business h5,
+body.skin-business h6 {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-weight: 600;
+  color: var(--skin-text-primary);
+}
+
+/* Glass effects - clean business cards */
+.skin-business .glass {
+  background: var(--skin-bg-primary);
+  backdrop-filter: none;
+  border: 1px solid var(--skin-border-light);
+  box-shadow: var(--skin-shadow-sm);
+  border-radius: 8px;
+}
+
+.skin-business .glass-strong {
+  background: var(--skin-bg-primary);
+  backdrop-filter: none;
+  border: 1px solid var(--skin-border-medium);
+  box-shadow: var(--skin-shadow-md);
+  border-radius: 8px;
+}
+
+.skin-business .glass-panel {
+  background: var(--skin-bg-primary);
+  border: 1px solid var(--skin-border-light);
+  box-shadow: var(--skin-shadow-lg);
+  backdrop-filter: none;
+  border-radius: 12px;
+  padding: 24px;
+}
+
+/* Buttons - professional style */
+.skin-business .btn-neon {
+  background: var(--skin-accent);
+  color: white;
+  border: none;
+  box-shadow: var(--skin-shadow-sm);
+  text-shadow: none;
+  font-weight: 500;
+  border-radius: 6px;
+  padding: 10px 20px;
+  transition: var(--skin-transition);
+  font-family: inherit;
+}
+
+.skin-business .btn-neon:hover {
+  background: var(--skin-accent-hover);
+  box-shadow: var(--skin-shadow-md);
+  transform: translateY(-1px);
+}
+
+.skin-business .btn-neon:active {
+  transform: translateY(0);
+  box-shadow: var(--skin-shadow-sm);
+}
+
+/* Remove all neon effects */
+.skin-business .neon-text,
+.skin-business .text-neon-pink,
+.skin-business .text-neon-cyan,
+.skin-business .text-mint-400,
+.skin-business .text-purple-400,
+.skin-business .text-pink-400 {
+  text-shadow: none !important;
+  filter: none !important;
+}
+
+/* Status indicators */
+.skin-business .text-green-400 { color: var(--skin-success) !important; }
+.skin-business .text-yellow-400 { color: var(--skin-warning) !important; }
+.skin-business .text-red-400 { color: var(--skin-error) !important; }
+.skin-business .text-blue-400 { color: var(--skin-info) !important; }
+
+/* Borders */
+.skin-business .border-mint-400,
+.skin-business .border-cyan-400,
+.skin-business .border-pink-400,
+.skin-business .border-purple-400 {
+  border-color: var(--skin-border-medium) !important;
+}
+
+/* Background overrides */
+.skin-business .bg-mint-400,
+.skin-business .bg-cyan-400,
+.skin-business .bg-pink-400,
+.skin-business .bg-purple-400 {
+  background-color: var(--skin-accent) !important;
+}
+
+/* Form inputs */
+.skin-business input,
+.skin-business textarea,
+.skin-business select {
+  font-family: inherit;
+  background: var(--skin-bg-primary);
+  border: 1px solid var(--skin-border-medium);
+  box-shadow: var(--skin-shadow-sm);
+  border-radius: 4px;
+}
+
+.skin-business input:focus,
+.skin-business textarea:focus,
+.skin-business select:focus {
+  border-color: var(--skin-accent);
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.1);
+}
+
+/* Scrollbar styling */
+.skin-business ::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+
+.skin-business ::-webkit-scrollbar-track {
+  background: var(--skin-bg-secondary);
+}
+
+.skin-business ::-webkit-scrollbar-thumb {
+  background: var(--skin-border-medium);
+  border-radius: 6px;
+}
+
+.skin-business ::-webkit-scrollbar-thumb:hover {
+  background: var(--skin-border-dark);
+}
+
+/* Remove animations for professional look */
+.skin-business .animate-pulse,
+.skin-business .animate-spin,
+.skin-business .animate-bounce {
+  animation: none !important;
+}
+
+/* Clean hover states */
+.skin-business [class*="hover:"]:hover {
+  transition: var(--skin-transition);
+}

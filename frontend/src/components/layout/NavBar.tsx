@@ -9,6 +9,7 @@ import {
   Palette,
   Menu,
   X,
+  Paintbrush,
 } from 'lucide-react';
 import { Button } from '../ui/button';
 import { DayNightToggle, useTheme, ThemePanel } from '../../theme';
@@ -19,7 +20,24 @@ export default function NavBar() {
   const location = useLocation();
   const [isMenuOpen, setIsMenuOpen] = React.useState(false);
   const [isThemePanelOpen, setIsThemePanelOpen] = React.useState(false);
+  const [isSkinMenuOpen, setIsSkinMenuOpen] = React.useState(false);
   const { isAuthenticated } = useAuthStore();
+  
+  // Get current skin from body class
+  const [currentSkin, setCurrentSkin] = React.useState(() => {
+    return Array.from(document.body.classList)
+      .find(cls => cls.startsWith('skin-'))
+      ?.replace('skin-', '') || 'night';
+  });
+  
+  const skins = [
+    { name: 'morning', icon: '🌅', color: '#FFD27A' },
+    { name: 'afternoon', icon: '☀️', color: '#7AD1FF' },
+    { name: 'sunset', icon: '🌇', color: '#FF7A7A' },
+    { name: 'night', icon: '🌙', color: '#B88CFF' },
+    { name: 'minimalist', icon: '◻️', color: '#6B7280' },
+    { name: 'business', icon: '💼', color: '#2C3E50' },
+  ];
 
   const isActive = (path: string) => location.pathname.startsWith(path);
 
@@ -83,6 +101,56 @@ export default function NavBar() {
           >
             <User size={18} />
           </Link>
+          
+          {/* Skin Switcher */}
+          <div className="relative">
+            <button
+              onClick={() => setIsSkinMenuOpen(!isSkinMenuOpen)}
+              title="Change Theme"
+              className={`flex items-center justify-center h-10 w-10 rounded-md ${
+                isSkinMenuOpen
+                  ? 'bg-blue-50 text-blue-700 dark:bg-blue-900 dark:text-blue-200'
+                  : 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800'
+              }`}
+            >
+              <Paintbrush size={18} />
+            </button>
+            
+            {/* Skin menu */}
+            {isSkinMenuOpen && (
+              <div className="absolute left-full ml-2 top-0 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg p-2 min-w-[200px]">
+                <div className="text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider mb-2 px-2">
+                  Themes
+                </div>
+                {skins.map((skin) => (
+                  <button
+                    key={skin.name}
+                    onClick={() => {
+                      // Update body class
+                      document.body.className = document.body.className.replace(/skin-\w+/g, '');
+                      document.body.classList.add(`skin-${skin.name}`);
+                      setCurrentSkin(skin.name);
+                      localStorage.setItem('selectedSkin', skin.name);
+                      
+                      // Load the skin CSS
+                      import(`../../skins/${skin.name}.css`);
+                      
+                      setIsSkinMenuOpen(false);
+                    }}
+                    className={`w-full flex items-center gap-3 px-2 py-2 rounded text-sm hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors ${
+                      currentSkin === skin.name ? 'bg-gray-100 dark:bg-gray-800' : ''
+                    }`}
+                  >
+                    <span className="text-lg">{skin.icon}</span>
+                    <span className="flex-1 text-left capitalize">{skin.name}</span>
+                    {currentSkin === skin.name && (
+                      <div className="w-2 h-2 rounded-full" style={{ backgroundColor: skin.color }} />
+                    )}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         </nav>
 
         {/* Controls */}

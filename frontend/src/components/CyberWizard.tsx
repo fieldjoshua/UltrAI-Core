@@ -41,6 +41,7 @@ export default function CyberWizard() {
   });
   
   const isMinimalistSkin = currentSkin === 'minimalist';
+  const isNonTimeSkin = currentSkin === 'minimalist' || currentSkin === 'business';
   
   // Watch for skin changes
   useEffect(() => {
@@ -86,10 +87,10 @@ export default function CyberWizard() {
   const [bgTheme, setBgTheme] = useState<'morning' | 'afternoon' | 'sunset' | 'night'>('night');
   
   useEffect(() => {
-    if (!isMinimalistSkin && ['morning', 'afternoon', 'sunset', 'night'].includes(currentSkin)) {
+    if (!isNonTimeSkin && ['morning', 'afternoon', 'sunset', 'night'].includes(currentSkin)) {
       setBgTheme(currentSkin as any);
     }
-  }, [currentSkin, isMinimalistSkin]);
+  }, [currentSkin, isNonTimeSkin]);
   const [otherGoalText, setOtherGoalText] = useState<string>("");
   const [showModelList, setShowModelList] = useState<boolean>(false);
   const [addonsSubmitted, setAddonsSubmitted] = useState<boolean>(false);
@@ -640,8 +641,8 @@ The convergence of autonomous vehicles, renewable energy, and smart city infrast
 
   return (
     <div className="relative flex flex-col min-h-screen w-full text-white font-cyber text-sm">
-      {/* Background layer - only show if not minimalist skin */}
-      {!isMinimalistSkin && (
+      {/* Background layer - only show for time-based skins */}
+      {!isNonTimeSkin && (
         <>
           <div
             className="pointer-events-none fixed inset-0"
@@ -656,6 +657,46 @@ The convergence of autonomous vehicles, renewable energy, and smart city infrast
           {/* Theme overlay tint */}
           <div className="pointer-events-none fixed inset-0" style={themeOverlayStyle} />
         </>
+      )}
+      
+      {/* UltrAI Billboard Logo - Show for non-time themes */}
+      {isNonTimeSkin && (
+        <div className="fixed top-8 left-1/2 transform -translate-x-1/2 z-10">
+          <div className="relative">
+            {/* Billboard structure */}
+            <svg width="200" height="120" viewBox="0 0 200 120" className="drop-shadow-2xl">
+              {/* Billboard panel */}
+              <rect x="20" y="10" width="160" height="60" 
+                fill={currentSkin === 'minimalist' ? '#000000' : '#003366'} 
+                stroke="none" rx="4" />
+              <rect x="25" y="15" width="150" height="50" 
+                fill={currentSkin === 'minimalist' ? '#ffffff' : '#f7fafc'} 
+                stroke={currentSkin === 'minimalist' ? '#000000' : '#003366'}
+                strokeWidth="2" rx="2" />
+              
+              {/* UltrAI text */}
+              <text x="100" y="45" 
+                fontFamily={currentSkin === 'business' ? 'Arial, sans-serif' : 'monospace'}
+                fontSize="24" fontWeight="bold" textAnchor="middle"
+                fill={currentSkin === 'minimalist' ? '#000000' : '#003366'}>
+                UltrAI
+              </text>
+              
+              {/* Support posts */}
+              <rect x="45" y="70" width="8" height="40" fill={currentSkin === 'minimalist' ? '#000000' : '#2c5282'} />
+              <rect x="147" y="70" width="8" height="40" fill={currentSkin === 'minimalist' ? '#000000' : '#2c5282'} />
+              
+              {/* Ground line */}
+              <line x1="30" y1="110" x2="170" y2="110" 
+                stroke={currentSkin === 'minimalist' ? '#000000' : '#2c5282'} 
+                strokeWidth="2" />
+              
+              {/* Lights on top */}
+              <circle cx="60" cy="8" r="4" fill="#00ff00" opacity="0.8" />
+              <circle cx="140" cy="8" r="4" fill="#00ff00" opacity="0.8" />
+            </svg>
+          </div>
+        </div>
       )}
       
       {/* Animated Billboard Lines - Lower Right Corner */}
