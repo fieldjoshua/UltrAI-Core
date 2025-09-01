@@ -31,36 +31,99 @@ export default function SkinSwitcher() {
     }
   };
 
+  const getThemeIcon = (themeName: string) => {
+    switch (themeName) {
+      case 'morning': return '🌅';
+      case 'afternoon': return '☀️';
+      case 'sunset': return '🌇';
+      case 'night': return '🌙';
+      case 'minimalist': return '◻️';
+      default: return '🎨';
+    }
+  };
+
+  const getThemeColor = (themeName: string) => {
+    switch (themeName) {
+      case 'morning': return '#FFD27A';
+      case 'afternoon': return '#7AD1FF';
+      case 'sunset': return '#FF7A7A';
+      case 'night': return '#B88CFF';
+      case 'minimalist': return '#6B7280';
+      default: return '#fff';
+    }
+  };
+
   return (
     <div style={{
       position: "fixed",
-      bottom: 10,
+      top: 70,
       right: 10,
-      background: "rgba(0,0,0,0.7)",
+      background: "rgba(0, 0, 0, 0.85)",
+      backdropFilter: "blur(10px)",
       color: "#fff",
-      padding: "8px 12px",
-      borderRadius: 8,
-      fontSize: 14,
-      zIndex: 1000
+      padding: "12px",
+      borderRadius: 12,
+      fontSize: 12,
+      zIndex: 1000,
+      border: "1px solid rgba(255, 255, 255, 0.1)",
+      boxShadow: "0 4px 20px rgba(0, 0, 0, 0.3)"
     }}>
-      <span style={{ marginRight: 6 }}>Skin:</span>
-      {config.availableSkins.map((s) => (
-        <button
-          key={s}
-          onClick={() => handleChange(s as Skin)}
-          style={{
-            marginLeft: 6,
-            background: skin === s ? "#444" : "#222",
-            color: "#fff",
-            border: "none",
-            borderRadius: 4,
-            padding: "4px 8px",
-            cursor: "pointer"
-          }}
-        >
-          {s}
-        </button>
-      ))}
+      <div style={{ 
+        fontSize: 11, 
+        fontWeight: "bold", 
+        marginBottom: 8,
+        textTransform: "uppercase",
+        letterSpacing: 1,
+        opacity: 0.8
+      }}>
+        Theme
+      </div>
+      <div style={{ display: "flex", gap: 4 }}>
+        {config.availableSkins.map((s) => {
+          const isActive = skin === s;
+          const themeColor = getThemeColor(s);
+          return (
+            <button
+              key={s}
+              onClick={() => handleChange(s as Skin)}
+              title={s.charAt(0).toUpperCase() + s.slice(1)}
+              style={{
+                background: isActive ? `${themeColor}20` : "rgba(255, 255, 255, 0.05)",
+                border: isActive ? `2px solid ${themeColor}` : "1px solid rgba(255, 255, 255, 0.2)",
+                color: isActive ? themeColor : "rgba(255, 255, 255, 0.7)",
+                borderRadius: 8,
+                padding: "8px",
+                cursor: "pointer",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                gap: 2,
+                fontSize: 16,
+                minWidth: 45,
+                transition: "all 0.2s ease",
+                transform: isActive ? "scale(1.05)" : "scale(1)",
+              }}
+              onMouseEnter={(e) => {
+                if (!isActive) {
+                  e.currentTarget.style.transform = "scale(1.05)";
+                  e.currentTarget.style.background = `${themeColor}10`;
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!isActive) {
+                  e.currentTarget.style.transform = "scale(1)";
+                  e.currentTarget.style.background = "rgba(255, 255, 255, 0.05)";
+                }
+              }}
+            >
+              <div>{getThemeIcon(s)}</div>
+              <div style={{ fontSize: 9, fontWeight: isActive ? "bold" : "normal" }}>
+                {s === 'minimalist' ? 'Min' : s.slice(0, 3).toUpperCase()}
+              </div>
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 }

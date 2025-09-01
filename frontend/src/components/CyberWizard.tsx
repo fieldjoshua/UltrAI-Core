@@ -33,6 +33,33 @@ const ReceiptSection = memo(function ReceiptSection({ sectionTitle, items }: Rec
 });
 
 export default function CyberWizard() {
+  // Track current skin and update when it changes
+  const [currentSkin, setCurrentSkin] = useState(() => {
+    return Array.from(document.body.classList)
+      .find(cls => cls.startsWith('skin-'))
+      ?.replace('skin-', '') || 'night';
+  });
+  
+  const isMinimalistSkin = currentSkin === 'minimalist';
+  
+  // Watch for skin changes
+  useEffect(() => {
+    const observer = new MutationObserver(() => {
+      const newSkin = Array.from(document.body.classList)
+        .find(cls => cls.startsWith('skin-'))
+        ?.replace('skin-', '') || 'night';
+      if (newSkin !== currentSkin) {
+        setCurrentSkin(newSkin);
+      }
+    });
+    
+    observer.observe(document.body, {
+      attributes: true,
+      attributeFilter: ['class']
+    });
+    
+    return () => observer.disconnect();
+  }, [currentSkin]);
   const [steps, setSteps] = useState<Step[]>([]);
   const [currentStep, setCurrentStep] = useState(0);
   const [summary, setSummary] = useState<SummaryItem[]>([]);
@@ -55,7 +82,14 @@ export default function CyberWizard() {
   const [isOptimizing] = useState<boolean>(false);
   const [optimizationStep] = useState<number>(0);
   const [modelStatuses, setModelStatuses] = useState<Record<string, 'checking' | 'ready' | 'error'>>({});
+  // Sync bgTheme with currentSkin for non-minimalist skins
   const [bgTheme, setBgTheme] = useState<'morning' | 'afternoon' | 'sunset' | 'night'>('night');
+  
+  useEffect(() => {
+    if (!isMinimalistSkin && ['morning', 'afternoon', 'sunset', 'night'].includes(currentSkin)) {
+      setBgTheme(currentSkin as any);
+    }
+  }, [currentSkin, isMinimalistSkin]);
   const [otherGoalText, setOtherGoalText] = useState<string>("");
   const [showModelList, setShowModelList] = useState<boolean>(false);
   const [addonsSubmitted, setAddonsSubmitted] = useState<boolean>(false);
@@ -600,19 +634,23 @@ The convergence of autonomous vehicles, renewable energy, and smart city infrast
 
   return (
     <div className="relative flex flex-col min-h-screen w-full text-white font-cyber text-sm">
-      {/* Background layer - full screen with theme */}
-      <div
-        className="pointer-events-none fixed inset-0"
-        style={{
-          backgroundImage: `url('${themeBgUrl}')`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          backgroundAttachment: 'fixed',
-          zIndex: 0
-        }}
-      />
-      {/* Theme overlay tint */}
-      <div className="pointer-events-none fixed inset-0" style={themeOverlayStyle} />
+      {/* Background layer - only show if not minimalist skin */}
+      {!isMinimalistSkin && (
+        <>
+          <div
+            className="pointer-events-none fixed inset-0"
+            style={{
+              backgroundImage: `url('${themeBgUrl}')`,
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
+              backgroundAttachment: 'fixed',
+              zIndex: 0
+            }}
+          />
+          {/* Theme overlay tint */}
+          <div className="pointer-events-none fixed inset-0" style={themeOverlayStyle} />
+        </>
+      )}
       
       {/* Animated Billboard Lines - Lower Right Corner */}
       {/* Overlay removed */}
@@ -764,43 +802,7 @@ The convergence of autonomous vehicles, renewable energy, and smart city infrast
                   </div>
                 </div>
 
-                {/* Theme Selector Box */}
-                <div 
-                  className="glass-panel glass-grain relative p-4 rounded-2xl transition-smooth mt-4"
-                  style={{ 
-                    background: glassBackground,
-                    backdropFilter: 'blur(40px)',
-                    WebkitBackdropFilter: 'blur(40px)',
-                    border: `2px solid ${colorHex}60`,
-                    boxShadow: `
-                      0 8px 32px rgba(0, 0, 0, 0.3),
-                      0 0 20px ${colorHex}20,
-                      inset 0 0 40px rgba(255, 255, 255, 0.02)
-                    `,
-                    clipPath: 'polygon(0 0, calc(100% - 15px) 0, 100% 15px, 100% 100%, 15px 100%, 0 calc(100% - 15px))'
-                  }}
-                >
-                  <h3 className="text-xs font-bold text-white mb-3 uppercase tracking-wider opacity-80">Time Theme</h3>
-                  <div className="grid grid-cols-2 gap-2">
-                    {(['morning', 'afternoon', 'sunset', 'night'] as const).map(t => (
-                      <button key={t} 
-                        onClick={() => setBgTheme(t)} 
-                        className="p-2 rounded text-center transition-smooth hover:scale-105"
-                        style={{ 
-                          background: bgTheme===t ? `${colorHex}20` : 'rgba(255,255,255,0.05)',
-                          border: bgTheme===t ? `1px solid ${colorHex}60` : '1px solid rgba(255,255,255,0.15)',
-                          color: bgTheme===t ? colorHex : 'rgba(255,255,255,0.7)',
-                          fontSize: '11px',
-                          fontWeight: bgTheme===t ? 'bold' : 'normal',
-                          textTransform: 'capitalize'
-                        }}
-                      >
-                        {t === 'morning' ? '🌅' : t === 'afternoon' ? '☀️' : t === 'sunset' ? '🌇' : '🌙'}<br/>
-                        {t}
-                      </button>
-                    ))}
-                  </div>
-                </div>
+                {/* Theme selector removed - now managed by SkinSwitcher */}
               </div>
 
           {/* Wizard Panel (center) */}
