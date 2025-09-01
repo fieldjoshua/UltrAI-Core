@@ -640,7 +640,7 @@ The convergence of autonomous vehicles, renewable energy, and smart city infrast
 
 
   return (
-    <div className={`relative flex flex-col min-h-screen w-full text-white font-cyber text-sm ${isNonTimeSkin ? '-mt-[25vh]' : ''}`}>
+    <div className="relative flex flex-col min-h-screen w-full text-white font-cyber text-sm">
       {/* Background layer - only show for time-based skins */}
       {!isNonTimeSkin && (
         <>
@@ -661,39 +661,83 @@ The convergence of autonomous vehicles, renewable energy, and smart city infrast
       
       {/* UltrAI Billboard Logo - Show for non-time themes */}
       {isNonTimeSkin && (
-        <div className="fixed top-20 left-1/2 transform -translate-x-1/2 z-10">
+        <div className="fixed top-10 left-1/2 transform -translate-x-1/2 z-10">
           <div className="relative">
-            {/* Billboard structure */}
-            <svg width="200" height="120" viewBox="0 0 200 120" className="drop-shadow-2xl">
-              {/* Billboard panel */}
-              <rect x="20" y="10" width="160" height="60" 
-                fill={currentSkin === 'minimalist' ? '#000000' : '#003366'} 
-                stroke="none" rx="4" />
-              <rect x="25" y="15" width="150" height="50" 
-                fill={currentSkin === 'minimalist' ? '#ffffff' : '#f7fafc'} 
-                stroke={currentSkin === 'minimalist' ? '#000000' : '#003366'}
-                strokeWidth="2" rx="2" />
+            {/* Billboard structure based on actual logo */}
+            <svg width="280" height="180" viewBox="0 0 280 180" className={currentSkin === 'minimalist' ? 'drop-shadow-2xl' : 'drop-shadow-lg'}>
+              {/* Main billboard panel with 3D effect */}
+              <g>
+                {/* Back panel shadow */}
+                <rect x="35" y="25" width="210" height="80" 
+                  fill="rgba(0,0,0,0.3)" rx="2" />
+                
+                {/* Main billboard back */}
+                <rect x="30" y="20" width="220" height="85" 
+                  fill={currentSkin === 'minimalist' ? '#1a1a1a' : '#2c3e50'} 
+                  rx="3" />
+                
+                {/* Billboard front face */}
+                <rect x="35" y="25" width="210" height="75" 
+                  fill={currentSkin === 'minimalist' ? '#ffffff' : '#ecf0f1'} 
+                  stroke={currentSkin === 'minimalist' ? '#000000' : '#34495e'}
+                  strokeWidth="3" rx="2" />
+                
+                {/* Inner frame */}
+                <rect x="40" y="30" width="200" height="65" 
+                  fill="none"
+                  stroke={currentSkin === 'minimalist' ? '#000000' : '#34495e'}
+                  strokeWidth="1" rx="1" />
+              </g>
               
-              {/* UltrAI text */}
-              <text x="100" y="45" 
-                fontFamily={currentSkin === 'business' ? 'Arial, sans-serif' : 'monospace'}
-                fontSize="24" fontWeight="bold" textAnchor="middle"
-                fill={currentSkin === 'minimalist' ? '#000000' : '#003366'}>
+              {/* UltrAI text with better typography */}
+              <text x="140" y="70" 
+                fontFamily={currentSkin === 'business' ? "'Helvetica Neue', Arial, sans-serif" : "'Courier New', monospace"}
+                fontSize="36" fontWeight="bold" textAnchor="middle"
+                fill={currentSkin === 'minimalist' ? '#000000' : '#2c3e50'}>
                 UltrAI
               </text>
               
-              {/* Support posts */}
-              <rect x="45" y="70" width="8" height="40" fill={currentSkin === 'minimalist' ? '#000000' : '#2c5282'} />
-              <rect x="147" y="70" width="8" height="40" fill={currentSkin === 'minimalist' ? '#000000' : '#2c5282'} />
+              {/* Support structure */}
+              <g>
+                {/* Left support */}
+                <rect x="60" y="105" width="12" height="60" 
+                  fill={currentSkin === 'minimalist' ? '#000000' : '#34495e'} />
+                <rect x="62" y="107" width="8" height="56" 
+                  fill={currentSkin === 'minimalist' ? '#333333' : '#2c3e50'} />
+                
+                {/* Right support */}
+                <rect x="208" y="105" width="12" height="60" 
+                  fill={currentSkin === 'minimalist' ? '#000000' : '#34495e'} />
+                <rect x="210" y="107" width="8" height="56" 
+                  fill={currentSkin === 'minimalist' ? '#333333' : '#2c3e50'} />
+                
+                {/* Cross braces */}
+                <line x1="72" y1="120" x2="208" y2="150" 
+                  stroke={currentSkin === 'minimalist' ? '#666666' : '#7f8c8d'} 
+                  strokeWidth="2" />
+                <line x1="72" y1="150" x2="208" y2="120" 
+                  stroke={currentSkin === 'minimalist' ? '#666666' : '#7f8c8d'} 
+                  strokeWidth="2" />
+              </g>
               
-              {/* Ground line */}
-              <line x1="30" y1="110" x2="170" y2="110" 
-                stroke={currentSkin === 'minimalist' ? '#000000' : '#2c5282'} 
-                strokeWidth="2" />
+              {/* Ground/base */}
+              <rect x="20" y="165" width="240" height="8" 
+                fill={currentSkin === 'minimalist' ? '#000000' : '#2c3e50'} rx="1" />
+              <rect x="40" y="168" width="200" height="2" 
+                fill={currentSkin === 'minimalist' ? '#333333' : '#34495e'} />
               
               {/* Lights on top */}
-              <circle cx="60" cy="8" r="4" fill="#00ff00" opacity="0.8" />
-              <circle cx="140" cy="8" r="4" fill="#00ff00" opacity="0.8" />
+              <g>
+                <ellipse cx="80" cy="15" rx="8" ry="6" 
+                  fill={currentSkin === 'minimalist' ? '#333333' : '#2c3e50'} />
+                <ellipse cx="80" cy="13" rx="6" ry="4" 
+                  fill="#00ff00" opacity="0.9" />
+                
+                <ellipse cx="200" cy="15" rx="8" ry="6" 
+                  fill={currentSkin === 'minimalist' ? '#333333' : '#2c3e50'} />
+                <ellipse cx="200" cy="13" rx="6" ry="4" 
+                  fill="#00ff00" opacity="0.9" />
+              </g>
             </svg>
           </div>
         </div>
@@ -791,7 +835,7 @@ The convergence of autonomous vehicles, renewable energy, and smart city infrast
 
       {/* Main Content - Below Billboard */}
       <div className="relative z-10 w-full">
-        <div className="flex items-center justify-center" style={{ minHeight: '100vh', paddingTop: isNonTimeSkin ? '12.5vh' : '37.5vh' }}>
+        <div className="flex items-center justify-center" style={{ minHeight: '100vh', paddingTop: isNonTimeSkin ? '25vh' : '37.5vh' }}>
           <div className="w-full max-w-7xl px-8">
             <div className="grid grid-cols-12 gap-4">
 

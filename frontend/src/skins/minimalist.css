@@ -1,12 +1,12 @@
-/* Minimalist skin - Black and white with shadows */
+/* Minimalist skin - Refined black and white with sharp contrasts */
 
 /* Root variables */
 :root {
-  /* Primary colors - black and white palette */
+  /* Primary colors - pure black and white */
   --skin-primary: #000000;
-  --skin-secondary: #333333;
+  --skin-secondary: #1a1a1a;
   --skin-accent: #000000;
-  --skin-accent-hover: #333333;
+  --skin-accent-hover: #1a1a1a;
   
   /* Text colors */
   --skin-text-primary: #000000;
@@ -24,10 +24,10 @@
   --skin-border-dark: #999999;
   
   /* Status colors */
-  --skin-success: #27ae60;
-  --skin-warning: #f39c12;
-  --skin-error: #e74c3c;
-  --skin-info: #3498db;
+  --skin-success: #000000;
+  --skin-warning: #666666;
+  --skin-error: #000000;
+  --skin-info: #333333;
   
   /* Shadows - more pronounced for black/white theme */
   --skin-shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.15);
@@ -42,10 +42,18 @@
 /* Override global styles for minimalist theme */
 body.skin-minimalist {
   background-color: #ffffff;
-  background-image: linear-gradient(to bottom, #ffffff 0%, #f5f5f5 100%);
+  background-image: 
+    repeating-linear-gradient(
+      0deg,
+      #ffffff,
+      #ffffff 10px,
+      #f8f8f8 10px,
+      #f8f8f8 11px
+    );
   background-attachment: fixed;
   color: var(--skin-text-primary);
   position: relative;
+  font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
 }
 
 /* Add subtle paper texture overlay */
@@ -56,7 +64,7 @@ body.skin-minimalist::before {
   left: 0;
   right: 0;
   bottom: 0;
-  background-image: 
+  background: 
     repeating-linear-gradient(
       90deg,
       rgba(0, 0, 0, 0.03),
@@ -81,283 +89,259 @@ body.skin-minimalist > * {
   z-index: 2;
 }
 
-/* Glass effects - black/white with strong shadows */
+/* Glass effects - stark black/white with layered shadows */
 .skin-minimalist .glass {
-  background: rgba(255, 255, 255, 1);
+  background: #ffffff;
   backdrop-filter: none;
-  border: 2px solid #000000;
-  box-shadow: var(--skin-shadow-lg);
+  border: 3px solid #000000;
+  box-shadow: 
+    8px 8px 0px #000000,
+    8px 8px 20px rgba(0, 0, 0, 0.2);
+  position: relative;
 }
 
 .skin-minimalist .glass-strong {
-  background: rgba(255, 255, 255, 1);
+  background: #ffffff;
   backdrop-filter: none;
-  border: 2px solid #000000;
-  box-shadow: var(--skin-shadow-xl);
+  border: 3px solid #000000;
+  box-shadow: 
+    12px 12px 0px #000000,
+    12px 12px 30px rgba(0, 0, 0, 0.3);
+  position: relative;
 }
 
 .skin-minimalist .glass-panel {
   background: #ffffff;
-  border: 2px solid #000000;
-  box-shadow: var(--skin-shadow-xl);
+  border: 4px solid #000000;
+  box-shadow: 
+    16px 16px 0px #000000,
+    16px 16px 40px rgba(0, 0, 0, 0.3);
   backdrop-filter: none;
+  position: relative;
+  overflow: hidden;
 }
 
-/* Buttons - clean and professional */
+/* Add corner accents to panels */
+.skin-minimalist .glass-panel::before {
+  content: '';
+  position: absolute;
+  top: -4px;
+  left: -4px;
+  right: -4px;
+  bottom: -4px;
+  background: repeating-linear-gradient(
+    45deg,
+    #000000,
+    #000000 10px,
+    transparent 10px,
+    transparent 20px
+  );
+  z-index: -1;
+  opacity: 0.1;
+}
+
+/* Buttons - stark monochrome with hover effects */
 .skin-minimalist .btn-neon {
-  background: var(--skin-accent);
-  color: white;
-  border: 2px solid var(--skin-accent);
-  box-shadow: none;
+  background: #000000;
+  color: #ffffff;
+  border: 3px solid #000000;
+  box-shadow: 6px 6px 0px #000000;
   text-shadow: none;
-  font-weight: 500;
-  transition: var(--skin-transition);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  transition: all 0.15s ease;
+  position: relative;
 }
 
 .skin-minimalist .btn-neon:hover {
-  background: var(--skin-accent-hover);
-  border-color: var(--skin-accent-hover);
-  transform: translateY(-1px);
-  box-shadow: var(--skin-shadow-md);
+  background: #ffffff;
+  color: #000000;
+  transform: translate(-3px, -3px);
+  box-shadow: 9px 9px 0px #000000;
 }
 
-/* Remove all neon glows and animations */
-.skin-minimalist .text-shadow-neon-mint,
-.skin-minimalist .text-shadow-neon-blue,
-.skin-minimalist .text-shadow-neon-deep,
-.skin-minimalist .text-shadow-neon-purple,
-.skin-minimalist .text-shadow-neon-pink {
-  text-shadow: none;
+.skin-minimalist .btn-neon:active {
+  transform: translate(3px, 3px);
+  box-shadow: 3px 3px 0px #000000;
 }
 
-.skin-minimalist .animate-pulse-neon,
-.skin-minimalist .animate-border-hum,
-.skin-minimalist .animate-bounce-subtle,
-.skin-minimalist .animate-flicker {
-  animation: none;
-}
-
-/* Step markers - simple circles */
-.skin-minimalist .step-marker {
-  background: var(--skin-bg-primary);
-  border: 2px solid var(--skin-border-medium);
-  box-shadow: none;
-}
-
-.skin-minimalist .step-marker.active {
-  background: var(--skin-accent);
-  border-color: var(--skin-accent);
-  color: white;
-}
-
-.skin-minimalist .step-marker.done {
-  background: var(--skin-success);
-  border-color: var(--skin-success);
-  color: white;
-}
-
-/* Cards and panels */
-.skin-minimalist .rounded-xl {
-  border-radius: 8px;
-}
-
-.skin-minimalist .rounded-lg {
-  border-radius: 6px;
-}
-
-.skin-minimalist .rounded-full {
-  border-radius: 9999px;
-}
-
-/* Text styling */
-.skin-minimalist .bg-gradient-to-r,
-.skin-minimalist .bg-clip-text,
-.skin-minimalist .text-transparent {
-  background: none;
-  -webkit-background-clip: unset;
-  -webkit-text-fill-color: unset;
-  color: var(--skin-text-primary);
-}
-
-/* Status indicators */
-.skin-minimalist .text-mint-400 {
-  color: var(--skin-success);
-}
-
-.skin-minimalist .text-blue-400 {
-  color: var(--skin-info);
-}
-
-.skin-minimalist .text-purple-400 {
-  color: var(--skin-accent);
-}
-
-.skin-minimalist .text-red-400 {
-  color: var(--skin-error);
-}
-
-.skin-minimalist .text-yellow-400 {
-  color: var(--skin-warning);
-}
-
-/* Borders */
-.skin-minimalist .border-mint-400\/20,
-.skin-minimalist .border-blue-400\/20,
-.skin-minimalist .border-purple-400\/20 {
-  border-color: var(--skin-border-light);
-}
-
-/* Backgrounds */
-.skin-minimalist .bg-mint-400\/5,
-.skin-minimalist .bg-blue-400\/5,
-.skin-minimalist .bg-purple-400\/5 {
-  background-color: var(--skin-bg-secondary);
-}
-
-/* Status updater - clean professional look */
-.skin-minimalist .status-card {
-  background: var(--skin-bg-secondary);
-  border: 1px solid var(--skin-border-light);
-  box-shadow: var(--skin-shadow-sm);
-}
-
-/* Progress bars */
-.skin-minimalist .progress-bar {
-  background: var(--skin-bg-tertiary);
-  height: 4px;
-  border-radius: 2px;
-}
-
-.skin-minimalist .progress-fill {
-  background: var(--skin-accent);
-  height: 100%;
-  border-radius: 2px;
-  transition: width 0.3s ease;
-}
-
-/* Inputs and textareas */
+/* Input fields - stark minimalist style */
 .skin-minimalist input,
 .skin-minimalist textarea,
 .skin-minimalist select {
-  background: var(--skin-bg-primary);
-  border: 1px solid var(--skin-border-light);
-  color: var(--skin-text-primary);
-  transition: var(--skin-transition);
+  background: #ffffff;
+  border: 2px solid #000000;
+  color: #000000;
+  font-family: inherit;
+  padding: 8px 12px;
+  transition: all 0.15s ease;
 }
 
 .skin-minimalist input:focus,
 .skin-minimalist textarea:focus,
 .skin-minimalist select:focus {
-  border-color: var(--skin-accent);
   outline: none;
-  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+  box-shadow: 4px 4px 0px #000000;
+  transform: translate(-2px, -2px);
 }
 
-/* Checkboxes and radio buttons */
-.skin-minimalist input[type="checkbox"],
-.skin-minimalist input[type="radio"] {
-  accent-color: var(--skin-accent);
+/* Typography enhancements */
+.skin-minimalist h1,
+.skin-minimalist h2,
+.skin-minimalist h3 {
+  font-weight: 900;
+  letter-spacing: -1px;
+  text-transform: uppercase;
+  color: #000000;
 }
 
-/* Scrollbars */
+/* Remove ALL rounded corners for sharp edges */
+.skin-minimalist *,
+.skin-minimalist *::before,
+.skin-minimalist *::after {
+  border-radius: 0 !important;
+}
+
+/* Scrollbar - stark design */
 .skin-minimalist ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 16px;
+  height: 16px;
 }
 
 .skin-minimalist ::-webkit-scrollbar-track {
-  background: var(--skin-bg-tertiary);
+  background: #ffffff;
+  border: 1px solid #000000;
 }
 
 .skin-minimalist ::-webkit-scrollbar-thumb {
-  background: var(--skin-border-medium);
-  border-radius: 4px;
+  background: #000000;
+  border: 2px solid #ffffff;
 }
 
 .skin-minimalist ::-webkit-scrollbar-thumb:hover {
-  background: var(--skin-border-dark);
+  background: #333333;
 }
 
-/* Remove drop shadows from icons */
-.skin-minimalist .drop-shadow-\[0_0_20px_rgba\(255\,102\,0\,0\.6\)\],
-.skin-minimalist .drop-shadow-\[0_0_20px_rgba\(34\,197\,94\,0\.6\)\] {
-  filter: none;
-}
-
-/* Typography adjustments */
-.skin-minimalist .font-extrabold {
-  font-weight: 600;
-}
-
-.skin-minimalist .tracking-\[0\.35em\] {
-  letter-spacing: 0.05em;
-}
-
-/* Demo mode indicator - subtle */
-.skin-minimalist .bg-green-500\/20 {
-  background: var(--skin-bg-secondary);
-  border-color: var(--skin-success);
-}
-
-.skin-minimalist .text-green-300 {
-  color: var(--skin-success);
-}
-
-/* Error states */
-.skin-minimalist .bg-red-900\/20 {
-  background: rgba(231, 76, 60, 0.1);
-  border-color: var(--skin-error);
-}
-
-.skin-minimalist .text-red-300 {
-  color: var(--skin-error);
-}
-
-/* Success states */
-.skin-minimalist .bg-gradient-to-br.from-green-900\/20 {
-  background: rgba(39, 174, 96, 0.1);
-  border-color: var(--skin-success);
-}
-
-/* Disable all complex animations */
+/* Remove all animations and glow effects */
 .skin-minimalist * {
-  animation-duration: 0.2s !important;
+  animation: none !important;
+  text-shadow: none !important;
 }
 
-.skin-minimalist .animate-spin {
-  animation: none;
+/* Color overrides - everything black/white */
+.skin-minimalist .text-mint-400,
+.skin-minimalist .text-blue-400,
+.skin-minimalist .text-purple-400,
+.skin-minimalist .text-pink-400,
+.skin-minimalist .text-cyan-400 {
+  color: #000000 !important;
 }
 
-.skin-minimalist .animate-pulse {
-  animation: none;
-  opacity: 0.7;
+.skin-minimalist .bg-mint-400,
+.skin-minimalist .bg-blue-400,
+.skin-minimalist .bg-purple-400,
+.skin-minimalist .bg-pink-400,
+.skin-minimalist .bg-cyan-400 {
+  background-color: #000000 !important;
 }
 
-/* Clean hover states */
+.skin-minimalist .border-mint-400,
+.skin-minimalist .border-blue-400,
+.skin-minimalist .border-purple-400,
+.skin-minimalist .border-pink-400,
+.skin-minimalist .border-cyan-400 {
+  border-color: #000000 !important;
+}
+
+/* Hover states */
 .skin-minimalist [class*="hover:"]:hover {
   transition: var(--skin-transition);
 }
 
-/* Receipt/summary styling */
-.skin-minimalist .receipt-section {
-  border-top: 1px solid var(--skin-border-light);
-  padding-top: 1rem;
-  margin-top: 1rem;
+/* Checkboxes and radio buttons - custom stark design */
+.skin-minimalist input[type="checkbox"],
+.skin-minimalist input[type="radio"] {
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border: 3px solid #000000;
+  background: #ffffff;
+  position: relative;
+  cursor: pointer;
 }
 
-.skin-minimalist .receipt-item {
-  display: flex;
-  justify-content: space-between;
-  padding: 0.5rem 0;
-  border-bottom: 1px solid var(--skin-bg-tertiary);
+.skin-minimalist input[type="checkbox"]:checked {
+  background: #000000;
 }
 
-/* Clean professional headers */
-.skin-minimalist h1,
-.skin-minimalist h2,
-.skin-minimalist h3,
-.skin-minimalist h4 {
-  font-weight: 500;
-  color: var(--skin-text-primary);
-  margin-bottom: 0.5em;
+.skin-minimalist input[type="checkbox"]:checked::after {
+  content: '✓';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: #ffffff;
+  font-weight: bold;
+}
+
+.skin-minimalist input[type="radio"]:checked::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 8px;
+  height: 8px;
+  background: #000000;
+}
+
+/* Progress bars */
+.skin-minimalist .progress-bar {
+  background: #ffffff;
+  border: 2px solid #000000;
+  height: 20px;
+}
+
+.skin-minimalist .progress-fill {
+  background: #000000;
+  height: 100%;
+}
+
+/* Status cards */
+.skin-minimalist .status-card {
+  background: #ffffff;
+  border: 3px solid #000000;
+  box-shadow: 8px 8px 0px #000000;
+}
+
+/* Clean professional gradients - replace with solid colors */
+.skin-minimalist .bg-gradient-to-r,
+.skin-minimalist .bg-gradient-to-br,
+.skin-minimalist .bg-gradient-to-bl {
+  background-image: none !important;
+  background-color: #000000 !important;
+}
+
+.skin-minimalist .text-transparent {
+  color: #000000 !important;
+  -webkit-text-fill-color: #000000 !important;
+}
+
+/* Tables */
+.skin-minimalist table {
+  border-collapse: collapse;
+  border: 2px solid #000000;
+}
+
+.skin-minimalist th,
+.skin-minimalist td {
+  border: 1px solid #000000;
+  padding: 8px;
+}
+
+.skin-minimalist th {
+  background: #000000;
+  color: #ffffff;
+  font-weight: bold;
 }
