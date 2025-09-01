@@ -149,29 +149,98 @@ ${query.slice(0, 50)}... can be understood as a fundamental concept that bridges
 };
 
 const generateGeneralResponse = (query, models) => {
-  return `Ultra Synthesis™ has processed your query through ${models.length} specialized AI models:
+  // Extract key terms from query for more relevant response
+  const queryTerms = query.toLowerCase().split(' ').filter(word => word.length > 3);
+  const topic = queryTerms.length > 0 ? queryTerms.join(' ') : 'your inquiry';
+  
+  return `# Ultra Synthesis™ Analysis Report
 
-**Comprehensive Multi-Model Response:**
+## Query Analysis
+**Original Query:** "${query}"
+**Processing Time:** ${(12.5 + Math.random() * 5).toFixed(2)} seconds
+**Models Engaged:** ${models.length} specialized AI systems
 
-🎯 **Executive Summary:**
-Your query has been analyzed from multiple perspectives, yielding a consensus-driven response with enhanced accuracy and depth.
+---
 
-📊 **Synthesis Results:**
-1. **Primary Response**: [Core answer with 95% model agreement]
-2. **Additional Insights**: [Unique perspectives from individual models]
-3. **Confidence Level**: High (backed by multi-model validation)
+## 🧠 Intelligence Multiplication Results
 
-💡 **Key Takeaways:**
-- Main finding supported by ${models.length} independent AI analyses
-- Edge cases and exceptions identified through diverse model perspectives
-- Actionable recommendations based on synthesized intelligence
+### Stage 1: Initial Model Responses (Parallel Processing)
+${models.map((model, i) => `
+**${model}** (${(1.2 + Math.random()).toFixed(2)}s):
+- Primary insight: Identified ${3 + i} key factors related to ${topic}
+- Confidence: ${(85 + Math.random() * 10).toFixed(1)}%
+- Unique perspective: ${
+  model.includes('gpt') ? 'Comprehensive analysis with strong general knowledge' :
+  model.includes('claude') ? 'Nuanced understanding with ethical considerations' :
+  model.includes('gemini') ? 'Technical depth with multimodal insights' :
+  'Specialized domain expertise with efficient processing'
+}`).join('\n')}
 
-**Quality Metrics:**
-- Response Accuracy: 97.3%
-- Comprehensiveness: 94.8%
-- Practical Value: High
+### Stage 2: Meta-Analysis (Cross-Model Synthesis)
+🔄 **Pattern Recognition Results:**
+- **Consensus Areas** (${(88 + Math.random() * 10).toFixed(1)}% agreement):
+  • All models identified similar core themes around ${topic}
+  • Shared understanding of fundamental principles
+  • Consistent factual accuracy across responses
 
-*This response represents the cutting edge of AI collaboration and intelligence multiplication.*`;
+- **Divergence Points** (Valuable unique insights):
+  • GPT models emphasized broader context and implications
+  • Claude models highlighted potential edge cases and ethical dimensions
+  • Gemini models provided technical implementation details
+  • Open-source models offered alternative perspectives
+
+### Stage 3: Ultra Synthesis™ (Intelligence Multiplication)
+
+📈 **Synthesized Insights:**
+
+1. **Core Finding** (Supported by ${models.length}/${models.length} models):
+   Based on comprehensive analysis, ${topic} involves multiple interconnected factors that require careful consideration. The synthesis reveals both immediate practical applications and long-term strategic implications.
+
+2. **Multi-Dimensional Analysis:**
+   - **Technical Perspective**: Implementation requires attention to scalability, efficiency, and maintainability
+   - **Strategic Perspective**: Long-term value creation through systematic approach
+   - **Risk Perspective**: ${Math.floor(Math.random() * 3) + 2} potential challenges identified with mitigation strategies
+   - **Opportunity Perspective**: ${Math.floor(Math.random() * 4) + 3} growth vectors discovered through cross-model insights
+
+3. **Actionable Recommendations** (Priority-ranked):
+   🥇 **Immediate Actions** (0-30 days):
+   - Implement the consensus approach validated by all ${models.length} models
+   - Begin with pilot testing in controlled environment
+   - Establish measurement frameworks for success metrics
+   
+   🥈 **Short-term Initiatives** (1-3 months):
+   - Scale successful patterns identified in synthesis
+   - Address edge cases surfaced by specialized analysis
+   - Optimize based on initial performance data
+   
+   🥉 **Strategic Roadmap** (3-12 months):
+   - Leverage compound benefits from integrated approach
+   - Expand into adjacent opportunities identified
+   - Build sustainable competitive advantages
+
+## 📊 Quality Assurance Metrics
+
+| Metric | Score | Benchmark |
+|--------|-------|-----------|
+| Inter-Model Agreement | ${(92 + Math.random() * 6).toFixed(1)}% | >85% ✅ |
+| Factual Consistency | ${(95 + Math.random() * 4).toFixed(1)}% | >90% ✅ |
+| Novel Insights Generated | ${Math.floor(8 + Math.random() * 7)} | >5 ✅ |
+| Confidence Level | ${(88 + Math.random() * 10).toFixed(1)}% | >80% ✅ |
+| Comprehensiveness | ${(93 + Math.random() * 6).toFixed(1)}% | >85% ✅ |
+
+## 🚀 Value Delivered
+
+Through Ultra Synthesis™, you've received:
+- **${models.length}x perspective multiplication** vs single model response
+- **${(35 + Math.random() * 25).toFixed(0)}% more insights** through cross-model synthesis
+- **${(92 + Math.random() * 7).toFixed(0)}% confidence level** through consensus validation
+- **Unique discoveries** that no single model would have identified
+
+---
+
+*This Ultra Synthesis™ report represents the cutting edge of AI orchestration, where multiple intelligences collaborate to deliver insights beyond the capability of any single model. Each response is unique, contextual, and optimized for maximum value delivery.*
+
+**Report ID:** US-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
 };
 
 // Mock API implementation
@@ -182,8 +251,8 @@ export async function processWithFeatherOrchestration({
   ultraModel = null,
   outputFormat = 'plain'
 }) {
-  // Simulate network delay
-  await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 2000));
+  // Simulate network delay for initial processing
+  await new Promise(resolve => setTimeout(resolve, 2000 + Math.random() * 1000));
   
   // Use provided models or select defaults
   let selectedModels = models || ['gpt-4o', 'claude-3-5-sonnet-20241022', 'gemini-1.5-pro'];
@@ -197,7 +266,7 @@ export async function processWithFeatherOrchestration({
   // Generate initial responses
   const initialResponses = {};
   for (const model of selectedModels) {
-    await new Promise(resolve => setTimeout(resolve, 500)); // Simulate per-model delay
+    await new Promise(resolve => setTimeout(resolve, 1500 + Math.random() * 1000)); // Simulate per-model delay
     initialResponses[model] = {
       content: `[${model}] Initial analysis of: "${prompt.slice(0, 50)}..."`,
       processingTime: 1.2 + Math.random(),
@@ -206,7 +275,7 @@ export async function processWithFeatherOrchestration({
   }
   
   // Generate meta analysis
-  await new Promise(resolve => setTimeout(resolve, 1000));
+  await new Promise(resolve => setTimeout(resolve, 2500 + Math.random() * 1000));
   const metaAnalysis = {
     content: `Meta-analysis identified ${Object.keys(initialResponses).length} key patterns across models with 92% consensus rate.`,
     patterns: ['consensus', 'divergence', 'synthesis'],
@@ -214,14 +283,14 @@ export async function processWithFeatherOrchestration({
   };
   
   // Generate ultra synthesis
-  await new Promise(resolve => setTimeout(resolve, 1500));
+  await new Promise(resolve => setTimeout(resolve, 3000 + Math.random() * 1500));
   const ultraResponse = generateDemoResponse(prompt, selectedModels);
   
   return {
     status: 'success',
     ultra_response: ultraResponse,
     models_used: selectedModels,
-    processing_time: 4.5 + Math.random() * 2,
+    processing_time: 12.5 + Math.random() * 5,
     pattern_used: pattern,
     initial_responses: initialResponses,
     meta_analysis: metaAnalysis,
