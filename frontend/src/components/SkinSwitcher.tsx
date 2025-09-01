@@ -5,9 +5,14 @@ import { loadSkin } from "../skins";
 export default function SkinSwitcher() {
   const params = useMemo(() => new URLSearchParams(window.location.search), []);
   const paramSkin = params.get("skin") as Skin | null;
+  
+  // Check localStorage for saved skin preference
+  const savedSkin = localStorage.getItem("selectedSkin") as Skin | null;
 
   const initialSkin: Skin = (paramSkin && (config.availableSkins as string[]).includes(paramSkin))
     ? paramSkin
+    : (savedSkin && (config.availableSkins as string[]).includes(savedSkin))
+    ? savedSkin
     : config.defaultSkin;
 
   const [skin, setSkin] = useState<Skin>(initialSkin);
@@ -28,6 +33,8 @@ export default function SkinSwitcher() {
   const handleChange = (newSkin: Skin) => {
     if ((config.availableSkins as string[]).includes(newSkin)) {
       setSkin(newSkin);
+      // Save the skin preference to localStorage
+      localStorage.setItem("selectedSkin", newSkin);
     }
   };
 
