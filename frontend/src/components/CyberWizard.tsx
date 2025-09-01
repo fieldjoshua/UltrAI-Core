@@ -87,6 +87,7 @@ export default function CyberWizard() {
   
   useEffect(() => {
     if (!isMinimalistSkin && ['morning', 'afternoon', 'sunset', 'night'].includes(currentSkin)) {
+      console.log('Setting bgTheme to:', currentSkin);
       setBgTheme(currentSkin as any);
     }
   }, [currentSkin, isMinimalistSkin]);
@@ -348,17 +349,24 @@ The convergence of autonomous vehicles, renewable energy, and smart city infrast
   }, [bgTheme]);
 
   const themeBgUrl = useMemo(() => {
+    let url;
     switch (bgTheme) {
       case 'morning':
-        return '/bg-morning.jpeg';
+        url = '/bg-morning.jpeg';
+        break;
       case 'afternoon':
-        return '/bg-afternoon.jpg';
+        url = '/bg-afternoon.jpg';
+        break;
       case 'sunset':
-        return '/bg-sunset.jpeg';
+        url = '/bg-sunset.jpeg';
+        break;
       case 'night':
       default:
-        return '/bg-night.jpeg';
+        url = '/bg-night.jpeg';
+        break;
     }
+    console.log('Theme URL:', url, 'for bgTheme:', bgTheme);
+    return url;
   }, [bgTheme]);
 
   // Glass panel darkness based on theme for better readability
