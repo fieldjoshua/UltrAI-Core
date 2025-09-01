@@ -186,7 +186,13 @@ export async function processWithFeatherOrchestration({
   await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 2000));
   
   // Use provided models or select defaults
-  const selectedModels = models || ['gpt-4o', 'claude-3-5-sonnet-20241022', 'gemini-1.5-pro'];
+  let selectedModels = models || ['gpt-4o', 'claude-3-5-sonnet-20241022', 'gemini-1.5-pro'];
+  
+  // Ensure at least 2 models for Ultra Synthesis
+  if (selectedModels.length < 2) {
+    console.warn('Less than 2 models selected, adding defaults for Ultra Synthesis');
+    selectedModels = ['gpt-4o', 'claude-3-5-sonnet-20241022'];
+  }
   
   // Generate initial responses
   const initialResponses = {};

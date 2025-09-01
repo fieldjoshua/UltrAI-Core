@@ -9,8 +9,8 @@ services:
       pip install poetry
       # Install Python dependencies
       poetry install --no-dev --no-interaction --no-ansi
-      # Build frontend with demo mode
-      cd frontend && npm ci && VITE_API_MODE=mock VITE_DEMO_MODE=true npm run build && cd ..
+      # Build frontend
+      cd frontend && npm ci && npm run build && cd ..
       # Create necessary directories
       mkdir -p /var/log/ultrai
     startCommand: |

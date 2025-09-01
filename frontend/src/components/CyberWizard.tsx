@@ -3,7 +3,7 @@ import { useEffect, useState, useMemo, useCallback, memo } from "react";
 import { Button } from "./ui/button";
 import { Checkbox } from "./ui/checkbox";
 import { Card } from "./ui/card";
-import { processWithFeatherOrchestration } from "../api/orchestrator";
+import { processWithFeatherOrchestration, getAvailableModels } from "../api/orchestrator";
 import StatusUpdater from "./StatusUpdater";
 import { RadioGroup, RadioGroupItem } from "./ui/radio-group";
 import { Textarea } from "./ui/textarea";
@@ -180,23 +180,31 @@ export default function CyberWizard() {
   useEffect(() => {
     const fetchAvailable = async () => {
       try {
-        const r = await fetch("/api/available-models", { cache: "no-store" });
-        if (!r.ok) throw new Error(`HTTP ${r.status}`);
-        const d = await r.json();
+        const d = await getAvailableModels();
         if (d && Array.isArray(d.models)) {
-          const names = d.models.map((m: any) => m.name);
-          setAvailableModels(names);
-          const infoMap: Record<string, { provider: string; cost_per_1k_tokens: number }> = {};
+          setAvailableModels(d.models);
           const statusMap: Record<string, 'checking' | 'ready' | 'error'> = {};
-          d.models.forEach((m: any) => {
-            infoMap[String(m.name)] = {
-              provider: String(m.provider || ''),
-              cost_per_1k_tokens: Number(m.cost_per_1k_tokens || 0),
-            };
-            // Set all models as ready since they're returned by the API
-            statusMap[String(m.name)] = 'ready';
-          });
-          setAvailableModelInfos(infoMap);
+          
+          // Check if we have modelInfos in the response
+          if (d.modelInfos) {
+            setAvailableModelInfos(d.modelInfos);
+            // Set all models as ready
+            d.models.forEach((modelName: string) => {
+              statusMap[modelName] = 'ready';
+            });
+          } else {
+            // Legacy format - create info map from models array
+            const infoMap: Record<string, { provider: string; cost_per_1k_tokens: number }> = {};
+            d.models.forEach((m: any) => {
+              const name = typeof m === 'string' ? m : m.name;
+              infoMap[name] = {
+                provider: m.provider || '',
+                cost_per_1k_tokens: m.cost_per_1k_tokens || 0,
+              };
+              statusMap[name] = 'ready';
+            });
+            setAvailableModelInfos(infoMap);
+          }
           setModelStatuses(statusMap);
         } else {
           setAvailableModels([]);
@@ -845,7 +853,7 @@ export default function CyberWizard() {
                     clipPath: 'polygon(0 0, calc(100% - 15px) 0, 100% 15px, 100% 100%, 15px 100%, 0 calc(100% - 15px))'
                   }}
                 >
-                  <h3 className="text-xs font-bold text-white mb-3 uppercase tracking-wider opacity-80">System Status</h3>
+                  <div role="heading" aria-level={2} className="text-xs font-bold text-white mb-3 uppercase tracking-wider opacity-80">System Status</div>
                   
                   {/* Model Status */}
                   <div className="flex items-center justify-between mb-3">
