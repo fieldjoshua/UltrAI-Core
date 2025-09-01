@@ -345,3 +345,89 @@ body.skin-minimalist > * {
   color: #ffffff;
   font-weight: bold;
 }
+
+/* Step 0 Welcome Screen - Minimalist Style */
+.skin-minimalist .text-transparent.bg-clip-text {
+  background: none !important;
+  color: #000000 !important;
+  -webkit-text-fill-color: #000000 !important;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+.skin-minimalist .bg-gradient-to-r.from-\\[\\#ff00de\\].to-\\[\\#00ffff\\] {
+  background: #000000 !important;
+}
+
+/* Welcome boxes */
+.skin-minimalist .glass.border-mint-400\\/20,
+.skin-minimalist .glass.border-blue-400\\/20 {
+  background: #ffffff !important;
+  border: 3px solid #000000 !important;
+  box-shadow: 6px 6px 0px #000000 !important;
+}
+
+.skin-minimalist .text-mint-400,
+.skin-minimalist .text-blue-400 {
+  color: #000000 !important;
+}
+
+.skin-minimalist .bg-mint-400\\/5,
+.skin-minimalist .bg-blue-400\\/5 {
+  background: transparent !important;
+}
+
+/* Itemized summary box */
+.skin-minimalist .glass.rounded-xl.inline-block {
+  background: #ffffff !important;
+  border: 3px solid #000000 !important;
+  box-shadow: 8px 8px 0px #000000 !important;
+}
+
+.skin-minimalist .text-neon-pink {
+  color: #000000 !important;
+  text-shadow: none !important;
+}
+
+/* Enter button */
+.skin-minimalist .btn-neon.text-lg {
+  background: #000000 !important;
+  color: #ffffff !important;
+  border: 4px solid #000000 !important;
+  box-shadow: 8px 8px 0px #000000 !important;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+.skin-minimalist .btn-neon.text-lg:hover {
+  background: #ffffff !important;
+  color: #000000 !important;
+  transform: translate(-4px, -4px);
+  box-shadow: 12px 12px 0px #000000 !important;
+}
+
+/* Additional Step 0 overrides */
+.skin-minimalist .text-2xl.font-bold {
+  font-family: 'Courier New', monospace !important;
+  font-weight: 900 !important;
+}
+
+.skin-minimalist .text-\\[11px\\].opacity-80,
+.skin-minimalist .text-\\[10px\\].opacity-80 {
+  opacity: 1 !important;
+  color: #000000 !important;
+}
+
+.skin-minimalist .text-shadow-neon-pink,
+.skin-minimalist .text-shadow-neon-mint,
+.skin-minimalist .text-shadow-neon-blue {
+  text-shadow: none !important;
+}
+
+/* Demo indicator */
+.skin-minimalist .text-green-300\\/70 {
+  color: #000000 !important;
+  border: 2px solid #000000;
+  padding: 2px 8px;
+  background: #ffffff;
+}

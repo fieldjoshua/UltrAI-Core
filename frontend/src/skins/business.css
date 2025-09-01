@@ -350,3 +350,104 @@ body.skin-business h6 {
 .skin-business * {
   animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
+
+/* Step 0 Welcome Screen - Business Style */
+.skin-business .text-transparent.bg-clip-text {
+  background: linear-gradient(135deg, var(--skin-accent) 0%, var(--skin-secondary) 100%) !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+
+.skin-business .bg-gradient-to-r.from-\\[\\#ff00de\\].to-\\[\\#00ffff\\] {
+  background: linear-gradient(to right, var(--skin-accent), var(--skin-accent-hover)) !important;
+  height: 3px !important;
+  border-radius: 2px !important;
+}
+
+/* Welcome boxes - professional cards */
+.skin-business .glass.border-mint-400\\/20,
+.skin-business .glass.border-blue-400\\/20 {
+  background: rgba(255, 255, 255, 0.9) !important;
+  backdrop-filter: blur(10px) !important;
+  border: 1px solid rgba(229, 231, 235, 0.5) !important;
+  box-shadow: 
+    0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06),
+    inset 0 2px 4px rgba(255, 255, 255, 0.9) !important;
+  transition: all 0.2s ease !important;
+}
+
+.skin-business .glass.border-mint-400\\/20:hover,
+.skin-business .glass.border-blue-400\\/20:hover {
+  transform: translateY(-2px);
+  box-shadow: 
+    0 10px 15px -3px rgba(0, 0, 0, 0.1),
+    0 4px 6px -2px rgba(0, 0, 0, 0.05),
+    inset 0 2px 4px rgba(255, 255, 255, 0.9) !important;
+}
+
+/* Icons and text in welcome boxes */
+.skin-business .text-mint-400 {
+  color: var(--skin-accent) !important;
+}
+
+.skin-business .text-blue-400 {
+  color: var(--skin-secondary) !important;
+}
+
+.skin-business .bg-mint-400\\/5,
+.skin-business .bg-blue-400\\/5 {
+  background: transparent !important;
+}
+
+/* Itemized summary box - premium card */
+.skin-business .glass.rounded-xl.inline-block {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(249, 250, 251, 0.95)) !important;
+  backdrop-filter: blur(20px) saturate(180%) !important;
+  border: 1px solid rgba(229, 231, 235, 0.5) !important;
+  box-shadow: 
+    0 20px 25px -5px rgba(0, 0, 0, 0.1),
+    0 10px 10px -5px rgba(0, 0, 0, 0.04),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9) !important;
+  padding: 20px !important;
+}
+
+.skin-business .text-neon-pink {
+  color: var(--skin-accent) !important;
+  text-shadow: none !important;
+  font-weight: 700 !important;
+}
+
+/* Enter button - premium CTA */
+.skin-business .btn-neon.text-lg {
+  background: linear-gradient(135deg, var(--skin-accent) 0%, var(--skin-accent-hover) 100%) !important;
+  border: none !important;
+  box-shadow: 
+    0 10px 15px -3px rgba(37, 99, 235, 0.4),
+    0 4px 6px -2px rgba(37, 99, 235, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
+  padding: 16px 32px !important;
+  font-weight: 600 !important;
+  letter-spacing: -0.02em !important;
+  border-radius: 12px !important;
+}
+
+.skin-business .btn-neon.text-lg:hover {
+  transform: translateY(-3px) !important;
+  box-shadow: 
+    0 20px 25px -5px rgba(37, 99, 235, 0.4),
+    0 10px 10px -5px rgba(37, 99, 235, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4) !important;
+}
+
+/* Demo environment indicator */
+.skin-business .text-green-300\\/70 {
+  color: #10b981 !important;
+  background: rgba(16, 185, 129, 0.1);
+  padding: 4px 12px;
+  border-radius: 20px !important;
+  font-size: 11px !important;
+  font-weight: 500;
+}
