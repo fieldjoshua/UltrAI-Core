@@ -269,28 +269,28 @@ export default function CyberWizard() {
     : c === 'pink' ? `rgba(255,0,149,${alpha})`
     : `rgba(214,0,255,${alpha})`;
 
-  const colorHex = useMemo(() => step ? mapColorHex(step.color) : '#00ff9f', [step]);
+  const colorHex = useMemo(() => step?.color ? mapColorHex(step.color) : '#00ff9f', [step]);
   const receiptColor = '#ff6600'; // Cyberpunk orange
 
   const handleGoalToggle = useCallback((label: string) => {
     if (!step) return;
     const option = step.options?.find(o => o.label === label);
     const cost = option?.cost;
-    setSelectedGoals(prev => prev.includes(label) ? (removeSelectionCost(cost), prev.filter(l => l !== label)) : (addSelection(label, cost, step.color, step.title), [...prev, label]));
+    setSelectedGoals(prev => prev.includes(label) ? (removeSelectionCost(cost), prev.filter(l => l !== label)) : (addSelection(label, cost, step?.color || 'mint', step?.title || ''), [...prev, label]));
   }, [step]);
   
   const handleInputToggle = useCallback((label: string) => {
     if (!step) return;
     const option = step.options?.find(o => o.label === label);
     const cost = option?.cost;
-    setSelectedInputs(prev => prev.includes(label) ? (removeSelectionCost(cost), prev.filter(l => l !== label)) : (addSelection(label, cost, step.color, step.title), [...prev, label]));
+    setSelectedInputs(prev => prev.includes(label) ? (removeSelectionCost(cost), prev.filter(l => l !== label)) : (addSelection(label, cost, step?.color || 'blue', step?.title || ''), [...prev, label]));
   }, [step]);
   
   const handleModelToggle = useCallback((label: string) => {
     if (!step) return;
     const option = step.options?.find(o => o.label === label);
     const cost = option?.cost;
-    setSelectedModels(prev => prev.includes(label) ? (removeSelectionCost(cost), prev.filter(l => l !== label)) : (addSelection(label, cost, step.color, step.title), [...prev, label]));
+    setSelectedModels(prev => prev.includes(label) ? (removeSelectionCost(cost), prev.filter(l => l !== label)) : (addSelection(label, cost, step?.color || 'deepblue', step?.title || ''), [...prev, label]));
   }, [step]);
 
   const monoStack = 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace';
@@ -416,6 +416,18 @@ export default function CyberWizard() {
     
     setUserQuery(improvedQuery);
   }, [userQuery, selectedGoals]);
+
+  // Show loading state while steps are being loaded
+  if (steps.length === 0) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
+          <p className="text-white opacity-70">Loading UltrAI...</p>
+        </div>
+      </div>
+    );
+  }
 
   // Step 0: Intro — render with background and billboard
   if (currentStep === 0 && step && step.type === 'intro') {

@@ -355,13 +355,13 @@ body.skin-minimalist > * {
   letter-spacing: 2px;
 }
 
-.skin-minimalist .bg-gradient-to-r.from-\\[\\#ff00de\\].to-\\[\\#00ffff\\] {
+.skin-minimalist .bg-gradient-to-r[class*="from-"][class*="to-"] {
   background: #000000 !important;
 }
 
 /* Welcome boxes */
-.skin-minimalist .glass.border-mint-400\\/20,
-.skin-minimalist .glass.border-blue-400\\/20 {
+.skin-minimalist .glass[class*="border-mint-400"],
+.skin-minimalist .glass[class*="border-blue-400"] {
   background: #ffffff !important;
   border: 3px solid #000000 !important;
   box-shadow: 6px 6px 0px #000000 !important;
@@ -372,8 +372,8 @@ body.skin-minimalist > * {
   color: #000000 !important;
 }
 
-.skin-minimalist .bg-mint-400\\/5,
-.skin-minimalist .bg-blue-400\\/5 {
+.skin-minimalist [class*="bg-mint-400"],
+.skin-minimalist [class*="bg-blue-400"] {
   background: transparent !important;
 }
 
@@ -412,8 +412,7 @@ body.skin-minimalist > * {
   font-weight: 900 !important;
 }
 
-.skin-minimalist .text-\\[11px\\].opacity-80,
-.skin-minimalist .text-\\[10px\\].opacity-80 {
+.skin-minimalist [class*="text-"][class*="px"].opacity-80 {
   opacity: 1 !important;
   color: #000000 !important;
 }
@@ -425,7 +424,7 @@ body.skin-minimalist > * {
 }
 
 /* Demo indicator */
-.skin-minimalist .text-green-300\\/70 {
+.skin-minimalist [class*="text-green-300"] {
   color: #000000 !important;
   border: 2px solid #000000;
   padding: 2px 8px;

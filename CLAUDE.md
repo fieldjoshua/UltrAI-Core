@@ -19,6 +19,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `cd frontend && npm run build` - Build frontend for production
 - `cd frontend && npm run lint` - Run ESLint
 - `cd frontend && npm run preview` - Preview production build locally
+- `cd frontend && npm test` - Run Jest tests
 
 ### Test Running Commands
 - `pytest tests/test_specific_file.py -v` - Run specific test file
@@ -71,10 +72,12 @@ The Ultra project implements an LLM orchestration system with intelligence multi
 **Backend Architecture (FastAPI):**
 - `app/routes/` - API endpoint handlers (the "front door") - validate requests and delegate to services
 - `app/services/` - Core business logic layer containing:
-  - `minimal_orchestrator.py` - Multi-step analysis coordinator (initial → meta → ultra)
+  - `orchestration_service.py` - Multi-stage analysis coordinator implementing the UltrLLMOrchestrator patent
   - `llm_adapters.py` - Unified interface for external LLM providers (OpenAI, Anthropic, Gemini, HuggingFace)
   - `auth_service.py` - JWT authentication and API key management
   - `model_registry.py` - Dynamic model discovery and management
+  - `cache_service.py` - Redis caching with local memory fallback
+  - `rate_limiter.py` - Rate limiting service per user/endpoint
 - `app/models/` - Data shape definitions (Pydantic for API, SQLAlchemy for database)
 - `app/middleware/` - Request/response interceptors (auth, CSRF, security headers, telemetry)
 - `app/database/` - PostgreSQL connection management and Alembic migrations
@@ -85,6 +88,8 @@ The Ultra project implements an LLM orchestration system with intelligence multi
 - Zustand for state management
 - Tailwind CSS for styling
 - TypeScript throughout
+- Design token system in `frontend/src/styles/tokens.css`
+- Skin system with 6 themes (night, morning, afternoon, sunset, minimalist, business)
 
 **Key Architectural Patterns:**
 - All LLM adapters share a single `httpx.AsyncClient` with 25-second timeout to prevent hanging requests
@@ -92,6 +97,18 @@ The Ultra project implements an LLM orchestration system with intelligence multi
 - Redis caching with local memory fallback
 - Environment-based configuration (development vs production)
 - Frontend served by backend in production mode
+- Three-stage orchestration flow: Initial Analysis → Meta Analysis → Ultra Synthesis
+
+### Orchestration Flow
+The orchestration implements a patented multi-stage analysis:
+1. **Initial Analysis**: Multiple models analyze the query independently
+2. **Meta Analysis**: A meta-model reviews all initial responses
+3. **Ultra Synthesis**: Final synthesis combining all insights
+
+Key files:
+- `app/services/orchestration_service.py` - Main orchestration logic
+- `app/routes/orchestrator_minimal.py` - API endpoint handling
+- `app/services/synthesis_prompts.py` - Prompt templates for each stage
 
 ### AICheck Action Management System
 The project uses AICheck for structured development workflow:
@@ -131,6 +148,7 @@ The project uses AICheck for structured development workflow:
 - JWT + API key authentication on all protected endpoints
 - Rate limiting enforced per user/endpoint
 - Request ID tracking across all services for debugging
+- React error #310 addressed via production sourcemaps in Vite config
 
 ### Deployment
 - Production runs on Render.com with GitHub-based continuous deployment
@@ -138,3 +156,29 @@ The project uses AICheck for structured development workflow:
 - URL: `https://ultrai-core.onrender.com/`
 - Frontend built and served by backend in production
 - Use `make deploy` to commit and push changes for automatic deployment
+- **CRITICAL**: No action is complete without deployment verification (see `.aicheck/rules.md`)
+
+### Testing Strategy
+- Unit tests: Test individual components in isolation
+- Integration tests: Test service interactions
+- E2E tests: Full user flow testing with Playwright
+- Live tests: Tests against real LLM providers (marked with `live_online`)
+- Test files organized by type in `tests/unit/`, `tests/integration/`, `tests/e2e/`
+
+### Environment Configuration
+- Development: Uses `.env` file with minimal configuration
+- Production: Environment variables set in Render dashboard
+- Key variables:
+  - `ENVIRONMENT` - development/production
+  - `PORT` - Server port (8000 default)
+  - `DATABASE_URL` - PostgreSQL connection string
+  - `REDIS_URL` - Redis connection for caching
+  - `JWT_SECRET` - Secret for JWT tokens
+  - API keys for LLM providers: `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, etc.
+
+### Frontend Specific Notes
+- Sourcemaps enabled in production builds to debug minified React errors
+- Skin system loads CSS dynamically based on user selection
+- Design tokens provide consistent spacing, typography, and colors
+- All UI components in `frontend/src/components/ui/` use design tokens
+- Lucide React icons used throughout (no emojis in production UI)

@@ -360,15 +360,15 @@ body.skin-business h6 {
   letter-spacing: -0.03em;
 }
 
-.skin-business .bg-gradient-to-r.from-\\[\\#ff00de\\].to-\\[\\#00ffff\\] {
+.skin-business .bg-gradient-to-r[class*="from-"][class*="to-"] {
   background: linear-gradient(to right, var(--skin-accent), var(--skin-accent-hover)) !important;
   height: 3px !important;
   border-radius: 2px !important;
 }
 
 /* Welcome boxes - professional cards */
-.skin-business .glass.border-mint-400\\/20,
-.skin-business .glass.border-blue-400\\/20 {
+.skin-business .glass[class*="border-mint-400"],
+.skin-business .glass[class*="border-blue-400"] {
   background: rgba(255, 255, 255, 0.9) !important;
   backdrop-filter: blur(10px) !important;
   border: 1px solid rgba(229, 231, 235, 0.5) !important;
@@ -379,8 +379,8 @@ body.skin-business h6 {
   transition: all 0.2s ease !important;
 }
 
-.skin-business .glass.border-mint-400\\/20:hover,
-.skin-business .glass.border-blue-400\\/20:hover {
+.skin-business .glass[class*="border-mint-400"]:hover,
+.skin-business .glass[class*="border-blue-400"]:hover {
   transform: translateY(-2px);
   box-shadow: 
     0 10px 15px -3px rgba(0, 0, 0, 0.1),
@@ -397,8 +397,8 @@ body.skin-business h6 {
   color: var(--skin-secondary) !important;
 }
 
-.skin-business .bg-mint-400\\/5,
-.skin-business .bg-blue-400\\/5 {
+.skin-business [class*="bg-mint-400"],
+.skin-business [class*="bg-blue-400"] {
   background: transparent !important;
 }
 
@@ -443,7 +443,7 @@ body.skin-business h6 {
 }
 
 /* Demo environment indicator */
-.skin-business .text-green-300\\/70 {
+.skin-business [class*="text-green-300"] {
   color: #10b981 !important;
   background: rgba(16, 185, 129, 0.1);
   padding: 4px 12px;
