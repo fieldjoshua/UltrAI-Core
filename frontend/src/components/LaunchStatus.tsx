@@ -24,14 +24,14 @@ export default function LaunchStatus({
 }: LaunchStatusProps) {
   const stages = useMemo(
     () => [
-      { key: 'boot', label: 'Firing up LLMs', icon: '🚀' },
-      { key: 'submit', label: 'Submitting initial query', icon: '📤' },
-      { key: 'initial', label: 'LLMs working on initial responses', icon: '🧠' },
-      { key: 'distribute', label: 'Distributing initial responses', icon: '🔁' },
-      { key: 'revise', label: 'LLM revisions to originals', icon: '✍️' },
-      { key: 'meta_submit', label: 'Submitting meta drafts', icon: '📑' },
-      { key: 'meta_analyze', label: 'Analyzing meta drafts', icon: '🧪' },
-      { key: 'write', label: 'Writing Ultra document', icon: '📄' },
+      { key: 'boot', label: 'Initializing AI models', icon: '🚀', phase: 'initial' },
+      { key: 'submit', label: 'Processing your query', icon: '📤', phase: 'initial' },
+      { key: 'initial', label: 'Models generating initial responses', icon: '🧠', phase: 'initial' },
+      { key: 'distribute', label: 'Cross-model intelligence sharing', icon: '🔁', phase: 'meta' },
+      { key: 'revise', label: 'Models refining responses', icon: '✍️', phase: 'meta' },
+      { key: 'meta_submit', label: 'Preparing meta-analysis', icon: '📑', phase: 'meta' },
+      { key: 'meta_analyze', label: 'Synthesizing insights', icon: '🧪', phase: 'synthesis' },
+      { key: 'write', label: 'Creating Ultra Synthesis™ report', icon: '📄', phase: 'synthesis' },
     ],
     []
   );
@@ -44,7 +44,8 @@ export default function LaunchStatus({
       return;
     }
     if (hasError) return;
-    const intervalMs = 6000; // 6s per stage
+    // Realistic timing: ~35s per stage for 5-7 minute total
+    const intervalMs = 35000;
     const t = setInterval(() => {
       setStageIndex((i) => Math.min(i + 1, stages.length - 2));
     }, intervalMs);
@@ -61,13 +62,53 @@ export default function LaunchStatus({
   const borderColor = hasError ? 'border-red-500/50' : 'animate-border-hum';
   const glowColor = hasError ? 'from-red-500/10 via-transparent to-red-500/10' : 'from-cyan-500/5 via-transparent to-orange-500/5';
 
+  // Calculate phase progress
+  const currentPhase = stages[current]?.phase || 'initial';
+  const phaseProgress = {
+    initial: current < 3 ? (current + 1) / 3 * 100 : 100,
+    meta: current >= 3 && current < 6 ? ((current - 2) / 3 * 100) : current >= 6 ? 100 : 0,
+    synthesis: current >= 6 ? ((current - 5) / 2 * 100) : 0
+  };
+
   return (
     <div className={`glass-strong rounded-xl p-6 border-2 ${borderColor} relative overflow-hidden`}>
       <div className={`absolute inset-0 bg-gradient-to-br ${glowColor} pointer-events-none`} />
       <div className="relative z-10">
-        <div className="flex items-center gap-3 mb-4">
-          <div className="text-2xl">🚀</div>
-          <div className="text-sm font-bold uppercase tracking-wider">Ultra Synthesis Launch</div>
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-3">
+            <div className="text-2xl animate-pulse">⚡</div>
+            <div>
+              <div className="text-sm font-bold uppercase tracking-wider">Ultra Synthesis™ Processing</div>
+              <div className="text-xs text-white/60 mt-0.5">Orchestrating {Array.isArray(orchestratorResult?.models_used) ? orchestratorResult.models_used.length : '3'} AI models</div>
+            </div>
+          </div>
+          {!isComplete && (
+            <div className="text-xs text-white/60">
+              Est. {Math.floor((stages.length - current) * 35 / 60)} min remaining
+            </div>
+          )}
+        </div>
+        
+        {/* Phase Progress Indicators */}
+        <div className="grid grid-cols-3 gap-2 mb-6">
+          <div className="text-center">
+            <div className="text-xs font-semibold mb-1">Initial Analysis</div>
+            <div className="h-2 bg-white/10 rounded-full overflow-hidden">
+              <div className="h-full bg-cyan-400 transition-all duration-1000" style={{ width: `${phaseProgress.initial}%` }} />
+            </div>
+          </div>
+          <div className="text-center">
+            <div className="text-xs font-semibold mb-1">Meta Analysis</div>
+            <div className="h-2 bg-white/10 rounded-full overflow-hidden">
+              <div className="h-full bg-purple-400 transition-all duration-1000" style={{ width: `${phaseProgress.meta}%` }} />
+            </div>
+          </div>
+          <div className="text-center">
+            <div className="text-xs font-semibold mb-1">Ultra Synthesis</div>
+            <div className="h-2 bg-white/10 rounded-full overflow-hidden">
+              <div className="h-full bg-gradient-to-r from-cyan-400 to-purple-400 transition-all duration-1000" style={{ width: `${phaseProgress.synthesis}%` }} />
+            </div>
+          </div>
         </div>
         <ol className="relative border-l border-white/15 pl-4 space-y-3">
           {stages.map((st, i) => {
@@ -79,8 +120,11 @@ export default function LaunchStatus({
                   <div>
                     <div className={`text-sm font-semibold ${state === 'pending' ? 'opacity-50' : ''}`}>{st.label}</div>
                     {state === 'current' && (
-                      <div className="mt-1 h-1.5 w-36 bg-white/10 rounded overflow-hidden">
-                        <div className="h-full bg-gradient-to-r from-cyan-400 to-orange-400 animate-pulse w-1/2"></div>
+                      <div className="mt-1 flex items-center gap-2">
+                        <div className="h-1.5 w-36 bg-white/10 rounded overflow-hidden">
+                          <div className="h-full bg-gradient-to-r from-cyan-400 to-orange-400 animate-pulse w-1/2"></div>
+                        </div>
+                        <div className="text-[10px] text-cyan-300 animate-pulse">Processing...</div>
                       </div>
                     )}
                     {state === 'done' && <div className="text-xs text-white/50 mt-0.5">Complete</div>}
@@ -106,8 +150,8 @@ export default function LaunchStatus({
                 <div className="text-[10px] font-semibold text-white/60 uppercase tracking-wider">Processing Time</div>
                 <div className="text-[14px] font-bold text-blue-300 mt-1">
                   {typeof orchestratorResult.processing_time === 'number'
-                    ? orchestratorResult.processing_time.toFixed(2)
-                    : '1.32'}s
+                    ? `${Math.floor(orchestratorResult.processing_time / 60)}:${String(Math.floor(orchestratorResult.processing_time % 60)).padStart(2, '0')}`
+                    : '5:42'}
                 </div>
               </div>
               <div className="bg-white/5 rounded-lg p-3 text-center border border-white/10">
@@ -120,13 +164,14 @@ export default function LaunchStatus({
             </div>
 
             {selectedAddons.length > 0 && (
-              <div className="mb-4 p-3 bg-white/5 rounded-lg border border-white/10">
-                <div className="text-[11px] font-semibold text-white/60 mb-2">Selected Add-ons:</div>
-                <div className="flex flex-wrap gap-2">
+              <div className="mb-4 p-4 bg-gradient-to-r from-purple-500/10 to-pink-500/10 rounded-lg border border-white/20">
+                <div className="text-[11px] font-semibold text-white/80 mb-3">✨ Enhanced Analysis Features:</div>
+                <div className="grid grid-cols-2 gap-2">
                   {selectedAddons.map((addon, idx) => (
-                    <span key={idx} className="text-[10px] px-2 py-1 rounded-full bg-pink-500/20 text-pink-300 border border-pink-500/30">
-                      {addon.label}
-                    </span>
+                    <div key={idx} className="flex items-center gap-2 text-[11px] text-white/90">
+                      <span className="text-green-400">✓</span>
+                      <span>{addon.label}</span>
+                    </div>
                   ))}
                 </div>
               </div>

@@ -5,6 +5,7 @@ import { Checkbox } from "./ui/checkbox";
 import { Card } from "./ui/card";
 import { processWithFeatherOrchestration, getAvailableModels } from "../api/orchestrator";
 import LaunchStatus from "./LaunchStatus";
+import { captureNoBadAnswerFromOrchestrator } from "../internal/analysisTracker";
 import { RadioGroup, RadioGroupItem } from "./ui/radio-group";
 import { Textarea } from "./ui/textarea";
 import { Input } from "./ui/input";
@@ -295,6 +296,16 @@ export default function CyberWizard() {
     })();
   }, [showStatus, userQuery, selectedModels]);
 
+  // Internal: capture no-bad-answer aggregation after results
+  useEffect(() => {
+    if (!orchestratorResult) return;
+    try {
+      captureNoBadAnswerFromOrchestrator(orchestratorResult, selectedModels, userQuery);
+    } catch (_) {
+      // internal-only; ignore
+    }
+  }, [orchestratorResult, selectedModels, userQuery]);
+
   const addSelection = (label: string, cost: number | undefined, color: string, section?: string) => {
     const appliedCost = typeof cost === 'number' ? cost : 0;
     const sectionVal = section || step.title;
@@ -495,7 +506,6 @@ export default function CyberWizard() {
               backgroundImage: "url('/cityscape-background.jpeg'), url('/ultrai-bg.jpg')",
               backgroundSize: 'cover',
               backgroundPosition: 'center',
-              // Remove scaling to preserve sharpness
               transform: 'none',
             }}
           />
@@ -507,24 +517,19 @@ export default function CyberWizard() {
             backgroundSize: '50px 50px',
             animation: 'grid-move 20s linear infinite'
           }} />
-          </div>
-
-        {/* Floating particles */}
-        <div className="absolute inset-0 overflow-hidden">
-          {[...Array(20)].map((_, i) => (
-            <div
-              key={i}
-              className="absolute w-1 h-1 bg-mint-400 rounded-full animate-float"
-              style={{
-                left: `${Math.random() * 100}%`,
-                top: `${Math.random() * 100}%`,
-                animationDelay: `${Math.random() * 10}s`,
-                animationDuration: `${15 + Math.random() * 10}s`,
-                opacity: Math.random() * 0.5 + 0.2
-              }}
-            />
-          ))}
+          
+          {/* Demo Mode Indicator */}
+          {isDemoMode && (
+            <div className="absolute top-4 right-4 z-50">
+              <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-green-500/20 to-cyan-500/20 border border-green-400/30 backdrop-blur-md animate-fade-in">
+                <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
+                <span className="text-xs font-medium text-green-300">Demo Environment</span>
+              </div>
+            </div>
+          )}
         </div>
+
+        {/* Removed floating particles for cleaner professional look */}
 
         {/* Hero content */}
         <div className="relative z-10 w-full mx-auto max-w-5xl px-8" style={{ marginTop: '25vh' }}>
@@ -547,12 +552,7 @@ export default function CyberWizard() {
                 >
                   <h1 className="text-3xl font-bold tracking-wider" style={{
                     color: '#00ff9f',
-                    textShadow: `
-                      0 0 10px #00ff9f,
-                      0 0 20px #00ff9f,
-                      0 0 30px #00ff9f,
-                      0 0 40px #00ff9f
-                    `
+                    textShadow: '0 0 10px #00ff9f'
                   }}>
                     ULTRA AI
                   </h1>
@@ -592,7 +592,7 @@ export default function CyberWizard() {
                       background: `${mapColorRGBA(feature.color, 0.2)}`,
                       borderColor: `${mapColorHex(feature.color)}50`,
                       color: mapColorHex(feature.color),
-                      animationDelay: `${0.7 + i * 0.1}s`
+                      animationDelay: '0.3s'
                     }}
                   >
                     {feature.icon} {feature.text}
@@ -603,18 +603,15 @@ export default function CyberWizard() {
               {/* Main narrative */}
               <div className="max-w-3xl mx-auto mt-8">
                 <p className="text-lg leading-relaxed text-center text-white/90">
-                  Welcome to the future of <span className="font-bold" style={{
-                    color: '#00ff9f',
-                    textShadow: '0 0 5px #00ff9f, 0 0 10px #00ff9f'
-                  }}>Intelligence Multiplication</span>. 
-                  We orchestrate a sophisticated ensemble of leading AI models, each contributing their unique strengths 
-                  to deliver <span className="font-bold" style={{
-                    color: '#00d4ff',
-                    textShadow: '0 0 5px #00d4ff, 0 0 10px #00d4ff'
-                  }}>unprecedented quality</span> and <span className="font-bold" style={{
-                    color: '#ff6600',
-                    textShadow: '0 0 5px #ff6600, 0 0 10px #ff6600'
-                  }}>comprehensive insights</span>.
+                  <span className="text-2xl font-bold block mb-4" style={{
+                    background: 'linear-gradient(90deg, #00ff9f, #00d4ff, #bd00ff)',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                    backgroundClip: 'text',
+                    textShadow: 'none'
+                  }}>Intelligence Multiplication Platform</span>
+                  Query multiple premium AI models simultaneously. Get synthesized insights that no single model could provide. 
+                  <span className="font-bold text-white">Pay only for what you use</span>.
                 </p>
                 <div className="flex justify-center gap-6 text-sm mt-6 text-white/90">
                   <span className="text-white" style={{
@@ -632,18 +629,33 @@ export default function CyberWizard() {
               </div>
 
               {/* CTA Button */}
-              <div className="text-center">
-                <Button
-                  variant="primary"
-                  size="lg"
+              <div className="text-center space-y-3">
+                <button
                   onClick={() => { setCurrentStep(1); setStepFadeKey(k => k + 1); }}
-                  className="px-12 py-5 text-xl font-bold"
+                  className="relative overflow-hidden px-12 py-5 text-xl font-bold rounded-lg transition-all duration-300 transform hover:scale-105 active:scale-95 group"
+                  style={{
+                    background: 'linear-gradient(135deg, #00ff9f 0%, #00d4ff 50%, #bd00ff 100%)',
+                    boxShadow: '0 4px 20px rgba(0, 255, 159, 0.4), 0 0 60px rgba(0, 212, 255, 0.3)',
+                    animation: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite'
+                  }}
                 >
-                  <span className="flex items-center gap-3 justify-center">
+                  <span className="relative z-10 flex items-center gap-3 justify-center text-black font-extrabold">
                     <span>Enter UltrAI</span>
-                    <span>→</span>
+                    <span className="transform group-hover:translate-x-1 transition-transform">→</span>
                   </span>
-                </Button>
+                  <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/30 to-white/0 transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
+                </button>
+                {isDemoMode && (
+                  <button
+                    onClick={() => { setCurrentStep(2); setStepFadeKey(k => k + 1); }}
+                    className="px-8 py-3 text-sm font-semibold rounded-lg border-2 border-cyan-400/50 text-cyan-400 hover:bg-cyan-400/10 transition-all duration-200"
+                  >
+                    <span className="flex items-center gap-2 justify-center">
+                      <span>🎬</span>
+                      <span>Skip to Demo</span>
+                    </span>
+                  </button>
+                )}
               </div>
 
               {/* Trust indicators */}
@@ -1554,7 +1566,7 @@ export default function CyberWizard() {
                       }
                     }}
                   >
-                    {currentStep===steps.length-1 ? "Submit Add-ons" : "Submit"}
+                    {currentStep === steps.length - 1 ? "Submit Add-ons" : currentStep === 2 ? "Launch Ultra Analysis 🚀" : "Next Step"}
                   </button>
                 </div>
               )}
