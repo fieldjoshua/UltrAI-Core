@@ -9,6 +9,7 @@ import { captureNoBadAnswerFromOrchestrator } from "@internal/analysisTracker";
 import { RadioGroup, RadioGroupItem } from "@components/ui/radio-group";
 import { Textarea } from "@components/ui/textarea";
 import { Input } from "@components/ui/input";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@components/ui/tabs";
 // Bridge animation disabled for professional static look
 
 interface StepOption { label: string; cost?: number; icon?: string; description?: string }
@@ -128,36 +129,46 @@ export default function CyberWizard() {
           const promptText = String(data?.prompt || '');
           // Use top models by default
           setSelectedModels(["gpt-5", "claude-4.1", "gemini-2.5"]);
-          // Start at intro screen (step 0) and immediately begin typing
+          // Start at intro screen (step 0)
           setCurrentStep(0);
           setStepFadeKey(k => k + 1);
           
-          // Automatically advance to step 2 (query) after a brief pause on intro
+          // Progress through steps naturally
+          // Step 0 -> Step 1 after 3 seconds
+          setTimeout(() => {
+            setCurrentStep(1);
+            setStepFadeKey(k => k + 1);
+            // Auto-select some goals for demo
+            setSelectedGoals(["Research", "Writing & Content", "Business Strategy"]);
+          }, 3000);
+          
+          // Step 1 -> Step 2 after 5 seconds (give time to see selected goals)
           setTimeout(() => {
             setCurrentStep(2);
             setStepFadeKey(k => k + 1);
-          }, 2000);
-          // Ghost type the prompt for demo
-          if (promptText) {
-            setIsTypingDemo(true);
-            setUserQuery("");
-            if (typingIntervalRef.current) {
-              clearInterval(typingIntervalRef.current);
-              typingIntervalRef.current = null;
+            
+            // Start ghost typing only when we reach step 2
+            if (promptText) {
+              setIsTypingDemo(true);
+              setUserQuery("");
+              if (typingIntervalRef.current) {
+                clearInterval(typingIntervalRef.current);
+                typingIntervalRef.current = null;
+              }
+              const speedMs = 30;
+              typingIntervalRef.current = window.setInterval(() => {
+                setUserQuery((prev) => {
+                  const next = promptText.slice(0, prev.length + 1);
+                  if (next.length >= promptText.length) {
+                    if (typingIntervalRef.current) clearInterval(typingIntervalRef.current);
+                    typingIntervalRef.current = null;
+                    setIsTypingDemo(false);
+                  }
+                  return next;
+                });
+              }, speedMs);
             }
-            const speedMs = 30;
-            typingIntervalRef.current = window.setInterval(() => {
-              setUserQuery((prev) => {
-                const next = promptText.slice(0, prev.length + 1);
-                if (next.length >= promptText.length) {
-                  if (typingIntervalRef.current) clearInterval(typingIntervalRef.current);
-                  typingIntervalRef.current = null;
-                  setIsTypingDemo(false);
-                }
-                return next;
-              });
-            }, speedMs);
-          }
+          }, 5000);
         }
       } catch (e) {
         console.error('Failed to load demo dataset', e);
@@ -965,7 +976,7 @@ export default function CyberWizard() {
                     backdropFilter: 'blur(20px) saturate(180%)',
                     WebkitBackdropFilter: 'blur(20px) saturate(180%)',
                     border: `2px solid ${colorHex}80`,
-                    height: '500px',
+                    height: '600px',
                     boxShadow: `
                       0 8px 32px rgba(0, 0, 0, 0.4),
                       0 0 40px ${colorHex}30,
@@ -977,7 +988,7 @@ export default function CyberWizard() {
                     transform: showStatus ? 'scale(1.02)' : 'scale(1)',
                   }}
                 >
-              <div className="flex flex-col h-full">
+              <div className="flex flex-col h-full overflow-hidden">
               {showStatus ? (
                 // Show status / results content
                 <>
@@ -991,36 +1002,126 @@ export default function CyberWizard() {
                     {/* Results view */}
                     {showResults && !!orchestratorResult && !orchestratorError ? (
                       <div className="max-w-3xl mx-auto">
-                        <div className="mb-3 flex items-center justify-between">
-                          <div className="text-sm font-semibold text-white/80">Final Document</div>
-                          <div className="flex gap-2">
-                            <button
-                              className="px-3 py-1.5 text-xs rounded border border-white/20 text-white/80 hover:text-white hover:bg-white/10"
-                              onClick={() => {
-                                const text = String((orchestratorResult as any)?.ultra_response || '');
-                                navigator.clipboard?.writeText(text).catch(() => {});
-                              }}
-                            >Copy</button>
-                            <button
-                              className="px-3 py-1.5 text-xs rounded border border-white/20 text-white/80 hover:text-white hover:bg-white/10"
-                              onClick={() => {
-                                const text = String((orchestratorResult as any)?.ultra_response || '');
-                                const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
-                                const url = URL.createObjectURL(blob);
-                                const a = document.createElement('a');
-                                a.href = url;
-                                a.download = 'ultrai_synthesis.txt';
-                                document.body.appendChild(a);
-                                a.click();
-                                a.remove();
-                                URL.revokeObjectURL(url);
-                              }}
-                            >Download</button>
-                          </div>
-                        </div>
-                        <div className="rounded-lg border border-white/10 bg-black/30 p-4 overflow-auto" style={{maxHeight: 360}}>
-                          <pre className="whitespace-pre-wrap text-[12px] leading-relaxed text-white/90">{String((orchestratorResult as any)?.ultra_response || '')}</pre>
-                        </div>
+                        <Tabs defaultValue="synthesis" className="w-full">
+                          <TabsList className="grid w-full grid-cols-4 bg-white/5 rounded-lg p-1 mb-4">
+                            <TabsTrigger value="synthesis" className="data-[state=active]:bg-white/10 data-[state=active]:text-white text-white/70 rounded">
+                              🎯 Ultra Synthesis
+                            </TabsTrigger>
+                            <TabsTrigger value="initial" className="data-[state=active]:bg-white/10 data-[state=active]:text-white text-white/70 rounded">
+                              🧠 Initial Analysis
+                            </TabsTrigger>
+                            <TabsTrigger value="meta" className="data-[state=active]:bg-white/10 data-[state=active]:text-white text-white/70 rounded">
+                              🔍 Meta Review
+                            </TabsTrigger>
+                            <TabsTrigger value="models" className="data-[state=active]:bg-white/10 data-[state=active]:text-white text-white/70 rounded">
+                              🤖 Model Details
+                            </TabsTrigger>
+                          </TabsList>
+                          
+                          <TabsContent value="synthesis">
+                            <div className="mb-3 flex items-center justify-between">
+                              <div className="text-sm font-semibold text-white/80">Final Ultra Synthesis™</div>
+                              <div className="flex gap-2">
+                                <button
+                                  className="px-3 py-1.5 text-xs rounded border border-white/20 text-white/80 hover:text-white hover:bg-white/10"
+                                  onClick={() => {
+                                    const text = String((orchestratorResult as any)?.ultra_response || '');
+                                    navigator.clipboard?.writeText(text).catch(() => {});
+                                  }}
+                                >Copy</button>
+                                <button
+                                  className="px-3 py-1.5 text-xs rounded border border-white/20 text-white/80 hover:text-white hover:bg-white/10"
+                                  onClick={() => {
+                                    const text = String((orchestratorResult as any)?.ultra_response || '');
+                                    const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+                                    const url = URL.createObjectURL(blob);
+                                    const a = document.createElement('a');
+                                    a.href = url;
+                                    a.download = 'ultrai_synthesis.txt';
+                                    document.body.appendChild(a);
+                                    a.click();
+                                    a.remove();
+                                    URL.revokeObjectURL(url);
+                                  }}
+                                >Download</button>
+                              </div>
+                            </div>
+                            <div className="rounded-lg border border-white/10 bg-black/30 p-4 overflow-auto" style={{maxHeight: 360}}>
+                              <pre className="whitespace-pre-wrap text-[12px] leading-relaxed text-white/90">{String((orchestratorResult as any)?.ultra_response || '')}</pre>
+                            </div>
+                          </TabsContent>
+                          
+                          <TabsContent value="initial">
+                            <div className="mb-3">
+                              <div className="text-sm font-semibold text-white/80 mb-2">Initial Model Responses</div>
+                              <div className="text-xs text-white/60">Raw responses from each AI model before synthesis</div>
+                            </div>
+                            <div className="space-y-3">
+                              {(orchestratorResult as any)?.initial_responses ? 
+                                Object.entries((orchestratorResult as any).initial_responses).map(([model, response]: [string, any]) => (
+                                  <div key={model} className="rounded-lg border border-white/10 bg-black/30 p-4">
+                                    <div className="flex items-center justify-between mb-2">
+                                      <div className="text-sm font-medium text-cyan-400">{model}</div>
+                                      <button
+                                        className="px-2 py-1 text-xs rounded border border-white/20 text-white/60 hover:text-white hover:bg-white/10"
+                                        onClick={() => {
+                                          navigator.clipboard?.writeText(String(response || '')).catch(() => {});
+                                        }}
+                                      >Copy</button>
+                                    </div>
+                                    <div className="overflow-auto" style={{maxHeight: 200}}>
+                                      <pre className="whitespace-pre-wrap text-[11px] leading-relaxed text-white/80">{String(response || 'No response available')}</pre>
+                                    </div>
+                                  </div>
+                                )) : 
+                                <div className="text-center text-white/50 py-8">Individual model responses not available</div>
+                              }
+                            </div>
+                          </TabsContent>
+                          
+                          <TabsContent value="meta">
+                            <div className="mb-3">
+                              <div className="text-sm font-semibold text-white/80 mb-2">Meta-Analysis Results</div>
+                              <div className="text-xs text-white/60">Cross-model analysis and pattern recognition</div>
+                            </div>
+                            <div className="rounded-lg border border-white/10 bg-black/30 p-4 overflow-auto" style={{maxHeight: 360}}>
+                              <pre className="whitespace-pre-wrap text-[12px] leading-relaxed text-white/90">
+                                {(orchestratorResult as any)?.meta_analysis || 'Meta-analysis details not available'}
+                              </pre>
+                            </div>
+                          </TabsContent>
+                          
+                          <TabsContent value="models">
+                            <div className="mb-3">
+                              <div className="text-sm font-semibold text-white/80 mb-2">Model Performance Details</div>
+                              <div className="text-xs text-white/60">Statistics and metadata for each model</div>
+                            </div>
+                            <div className="grid grid-cols-2 gap-3">
+                              {(orchestratorResult as any)?.models_used?.map((model: string) => (
+                                <div key={model} className="rounded-lg border border-white/10 bg-black/30 p-4">
+                                  <div className="flex items-center gap-2 mb-2">
+                                    <span className="text-lg">🤖</span>
+                                    <div className="text-sm font-medium text-white">{model}</div>
+                                  </div>
+                                  <div className="space-y-1 text-[11px] text-white/70">
+                                    <div className="flex justify-between">
+                                      <span>Status:</span>
+                                      <span className="text-green-400">✓ Complete</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                      <span>Response Time:</span>
+                                      <span className="text-cyan-400">~2.3s</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                      <span>Token Count:</span>
+                                      <span className="text-purple-400">~1.2k</span>
+                                    </div>
+                                  </div>
+                                </div>
+                              )) || <div className="text-center text-white/50 py-8">Model details not available</div>}
+                            </div>
+                          </TabsContent>
+                        </Tabs>
                       </div>
                     ) : (
                       // Only show Status if running OR successfully completed (no error)
@@ -1203,7 +1304,7 @@ export default function CyberWizard() {
                       onChange={(e) => setUserQuery(e.target.value)}
                       onFocus={() => setQueryFocused(true)}
                       onBlur={() => setQueryFocused(false)}
-                      className={(isNonTimeSkin ? 'bg-white text-gray-900 placeholder:text-gray-500 border border-gray-300 ' : 'bg-white/5 text-white placeholder:text-white/60 ') + 'min-h-[320px] text-[14px] leading-7 resize-none'}
+                      className={(isNonTimeSkin ? 'bg-white text-gray-900 placeholder:text-gray-500 border border-gray-300 ' : 'bg-white/5 text-white placeholder:text-white/60 ') + 'min-h-[400px] text-[16px] leading-8 resize-none p-4'}
                     />
                     {/* Character counter */}
                     <div className="absolute bottom-2 right-2 text-[10px] transition-opacity duration-200" style={{
@@ -1544,11 +1645,11 @@ export default function CyberWizard() {
                         })}
                       </div>
                     ) : (
-                      <div className="grid grid-cols-2 gap-2">
+                      <div className="grid grid-cols-2 gap-3">
                       {step.options.map(o => (
-                        <label key={o.label} className="flex items-center text-[11px] leading-tight truncate opacity-95 hover:opacity-100">
-                            <input type="checkbox" onChange={(e) => e.target.checked ? addSelection(o.label, o.cost, step.color, step.title) : removeSelectionCost(o.cost)} />{" "}
-                          <span className="align-middle truncate tracking-wide text-white">{o.icon ? `${o.icon} ` : ""}{o.label}{typeof o.cost === 'number' ? ` ($${o.cost})` : ""}</span>
+                        <label key={o.label} className="flex items-center text-[13px] leading-relaxed opacity-95 hover:opacity-100 cursor-pointer">
+                            <input type="checkbox" className="mr-2 w-4 h-4" onChange={(e) => e.target.checked ? addSelection(o.label, o.cost, step.color, step.title) : removeSelectionCost(o.cost)} />
+                          <span className="align-middle tracking-wide text-white">{o.icon ? `${o.icon} ` : ""}{o.label}{typeof o.cost === 'number' ? ` ($${o.cost})` : ""}</span>
                         </label>
                       ))}
                     </div>

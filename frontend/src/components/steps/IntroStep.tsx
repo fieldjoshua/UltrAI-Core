@@ -1,5 +1,5 @@
 import React from 'react';
-import AnimatedLogoV3 from '../AnimatedLogoV3'; // Adjust path if needed
+import AnimatedLogoV3 from '@components/branding/AnimatedLogoV3'; // Adjust path if needed
 import { Brain, Lightbulb, FileText } from 'lucide-react';
 
 const IntroStep: React.FC = () => {

@@ -35,7 +35,7 @@ import {
   SplitSquareVertical,
   FileType,
 } from 'lucide-react';
-import AnimatedLogoV3 from './AnimatedLogoV3';
+import AnimatedLogoV3 from '@components/branding/AnimatedLogoV3';
 import HistoryPanel from './panels/HistoryPanel';
 import ShareDialog from './dialogs/ShareDialog';
 import IntroStep from './steps/IntroStep';
