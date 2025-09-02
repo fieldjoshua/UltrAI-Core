@@ -71,28 +71,14 @@ export default function LaunchStatus({
   };
 
   return (
-    <div className={`glass-strong rounded-xl p-8 border-2 ${borderColor} relative overflow-hidden transform transition-all duration-500 ${isComplete ? 'scale-100' : 'scale-[0.98]'}`}>
-      <div className={`absolute inset-0 bg-gradient-to-br ${glowColor} pointer-events-none transition-opacity duration-1000 ${isComplete ? 'opacity-50' : 'opacity-100'}`} />
-      {!isComplete && (
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-0 left-0 w-32 h-32 bg-cyan-500/20 rounded-full blur-3xl animate-pulse" />
-          <div className="absolute bottom-0 right-0 w-40 h-40 bg-purple-500/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
-          <div className="absolute top-1/2 left-1/2 w-48 h-48 bg-orange-500/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s', transform: 'translate(-50%, -50%)' }} />
-        </div>
-      )}
+    <div className={`glass-strong rounded-xl p-6 border-2 ${borderColor} relative overflow-hidden`}>
+      <div className={`absolute inset-0 bg-gradient-to-br ${glowColor} pointer-events-none`} />
       <div className="relative z-10">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
-            <div className="relative">
-              <div className="text-3xl animate-pulse">⚡</div>
-              {!isComplete && (
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="w-12 h-12 border-2 border-cyan-400/30 rounded-full animate-spin" />
-                </div>
-              )}
-            </div>
+            <div className="text-2xl animate-pulse">⚡</div>
             <div>
-              <div className="text-lg font-bold uppercase tracking-wider bg-gradient-to-r from-cyan-400 to-purple-400 text-transparent bg-clip-text">Ultra Synthesis™ Processing</div>
+              <div className="text-sm font-bold uppercase tracking-wider">Ultra Synthesis™ Processing</div>
               <div className="text-xs text-white/60 mt-0.5">Orchestrating {Array.isArray(orchestratorResult?.models_used) ? orchestratorResult.models_used.length : '3'} AI models</div>
             </div>
           </div>
@@ -132,13 +118,11 @@ export default function LaunchStatus({
                 <div className="flex items-start gap-2">
                   <span className={`mt-0.5 text-base ${state === 'done' ? 'text-green-400' : state === 'current' ? 'text-cyan-300 animate-pulse' : 'text-white/40'}`}>{st.icon}</span>
                   <div>
-                    <div className={`text-sm font-semibold transition-all duration-500 ${state === 'pending' ? 'opacity-50 translate-x-2' : state === 'current' ? 'translate-x-0 text-cyan-300' : 'translate-x-0'}`}>{st.label}</div>
+                    <div className={`text-sm font-semibold ${state === 'pending' ? 'opacity-50' : ''}`}>{st.label}</div>
                     {state === 'current' && (
                       <div className="mt-1 flex items-center gap-2">
-                        <div className="h-1.5 w-36 bg-white/10 rounded-full overflow-hidden relative">
-                          <div className="h-full bg-gradient-to-r from-cyan-400 via-purple-400 to-orange-400 rounded-full" style={{ width: '60%' }}>
-                            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent animate-shimmer" />
-                          </div>
+                        <div className="h-1.5 w-36 bg-white/10 rounded overflow-hidden">
+                          <div className="h-full bg-gradient-to-r from-cyan-400 to-orange-400 animate-pulse w-1/2"></div>
                         </div>
                         <div className="text-[10px] text-cyan-300 animate-pulse">Processing...</div>
                       </div>
