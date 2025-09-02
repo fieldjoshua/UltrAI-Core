@@ -1,14 +1,14 @@
 "use client";
 import { useEffect, useState, useMemo, useCallback, memo, useRef } from "react";
-import { Button } from "./ui/button";
-import { Checkbox } from "./ui/checkbox";
-import { Card } from "./ui/card";
-import { processWithFeatherOrchestration, getAvailableModels } from "../api/orchestrator";
+import { Button } from "@components/ui/button";
+import { Checkbox } from "@components/ui/checkbox";
+import { Card } from "@components/ui/card";
+import { processWithFeatherOrchestration, getAvailableModels } from "@api/orchestrator";
 import LaunchStatus from "@components/wizard/LaunchStatus";
 import { captureNoBadAnswerFromOrchestrator } from "@internal/analysisTracker";
-import { RadioGroup, RadioGroupItem } from "./ui/radio-group";
-import { Textarea } from "./ui/textarea";
-import { Input } from "./ui/input";
+import { RadioGroup, RadioGroupItem } from "@components/ui/radio-group";
+import { Textarea } from "@components/ui/textarea";
+import { Input } from "@components/ui/input";
 // Bridge animation disabled for professional static look
 
 interface StepOption { label: string; cost?: number; icon?: string; description?: string }

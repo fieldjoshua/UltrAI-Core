@@ -1,5 +1,10 @@
-import CyberWizard from "../components/CyberWizard";
+import CyberWizard from "@components/wizard/CyberWizard";
+import { PageErrorBoundary } from "@components/PageErrorBoundary";
 
 export default function WizardPage() {
-  return <CyberWizard />;
+  return (
+    <PageErrorBoundary pageName="Wizard">
+      <CyberWizard />
+    </PageErrorBoundary>
+  );
 }

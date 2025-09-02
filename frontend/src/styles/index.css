@@ -1,6 +1,7 @@
 /* Git update timestamp: 2023-04-03 */
 @import './animations.css';
 @import './cyberpunk-vars.css';
+@import './mobile-fixes.css';
 
 @tailwind base;
 @tailwind components;
