@@ -68,3 +68,28 @@
 .animate-neonFlash {
   animation: neonFlash 1s ease;
 }
+
+/* Optimize background image rendering */
+.bg-optimized {
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
+  backface-visibility: hidden;
+  transform: translateZ(0);
+  will-change: filter;
+}
+
+/* Blur-up loading effect */
+@keyframes blurUp {
+  from {
+    filter: blur(20px);
+    transform: scale(1.1);
+  }
+  to {
+    filter: blur(0);
+    transform: scale(1);
+  }
+}
+
+.bg-loading {
+  animation: blurUp 0.8s ease-out forwards;
+}
