@@ -9,6 +9,8 @@ import { captureNoBadAnswerFromOrchestrator } from "@internal/analysisTracker";
 import { RadioGroup, RadioGroupItem } from "@components/ui/radio-group";
 import { Textarea } from "@components/ui/textarea";
 import { Input } from "@components/ui/input";
+import { OutlineIcon, goalIcons, analysisIcons, modelIcons, addonIcons } from "@components/icons/OutlineIcons";
+import { Rocket, Film, ChevronRight, Check, Copy, Download } from 'lucide-react';
 // Bridge animation disabled for professional static look
 
 interface StepOption { label: string; cost?: number; icon?: string; description?: string }
@@ -613,7 +615,7 @@ export default function CyberWizard() {
                     className="px-8 py-3 text-sm font-semibold rounded-lg border-2 border-cyan-400/50 text-cyan-400 hover:bg-cyan-400/10 transition-all duration-200"
                   >
                     <span className="flex items-center gap-2 justify-center">
-                      <span>🎬</span>
+                      <Film className="w-4 h-4" />
                       <span>Try Demo</span>
                     </span>
                   </button>
@@ -951,7 +953,7 @@ export default function CyberWizard() {
                         <div>
                           <div className="mb-3 flex items-center justify-between">
                             <div className="flex items-center gap-2">
-                              <span className="text-lg">📄</span>
+                              <OutlineIcon name="write" category="status" className="w-6 h-6" />
                               <div className="text-sm font-bold text-white">Ultra Synthesis™ Report</div>
                             </div>
                             <div className="flex gap-2">
@@ -961,7 +963,7 @@ export default function CyberWizard() {
                                   const text = String((orchestratorResult as any)?.ultra_response || '');
                                   navigator.clipboard?.writeText(text).catch(() => {});
                                 }}
-                              >📋 Copy</button>
+                              ><Copy className="inline-block w-3 h-3 mr-1" /> Copy</button>
                               <button
                                 className="px-3 py-1.5 text-xs rounded-lg border-2 text-green-400 border-green-400/50 hover:bg-green-400/10 transition-all"
                                 onClick={() => {
@@ -976,7 +978,7 @@ export default function CyberWizard() {
                                   a.remove();
                                   URL.revokeObjectURL(url);
                                 }}
-                              >💾 Download</button>
+                              ><Download className="inline-block w-3 h-3 mr-1" /> Download</button>
                             </div>
                           </div>
                           <div className="rounded-lg border-2 bg-black/60 p-4 overflow-auto" 
@@ -993,7 +995,7 @@ export default function CyberWizard() {
                         {orchestratorResult?.initial_responses && (
                           <div>
                             <div className="text-sm font-bold text-white mb-3 flex items-center gap-2">
-                              <span>🧠</span>
+                              <OutlineIcon name="initial" category="status" className="w-5 h-5" />
                               <span>Individual Model Outputs</span>
                             </div>
                             <div className="grid grid-cols-1 gap-3">
@@ -1288,7 +1290,7 @@ export default function CyberWizard() {
                             background: selectedGoals.includes(o.label) ? `${mapColorRGBA(step.color, 0.3)}` : 'rgba(255,255,255,0.05)',
                             boxShadow: selectedGoals.includes(o.label) ? `0 0 20px ${colorHex}40` : 'none'
                           }}>
-                          <div className="text-2xl mb-1">{o.icon}</div>
+                          <OutlineIcon name={o.label} category="goal" className="w-8 h-8 mb-1" />
                           <span className="text-center text-sm font-medium text-white">{o.label}</span>
                         </div>
                       ))}
@@ -1319,7 +1321,7 @@ export default function CyberWizard() {
                           }}
                         >
                           <div className="text-center">
-                            <div className="text-xl mb-1 transition-transform group-hover:scale-110">🎯</div>
+                            <OutlineIcon name="Premium" category="model" className="w-8 h-8 mb-1 mx-auto transition-transform group-hover:scale-110" />
                             <div className="text-[12px] font-bold text-white">Premium Query</div>
                             <div className="text-[9px] opacity-70 mt-1">Best quality results</div>
                             {autoPreference === 'premium' && (
@@ -1349,7 +1351,7 @@ export default function CyberWizard() {
                           }}
                         >
                           <div className="text-center">
-                            <div className="text-xl mb-1 transition-transform group-hover:scale-110">⚡</div>
+                            <OutlineIcon name="Speed" category="model" className="w-8 h-8 mb-1 mx-auto transition-transform group-hover:scale-110" />
                             <div className="text-[12px] font-bold text-white">Quick Query</div>
                             <div className="text-[9px] opacity-70 mt-1">Fast responses</div>
                             {autoPreference === 'speed' && (
@@ -1379,7 +1381,7 @@ export default function CyberWizard() {
                           }}
                         >
                           <div className="text-center">
-                            <div className="text-xl mb-1 transition-transform group-hover:scale-110">💰</div>
+                            <OutlineIcon name="Budget" category="model" className="w-8 h-8 mb-1 mx-auto transition-transform group-hover:scale-110" />
                             <div className="text-[12px] font-bold text-white">Budget Query</div>
                             <div className="text-[9px] opacity-70 mt-1">Cost-effective</div>
                             {autoPreference === 'cost' && (
@@ -1556,7 +1558,7 @@ export default function CyberWizard() {
                                     }}
                                   >
                                     <div className="text-center">
-                                      <div className="text-lg mb-1">{o.icon}</div>
+                                      <OutlineIcon name={o.label} category="addon" className="w-6 h-6 mb-1 mx-auto" />
                                       <div className="text-[9px] font-semibold text-white leading-tight">{o.label}</div>
                                       {typeof o.cost === 'number' && <div className="text-[8px] text-green-400 mt-1">+${o.cost.toFixed(2)}</div>}
                                     </div>
@@ -1590,7 +1592,7 @@ export default function CyberWizard() {
                                     }}
                                   >
                                     <div className="text-center">
-                                      <div className="text-lg mb-1">{o.icon}</div>
+                                      <OutlineIcon name={o.label} category="addon" className="w-6 h-6 mb-1 mx-auto" />
                                       <div className="text-[9px] font-semibold text-white leading-tight">{o.label}</div>
                                       {typeof o.cost === 'number' && <div className="text-[8px] text-cyan-400 mt-1">+${o.cost.toFixed(2)}</div>}
                                     </div>
@@ -1624,7 +1626,7 @@ export default function CyberWizard() {
                                     }}
                                   >
                                     <div className="text-center">
-                                      <div className="text-lg mb-1">{o.icon}</div>
+                                      <OutlineIcon name={o.label} category="addon" className="w-6 h-6 mb-1 mx-auto" />
                                       <div className="text-[9px] font-semibold text-white leading-tight">{o.label}</div>
                                       {typeof o.cost === 'number' && <div className="text-[8px] text-purple-400 mt-1">+${o.cost.toFixed(2)}</div>}
                                     </div>
@@ -1667,7 +1669,7 @@ export default function CyberWizard() {
                             }}
                           >
                             <div className="text-center">
-                              <div className="text-lg mb-1">{o.icon || '🎯'}</div>
+                              <OutlineIcon name={o.label.replace(' (Coming soon)', '')} category="analysis" className="w-6 h-6 mb-1 mx-auto" />
                               <div className="font-bold text-[12px] text-white leading-tight">{o.label.replace(' (Coming soon)', '')}</div>
                               {comingSoon && <div className="text-[8px] text-white/50 mt-1">Coming Soon</div>}
                             </div>
@@ -1764,7 +1766,7 @@ export default function CyberWizard() {
                         }}
                         onClick={() => setShowStatus(true)}
                       >
-                        🚀 Initialize UltrAI
+                        <Rocket className="inline-block w-4 h-4 mr-1" /> Initialize UltrAI
                 </button>
                     ) : (
                       <div className="mt-3">

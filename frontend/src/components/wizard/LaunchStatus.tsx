@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
+import { OutlineIcon } from "@components/icons/OutlineIcons";
+import { Zap, Activity, Check } from 'lucide-react';
 
 interface LaunchStatusProps {
   isComplete?: boolean;
@@ -24,14 +26,14 @@ export default function LaunchStatus({
 }: LaunchStatusProps) {
   const stages = useMemo(
     () => [
-      { key: 'boot', label: 'Initializing AI models', icon: '🚀', phase: 'initial', subtext: 'Activating GPT-5, Claude 4.1, Gemini 2.5...' },
-      { key: 'submit', label: 'Processing your query', icon: '📤', phase: 'initial', subtext: 'Optimizing prompts for each model...' },
-      { key: 'initial', label: 'Models generating initial responses', icon: '🧠', phase: 'initial', subtext: 'Parallel processing across all models...' },
-      { key: 'distribute', label: 'Cross-model intelligence sharing', icon: '🔁', phase: 'meta', subtext: 'Sharing insights between models...' },
-      { key: 'revise', label: 'Models refining responses', icon: '✨', phase: 'meta', subtext: 'Enhancing based on shared knowledge...' },
-      { key: 'meta_submit', label: 'Preparing meta-analysis', icon: '📊', phase: 'meta', subtext: 'Identifying patterns and consensus...' },
-      { key: 'meta_analyze', label: 'Synthesizing insights', icon: '🧪', phase: 'synthesis', subtext: 'Creating unified intelligence output...' },
-      { key: 'write', label: 'Creating Ultra Synthesis™ report', icon: '📄', phase: 'synthesis', subtext: 'Formatting final deliverables...' },
+      { key: 'boot', label: 'Initializing AI models', phase: 'initial', subtext: 'Activating GPT-5, Claude 4.1, Gemini 2.5...' },
+      { key: 'submit', label: 'Processing your query', phase: 'initial', subtext: 'Optimizing prompts for each model...' },
+      { key: 'initial', label: 'Models generating initial responses', phase: 'initial', subtext: 'Parallel processing across all models...' },
+      { key: 'distribute', label: 'Cross-model intelligence sharing', phase: 'meta', subtext: 'Sharing insights between models...' },
+      { key: 'revise', label: 'Models refining responses', phase: 'meta', subtext: 'Enhancing based on shared knowledge...' },
+      { key: 'meta_submit', label: 'Preparing meta-analysis', phase: 'meta', subtext: 'Identifying patterns and consensus...' },
+      { key: 'meta_analyze', label: 'Synthesizing insights', phase: 'synthesis', subtext: 'Creating unified intelligence output...' },
+      { key: 'write', label: 'Creating Ultra Synthesis™ report', phase: 'synthesis', subtext: 'Formatting final deliverables...' },
     ],
     []
   );
@@ -76,7 +78,7 @@ export default function LaunchStatus({
       <div className="relative z-10">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
-            <div className="text-2xl animate-pulse">⚡</div>
+            <Zap className="w-8 h-8 animate-pulse" />
             <div>
               <div className="text-sm font-bold uppercase tracking-wider">Ultra Synthesis™ Processing</div>
               <div className="text-xs text-white/60 mt-0.5">Orchestrating {Array.isArray(orchestratorResult?.models_used) ? orchestratorResult.models_used.length : '3'} AI models</div>
@@ -116,7 +118,15 @@ export default function LaunchStatus({
             return (
               <li key={st.key} className="ml-2">
                 <div className="flex items-start gap-2">
-                  <span className={`mt-0.5 text-base ${state === 'done' ? 'text-green-400' : state === 'current' ? 'text-cyan-300 animate-pulse' : 'text-white/40'}`}>{st.icon}</span>
+                  <div className={`mt-0.5 ${state === 'done' ? 'text-green-400' : state === 'current' ? 'text-cyan-300' : 'text-white/40'}`}>
+                    {state === 'done' ? (
+                      <Check className="w-5 h-5" />
+                    ) : state === 'current' ? (
+                      <Activity className="w-5 h-5 animate-pulse" />
+                    ) : (
+                      <OutlineIcon name={st.key} category="status" className="w-5 h-5" />
+                    )}
+                  </div>
                   <div className="flex-1">
                     <div className={`text-sm font-semibold ${state === 'pending' ? 'opacity-50' : ''} ${state === 'current' ? 'text-white' : ''}`}>{st.label}</div>
                     {st.subtext && (
@@ -154,14 +164,14 @@ export default function LaunchStatus({
           <>
             <div className="grid grid-cols-3 gap-3 mt-6 mb-4">
               <div className="bg-white/5 rounded-lg p-3 text-center border border-white/10">
-                <div className="text-2xl mb-1">🤖</div>
+                <OutlineIcon name="Models Used" category="status" className="w-8 h-8 mx-auto mb-1" />
                 <div className="text-[10px] font-semibold text-white/60 uppercase tracking-wider">Models Used</div>
                 <div className="text-[14px] font-bold text-green-300 mt-1">
                   {Array.isArray(orchestratorResult.models_used) ? orchestratorResult.models_used.length : '3'}
                 </div>
               </div>
               <div className="bg-white/5 rounded-lg p-3 text-center border border-white/10">
-                <div className="text-2xl mb-1">⚡</div>
+                <OutlineIcon name="Processing Time" category="status" className="w-8 h-8 mx-auto mb-1" />
                 <div className="text-[10px] font-semibold text-white/60 uppercase tracking-wider">Processing Time</div>
                 <div className="text-[14px] font-bold text-blue-300 mt-1">
                   {typeof orchestratorResult.processing_time === 'number'
@@ -170,7 +180,7 @@ export default function LaunchStatus({
                 </div>
               </div>
               <div className="bg-white/5 rounded-lg p-3 text-center border border-white/10">
-                <div className="text-2xl mb-1">🎯</div>
+                <OutlineIcon name="Pattern" category="status" className="w-8 h-8 mx-auto mb-1" />
                 <div className="text-[10px] font-semibold text-white/60 uppercase tracking-wider">Pattern</div>
                 <div className="text-[14px] font-bold text-purple-300 mt-1">
                   {orchestratorResult.pattern_used || 'Ultra'}
@@ -180,11 +190,11 @@ export default function LaunchStatus({
 
             {selectedAddons.length > 0 && (
               <div className="mb-4 p-4 bg-gradient-to-r from-purple-500/10 to-pink-500/10 rounded-lg border border-white/20">
-                <div className="text-[11px] font-semibold text-white/80 mb-3">✨ Enhanced Analysis Features:</div>
+                <div className="text-[11px] font-semibold text-white/80 mb-3 flex items-center gap-2"><OutlineIcon name="Enhanced" category="status" className="w-4 h-4" /> Enhanced Analysis Features:</div>
                 <div className="grid grid-cols-2 gap-2">
                   {selectedAddons.map((addon, idx) => (
                     <div key={idx} className="flex items-center gap-2 text-[11px] text-white/90">
-                      <span className="text-green-400">✓</span>
+                      <Check className="w-4 h-4 text-green-400" />
                       <span>{addon.label}</span>
                     </div>
                   ))}
@@ -202,7 +212,7 @@ export default function LaunchStatus({
                 }}
                 onClick={onViewResults}
               >
-                <span className="relative z-10">📄 View Full Results</span>
+                <span className="relative z-10 flex items-center justify-center gap-2"><OutlineIcon name="Results" category="action" className="w-5 h-5" /> View Full Results</span>
                 <div className="absolute inset-0 rounded-lg bg-gradient-to-r from-green-400 to-blue-400 opacity-0 group-hover:opacity-50 blur-xl transition-opacity duration-300" />
               </button>
 
@@ -211,7 +221,7 @@ export default function LaunchStatus({
                 style={{ border: '1px solid rgba(255,255,255,0.2)' }}
                 onClick={onStartNew}
               >
-                🔄 Start New Analysis
+                <span className="flex items-center justify-center gap-2"><OutlineIcon name="Restart" category="action" className="w-5 h-5" /> Start New Analysis</span>
               </button>
             </div>
           </>
