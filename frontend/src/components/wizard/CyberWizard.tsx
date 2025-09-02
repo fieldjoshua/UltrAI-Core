@@ -391,17 +391,17 @@ export default function CyberWizard() {
     let url;
     switch (bgTheme) {
       case 'morning':
-        url = '/bg-morning.png';
+        url = '/bg-morning.jpg';
         break;
       case 'afternoon':
-        url = '/bg-afternoon.png';
+        url = '/bg-afternoon.jpg';
         break;
       case 'sunset':
-        url = '/bg-sunset.png';
+        url = '/bg-sunset.jpg';
         break;
       case 'night':
       default:
-        url = '/bg-night.png';
+        url = '/bg-night.jpg';
         break;
     }
     return url;
