@@ -7,7 +7,11 @@
     "skipLibCheck": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@components/*": ["./src/components/*"],
+      "@api/*": ["./src/api/*"],
+      "@internal/*": ["./src/internal/*"],
+      "@skins/*": ["./src/skins/*"]
     },
     "types": ["vite/client"],
     "moduleResolution": "bundler",

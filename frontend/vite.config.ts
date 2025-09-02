@@ -25,6 +25,10 @@ export default defineConfig(({ mode }) => {
     resolve: {
       alias: {
         '@': path.resolve(__dirname, './src'),
+        '@components': path.resolve(__dirname, './src/components'),
+        '@api': path.resolve(__dirname, './src/api'),
+        '@internal': path.resolve(__dirname, './src/internal'),
+        '@skins': path.resolve(__dirname, './src/skins'),
         '/api': path.resolve(__dirname, './api'),
         'react': path.resolve(__dirname, 'node_modules/react'),
         'react-dom': path.resolve(__dirname, 'node_modules/react-dom'),

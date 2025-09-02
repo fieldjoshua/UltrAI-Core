@@ -1,6 +1,92 @@
 // Mock Orchestrator API for demo mode
 // Provides realistic simulated responses for demonstrations
 
+// Error simulation configuration
+const ERROR_SCENARIOS = {
+  NETWORK_TIMEOUT: 'network_timeout',
+  NO_MODELS_AVAILABLE: 'no_models_available',
+  AUTHENTICATION_FAILURE: 'authentication_failure',
+  NONE: 'none'
+};
+
+// Global error simulation state
+let currentErrorScenario = ERROR_SCENARIOS.NONE;
+let errorProbability = 0; // 0-1 probability of random errors
+
+// Error simulation control functions
+export function setErrorScenario(scenario) {
+  if (Object.values(ERROR_SCENARIOS).includes(scenario)) {
+    currentErrorScenario = scenario;
+    console.log(`Mock Orchestrator: Error scenario set to ${scenario}`);
+  }
+}
+
+export function setRandomErrorProbability(probability) {
+  errorProbability = Math.max(0, Math.min(1, probability));
+  console.log(`Mock Orchestrator: Random error probability set to ${errorProbability}`);
+}
+
+export function clearErrorSimulation() {
+  currentErrorScenario = ERROR_SCENARIOS.NONE;
+  errorProbability = 0;
+  console.log('Mock Orchestrator: Error simulation cleared');
+}
+
+// Helper to check if we should simulate an error
+function shouldSimulateError() {
+  if (currentErrorScenario !== ERROR_SCENARIOS.NONE) {
+    return currentErrorScenario;
+  }
+  if (Math.random() < errorProbability) {
+    // Randomly select an error scenario
+    const scenarios = [
+      ERROR_SCENARIOS.NETWORK_TIMEOUT,
+      ERROR_SCENARIOS.NO_MODELS_AVAILABLE,
+      ERROR_SCENARIOS.AUTHENTICATION_FAILURE
+    ];
+    return scenarios[Math.floor(Math.random() * scenarios.length)];
+  }
+  return null;
+}
+
+// Simulate network timeout
+async function simulateNetworkTimeout() {
+  // Wait for a realistic timeout period
+  await new Promise(resolve => setTimeout(resolve, 30000)); // 30 second timeout
+  throw new Error('Network timeout: Request took too long to complete');
+}
+
+// Simulate authentication failure
+function simulateAuthenticationFailure() {
+  const error = new Error('Authentication failed');
+  error.status = 401;
+  error.response = {
+    status: 401,
+    statusText: 'Unauthorized',
+    json: async () => ({
+      detail: 'Invalid or expired authentication token',
+      error_code: 'AUTH_FAILED'
+    })
+  };
+  throw error;
+}
+
+// Simulate no models available
+function simulateNoModelsAvailable() {
+  const error = new Error('No models available');
+  error.status = 503;
+  error.response = {
+    status: 503,
+    statusText: 'Service Unavailable',
+    json: async () => ({
+      detail: 'No AI models are currently available. All providers are experiencing issues.',
+      error_code: 'NO_MODELS_AVAILABLE',
+      available_models: []
+    })
+  };
+  throw error;
+}
+
 const DEMO_MODELS = [
   { id: 'gpt-5', provider: 'openai', cost_per_1k_tokens: 0.006 },
   { id: 'claude-4.1', provider: 'anthropic', cost_per_1k_tokens: 0.004 },
@@ -252,6 +338,22 @@ export async function processWithFeatherOrchestration({
   ultraModel = null,
   outputFormat = 'plain'
 }) {
+  // Check for error simulation
+  const errorScenario = shouldSimulateError();
+  if (errorScenario) {
+    switch (errorScenario) {
+      case ERROR_SCENARIOS.NETWORK_TIMEOUT:
+        await simulateNetworkTimeout();
+        break;
+      case ERROR_SCENARIOS.NO_MODELS_AVAILABLE:
+        simulateNoModelsAvailable();
+        break;
+      case ERROR_SCENARIOS.AUTHENTICATION_FAILURE:
+        simulateAuthenticationFailure();
+        break;
+    }
+  }
+  
   // Simulate network delay for initial processing (10x slower)
   await new Promise(resolve => setTimeout(resolve, 20000 + Math.random() * 5000));
   
@@ -305,6 +407,33 @@ export async function processWithFeatherOrchestration({
 }
 
 export async function getAvailableModels() {
+  // Check for error simulation
+  const errorScenario = shouldSimulateError();
+  if (errorScenario) {
+    switch (errorScenario) {
+      case ERROR_SCENARIOS.NETWORK_TIMEOUT:
+        await simulateNetworkTimeout();
+        break;
+      case ERROR_SCENARIOS.NO_MODELS_AVAILABLE:
+        // For getAvailableModels, return empty list instead of throwing
+        return {
+          models: [],
+          totalCount: 0,
+          providers: {
+            openai: [],
+            anthropic: [],
+            google: [],
+            groq: [],
+          },
+          modelInfos: {},
+          error: 'No models available'
+        };
+      case ERROR_SCENARIOS.AUTHENTICATION_FAILURE:
+        simulateAuthenticationFailure();
+        break;
+    }
+  }
+  
   // Simulate network delay (slower)
   await new Promise(resolve => setTimeout(resolve, 1000));
   
@@ -325,6 +454,26 @@ export async function getAvailableModels() {
 }
 
 export async function checkModelStatus(modelId) {
+  // Check for error simulation
+  const errorScenario = shouldSimulateError();
+  if (errorScenario) {
+    switch (errorScenario) {
+      case ERROR_SCENARIOS.NETWORK_TIMEOUT:
+        await simulateNetworkTimeout();
+        break;
+      case ERROR_SCENARIOS.NO_MODELS_AVAILABLE:
+        return {
+          available: false,
+          status: 'all_models_unavailable',
+          lastChecked: new Date().toISOString(),
+          error: 'No models are currently available'
+        };
+      case ERROR_SCENARIOS.AUTHENTICATION_FAILURE:
+        simulateAuthenticationFailure();
+        break;
+    }
+  }
+  
   // Simulate network delay
   await new Promise(resolve => setTimeout(resolve, 200));
   
@@ -335,5 +484,47 @@ export async function checkModelStatus(modelId) {
     available: !unavailableModels.includes(modelId),
     status: unavailableModels.includes(modelId) ? 'temporarily_unavailable' : 'ready',
     lastChecked: new Date().toISOString()
+  };
+}
+
+// Export error scenarios for testing
+export { ERROR_SCENARIOS };
+
+// Utility function for testing error scenarios
+export function simulateError(scenario, duration = null) {
+  if (scenario === 'random') {
+    // Enable random errors with 30% probability
+    setRandomErrorProbability(0.3);
+    console.log('Mock Orchestrator: Random errors enabled (30% probability)');
+    
+    if (duration) {
+      setTimeout(() => {
+        clearErrorSimulation();
+        console.log('Mock Orchestrator: Random errors disabled after timeout');
+      }, duration);
+    }
+  } else if (Object.values(ERROR_SCENARIOS).includes(scenario)) {
+    setErrorScenario(scenario);
+    console.log(`Mock Orchestrator: Simulating ${scenario} errors`);
+    
+    if (duration) {
+      setTimeout(() => {
+        clearErrorSimulation();
+        console.log(`Mock Orchestrator: ${scenario} simulation ended after timeout`);
+      }, duration);
+    }
+  } else {
+    console.error(`Mock Orchestrator: Unknown error scenario "${scenario}"`);
+  }
+}
+
+// Window-level access for browser console testing
+if (typeof window !== 'undefined') {
+  window.mockOrchestratorErrors = {
+    simulateError,
+    clearErrorSimulation,
+    setErrorScenario,
+    setRandomErrorProbability,
+    scenarios: ERROR_SCENARIOS
   };
 }

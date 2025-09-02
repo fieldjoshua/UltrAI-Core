@@ -21,6 +21,10 @@ export default {
   extensionsToTreatAsEsm: ['.ts', '.tsx'],
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
+    '^@components/(.*)$': '<rootDir>/src/components/$1',
+    '^@api/(.*)$': '<rootDir>/src/api/$1',
+    '^@internal/(.*)$': '<rootDir>/src/internal/$1',
+    '^@skins/(.*)$': '<rootDir>/src/skins/$1',
     '\\.(css|less|scss|sass)$': '<rootDir>/src/test/__mocks__/styleMock.js',
     '^@/services/api$': '<rootDir>/src/test/__mocks__/apiClientMock.ts',
     '^@reduxjs/toolkit$': '<rootDir>/src/test/__mocks__/rtkMock.js',
