@@ -117,7 +117,7 @@ export default function CyberWizard() {
     if (isDemoMode && userQuery === "") {
       // Pre-fill demo data
       setUserQuery("What are the best strategies for sustainable urban transportation?");
-      setSelectedModels(["gpt-4-turbo-preview", "claude-3-opus-20240229", "gemini-1.5-pro-latest"]);
+      setSelectedModels(["gpt-5", "claude-4.1", "gemini-2.5"]);
       setSelectedGoals(["Creative ideas", "Deep analysis"]);
       setSummary([
         { label: "Creative ideas", cost: 0.05, color: "mint", section: "1. Goals" },
@@ -182,21 +182,22 @@ export default function CyberWizard() {
       try {
         const d = await getAvailableModels();
         if (d && Array.isArray(d.models)) {
-          setAvailableModels(d.models);
+          // Normalize models to string[]
+          const names = d.models.map((m: any) => (typeof m === 'string' ? m : m.id || m.name)).filter(Boolean);
+          setAvailableModels(names as string[]);
           const statusMap: Record<string, 'checking' | 'ready' | 'error'> = {};
-          
-          // Check if we have modelInfos in the response
-          if (d.modelInfos) {
-            setAvailableModelInfos(d.modelInfos);
-            // Set all models as ready
-            d.models.forEach((modelName: string) => {
+
+          // If modelInfos present, store it; else build a minimal map
+          if ((d as any).modelInfos) {
+            setAvailableModelInfos((d as any).modelInfos);
+            names.forEach((modelName: string) => {
               statusMap[modelName] = 'ready';
             });
           } else {
-            // Legacy format - create info map from models array
             const infoMap: Record<string, { provider: string; cost_per_1k_tokens: number }> = {};
-            d.models.forEach((m: any) => {
-              const name = typeof m === 'string' ? m : m.name;
+            (d.models as any[]).forEach((m: any) => {
+              const name = typeof m === 'string' ? m : (m.id || m.name);
+              if (!name) return;
               infoMap[name] = {
                 provider: m.provider || '',
                 cost_per_1k_tokens: m.cost_per_1k_tokens || 0,
@@ -388,9 +389,9 @@ export default function CyberWizard() {
     const has = (n: string) => list.includes(n);
     if (pref === 'premium') {
       const picks = [
-        'gpt-4o',
-        'claude-3-5-sonnet-20241022',
-        'gemini-1.5-pro',
+        'gpt-5',
+        'claude-4.1',
+        'gemini-2.5',
       ].filter(has);
       return picks.length ? picks : list.slice(0, Math.min(3, list.length));
     }
