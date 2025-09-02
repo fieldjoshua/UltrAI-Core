@@ -13,12 +13,14 @@
     "narrative": "What do you want to create?",
     "options": [
       { "label": "Research", "icon": "🔬" },
+      { "label": "Writing & Content", "icon": "✍️" },
       { "label": "Document Analysis", "icon": "📄" },
-      { "label": "Personal Management", "icon": "📅" },
-      { "label": "Event/Travel Planning", "icon": "✈️" },
       { "label": "Code Creation", "icon": "💻" },
-      { "label": "Media Generation", "icon": "🎨" },
-      { "label": "Other", "icon": "✏️" }
+      { "label": "Business Strategy", "icon": "📊" },
+      { "label": "Creative Projects", "icon": "🎨" },
+      { "label": "Learning & Education", "icon": "📚" },
+      { "label": "Data Analysis", "icon": "📈" },
+      { "label": "Other", "icon": "✨" }
     ]
   },
   {
@@ -80,16 +82,15 @@
     "type": "checkbox",
     "narrative": "Choose how your result is delivered, secured, and polished.",
     "options": [
-      { "label": "PDF / Word / Markdown / Plain Text", "icon": "📄", "cost": 0.02 },
-      { "label": "Google Doc / Slide Deck", "icon": "📑", "cost": 0.03 },
-      { "label": "JSON / CSV Export", "icon": "🗄️", "cost": 0.02 },
-      { "label": "Encryption", "icon": "🔒", "cost": 0.05 },
-      { "label": "Data Privacy Mode (strip PII)", "icon": "🙈", "cost": 0.04 },
-      { "label": "Fact-check Confidence Report", "icon": "📊", "cost": 0.05 },
-      { "label": "Legal Compliance (GDPR/HIPAA)", "icon": "⚖️", "cost": 0.06 },
-      { "label": "Rewrite for Grade Level", "icon": "📘", "cost": 0.04 },
-      { "label": "Summarize / Expand", "icon": "📜", "cost": 0.06 },
-      { "label": "Save or Send (Email, Drive, Dropbox, Notion)", "icon": "📤", "cost": 0.03 }
+      { "label": "Export as PDF/Word", "icon": "📄", "cost": 0.02 },
+      { "label": "Priority Processing", "icon": "⚡", "cost": 0.05 },
+      { "label": "Advanced Formatting", "icon": "✨", "cost": 0.03 },
+      { "label": "Source Citations", "icon": "📚", "cost": 0.04 },
+      { "label": "Multi-Language", "icon": "🌍", "cost": 0.06 },
+      { "label": "Visual Diagrams", "icon": "📊", "cost": 0.05 },
+      { "label": "Email Summary", "icon": "📧", "cost": 0.02 },
+      { "label": "Version History", "icon": "🔄", "cost": 0.03 },
+      { "label": "Team Collaboration", "icon": "👥", "cost": 0.04 }
     ]
   }
 ]

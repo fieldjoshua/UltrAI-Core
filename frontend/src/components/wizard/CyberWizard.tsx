@@ -128,9 +128,15 @@ export default function CyberWizard() {
           const promptText = String(data?.prompt || '');
           // Use top models by default
           setSelectedModels(["gpt-5", "claude-4.1", "gemini-2.5"]);
-          // Show the steps with the prompt prefilled
-          setCurrentStep(1);
+          // Start at intro screen (step 0) and immediately begin typing
+          setCurrentStep(0);
           setStepFadeKey(k => k + 1);
+          
+          // Automatically advance to step 2 (query) after a brief pause on intro
+          setTimeout(() => {
+            setCurrentStep(2);
+            setStepFadeKey(k => k + 1);
+          }, 2000);
           // Ghost type the prompt for demo
           if (promptText) {
             setIsTypingDemo(true);
@@ -1197,7 +1203,7 @@ export default function CyberWizard() {
                       onChange={(e) => setUserQuery(e.target.value)}
                       onFocus={() => setQueryFocused(true)}
                       onBlur={() => setQueryFocused(false)}
-                      className={(isNonTimeSkin ? 'bg-white text-gray-900 placeholder:text-gray-500 border border-gray-300 ' : 'bg-white/5 text-white placeholder:text-white/60 ') + 'min-h-[200px] text-[13px] leading-6'}
+                      className={(isNonTimeSkin ? 'bg-white text-gray-900 placeholder:text-gray-500 border border-gray-300 ' : 'bg-white/5 text-white placeholder:text-white/60 ') + 'min-h-[320px] text-[14px] leading-7 resize-none'}
                     />
                     {/* Character counter */}
                     <div className="absolute bottom-2 right-2 text-[10px] transition-opacity duration-200" style={{
@@ -1496,6 +1502,47 @@ export default function CyberWizard() {
                           </div>
                         )}
                       </div>
+                    ) : (step.title || '').includes('Add-ons') ? (
+                      <div className="grid grid-cols-3 gap-2">
+                        {step.options.map(o => {
+                          const isSelected = summary.some(it => it.label === o.label && it.section === step.title);
+                          return (
+                            <div
+                              key={o.label}
+                              className="relative group cursor-pointer"
+                              onClick={() => isSelected ? removeSelectionCost(o.cost) : addSelection(o.label, o.cost, step.color, step.title)}
+                            >
+                              <div
+                                className="p-3 rounded-lg transition-all duration-200 hover:scale-105"
+                                style={{
+                                  background: isSelected 
+                                    ? `linear-gradient(135deg, ${mapColorRGBA(step.color, 0.2)}, ${mapColorRGBA(step.color, 0.3)})` 
+                                    : 'rgba(255, 255, 255, 0.05)',
+                                  backdropFilter: 'blur(20px)',
+                                  border: `2px solid ${isSelected ? colorHex : colorHex + '40'}`,
+                                  boxShadow: isSelected ? `0 0 20px ${colorHex}40` : `0 4px 12px ${colorHex}20`
+                                }}
+                              >
+                                <div className="text-center">
+                                  <div className="text-xl mb-1">{o.icon}</div>
+                                  <div className="text-[10px] font-semibold text-white leading-tight">{o.label}</div>
+                                  {typeof o.cost === 'number' && <div className="text-[9px] text-pink-400 mt-1">+${o.cost.toFixed(2)}</div>}
+                                </div>
+                                {isSelected && (
+                                  <div className="absolute top-1 right-1">
+                                    <div 
+                                      className="w-4 h-4 rounded-full flex items-center justify-center"
+                                      style={{ background: colorHex }}
+                                    >
+                                      <span className="text-white text-[10px]">✓</span>
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
                     ) : (
                       <div className="grid grid-cols-2 gap-2">
                       {step.options.map(o => (
@@ -1519,14 +1566,16 @@ export default function CyberWizard() {
                         return (
                           <div
                             key={o.label}
-                            className={`glass-panel border-2 rounded-lg p-2 transition-smooth hover:scale-[1.02] ${comingSoon ? 'opacity-30 pointer-events-none' : ''} ${already ? 'glow-' + step.color : ''}`}
+                            className={`glass-panel border-2 rounded-lg p-4 transition-smooth hover:scale-[1.02] ${comingSoon ? 'opacity-30 pointer-events-none' : ''} ${already ? 'glow-' + step.color : ''}`}
                             style={{ 
                               borderColor: isLive ? colorHex : colorHex + '40',
                               background: already ? mapColorRGBA(step.color, 0.1) : 'rgba(255, 255, 255, 0.05)'
                             }}
                           >
-                            <div className="text-center mb-1">
-                              <div className="font-bold text-[12px] text-white">{o.icon ? `${o.icon} ` : ''}{o.label}</div>
+                            <div className="text-center mb-2">
+                              <div className="text-xl mb-1">{o.icon || '🎯'}</div>
+                              <div className="font-bold text-[14px] text-white leading-tight">{o.label.replace(' (Coming soon)', '')}</div>
+                              {comingSoon && <div className="text-[9px] text-white/50 mt-1">Coming Soon</div>}
                       </div>
                             {o.description && <div className="text-[10px] text-white/80 text-center leading-tight">{o.description}</div>}
                             {typeof o.cost === 'number' && <div className="text-[10px] text-center mt-1 text-pink-400">+${o.cost.toFixed(2)}</div>}
