@@ -4,8 +4,8 @@ body {
   color: var(--fg);
 }
 
-/* Apply background image when not in CyberWizard (which manages its own backgrounds) */
-body.skin-night:not(:has(.font-cyber)) {
+/* Apply background image for night skin */
+body.skin-night {
   background-image: url('/bg-night.jpeg');
   background-size: cover;
   background-position: center;

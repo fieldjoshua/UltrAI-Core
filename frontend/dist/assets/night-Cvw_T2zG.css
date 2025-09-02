@@ -1,1 +1,0 @@
-:root{--bg: #0b1020;--fg: #e8f0ff}body{background-color:var(--bg);color:var(--fg)}body.skin-night:not(:has(.font-cyber)){background-image:url(/bg-night.jpeg);background-size:cover;background-position:center;background-attachment:fixed}
