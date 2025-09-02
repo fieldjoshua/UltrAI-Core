@@ -1,7 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { useEffect, lazy, Suspense } from "react";
 import { useAuthStore } from "./stores/authStore";
-import { ProtectedRoute } from "./components/auth/ProtectedRoute";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { AnimatePresence, motion } from "framer-motion";
 
@@ -106,17 +105,15 @@ function App() {
                   <Route
                     path="/dashboard"
                     element={
-                      <ProtectedRoute>
-                        <motion.div
-                          key="dashboard"
-                          initial={{ opacity: 0, y: 10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, y: -10 }}
-                          transition={{ duration: 0.3 }}
-                        >
-                          <Dashboard />
-                        </motion.div>
-                      </ProtectedRoute>
+                      <motion.div
+                        key="dashboard"
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        transition={{ duration: 0.3 }}
+                      >
+                        <Dashboard />
+                      </motion.div>
                     }
                   />
                   <Route path="/wizard" element={<WizardPage />} />
