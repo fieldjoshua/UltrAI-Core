@@ -185,6 +185,26 @@ export async function processWithFeatherOrchestration({
   // Simulate network delay
   await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 2000));
   
+  // If a demo dataset is available, return it directly to reflect manual UltrAI search
+  try {
+    const demoRes = await fetch('/demo/ultrai_demo.json', { cache: 'no-store' });
+    if (demoRes.ok) {
+      const demo = await demoRes.json();
+      return {
+        status: 'success',
+        ultra_response: demo.ultra_response,
+        models_used: demo.models_used || ['gpt-4o', 'claude-3-5-sonnet-20241022', 'gemini-1.5-pro'],
+        processing_time: 2.5,
+        pattern_used: pattern,
+        initial_responses: {},
+        meta_analysis: { content: 'Loaded curated demo dataset', patterns: ['curated'], confidence: 0.99 },
+        ultra_synthesis: { content: demo.ultra_response, confidence: 0.99, synthesis_method: 'curated_demo' }
+      };
+    }
+  } catch (e) {
+    // Fallback to generated mock if demo file missing
+  }
+
   // Use provided models or select defaults
   let selectedModels = models || ['gpt-4o', 'claude-3-5-sonnet-20241022', 'gemini-1.5-pro'];
   
