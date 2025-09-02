@@ -25,14 +25,15 @@ interface SummaryItem { label: string; cost: number; color: string; section: str
 interface ReceiptSectionProps { sectionTitle: string; items: SummaryItem[] }
 
 const ReceiptSection = memo(function ReceiptSection({ sectionTitle, items }: ReceiptSectionProps) {
+  const dots = ". . . . . . . . . . . . . . . . . . . .";
   return (
-    <div>
-      <div className="uppercase text-[10px] tracking-wider mb-1 text-center text-white/80">{sectionTitle}</div>
+    <div className="mb-3">
+      <div className="uppercase text-[9px] tracking-[0.2em] mb-2 text-center text-white/60 font-bold">{sectionTitle}</div>
       {items.map((s, i) => (
-        <div key={i} className="text-[10px] leading-tight flex items-center text-white/85 hover:text-white transition-colors duration-200 group cursor-pointer">
-          <span className="flex-auto overflow-hidden text-ellipsis whitespace-nowrap group-hover:text-shadow-sm" title={s.label}>{s.label}</span>
-          <span className="px-1 select-none opacity-50 group-hover:opacity-70">. . . . . . . . . . .</span>
-          <span className="text-right w-14 group-hover:text-pink-400 transition-colors">${s.cost.toFixed(2)}</span>
+        <div key={i} className="text-[11px] leading-relaxed flex items-center text-white/85 hover:text-white transition-colors duration-200 group cursor-pointer mb-1">
+          <span className="flex-auto overflow-hidden text-ellipsis whitespace-nowrap group-hover:text-shadow-sm font-medium" title={s.label}>{s.label}</span>
+          <span className="px-1 select-none opacity-30 group-hover:opacity-50 text-[10px]">{dots}</span>
+          <span className="text-right w-16 group-hover:text-pink-400 transition-colors font-mono">${s.cost.toFixed(2)}</span>
         </div>
       ))}
     </div>
@@ -608,12 +609,12 @@ export default function CyberWizard() {
                 </button>
                 {isDemoMode && (
                   <button
-                    onClick={() => { setCurrentStep(2); setStepFadeKey(k => k + 1); }}
+                    onClick={() => { setCurrentStep(1); setStepFadeKey(k => k + 1); }}
                     className="px-8 py-3 text-sm font-semibold rounded-lg border-2 border-cyan-400/50 text-cyan-400 hover:bg-cyan-400/10 transition-all duration-200"
                   >
                     <span className="flex items-center gap-2 justify-center">
                       <span>🎬</span>
-                      <span>Skip to Demo</span>
+                      <span>Try Demo</span>
                     </span>
                   </button>
                 )}
@@ -945,36 +946,97 @@ export default function CyberWizard() {
                   <div className="flex-1 overflow-auto">
                     {/* Results view */}
                     {showResults && !!orchestratorResult && !orchestratorError ? (
-                      <div className="max-w-3xl mx-auto">
-                        <div className="mb-3 flex items-center justify-between">
-                          <div className="text-sm font-semibold text-white/80">Final Document</div>
-                          <div className="flex gap-2">
-                            <button
-                              className="px-3 py-1.5 text-xs rounded border border-white/20 text-white/80 hover:text-white hover:bg-white/10"
-                              onClick={() => {
-                                const text = String((orchestratorResult as any)?.ultra_response || '');
-                                navigator.clipboard?.writeText(text).catch(() => {});
-                              }}
-                            >Copy</button>
-                            <button
-                              className="px-3 py-1.5 text-xs rounded border border-white/20 text-white/80 hover:text-white hover:bg-white/10"
-                              onClick={() => {
-                                const text = String((orchestratorResult as any)?.ultra_response || '');
-                                const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
-                                const url = URL.createObjectURL(blob);
-                                const a = document.createElement('a');
-                                a.href = url;
-                                a.download = 'ultrai_synthesis.txt';
-                                document.body.appendChild(a);
-                                a.click();
-                                a.remove();
-                                URL.revokeObjectURL(url);
-                              }}
-                            >Download</button>
+                      <div className="space-y-4">
+                        {/* Ultra Synthesis Report */}
+                        <div>
+                          <div className="mb-3 flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <span className="text-lg">📄</span>
+                              <div className="text-sm font-bold text-white">Ultra Synthesis™ Report</div>
+                            </div>
+                            <div className="flex gap-2">
+                              <button
+                                className="px-3 py-1.5 text-xs rounded-lg border-2 text-cyan-400 border-cyan-400/50 hover:bg-cyan-400/10 transition-all"
+                                onClick={() => {
+                                  const text = String((orchestratorResult as any)?.ultra_response || '');
+                                  navigator.clipboard?.writeText(text).catch(() => {});
+                                }}
+                              >📋 Copy</button>
+                              <button
+                                className="px-3 py-1.5 text-xs rounded-lg border-2 text-green-400 border-green-400/50 hover:bg-green-400/10 transition-all"
+                                onClick={() => {
+                                  const text = String((orchestratorResult as any)?.ultra_response || '');
+                                  const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+                                  const url = URL.createObjectURL(blob);
+                                  const a = document.createElement('a');
+                                  a.href = url;
+                                  a.download = 'ultrai_synthesis.txt';
+                                  document.body.appendChild(a);
+                                  a.click();
+                                  a.remove();
+                                  URL.revokeObjectURL(url);
+                                }}
+                              >💾 Download</button>
+                            </div>
+                          </div>
+                          <div className="rounded-lg border-2 bg-black/60 p-4 overflow-auto" 
+                               style={{
+                                 maxHeight: 300,
+                                 borderColor: colorHex + '40',
+                                 boxShadow: `0 0 20px ${colorHex}20`
+                               }}>
+                            <pre className="whitespace-pre-wrap text-[13px] leading-relaxed text-white/90 font-mono">{String((orchestratorResult as any)?.ultra_response || '')}</pre>
                           </div>
                         </div>
-                        <div className="rounded-lg border border-white/10 bg-black/30 p-4 overflow-auto" style={{maxHeight: 360}}>
-                          <pre className="whitespace-pre-wrap text-[12px] leading-relaxed text-white/90">{String((orchestratorResult as any)?.ultra_response || '')}</pre>
+                        
+                        {/* Model Outputs Section */}
+                        {orchestratorResult?.initial_responses && (
+                          <div>
+                            <div className="text-sm font-bold text-white mb-3 flex items-center gap-2">
+                              <span>🧠</span>
+                              <span>Individual Model Outputs</span>
+                            </div>
+                            <div className="grid grid-cols-1 gap-3">
+                              {Object.entries(orchestratorResult.initial_responses).map(([model, response]: [string, any]) => (
+                                <div key={model} className="border rounded-lg p-3 bg-black/40"
+                                     style={{ borderColor: colorHex + '20' }}>
+                                  <div className="flex items-center justify-between mb-2">
+                                    <div className="text-xs font-bold text-white/80">{model}</div>
+                                    <div className="text-[10px] text-white/50">
+                                      {response.processingTime?.toFixed(1)}s • {(response.confidence * 100).toFixed(0)}% confidence
+                                    </div>
+                                  </div>
+                                  <div className="text-[11px] text-white/70 line-clamp-3">
+                                    {response.content}
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        
+                        {/* Action Buttons */}
+                        <div className="flex justify-center gap-3 pt-4">
+                          <button
+                            onClick={() => setShowResults(false)}
+                            className="px-6 py-2 text-sm rounded-lg border-2 text-white border-white/30 hover:bg-white/10 transition-all"
+                          >
+                            ← Back to Status
+                          </button>
+                          <button
+                            onClick={() => {
+                              setShowStatus(false);
+                              setCurrentStep(0);
+                              setSummary([]);
+                              setTotalCost(0);
+                              setOrchestratorResult(null);
+                              setOrchestratorError(null);
+                              setShowResults(false);
+                            }}
+                            className="px-6 py-2 text-sm rounded-lg bg-gradient-to-r from-cyan-500 to-purple-500 text-white hover:shadow-lg transition-all"
+                          >
+                            Start New Analysis →
+                          </button>
                         </div>
                       </div>
                     ) : (
@@ -1158,7 +1220,7 @@ export default function CyberWizard() {
                       onChange={(e) => setUserQuery(e.target.value)}
                       onFocus={() => setQueryFocused(true)}
                       onBlur={() => setQueryFocused(false)}
-                      className="bg-black/40 text-white placeholder:text-white/50 border-2 min-h-[400px] text-[16px] leading-7 resize-none rounded-lg p-4"
+                      className="bg-black/60 text-white placeholder:text-white/50 border-2 min-h-[500px] text-[16px] leading-7 resize-none rounded-lg p-4"
                       style={{ borderColor: colorHex + '60' }}
                     />
                     {/* Character counter */}
@@ -1215,23 +1277,29 @@ export default function CyberWizard() {
 
                 {step.type === "checkbox" && step.options && (
                   currentStep === 1 ? (
-                    <div className="grid grid-cols-3 gap-4">
+                    <div className="grid grid-cols-3 gap-3" style={{ height: 'calc(100% - 20px)' }}>
                       {step.options.slice(0, 9).map(o => (
-                        <label key={o.label} className="flex flex-col items-center p-4 border-2 rounded-lg cursor-pointer transition-all hover:scale-105 hover:border-opacity-100"
-                               style={{
-                                 borderColor: selectedGoals.includes(o.label) ? colorHex : colorHex + '40',
-                                 background: selectedGoals.includes(o.label) ? `${mapColorRGBA(step.color, 0.2)}` : 'rgba(255,255,255,0.05)'
-                               }}>
-                          <div className="text-2xl mb-2">{o.icon}</div>
-                          <Checkbox onChange={() => handleGoalToggle(o.label)} checked={selectedGoals.includes(o.label)} className="mb-2" />
+                        <div
+                          key={o.label}
+                          onClick={() => handleGoalToggle(o.label)}
+                          className="flex flex-col items-center justify-center p-3 border-2 rounded-lg cursor-pointer transition-all hover:scale-105"
+                          style={{
+                            borderColor: selectedGoals.includes(o.label) ? colorHex : colorHex + '40',
+                            background: selectedGoals.includes(o.label) ? `${mapColorRGBA(step.color, 0.3)}` : 'rgba(255,255,255,0.05)',
+                            boxShadow: selectedGoals.includes(o.label) ? `0 0 20px ${colorHex}40` : 'none'
+                          }}>
+                          <div className="text-2xl mb-1">{o.icon}</div>
                           <span className="text-center text-sm font-medium text-white">{o.label}</span>
-                        </label>
+                        </div>
                       ))}
                     </div>
                   ) : (step.title || '').includes('Model selection') ? (
-                    <div className="space-y-4">
+                    <div className="space-y-4" style={{ height: 'calc(100% - 20px)' }}>
+                      <div className="text-center mb-4">
+                        <div className="text-sm font-bold text-white mb-2">Have UltrAI choose. Do you want a:</div>
+                      </div>
                       {/* Three horizontal boxes for model selection */}
-                      <div className="grid grid-cols-3 gap-2">
+                      <div className="grid grid-cols-3 gap-3">
                         {/* Premium Query Box */}
                         <div
                           className="glass-panel glass-grain border-2 rounded-lg p-3 cursor-pointer hover:scale-105 transition-smooth group"
@@ -1464,45 +1532,108 @@ export default function CyberWizard() {
                         )}
                       </div>
                     ) : (step.title || '').includes('Add-ons') ? (
-                      <div className="grid grid-cols-3 gap-2">
-                        {step.options.map(o => {
-                          const isSelected = summary.some(it => it.label === o.label && it.section === step.title);
-                          return (
-                            <div
-                              key={o.label}
-                              className="relative group cursor-pointer"
-                              onClick={() => isSelected ? removeSelectionCost(o.cost) : addSelection(o.label, o.cost, step.color, step.title)}
-                            >
-                              <div
-                                className="p-3 rounded-lg transition-all duration-200 hover:scale-105"
-                                style={{
-                                  background: isSelected 
-                                    ? `linear-gradient(135deg, ${mapColorRGBA(step.color, 0.2)}, ${mapColorRGBA(step.color, 0.3)})` 
-                                    : 'rgba(255, 255, 255, 0.05)',
-                                  backdropFilter: 'blur(20px)',
-                                  border: `2px solid ${isSelected ? colorHex : colorHex + '40'}`,
-                                  boxShadow: isSelected ? `0 0 20px ${colorHex}40` : `0 4px 12px ${colorHex}20`
-                                }}
-                              >
-                                <div className="text-center">
-                                  <div className="text-xl mb-1">{o.icon}</div>
-                                  <div className="text-[10px] font-semibold text-white leading-tight">{o.label}</div>
-                                  {typeof o.cost === 'number' && <div className="text-[9px] text-pink-400 mt-1">+${o.cost.toFixed(2)}</div>}
-                                </div>
-                                {isSelected && (
-                                  <div className="absolute top-1 right-1">
-                                    <div 
-                                      className="w-4 h-4 rounded-full flex items-center justify-center"
-                                      style={{ background: colorHex }}
-                                    >
-                                      <span className="text-white text-[10px]">✓</span>
+                      <div className="space-y-3" style={{ height: 'calc(100% - 20px)' }}>
+                        {/* Delivery Section */}
+                        <div>
+                          <div className="text-[11px] font-bold text-white/70 uppercase tracking-wider mb-2">Delivery</div>
+                          <div className="grid grid-cols-3 gap-2">
+                            {step.options.slice(0, 3).map(o => {
+                              const isSelected = summary.some(it => it.label === o.label && it.section === step.title);
+                              return (
+                                <div
+                                  key={o.label}
+                                  className="relative group cursor-pointer"
+                                  onClick={() => isSelected ? removeSelectionCost(o.cost) : addSelection(o.label, o.cost, step.color, step.title)}
+                                >
+                                  <div
+                                    className="p-2 rounded-lg transition-all duration-200 hover:scale-105"
+                                    style={{
+                                      background: isSelected 
+                                        ? 'rgba(0, 255, 159, 0.2)' 
+                                        : 'rgba(255, 255, 255, 0.05)',
+                                      border: `2px solid ${isSelected ? '#00ff9f' : '#00ff9f40'}`,
+                                      boxShadow: isSelected ? '0 0 15px rgba(0, 255, 159, 0.4)' : 'none'
+                                    }}
+                                  >
+                                    <div className="text-center">
+                                      <div className="text-lg mb-1">{o.icon}</div>
+                                      <div className="text-[9px] font-semibold text-white leading-tight">{o.label}</div>
+                                      {typeof o.cost === 'number' && <div className="text-[8px] text-green-400 mt-1">+${o.cost.toFixed(2)}</div>}
                                     </div>
                                   </div>
-                                )}
-                              </div>
-                            </div>
-                          );
-                        })}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                        
+                        {/* Security Section */}
+                        <div>
+                          <div className="text-[11px] font-bold text-white/70 uppercase tracking-wider mb-2">Security</div>
+                          <div className="grid grid-cols-3 gap-2">
+                            {step.options.slice(3, 6).map(o => {
+                              const isSelected = summary.some(it => it.label === o.label && it.section === step.title);
+                              return (
+                                <div
+                                  key={o.label}
+                                  className="relative group cursor-pointer"
+                                  onClick={() => isSelected ? removeSelectionCost(o.cost) : addSelection(o.label, o.cost, step.color, step.title)}
+                                >
+                                  <div
+                                    className="p-2 rounded-lg transition-all duration-200 hover:scale-105"
+                                    style={{
+                                      background: isSelected 
+                                        ? 'rgba(0, 212, 255, 0.2)' 
+                                        : 'rgba(255, 255, 255, 0.05)',
+                                      border: `2px solid ${isSelected ? '#00d4ff' : '#00d4ff40'}`,
+                                      boxShadow: isSelected ? '0 0 15px rgba(0, 212, 255, 0.4)' : 'none'
+                                    }}
+                                  >
+                                    <div className="text-center">
+                                      <div className="text-lg mb-1">{o.icon}</div>
+                                      <div className="text-[9px] font-semibold text-white leading-tight">{o.label}</div>
+                                      {typeof o.cost === 'number' && <div className="text-[8px] text-cyan-400 mt-1">+${o.cost.toFixed(2)}</div>}
+                                    </div>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                        
+                        {/* Polish Section */}
+                        <div>
+                          <div className="text-[11px] font-bold text-white/70 uppercase tracking-wider mb-2">Polish</div>
+                          <div className="grid grid-cols-3 gap-2">
+                            {step.options.slice(6, 9).map(o => {
+                              const isSelected = summary.some(it => it.label === o.label && it.section === step.title);
+                              return (
+                                <div
+                                  key={o.label}
+                                  className="relative group cursor-pointer"
+                                  onClick={() => isSelected ? removeSelectionCost(o.cost) : addSelection(o.label, o.cost, step.color, step.title)}
+                                >
+                                  <div
+                                    className="p-2 rounded-lg transition-all duration-200 hover:scale-105"
+                                    style={{
+                                      background: isSelected 
+                                        ? 'rgba(189, 0, 255, 0.2)' 
+                                        : 'rgba(255, 255, 255, 0.05)',
+                                      border: `2px solid ${isSelected ? '#bd00ff' : '#bd00ff40'}`,
+                                      boxShadow: isSelected ? '0 0 15px rgba(189, 0, 255, 0.4)' : 'none'
+                                    }}
+                                  >
+                                    <div className="text-center">
+                                      <div className="text-lg mb-1">{o.icon}</div>
+                                      <div className="text-[9px] font-semibold text-white leading-tight">{o.label}</div>
+                                      {typeof o.cost === 'number' && <div className="text-[8px] text-purple-400 mt-1">+${o.cost.toFixed(2)}</div>}
+                                    </div>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
                       </div>
                     ) : (
                       <div className="grid grid-cols-2 gap-2">
@@ -1519,7 +1650,7 @@ export default function CyberWizard() {
 
                 {step.type === "groupbox" && step.options && (
                   <>
-                    <div className="grid grid-cols-2 gap-2">
+                    <div className="grid grid-cols-2 gap-2" style={{ height: 'calc(100% - 20px)' }}>
                       {step.options.map(o => {
                         const comingSoon = (o.label || '').toLowerCase().includes('coming soon');
                         const isLive = !comingSoon;
@@ -1527,24 +1658,21 @@ export default function CyberWizard() {
                         return (
                           <div
                             key={o.label}
-                            className={`glass-panel border-2 rounded-lg p-4 transition-smooth hover:scale-[1.02] ${comingSoon ? 'opacity-30 pointer-events-none' : ''} ${already ? 'glow-' + step.color : ''}`}
+                            onClick={() => { if (isLive && !already) addSelection(o.label, o.cost, step.color, step.title); }}
+                            className={`glass-panel border-2 rounded-lg p-3 transition-smooth hover:scale-[1.02] cursor-pointer ${comingSoon ? 'opacity-30 pointer-events-none' : ''} ${already ? 'glow-' + step.color : ''}`}
                             style={{ 
-                              borderColor: isLive ? colorHex : colorHex + '40',
-                              background: already ? mapColorRGBA(step.color, 0.1) : 'rgba(255, 255, 255, 0.05)'
+                              borderColor: already ? colorHex : colorHex + '40',
+                              background: already ? mapColorRGBA(step.color, 0.2) : 'rgba(255, 255, 255, 0.05)',
+                              boxShadow: already ? `0 0 20px ${colorHex}40` : 'none'
                             }}
                           >
-                            <div className="text-center mb-2">
-                              <div className="text-xl mb-1">{o.icon || '🎯'}</div>
-                              <div className="font-bold text-[14px] text-white leading-tight">{o.label.replace(' (Coming soon)', '')}</div>
-                              {comingSoon && <div className="text-[9px] text-white/50 mt-1">Coming Soon</div>}
-                      </div>
-                            {o.description && <div className="text-[10px] text-white/80 text-center leading-tight">{o.description}</div>}
-                            {typeof o.cost === 'number' && <div className="text-[10px] text-center mt-1 text-pink-400">+${o.cost.toFixed(2)}</div>}
-                            {isLive && (
-                              <div className="mt-1 flex justify-center">
-                                <input type="radio" name="analysis-choice" checked={already} onChange={() => { if (!already) addSelection(o.label, o.cost, step.color, step.title); }} />
-                  </div>
-                            )}
+                            <div className="text-center">
+                              <div className="text-lg mb-1">{o.icon || '🎯'}</div>
+                              <div className="font-bold text-[12px] text-white leading-tight">{o.label.replace(' (Coming soon)', '')}</div>
+                              {comingSoon && <div className="text-[8px] text-white/50 mt-1">Coming Soon</div>}
+                            </div>
+                            {o.description && <div className="text-[9px] text-white/70 text-center leading-tight mt-2">{o.description}</div>}
+                            {typeof o.cost === 'number' && <div className="text-[9px] text-center mt-1 text-pink-400 font-bold">+${o.cost.toFixed(2)}</div>}
                           </div>
                         );
                       })}
@@ -1576,7 +1704,7 @@ export default function CyberWizard() {
                       }
                     }}
                   >
-                    {currentStep === steps.length - 1 ? "Submit Add-ons" : currentStep === 2 ? "Launch Ultra Analysis 🚀" : "Next Step"}
+                    {currentStep === steps.length - 1 ? "Submit Add-ons" : "Next Step"}
                   </button>
                 </div>
               )}
@@ -1608,9 +1736,15 @@ export default function CyberWizard() {
               }}>
               {!showStatus ? (
                 <>
-                  <div className="text-center mb-2">
-                    <div className="text-[14px] font-extrabold tracking-[0.35em] text-white">ULTRAI</div>
-                    <div className="text-[10px] text-white/70">— ITEMIZED RECEIPT —</div>
+                  <div className="text-center mb-4 pb-3 border-b border-white/20">
+                    <div className="flex items-center justify-center gap-2 mb-2">
+                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-pink-500 to-cyan-500 flex items-center justify-center">
+                        <span className="text-white font-bold text-xs">U</span>
+                      </div>
+                      <div className="text-[16px] font-extrabold tracking-[0.2em] text-white">ULTRAI</div>
+                    </div>
+                    <div className="text-[9px] text-white/60 font-mono">ITEMIZED RECEIPT</div>
+                    <div className="text-[8px] text-white/40 font-mono mt-1">#{Date.now().toString(36).toUpperCase()}</div>
                   </div>
                   <div className="space-y-2" style={{ maxHeight: '360px', overflowY: 'auto', paddingRight: 6 }}>
                     {receiptSections}

@@ -68,7 +68,7 @@
     "title": "4. Model selection",
     "color": "deepblue",
     "type": "checkbox",
-    "narrative": "Let UltrAI choose models automatically (with preferences), or manually select from available models.",
+    "narrative": "Which AI models do you want to perform your query?",
     "options": [
       { "label": "Auto: Cost-Saving", "icon": "💲", "cost": 0.00 },
       { "label": "Auto: Premium Quality", "icon": "🎯", "cost": 0.00 },

@@ -24,14 +24,14 @@ export default function LaunchStatus({
 }: LaunchStatusProps) {
   const stages = useMemo(
     () => [
-      { key: 'boot', label: 'Initializing AI models', icon: '🚀', phase: 'initial' },
-      { key: 'submit', label: 'Processing your query', icon: '📤', phase: 'initial' },
-      { key: 'initial', label: 'Models generating initial responses', icon: '🧠', phase: 'initial' },
-      { key: 'distribute', label: 'Cross-model intelligence sharing', icon: '🔁', phase: 'meta' },
-      { key: 'revise', label: 'Models refining responses', icon: '✍️', phase: 'meta' },
-      { key: 'meta_submit', label: 'Preparing meta-analysis', icon: '📑', phase: 'meta' },
-      { key: 'meta_analyze', label: 'Synthesizing insights', icon: '🧪', phase: 'synthesis' },
-      { key: 'write', label: 'Creating Ultra Synthesis™ report', icon: '📄', phase: 'synthesis' },
+      { key: 'boot', label: 'Initializing AI models', icon: '🚀', phase: 'initial', subtext: 'Activating GPT-5, Claude 4.1, Gemini 2.5...' },
+      { key: 'submit', label: 'Processing your query', icon: '📤', phase: 'initial', subtext: 'Optimizing prompts for each model...' },
+      { key: 'initial', label: 'Models generating initial responses', icon: '🧠', phase: 'initial', subtext: 'Parallel processing across all models...' },
+      { key: 'distribute', label: 'Cross-model intelligence sharing', icon: '🔁', phase: 'meta', subtext: 'Sharing insights between models...' },
+      { key: 'revise', label: 'Models refining responses', icon: '✨', phase: 'meta', subtext: 'Enhancing based on shared knowledge...' },
+      { key: 'meta_submit', label: 'Preparing meta-analysis', icon: '📊', phase: 'meta', subtext: 'Identifying patterns and consensus...' },
+      { key: 'meta_analyze', label: 'Synthesizing insights', icon: '🧪', phase: 'synthesis', subtext: 'Creating unified intelligence output...' },
+      { key: 'write', label: 'Creating Ultra Synthesis™ report', icon: '📄', phase: 'synthesis', subtext: 'Formatting final deliverables...' },
     ],
     []
   );
@@ -44,8 +44,8 @@ export default function LaunchStatus({
       return;
     }
     if (hasError) return;
-    // Realistic timing: ~35s per stage for 5-7 minute total
-    const intervalMs = 35000;
+    // Dynamic timing: 5s per stage for ~40s total demo experience
+    const intervalMs = 5000;
     const t = setInterval(() => {
       setStageIndex((i) => Math.min(i + 1, stages.length - 2));
     }, intervalMs);
@@ -84,7 +84,7 @@ export default function LaunchStatus({
           </div>
           {!isComplete && (
             <div className="text-xs text-white/60">
-              Est. {Math.floor((stages.length - current) * 35 / 60)} min remaining
+              Est. {Math.max(5, (stages.length - current) * 5)}s remaining
             </div>
           )}
         </div>
@@ -117,17 +117,32 @@ export default function LaunchStatus({
               <li key={st.key} className="ml-2">
                 <div className="flex items-start gap-2">
                   <span className={`mt-0.5 text-base ${state === 'done' ? 'text-green-400' : state === 'current' ? 'text-cyan-300 animate-pulse' : 'text-white/40'}`}>{st.icon}</span>
-                  <div>
-                    <div className={`text-sm font-semibold ${state === 'pending' ? 'opacity-50' : ''}`}>{st.label}</div>
-                    {state === 'current' && (
-                      <div className="mt-1 flex items-center gap-2">
-                        <div className="h-1.5 w-36 bg-white/10 rounded overflow-hidden">
-                          <div className="h-full bg-gradient-to-r from-cyan-400 to-orange-400 animate-pulse w-1/2"></div>
-                        </div>
-                        <div className="text-[10px] text-cyan-300 animate-pulse">Processing...</div>
+                  <div className="flex-1">
+                    <div className={`text-sm font-semibold ${state === 'pending' ? 'opacity-50' : ''} ${state === 'current' ? 'text-white' : ''}`}>{st.label}</div>
+                    {st.subtext && (
+                      <div className={`text-[10px] ${state === 'current' ? 'text-cyan-300/80' : 'text-white/40'} mt-0.5`}>
+                        {st.subtext}
                       </div>
                     )}
-                    {state === 'done' && <div className="text-xs text-white/50 mt-0.5">Complete</div>}
+                    {state === 'current' && (
+                      <div className="mt-2 flex items-center gap-2">
+                        <div className="h-1.5 w-40 bg-white/10 rounded-full overflow-hidden">
+                          <div className="h-full bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 rounded-full" 
+                               style={{
+                                 width: '30%',
+                                 animation: 'slideProgress 2s ease-in-out infinite'
+                               }}></div>
+                        </div>
+                        <div className="flex gap-1">
+                          <span className="w-1 h-1 bg-cyan-400 rounded-full animate-pulse"></span>
+                          <span className="w-1 h-1 bg-purple-400 rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></span>
+                          <span className="w-1 h-1 bg-pink-400 rounded-full animate-pulse" style={{ animationDelay: '0.4s' }}></span>
+                        </div>
+                      </div>
+                    )}
+                    {state === 'done' && <div className="text-[10px] text-green-400/70 mt-0.5 flex items-center gap-1">
+                      <span>✓</span> Complete
+                    </div>}
                   </div>
                 </div>
               </li>

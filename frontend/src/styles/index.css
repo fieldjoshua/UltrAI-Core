@@ -7,6 +7,15 @@
 @tailwind components;
 @tailwind utilities;
 
+@keyframes slideProgress {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(400%);
+  }
+}
+
 @layer base {
   :root {
     --background: 224 71% 4%;
