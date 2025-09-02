@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState, useMemo, useCallback, memo } from "react";
+import { useEffect, useState, useMemo, useCallback, memo, useRef } from "react";
 import { Button } from "./ui/button";
 import { Checkbox } from "./ui/checkbox";
 import { Card } from "./ui/card";
@@ -90,6 +90,9 @@ export default function CyberWizard() {
   const [isOptimizing] = useState<boolean>(false);
   const [optimizationStep] = useState<number>(0);
   const [modelStatuses, setModelStatuses] = useState<Record<string, 'checking' | 'ready' | 'error'>>({});
+  // Demo typing effect
+  const typingIntervalRef = useRef<number | null>(null);
+  const [isTypingDemo, setIsTypingDemo] = useState<boolean>(false);
   // Sync bgTheme with currentSkin for non-minimalist skins
   const [bgTheme, setBgTheme] = useState<'morning' | 'afternoon' | 'sunset' | 'night'>('night');
   
@@ -116,23 +119,51 @@ export default function CyberWizard() {
   // Auto-populate demo data when in demo mode using curated dataset (no auto-run)
   useEffect(() => {
     (async () => {
-      if (!isDemoMode || userQuery !== "") return;
+      if (!isDemoMode) return;
       try {
         const resp = await fetch('/demo/ultrai_demo.json', { cache: 'no-store' });
         if (resp.ok) {
           const data = await resp.json();
-          if (data?.prompt) setUserQuery(String(data.prompt));
+          const promptText = String(data?.prompt || '');
           // Use top models by default
           setSelectedModels(["gpt-5", "claude-4.1", "gemini-2.5"]);
           // Show the steps with the prompt prefilled
           setCurrentStep(1);
           setStepFadeKey(k => k + 1);
+          // Ghost type the prompt for demo
+          if (promptText) {
+            setIsTypingDemo(true);
+            setUserQuery("");
+            if (typingIntervalRef.current) {
+              clearInterval(typingIntervalRef.current);
+              typingIntervalRef.current = null;
+            }
+            const speedMs = 30;
+            typingIntervalRef.current = window.setInterval(() => {
+              setUserQuery((prev) => {
+                const next = promptText.slice(0, prev.length + 1);
+                if (next.length >= promptText.length) {
+                  if (typingIntervalRef.current) clearInterval(typingIntervalRef.current);
+                  typingIntervalRef.current = null;
+                  setIsTypingDemo(false);
+                }
+                return next;
+              });
+            }, speedMs);
+          }
         }
       } catch (e) {
         console.error('Failed to load demo dataset', e);
       }
     })();
-  }, [isDemoMode, userQuery]);
+    return () => {
+      if (typingIntervalRef.current) {
+        clearInterval(typingIntervalRef.current);
+        typingIntervalRef.current = null;
+      }
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isDemoMode]);
 
   useEffect(() => {
     const load = async () => {
@@ -1154,7 +1185,7 @@ export default function CyberWizard() {
                       onChange={(e) => setUserQuery(e.target.value)}
                       onFocus={() => setQueryFocused(true)}
                       onBlur={() => setQueryFocused(false)}
-                      className={isNonTimeSkin ? 'bg-white text-gray-900 placeholder:text-gray-500 border border-gray-300' : 'bg-white/5 text-white placeholder:text-white/60'}
+                      className={(isNonTimeSkin ? 'bg-white text-gray-900 placeholder:text-gray-500 border border-gray-300 ' : 'bg-white/5 text-white placeholder:text-white/60 ') + 'min-h-[200px] text-[13px] leading-6'}
                     />
                     {/* Character counter */}
                     <div className="absolute bottom-2 right-2 text-[10px] transition-opacity duration-200" style={{
@@ -1164,7 +1195,7 @@ export default function CyberWizard() {
                       {userQuery.length} / 1000
                     </div>
                     {/* Dynamic typing indicator */}
-                    {queryFocused && userQuery.length > 0 && (
+                    {(queryFocused || isTypingDemo) && userQuery.length > 0 && (
                       <div className="absolute -top-6 left-0 text-[10px] animate-fade-in text-white" style={{ color: undefined }}>
                         <span className="animate-pulse">✨</span> AI is ready to enhance your query...
                       </div>
