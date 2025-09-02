@@ -638,7 +638,7 @@ export default function CyberWizard() {
 
 
   return (
-    <div className="relative flex flex-col min-h-screen w-full text-white font-cyber text-sm">
+    <div className={`relative flex flex-col min-h-screen w-full ${isNonTimeSkin ? 'text-gray-900' : 'text-white'} font-cyber text-sm`}>
       {/* Skip link for keyboard users */}
       <a href="#main-content" className="sr-only focus:not-sr-only fixed top-2 left-2 z-50 bg-black text-white px-3 py-2 rounded">
         Skip to content
