@@ -73,7 +73,7 @@ const apiClient: AxiosInstance = axios.create({
 
 // If in demo/mock mode, install a lightweight mock adapter
 if (appConfig.apiMode === 'mock') {
-  const latencyMs = Number(viteEnvApi.VITE_MOCK_LATENCY_MS ?? 500);
+  const latencyMs = Number(viteEnvApi.VITE_MOCK_LATENCY_MS ?? 5000);
 
   apiClient.interceptors.request.use(async (cfg) => {
     // Simulate latency

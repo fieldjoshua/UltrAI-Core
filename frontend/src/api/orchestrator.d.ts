@@ -31,13 +31,16 @@ export function processWithFeatherOrchestration(
 ): Promise<OrchestratorResponse>;
 
 export function getAvailableModels(): Promise<{
-  models: Array<{
-    id: string;
-    name: string;
-    provider: string;
-    status: string;
-  }>;
+  models:
+    | string[]
+    | Array<{
+        id: string;
+        name?: string;
+        provider?: string;
+        status?: string;
+      }>;
   totalCount: number;
+  modelInfos?: Record<string, { provider: string; cost_per_1k_tokens: number }>;
 }>;
 
 export function checkModelStatus(modelId: string): Promise<{
