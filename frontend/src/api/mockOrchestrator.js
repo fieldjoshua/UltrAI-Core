@@ -252,8 +252,8 @@ export async function processWithFeatherOrchestration({
   ultraModel = null,
   outputFormat = 'plain'
 }) {
-  // Simulate network delay for initial processing (slower for demo realism)
-  await new Promise(resolve => setTimeout(resolve, 7000 + Math.random() * 3000));
+  // Simulate network delay for initial processing (10x slower)
+  await new Promise(resolve => setTimeout(resolve, 20000 + Math.random() * 5000));
   
   // Use provided models or select defaults (top models)
   let selectedModels = models || ['gpt-5', 'claude-4.1', 'gemini-2.5'];
@@ -267,8 +267,8 @@ export async function processWithFeatherOrchestration({
   // Generate initial responses
   const initialResponses = {};
   for (const model of selectedModels) {
-    // Simulate per-model delay (significantly slower)
-    await new Promise(resolve => setTimeout(resolve, 5000 + Math.random() * 3000));
+    // Simulate per-model delay (10x slower)
+    await new Promise(resolve => setTimeout(resolve, 15000 + Math.random() * 5000));
     initialResponses[model] = {
       content: `[${model}] Initial analysis of: "${prompt.slice(0, 50)}..."`,
       processingTime: 7.5 + Math.random() * 2,
@@ -276,23 +276,23 @@ export async function processWithFeatherOrchestration({
     };
   }
   
-  // Generate meta analysis (slower)
-  await new Promise(resolve => setTimeout(resolve, 8000 + Math.random() * 4000));
+  // Generate meta analysis (10x slower)
+  await new Promise(resolve => setTimeout(resolve, 20000 + Math.random() * 8000));
   const metaAnalysis = {
     content: `Meta-analysis identified ${Object.keys(initialResponses).length} key patterns across models with 92% consensus rate.`,
     patterns: ['consensus', 'divergence', 'synthesis'],
     confidence: 0.91
   };
   
-  // Generate ultra synthesis (slower)
-  await new Promise(resolve => setTimeout(resolve, 10000 + Math.random() * 5000));
+  // Generate ultra synthesis (10x slower)
+  await new Promise(resolve => setTimeout(resolve, 30000 + Math.random() * 10000));
   const ultraResponse = generateDemoResponse(prompt, selectedModels);
   
   return {
     status: 'success',
     ultra_response: ultraResponse,
     models_used: selectedModels,
-    processing_time: 55 + Math.random() * 15,
+    processing_time: 300 + Math.random() * 120,
     pattern_used: pattern,
     initial_responses: initialResponses,
     meta_analysis: metaAnalysis,

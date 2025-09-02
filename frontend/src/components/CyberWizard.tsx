@@ -112,20 +112,25 @@ export default function CyberWizard() {
   // Check if we're in demo/mock mode based on environment
   const isDemoMode = import.meta.env.VITE_API_MODE === 'mock' || import.meta.env.VITE_DEMO_MODE === 'true';
 
-  // Auto-populate demo data when in demo mode
+  // Auto-populate demo data when in demo mode using curated dataset
   useEffect(() => {
-    if (isDemoMode && userQuery === "") {
-      // Pre-fill demo data
-      setUserQuery("What are the best strategies for sustainable urban transportation?");
-      setSelectedModels(["gpt-5", "claude-4.1", "gemini-2.5"]);
-      setSelectedGoals(["Creative ideas", "Deep analysis"]);
-      setSummary([
-        { label: "Creative ideas", cost: 0.05, color: "mint", section: "1. Goals" },
-        { label: "Deep analysis", cost: 0.08, color: "mint", section: "1. Goals" }
-      ]);
-      setTotalCost(0.13);
-    }
-  }, [isDemoMode]);
+    (async () => {
+      if (!isDemoMode || userQuery !== "") return;
+      try {
+        const resp = await fetch('/demo/ultrai_demo.json', { cache: 'no-store' });
+        if (resp.ok) {
+          const data = await resp.json();
+          if (data?.prompt) setUserQuery(String(data.prompt));
+          // Use top models by default
+          setSelectedModels(["gpt-5", "claude-4.1", "gemini-2.5"]);
+          // Kick off processing automatically
+          setShowStatus(true);
+        }
+      } catch (e) {
+        console.error('Failed to load demo dataset', e);
+      }
+    })();
+  }, [isDemoMode, userQuery]);
 
   useEffect(() => {
     const load = async () => {
@@ -926,11 +931,7 @@ export default function CyberWizard() {
                   <div className="text-center mb-4">
                     <div className="text-[16px] font-extrabold tracking-[0.35em] text-white">ULTRA SYNTHESIS™</div>
                     <div className="text-[10px] text-white/90">— PROCESSING STATUS —</div>
-                    {isDemoMode && (
-                      <div className="mt-2 inline-flex items-center gap-2 px-3 py-1 rounded-full bg-green-500/20 border border-green-400/50">
-                        <span className="text-green-300 text-[11px] font-medium">🎮 DEMO MODE</span>
-                      </div>
-                    )}
+                    {/* Demo badge removed per request */}
                   </div>
                   
                   <div className="flex-1 overflow-auto">
@@ -1125,6 +1126,7 @@ export default function CyberWizard() {
                       onChange={(e) => setUserQuery(e.target.value)}
                       onFocus={() => setQueryFocused(true)}
                       onBlur={() => setQueryFocused(false)}
+                      className={isNonTimeSkin ? 'bg-white text-gray-900 placeholder:text-gray-500 border border-gray-300' : 'bg-white/5 text-white placeholder:text-white/60'}
                     />
                     {/* Character counter */}
                     <div className="absolute bottom-2 right-2 text-[10px] transition-opacity duration-200" style={{
@@ -1418,6 +1420,7 @@ export default function CyberWizard() {
                               placeholder="Describe your custom goal..."
                               value={otherGoalText}
                               onChange={(e) => setOtherGoalText(e.target.value)}
+                              className={isNonTimeSkin ? 'bg-white text-gray-900 placeholder:text-gray-500 border border-gray-300' : 'bg-white/5 text-white placeholder:text-white/60'}
                             />
                           </div>
                         )}
