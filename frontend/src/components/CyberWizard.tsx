@@ -348,17 +348,17 @@ export default function CyberWizard() {
     let url;
     switch (bgTheme) {
       case 'morning':
-        url = '/bg-morning.jpeg';
+        url = '/bg-morning.png';
         break;
       case 'afternoon':
-        url = '/bg-afternoon.jpg';
+        url = '/bg-afternoon.png';
         break;
       case 'sunset':
-        url = '/bg-sunset.jpeg';
+        url = '/bg-sunset.png';
         break;
       case 'night':
       default:
-        url = '/bg-night.jpeg';
+        url = '/bg-night.png';
         break;
     }
     return url;
@@ -458,12 +458,13 @@ export default function CyberWizard() {
         {/* Animated Background */}
         <div className="absolute inset-0">
           <div
-            className="absolute inset-0 animate-pulse-slow"
+            className="absolute inset-0"
             style={{
               backgroundImage: "url('/cityscape-background.jpeg'), url('/ultrai-bg.jpg')",
               backgroundSize: 'cover',
               backgroundPosition: 'center',
-              transform: 'scale(1.1)',
+              // Remove scaling to preserve sharpness
+              transform: 'none',
             }}
           />
           <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/80" />
@@ -650,10 +651,11 @@ export default function CyberWizard() {
           <div
             className="pointer-events-none fixed inset-0"
             style={{
-              backgroundImage: `url('${themeBgUrl}')`,
+              backgroundImage: `image-set(url('${themeBgUrl}') 1x, url('${themeBgUrl}') 2x)`,
               backgroundSize: 'cover',
               backgroundPosition: 'center',
-              backgroundAttachment: 'fixed',
+              // Use scroll to avoid single-layer rasterization blur with fixed backgrounds
+              backgroundAttachment: 'scroll',
               zIndex: 0
             }}
           />
