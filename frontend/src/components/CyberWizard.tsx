@@ -86,6 +86,7 @@ export default function CyberWizard() {
   const [isRunning, setIsRunning] = useState<boolean>(false);
   const [orchestratorResult, setOrchestratorResult] = useState<any>(null);
   const [orchestratorError, setOrchestratorError] = useState<string | null>(null);
+  const [showResults, setShowResults] = useState<boolean>(false);
   const [isOptimizing] = useState<boolean>(false);
   const [optimizationStep] = useState<number>(0);
   const [modelStatuses, setModelStatuses] = useState<Record<string, 'checking' | 'ready' | 'error'>>({});
@@ -929,33 +930,70 @@ export default function CyberWizard() {
                 >
               <div className="flex flex-col h-full">
               {showStatus ? (
-                // Show status updater content
+                // Show status / results content
                 <>
                   <div className="text-center mb-4">
                     <div className="text-[16px] font-extrabold tracking-[0.35em] text-white">ULTRA SYNTHESIS™</div>
-                    <div className="text-[10px] text-white/90">— PROCESSING STATUS —</div>
+                    <div className="text-[10px] text-white/90">{showResults ? '— RESULTS —' : '— PROCESSING STATUS —'}</div>
                     {/* Demo badge removed per request */}
                   </div>
                   
                   <div className="flex-1 overflow-auto">
-                    {/* Only show StatusUpdater if running OR successfully completed (no error) */}
-                    {(isRunning || (!isRunning && !!orchestratorResult && !orchestratorError)) && (
-                      <LaunchStatus
-                        isComplete={!isRunning && !!orchestratorResult && !orchestratorError}
-                        orchestratorResult={orchestratorResult}
-                        selectedAddons={summary.filter(item => item.section === "5. Add-ons & formatting")}
-                        onViewResults={() => {
-                          console.log('View results:', orchestratorResult);
-                        }}
-                        onStartNew={() => {
-                          setShowStatus(false);
-                          setCurrentStep(0);
-                          setSummary([]);
-                          setTotalCost(0);
-                          setOrchestratorResult(null);
-                          setOrchestratorError(null);
-                        }}
-                      />
+                    {/* Results view */}
+                    {showResults && !!orchestratorResult && !orchestratorError ? (
+                      <div className="max-w-3xl mx-auto">
+                        <div className="mb-3 flex items-center justify-between">
+                          <div className="text-sm font-semibold text-white/80">Final Document</div>
+                          <div className="flex gap-2">
+                            <button
+                              className="px-3 py-1.5 text-xs rounded border border-white/20 text-white/80 hover:text-white hover:bg-white/10"
+                              onClick={() => {
+                                const text = String((orchestratorResult as any)?.ultra_response || '');
+                                navigator.clipboard?.writeText(text).catch(() => {});
+                              }}
+                            >Copy</button>
+                            <button
+                              className="px-3 py-1.5 text-xs rounded border border-white/20 text-white/80 hover:text-white hover:bg-white/10"
+                              onClick={() => {
+                                const text = String((orchestratorResult as any)?.ultra_response || '');
+                                const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+                                const url = URL.createObjectURL(blob);
+                                const a = document.createElement('a');
+                                a.href = url;
+                                a.download = 'ultrai_synthesis.txt';
+                                document.body.appendChild(a);
+                                a.click();
+                                a.remove();
+                                URL.revokeObjectURL(url);
+                              }}
+                            >Download</button>
+                          </div>
+                        </div>
+                        <div className="rounded-lg border border-white/10 bg-black/30 p-4 overflow-auto" style={{maxHeight: 360}}>
+                          <pre className="whitespace-pre-wrap text-[12px] leading-relaxed text-white/90">{String((orchestratorResult as any)?.ultra_response || '')}</pre>
+                        </div>
+                      </div>
+                    ) : (
+                      // Only show Status if running OR successfully completed (no error)
+                      (isRunning || (!isRunning && !!orchestratorResult && !orchestratorError)) && (
+                        <LaunchStatus
+                          isComplete={!isRunning && !!orchestratorResult && !orchestratorError}
+                          orchestratorResult={orchestratorResult}
+                          selectedAddons={summary.filter(item => item.section === "5. Add-ons & formatting")}
+                          onViewResults={() => {
+                            setShowResults(true);
+                          }}
+                          onStartNew={() => {
+                            setShowStatus(false);
+                            setCurrentStep(0);
+                            setSummary([]);
+                            setTotalCost(0);
+                            setOrchestratorResult(null);
+                            setOrchestratorError(null);
+                            setShowResults(false);
+                          }}
+                        />
+                      )
                     )}
                     
                     {/* Removed spinner banner in favor of LaunchStatus */}
