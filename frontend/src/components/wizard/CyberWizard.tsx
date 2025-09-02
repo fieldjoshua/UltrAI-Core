@@ -1077,11 +1077,11 @@ export default function CyberWizard() {
               </div>
 
               <h2 
-                className={`${step.color === 'mint' ? 'text-shadow-neon-mint' : step.color === 'blue' ? 'text-shadow-neon-blue' : step.color === 'deepblue' ? 'text-shadow-neon-deep' : step.color === 'purple' ? 'text-shadow-neon-purple' : 'text-shadow-neon-pink'} text-base mb-2 text-center uppercase tracking-wide`} 
+                className={`${step.color === 'mint' ? 'text-shadow-neon-mint' : step.color === 'blue' ? 'text-shadow-neon-blue' : step.color === 'deepblue' ? 'text-shadow-neon-deep' : step.color === 'purple' ? 'text-shadow-neon-purple' : 'text-shadow-neon-pink'} text-2xl font-bold mb-4 text-center uppercase tracking-wide`} 
                 style={{ 
                   color: colorHex,
-                  borderBottom: `1px solid ${colorHex}`, 
-                  paddingBottom: 4
+                  borderBottom: `2px solid ${colorHex}`, 
+                  paddingBottom: 8
                 }}
               >
                 {step.title}
@@ -1158,7 +1158,8 @@ export default function CyberWizard() {
                       onChange={(e) => setUserQuery(e.target.value)}
                       onFocus={() => setQueryFocused(true)}
                       onBlur={() => setQueryFocused(false)}
-                      className={(isNonTimeSkin ? 'bg-white text-gray-900 placeholder:text-gray-500 border border-gray-300 ' : 'bg-white/5 text-white placeholder:text-white/60 ') + 'min-h-[320px] text-[14px] leading-7 resize-none'}
+                      className="bg-black/40 text-white placeholder:text-white/50 border-2 min-h-[400px] text-[16px] leading-7 resize-none rounded-lg p-4"
+                      style={{ borderColor: colorHex + '60' }}
                     />
                     {/* Character counter */}
                     <div className="absolute bottom-2 right-2 text-[10px] transition-opacity duration-200" style={{
@@ -1213,12 +1214,17 @@ export default function CyberWizard() {
                 )}
 
                 {step.type === "checkbox" && step.options && (
-                  currentStep === 0 ? (
-                    <div className="grid grid-cols-2 gap-2">
-                      {step.options.slice(0, 12).map(o => (
-                        <label key={o.label} className="flex items-center text-[11px] leading-tight truncate opacity-95 hover:opacity-100">
-                          <Checkbox onChange={() => handleGoalToggle(o.label)} checked={selectedGoals.includes(o.label)} />{" "}
-                          <span className="align-middle truncate tracking-wide text-white">{o.icon ? `${o.icon} ` : ""}{o.label}</span>
+                  currentStep === 1 ? (
+                    <div className="grid grid-cols-3 gap-4">
+                      {step.options.slice(0, 9).map(o => (
+                        <label key={o.label} className="flex flex-col items-center p-4 border-2 rounded-lg cursor-pointer transition-all hover:scale-105 hover:border-opacity-100"
+                               style={{
+                                 borderColor: selectedGoals.includes(o.label) ? colorHex : colorHex + '40',
+                                 background: selectedGoals.includes(o.label) ? `${mapColorRGBA(step.color, 0.2)}` : 'rgba(255,255,255,0.05)'
+                               }}>
+                          <div className="text-2xl mb-2">{o.icon}</div>
+                          <Checkbox onChange={() => handleGoalToggle(o.label)} checked={selectedGoals.includes(o.label)} className="mb-2" />
+                          <span className="text-center text-sm font-medium text-white">{o.label}</span>
                         </label>
                       ))}
                     </div>
