@@ -112,7 +112,7 @@ export default function CyberWizard() {
   // Check if we're in demo/mock mode based on environment
   const isDemoMode = import.meta.env.VITE_API_MODE === 'mock' || import.meta.env.VITE_DEMO_MODE === 'true';
 
-  // Auto-populate demo data when in demo mode using curated dataset
+  // Auto-populate demo data when in demo mode using curated dataset (no auto-run)
   useEffect(() => {
     (async () => {
       if (!isDemoMode || userQuery !== "") return;
@@ -123,8 +123,9 @@ export default function CyberWizard() {
           if (data?.prompt) setUserQuery(String(data.prompt));
           // Use top models by default
           setSelectedModels(["gpt-5", "claude-4.1", "gemini-2.5"]);
-          // Kick off processing automatically
-          setShowStatus(true);
+          // Show the steps with the prompt prefilled
+          setCurrentStep(1);
+          setStepFadeKey(k => k + 1);
         }
       } catch (e) {
         console.error('Failed to load demo dataset', e);
