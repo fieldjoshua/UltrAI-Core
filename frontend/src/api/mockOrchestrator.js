@@ -104,7 +104,9 @@ const generateDemoResponse = (query, models) => {
   const lowerQuery = query.toLowerCase();
   
   // Detect query type and generate appropriate response
-  if (lowerQuery.includes('code') || lowerQuery.includes('program') || lowerQuery.includes('function')) {
+  if (lowerQuery.includes('angel investor') || lowerQuery.includes('top 10 angel')) {
+    return generateAngelInvestorResponse(query, models);
+  } else if (lowerQuery.includes('code') || lowerQuery.includes('program') || lowerQuery.includes('function')) {
     return generateCodeResponse(query, models);
   } else if (lowerQuery.includes('analyze') || lowerQuery.includes('compare')) {
     return generateAnalysisResponse(query, models);
@@ -233,6 +235,72 @@ ${query.slice(0, 50)}... can be understood as a fundamental concept that bridges
 - Accuracy: Verified across models
 
 *This explanation benefits from cross-model validation for maximum accuracy and clarity.*`;
+};
+
+const generateAngelInvestorResponse = (query, models) => {
+  return `Here is a synthesized and fully fact-checked list of the **Top 10 Angel Investors** most likely to fund a powerful, democratizing multi-LLM AI portal—one designed for accessibility, pay-as-you-go pricing, and student-driven campus sales. This synthesis draws exclusively from the attached document but consolidates rankings, investor reasoning, and contacts for maximum clarity and accuracy, omitting any potentially misleading or unsubstantiated info.
+
+## Top 10 Angel Investors for a Democratizing Multi-LLM AI Portal
+
+### 1. Nat Friedman & Daniel Gross (C2 Investment Partners / AI Grant)
+- **Contact:** Application at [aigrant.org], X: @natfriedman, @danielgross
+- **Why Chosen:** The most prolific AI angel duo, leading both AI Grant and C2 Investments, directly responsible for many of the highest-profile AI democratization and multi-model platform investments (including Perplexity). Their approach is laser-focused on "AI for everyone" and strongly favors infrastructure + consumer AI with bottoms-up adoption—exact alignment with the product's pay-as-you-go, student-ambassador distribution model.[1]
+
+### 2. Elad Gil
+- **Contact:** Blog contact form at [eladgil.com], X: @eladgil
+- **Why Chosen:** With a portfolio spanning Perplexity, Character.AI, Harvey, and Mistral, Elad Gil stands out for high-conviction support of infrastructure and product-led AI plays. He's known for democratizing access to advanced tech and favored for his strong intuition for scalable platforms, making him an ideal backer for multi-LLM businesses with practical distribution models.[1]
+
+### 3. Naval Ravikant
+- **Contact:** naval@angellist.com, AngelList syndicate, X: @naval
+- **Why Chosen:** As AngelList's founder and a major advocate for democratized access, Naval is deeply aligned with missions that lower barriers to premium tools. He invests in campus P2P and network-effect businesses and his vision of "AI for everyone" precisely matches the portal's distribution and pricing mechanics.[1]
+
+### 4. Sam Altman
+- **Contact:** sam@openai.com, OpenAI Startup Fund
+- **Why Chosen:** Prolific investor (160+ deals) and CEO of OpenAI, Sam Altman champions AI accessibility and signaling power. While there could be perception-of-competition risks, his demonstrated commitment to democratizing AI capabilities keeps him highly relevant for outreach.[1]
+
+### 5. Reid Hoffman
+- **Contact:** rhoffman@greylock.com
+- **Why Chosen:** LinkedIn co-founder and Greylock partner, with direct board and investment experience in leading AI companies, Hoffman is regarded for his focus on network effects, distribution, and "AI for humanity" missions—strongly reinforcing the multi-LLM, student-distributed, and access-first thesis.[1]
+
+### 6. Fabrice Grinda
+- **Contact:** fabrice@fjlabs.com
+- **Why Chosen:** As arguably the most prolific angel globally (1,000+ deals via FJ Labs), Fabrice has deep expertise in marketplace and distribution-centric models. Pay-as-you-go and campus-sales strategies align extremely well with his historical investment playbook and appetite for platforms that amplify under-served markets.[1]
+
+### 7. Jason Calacanis
+- **Contact:** jmc@launch.co, investmentteam@launch.co
+- **Why Chosen:** Founder of LAUNCH and The Syndicate, Calacanis is hands-on in pre-seed/seed startups that emphasize accessibility and student/grassroots growth. Programs like Founder University and a track record with P2P, student-driven sales make him an ideal anchor investor for campus ambassador models.[1]
+
+### 8. Gokul Rajaram
+- **Contact:** gokulr@gmail.com
+- **Why Chosen:** A "godfather" of product-led growth, Gokul is legendary for his expertise in go-to-market, distribution, and user onboarding (ex-Google, Square, DoorDash). As an angel, he loves clever sales loops and network effects—qualities foundational to the student-led P2P model described here.[1]
+
+### 9. Scott Belsky
+- **Contact:** via Adobe/Behance networks, scottbelsky.com
+- **Why Chosen:** Adobe's Chief Product Officer and Behance founder, Belsky is renowned for investing in creative and democratization-centric technology. His credibility in community-building and accessibility, especially in student and creator circles, uniquely position him to recognize the high-potential of the proposed platform.[1]
+
+### 10. Sahil Lavingia
+- **Contact:** Apply at [shl.vc]
+- **Why Chosen:** As Gumroad's founder and steward of a rolling fund for indie and creator-first startups, Lavingia is an expert in bottom-up pricing, PLG, and pay-as-you-go models that empower students and creators. His portfolio and thesis make him one of the strongest matches for P2P, accessibility-focused AI platforms.[1]
+
+***
+
+## Notable Alternatives (Just Outside Top 10)
+- **Balaji Srinivasan:** Decentralized/P2P investment track, though less active currently.
+- **Dharmesh Shah:** HubSpot, democratizing SaaS.
+- **Andrej Karpathy:** AI signal investor, lighter as frequent check-writer.
+- **Amjad Masad:** Replit, extreme alignment but sharply founder-operational.
+- **Charlie Songhurst:** AI infra investor with good thesis, less visible in current rounds.[1]
+
+***
+
+## Key Considerations for Outreach
+- The first 5 listed are highest-priority based on mission fit and accessibility patterns.
+- Each contact method represents a legitimate, public-facing channel—no private or misleading contact tips are included.
+- This list deliberately removes any outdated, disputed, or unsubstantiated names and prioritizes those with both precedent and clear thesis alignment.[1]
+
+***
+
+**This selection, blending the consensus and highest-signal points from your inputs, provides the most up-to-date, accurate, and impactful target list for outreach to angels who understand and back democratizing, multi-LLM, student-driven AI ventures.**`;
 };
 
 const generateGeneralResponse = (query, models) => {
