@@ -128,36 +128,54 @@ export default function CyberWizard() {
           const promptText = String(data?.prompt || '');
           // Use top models by default
           setSelectedModels(["gpt-5", "claude-4.1", "gemini-2.5"]);
-          // Start at intro screen (step 0) and immediately begin typing
+          // Start at intro screen (step 0)
           setCurrentStep(0);
           setStepFadeKey(k => k + 1);
           
-          // Automatically advance to step 2 (query) after a brief pause on intro
+          // Step 0 -> Step 1 after 3 seconds
+          setTimeout(() => {
+            setCurrentStep(1);
+            setStepFadeKey(k => k + 1);
+          }, 3000);
+          
+          // Auto-select goals after reaching step 1
+          setTimeout(() => {
+            // Directly set the selected goals
+            setSelectedGoals(["Research", "Writing & Content", "Business Strategy"]);
+            // Also add them to the summary for cost tracking
+            const goalsToSelect = ["Research", "Writing & Content", "Business Strategy"];
+            goalsToSelect.forEach(goal => {
+              addSelection(goal, 0, 'mint', '1. Select your goals');
+            });
+          }, 3500);
+          
+          // Step 1 -> Step 2 after 6 seconds
           setTimeout(() => {
             setCurrentStep(2);
             setStepFadeKey(k => k + 1);
-          }, 2000);
-          // Ghost type the prompt for demo
-          if (promptText) {
-            setIsTypingDemo(true);
-            setUserQuery("");
-            if (typingIntervalRef.current) {
-              clearInterval(typingIntervalRef.current);
-              typingIntervalRef.current = null;
+            
+            // Start ghost typing when we reach step 2
+            if (promptText) {
+              setIsTypingDemo(true);
+              setUserQuery("");
+              if (typingIntervalRef.current) {
+                clearInterval(typingIntervalRef.current);
+                typingIntervalRef.current = null;
+              }
+              const speedMs = 30;
+              typingIntervalRef.current = window.setInterval(() => {
+                setUserQuery((prev) => {
+                  const next = promptText.slice(0, prev.length + 1);
+                  if (next.length >= promptText.length) {
+                    if (typingIntervalRef.current) clearInterval(typingIntervalRef.current);
+                    typingIntervalRef.current = null;
+                    setIsTypingDemo(false);
+                  }
+                  return next;
+                });
+              }, speedMs);
             }
-            const speedMs = 30;
-            typingIntervalRef.current = window.setInterval(() => {
-              setUserQuery((prev) => {
-                const next = promptText.slice(0, prev.length + 1);
-                if (next.length >= promptText.length) {
-                  if (typingIntervalRef.current) clearInterval(typingIntervalRef.current);
-                  typingIntervalRef.current = null;
-                  setIsTypingDemo(false);
-                }
-                return next;
-              });
-            }, speedMs);
-          }
+          }, 6000);
         }
       } catch (e) {
         console.error('Failed to load demo dataset', e);
