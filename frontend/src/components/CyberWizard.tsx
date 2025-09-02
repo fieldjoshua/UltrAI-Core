@@ -4,7 +4,7 @@ import { Button } from "./ui/button";
 import { Checkbox } from "./ui/checkbox";
 import { Card } from "./ui/card";
 import { processWithFeatherOrchestration, getAvailableModels } from "../api/orchestrator";
-import StatusUpdater from "./StatusUpdater";
+import LaunchStatus from "./LaunchStatus";
 import { RadioGroup, RadioGroupItem } from "./ui/radio-group";
 import { Textarea } from "./ui/textarea";
 import { Input } from "./ui/input";
@@ -938,16 +938,14 @@ export default function CyberWizard() {
                   <div className="flex-1 overflow-auto">
                     {/* Only show StatusUpdater if running OR successfully completed (no error) */}
                     {(isRunning || (!isRunning && !!orchestratorResult && !orchestratorError)) && (
-                      <StatusUpdater 
+                      <LaunchStatus
                         isComplete={!isRunning && !!orchestratorResult && !orchestratorError}
                         orchestratorResult={orchestratorResult}
                         selectedAddons={summary.filter(item => item.section === "5. Add-ons & formatting")}
                         onViewResults={() => {
-                          // TODO: Navigate to results view
                           console.log('View results:', orchestratorResult);
                         }}
                         onStartNew={() => {
-                          // Reset for new analysis
                           setShowStatus(false);
                           setCurrentStep(0);
                           setSummary([]);
@@ -958,18 +956,7 @@ export default function CyberWizard() {
                       />
                     )}
                     
-                    {isRunning && !orchestratorResult && (
-                      <div className="mt-6 text-center">
-                        <div className="inline-flex items-center gap-3 text-[14px] text-blue-400">
-                          <span className="animate-spin">⚡</span>
-                          <span>Running Ultra Synthesis™ Pipeline...</span>
-                          <span className="animate-spin">⚡</span>
-                        </div>
-                        <div className="mt-3 text-[11px] text-white/80">
-                          Processing with {selectedModels.length} models
-                        </div>
-                      </div>
-                    )}
+                    {/* Removed spinner banner in favor of LaunchStatus */}
                     
                     {!isRunning && orchestratorError && (
                       <div className="mt-6 p-4 bg-red-900/20 border-2 border-red-500/50 rounded-xl">
