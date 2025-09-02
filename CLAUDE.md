@@ -15,11 +15,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `make run` - Clean ports and start dev server
 
 ### Frontend Development
-- `cd frontend && npm run dev` - Start frontend development server
-- `cd frontend && npm run build` - Build frontend for production
-- `cd frontend && npm run lint` - Run ESLint
-- `cd frontend && npm run preview` - Preview production build locally
-- `cd frontend && npm test` - Run Jest tests
+- `npm run dev` - Start frontend development server (port 3009)
+- `npm run build` - Build frontend for production
+- `npm run lint` - Run ESLint
+- `npm run preview` - Preview production build locally
+- `npm test` - Run Jest tests
 
 ### Test Running Commands
 - `pytest tests/test_specific_file.py -v` - Run specific test file
@@ -53,12 +53,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `poetry run isort .` - Sort Python imports with isort
 - `poetry run flake8 .` - Run Python linting with Flake8
 - `poetry run mypy app/` - Run type checking with MyPy
-- `cd frontend && npm run lint` - Run ESLint for TypeScript/React
+- `npm run lint` - Run ESLint for TypeScript/React (from frontend dir)
 
 ### Common Troubleshooting Commands
 - `make clean-ports` - Kill stuck processes on ports 8000-8001
 - `poetry sync` - Fix dependency issues
-- `rm -rf frontend/dist && cd frontend && npm run build` - Rebuild frontend from scratch
+- `rm -rf frontend/dist && npm run build` - Rebuild frontend from scratch
 - `poetry cache clear pypi --all` - Clear Poetry cache for dependency issues
 - `source venv/bin/activate` - Fix import errors by activating virtual environment
 - `which python` - Check which Python interpreter is being used
@@ -182,3 +182,9 @@ The project uses AICheck for structured development workflow:
 - Design tokens provide consistent spacing, typography, and colors
 - All UI components in `frontend/src/components/ui/` use design tokens
 - Lucide React icons used throughout (no emojis in production UI)
+
+### Recent Architecture Updates
+- Frontend wizard (`CyberWizard.tsx`) includes tabbed interface for viewing model iterations
+- Processing status animations enhanced with shimmer effects and dynamic orbs
+- Query textarea increased to 400px height with 16px font for better readability
+- Demo mode auto-progresses through steps with proper timing

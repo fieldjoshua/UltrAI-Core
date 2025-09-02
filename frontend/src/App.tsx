@@ -3,6 +3,10 @@ import { useEffect, lazy, Suspense } from "react";
 import { useAuthStore } from "./stores/authStore";
 import { ProtectedRoute } from "./components/auth/ProtectedRoute";
 import ErrorBoundary from "./components/ErrorBoundary";
+import { AnimatePresence, motion } from "framer-motion";
+
+import { config } from "./config";
+import { useTheme } from "./theme/ThemeRegistry";
 
 // Layout
 import NavBar from "./components/layout/NavBar";
@@ -11,7 +15,7 @@ import DemoIndicator from "./components/DemoIndicator";
 // Immediate load for critical pages
 import WizardPage from "./pages/wizard";
 
-// Lazy load all other pages
+// Lazy load others
 const LoginPage = lazy(() => import("./pages/LoginPage").then(m => ({ default: m.LoginPage })));
 const RegisterPage = lazy(() => import("./pages/RegisterPage").then(m => ({ default: m.RegisterPage })));
 const SimpleAnalysis = lazy(() => import("./pages/SimpleAnalysis"));
@@ -24,15 +28,33 @@ const DocumentsPage = lazy(() => import("./pages/DocumentsPage"));
 const OrchestratorPage = lazy(() => import("./pages/OrchestratorPage"));
 const ModelRunnerDemo = lazy(() => import("./pages/ModelRunnerDemo"));
 
-// Loading component
+// Loader
 const PageLoader = () => (
   <div className="flex items-center justify-center min-h-[50vh]">
     <div className="text-center">
-      <div className="w-12 h-12 border-4 border-mint-400 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-      <p className="text-white/60 text-sm">Loading...</p>
+      <div className="w-12 h-12 border-4 border-gradient-to-r from-mint-400 to-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+      <p className="text-white/80 text-sm">
+        {config.apiMode === "mock" ? "Loading mock data…" : "Loading live data…"}
+      </p>
     </div>
   </div>
 );
+
+// Mode banner
+const ModeBanner = () => {
+  if (config.appMode === "production") return null;
+  const color =
+    config.appMode === "playground"
+      ? "bg-blue-600"
+      : config.appMode === "staging"
+      ? "bg-yellow-600"
+      : "bg-gray-700";
+  return (
+    <div className={`${color} text-white text-center text-sm py-1`}>
+      {config.appMode.toUpperCase()} MODE – features may be unstable
+    </div>
+  );
+};
 
 function Profile() {
   return (
@@ -45,69 +67,76 @@ function Profile() {
 
 function App() {
   const { fetchCurrentUser } = useAuthStore();
+  const { skin, setSkin } = useTheme();
 
   useEffect(() => {
-    // Try to fetch current user on app load if token exists
     fetchCurrentUser();
   }, [fetchCurrentUser]);
 
   return (
     <ErrorBoundary>
       <Router>
-        <div className="min-h-screen bg-gray-50 dark:bg-gray-900 md:pl-16">
-          <DemoIndicator />
+        <div className="min-h-screen flex flex-col" data-skin={skin}>
+          <ModeBanner />
           <NavBar />
-          <main className="container mx-auto px-4 py-6">
+          <DemoIndicator />
+
+          {/* Skin Switcher */}
+          <div className="flex gap-2 p-2 bg-black/30 justify-center">
+            {config.availableSkins.map(s => (
+              <button
+                key={s}
+                onClick={() => setSkin(s)}
+                className={`px-3 py-1 rounded ${
+                  s === skin ? "bg-mint-500 text-black" : "bg-white/10 hover:bg-white/20"
+                }`}
+              >
+                {s}
+              </button>
+            ))}
+          </div>
+
+          <div className="flex-1 p-4">
             <Suspense fallback={<PageLoader />}>
-              <Routes>
-            {/* Public Routes */}
-            <Route path="/" element={<Navigate to="/wizard" replace />} />
-            <Route path="/wizard" element={<WizardPage />} />
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/register" element={<RegisterPage />} />
-            <Route path="/analyze" element={<SimpleAnalysis />} />
-            <Route path="/prototype" element={<UIPrototype />} />
-            <Route path="/universal-ui" element={<UniversalUI />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/outputs" element={<Outputs />} />
-            <Route path="/faq" element={<FAQ />} />
-            <Route path="/profile" element={<Profile />} />
-
-            {/* Protected Routes */}
-            <Route 
-              path="/documents" 
-              element={
-                <ProtectedRoute>
-                  <DocumentsPage />
-                </ProtectedRoute>
-              } 
-            />
-            <Route 
-              path="/orchestrator" 
-              element={
-                <ProtectedRoute>
-                  <OrchestratorPage />
-                </ProtectedRoute>
-              } 
-            />
-            <Route 
-              path="/modelrunner" 
-              element={
-                <ProtectedRoute>
-                  <ModelRunnerDemo />
-                </ProtectedRoute>
-              } 
-            />
-
-            {/* Catch all - redirect to home */}
-            <Route path="*" element={<Navigate to="/" replace />} />
-              </Routes>
+              <AnimatePresence mode="wait">
+                <Routes>
+                  <Route path="/" element={<Navigate to="/dashboard" replace />} />
+                  <Route path="/login" element={<LoginPage />} />
+                  <Route path="/register" element={<RegisterPage />} />
+                  <Route
+                    path="/dashboard"
+                    element={
+                      <ProtectedRoute>
+                        <motion.div
+                          key="dashboard"
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -10 }}
+                          transition={{ duration: 0.3 }}
+                        >
+                          <Dashboard />
+                        </motion.div>
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route path="/wizard" element={<WizardPage />} />
+                  <Route path="/analysis" element={<SimpleAnalysis />} />
+                  <Route path="/prototype" element={<UIPrototype />} />
+                  <Route path="/universal" element={<UniversalUI />} />
+                  <Route path="/outputs" element={<Outputs />} />
+                  <Route path="/faq" element={<FAQ />} />
+                  <Route path="/documents" element={<DocumentsPage />} />
+                  <Route path="/orchestrator" element={<OrchestratorPage />} />
+                  <Route path="/demo" element={<ModelRunnerDemo />} />
+                  <Route path="/profile" element={<Profile />} />
+                </Routes>
+              </AnimatePresence>
             </Suspense>
-          </main>
-      </div>
-    </Router>
+          </div>
+        </div>
+      </Router>
     </ErrorBoundary>
   );
 }
 
-export default App;
+export default App; 

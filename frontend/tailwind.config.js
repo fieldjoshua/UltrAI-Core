@@ -1,12 +1,15 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   content: [
+    "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
     "./public/**/*.html"
   ],
   theme: {
     extend:{
       colors: {
+        bg: "var(--bg)",
+        fg: "var(--fg)",
         border: "#2a2a2a",        // enables border-border
         background: "#0a0a0a",    // enables bg-background
         foreground: "#f5f5f5",    // enables text-foreground

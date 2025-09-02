@@ -1,0 +1,26 @@
+[data-skin="night"] {
+  --bg: #0a0a0a;
+  --fg: #e0ffe0;
+}
+[data-skin="afternoon"] {
+  --bg: #faf4e0;
+  --fg: #333333;
+}
+[data-skin="sunset"] {
+  --bg: #2b1d1f;
+  --fg: #ffb3a7;
+}
+[data-skin="morning"] {
+  --bg: #e6f0ff;
+  --fg: #1a1a40;
+}
+[data-skin="minimalist"] {
+  --bg: #ffffff;
+  --fg: #111111;
+}
+[data-skin="business"] {
+  --bg: #0b1b2b;
+  --fg: #cce6ff;
+}
+
+
