@@ -13,8 +13,8 @@ export default defineConfig(({ mode }) => {
   console.log('API URL Vite sees:', env.VITE_API_URL || 'Not found');
   console.log('IS_DOCKER value:', env.VITE_IS_DOCKER);
 
-  const apiUrl = 'https://ultrai-core.onrender.com/api';
-
+  // Prefer environment-provided API URL; fallback to sensible default
+  const apiUrl = env.VITE_API_URL || '/api';
   console.log('Using API URL:', apiUrl);
 
   return {
