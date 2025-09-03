@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState, useMemo, useCallback, memo, useRef } from "react";
+import { useEffect, useState, useMemo, useCallback, memo } from "react";
 import { Button } from "@components/ui/button";
 import { Checkbox } from "@components/ui/checkbox";
 import { Card } from "@components/ui/card";
@@ -7,10 +7,9 @@ import { processWithFeatherOrchestration, getAvailableModels } from "@api/orches
 import LaunchStatus from "@components/wizard/LaunchStatus";
 import { captureNoBadAnswerFromOrchestrator } from "@internal/analysisTracker";
 import { RadioGroup, RadioGroupItem } from "@components/ui/radio-group";
-import { Textarea } from "@components/ui/textarea";
 import { Input } from "@components/ui/input";
-import { OutlineIcon, goalIcons, analysisIcons, modelIcons, addonIcons } from "@components/icons/OutlineIcons";
-import { Rocket, Film, ChevronRight, Check, Copy, Download, Zap, Activity } from 'lucide-react';
+import { OutlineIcon } from "@components/icons/OutlineIcons";
+import { Rocket, Film, Check, Copy, Zap, Activity, Sparkles, Brain, Network } from 'lucide-react';
 // Bridge animation disabled for professional static look
 
 interface StepOption { label: string; cost?: number; icon?: string; description?: string }
@@ -93,10 +92,8 @@ export default function CyberWizard() {
   const [showResults, setShowResults] = useState<boolean>(false);
   const [isOptimizing] = useState<boolean>(false);
   const [optimizationStep] = useState<number>(0);
-  const [modelStatuses, setModelStatuses] = useState<Record<string, 'checking' | 'ready' | 'error'>>({});
-  // Demo typing effect
-  const typingIntervalRef = useRef<number | null>(null);
-  const [isTypingDemo, setIsTypingDemo] = useState<boolean>(false);
+  const [, setModelStatuses] = useState<Record<string, 'checking' | 'ready' | 'error'>>({});
+  const [viewingIteration, setViewingIteration] = useState<'final' | 'initial' | 'meta'>('final');
   // Sync bgTheme with currentSkin for non-minimalist skins
   const [bgTheme, setBgTheme] = useState<'morning' | 'afternoon' | 'sunset' | 'night'>('night');
   
@@ -790,8 +787,8 @@ export default function CyberWizard() {
             <div className={`${showStatus && showResults ? 'flex justify-center' : showStatus && !showResults ? 'flex justify-center' : 'grid grid-cols-12 gap-4'}`}>
 
 
-          {/* Wizard Panel (center) - Hidden when showing results */}
-              {!(showStatus && showResults) && (
+          {/* Wizard Panel (center) - Hidden during processing and results */}
+              {!showStatus && (
               <div className="col-span-8">
                 <div
                   className={`relative p-8 rounded-2xl overflow-hidden transition-smooth will-change-transform ${
@@ -981,7 +978,7 @@ export default function CyberWizard() {
                       {userQuery.length} / 1000
                     </div>
                     {/* Dynamic typing indicator */}
-                    {(queryFocused || isTypingDemo) && userQuery.length > 0 && (
+                    {queryFocused && userQuery.length > 0 && (
                       <div className="absolute -top-6 left-0 text-[10px] animate-fade-in text-white" style={{ color: undefined }}>
                         <span className="animate-pulse">✨</span> AI is ready to enhance your query...
                       </div>
@@ -1567,6 +1564,7 @@ export default function CyberWizard() {
                   selectedAddons={summary.filter(item => item.section === "5. Add-ons & formatting")}
                   onViewResults={() => {
                     setShowResults(true);
+                    console.debug('Viewing final results');
                   }}
                   onStartNew={() => {
                     setShowStatus(false);
@@ -1584,21 +1582,23 @@ export default function CyberWizard() {
  
           {/* Centered Professional Results Panel - Only when showing final results */}
           {showStatus && showResults && (
-            <div className="max-w-3xl w-full">
+            <div className="max-w-2xl w-full">
               <Card 
-                className="relative p-8 rounded-2xl transition-smooth"
+                className="relative p-6 rounded-2xl transition-smooth"
                 style={{ 
-                  background: 'linear-gradient(135deg, rgba(0, 0, 0, 0.9), rgba(0, 0, 0, 0.7))',
-                  backdropFilter: 'blur(60px) saturate(150%)',
-                  WebkitBackdropFilter: 'blur(60px) saturate(150%)',
-                  border: '1px solid rgba(255, 255, 255, 0.1)',
-                  minHeight: '500px',
+                  background: 'rgba(0, 0, 0, 0.1)',
+                  backdropFilter: 'blur(40px)',
+                  WebkitBackdropFilter: 'blur(40px)',
+                  border: `2px solid ${receiptColor}`,
+                  minHeight: '420px',
                   width: '100%',
                   boxShadow: `
-                    0 20px 60px rgba(0, 0, 0, 0.5),
-                    0 0 100px rgba(0, 255, 255, 0.1),
-                    inset 0 0 100px rgba(255, 255, 255, 0.02)
-                  `
+                    0 8px 32px rgba(0, 0, 0, 0.3),
+                    0 0 60px ${receiptColor}10,
+                    0 0 0 1px ${receiptColor}20,
+                    inset 0 0 60px rgba(255, 255, 255, 0.05)
+                  `,
+                  clipPath: 'polygon(0 0, calc(100% - 20px) 0, 100% 20px, 100% 100%, 20px 100%, 0 calc(100% - 20px))'
                 }}>
                 {/* Show final results in professional layout */}
                 <div className="space-y-6">
@@ -1631,14 +1631,32 @@ export default function CyberWizard() {
                   
                   {/* Results Summary */}
                   <div className="grid grid-cols-3 gap-3 mb-6">
-                    <div className="bg-gradient-to-br from-white/10 to-white/5 rounded-xl p-4 text-center border border-white/10 hover:border-white/20 transition-all duration-300">
-                      <OutlineIcon name="Models Used" category="status" className="w-8 h-8 mx-auto mb-2" style={{ color: '#00ff9f' }} />
+                    <div
+                      className="bg-gradient-to-br from-white/10 to-white/5 rounded-xl p-4 text-center border border-white/10 hover:border-white/20 transition-all duration-300 cursor-pointer"
+                      role="button"
+                      tabIndex={0}
+                      aria-label="View Initial Analysis"
+                      onClick={() => {
+                        setViewingIteration('initial');
+                        console.debug('Switched to initial analysis view');
+                      }}
+                    >
+                      <OutlineIcon name="Models Used" category="status" className="w-8 h-8 mx-auto mb-2 text-[#00ff9f]" />
                       <div className="text-[10px] font-semibold text-white/60 uppercase tracking-wider">Models Used</div>
                       <div className="text-[16px] font-bold text-green-300 mt-1">
                         {Array.isArray(orchestratorResult?.models_used) ? orchestratorResult.models_used.length : '3'}
                       </div>
                     </div>
-                    <div className="bg-gradient-to-br from-white/10 to-white/5 rounded-xl p-4 text-center border border-white/10 hover:border-white/20 transition-all duration-300">
+                    <div
+                      className="bg-gradient-to-br from-white/10 to-white/5 rounded-xl p-4 text-center border border-white/10 hover:border-white/20 transition-all duration-300 cursor-pointer"
+                      role="button"
+                      tabIndex={0}
+                      aria-label="View Final Synthesis"
+                      onClick={() => {
+                        setViewingIteration('final');
+                        console.debug('Switched to final synthesis view');
+                      }}
+                    >
                       <Zap className="w-8 h-8 mx-auto mb-2 text-blue-400" />
                       <div className="text-[10px] font-semibold text-white/60 uppercase tracking-wider">Processing Time</div>
                       <div className="text-[16px] font-bold text-blue-300 mt-1">
@@ -1647,8 +1665,17 @@ export default function CyberWizard() {
                           : '0:52'}
                       </div>
                     </div>
-                    <div className="bg-gradient-to-br from-white/10 to-white/5 rounded-xl p-4 text-center border border-white/10 hover:border-white/20 transition-all duration-300">
-                      <OutlineIcon name="Pattern" category="status" className="w-8 h-8 mx-auto mb-2" style={{ color: '#bd00ff' }} />
+                    <div
+                      className="bg-gradient-to-br from-white/10 to-white/5 rounded-xl p-4 text-center border border-white/10 hover:border-white/20 transition-all duration-300 cursor-pointer"
+                      role="button"
+                      tabIndex={0}
+                      aria-label="View Meta Analysis"
+                      onClick={() => {
+                        setViewingIteration('meta');
+                        console.debug('Switched to meta analysis view');
+                      }}
+                    >
+                      <OutlineIcon name="Pattern" category="status" className="w-8 h-8 mx-auto mb-2 text-[#bd00ff]" />
                       <div className="text-[10px] font-semibold text-white/60 uppercase tracking-wider">Pattern Used</div>
                       <div className="text-[16px] font-bold text-purple-300 mt-1">
                         {orchestratorResult?.pattern_used || 'Ultra'}
@@ -1671,6 +1698,43 @@ export default function CyberWizard() {
                     </div>
                   )}
 
+                  {/* Iteration Navigation */}
+                  <div className="flex gap-2 mb-4">
+                    <button
+                      className={`flex-1 px-3 py-2 rounded-lg text-[11px] font-medium transition-all ${
+                        viewingIteration === 'final' 
+                          ? 'bg-gradient-to-r from-cyan-500/20 to-purple-500/20 border border-white/30 text-white' 
+                          : 'bg-white/5 border border-white/10 text-white/60 hover:text-white hover:border-white/20'
+                      }`}
+                      onClick={() => setViewingIteration('final')}
+                    >
+                      <Sparkles className="w-4 h-4 inline mr-1" />
+                      Final Synthesis
+                    </button>
+                    <button
+                      className={`flex-1 px-3 py-2 rounded-lg text-[11px] font-medium transition-all ${
+                        viewingIteration === 'initial' 
+                          ? 'bg-gradient-to-r from-green-500/20 to-blue-500/20 border border-white/30 text-white' 
+                          : 'bg-white/5 border border-white/10 text-white/60 hover:text-white hover:border-white/20'
+                      }`}
+                      onClick={() => setViewingIteration('initial')}
+                    >
+                      <Brain className="w-4 h-4 inline mr-1" />
+                      Initial Analysis
+                    </button>
+                    <button
+                      className={`flex-1 px-3 py-2 rounded-lg text-[11px] font-medium transition-all ${
+                        viewingIteration === 'meta' 
+                          ? 'bg-gradient-to-r from-purple-500/20 to-pink-500/20 border border-white/30 text-white' 
+                          : 'bg-white/5 border border-white/10 text-white/60 hover:text-white hover:border-white/20'
+                      }`}
+                      onClick={() => setViewingIteration('meta')}
+                    >
+                      <Network className="w-4 h-4 inline mr-1" />
+                      Meta Analysis
+                    </button>
+                  </div>
+
                   {/* Professional Results Display */}
                   <div className="space-y-4">
                     <div className="bg-gradient-to-r from-cyan-500/10 to-purple-500/10 rounded-lg p-4 border border-white/20">
@@ -1679,14 +1743,26 @@ export default function CyberWizard() {
                           <Check className="w-5 h-5 text-green-400" />
                         </div>
                         <div>
-                          <div className="text-[12px] font-bold text-white">Analysis Complete</div>
-                          <div className="text-[10px] text-white/60">Ultra Synthesis™ has processed your query</div>
+                          <div className="text-[12px] font-bold text-white">
+                            {viewingIteration === 'final' ? 'Final Synthesis Complete' : 
+                             viewingIteration === 'initial' ? 'Initial Analysis Results' : 
+                             'Meta Analysis Results'}
+                          </div>
+                          <div className="text-[10px] text-white/60">
+                            {viewingIteration === 'final' ? 'Ultra Synthesis™ has processed your query' :
+                             viewingIteration === 'initial' ? 'Individual model responses' :
+                             'Cross-model pattern analysis'}
+                          </div>
                         </div>
                       </div>
                       <div className="text-[11px] text-white/80 leading-relaxed">
-                        {orchestratorResult?.ultra_response ? 
-                          'Your comprehensive analysis is ready. The synthesis combines insights from multiple AI models to deliver superior results.' :
-                          'Multi-model synthesis complete. Advanced intelligence multiplication has identified key insights across all dimensions of your query.'
+                        {viewingIteration === 'final' ? (
+                          orchestratorResult?.ultra_response ? 
+                            'Your comprehensive analysis is ready. The synthesis combines insights from multiple AI models to deliver superior results.' :
+                            'Multi-model synthesis complete. Advanced intelligence multiplication has identified key insights across all dimensions of your query.'
+                        ) : viewingIteration === 'initial' ? 
+                          'View the individual responses from each AI model that contributed to the final synthesis.' :
+                          'Examine the meta-analysis that identified patterns and insights across all model responses.'
                         }
                       </div>
                     </div>
@@ -1725,13 +1801,11 @@ export default function CyberWizard() {
                         border: '2px solid transparent',
                         backgroundClip: 'padding-box',
                       }}
-                      onClick={() => {
-                        // Handle viewing full results
+                      onClick={(e) => {
                         if (orchestratorResult?.ultra_response || orchestratorResult?.final_result) {
                           const content = orchestratorResult.ultra_response || orchestratorResult.final_result;
-                          navigator.clipboard.writeText(content);
-                          // Show success state
-                          const btn = event.currentTarget;
+                          navigator.clipboard.writeText(content).catch(() => {});
+                          const btn = e.currentTarget as HTMLButtonElement;
                           const originalContent = btn.innerHTML;
                           btn.innerHTML = '<span class="flex items-center justify-center gap-2"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> Copied!</span>';
                           setTimeout(() => {
