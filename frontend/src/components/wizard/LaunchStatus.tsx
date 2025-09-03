@@ -89,6 +89,8 @@ export default function LaunchStatus({
     }
   }, [isComplete, orchestratorResult, stages.length]);
 
+  const current = Math.max(0, Math.min(stageIndex, stages.length - 1));
+
   // Handle stage completion animation
   useEffect(() => {
     if (current > 0 && !completedStages.includes(current - 1)) {
@@ -102,8 +104,6 @@ export default function LaunchStatus({
       }, 800);
     }
   }, [current, completedStages]);
-
-  const current = Math.max(0, Math.min(stageIndex, stages.length - 1));
   const borderColor = hasError ? 'border-red-500/50' : 'animate-border-hum';
   const glowColor = hasError ? 'from-red-500/10 via-transparent to-red-500/10' : 'from-cyan-500/5 via-transparent to-orange-500/5';
 
