@@ -1846,6 +1846,42 @@ export default function CyberWizard() {
                     <button
                       className="w-full px-4 py-3 rounded-lg font-semibold text-white transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] relative group"
                       style={{
+                        background: 'linear-gradient(135deg, #bd00ff 0%, #00d4ff 100%)',
+                        border: '2px solid transparent',
+                        backgroundClip: 'padding-box',
+                      }}
+                      onClick={() => {
+                        try {
+                          let textContent = '';
+                          if (viewingIteration === 'final') {
+                            textContent = (orchestratorResult?.ultra_response || orchestratorResult?.final_result || '').toString();
+                          } else if (viewingIteration === 'initial') {
+                            const list: any[] = Array.isArray(orchestratorResult?.initial_responses) ? orchestratorResult.initial_responses : [];
+                            textContent = list.map((resp: any, idx: number) => `Initial Response #${idx + 1}\n\n${typeof resp?.content === 'string' ? resp.content : JSON.stringify(resp, null, 2)}`).join('\n\n------------------------------\n\n');
+                          } else {
+                            const meta = orchestratorResult?.meta_analysis;
+                            textContent = (typeof meta?.content === 'string' ? meta.content : JSON.stringify(meta, null, 2)) || '';
+                          }
+                          const w = window.open('', '_blank', 'width=900,height=1200');
+                          if (w) {
+                            const safe = (textContent || '').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+                            w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>UltrAI ${viewingIteration} Results</title><style>body{margin:24px;font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";} pre{white-space: pre-wrap; word-wrap: break-word; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; font-size: 12px; line-height: 1.6;}</style></head><body><h1 style="font-size:18px;margin:0 0 16px;">UltrAI ${viewingIteration === 'final' ? 'Final Synthesis' : viewingIteration === 'initial' ? 'Initial Responses' : 'Meta Analysis'}</h1><pre>${safe}</pre></body></html>`);
+                            w.document.close();
+                            w.focus();
+                            w.print();
+                          }
+                        } catch {}
+                      }}
+                    >
+                      <span className="relative z-10 flex items-center justify-center gap-2">
+                        <Download className="w-5 h-5" /> Print / Save as PDF
+                      </span>
+                      <div className="absolute inset-0 rounded-lg bg-gradient-to-r from-purple-400 to-blue-400 opacity-0 group-hover:opacity-50 blur-xl transition-opacity duration-300" />
+                    </button>
+
+                    <button
+                      className="w-full px-4 py-3 rounded-lg font-semibold text-white transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] relative group"
+                      style={{
                         background: 'linear-gradient(135deg, #00ff9f 0%, #00d4ff 100%)',
                         border: '2px solid transparent',
                         backgroundClip: 'padding-box',
