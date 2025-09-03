@@ -362,7 +362,7 @@ export default function CyberWizard() {
         break;
       case 'night':
       default:
-        url = '/bg-nightf Artboard 2-100.jpg';
+        url = '/bg-nightf-1x.jpg';
         break;
     }
     return url;
@@ -383,7 +383,7 @@ export default function CyberWizard() {
         break;
       case 'night':
       default:
-        url = '/bg-nightf Artboard 2@2x-100.jpg';
+        url = '/bg-nightf-2x.jpg';
         break;
     }
     return url;
@@ -696,7 +696,7 @@ export default function CyberWizard() {
           <div
             className="pointer-events-none fixed inset-0"
             style={{
-              backgroundImage: "url('/lines%20billAsset%203kjkjk.png')",
+              backgroundImage: "url('/lines-bill-static.png')",
               backgroundSize: 'cover',
               backgroundPosition: 'top right',
               opacity: 0.04,
@@ -710,8 +710,8 @@ export default function CyberWizard() {
             style={{
               backgroundImage: 'linear-gradient(90deg, rgba(0,255,159,0) 0%, rgba(0,255,159,0.65) 50%, rgba(0,255,159,0) 100%)',
               backgroundSize: '200% 100%',
-              WebkitMaskImage: "url('/lines%20billAsset%203jkjkjjk.svg')",
-              maskImage: "url('/lines%20billAsset%203jkjkjjk.svg')",
+              WebkitMaskImage: "url('/lines-bill-anim.svg')",
+              maskImage: "url('/lines-bill-anim.svg')",
               WebkitMaskRepeat: 'no-repeat',
               maskRepeat: 'no-repeat',
               WebkitMaskSize: 'cover',
