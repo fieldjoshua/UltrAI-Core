@@ -674,6 +674,13 @@ export default function CyberWizard() {
       {/* Background layer - only show for time-based skins */}
       {!isNonTimeSkin && (
         <>
+          {/* Animated billboard outline sweep keyframes */}
+          <style>{`
+            @keyframes ultrai-billboard-sweep {
+              0% { background-position: -200% 0; }
+              100% { background-position: 200% 0; }
+            }
+          `}</style>
           <div
             className="pointer-events-none fixed inset-0"
             style={{
@@ -683,6 +690,38 @@ export default function CyberWizard() {
               // Use scroll to avoid single-layer rasterization blur with fixed backgrounds
               backgroundAttachment: 'scroll',
               zIndex: 0
+            }}
+          />
+          {/* Static faint lines overlay */}
+          <div
+            className="pointer-events-none fixed inset-0"
+            style={{
+              backgroundImage: "url('/overlays/billboard_lines.svg')",
+              backgroundSize: 'cover',
+              backgroundPosition: 'top right',
+              opacity: 0.04,
+              mixBlendMode: 'screen',
+              zIndex: 1
+            }}
+          />
+          {/* Animated sweep through billboard lines using mask */}
+          <div
+            className="pointer-events-none fixed inset-0"
+            style={{
+              backgroundImage: 'linear-gradient(90deg, rgba(0,255,159,0) 0%, rgba(0,255,159,0.65) 50%, rgba(0,255,159,0) 100%)',
+              backgroundSize: '200% 100%',
+              WebkitMaskImage: "url('/overlays/billboard_lines.svg')",
+              maskImage: "url('/overlays/billboard_lines.svg')",
+              WebkitMaskRepeat: 'no-repeat',
+              maskRepeat: 'no-repeat',
+              WebkitMaskSize: 'cover',
+              maskSize: 'cover',
+              WebkitMaskPosition: 'top right',
+              maskPosition: 'top right',
+              animation: 'ultrai-billboard-sweep 3.2s linear infinite',
+              filter: 'drop-shadow(0 0 10px rgba(0,255,159,0.25))',
+              opacity: 0.7,
+              zIndex: 2
             }}
           />
           {/* Theme overlay tint */}
