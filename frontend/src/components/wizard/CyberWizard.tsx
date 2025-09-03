@@ -958,7 +958,7 @@ export default function CyberWizard() {
 
                 {step.type === "textarea" && (<>
                   <div className="relative">
-                    <Textarea 
+                    <textarea 
                       placeholder={selectedGoals.length > 0 ? 
                         `e.g. A ${selectedGoals[0].toLowerCase()} analysis of...` :
                         'What do you need? Be as specific as possible.'}
@@ -966,8 +966,12 @@ export default function CyberWizard() {
                       onChange={(e) => setUserQuery(e.target.value)}
                       onFocus={() => setQueryFocused(true)}
                       onBlur={() => setQueryFocused(false)}
-                      className="bg-black/80 text-white placeholder:text-white/60 border-2 min-h-[500px] text-[16px] leading-7 resize-none rounded-lg p-4"
-                      style={{ borderColor: colorHex + '60' }}
+                      className="w-full min-h-[500px] text-[16px] leading-7 resize-none rounded-lg p-4 border-2 focus:outline-none focus:ring-2 focus:ring-offset-0"
+                      style={{ 
+                        backgroundColor: 'rgba(0, 0, 0, 0.85)',
+                        color: 'white',
+                        borderColor: colorHex + '60'
+                      }}
                     />
                     {/* Character counter */}
                     <div className="absolute bottom-2 right-2 text-[10px] transition-opacity duration-200" style={{
