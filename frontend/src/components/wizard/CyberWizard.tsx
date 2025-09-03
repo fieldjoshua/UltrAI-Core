@@ -1101,12 +1101,33 @@ export default function CyberWizard() {
                       ))}
                     </div>
                   ) : (step.title || '').includes('Model selection') ? (
-                    <div className="space-y-2" style={{ height: 'calc(100% - 12px)' }}>
-                      <div className="text-center mb-2">
-                        <div className="text-sm font-bold text-white">Have UltrAI choose. Do you want a:</div>
-                      </div>
-                      {/* Three horizontal boxes for model selection */}
-                      <div className="grid grid-cols-3 gap-3">
+                    <>
+                      {showModelList ? (
+                        <div className="glass p-4 rounded-lg border border-white/20">
+                          <div className="flex items-center justify-between mb-3">
+                            <button onClick={() => setShowModelList(false)} className="text-white/80 hover:text-white text-sm">← Back</button>
+                            <div className="text-sm font-bold text-white/90">Select Models</div>
+                            <div />
+                          </div>
+                          <div className="grid grid-cols-3 gap-2">
+                            {(availableModels || []).map(name => (
+                              <label key={name} className="flex items-center text-[11px] leading-tight truncate opacity-95 hover:opacity-100">
+                                <Checkbox className="mr-2" onChange={() => handleModelToggle(name)} checked={selectedModels.includes(name)} />
+                                <span className="align-middle truncate tracking-wide text-white">{name}</span>
+                              </label>
+                            ))}
+                            {availableModels && availableModels.length === 0 && (
+                              <div className="text-xs opacity-80 col-span-3">No models available. Add API keys.</div>
+                            )}
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="space-y-2" style={{ height: 'calc(100% - 12px)' }}>
+                          <div className="text-center mb-2">
+                            <div className="text-sm font-bold text-white">Have UltrAI choose. Do you want a:</div>
+                          </div>
+                          {/* Three horizontal boxes for model selection */}
+                          <div className="grid grid-cols-3 gap-3">
                         {/* Premium Query Box */}
                         <div
                           className="glass-panel glass-grain border-2 rounded-lg p-3 cursor-pointer hover:scale-105 transition-smooth group"
@@ -1203,88 +1224,32 @@ export default function CyberWizard() {
                         <div className="h-px bg-white/20 flex-1"></div>
                         <div className="px-3 text-xs font-bold text-white/80">OR</div>
                         <div className="h-px bg-white/20 flex-1"></div>
-                      </div>
-                      
-                      {/* Manual selection with flip */}
-                      <div className="relative" style={{ perspective: '1000px' }}>
-                        <div 
-                          className="relative transition-all duration-500 preserve-3d"
-                          style={{
-                            transformStyle: 'preserve-3d',
-                            transform: showModelList ? 'rotateY(180deg)' : 'rotateY(0deg)',
-                            minHeight: '100px'
-                          }}
-                        >
-                          {/* Front side */}
-                          <div 
-                            className={`glass p-3 rounded-lg border border-white/20 ${showModelList ? 'invisible' : 'visible'}`}
-                            style={{ 
-                              backfaceVisibility: 'hidden',
-                              position: showModelList ? 'absolute' : 'relative',
-                              width: '100%'
-                            }}
-                          >
-                            <div className="text-center">
-                              <div className="text-xs font-bold text-white/80 mb-2">I want to choose the models used manually</div>
-                              <button
-                                className="px-4 py-2 rounded-lg text-[11px] font-semibold transition-smooth hover:scale-[1.02] active:scale-[0.98] glass-panel"
-                                style={{
-                                  background: `linear-gradient(135deg, ${mapColorRGBA(step.color, 0.15)}, ${mapColorRGBA(step.color, 0.25)})`,
-                                  border: `2px solid ${colorHex}`,
-                                  color: 'white',
-                                  boxShadow: `0 4px 15px ${colorHex}20`
-                                }}
-                                onClick={(e) => {
-                                  setModelSelectionMode('manual');
-                                  setAutoPreference('premium');
-                                  setShowModelList(true);
-                                  // Add ripple effect
-                                  const btn = e.currentTarget as HTMLButtonElement;
-                                  btn.classList.add('ripple-effect');
-                                  setTimeout(() => btn.classList.remove('ripple-effect'), 1500);
-                                }}
-                              >
-                                🛠️ Show Available Models
-                              </button>
-                            </div>
                           </div>
-                          
-                          {/* Back side */}
-                          <div 
-                            className={`glass p-3 rounded-lg border border-white/20 ${!showModelList ? 'invisible' : 'visible'}`}
-                            style={{ 
-                              backfaceVisibility: 'hidden',
-                              transform: 'rotateY(180deg)',
-                              position: showModelList ? 'relative' : 'absolute',
-                              width: '100%',
-                              top: 0,
-                              left: 0
-                            }}
-                          >
-                            <div className="flex justify-between items-center mb-2">
-                              <div className="text-xs font-bold text-white/80">Select Models</div>
-                              <button 
-                                onClick={() => setShowModelList(false)}
-                                className="text-white/60 hover:text-white text-xs"
-                              >
-                                ✕ Close
-                              </button>
-                            </div>
-                            <div className="grid grid-cols-2 gap-1 max-h-32 overflow-y-auto">
-                              {(availableModels || []).map(name => (
-                                <label key={name} className="flex items-center text-[9px] leading-tight truncate opacity-95 hover:opacity-100">
-                                  <Checkbox className="mr-1 scale-75" onChange={() => handleModelToggle(name)} checked={selectedModels.includes(name)} />
-                                  <span className="align-middle truncate tracking-wide text-white">{name}</span>
-                        </label>
-                      ))}
-                              {availableModels && availableModels.length === 0 && (
-                                <div className="text-[9px] opacity-80 col-span-2">No models available. Add API keys.</div>
-                              )}
-                    </div>
+                          {/* Manual option triggers full-card view */}
+                          <div className="text-center">
+                            <button
+                              className="px-4 py-2 rounded-lg text-[11px] font-semibold transition-smooth hover:scale-[1.02] active:scale-[0.98] glass-panel"
+                              style={{
+                                background: `linear-gradient(135deg, ${mapColorRGBA(step.color, 0.15)}, ${mapColorRGBA(step.color, 0.25)})`,
+                                border: `2px solid ${colorHex}`,
+                                color: 'white',
+                                boxShadow: `0 4px 15px ${colorHex}20`
+                              }}
+                              onClick={(e) => {
+                                setModelSelectionMode('manual');
+                                setAutoPreference('premium');
+                                setShowModelList(true);
+                                const btn = e.currentTarget as HTMLButtonElement;
+                                btn.classList.add('ripple-effect');
+                                setTimeout(() => btn.classList.remove('ripple-effect'), 1500);
+                              }}
+                            >
+                              🛠️ Manual: Choose Models
+                            </button>
                           </div>
                         </div>
-                      </div>
-                    </div>
+                      )}
+                    </>
                   ) : (
                     (step.title || '').toLowerCase().includes('select your goals') ? (
                       <div className="space-y-2">
