@@ -368,6 +368,27 @@ export default function CyberWizard() {
     return url;
   }, [bgTheme]);
 
+  // Provide explicit 2x variant for retina where available
+  const themeBgUrl2x = useMemo(() => {
+    let url;
+    switch (bgTheme) {
+      case 'morning':
+        url = '/bg-morning.jpg';
+        break;
+      case 'afternoon':
+        url = '/bg-afternoon.jpg';
+        break;
+      case 'sunset':
+        url = '/bg-sunset.jpg';
+        break;
+      case 'night':
+      default:
+        url = '/bg-nightf Artboard 2@2x-100.jpg';
+        break;
+    }
+    return url;
+  }, [bgTheme]);
+
   // Glass panel darkness based on theme for better readability
   const glassBackground = useMemo(() => {
     switch (bgTheme) {
@@ -656,7 +677,7 @@ export default function CyberWizard() {
           <div
             className="pointer-events-none fixed inset-0"
             style={{
-              backgroundImage: `image-set(url('${themeBgUrl}') 1x, url('${themeBgUrl}') 2x)`,
+              backgroundImage: `image-set(url('${themeBgUrl}') 1x, url('${themeBgUrl2x}') 2x)`,
               backgroundSize: 'cover',
               backgroundPosition: 'center',
               // Use scroll to avoid single-layer rasterization blur with fixed backgrounds
