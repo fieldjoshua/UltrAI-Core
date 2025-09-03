@@ -9,7 +9,7 @@ import { captureNoBadAnswerFromOrchestrator } from "@internal/analysisTracker";
 import { RadioGroup, RadioGroupItem } from "@components/ui/radio-group";
 import { Input } from "@components/ui/input";
 import { OutlineIcon } from "@components/icons/OutlineIcons";
-import { Rocket, Film, Check, Copy, Zap, Activity, Sparkles, Brain, Network } from 'lucide-react';
+import { Rocket, Film, Check, Copy, Zap, Activity, Sparkles, Brain, Network, Download } from 'lucide-react';
 // Bridge animation disabled for professional static look
 
 interface StepOption { label: string; cost?: number; icon?: string; description?: string }
@@ -1755,15 +1755,16 @@ export default function CyberWizard() {
                           </div>
                         </div>
                       </div>
-                      <div className="text-[11px] text-white/80 leading-relaxed">
+                      <div className="text-[11px] text-white/80 leading-relaxed whitespace-pre-wrap">
                         {viewingIteration === 'final' ? (
-                          orchestratorResult?.ultra_response ? 
-                            'Your comprehensive analysis is ready. The synthesis combines insights from multiple AI models to deliver superior results.' :
-                            'Multi-model synthesis complete. Advanced intelligence multiplication has identified key insights across all dimensions of your query.'
-                        ) : viewingIteration === 'initial' ? 
-                          'View the individual responses from each AI model that contributed to the final synthesis.' :
-                          'Examine the meta-analysis that identified patterns and insights across all model responses.'
-                        }
+                          orchestratorResult?.ultra_response && orchestratorResult.ultra_response.trim().length > 0
+                            ? orchestratorResult.ultra_response
+                            : 'Multi-model synthesis complete. Advanced intelligence multiplication has identified key insights across all dimensions of your query.'
+                        ) : viewingIteration === 'initial' ? (
+                          'Download the individual model responses below.'
+                        ) : (
+                          'Download the meta-analysis details below.'
+                        )}
                       </div>
                     </div>
                     
@@ -1790,6 +1791,54 @@ export default function CyberWizard() {
                         </div>
                       </div>
                     </div>
+
+                    {/* Downloads for Initial / Meta */}
+                    {(viewingIteration === 'initial' || viewingIteration === 'meta') && (
+                      <div className="bg-white/5 rounded-lg p-4 border border-white/10">
+                        <div className="text-[11px] font-semibold text-white/80 mb-3 flex items-center gap-2">
+                          <Download className="w-4 h-4" /> Downloads
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                          {viewingIteration === 'initial' && Array.isArray(orchestratorResult?.initial_responses) && orchestratorResult.initial_responses.length > 0 && (
+                            orchestratorResult.initial_responses.map((resp: any, idx: number) => (
+                              <button
+                                key={`init-${idx}`}
+                                className="px-3 py-2 rounded-lg text-[11px] font-medium bg-white/10 hover:bg-white/20 border border-white/20"
+                                onClick={() => {
+                                  const text = typeof resp?.content === 'string' ? resp.content : JSON.stringify(resp, null, 2);
+                                  const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+                                  const url = URL.createObjectURL(blob);
+                                  const a = document.createElement('a');
+                                  a.href = url;
+                                  a.download = `initial_response_${idx + 1}.txt`;
+                                  a.click();
+                                  URL.revokeObjectURL(url);
+                                }}
+                              >
+                                Download Initial #{idx + 1} (.txt)
+                              </button>
+                            ))
+                          )}
+                          {viewingIteration === 'meta' && orchestratorResult?.meta_analysis && (
+                            <button
+                              className="px-3 py-2 rounded-lg text-[11px] font-medium bg-white/10 hover:bg-white/20 border border-white/20"
+                              onClick={() => {
+                                const text = typeof orchestratorResult.meta_analysis?.content === 'string' ? orchestratorResult.meta_analysis.content : JSON.stringify(orchestratorResult.meta_analysis, null, 2);
+                                const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+                                const url = URL.createObjectURL(blob);
+                                const a = document.createElement('a');
+                                a.href = url;
+                                a.download = `meta_analysis.txt`;
+                                a.click();
+                                URL.revokeObjectURL(url);
+                              }}
+                            >
+                              Download Meta Analysis (.txt)
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   {/* Action Buttons */}
