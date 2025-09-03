@@ -787,7 +787,7 @@ export default function CyberWizard() {
         <h1 className="sr-only">UltrAI Wizard</h1>
         <div className="flex items-center justify-center" style={{ minHeight: '100vh', paddingTop: isNonTimeSkin ? '25vh' : '37.5vh' }}>
           <div className="w-full max-w-7xl px-8">
-            <div className={`${showStatus && showResults ? 'flex justify-center' : 'grid grid-cols-12 gap-4'}`}>
+            <div className={`${showStatus && showResults ? 'flex justify-center' : showStatus && !showResults ? 'flex justify-center' : 'grid grid-cols-12 gap-4'}`}>
 
 
           {/* Wizard Panel (center) - Hidden when showing results */}
@@ -1466,8 +1466,8 @@ export default function CyberWizard() {
 
           )}
 
-          {/* Receipt Panel - Always show (right side when wizard visible, centered when showing results) */}
-          {(!showStatus || !showResults) && (
+          {/* Receipt Panel - Only show when not in status mode */}
+          {!showStatus && (
             <div className="col-span-4">
             <Card 
               className="relative p-6 rounded-2xl transition-smooth"
@@ -1553,9 +1553,15 @@ export default function CyberWizard() {
                     </div>
                   )}
                 </>
-              ) : showStatus && !showResults ? (
-                // Show LaunchStatus in the receipt panel during processing
-                <LaunchStatus
+              ) : null}
+            </Card>
+          </div>
+          )}
+          
+          {/* Processing Status - Centered */}
+          {showStatus && !showResults && (
+            <div className="max-w-4xl w-full">
+              <LaunchStatus
                   isComplete={!isRunning && !!orchestratorResult && !orchestratorError}
                   orchestratorResult={orchestratorResult}
                   selectedAddons={summary.filter(item => item.section === "5. Add-ons & formatting")}
@@ -1572,206 +1578,10 @@ export default function CyberWizard() {
                     setShowResults(false);
                   }}
                 />
-              ) : showStatus && showResults && orchestratorResult ? (
-                // Show final results in receipt panel
-                <div className="space-y-4">
-                  <div className="text-center mb-4 pb-3 border-b border-white/20">
-                    <div className="flex flex-col items-center gap-2 mb-2">
-                      <img 
-                        src="/assets/logo.jpg" 
-                        alt="UltrAI Logo" 
-                        className="w-16 h-16 rounded-lg shadow-lg"
-                        style={{ 
-                          filter: 'drop-shadow(0 0 10px rgba(0, 255, 255, 0.5))',
-                          border: '2px solid rgba(0, 255, 255, 0.3)'
-                        }}
-                      />
-                      <div className="text-[16px] font-extrabold tracking-[0.2em] text-white">ULTRAI</div>
-                    </div>
-                    <div className="text-[9px] text-white/60 font-mono">SYNTHESIS COMPLETE</div>
-                  </div>
-                  
-                  {/* Results Summary */}
-                  <div className="grid grid-cols-3 gap-2 mb-4">
-                    <div className="bg-white/5 rounded-lg p-2 text-center border border-white/10">
-                      <OutlineIcon name="Models Used" category="status" className="w-6 h-6 mx-auto mb-1" />
-                      <div className="text-[9px] font-semibold text-white/60">Models</div>
-                      <div className="text-[12px] font-bold text-green-300">
-                        {Array.isArray(orchestratorResult.models_used) ? orchestratorResult.models_used.length : '3'}
-                      </div>
-                    </div>
-                    <div className="bg-white/5 rounded-lg p-2 text-center border border-white/10">
-                      <OutlineIcon name="Processing Time" category="status" className="w-6 h-6 mx-auto mb-1" />
-                      <div className="text-[9px] font-semibold text-white/60">Time</div>
-                      <div className="text-[12px] font-bold text-blue-300">
-                        {typeof orchestratorResult.processing_time === 'number'
-                          ? `${Math.floor(orchestratorResult.processing_time / 60)}:${String(Math.floor(orchestratorResult.processing_time % 60)).padStart(2, '0')}`
-                          : '5:42'}
-                      </div>
-                    </div>
-                    <div className="bg-white/5 rounded-lg p-2 text-center border border-white/10">
-                      <OutlineIcon name="Pattern" category="status" className="w-6 h-6 mx-auto mb-1" />
-                      <div className="text-[9px] font-semibold text-white/60">Pattern</div>
-                      <div className="text-[12px] font-bold text-purple-300">
-                        {orchestratorResult.pattern_used || 'Ultra'}
-                      </div>
-                    </div>
-                  </div>
-                  
-                  {/* Ultra Synthesis Report */}
-                  <div>
-                    <div className="mb-2 flex items-center justify-between">
-                      <div className="text-sm font-bold text-white">Ultra Synthesis™ Report</div>
-                      <div className="flex gap-2">
-                        <button
-                          className="px-2 py-1 text-[10px] rounded border text-cyan-400 border-cyan-400/50 hover:bg-cyan-400/10 transition-all"
-                          onClick={() => {
-                            const text = String((orchestratorResult as any)?.ultra_response || '');
-                            navigator.clipboard?.writeText(text).catch(() => {});
-                          }}
-                        ><Copy className="inline-block w-3 h-3 mr-1" />Copy</button>
-                        <button
-                          className="px-2 py-1 text-[10px] rounded border text-green-400 border-green-400/50 hover:bg-green-400/10 transition-all"
-                          onClick={() => {
-                            const text = String((orchestratorResult as any)?.ultra_response || '');
-                            const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
-                            const url = URL.createObjectURL(blob);
-                            const a = document.createElement('a');
-                            a.href = url;
-                            a.download = 'ultrai_synthesis.txt';
-                            document.body.appendChild(a);
-                            a.click();
-                            a.remove();
-                            URL.revokeObjectURL(url);
-                          }}
-                        ><Download className="inline-block w-3 h-3 mr-1" />Save</button>
-                      </div>
-                    </div>
-                    <div className="rounded-lg border bg-black/60 p-3 overflow-auto" 
-                         style={{
-                           maxHeight: 200,
-                           borderColor: colorHex + '40',
-                           boxShadow: `0 0 20px ${colorHex}20`
-                         }}>
-                      <pre className="whitespace-pre-wrap text-[11px] leading-relaxed text-white/90 font-mono">{String((orchestratorResult as any)?.ultra_response || '').slice(0, 500)}...</pre>
-                    </div>
-                  </div>
-                  
-                  {/* Action Buttons */}
-                  <div className="space-y-2 mt-4">
-                    <button
-                      className="w-full px-4 py-2 rounded-lg font-semibold text-white transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] relative group"
-                      style={{
-                        background: 'linear-gradient(135deg, #00ff9f 0%, #00d4ff 100%)',
-                        border: '2px solid transparent',
-                        backgroundClip: 'padding-box',
-                      }}
-                      onClick={() => {
-                        // Download full report implementation
-                        const fullReport = `ULTRA SYNTHESIS REPORT\n${'='.repeat(50)}\n\n${(orchestratorResult as any)?.ultra_response || ''}`;
-                        const blob = new Blob([fullReport], { type: 'text/plain;charset=utf-8' });
-                        const url = URL.createObjectURL(blob);
-                        const a = document.createElement('a');
-                        a.href = url;
-                        a.download = 'ultrai_full_report.txt';
-                        document.body.appendChild(a);
-                        a.click();
-                        a.remove();
-                        URL.revokeObjectURL(url);
-                      }}
-                    >
-                      <Download className="inline-block w-4 h-4 mr-1" /> Download Full Report
-                    </button>
-
-                    <button
-                      className="w-full px-3 py-2 rounded-lg font-medium text-white/70 transition-all duration-300 hover:text-white hover:bg-white/10"
-                      style={{ border: '1px solid rgba(255,255,255,0.2)' }}
-                      onClick={() => {
-                        setShowStatus(false);
-                        setCurrentStep(0);
-                        setSummary([]);
-                        setTotalCost(0);
-                        setOrchestratorResult(null);
-                        setOrchestratorError(null);
-                        setShowResults(false);
-                      }}
-                    >
-                      <Rocket className="inline-block w-4 h-4 mr-1" /> Start New Analysis
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                // Default state - show receipt
-                <>
-                  <div className="text-center mb-4 pb-3 border-b border-white/20">
-                    <div className="flex flex-col items-center gap-2 mb-2">
-                      <img 
-                        src="/assets/logo.jpg" 
-                        alt="UltrAI Logo" 
-                        className="w-16 h-16 rounded-lg shadow-lg"
-                        style={{ 
-                          filter: 'drop-shadow(0 0 10px rgba(0, 255, 255, 0.5))',
-                          border: '2px solid rgba(0, 255, 255, 0.3)'
-                        }}
-                      />
-                      <div className="text-[16px] font-extrabold tracking-[0.2em] text-white">ULTRAI</div>
-                    </div>
-                    <div className="text-[9px] text-white/60 font-mono">ITEMIZED RECEIPT</div>
-                    <div className="text-[8px] text-white/40 font-mono mt-1">#{Date.now().toString(36).toUpperCase()}</div>
-                  </div>
-                  <div className="space-y-2" style={{ maxHeight: '360px', overflowY: 'auto', paddingRight: 6 }}>
-                    {receiptSections}
-                  </div>
-                  <div className="mt-3 font-bold text-pink-400 text-lg text-center transition-all duration-300 hover:scale-105" style={{
-                    textShadow: '0 0 10px rgba(255, 0, 212, 0.5)'
-                  }}>{`Total: $${totalCost.toFixed(2)}`}</div>
-                  {addonsSubmitted ? (
-                    selectedModels.length >= 2 ? (
-                      <button
-                        className="w-full mt-3 px-4 py-3 rounded text-center font-semibold animate-pulse-glow transition-smooth hover:scale-[1.02] active:scale-[0.98]"
-                        style={{ 
-                          border: '2px solid #ff00d4', 
-                          color: '#ff00d4', 
-                          background: 'rgba(255,0,212,0.08)',
-                          boxShadow: '0 0 20px rgba(255,0,212,0.3)'
-                        }}
-                        onClick={() => setShowStatus(true)}
-                      >
-                        <Rocket className="inline-block w-4 h-4 mr-1" /> Initialize UltrAI
-                </button>
-                    ) : (
-                      <div className="mt-3">
-                        <button
-                          className="w-full px-4 py-3 rounded text-center font-semibold opacity-50 cursor-not-allowed"
-                          style={{ 
-                            border: '2px solid rgba(255,0,212,0.5)', 
-                            color: 'rgba(255,0,212,0.7)', 
-                            background: 'rgba(255,0,212,0.04)'
-                          }}
-                          disabled
-                        >
-                          ⚠️ Select at least 2 models
-                        </button>
-                        <p className="text-[10px] text-white/50 text-center mt-2">
-                          Ultra Synthesis™ requires multiple models for optimal results
-                        </p>
-                      </div>
-                    )
-                  ) : currentStep === steps.length - 1 ? (
-                    <div className="mt-3 text-center text-[11px] text-white/60">
-                      Submit add-ons to continue...
-                    </div>
-                  ) : (
-                    <div className="mt-3 text-center text-[11px] text-white/60">
-                      Complete all steps to proceed
-                    </div>
-                  )}
-                </>
-              )}
-            </Card>
-          </div>
+            </div>
           )}
           
+ 
           {/* Centered Professional Results Panel - Only when showing final results */}
           {showStatus && showResults && (
             <div className="max-w-3xl w-full">
