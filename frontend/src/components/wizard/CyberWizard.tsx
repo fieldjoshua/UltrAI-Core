@@ -362,7 +362,7 @@ export default function CyberWizard() {
         break;
       case 'night':
       default:
-        url = '/bg-night.jpg';
+        url = '/bg-nightf Artboard 2-100.jpg';
         break;
     }
     return url;
