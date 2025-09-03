@@ -782,7 +782,7 @@ export default function CyberWizard() {
       {/* Main Content - Below Billboard */}
       <div className="relative z-10 w-full" id="main-content" role="main">
         <h1 className="sr-only">UltrAI Wizard</h1>
-        <div className="flex items-center justify-center" style={{ minHeight: '100vh', paddingTop: isNonTimeSkin ? '25vh' : '37.5vh' }}>
+        <div className="flex items-center justify-center" style={{ minHeight: '100vh', paddingTop: isNonTimeSkin ? '20vh' : '30vh' }}>
           <div className="w-full max-w-7xl px-8">
             <div className={`${showStatus && showResults ? 'flex justify-center' : showStatus && !showResults ? 'flex justify-center' : 'grid grid-cols-12 gap-4'}`}>
 
@@ -902,9 +902,9 @@ export default function CyberWizard() {
               {/* Scrollable options area */}
               <div
                 key={stepFadeKey}
-                className={`relative space-y-2 overflow-auto pr-1 pb-20 ${showStatus ? 'opacity-50' : ''}`}
+                className={`relative space-y-2 overflow-auto pr-1 pb-16 ${showStatus ? 'opacity-50' : ''}`}
                 style={{ 
-                  height: 'calc(100% - 140px)',
+                  height: 'calc(100% - 120px)',
                   pointerEvents: showStatus ? 'none' : 'auto' 
                 }}
               >
@@ -1041,7 +1041,7 @@ export default function CyberWizard() {
                       ))}
                     </div>
                   ) : (step.title || '').includes('Model selection') ? (
-                    <div className="space-y-2" style={{ height: 'calc(100% - 20px)' }}>
+                    <div className="space-y-2" style={{ height: 'calc(100% - 12px)' }}>
                       <div className="text-center mb-2">
                         <div className="text-sm font-bold text-white">Have UltrAI choose. Do you want a:</div>
                       </div>
@@ -1227,7 +1227,7 @@ export default function CyberWizard() {
                     </div>
                   ) : (
                     (step.title || '').toLowerCase().includes('select your goals') ? (
-                      <div className="space-y-3">
+                      <div className="space-y-2">
                         <div className="grid grid-cols-3 gap-2">
                           {step.options.map(o => {
                             const isSelected = selectedGoals.includes(o.label);
@@ -1279,7 +1279,7 @@ export default function CyberWizard() {
                         )}
                       </div>
                     ) : (step.title || '').includes('Add-ons') ? (
-                      <div className="space-y-2" style={{ height: 'calc(100% - 20px)' }}>
+                      <div className="space-y-2" style={{ height: 'calc(100% - 12px)' }}>
                         {/* Delivery Section */}
                         <div>
                           <div className="text-[11px] font-bold text-white/70 uppercase tracking-wider mb-1">Delivery</div>
@@ -1557,7 +1557,7 @@ export default function CyberWizard() {
           
           {/* Processing Status - Centered */}
           {showStatus && !showResults && (
-            <div className="max-w-4xl w-full">
+            <div className="max-w-4xl w-full" style={{ marginTop: '-6vh' }}>
               <LaunchStatus
                   isComplete={!isRunning && !!orchestratorResult && !orchestratorError}
                   orchestratorResult={orchestratorResult}

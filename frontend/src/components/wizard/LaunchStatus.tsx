@@ -26,14 +26,14 @@ export default function LaunchStatus({
 }: LaunchStatusProps) {
   const stages = useMemo(
     () => [
-      { key: 'boot', label: 'Initializing providers & health check', phase: 'initial', subtext: 'Authenticating with AI platforms...', duration: 3500 }, // 2-5s avg 3.5s
-      { key: 'submit', label: 'Dispatching query to models', phase: 'initial', subtext: 'Setting up concurrent execution...', duration: 550 }, // 0.3-0.8s avg 0.55s
-      { key: 'initial', label: 'Premium models generating (GPT-5, Claude 4.1, Gemini 2.5)', phase: 'initial', subtext: 'Parallel processing across all models...', duration: 11000 }, // 8-15s avg 11s
-      { key: 'distribute', label: 'Cross-checking & intelligence fan-out', phase: 'meta', subtext: 'Sharing insights between models...', duration: 3500 }, // 2-5s avg 3.5s
-      { key: 'revise', label: 'Critique & revision loop (2 passes)', phase: 'meta', subtext: 'Models refining based on cross-analysis...', duration: 12500 }, // 5-20s avg 12.5s
-      { key: 'meta_submit', label: 'Meta-draft assembly', phase: 'meta', subtext: 'Preparing unified analysis framework...', duration: 3000 }, // 2-4s avg 3s
-      { key: 'meta_analyze', label: 'Meta-analysis & synthesis', phase: 'synthesis', subtext: 'Creating Ultra Synthesis™ insights...', duration: 9000 }, // 6-12s avg 9s
-      { key: 'write', label: 'Final formatting & delivery', phase: 'synthesis', subtext: 'Preparing professional document...', duration: 6000 }, // 4-8s avg 6s
+      { key: 'boot', label: 'Initializing providers & health check', phase: 'initial', subtext: 'Authenticating with AI platforms...', duration: 3500 },
+      { key: 'submit', label: 'Dispatching query to models', phase: 'initial', subtext: 'Setting up concurrent execution...', duration: 700 },
+      { key: 'initial', label: 'Premium models generating (GPT-5, Claude 4.1, Gemini 2.5)', phase: 'initial', subtext: 'Parallel processing across all models...', duration: 14000 },
+      { key: 'distribute', label: 'Cross-checking & intelligence fan-out', phase: 'meta', subtext: 'Sharing insights between models...', duration: 4500 },
+      { key: 'revise', label: 'Critique & revision loop (2 passes)', phase: 'meta', subtext: 'Models refining based on cross-analysis...', duration: 16000 },
+      { key: 'meta_submit', label: 'Meta-draft assembly', phase: 'meta', subtext: 'Preparing unified analysis framework...', duration: 3500 },
+      { key: 'meta_analyze', label: 'Meta-analysis & synthesis', phase: 'synthesis', subtext: 'Creating Ultra Synthesis™ insights...', duration: 12000 },
+      { key: 'write', label: 'Final formatting & delivery', phase: 'synthesis', subtext: 'Preparing professional document...', duration: 7000 },
     ],
     []
   );
