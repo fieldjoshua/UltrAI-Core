@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import { OutlineIcon } from "@components/icons/OutlineIcons";
 import { Zap, Activity, Check } from 'lucide-react';
 
@@ -39,6 +39,8 @@ export default function LaunchStatus({
   );
 
   const [stageIndex, setStageIndex] = useState(0);
+  const [completedStages, setCompletedStages] = useState<number[]>([]);
+  const [animatingStages, setAnimatingStages] = useState<number[]>([]);
 
   useEffect(() => {
     if (isComplete) {
@@ -86,6 +88,20 @@ export default function LaunchStatus({
       setStageIndex(stages.length - 1);
     }
   }, [isComplete, orchestratorResult, stages.length]);
+
+  // Handle stage completion animation
+  useEffect(() => {
+    if (current > 0 && !completedStages.includes(current - 1)) {
+      // Animate the previous stage dropping down
+      setAnimatingStages(prev => [...prev, current - 1]);
+      
+      // After animation, mark as completed
+      setTimeout(() => {
+        setCompletedStages(prev => [...prev, current - 1]);
+        setAnimatingStages(prev => prev.filter(idx => idx !== current - 1));
+      }, 800);
+    }
+  }, [current, completedStages]);
 
   const current = Math.max(0, Math.min(stageIndex, stages.length - 1));
   const borderColor = hasError ? 'border-red-500/50' : 'animate-border-hum';
@@ -148,53 +164,76 @@ export default function LaunchStatus({
             </div>
           </div>
         </div>
-        <ol className="relative border-l border-white/15 pl-4 space-y-3">
-          {stages.map((st, i) => {
-            const state = i < current ? 'done' : i === current ? 'current' : 'pending';
-            return (
-              <li key={st.key} className="ml-2">
-                <div className="flex items-start gap-2">
-                  <div className={`mt-0.5 ${state === 'done' ? 'text-green-400' : state === 'current' ? 'text-cyan-300' : 'text-white/40'}`}>
-                    {state === 'done' ? (
-                      <Check className="w-5 h-5" />
-                    ) : state === 'current' ? (
-                      <Activity className="w-5 h-5 animate-pulse" />
-                    ) : (
-                      <OutlineIcon name={st.key} category="status" className="w-5 h-5" />
-                    )}
-                  </div>
-                  <div className="flex-1">
-                    <div className={`text-sm font-semibold ${state === 'pending' ? 'opacity-50' : ''} ${state === 'current' ? 'text-white' : ''}`}>{st.label}</div>
-                    {st.subtext && (
-                      <div className={`text-[10px] ${state === 'current' ? 'text-cyan-300/80' : 'text-white/40'} mt-0.5`}>
-                        {st.subtext}
-                      </div>
-                    )}
+        <div className="relative" style={{ minHeight: '280px' }}>
+          {/* Active stages display */}
+          <div className="space-y-3">
+            {stages.map((st, i) => {
+              const state = i < current ? 'done' : i === current ? 'current' : 'pending';
+              const isAnimating = animatingStages.includes(i);
+              const isCompleted = completedStages.includes(i);
+              
+              if (isCompleted && !isAnimating) return null;
+              
+              return (
+                <div
+                  key={st.key}
+                  className={`transition-all duration-500 ${state === 'pending' ? 'translate-x-8 opacity-50' : ''} ${
+                    isAnimating ? 'animate-[dropDown_0.8s_ease-in-out_forwards]' : ''
+                  }`}
+                  style={{
+                    animation: isAnimating ? 'dropDown 0.8s ease-in-out forwards' : undefined
+                  }}
+                >
+                  <div className="flex items-center gap-3 bg-white/5 rounded-lg p-3 border border-white/20">
+                    <div className={`${state === 'done' ? 'text-green-400' : state === 'current' ? 'text-cyan-300' : 'text-white/40'}`}>
+                      {state === 'done' ? (
+                        <Check className="w-6 h-6" />
+                      ) : state === 'current' ? (
+                        <Activity className="w-6 h-6 animate-pulse" />
+                      ) : (
+                        <OutlineIcon name={st.key} category="status" className="w-6 h-6" />
+                      )}
+                    </div>
+                    <div className="flex-1">
+                      <div className={`text-sm font-semibold ${state === 'current' ? 'text-white' : ''}`}>{st.label}</div>
+                      {st.subtext && state === 'current' && (
+                        <div className="text-[10px] text-cyan-300/80 mt-0.5">
+                          {st.subtext}
+                        </div>
+                      )}
+                    </div>
                     {state === 'current' && (
-                      <div className="mt-2 flex items-center gap-2">
-                        <div className="h-1.5 w-40 bg-white/10 rounded-full overflow-hidden">
+                      <div className="flex items-center gap-2">
+                        <div className="h-2 w-24 bg-white/10 rounded-full overflow-hidden">
                           <div className="h-full bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 rounded-full" 
                                style={{
                                  width: '30%',
                                  animation: 'slideProgress 2s ease-in-out infinite'
                                }}></div>
                         </div>
-                        <div className="flex gap-1">
-                          <span className="w-1 h-1 bg-cyan-400 rounded-full animate-pulse"></span>
-                          <span className="w-1 h-1 bg-purple-400 rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></span>
-                          <span className="w-1 h-1 bg-pink-400 rounded-full animate-pulse" style={{ animationDelay: '0.4s' }}></span>
-                        </div>
                       </div>
                     )}
-                    {state === 'done' && <div className="text-[10px] text-green-400/70 mt-0.5 flex items-center gap-1">
-                      <span>✓</span> Complete
-                    </div>}
                   </div>
                 </div>
-              </li>
-            );
-          })}
-        </ol>
+              );
+            })}
+          </div>
+          
+          {/* Collection area at bottom */}
+          {completedStages.length > 0 && (
+            <div className="absolute bottom-0 left-0 right-0 mt-4 p-3 bg-gradient-to-t from-black/40 to-transparent rounded-b-lg">
+              <div className="text-[10px] font-semibold text-white/60 mb-2">Completed Stages</div>
+              <div className="flex flex-wrap gap-2">
+                {completedStages.map((idx) => (
+                  <div key={stages[idx].key} className="bg-green-500/20 border border-green-400/50 rounded px-2 py-1 text-[9px] text-green-300 animate-[fadeInUp_0.5s_ease-out]">
+                    <Check className="w-3 h-3 inline mr-1" />
+                    {stages[idx].label.split(' ').slice(0, 2).join(' ')}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
 
         {isComplete && orchestratorResult && (
           <>
