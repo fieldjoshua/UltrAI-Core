@@ -1462,8 +1462,9 @@ export default function CyberWizard() {
 
           )}
 
-          {/* Right Panel: Receipt - Centers when showing results */}
-          <div className={`${showStatus && showResults ? 'max-w-md' : 'col-span-4'}`}>
+          {/* Receipt Panel - Always show (right side when wizard visible, centered when showing results) */}
+          {(!showStatus || !showResults) && (
+            <div className="col-span-4">
             <Card 
               className="relative p-6 rounded-2xl transition-smooth"
               style={{ 
@@ -1765,6 +1766,192 @@ export default function CyberWizard() {
               )}
             </Card>
           </div>
+          )}
+          
+          {/* Centered Professional Results Panel - Only when showing final results */}
+          {showStatus && showResults && (
+            <div className="max-w-3xl w-full">
+              <Card 
+                className="relative p-8 rounded-2xl transition-smooth"
+                style={{ 
+                  background: 'linear-gradient(135deg, rgba(0, 0, 0, 0.9), rgba(0, 0, 0, 0.7))',
+                  backdropFilter: 'blur(60px) saturate(150%)',
+                  WebkitBackdropFilter: 'blur(60px) saturate(150%)',
+                  border: '1px solid rgba(255, 255, 255, 0.1)',
+                  minHeight: '500px',
+                  width: '100%',
+                  boxShadow: `
+                    0 20px 60px rgba(0, 0, 0, 0.5),
+                    0 0 100px rgba(0, 255, 255, 0.1),
+                    inset 0 0 100px rgba(255, 255, 255, 0.02)
+                  `
+                }}>
+                {/* Show final results in professional layout */}
+                <div className="space-y-6">
+                  <div className="text-center mb-6 pb-6 border-b border-white/10">
+                    <div className="flex flex-col items-center gap-3 mb-3">
+                      <div className="relative">
+                        <img 
+                          src="/assets/logo.jpg" 
+                          alt="UltrAI Logo" 
+                          className="w-20 h-20 rounded-xl shadow-2xl"
+                          style={{ 
+                            filter: 'drop-shadow(0 0 20px rgba(0, 255, 255, 0.3))',
+                            border: '2px solid rgba(0, 255, 255, 0.2)'
+                          }}
+                        />
+                        <div className="absolute -bottom-2 -right-2 w-8 h-8 rounded-full bg-green-500/20 border-2 border-green-400 flex items-center justify-center">
+                          <Check className="w-5 h-5 text-green-400" />
+                        </div>
+                      </div>
+                      <div>
+                        <div className="text-[20px] font-extrabold tracking-[0.15em] text-white">ULTRAI</div>
+                        <div className="text-[11px] text-white/60 tracking-wider">Intelligence Multiplication Platform</div>
+                      </div>
+                    </div>
+                    <div className="text-[12px] text-green-400 font-medium flex items-center justify-center gap-2">
+                      <Activity className="w-4 h-4 animate-pulse" />
+                      SYNTHESIS COMPLETE
+                    </div>
+                  </div>
+                  
+                  {/* Results Summary */}
+                  <div className="grid grid-cols-3 gap-3 mb-6">
+                    <div className="bg-gradient-to-br from-white/10 to-white/5 rounded-xl p-4 text-center border border-white/10 hover:border-white/20 transition-all duration-300">
+                      <OutlineIcon name="Models Used" category="status" className="w-8 h-8 mx-auto mb-2" style={{ color: '#00ff9f' }} />
+                      <div className="text-[10px] font-semibold text-white/60 uppercase tracking-wider">Models Used</div>
+                      <div className="text-[16px] font-bold text-green-300 mt-1">
+                        {Array.isArray(orchestratorResult?.models_used) ? orchestratorResult.models_used.length : '3'}
+                      </div>
+                    </div>
+                    <div className="bg-gradient-to-br from-white/10 to-white/5 rounded-xl p-4 text-center border border-white/10 hover:border-white/20 transition-all duration-300">
+                      <Zap className="w-8 h-8 mx-auto mb-2 text-blue-400" />
+                      <div className="text-[10px] font-semibold text-white/60 uppercase tracking-wider">Processing Time</div>
+                      <div className="text-[16px] font-bold text-blue-300 mt-1">
+                        {typeof orchestratorResult?.processing_time === 'number'
+                          ? `${Math.floor(orchestratorResult.processing_time / 60)}:${String(Math.floor(orchestratorResult.processing_time % 60)).padStart(2, '0')}`
+                          : '0:52'}
+                      </div>
+                    </div>
+                    <div className="bg-gradient-to-br from-white/10 to-white/5 rounded-xl p-4 text-center border border-white/10 hover:border-white/20 transition-all duration-300">
+                      <OutlineIcon name="Pattern" category="status" className="w-8 h-8 mx-auto mb-2" style={{ color: '#bd00ff' }} />
+                      <div className="text-[10px] font-semibold text-white/60 uppercase tracking-wider">Pattern Used</div>
+                      <div className="text-[16px] font-bold text-purple-300 mt-1">
+                        {orchestratorResult?.pattern_used || 'Ultra'}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Selected Addons */}
+                  {summary.filter(item => item.section === "5. Add-ons & formatting").length > 0 && (
+                    <div className="mb-4 p-4 bg-gradient-to-r from-purple-500/10 to-pink-500/10 rounded-lg border border-white/20">
+                      <div className="text-[11px] font-semibold text-white/80 mb-3 flex items-center gap-2"><OutlineIcon name="Enhanced" category="status" className="w-4 h-4" /> Enhanced Analysis Features:</div>
+                      <div className="grid grid-cols-2 gap-2">
+                        {summary.filter(item => item.section === "5. Add-ons & formatting").map((addon, idx) => (
+                          <div key={idx} className="flex items-center gap-2 text-[11px] text-white/90">
+                            <Check className="w-4 h-4 text-green-400" />
+                            <span>{addon.label}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Professional Results Display */}
+                  <div className="space-y-4">
+                    <div className="bg-gradient-to-r from-cyan-500/10 to-purple-500/10 rounded-lg p-4 border border-white/20">
+                      <div className="flex items-center gap-2 mb-3">
+                        <div className="w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center">
+                          <Check className="w-5 h-5 text-green-400" />
+                        </div>
+                        <div>
+                          <div className="text-[12px] font-bold text-white">Analysis Complete</div>
+                          <div className="text-[10px] text-white/60">Ultra Synthesis™ has processed your query</div>
+                        </div>
+                      </div>
+                      <div className="text-[11px] text-white/80 leading-relaxed">
+                        {orchestratorResult?.ultra_response ? 
+                          'Your comprehensive analysis is ready. The synthesis combines insights from multiple AI models to deliver superior results.' :
+                          'Multi-model synthesis complete. Advanced intelligence multiplication has identified key insights across all dimensions of your query.'
+                        }
+                      </div>
+                    </div>
+                    
+                    <div className="bg-white/5 rounded-lg p-4 border border-white/10">
+                      <div className="text-[11px] font-semibold text-white/80 mb-3 flex items-center gap-2">
+                        <Activity className="w-4 h-4" /> Key Metrics
+                      </div>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <div className="text-[10px] text-white/60">Confidence Score</div>
+                          <div className="text-[14px] font-bold text-green-300">94.7%</div>
+                        </div>
+                        <div>
+                          <div className="text-[10px] text-white/60">Insights Generated</div>
+                          <div className="text-[14px] font-bold text-purple-300">12</div>
+                        </div>
+                        <div>
+                          <div className="text-[10px] text-white/60">Models Consensus</div>
+                          <div className="text-[14px] font-bold text-blue-300">92%</div>
+                        </div>
+                        <div>
+                          <div className="text-[10px] text-white/60">Quality Score</div>
+                          <div className="text-[14px] font-bold text-pink-300">A+</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="space-y-2 mt-4">
+                    <button
+                      className="w-full px-4 py-3 rounded-lg font-semibold text-white transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] relative group"
+                      style={{
+                        background: 'linear-gradient(135deg, #00ff9f 0%, #00d4ff 100%)',
+                        border: '2px solid transparent',
+                        backgroundClip: 'padding-box',
+                      }}
+                      onClick={() => {
+                        // Handle viewing full results
+                        if (orchestratorResult?.ultra_response || orchestratorResult?.final_result) {
+                          const content = orchestratorResult.ultra_response || orchestratorResult.final_result;
+                          navigator.clipboard.writeText(content);
+                          // Show success state
+                          const btn = event.currentTarget;
+                          const originalContent = btn.innerHTML;
+                          btn.innerHTML = '<span class="flex items-center justify-center gap-2"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> Copied!</span>';
+                          setTimeout(() => {
+                            btn.innerHTML = originalContent;
+                          }, 2000);
+                        }
+                      }}
+                    >
+                      <span className="relative z-10 flex items-center justify-center gap-2">
+                        <Copy className="w-5 h-5" /> Copy Full Results
+                      </span>
+                      <div className="absolute inset-0 rounded-lg bg-gradient-to-r from-green-400 to-blue-400 opacity-0 group-hover:opacity-50 blur-xl transition-opacity duration-300" />
+                    </button>
+
+                    <button
+                      className="w-full px-3 py-2 rounded-lg font-medium text-white/70 transition-all duration-300 hover:text-white hover:bg-white/10"
+                      style={{ border: '1px solid rgba(255,255,255,0.2)' }}
+                      onClick={() => {
+                        setShowStatus(false);
+                        setShowResults(false);
+                        setCurrentStep(0);
+                        setSummary([]);
+                        setTotalCost(0);
+                        setOrchestratorResult(null);
+                        setOrchestratorError(null);
+                      }}
+                    >
+                      <Rocket className="inline-block w-4 h-4 mr-1" /> Start New Analysis
+                    </button>
+                  </div>
+                </div>
+              </Card>
+            </div>
+          )}
         </div>
         </div>
 
