@@ -781,44 +781,6 @@ export default function CyberWizard() {
         </div>
       )}
 
-      {/* Minimal Left Sidebar - Always Visible */}
-      <div className="fixed left-0 top-1/2 transform -translate-y-1/2 z-20 p-2">
-        <div className="glass-strong rounded-lg p-3 space-y-4" 
-          style={{ 
-            background: 'rgba(0, 0, 0, 0.8)',
-            backdropFilter: 'blur(20px)',
-            border: '1px solid rgba(255, 255, 255, 0.1)',
-            width: '60px'
-          }}>
-          {/* Model Status */}
-          <div className="text-center">
-            <OutlineIcon name="Models Used" category="status" className="w-6 h-6 mx-auto mb-1" style={{ color: colorHex }} />
-            <div className="text-[10px] font-bold" style={{ color: colorHex }}>
-              {availableModels ? availableModels.filter(m => modelStatuses[m] === 'ready').length : '0'}
-            </div>
-            <div className="text-[8px] text-white/40">Models</div>
-          </div>
-          
-          {/* Latency */}
-          <div className="text-center">
-            <Zap className="w-6 h-6 mx-auto mb-1" style={{ color: colorHex }} />
-            <div className="text-[10px] font-bold animate-pulse" style={{ color: colorHex }}>2.3s</div>
-            <div className="text-[8px] text-white/40">Speed</div>
-          </div>
-          
-          {/* Status */}
-          <div className="text-center">
-            <Activity className="w-6 h-6 mx-auto mb-1" 
-              style={{ color: availableModels && availableModels.filter(m => modelStatuses[m] === 'ready').length >= 2 ? '#00ff00' : '#ff0000' }} 
-            />
-            <div className="text-[10px] font-bold" 
-              style={{ color: availableModels && availableModels.filter(m => modelStatuses[m] === 'ready').length >= 2 ? '#00ff00' : '#ff0000' }}>
-              {availableModels && availableModels.filter(m => modelStatuses[m] === 'ready').length >= 2 ? 'ON' : 'OFF'}
-            </div>
-            <div className="text-[8px] text-white/40">Status</div>
-          </div>
-        </div>
-      </div>
 
       {/* Main Content - Below Billboard */}
       <div className="relative z-10 w-full" id="main-content" role="main">
@@ -1004,7 +966,7 @@ export default function CyberWizard() {
                       onChange={(e) => setUserQuery(e.target.value)}
                       onFocus={() => setQueryFocused(true)}
                       onBlur={() => setQueryFocused(false)}
-                      className="bg-black/60 text-white placeholder:text-white/50 border-2 min-h-[500px] text-[16px] leading-7 resize-none rounded-lg p-4"
+                      className="bg-black/80 text-white placeholder:text-white/60 border-2 min-h-[500px] text-[16px] leading-7 resize-none rounded-lg p-4"
                       style={{ borderColor: colorHex + '60' }}
                     />
                     {/* Character counter */}

@@ -394,6 +394,7 @@ export async function processWithFeatherOrchestration({
   ultraModel = null,
   outputFormat = 'plain'
 }) {
+  const orchestrationStartTime = Date.now();
   // Check for error simulation
   const errorScenario = shouldSimulateError();
   if (errorScenario) {
@@ -410,8 +411,8 @@ export async function processWithFeatherOrchestration({
     }
   }
   
-  // Simulate network delay for initial processing (10x slower)
-  await new Promise(resolve => setTimeout(resolve, 20000 + Math.random() * 5000));
+  // Stage 1: Initialize providers & health check (2-5s)
+  await new Promise(resolve => setTimeout(resolve, 2000 + Math.random() * 3000));
   
   // Use provided models or select defaults (top models)
   let selectedModels = models || ['gpt-5', 'claude-4.1', 'gemini-2.5'];
@@ -422,35 +423,64 @@ export async function processWithFeatherOrchestration({
     selectedModels = ['gpt-4o', 'claude-3-5-sonnet-20241022'];
   }
   
-  // Generate initial responses
+  // Stage 2: Query dispatch (0.3-0.8s)
+  await new Promise(resolve => setTimeout(resolve, 300 + Math.random() * 500));
+  
+  // Stage 3: Model generation in parallel (8-15s for slowest)
   const initialResponses = {};
-  for (const model of selectedModels) {
-    // Simulate per-model delay (10x slower)
-    await new Promise(resolve => setTimeout(resolve, 15000 + Math.random() * 5000));
+  
+  // Simulate parallel processing - all models work simultaneously
+  const modelPromises = selectedModels.map(async (model) => {
+    // Each model has different response times
+    const modelDelay = model.includes('gpt-5') ? 8000 + Math.random() * 7000 :  // GPT-5: 8-15s
+                      model.includes('claude-4.1') ? 6000 + Math.random() * 6000 :  // Claude: 6-12s
+                      model.includes('gemini') ? 6000 + Math.random() * 4000 :      // Gemini: 6-10s
+                      5000 + Math.random() * 5000;                                  // Others: 5-10s
+    
+    await new Promise(resolve => setTimeout(resolve, modelDelay));
+    
     initialResponses[model] = {
       content: `[${model}] Initial analysis of: "${prompt.slice(0, 50)}..."`,
-      processingTime: 7.5 + Math.random() * 2,
+      processingTime: modelDelay / 1000,
       confidence: 0.85 + Math.random() * 0.15
     };
+  });
+  
+  // Wait for all models to complete (parallel execution)
+  await Promise.all(modelPromises);
+  
+  // Stage 4: Cross-check & fan-out (2-5s)
+  await new Promise(resolve => setTimeout(resolve, 2000 + Math.random() * 3000));
+  
+  // Stage 5: Critique & revision loop (5-20s total for 1-2 passes)
+  const revisionPasses = Math.random() < 0.7 ? 1 : 2; // 70% chance of 1 pass, 30% chance of 2
+  for (let pass = 0; pass < revisionPasses; pass++) {
+    await new Promise(resolve => setTimeout(resolve, 5000 + Math.random() * 5000));
   }
   
-  // Generate meta analysis (10x slower)
-  await new Promise(resolve => setTimeout(resolve, 20000 + Math.random() * 8000));
+  // Stage 6: Meta-draft assembly (2-4s)
+  await new Promise(resolve => setTimeout(resolve, 2000 + Math.random() * 2000));
+  
+  // Stage 7: Meta-analysis & synthesis (6-12s)
+  await new Promise(resolve => setTimeout(resolve, 6000 + Math.random() * 6000));
   const metaAnalysis = {
     content: `Meta-analysis identified ${Object.keys(initialResponses).length} key patterns across models with 92% consensus rate.`,
     patterns: ['consensus', 'divergence', 'synthesis'],
     confidence: 0.91
   };
   
-  // Generate ultra synthesis (10x slower)
-  await new Promise(resolve => setTimeout(resolve, 30000 + Math.random() * 10000));
+  // Stage 8: Final formatting & delivery (4-8s)
+  await new Promise(resolve => setTimeout(resolve, 4000 + Math.random() * 4000));
   const ultraResponse = generateDemoResponse(prompt, selectedModels);
+  
+  // Add network/rate-limit jitter (1-3s)
+  await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 2000));
   
   return {
     status: 'success',
     ultra_response: ultraResponse,
     models_used: selectedModels,
-    processing_time: 300 + Math.random() * 120,
+    processing_time: (Date.now() - orchestrationStartTime) / 1000, // Actual elapsed time
     pattern_used: pattern,
     initial_responses: initialResponses,
     meta_analysis: metaAnalysis,

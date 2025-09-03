@@ -26,14 +26,14 @@ export default function LaunchStatus({
 }: LaunchStatusProps) {
   const stages = useMemo(
     () => [
-      { key: 'boot', label: 'Initializing AI models', phase: 'initial', subtext: 'Activating GPT-5, Claude 4.1, Gemini 2.5...' },
-      { key: 'submit', label: 'Processing your query', phase: 'initial', subtext: 'Optimizing prompts for each model...' },
-      { key: 'initial', label: 'Models generating initial responses', phase: 'initial', subtext: 'Parallel processing across all models...' },
-      { key: 'distribute', label: 'Cross-model intelligence sharing', phase: 'meta', subtext: 'Sharing insights between models...' },
-      { key: 'revise', label: 'Models refining responses', phase: 'meta', subtext: 'Enhancing based on shared knowledge...' },
-      { key: 'meta_submit', label: 'Preparing meta-analysis', phase: 'meta', subtext: 'Identifying patterns and consensus...' },
-      { key: 'meta_analyze', label: 'Synthesizing insights', phase: 'synthesis', subtext: 'Creating unified intelligence output...' },
-      { key: 'write', label: 'Creating Ultra Synthesis™ report', phase: 'synthesis', subtext: 'Formatting final deliverables...' },
+      { key: 'boot', label: 'Initializing providers & health check', phase: 'initial', subtext: 'Authenticating with AI platforms...', duration: 3500 }, // 2-5s avg 3.5s
+      { key: 'submit', label: 'Dispatching query to models', phase: 'initial', subtext: 'Setting up concurrent execution...', duration: 550 }, // 0.3-0.8s avg 0.55s
+      { key: 'initial', label: 'Premium models generating (GPT-5, Claude 4.1, Gemini 2.5)', phase: 'initial', subtext: 'Parallel processing across all models...', duration: 11000 }, // 8-15s avg 11s
+      { key: 'distribute', label: 'Cross-checking & intelligence fan-out', phase: 'meta', subtext: 'Sharing insights between models...', duration: 3500 }, // 2-5s avg 3.5s
+      { key: 'revise', label: 'Critique & revision loop (2 passes)', phase: 'meta', subtext: 'Models refining based on cross-analysis...', duration: 12500 }, // 5-20s avg 12.5s
+      { key: 'meta_submit', label: 'Meta-draft assembly', phase: 'meta', subtext: 'Preparing unified analysis framework...', duration: 3000 }, // 2-4s avg 3s
+      { key: 'meta_analyze', label: 'Meta-analysis & synthesis', phase: 'synthesis', subtext: 'Creating Ultra Synthesis™ insights...', duration: 9000 }, // 6-12s avg 9s
+      { key: 'write', label: 'Final formatting & delivery', phase: 'synthesis', subtext: 'Preparing professional document...', duration: 6000 }, // 4-8s avg 6s
     ],
     []
   );
@@ -41,6 +41,8 @@ export default function LaunchStatus({
   const [stageIndex, setStageIndex] = useState(0);
   const [completedStages, setCompletedStages] = useState<number[]>([]);
   const [animatingStages, setAnimatingStages] = useState<number[]>([]);
+  const [stageProgress, setStageProgress] = useState(0);
+  const stageStartTime = useRef<number>(Date.now());
 
   useEffect(() => {
     if (isComplete) {
@@ -49,27 +51,32 @@ export default function LaunchStatus({
     }
     if (hasError) return;
     
-    // Dynamic timing based on stage phase
+    // Use actual stage durations with some variance
     const getStageDelay = (index: number) => {
       const stage = stages[index];
       if (!stage) return 5000;
       
-      // Initial analysis & revision stages: 7s each
-      if (stage.phase === 'initial' || stage.phase === 'meta') {
-        return 7000;
-      }
-      // Synthesis stages: 3s each (faster since it's one LLM)
-      if (stage.phase === 'synthesis') {
-        return 3000;
-      }
-      return 5000;
+      // Add 10-20% variance to simulate real network conditions
+      const variance = 0.9 + Math.random() * 0.3; // 0.9 to 1.2
+      const baseDelay = stage.duration || 5000;
+      
+      // Add extra delay occasionally to simulate rate limiting
+      const rateLimit = Math.random() < 0.15 ? 1500 : 0; // 15% chance of +1.5s
+      
+      return Math.round(baseDelay * variance + rateLimit);
     };
     
     let timeoutId: NodeJS.Timeout;
+    let progressInterval: NodeJS.Timeout;
+    
     const advanceStage = () => {
       setStageIndex((currentIndex) => {
         const nextIndex = Math.min(currentIndex + 1, stages.length - 2);
         if (nextIndex !== currentIndex && nextIndex < stages.length - 1) {
+          // Reset progress for new stage
+          setStageProgress(0);
+          stageStartTime.current = Date.now();
+          
           const delay = getStageDelay(nextIndex);
           timeoutId = setTimeout(advanceStage, delay);
         }
@@ -77,10 +84,25 @@ export default function LaunchStatus({
       });
     };
     
+    // Update progress bar for current stage
+    progressInterval = setInterval(() => {
+      const stage = stages[stageIndex];
+      if (stage) {
+        const elapsed = Date.now() - stageStartTime.current;
+        const duration = stage.duration || 5000;
+        const progress = Math.min(100, (elapsed / duration) * 100);
+        setStageProgress(progress);
+      }
+    }, 100);
+    
     // Start with first stage delay
+    stageStartTime.current = Date.now();
     timeoutId = setTimeout(advanceStage, getStageDelay(0));
     
-    return () => clearTimeout(timeoutId);
+    return () => {
+      clearTimeout(timeoutId);
+      clearInterval(progressInterval);
+    };
   }, [isComplete, hasError, stages]);
 
   useEffect(() => {
@@ -132,12 +154,14 @@ export default function LaunchStatus({
               Est. {(() => {
                 let remaining = 0;
                 for (let i = current + 1; i < stages.length; i++) {
-                  const phase = stages[i]?.phase;
-                  if (phase === 'initial' || phase === 'meta') remaining += 7;
-                  else if (phase === 'synthesis') remaining += 3;
-                  else remaining += 5;
+                  const stage = stages[i];
+                  if (stage) {
+                    remaining += Math.round((stage.duration || 5000) / 1000);
+                  }
                 }
-                return Math.max(3, remaining);
+                // Add buffer for network latency
+                remaining += 2;
+                return Math.max(3, Math.round(remaining));
               })()}s remaining
             </div>
           )}
@@ -205,10 +229,9 @@ export default function LaunchStatus({
                     {state === 'current' && (
                       <div className="flex items-center gap-2">
                         <div className="h-2 w-24 bg-white/10 rounded-full overflow-hidden">
-                          <div className="h-full bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 rounded-full" 
+                          <div className="h-full bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 rounded-full transition-all duration-300" 
                                style={{
-                                 width: '30%',
-                                 animation: 'slideProgress 2s ease-in-out infinite'
+                                 width: `${stageProgress}%`
                                }}></div>
                         </div>
                       </div>
@@ -249,9 +272,14 @@ export default function LaunchStatus({
                 <OutlineIcon name="Processing Time" category="status" className="w-8 h-8 mx-auto mb-1" />
                 <div className="text-[10px] font-semibold text-white/60 uppercase tracking-wider">Processing Time</div>
                 <div className="text-[14px] font-bold text-blue-300 mt-1">
-                  {typeof orchestratorResult.processing_time === 'number'
-                    ? `${Math.floor(orchestratorResult.processing_time / 60)}:${String(Math.floor(orchestratorResult.processing_time % 60)).padStart(2, '0')}`
-                    : '5:42'}
+                  {(() => {
+                    // Calculate total time from stages (typical: 30-60s)
+                    const totalMs = stages.reduce((sum, stage) => sum + (stage.duration || 5000), 0);
+                    const totalSec = Math.round(totalMs / 1000);
+                    const mins = Math.floor(totalSec / 60);
+                    const secs = totalSec % 60;
+                    return `${mins}:${String(secs).padStart(2, '0')}`;
+                  })()}
                 </div>
               </div>
               <div className="bg-white/5 rounded-lg p-3 text-center border border-white/10">
