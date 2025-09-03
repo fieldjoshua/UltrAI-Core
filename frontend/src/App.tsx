@@ -55,7 +55,6 @@ function App() {
     <ErrorBoundary>
       <Router>
         <div className="min-h-screen bg-gray-50 dark:bg-gray-900 md:pl-16">
-          <DemoIndicator />
           <NavBar />
           <main className="container mx-auto px-4 py-6">
             <Suspense fallback={<PageLoader />}>

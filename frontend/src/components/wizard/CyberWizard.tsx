@@ -1279,26 +1279,26 @@ export default function CyberWizard() {
 
                 {step.type === "checkbox" && step.options && (
                   currentStep === 1 ? (
-                    <div className="grid grid-cols-3 gap-3" style={{ height: 'calc(100% - 20px)' }}>
+                    <div className="grid grid-cols-3 gap-2" style={{ height: 'calc(100% - 20px)' }}>
                       {step.options.slice(0, 9).map(o => (
                         <div
                           key={o.label}
                           onClick={() => handleGoalToggle(o.label)}
-                          className="flex flex-col items-center justify-center p-3 border-2 rounded-lg cursor-pointer transition-all hover:scale-105"
+                          className="flex flex-col items-center justify-center p-2 border-2 rounded-lg cursor-pointer transition-all hover:scale-105"
                           style={{
                             borderColor: selectedGoals.includes(o.label) ? colorHex : colorHex + '40',
                             background: selectedGoals.includes(o.label) ? `${mapColorRGBA(step.color, 0.3)}` : 'rgba(255,255,255,0.05)',
                             boxShadow: selectedGoals.includes(o.label) ? `0 0 20px ${colorHex}40` : 'none'
                           }}>
-                          <OutlineIcon name={o.label} category="goal" className="w-8 h-8 mb-1" />
-                          <span className="text-center text-sm font-medium text-white">{o.label}</span>
+                          <OutlineIcon name={o.label} category="goal" className="w-6 h-6 mb-1" />
+                          <span className="text-center text-xs font-medium text-white">{o.label}</span>
                         </div>
                       ))}
                     </div>
                   ) : (step.title || '').includes('Model selection') ? (
-                    <div className="space-y-4" style={{ height: 'calc(100% - 20px)' }}>
-                      <div className="text-center mb-4">
-                        <div className="text-sm font-bold text-white mb-2">Have UltrAI choose. Do you want a:</div>
+                    <div className="space-y-2" style={{ height: 'calc(100% - 20px)' }}>
+                      <div className="text-center mb-2">
+                        <div className="text-sm font-bold text-white">Have UltrAI choose. Do you want a:</div>
                       </div>
                       {/* Three horizontal boxes for model selection */}
                       <div className="grid grid-cols-3 gap-3">
@@ -1534,10 +1534,10 @@ export default function CyberWizard() {
                         )}
                       </div>
                     ) : (step.title || '').includes('Add-ons') ? (
-                      <div className="space-y-3" style={{ height: 'calc(100% - 20px)' }}>
+                      <div className="space-y-2" style={{ height: 'calc(100% - 20px)' }}>
                         {/* Delivery Section */}
                         <div>
-                          <div className="text-[11px] font-bold text-white/70 uppercase tracking-wider mb-2">Delivery</div>
+                          <div className="text-[11px] font-bold text-white/70 uppercase tracking-wider mb-1">Delivery</div>
                           <div className="grid grid-cols-3 gap-2">
                             {step.options.slice(0, 3).map(o => {
                               const isSelected = summary.some(it => it.label === o.label && it.section === step.title);
@@ -1571,7 +1571,7 @@ export default function CyberWizard() {
                         
                         {/* Security Section */}
                         <div>
-                          <div className="text-[11px] font-bold text-white/70 uppercase tracking-wider mb-2">Security</div>
+                          <div className="text-[11px] font-bold text-white/70 uppercase tracking-wider mb-1">Security</div>
                           <div className="grid grid-cols-3 gap-2">
                             {step.options.slice(3, 6).map(o => {
                               const isSelected = summary.some(it => it.label === o.label && it.section === step.title);
@@ -1605,7 +1605,7 @@ export default function CyberWizard() {
                         
                         {/* Polish Section */}
                         <div>
-                          <div className="text-[11px] font-bold text-white/70 uppercase tracking-wider mb-2">Polish</div>
+                          <div className="text-[11px] font-bold text-white/70 uppercase tracking-wider mb-1">Polish</div>
                           <div className="grid grid-cols-3 gap-2">
                             {step.options.slice(6, 9).map(o => {
                               const isSelected = summary.some(it => it.label === o.label && it.section === step.title);
@@ -1661,7 +1661,7 @@ export default function CyberWizard() {
                           <div
                             key={o.label}
                             onClick={() => { if (isLive && !already) addSelection(o.label, o.cost, step.color, step.title); }}
-                            className={`glass-panel border-2 rounded-lg p-3 transition-smooth hover:scale-[1.02] cursor-pointer ${comingSoon ? 'opacity-30 pointer-events-none' : ''} ${already ? 'glow-' + step.color : ''}`}
+                            className={`glass-panel border-2 rounded-lg p-2 transition-smooth hover:scale-[1.02] cursor-pointer ${comingSoon ? 'opacity-30 pointer-events-none' : ''} ${already ? 'glow-' + step.color : ''}`}
                             style={{ 
                               borderColor: already ? colorHex : colorHex + '40',
                               background: already ? mapColorRGBA(step.color, 0.2) : 'rgba(255, 255, 255, 0.05)',
@@ -1669,12 +1669,12 @@ export default function CyberWizard() {
                             }}
                           >
                             <div className="text-center">
-                              <OutlineIcon name={o.label.replace(' (Coming soon)', '')} category="analysis" className="w-6 h-6 mb-1 mx-auto" />
-                              <div className="font-bold text-[12px] text-white leading-tight">{o.label.replace(' (Coming soon)', '')}</div>
-                              {comingSoon && <div className="text-[8px] text-white/50 mt-1">Coming Soon</div>}
+                              <OutlineIcon name={o.label.replace(' (Coming soon)', '')} category="analysis" className="w-5 h-5 mb-0.5 mx-auto" />
+                              <div className="font-bold text-[11px] text-white leading-tight">{o.label.replace(' (Coming soon)', '')}</div>
+                              {comingSoon && <div className="text-[8px] text-white/50 mt-0.5">Coming Soon</div>}
                             </div>
-                            {o.description && <div className="text-[9px] text-white/70 text-center leading-tight mt-2">{o.description}</div>}
-                            {typeof o.cost === 'number' && <div className="text-[9px] text-center mt-1 text-pink-400 font-bold">+${o.cost.toFixed(2)}</div>}
+                            {o.description && <div className="text-[8px] text-white/70 text-center leading-tight mt-1">{o.description}</div>}
+                            {typeof o.cost === 'number' && <div className="text-[8px] text-center mt-0.5 text-pink-400 font-bold">+${o.cost.toFixed(2)}</div>}
                           </div>
                         );
                       })}

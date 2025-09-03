@@ -46,13 +46,40 @@ export default function LaunchStatus({
       return;
     }
     if (hasError) return;
-    // Dynamic timing: 5s per stage for ~40s total demo experience
-    const intervalMs = 5000;
-    const t = setInterval(() => {
-      setStageIndex((i) => Math.min(i + 1, stages.length - 2));
-    }, intervalMs);
-    return () => clearInterval(t);
-  }, [isComplete, hasError, stages.length]);
+    
+    // Dynamic timing based on stage phase
+    const getStageDelay = (index: number) => {
+      const stage = stages[index];
+      if (!stage) return 5000;
+      
+      // Initial analysis & revision stages: 7s each
+      if (stage.phase === 'initial' || stage.phase === 'meta') {
+        return 7000;
+      }
+      // Synthesis stages: 3s each (faster since it's one LLM)
+      if (stage.phase === 'synthesis') {
+        return 3000;
+      }
+      return 5000;
+    };
+    
+    let timeoutId: NodeJS.Timeout;
+    const advanceStage = () => {
+      setStageIndex((currentIndex) => {
+        const nextIndex = Math.min(currentIndex + 1, stages.length - 2);
+        if (nextIndex !== currentIndex && nextIndex < stages.length - 1) {
+          const delay = getStageDelay(nextIndex);
+          timeoutId = setTimeout(advanceStage, delay);
+        }
+        return nextIndex;
+      });
+    };
+    
+    // Start with first stage delay
+    timeoutId = setTimeout(advanceStage, getStageDelay(0));
+    
+    return () => clearTimeout(timeoutId);
+  }, [isComplete, hasError, stages]);
 
   useEffect(() => {
     if (isComplete && orchestratorResult) {
@@ -86,7 +113,16 @@ export default function LaunchStatus({
           </div>
           {!isComplete && (
             <div className="text-xs text-white/60">
-              Est. {Math.max(5, (stages.length - current) * 5)}s remaining
+              Est. {(() => {
+                let remaining = 0;
+                for (let i = current + 1; i < stages.length; i++) {
+                  const phase = stages[i]?.phase;
+                  if (phase === 'initial' || phase === 'meta') remaining += 7;
+                  else if (phase === 'synthesis') remaining += 3;
+                  else remaining += 5;
+                }
+                return Math.max(3, remaining);
+              })()}s remaining
             </div>
           )}
         </div>
