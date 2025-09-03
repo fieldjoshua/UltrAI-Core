@@ -692,11 +692,11 @@ export default function CyberWizard() {
               zIndex: 0
             }}
           />
-          {/* Static faint lines overlay */}
+          {/* Static faint lines overlay (PNG provided by user) */}
           <div
             className="pointer-events-none fixed inset-0"
             style={{
-              backgroundImage: "url('/overlays/billboard_lines.svg')",
+              backgroundImage: "url('/lines%20billAsset%203kjkjk.png')",
               backgroundSize: 'cover',
               backgroundPosition: 'top right',
               opacity: 0.04,
@@ -704,14 +704,14 @@ export default function CyberWizard() {
               zIndex: 1
             }}
           />
-          {/* Animated sweep through billboard lines using mask */}
+          {/* Animated sweep through billboard lines using mask (SVG provided by user) */}
           <div
             className="pointer-events-none fixed inset-0"
             style={{
               backgroundImage: 'linear-gradient(90deg, rgba(0,255,159,0) 0%, rgba(0,255,159,0.65) 50%, rgba(0,255,159,0) 100%)',
               backgroundSize: '200% 100%',
-              WebkitMaskImage: "url('/overlays/billboard_lines.svg')",
-              maskImage: "url('/overlays/billboard_lines.svg')",
+              WebkitMaskImage: "url('/lines%20billAsset%203jkjkjjk.svg')",
+              maskImage: "url('/lines%20billAsset%203jkjkjjk.svg')",
               WebkitMaskRepeat: 'no-repeat',
               maskRepeat: 'no-repeat',
               WebkitMaskSize: 'cover',
