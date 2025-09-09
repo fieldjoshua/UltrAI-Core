@@ -4,27 +4,26 @@ Middleware package for the Ultra backend.
 This package contains middleware components for security, authentication, and request handling.
 """
 
-from .api_key_middleware import ApiKeyMiddleware, setup_api_key_middleware
-from .auth_middleware import AuthMiddleware, setup_auth_middleware
-from .csrf_middleware import CSRFMiddleware, setup_csrf_middleware
+# Import only actively used middleware
+from .combined_auth_middleware import setup_combined_auth_middleware
+from .performance_middleware import setup_performance_middleware
+from .rate_limit_middleware import RateLimitMiddleware, setup_rate_limit_middleware
+from .request_id_middleware import setup_request_id_middleware
+from .request_tracking_middleware import RequestTrackingMiddleware
 from .security_headers_middleware import (
     SecurityHeadersMiddleware,
     setup_security_headers_middleware,
 )
-from .validation_middleware import ValidationMiddleware, setup_validation_middleware
-from .rate_limit_middleware import RateLimitMiddleware, setup_rate_limit_middleware
+from .telemetry_middleware import setup_telemetry_middleware
 
 __all__ = [
-    "setup_auth_middleware",
-    "setup_api_key_middleware",
-    "setup_csrf_middleware",
-    "setup_security_headers_middleware",
-    "setup_validation_middleware",
+    "setup_combined_auth_middleware",
+    "setup_performance_middleware",
     "setup_rate_limit_middleware",
-    "AuthMiddleware",
-    "ApiKeyMiddleware",
-    "CSRFMiddleware",
-    "SecurityHeadersMiddleware",
-    "ValidationMiddleware",
+    "setup_request_id_middleware",
+    "setup_security_headers_middleware",
+    "setup_telemetry_middleware",
     "RateLimitMiddleware",
+    "RequestTrackingMiddleware",
+    "SecurityHeadersMiddleware",
 ]

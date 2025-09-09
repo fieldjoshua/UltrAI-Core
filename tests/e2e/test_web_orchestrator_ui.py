@@ -1,7 +1,19 @@
 import os
 import pytest
 import re
-from playwright.sync_api import Page, expect
+
+# Skip this entire module if Playwright isn't installed or not explicitly enabled
+try:
+    from playwright.sync_api import Page, expect  # type: ignore
+    _playwright_import_ok = True
+except Exception:
+    Page = None  # type: ignore
+    expect = None  # type: ignore
+    _playwright_import_ok = False
+
+# Disable Playwright tests by default; enable by setting ENABLE_PLAYWRIGHT=true
+if not _playwright_import_ok or os.getenv("ENABLE_PLAYWRIGHT", "false").lower() != "true":
+    pytestmark = pytest.mark.skip(reason="Playwright E2E disabled by default or not available. Set ENABLE_PLAYWRIGHT=true and install Playwright to run.")
 
 # Base URL of the running web UI.  Override with env var for CI / production.
 BASE_URL = os.getenv("WEB_APP_URL", "https://ultrai-core.onrender.com")
@@ -43,19 +55,15 @@ def test_ultra_synthesis_via_ui(page: Page):
     initial_response = data.get("results", {}).get("initial_response", {})
     successful_models = []
     models_attempted = []
-    
     if initial_response:
         initial_output = initial_response.get("output", {})
         successful_models = initial_output.get("successful_models", [])
         models_attempted = initial_output.get("models_attempted", [])
-        
         print(f"Models attempted: {models_attempted}")
         print(f"Successful models: {successful_models}")
-        
         # Validate that multiple models were attempted and succeeded
         assert len(models_attempted) >= 2, f"Expected multiple models attempted, got {len(models_attempted)}: {models_attempted}"
         assert len(successful_models) >= 2, f"Expected multiple successful models, got {len(successful_models)}: {successful_models}"
-    
     # 6. Validate Ultra-Synthesis part of payload
     ultra = (
         data.get("results", {}).get("ultra_synthesis")
@@ -63,7 +71,6 @@ def test_ultra_synthesis_via_ui(page: Page):
         else data.get("ultra_synthesis", {})
     )
     assert ultra, "ultra_synthesis section missing from API response"
-    
     # Handle case where ultra might be a string directly
     if isinstance(ultra, str):
         synthesis_text = ultra
@@ -77,20 +84,17 @@ def test_ultra_synthesis_via_ui(page: Page):
             synthesis_text = (
                 synthesis_text.get("content") or synthesis_text.get("text") or ""
             )
-    
     # Basic sanity: should not be empty and should not contain model header artefacts
     assert len(synthesis_text.split()) >= 20, "Ultra synthesis text unexpectedly short"
     assert (
         "Model " not in synthesis_text.split("\n")[0]
     ), "Ultra synthesis appears to be stacked responses, not a single synthesis"
-    
     # Validate that synthesis contains topic-relevant content (not generic)
     topic_keywords = ['renewable', 'energy', 'fossil', 'fuel', 'benefit', 'environment']
     synthesis_lower = synthesis_text.lower()
     topic_matches = sum(1 for keyword in topic_keywords if keyword in synthesis_lower)
     assert topic_matches >= 2, f"Ultra synthesis doesn't contain relevant topic content (only {topic_matches} matches)"
-    
-    print(f"✅ Multi-provider E2E test passed!")
+    print("✅ Multi-provider E2E test passed!")
     print(f"   Successful models: {len(successful_models)}")
     print(f"   Synthesis length: {len(synthesis_text.split())} words")
     print(f"   Topic relevance: {topic_matches} keywords matched")

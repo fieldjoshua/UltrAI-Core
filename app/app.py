@@ -141,7 +141,7 @@ def create_app() -> FastAPI:
             "/api/docs",
             "/api/redoc",
             "/api/openapi.json",
-            # Keep analyze/orchestrator protected to exercise auth + rate limiting in tests
+            # Keep analyze/orchestrator protected (removed from public)
             "/api/available-models",  # Public for model discovery
             "/api/pricing",  # Public for pricing info
         ]

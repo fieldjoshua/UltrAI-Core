@@ -284,16 +284,16 @@ async def require_auth(request: Request) -> AuthUser:
         anon = getattr(request.state, "user_id", None) or "anonymous"
         return AuthUser(user_id=str(anon))
 
-    # Allow anonymous access for configured public paths and orchestrator endpoints
+    # Allow anonymous access for configured public paths only
     try:
         public_paths = getattr(Config, "PUBLIC_PATHS", [])
         path = request.url.path or ""
-        if any(path.startswith(p) for p in public_paths) or path.startswith("/api/orchestrator"):
+        if any(path.startswith(p) for p in public_paths):
             anon = getattr(request.state, "user_id", None) or "anonymous"
             return AuthUser(user_id=str(anon))
     except Exception:
-        # Fail open for public access if configuration lookup has issues
-        return AuthUser(user_id="anonymous")
+        # Don't fail open - require auth if config lookup fails
+        pass
 
     # The middleware sets these when auth succeeds
     user_id = getattr(request.state, "user_id", None)
