@@ -10,7 +10,7 @@ from pydantic import BaseModel, Field
 
 from app.utils.logging import get_logger
 from app.services.output_formatter import OutputFormatter
-from app.middleware.auth_middleware import require_auth, AuthUser
+from app.middleware.combined_auth_middleware import require_auth, AuthUser
 from app.models.streaming_response import StreamingAnalysisRequest, StreamingConfig
 
 logger = get_logger("orchestrator_routes")

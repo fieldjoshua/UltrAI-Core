@@ -32,6 +32,7 @@ from app.services.model_selection import SmartModelSelector
 from app.services.synthesis_output import StructuredSynthesisOutput
 from app.services.cache_service import get_cache_service, cache_key
 from app.services.orchestration_retry_handler import OrchestrationRetryHandler
+from app.services.model_health_cache import model_health_cache
 from app.config import Config
 from app.utils.logging import get_logger
 from app.utils.sentry_integration import sentry_context
@@ -281,75 +282,11 @@ class OrchestrationService:
     # ------------------------------------------------------------------
 
     # ----------------  Dynamic health-aware model discovery -----------------
-
-    _model_health_cache: Dict[str, Dict[str, Any]] = {}
-    _CACHE_TTL_SECONDS = 300  # 5 minutes
+    # Now using centralized model_health_cache service
 
     async def _probe_model(self, model: str, api_key: str) -> bool:
-        """Return True when a 1-token request succeeds (HTTP 200/503)."""
-        import json as _json
-
-        try:
-            if model.startswith("gpt"):
-                headers = {
-                    "Authorization": f"Bearer {api_key}",
-                    "Content-Type": "application/json",
-                }
-                payload = {
-                    "model": model,
-                    "messages": [{"role": "user", "content": "ping"}],
-                    "max_tokens": 1,
-                }
-                r = await CLIENT.post(
-                    "https://api.openai.com/v1/chat/completions",
-                    headers=headers,
-                    json=payload,
-                )
-                return r.status_code == 200
-
-            elif "/" in model:  # Hugging Face style
-                headers = {
-                    "Authorization": f"Bearer {api_key}",
-                    "Content-Type": "application/json",
-                }
-                url = f"https://api-inference.huggingface.co/models/{model}"
-                r = await CLIENT.post(url, headers=headers, json={"inputs": "ping"})
-                # HF returns 503 while model is loading which is acceptable
-                return r.status_code in (200, 503)
-
-            elif model.startswith("claude"):
-                headers = {
-                    "x-api-key": api_key,
-                    "anthropic-version": "2023-06-01",
-                    "Content-Type": "application/json",
-                }
-                payload = {
-                    "model": model,
-                    "max_tokens": 1,
-                    "messages": [{"role": "user", "content": "ping"}],
-                }
-                r = await CLIENT.post(
-                    "https://api.anthropic.com/v1/messages",
-                    headers=headers,
-                    json=payload,
-                )
-                return r.status_code == 200
-
-            elif model.startswith("gemini"):
-                url = (
-                    f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
-                    f"?key={api_key}"
-                )
-                payload = {
-                    "contents": [{"parts": [{"text": "ping"}]}],
-                    "generationConfig": {"maxOutputTokens": 1},
-                }
-                r = await CLIENT.post(url, headers={"Content-Type": "application/json"}, json=payload)
-                return r.status_code == 200
-        except Exception:
-            return False
-
-        return False
+        """Use centralized health cache to check model health."""
+        return await model_health_cache.probe_model(model, api_key)
 
     async def _default_models_from_env(self) -> List[str]:
         """Return list of healthy models, probing once every 5 minutes."""
@@ -363,7 +300,6 @@ class OrchestrationService:
         ]
 
         healthy: List[str] = []
-        now = time.time()
         
         logger.info(f"🔑 Checking API keys availability...")
 
@@ -374,17 +310,18 @@ class OrchestrationService:
             else:
                 logger.info(f"  ✅ {model}: API key found ({key[:4]}...{key[-4:]})")
 
-            cache_entry = self._model_health_cache.get(model)
-            if cache_entry and now - cache_entry["ts"] < self._CACHE_TTL_SECONDS:
-                if cache_entry["ok"]:
+            # Check centralized cache first
+            cached_health = model_health_cache.get_cached_health(model)
+            if cached_health is not None:
+                if cached_health:
                     healthy.append(model)
                     logger.info(f"  📦 {model}: Using cached health status (healthy)")
                 else:
                     logger.warning(f"  📦 {model}: Using cached health status (unhealthy)")
                 continue
 
+            # Probe model (will automatically cache result)
             ok = await self._probe_model(model, key)
-            self._model_health_cache[model] = {"ok": ok, "ts": now}
             if ok:
                 healthy.append(model)
                 logger.info(f"  🟢 {model}: Health check passed")
@@ -392,19 +329,31 @@ class OrchestrationService:
                 logger.warning(f"  🔴 {model}: Health check failed")
 
         if not healthy:
-            logger.warning("⚠️ No healthy models found, using fallback")
-            # Only enforce multiple models if required by configuration
+            logger.warning("⚠️ No healthy models found during probe")
+            # In production with multi-model requirement, do NOT inject fallback models
+            if Config.ENVIRONMENT == "production" and Config.MINIMUM_MODELS_REQUIRED > 1:
+                logger.error(
+                    "🚨 SERVICE UNAVAILABLE: No healthy models and multi-model is required in production."
+                )
+                # Return empty list to signal upstream logic to fail fast
+                return []
+            # In non-production or when single-model is acceptable, allow minimal fallback
             if Config.MINIMUM_MODELS_REQUIRED > 1:
                 healthy.extend(["gpt-4o", "gpt-3.5-turbo"])
             else:
-                # Try to add at least one model for single-model fallback
                 healthy.append("gpt-4o")
         
         logger.info(f"✨ Healthy models available: {healthy}")
 
         # Only ensure multiple models if required by configuration
         if len(healthy) < Config.MINIMUM_MODELS_REQUIRED and Config.MINIMUM_MODELS_REQUIRED > 1:
-            # Try to add backup models to meet minimum requirement
+            if Config.ENVIRONMENT == "production":
+                # Do not auto-inject backups in production; signal upstream to degrade/stop
+                logger.error(
+                    "🚨 SERVICE DEGRADATION: Healthy models below required minimum in production; not injecting backups."
+                )
+                return healthy
+            # In non-production, attempt to meet minimum with conservative backups
             backup_models = ["gpt-3.5-turbo", "gpt-4o", "claude-3-sonnet-20240229"]
             for backup in backup_models:
                 if backup not in healthy:
@@ -412,8 +361,12 @@ class OrchestrationService:
                     if len(healthy) >= Config.MINIMUM_MODELS_REQUIRED:
                         break
         
-        # Log if operating in single-model mode
-        if len(healthy) == 1 and Config.ENABLE_SINGLE_MODEL_FALLBACK:
+        # Log if operating in single-model mode (disabled for production multi-model requirement)
+        if (
+            len(healthy) == 1
+            and Config.ENABLE_SINGLE_MODEL_FALLBACK
+            and not (Config.ENVIRONMENT == "production" and Config.MINIMUM_MODELS_REQUIRED > 1)
+        ):
             logger.warning(f"🔧 Operating in single-model mode with: {healthy[0]}")
         
         return healthy

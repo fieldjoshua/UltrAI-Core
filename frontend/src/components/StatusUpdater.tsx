@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Alert, AlertTitle, AlertDescription } from "./ui/alert";
 
 interface Substep { label: string; status: string }
 interface StatusStep {
@@ -81,6 +82,35 @@ export default function StatusUpdater({
 
   const borderColor = hasError && idx === errorStep ? 'border-red-500/50' : 'animate-border-hum';
   const glowColor = hasError && idx === errorStep ? 'from-red-500/10 via-transparent to-red-500/10' : 'from-cyan-500/5 via-transparent to-orange-500/5';
+  
+  // Show error alert if we have an error
+  if (hasError && idx === errorStep) {
+    return (
+      <div className="space-y-4">
+        <Alert variant="destructive" className="bg-red-900/20 border-red-500/50">
+          <AlertTitle>Processing Error</AlertTitle>
+          <AlertDescription>
+            An error occurred during the {s.title} phase. Please try again or contact support if the issue persists.
+          </AlertDescription>
+        </Alert>
+        
+        <div className={`glass-strong rounded-xl p-6 border-2 ${borderColor} ${animClass} relative overflow-hidden`}>
+          {/* Background accent glow */}
+          <div className={`absolute inset-0 bg-gradient-to-br ${glowColor} pointer-events-none`} />
+          
+          {/* Content centered */}
+          <div className="relative z-10 text-center">
+            <div className="text-3xl mb-3 inline-block">
+              <span className="inline-block drop-shadow-[0_0_20px_rgba(255,0,0,0.6)]">❌</span>
+            </div>
+            <h3 className="text-lg font-bold tracking-wider uppercase text-red-400">
+              {s.title} Failed
+            </h3>
+          </div>
+        </div>
+      </div>
+    );
+  }
   
   return (
     <div className={`glass-strong rounded-xl p-6 border-2 ${borderColor} ${animClass} relative overflow-hidden`}>

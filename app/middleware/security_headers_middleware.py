@@ -128,18 +128,16 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
                 if "fonts.gstatic.com" not in directives["font-src"]:
                     directives["font-src"] += " https://fonts.gstatic.com"
 
-            # Always include production domains in connect-src (https/wss)
+            # Restrict connect-src to staging/prod API domains and Google Fonts
             if "connect-src" in directives:
                 connect = directives["connect-src"]
-                domains = [
-                    "https://ultrai-core.onrender.com",
-                    "wss://ultrai-core.onrender.com",
-                    "https://ultr-ai-core.vercel.app",
-                    "wss://ultr-ai-core.vercel.app",
-                    "https://ultrai-core-4lut.onrender.com",
-                    "wss://ultrai-core-4lut.onrender.com",
+                allowed = [
+                    "https://ultrai-staging-api.onrender.com",
+                    "wss://ultrai-staging-api.onrender.com",
+                    "https://ultrai-prod-api.onrender.com",
+                    "wss://ultrai-prod-api.onrender.com",
                 ]
-                for d in domains:
+                for d in allowed:
                     if d not in connect:
                         connect += f" {d}"
                 directives["connect-src"] = connect

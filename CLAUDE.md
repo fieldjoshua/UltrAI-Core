@@ -117,8 +117,13 @@ The project uses AICheck for structured development workflow:
 - `./aicheck status` - Show current action status
 - `./aicheck action new ActionName` - Create new action
 - `./aicheck action set ActionName` - Set active action
-- `./aicheck action complete` - Complete action with verification
+- `./aicheck action complete [ActionName]` - Complete action with verification
+- `./aicheck dependency add NAME VERSION JUSTIFICATION [ACTION]` - Add external dependency
+- `./aicheck dependency internal DEP_ACTION ACTION TYPE [DESCRIPTION]` - Add internal dependency
 - `./aicheck exec` - Toggle exec mode for maintenance
+- `./aicheck deps` - Show dependency information and links
+- `./aicheck rules` - Display project rules and AICheck documentation
+- `./aicheck reset` - Reset to no active action (use with caution)
 
 **AICheck Principles:**
 1. **One ActiveAction Rule** - Only one action can be active per contributor
@@ -182,3 +187,36 @@ The project uses AICheck for structured development workflow:
 - Design tokens provide consistent spacing, typography, and colors
 - All UI components in `frontend/src/components/ui/` use design tokens
 - Lucide React icons used throughout (no emojis in production UI)
+
+### Documentation-First Development Approach
+The project follows a strict documentation-first approach. Key documentation files to review:
+- `app/services/synthesis_prompts.py` - Prompts for orchestration stages
+- `documentation/architecture/*.md` - System architecture docs
+- `documentation/development/*.md` - Development guides
+- `documentation/deployment/*.md` - Deployment procedures
+- `documentation/testing/*.md` - Testing strategies
+- `.aicheck/rules.md` - Project rules and AICheck system
+- `.aicheck/actions_index.md` - Master list of all actions
+
+**Project Rules (from .cursorrc):**
+1. One ActiveAction rule - Only one action active per contributor
+2. Documentation is source of truth - Always read docs first
+3. Test-Driven Development - Write tests before implementation
+4. No action is complete without deployment verification
+5. Git discipline - Meaningful commits, no pre-existing changes
+6. Dependency management - All dependencies must be documented
+7. Explicit action naming - Clear, descriptive action names
+8. Supporting docs requirement - Process docs in action folders
+
+### API Documentation
+Main API endpoints:
+- `GET /` - Health check and application info
+- `POST /api/orchestrate` - Main orchestration endpoint for multi-stage analysis
+- `GET /api/models` - List available LLM models
+- `GET /api/model-health` - Check model availability and performance
+- `POST /api/auth/login` - User authentication
+- `POST /api/auth/register` - User registration
+- `GET /api/auth/me` - Get current user info
+- `GET /docs` - Interactive API documentation (Swagger UI)
+- `GET /redoc` - Alternative API documentation (ReDoc)
+

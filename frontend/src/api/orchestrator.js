@@ -112,7 +112,13 @@ export async function checkModelStatus(modelId) {
 // Legacy function names for backward compatibility
 export async function getOrchestratorModels() {
   const result = await getAvailableModels();
-  return result.models || [];
+  // Normalize to a simple array of model names (strings)
+  const models = (result && result.models) ? result.models : Array.isArray(result) ? result : [];
+  return Array.isArray(models)
+    ? models
+        .map((m) => (typeof m === 'string' ? m : (m && m.name) || null))
+        .filter(Boolean)
+    : [];
 }
 
 export async function getOrchestratorPatterns() {

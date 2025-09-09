@@ -533,14 +533,8 @@ export default function CyberWizard() {
                     `
                   }}
                 >
-                  <h1 className="text-3xl font-bold tracking-wider" style={{
-                    color: '#00ff9f',
-                    textShadow: `
-                      0 0 10px #00ff9f,
-                      0 0 20px #00ff9f,
-                      0 0 30px #00ff9f,
-                      0 0 40px #00ff9f
-                    `
+                  <h1 className="text-3xl font-bold tracking-wider text-cyber-accent" style={{
+                    textShadow: 'var(--shadow-neon, 0 0 40px currentColor)'
                   }}>
                     ULTRA AI
                   </h1>
@@ -591,30 +585,27 @@ export default function CyberWizard() {
               {/* Main narrative */}
               <div className="max-w-3xl mx-auto mt-8">
                 <p className="text-lg leading-relaxed text-center text-white/90">
-                  Welcome to the future of <span className="font-bold" style={{
-                    color: '#00ff9f',
-                    textShadow: '0 0 5px #00ff9f, 0 0 10px #00ff9f'
+                  Welcome to the future of <span className="font-bold text-cyber-accent" style={{
+                    textShadow: 'var(--shadow-text-glow, 0 0 10px currentColor)'
                   }}>Intelligence Multiplication</span>. 
                   We orchestrate a sophisticated ensemble of leading AI models, each contributing their unique strengths 
-                  to deliver <span className="font-bold" style={{
-                    color: '#00d4ff',
-                    textShadow: '0 0 5px #00d4ff, 0 0 10px #00d4ff'
-                  }}>unprecedented quality</span> and <span className="font-bold" style={{
-                    color: '#ff6600',
-                    textShadow: '0 0 5px #ff6600, 0 0 10px #ff6600'
+                  to deliver <span className="font-bold text-cyber-primary" style={{
+                    textShadow: 'var(--shadow-text-glow, 0 0 10px currentColor)'
+                  }}>unprecedented quality</span> and <span className="font-bold text-warning" style={{
+                    textShadow: 'var(--shadow-text-glow, 0 0 10px currentColor)'
                   }}>comprehensive insights</span>.
                 </p>
                 <div className="flex justify-center gap-6 text-sm mt-6 text-white/90">
                   <span className="text-white" style={{
-                    textShadow: '0 0 5px rgba(255,255,255,0.3)'
+                    textShadow: 'var(--shadow-text-subtle, 0 0 5px rgba(255,255,255,0.3))'
                   }}>Pay-as-you-go</span>
                   <span className="text-white/70">•</span>
                   <span className="text-white" style={{
-                    textShadow: '0 0 5px rgba(255,255,255,0.3)'
+                    textShadow: 'var(--shadow-text-subtle, 0 0 5px rgba(255,255,255,0.3))'
                   }}>No commitments</span>
                   <span className="text-white/70">•</span>
                   <span className="text-white" style={{
-                    textShadow: '0 0 5px rgba(255,255,255,0.3)'
+                    textShadow: 'var(--shadow-text-subtle, 0 0 5px rgba(255,255,255,0.3))'
                   }}>Enterprise-grade</span>
                 </div>
               </div>
@@ -1502,7 +1493,7 @@ export default function CyberWizard() {
                     {receiptSections}
                   </div>
                   <div className="mt-3 font-bold text-pink-400 text-lg text-center transition-all duration-300 hover:scale-105" style={{
-                    textShadow: '0 0 10px rgba(255, 0, 212, 0.5)'
+                    textShadow: 'var(--shadow-text-glow, 0 0 10px currentColor)'
                   }}>{`Total: $${totalCost.toFixed(2)}`}</div>
                   {addonsSubmitted ? (
                     selectedModels.length >= 2 ? (

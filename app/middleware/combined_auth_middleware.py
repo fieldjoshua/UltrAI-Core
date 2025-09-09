@@ -76,8 +76,9 @@ class CombinedAuthMiddleware(BaseHTTPMiddleware):
         # Check if this is a protected path
         is_protected = any(path.startswith(protected_path) for protected_path in self.protected_paths)
 
-        # Skip authentication for test requests (used in tests)
-        if request.headers.get("X-Test-Mode") == "true":
+        # Allow test-mode bypass only when explicit testing mode is enabled
+        if Config.TESTING and request.headers.get("X-Test-Mode") == "true":
+            logger.info("🧪 TESTING bypass active via X-Test-Mode header")
             request.state.user_id = "test_user_id"
             request.state.is_authenticated = True
             return await call_next(request)
@@ -261,3 +262,45 @@ def setup_combined_auth_middleware(
         protected_paths=protected_paths,
     )
     logger.info("Combined authentication middleware added to application")
+
+
+# --- FastAPI dependency & user model for routes that need auth ---
+from pydantic import BaseModel
+from fastapi import HTTPException
+
+
+class AuthUser(BaseModel):
+    """Minimal authenticated user model for dependency injection."""
+    user_id: str
+
+
+async def require_auth(request: Request) -> AuthUser:
+    """FastAPI dependency that ensures the request is authenticated.
+
+    Returns an `AuthUser` constructed from `request.state` (populated by CombinedAuthMiddleware).
+    """
+    # Allow anonymous access when authentication is disabled
+    if not getattr(Config, "ENABLE_AUTH", True):
+        anon = getattr(request.state, "user_id", None) or "anonymous"
+        return AuthUser(user_id=str(anon))
+
+    # Allow anonymous access for configured public paths and orchestrator endpoints
+    try:
+        public_paths = getattr(Config, "PUBLIC_PATHS", [])
+        path = request.url.path or ""
+        if any(path.startswith(p) for p in public_paths) or path.startswith("/api/orchestrator"):
+            anon = getattr(request.state, "user_id", None) or "anonymous"
+            return AuthUser(user_id=str(anon))
+    except Exception:
+        # Fail open for public access if configuration lookup has issues
+        return AuthUser(user_id="anonymous")
+
+    # The middleware sets these when auth succeeds
+    user_id = getattr(request.state, "user_id", None)
+    is_auth = getattr(request.state, "is_authenticated", False)
+
+    if not is_auth or not user_id:
+        # Align with existing error handling style
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Unauthorized")
+
+    return AuthUser(user_id=str(user_id))

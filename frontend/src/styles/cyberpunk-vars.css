@@ -40,6 +40,11 @@
   --shadow-neon: 0 0 40px rgba(0, 255, 255, 0.3);
   --shadow-box: 0 4px 24px rgba(0, 0, 0, 0.5);
   
+  /* Text Shadow Effects */
+  --shadow-text-glow: 0 0 10px currentColor;
+  --shadow-text-subtle: 0 0 5px rgba(255, 255, 255, 0.3);
+  --shadow-text-neon: 0 0 10px currentColor, 0 0 20px currentColor;
+  
   /* Panel Styling */
   --panel-border-width: 1px;
   --panel-corner-cut: 16px;
@@ -80,3 +85,4 @@
 .text-cyber-primary { color: var(--color-primary); }
 .text-cyber-secondary { color: var(--color-secondary); }
 .text-cyber-accent { color: var(--color-accent); }
+.text-warning { color: var(--color-warning); }
