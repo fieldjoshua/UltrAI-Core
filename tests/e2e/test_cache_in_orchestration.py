@@ -4,13 +4,28 @@ End-to-end tests for cache usage in orchestration pipeline.
 
 import json
 import os
+# Set environment variables BEFORE any app imports
+os.environ["TESTING"] = "true"
+os.environ["JWT_SECRET_KEY"] = "test-secret-key"
+
 from unittest.mock import AsyncMock, patch
+import uuid
 
 import pytest
 from fastapi.testclient import TestClient
+from httpx import AsyncClient
 
 from app.app import create_app
 from app.services.cache_service import cache_key, get_cache_service
+from app.services.auth_service import AuthService
+
+
+@pytest.fixture(scope="module")
+def auth_token():
+    """Generate a valid JWT token for testing."""
+    auth_service = AuthService()
+    user_id = str(uuid.uuid4())
+    return auth_service.create_access_token(user_id=user_id)["access_token"]
 
 
 @pytest.mark.e2e
@@ -20,8 +35,6 @@ class TestCacheInOrchestration:
     @pytest.fixture
     def client(self):
         """Create test client with mocked LLMs"""
-        os.environ["TESTING"] = "true"
-        os.environ["JWT_SECRET_KEY"] = "test-secret"
         os.environ["USE_MOCK"] = "true"  # Use mock LLMs
         app = create_app()
         return TestClient(app)
@@ -34,7 +47,7 @@ class TestCacheInOrchestration:
         service._stats = {"hits": 0, "misses": 0, "errors": 0, "memory_fallbacks": 0}
         return service
 
-    def test_orchestration_caching_workflow(self, client, cache_service):
+    def test_orchestration_caching_workflow(self, client, cache_service, auth_token):
         """Test that orchestration properly caches responses"""
         # Make first request
         request_data = {
@@ -42,13 +55,14 @@ class TestCacheInOrchestration:
             "selected_models": ["gpt-4", "claude-3-opus"],
             "options": {"temperature": 0.7}
         }
+        headers = {"Authorization": f"Bearer {auth_token}"}
         
         # Track cache stats before
         stats_before = cache_service.get_stats()
         initial_misses = stats_before["misses"]
         
         # First request - should be cache miss
-        response1 = client.post("/api/orchestrator/analyze", json=request_data)
+        response1 = client.post("/api/orchestrator/analyze", json=request_data, headers=headers)
         assert response1.status_code == 200
         
         # Check cache stats after first request
@@ -70,7 +84,7 @@ class TestCacheInOrchestration:
         assert cached_value is not None
         
         # Second identical request - should be cache hit
-        response2 = client.post("/api/orchestrator/analyze", json=request_data)
+        response2 = client.post("/api/orchestrator/analyze", json=request_data, headers=headers)
         assert response2.status_code == 200
         
         # Check cache stats after second request
@@ -80,23 +94,24 @@ class TestCacheInOrchestration:
         # Responses should be identical
         assert response1.json() == response2.json()
 
-    def test_orchestration_cache_invalidation_on_different_params(self, client, cache_service):
+    def test_orchestration_cache_invalidation_on_different_params(self, client, cache_service, auth_token):
         """Test that different parameters generate different cache keys"""
         base_request = {
             "query": "Explain quantum computing",
             "selected_models": ["gpt-4", "claude-3-opus"],
             "options": {"temperature": 0.7}
         }
+        headers = {"Authorization": f"Bearer {auth_token}"}
         
         # First request
-        response1 = client.post("/api/orchestrator/analyze", json=base_request)
+        response1 = client.post("/api/orchestrator/analyze", json=base_request, headers=headers)
         assert response1.status_code == 200
         result1 = response1.json()
         
         # Different query - should not use cache
         different_query = base_request.copy()
         different_query["query"] = "Explain blockchain technology"
-        response2 = client.post("/api/orchestrator/analyze", json=different_query)
+        response2 = client.post("/api/orchestrator/analyze", json=different_query, headers=headers)
         assert response2.status_code == 200
         result2 = response2.json()
         
@@ -107,31 +122,32 @@ class TestCacheInOrchestration:
         # Different models - should not use cache
         different_models = base_request.copy()
         different_models["selected_models"] = ["gpt-4", "gemini-pro"]
-        response3 = client.post("/api/orchestrator/analyze", json=different_models)
+        response3 = client.post("/api/orchestrator/analyze", json=different_models, headers=headers)
         assert response3.status_code == 200
         
         # Different options - should not use cache
         different_options = base_request.copy()
         different_options["options"]["temperature"] = 0.9
-        response4 = client.post("/api/orchestrator/analyze", json=different_options)
+        response4 = client.post("/api/orchestrator/analyze", json=different_options, headers=headers)
         assert response4.status_code == 200
         
         # Check that we had multiple cache misses
         stats = cache_service.get_stats()
         assert stats["misses"] >= 4  # At least 4 different requests
 
-    @patch("app.services.orchestration_service.ENABLE_CACHING", False)
-    def test_orchestration_without_caching(self, client, cache_service):
+    def test_orchestration_without_caching(self, client, cache_service, auth_token):
         """Test orchestration when caching is disabled"""
         request_data = {
             "query": "What is artificial intelligence?",
             "selected_models": ["gpt-4", "claude-3-opus"],
             "options": {}
         }
+        headers = {"Authorization": f"Bearer {auth_token}"}
         
-        # Make two identical requests
-        response1 = client.post("/api/orchestrator/analyze", json=request_data)
-        response2 = client.post("/api/orchestrator/analyze", json=request_data)
+        with patch("app.config.Config.ENABLE_ORCHESTRATION_CACHING", False):
+            # Make two identical requests
+            response1 = client.post("/api/orchestrator/analyze", json=request_data, headers=headers)
+            response2 = client.post("/api/orchestrator/analyze", json=request_data, headers=headers)
         
         assert response1.status_code == 200
         assert response2.status_code == 200
@@ -140,23 +156,24 @@ class TestCacheInOrchestration:
         stats = cache_service.get_stats()
         assert stats["hits"] == 0  # No cache hits
 
-    def test_cache_ttl_in_orchestration(self, client, cache_service, monkeypatch):
+    def test_cache_ttl_in_orchestration(self, client, cache_service, monkeypatch, auth_token):
         """Test that cached orchestration responses expire"""
         # Set very short cache TTL
-        monkeypatch.setattr("app.services.orchestration_service.CACHE_TTL", 1)  # 1 second
+        monkeypatch.setattr("app.config.Config.CACHE_TTL_ORCHESTRATION", 1)  # 1 second
         
         request_data = {
             "query": "Explain neural networks",
             "selected_models": ["gpt-4", "claude-3-opus"],
             "options": {}
         }
+        headers = {"Authorization": f"Bearer {auth_token}"}
         
         # First request
-        response1 = client.post("/api/orchestrator/analyze", json=request_data)
+        response1 = client.post("/api/orchestrator/analyze", json=request_data, headers=headers)
         assert response1.status_code == 200
         
         # Immediate second request - should hit cache
-        response2 = client.post("/api/orchestrator/analyze", json=request_data)
+        response2 = client.post("/api/orchestrator/analyze", json=request_data, headers=headers)
         assert response2.status_code == 200
         
         stats_before_expiry = cache_service.get_stats()
@@ -167,7 +184,7 @@ class TestCacheInOrchestration:
         time.sleep(1.5)
         
         # Third request - should miss cache (expired)
-        response3 = client.post("/api/orchestrator/analyze", json=request_data)
+        response3 = client.post("/api/orchestrator/analyze", json=request_data, headers=headers)
         assert response3.status_code == 200
         
         stats_after_expiry = cache_service.get_stats()
@@ -176,10 +193,9 @@ class TestCacheInOrchestration:
         assert stats_after_expiry["misses"] > stats_before_expiry["misses"]
 
     @pytest.mark.asyncio
-    async def test_concurrent_orchestration_caching(self, client, cache_service):
+    async def test_concurrent_orchestration_caching(self, client, cache_service, auth_token):
         """Test cache behavior under concurrent orchestration requests"""
         import asyncio
-        from httpx import AsyncClient
         
         os.environ["USE_MOCK"] = "true"
         app = create_app()
@@ -190,7 +206,8 @@ class TestCacheInOrchestration:
                 "selected_models": ["gpt-4", "claude-3-opus"],
                 "options": {"temperature": 0.7}
             }
-            response = await async_client.post("/api/orchestrator/analyze", json=request_data)
+            headers = {"Authorization": f"Bearer {auth_token}"}
+            response = await async_client.post("/api/orchestrator/analyze", json=request_data, headers=headers)
             return response.status_code, request_id
         
         async with AsyncClient(app=app, base_url="http://test") as async_client:
@@ -207,37 +224,38 @@ class TestCacheInOrchestration:
         assert stats["misses"] >= 1
         assert stats["hits"] >= 5  # At least some should hit cache
 
-    def test_cache_clear_affects_orchestration(self, client, cache_service):
+    def test_cache_clear_affects_orchestration(self, client, cache_service, auth_token):
         """Test that clearing cache affects orchestration"""
         request_data = {
             "query": "Explain machine learning algorithms",
             "selected_models": ["gpt-4", "claude-3-opus"],
             "options": {}
         }
+        headers = {"Authorization": f"Bearer {auth_token}"}
         
         # First request - cache miss
-        response1 = client.post("/api/orchestrator/analyze", json=request_data)
+        response1 = client.post("/api/orchestrator/analyze", json=request_data, headers=headers)
         assert response1.status_code == 200
         
         # Second request - cache hit
-        response2 = client.post("/api/orchestrator/analyze", json=request_data)
+        response2 = client.post("/api/orchestrator/analyze", json=request_data, headers=headers)
         assert response2.status_code == 200
         
         stats_before_clear = cache_service.get_stats()
         assert stats_before_clear["hits"] > 0
         
         # Clear cache
-        client.post("/cache/clear", json={})
+        client.post("/api/cache/clear", json={}, headers=headers)
         
         # Third request - cache miss again
-        response3 = client.post("/api/orchestrator/analyze", json=request_data)
+        response3 = client.post("/api/orchestrator/analyze", json=request_data, headers=headers)
         assert response3.status_code == 200
         
         # Should have more misses after cache clear
         stats_after_clear = cache_service.get_stats()
         assert stats_after_clear["misses"] > stats_before_clear["misses"]
 
-    def test_cache_pattern_clear_orchestration(self, client, cache_service):
+    def test_cache_pattern_clear_orchestration(self, client, cache_service, auth_token):
         """Test pattern-based cache clearing for orchestration"""
         # Make requests with different queries
         queries = [
@@ -245,6 +263,7 @@ class TestCacheInOrchestration:
             "What is ML?",
             "What is DL?"
         ]
+        headers = {"Authorization": f"Bearer {auth_token}"}
         
         for query in queries:
             request_data = {
@@ -252,11 +271,11 @@ class TestCacheInOrchestration:
                 "selected_models": ["gpt-4", "claude-3-opus"],
                 "options": {}
             }
-            response = client.post("/api/orchestrator/analyze", json=request_data)
+            response = client.post("/api/orchestrator/analyze", json=request_data, headers=headers)
             assert response.status_code == 200
         
         # Clear only orchestration cache
-        result = client.post("/cache/clear", json={"pattern": "orchestration:*"})
+        result = client.post("/api/cache/clear", json={"pattern": "orchestration:*"}, headers=headers)
         assert result.status_code == 200
         
         # All orchestration entries should be cleared

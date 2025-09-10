@@ -58,55 +58,20 @@ def test_jwt_secret_key_precedence():
 
 def test_jwt_refresh_secret_fallback():
     """Test that refresh secret falls back to main secret + _REFRESH if not provided"""
-    # Clear any existing env vars
-    env_backup = {}
-    for key in ["JWT_SECRET_KEY", "JWT_SECRET", "JWT_REFRESH_SECRET_KEY", "JWT_REFRESH_SECRET"]:
-        if key in os.environ:
-            env_backup[key] = os.environ[key]
-            del os.environ[key]
-    
-    try:
-        # Test with only main secret set
-        os.environ["JWT_SECRET_KEY"] = "main-secret"
-        
-        # Re-import to get fresh values
+    with patch.dict('os.environ', {'JWT_SECRET_KEY': 'main-secret'}, clear=True):
         import importlib
         import app.utils.jwt_utils
         importlib.reload(app.utils.jwt_utils)
         
         assert app.utils.jwt_utils.SECRET_KEY == "main-secret"
         assert app.utils.jwt_utils.REFRESH_SECRET_KEY == "main-secret_REFRESH"
-        
-    finally:
-        # Restore original env vars
-        for key in ["JWT_SECRET_KEY", "JWT_SECRET", "JWT_REFRESH_SECRET_KEY", "JWT_REFRESH_SECRET"]:
-            if key in os.environ:
-                del os.environ[key]
-        for key, value in env_backup.items():
-            os.environ[key] = value
 
 
 def test_jwt_missing_secret_raises_error():
     """Test that missing JWT secret raises ValueError"""
-    # Clear any existing env vars
-    env_backup = {}
-    for key in ["JWT_SECRET_KEY", "JWT_SECRET", "JWT_REFRESH_SECRET_KEY", "JWT_REFRESH_SECRET"]:
-        if key in os.environ:
-            env_backup[key] = os.environ[key]
-            del os.environ[key]
-    
-    try:
-        # Re-import to trigger error
+    with patch.dict('os.environ', {}, clear=True):
         import importlib
         import app.utils.jwt_utils
         
         with pytest.raises(ValueError, match="JWT_SECRET_KEY or JWT_SECRET"):
             importlib.reload(app.utils.jwt_utils)
-        
-    finally:
-        # Restore original env vars
-        for key in ["JWT_SECRET_KEY", "JWT_SECRET", "JWT_REFRESH_SECRET_KEY", "JWT_REFRESH_SECRET"]:
-            if key in os.environ:
-                del os.environ[key]
-        for key, value in env_backup.items():
-            os.environ[key] = value

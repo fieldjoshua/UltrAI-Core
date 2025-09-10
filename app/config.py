@@ -123,6 +123,8 @@ class Config:
     REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")
     ENABLE_CACHE = os.getenv("ENABLE_CACHE", "true").lower() == "true"
     CACHE_TTL = int(os.getenv("CACHE_TTL", "3600"))
+    ENABLE_ORCHESTRATION_CACHING = os.getenv("ENABLE_ORCHESTRATION_CACHING", "true").lower() == "true"
+    CACHE_TTL_ORCHESTRATION = int(os.getenv("CACHE_TTL_ORCHESTRATION", "900"))
 
     # Feature flags
     ENABLE_MOCK_LLM = os.getenv("ENABLE_MOCK_LLM", "false").lower() == "true"
