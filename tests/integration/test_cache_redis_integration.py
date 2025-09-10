@@ -5,12 +5,15 @@ Integration tests for cache service with Redis.
 import asyncio
 import os
 import time
-from unittest.mock import patch
+from unittest.mock import patch, MagicMock
 
 import pytest
 import redis.asyncio as redis
 
 from app.services.cache_service import CacheService, get_cache_service
+from fastapi.testclient import TestClient
+from app.app import create_app
+from app.services.auth_service import AuthService
 
 
 @pytest.mark.integration
@@ -229,22 +232,59 @@ class TestCacheRedisIntegration:
         cache_with_real_redis._is_redis_available = True
 
 
+@pytest.fixture(scope="module")
+def admin_token():
+    """Generate a token for an admin user."""
+    auth_service = AuthService()
+    # In a real app, you'd fetch an admin user from the DB
+    # For tests, we can create a dummy admin identity
+    token_data = auth_service.create_access_token(user_id=1)
+    return token_data["access_token"]
+
 @pytest.mark.integration
 class TestCacheRouteIntegration:
     """Test cache-related API routes"""
 
     @pytest.fixture
-    def client(self):
-        """Create test client"""
-        from fastapi.testclient import TestClient
-        from app.app import create_app
+    def mock_cache_service(self):
+        """Fixture to mock the cache service."""
+        mock_service = MagicMock(spec=CacheService)
+        mock_service.get_stats.return_value = {
+            "hits": 10,
+            "misses": 5,
+            "hit_rate": 0.66,
+            "memory_size": 1,
+            "redis_size": 0,
+            "errors": 0,
+            "memory_fallbacks": 0,
+        }
+        mock_service.is_redis_available.return_value = True
+        mock_service.memory_cache = {"key": "value"}
         
+        async def mock_clear_pattern(pattern):
+            return 5
+
+        async def mock_flush():
+            pass
+
+        mock_service.clear_pattern = MagicMock(side_effect=mock_clear_pattern)
+        mock_service.flush = MagicMock(side_effect=mock_flush)
+        
+        with patch("app.routes.cache_routes.get_cache_service", return_value=mock_service) as mock:
+            yield mock_service
+
+    @pytest.fixture
+    def client(self, admin_token):
+        """Create test client with admin auth."""
         os.environ["TESTING"] = "true"
         os.environ["JWT_SECRET_KEY"] = "test-secret"
         app = create_app()
-        return TestClient(app)
+        
+        client = TestClient(app)
+        client.headers["Authorization"] = f"Bearer {admin_token}"
+        return client
 
-    def test_cache_stats_endpoint(self, client):
+    def test_cache_stats_endpoint(self, client, mock_cache_service):
         """Test /cache/stats endpoint"""
         response = client.get("/cache/stats")
         assert response.status_code == 200
@@ -254,30 +294,30 @@ class TestCacheRouteIntegration:
         assert "hits" in data["stats"]
         assert "misses" in data["stats"]
         assert "hit_rate" in data["stats"]
+        mock_cache_service.get_stats.assert_called_once()
 
-    def test_cache_health_endpoint(self, client):
+    def test_cache_health_endpoint(self, client, mock_cache_service):
         """Test /cache/health endpoint"""
         response = client.get("/cache/health")
         assert response.status_code == 200
         
         data = response.json()
-        assert "healthy" in data
-        assert "redis_available" in data
-        assert "memory_cache_size" in data
+        assert data["healthy"] is True
+        assert data["redis_available"] is True
+        assert data["memory_cache_size"] == 1
+        mock_cache_service.is_redis_available.assert_called_once()
 
-    @patch("app.routes.cache_routes.cache_service")
-    def test_cache_clear_endpoint(self, mock_cache, client):
+    def test_cache_clear_endpoint(self, client, mock_cache_service):
         """Test /cache/clear endpoint"""
-        mock_cache.clear_pattern.return_value = 5
-        
         response = client.post("/cache/clear", json={"pattern": "test:*"})
         assert response.status_code == 200
         
         data = response.json()
         assert data["cleared"] == 5
         assert data["pattern"] == "test:*"
+        mock_cache_service.clear_pattern.assert_called_once_with("test:*")
         
         # Test without pattern (clears all)
-        mock_cache.flush.return_value = True
         response = client.post("/cache/clear", json={})
         assert response.status_code == 200
+        mock_cache_service.flush.assert_called_once()

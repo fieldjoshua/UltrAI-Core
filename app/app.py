@@ -118,7 +118,7 @@ def create_app() -> FastAPI:
         # Exclude paths from rate limiting
         excluded_paths = [
             "/health",
-            # Don't exclude /api/health so responses include rate limit headers
+            "/api/health",
             "/api/docs",
             "/api/redoc",
             "/api/openapi.json",

@@ -53,10 +53,12 @@ class BaseAdapter:
 
     def _mask_api_key(self, api_key: str) -> str:
         """Mask API key for secure logging."""
+        if not api_key:
+            return "***"
         if len(api_key) <= 8:
-            return f"{api_key[:3]}***{api_key[-3:]}"
-        # Expectation: 'sk-123***def' (3 after hyphen, 3 at end)
-        return f"{api_key[:6]}***{api_key[-3:]}"
+            return f"{api_key[:3]}***"
+        # Expectation: 'ver***ers'
+        return f"{api_key[:3]}***{api_key[-3:]}"
 
     async def generate(self, prompt: str) -> Dict[str, Any]:
         """Placeholder for the generate method."""
