@@ -43,15 +43,21 @@ def env_keys(monkeypatch):
 @pytest.mark.asyncio
 async def test_orchestrate_basic_success(orchestrator, monkeypatch):
     # Mock the LLM adapters to return test responses
-    with patch('app.services.orchestration_service.OpenAIAdapter') as mock_openai:
-        mock_adapter = AsyncMock()
-        mock_adapter.generate = AsyncMock(return_value={"generated_text": "Test response from GPT-4"})
-        mock_openai.return_value = mock_adapter
+    with patch('app.services.orchestration_service.OpenAIAdapter') as mock_openai, \
+         patch('app.services.orchestration_service.AnthropicAdapter') as mock_anthropic:
         
-        # Run the pipeline
+        mock_openai_adapter = AsyncMock()
+        mock_openai_adapter.generate = AsyncMock(return_value={"generated_text": "Test response from GPT-4"})
+        mock_openai.return_value = mock_openai_adapter
+        
+        mock_anthropic_adapter = AsyncMock()
+        mock_anthropic_adapter.generate = AsyncMock(return_value={"generated_text": "Test response from Claude"})
+        mock_anthropic.return_value = mock_anthropic_adapter
+        
+        # Run the pipeline with two models to satisfy the minimum requirement
         result = await orchestrator.run_pipeline(
             input_data="hi",
-            selected_models=["gpt-4o"]
+            selected_models=["gpt-4o", "claude-3-opus"]
         )
         
         # Check that pipeline ran successfully
@@ -63,12 +69,23 @@ async def test_orchestrate_basic_success(orchestrator, monkeypatch):
 @pytest.mark.asyncio
 async def test_orchestrate_basic_empty_prompt(orchestrator):
     # Empty prompt should still be processed (the service doesn't validate prompt content)
-    result = await orchestrator.run_pipeline(
-        input_data="",
-        selected_models=["gpt-4o"]
-    )
-    # Pipeline should still run but may have errors or empty responses
-    assert "initial_response" in result
+    with patch('app.services.orchestration_service.OpenAIAdapter') as mock_openai, \
+         patch('app.services.orchestration_service.AnthropicAdapter') as mock_anthropic:
+
+        mock_openai_adapter = AsyncMock()
+        mock_openai_adapter.generate = AsyncMock(return_value={"generated_text": "Test response from GPT-4"})
+        mock_openai.return_value = mock_openai_adapter
+        
+        mock_anthropic_adapter = AsyncMock()
+        mock_anthropic_adapter.generate = AsyncMock(return_value={"generated_text": "Test response from Claude"})
+        mock_anthropic.return_value = mock_anthropic_adapter
+
+        result = await orchestrator.run_pipeline(
+            input_data="",
+            selected_models=["gpt-4o", "claude-3-opus"]
+        )
+        # Pipeline should still run but may have errors or empty responses
+        assert "initial_response" in result
 
 
 @pytest.mark.asyncio

@@ -186,6 +186,12 @@ class AnthropicAdapter(BaseAdapter):
                 return {
                     "generated_text": "Error: Anthropic API authentication failed. Check API key."
                 }
+            elif e.response.status_code == 429:
+                logger.warning(
+                    f"Anthropic API rate-limited for model {self.model}. Returning standard retry message.",
+                    extra={"requestId": CorrelationContext.get_correlation_id()},
+                )
+                return {"generated_text": "Error: Rate limit exceeded"}
             elif e.response.status_code == 404:
                 logger.error(
                     f"Anthropic API 404 for model {self.model}: Model not found or invalid endpoint",

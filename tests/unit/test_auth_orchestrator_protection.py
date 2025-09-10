@@ -10,6 +10,8 @@ def test_orchestrator_requires_auth():
     os.environ["TESTING"] = "true"
     os.environ["ENABLE_AUTH"] = "true"
     os.environ["JWT_SECRET_KEY"] = "test-secret"
+    os.environ["OPENAI_API_KEY"] = "fake-key"
+    os.environ["ANTHROPIC_API_KEY"] = "fake-key"
 
     app = create_app()
     client = TestClient(app)
