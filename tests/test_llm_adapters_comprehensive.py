@@ -3,6 +3,7 @@ Comprehensive tests for LLM adapters - authentication, error handling, and real 
 """
 
 import pytest
+import os
 from unittest.mock import Mock, patch, AsyncMock
 import httpx
 from app.services.llm_adapters import (
@@ -406,6 +407,7 @@ class TestLLMAdapterIntegration:
                 assert "gpt-4" in result["responses"]
 
 
+@pytest.mark.skipif(not os.getenv("RUN_PRODUCTION_TESTS"), reason="Production tests disabled")
 @pytest.mark.e2e
 @pytest.mark.production
 class TestProductionAPIIntegration:
