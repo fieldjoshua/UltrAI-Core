@@ -138,7 +138,7 @@ class CacheService:
                         except Exception:
                             # Return raw value if not JSON
                             return value.decode() if isinstance(value, (bytes, bytearray)) else value
-                except (RedisError, ConnectionError) as e:
+                except Exception as e:
                     logger.warning(f"Redis get error, falling back to memory: {e}")
                     self.cache_stats["errors"] += 1
                     self.cache_stats["memory_fallbacks"] += 1
@@ -183,7 +183,7 @@ class CacheService:
                     # Tests expect .set(key, value, ex=None)
                     await backend.set(key, serialized_value, ex=None)
                     return True
-                except (RedisError, ConnectionError) as e:
+                except Exception as e:
                     logger.warning(f"Redis set error, falling back to memory: {e}")
                     self.cache_stats["errors"] += 1
                     self.cache_stats["memory_fallbacks"] += 1
@@ -220,7 +220,8 @@ class CacheService:
             if backend:
                 try:
                     await backend.delete(key)
-                except (RedisError, ConnectionError) as e:
+                    return True
+                except Exception as e:
                     logger.warning(f"Redis delete error: {e}")
             return self.delete(key)
         except Exception as e:

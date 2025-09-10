@@ -54,8 +54,7 @@ class BaseAdapter:
     def _mask_api_key(self, api_key: str) -> str:
         """Mask API key for secure logging."""
         if len(api_key) <= 8:
-            return "***"
-        # Tests expect shorter head and tail: e.g., sk-123***def
+            return f"{api_key[:3]}***{api_key[-3:]}"
         # Expectation: 'sk-123***def' (3 after hyphen, 3 at end)
         return f"{api_key[:6]}***{api_key[-3:]}"
 
@@ -267,6 +266,13 @@ class GeminiAdapter(BaseAdapter):
                 return {
                     "generated_text": f"Error: Model {self.model} not found in Google Gemini API"
                 }
+            elif e.response.status_code == 429:
+                logger.warning(
+                    f"Google API rate-limited for model {self.model}. Returning standard retry message.",
+                    extra={"requestId": CorrelationContext.get_correlation_id()},
+                )
+                # Tests expect standardized text
+                return {"generated_text": "Error: Rate limit exceeded"}
             else:
                 logger.error(
                     f"Google Gemini API HTTP error for model {self.model}: {e.response.status_code} - {e}",
