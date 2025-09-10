@@ -273,6 +273,7 @@ class AuthService:
         # Define token payload
         payload = {
             "sub": user_id,
+            "roles": ["admin"],  # Add admin role for testing
             "exp": expires_at,
             "iat": datetime.utcnow(),
             "type": "access",

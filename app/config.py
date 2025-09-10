@@ -127,6 +127,7 @@ class Config:
     # Feature flags
     ENABLE_MOCK_LLM = os.getenv("ENABLE_MOCK_LLM", "false").lower() == "true"
     ENABLE_RATE_LIMIT = os.getenv("ENABLE_RATE_LIMIT", "true").lower() == "true"
+    ENABLE_AUTH = os.getenv("ENABLE_AUTH", "true").lower() == "true"
     ENABLE_SECURITY_HEADERS = (
         os.getenv("ENABLE_SECURITY_HEADERS", "true").lower() == "true"
     )

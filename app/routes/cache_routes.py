@@ -72,7 +72,7 @@ async def cache_health() -> Dict[str, Any]:
         cache_service = get_cache_service()
         
         # Test Redis connectivity
-        redis_healthy = await cache_service.is_redis_available()
+        redis_healthy = cache_service.is_redis_available()
         
         return {
             "healthy": True,

@@ -14,6 +14,12 @@ from app.services.cache_service import CacheService, get_cache_service
 from fastapi.testclient import TestClient
 from app.app import create_app
 from app.services.auth_service import AuthService
+from app.database.connection import init_db, get_db, create_tables
+from app.database.models.base import Base
+from app.database.models.user import User as UserModel
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+from app.middleware.auth_dependencies import get_current_admin_user
 
 
 @pytest.mark.integration
@@ -232,15 +238,6 @@ class TestCacheRedisIntegration:
         cache_with_real_redis._is_redis_available = True
 
 
-@pytest.fixture(scope="module")
-def admin_token():
-    """Generate a token for an admin user."""
-    auth_service = AuthService()
-    # In a real app, you'd fetch an admin user from the DB
-    # For tests, we can create a dummy admin identity
-    token_data = auth_service.create_access_token(user_id=1)
-    return token_data["access_token"]
-
 @pytest.mark.integration
 class TestCacheRouteIntegration:
     """Test cache-related API routes"""
@@ -274,19 +271,22 @@ class TestCacheRouteIntegration:
             yield mock_service
 
     @pytest.fixture
-    def client(self, admin_token):
-        """Create test client with admin auth."""
-        os.environ["TESTING"] = "true"
-        os.environ["JWT_SECRET_KEY"] = "test-secret"
+    def client(self):
+        """Create test client with admin auth and test DB."""
         app = create_app()
+
+        async def override_get_current_admin_user():
+            return MagicMock(spec=UserModel)
         
+        app.dependency_overrides[get_current_admin_user] = override_get_current_admin_user
+
         client = TestClient(app)
-        client.headers["Authorization"] = f"Bearer {admin_token}"
         return client
 
     def test_cache_stats_endpoint(self, client, mock_cache_service):
         """Test /cache/stats endpoint"""
-        response = client.get("/cache/stats")
+        response = client.get("/api/cache/stats")
+        response.raise_for_status()
         assert response.status_code == 200
         
         data = response.json()
@@ -298,7 +298,8 @@ class TestCacheRouteIntegration:
 
     def test_cache_health_endpoint(self, client, mock_cache_service):
         """Test /cache/health endpoint"""
-        response = client.get("/cache/health")
+        response = client.get("/api/cache/health")
+        response.raise_for_status()
         assert response.status_code == 200
         
         data = response.json()
@@ -309,7 +310,8 @@ class TestCacheRouteIntegration:
 
     def test_cache_clear_endpoint(self, client, mock_cache_service):
         """Test /cache/clear endpoint"""
-        response = client.post("/cache/clear", json={"pattern": "test:*"})
+        response = client.post("/api/cache/clear", json={"pattern": "test:*"})
+        response.raise_for_status()
         assert response.status_code == 200
         
         data = response.json()
@@ -318,6 +320,7 @@ class TestCacheRouteIntegration:
         mock_cache_service.clear_pattern.assert_called_once_with("test:*")
         
         # Test without pattern (clears all)
-        response = client.post("/cache/clear", json={})
+        response = client.post("/api/cache/clear", json={})
+        response.raise_for_status()
         assert response.status_code == 200
         mock_cache_service.flush.assert_called_once()
