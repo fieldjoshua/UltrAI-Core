@@ -351,13 +351,14 @@ class TestCacheSingleton:
         from app.services.cache_service import close_cache_service
         
         service = get_cache_service()
-        service.redis = AsyncMock()
+        mock_redis = AsyncMock()
+        service.redis = mock_redis
         
         await close_cache_service()
         
         # Should have called close if Redis was available
         if service.redis:
-            service.redis.close.assert_called()
+            mock_redis.close.assert_called_once()
 
 
 class TestCacheIntegrationScenarios:

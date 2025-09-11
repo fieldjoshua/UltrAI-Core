@@ -270,7 +270,9 @@ def create_app() -> FastAPI:
                 or path.startswith("health")
                 or path.startswith("assets/")
             ):
-                return {"error": "Route not found"}
+                # Return 404 for non-existent API routes
+                from fastapi import HTTPException
+                raise HTTPException(status_code=404, detail="Route not found")
 
             # If the requested path directly matches a built file in dist, serve it (e.g., images)
             candidate = os.path.join(frontend_dist, path)

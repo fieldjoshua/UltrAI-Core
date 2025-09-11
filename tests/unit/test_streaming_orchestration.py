@@ -177,17 +177,27 @@ class TestStreamingOrchestrationService:
     @pytest.mark.asyncio
     async def test_error_event_on_failure(self, streaming_service):
         """Test that error events are emitted on failures."""
-        # Mock to raise an error
+        # Mock to raise an error during pipeline execution
+        streaming_service._default_models_from_env = AsyncMock(return_value=[])
         streaming_service._validate_model_names = Mock(side_effect=ValueError("Invalid model"))
         
         events = []
         async for event in streaming_service.stream_pipeline("Test", selected_models=["bad-model"]):
             events.append(event)
         
-        # Should have pipeline start and error events
-        parsed_events = [json.loads(e.replace("data: ", "").strip()) for e in events]
+        # Should have error events
+        assert len(events) > 0
         
-        error_events = [e for e in parsed_events if e["event"] == StreamEventType.PIPELINE_ERROR.value]
+        # Parse SSE format events
+        parsed_events = []
+        for event in events:
+            if event.startswith("data: ") and event.strip() != "data: ":
+                try:
+                    parsed_events.append(json.loads(event.replace("data: ", "").strip()))
+                except json.JSONDecodeError:
+                    pass
+        
+        error_events = [e for e in parsed_events if e.get("event") == StreamEventType.PIPELINE_ERROR.value]
         assert len(error_events) > 0
         assert "Invalid model" in str(error_events[0]["data"])
     
@@ -203,13 +213,25 @@ class TestStreamingEndpoint:
     @pytest.mark.asyncio
     async def test_streaming_endpoint_headers(self):
         """Test that streaming endpoint returns correct headers."""
-        from fastapi.testclient import TestClient
-        from app.main import app
+        import os
+        os.environ["TESTING"] = "true"
+        os.environ["JWT_SECRET_KEY"] = "test-secret-key"
+        os.environ["ENABLE_AUTH"] = "false"
         
+        from fastapi.testclient import TestClient
+        from app.app import create_app
+        from app.config import Config
+        Config.ENABLE_AUTH = False
+        
+        app = create_app()
         client = TestClient(app)
         
-        # Mock authentication
-        with patch("app.middleware.auth_middleware.require_auth", return_value={"user_id": "test"}):
+        # Mock the orchestration service to return quickly
+        with patch.object(
+            app.state.orchestration_service, 
+            'stream_pipeline',
+            return_value=self._async_generator(["data: test\n\n"])
+        ):
             response = client.post(
                 "/api/orchestrator/analyze/stream",
                 json={
@@ -221,6 +243,12 @@ class TestStreamingEndpoint:
             )
             
             # Check SSE headers
-            assert response.headers.get("content-type") == "text/event-stream"
+            assert response.status_code == 200
+            assert "text/event-stream" in response.headers.get("content-type", "")
             assert response.headers.get("cache-control") == "no-cache"
             assert response.headers.get("x-accel-buffering") == "no"
+    
+    async def _async_generator(self, items):
+        """Helper to create async generator from list."""
+        for item in items:
+            yield item

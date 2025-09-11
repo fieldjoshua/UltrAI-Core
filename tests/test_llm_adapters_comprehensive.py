@@ -56,19 +56,19 @@ class TestOpenAIAdapter:
         }
         mock_response.raise_for_status.return_value = None
 
-        with patch(
-            "app.services.llm_adapters.CLIENT.post", new_callable=AsyncMock
-        ) as mock_post:
-            mock_post.return_value = mock_response
-
+        # Mock the class-level CLIENT
+        mock_client = AsyncMock()
+        mock_client.post.return_value = mock_response
+        
+        with patch.object(OpenAIAdapter, "CLIENT", mock_client):
             adapter = OpenAIAdapter("test-key", "gpt-4")
             result = await adapter.generate("Test prompt")
 
             assert result["generated_text"] == "Test response from OpenAI"
 
             # Verify correct API call
-            mock_post.assert_called_once()
-            call_args = mock_post.call_args
+            mock_client.post.assert_called_once()
+            call_args = mock_client.post.call_args
             assert call_args[0][0] == "https://api.openai.com/v1/chat/completions"
             assert call_args[1]["headers"]["Authorization"] == "Bearer test-key"
             assert call_args[1]["json"]["model"] == "gpt-4"
@@ -97,13 +97,13 @@ class TestOpenAIAdapter:
         mock_response = Mock()
         mock_response.status_code = 404
 
-        with patch(
-            "app.services.llm_adapters.CLIENT.post", new_callable=AsyncMock
-        ) as mock_post:
-            mock_post.side_effect = httpx.HTTPStatusError(
-                "404 Not Found", request=Mock(), response=mock_response
-            )
-
+        # Mock the class-level CLIENT
+        mock_client = AsyncMock()
+        mock_client.post.side_effect = httpx.HTTPStatusError(
+            "404 Not Found", request=Mock(), response=mock_response
+        )
+        
+        with patch.object(OpenAIAdapter, "CLIENT", mock_client):
             adapter = OpenAIAdapter("test-key", "invalid-model")
             result = await adapter.generate("Test prompt")
 
@@ -115,11 +115,11 @@ class TestOpenAIAdapter:
     @pytest.mark.asyncio
     async def test_openai_adapter_timeout_error(self):
         """Test OpenAI adapter handles timeout errors."""
-        with patch(
-            "app.services.llm_adapters.CLIENT.post", new_callable=AsyncMock
-        ) as mock_post:
-            mock_post.side_effect = httpx.ReadTimeout("Request timed out")
-
+        # Mock the class-level CLIENT
+        mock_client = AsyncMock()
+        mock_client.post.side_effect = httpx.ReadTimeout("Request timed out")
+        
+        with patch.object(OpenAIAdapter, "CLIENT", mock_client):
             adapter = OpenAIAdapter("test-key", "gpt-4")
             result = await adapter.generate("Test prompt")
 

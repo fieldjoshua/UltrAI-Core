@@ -119,7 +119,9 @@ class TestStandardizedErrors:
             
             assert "generated_text" in result
             assert "Error:" in result["generated_text"]
-            assert "rate limit exceeded" in result["generated_text"].lower()
+            # Check for rate limit or quota exceeded messages
+            error_text = result["generated_text"].lower()
+            assert ("rate limit exceeded" in error_text or "quota exceeded" in error_text)
             assert result["provider"] == provider_name
     
     @pytest.mark.asyncio

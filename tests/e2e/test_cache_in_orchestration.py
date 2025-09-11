@@ -8,12 +8,12 @@ import os
 os.environ["TESTING"] = "true"
 os.environ["JWT_SECRET_KEY"] = "test-secret-key"
 
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock, patch, Mock
 import uuid
 
 import pytest
 from fastapi.testclient import TestClient
-from httpx import AsyncClient
+import httpx
 
 from app.app import create_app
 from app.services.cache_service import cache_key, get_cache_service
@@ -33,9 +33,9 @@ class TestCacheInOrchestration:
     """Test cache behavior in orchestration workflow"""
 
     @pytest.fixture
-    def client(self):
+    def client(self, mock_llm_adapters):
         """Create test client with mocked LLMs"""
-        os.environ["USE_MOCK"] = "true"  # Use mock LLMs
+        # The mock_llm_adapters fixture from conftest.py handles mocking
         app = create_app()
         return TestClient(app)
 
@@ -210,7 +210,7 @@ class TestCacheInOrchestration:
             response = await async_client.post("/api/orchestrator/analyze", json=request_data, headers=headers)
             return response.status_code, request_id
         
-        async with AsyncClient(app=app, base_url="http://test") as async_client:
+        async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test") as async_client:
             # Make 10 concurrent requests with same parameters
             tasks = [make_request(async_client, i) for i in range(10)]
             results = await asyncio.gather(*tasks)

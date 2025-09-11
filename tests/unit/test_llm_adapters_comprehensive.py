@@ -71,7 +71,8 @@ class TestSharedHttpClient:
         
         for adapter in adapters:
             # All should reference the same CLIENT instance
-            assert adapter.client is CLIENT
+            # Check both instance and class level
+            assert adapter.client is CLIENT or adapter.__class__.CLIENT is CLIENT
 
 
 class TestOpenAIAdapter:

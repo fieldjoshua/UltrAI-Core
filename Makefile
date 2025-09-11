@@ -1,5 +1,5 @@
 # UltraAI Core - Production/Development Toggle
-.PHONY: help dev prod install setup clean-ports run test deploy e2e
+.PHONY: help dev prod install setup clean-ports run test test-offline test-mock test-integration test-live test-production deploy e2e
 
 # Default target
 help:
@@ -9,9 +9,16 @@ help:
 	@echo "  make dev         - Start DEVELOPMENT server (fast, minimal deps)"
 	@echo "  make prod        - Start PRODUCTION server (full features)"
 	@echo "  make run         - Clean ports and start dev server"
-	@echo "  make test        - Run tests"
-	@echo "  make deploy      - Deploy to production"
+	@echo ""
+	@echo "Testing Commands:"
+	@echo "  make test        - Run offline tests with mocks (default)"
+	@echo "  make test-mock   - Run tests with sophisticated mocks"
+	@echo "  make test-integration - Run integration tests with local services"
+	@echo "  make test-live   - Run tests against real LLM providers"
+	@echo "  make test-production - Run tests against production endpoints"
 	@echo "  make e2e         - Run end-to-end tests (E2E)"
+	@echo ""
+	@echo "  make deploy      - Deploy to production"
 	@echo ""
 	@echo "Quick start: make setup && make dev"
 
@@ -74,11 +81,36 @@ clean-ports:
 # Run with clean ports
 run: clean-ports dev
 
-# Run tests
-test:
-	@echo "Running tests..."
-	pytest tests/ -v 2>/dev/null || echo "No tests found in tests/"
-	cd frontend && npm test 2>/dev/null || echo "No frontend tests configured"
+# Run tests (default: offline mode with mocks)
+test: test-offline
+
+# Run tests in OFFLINE mode (all external dependencies mocked)
+test-offline:
+	@echo "🧪 Running tests in OFFLINE mode..."
+	@. venv/bin/activate && TEST_MODE=offline pytest tests/ -v
+
+# Run tests in MOCK mode (sophisticated mocks)
+test-mock:
+	@echo "🧪 Running tests in MOCK mode..."
+	@. venv/bin/activate && TEST_MODE=mock pytest tests/ -v
+
+# Run tests in INTEGRATION mode (local services)
+test-integration:
+	@echo "🧪 Running tests in INTEGRATION mode..."
+	@. venv/bin/activate && TEST_MODE=integration pytest tests/ -v
+
+# Run tests in LIVE mode (real LLM providers)
+test-live:
+	@echo "🧪 Running tests in LIVE mode..."
+	@echo "⚠️  Requires API keys for LLM providers"
+	@. venv/bin/activate && TEST_MODE=live pytest tests/ -v -m ""
+
+# Run tests in PRODUCTION mode (against deployed endpoints)
+test-production:
+	@echo "🧪 Running tests in PRODUCTION mode..."
+	@echo "⚠️  Tests against production endpoints"
+	@. venv/bin/activate && TEST_MODE=production pytest tests/ -v -m ""
+	@./scripts/run_tests_production.sh
 
 # Run end-to-end tests (E2E) with a pre-check step
 e2e:
