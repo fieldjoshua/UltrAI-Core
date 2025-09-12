@@ -40,7 +40,7 @@
       "technical",
       "reasoning"
     ],
-    "availability_score": 1.0
+    "availability_score": 0.7
   },
   "o1-preview": {
     "model_name": "o1-preview",
@@ -58,11 +58,11 @@
   },
   "claude-3-5-sonnet-20241022": {
     "model_name": "claude-3-5-sonnet-20241022",
-    "successful_syntheses": 217,
+    "successful_syntheses": 229,
     "failed_syntheses": 0,
     "average_quality_score": 8.5,
     "average_response_time": 5.0,
-    "last_used": "2025-09-12T02:09:22.403752",
+    "last_used": "2025-09-12T14:50:32.498304",
     "expertise_areas": [
       "nuanced",
       "ethical",
@@ -126,7 +126,7 @@
       "efficient",
       "factual"
     ],
-    "availability_score": 1.0
+    "availability_score": 0.7
   },
   "gemini-2.0-flash-exp": {
     "model_name": "gemini-2.0-flash-exp",
