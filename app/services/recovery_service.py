@@ -16,7 +16,7 @@ from app.services.cache_service import cache_service
 import os
 from app.services.health_service import HealthService
 from app.utils.circuit_breaker import CircuitBreaker, CircuitState
-from app.utils.errors import RecoveryError, SystemError
+from app.utils.errors import RecoveryError, SystemError as AppSystemError
 from app.utils.logging import get_logger
 from app.utils.recovery_strategies import (
     AdaptiveStrategy,
