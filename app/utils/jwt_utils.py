@@ -13,13 +13,19 @@ from typing import Any, Dict, Optional
 
 import jwt  # PyJWT is required
 
+# Ensure config is loaded first to get environment variables
+try:
+    from app import config  # noqa: F401
+except ImportError:
+    pass  # Config might not be available in some contexts
+
 # Get secret keys from environment variables - REQUIRED in production
 # Support both JWT_SECRET_KEY and JWT_SECRET for backward compatibility
 SECRET_KEY = os.getenv("JWT_SECRET_KEY") or os.getenv("JWT_SECRET")
 REFRESH_SECRET_KEY = os.getenv("JWT_REFRESH_SECRET_KEY") or os.getenv("JWT_REFRESH_SECRET")
 
 # Validate that secrets are configured
-if not SECRET_KEY and os.getenv("TESTING") != "true":
+if not SECRET_KEY and os.getenv("TESTING") != "true" and os.getenv("ENVIRONMENT") not in ["development", "testing"]:
     raise ValueError(
         "JWT_SECRET_KEY or JWT_SECRET environment variable is required. "
         "Generate a secure key with: openssl rand -hex 32"
