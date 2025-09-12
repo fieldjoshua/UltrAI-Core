@@ -136,6 +136,13 @@ class Config:
     ENABLE_HTTPS_REDIRECT = (
         os.getenv("ENABLE_HTTPS_REDIRECT", "false").lower() == "true"
     )
+    
+    # Pricing and billing feature flags
+    ENABLE_PRICING = os.getenv("ENABLE_PRICING", "false").lower() == "true"
+    ENABLE_BUDGET_ENFORCEMENT = os.getenv("ENABLE_BUDGET_ENFORCEMENT", "false").lower() == "true"
+    ENABLE_BILLING = os.getenv("ENABLE_BILLING", "false").lower() == "true"
+    DEFAULT_MONTHLY_BUDGET = float(os.getenv("DEFAULT_MONTHLY_BUDGET", "100.0"))
+    PRICING_UPDATE_INTERVAL = int(os.getenv("PRICING_UPDATE_INTERVAL", "3600"))  # 1 hour in seconds
 
     # Monitoring and metrics
     METRICS_ENABLED = os.getenv("ENABLE_METRICS", "true").lower() == "true"

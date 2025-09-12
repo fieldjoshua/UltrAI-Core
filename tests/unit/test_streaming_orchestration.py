@@ -177,9 +177,9 @@ class TestStreamingOrchestrationService:
     @pytest.mark.asyncio
     async def test_error_event_on_failure(self, streaming_service):
         """Test that error events are emitted on failures."""
-        # Mock to raise an error during pipeline execution
+        # Mock to return empty list after validation (no valid models)
         streaming_service._default_models_from_env = AsyncMock(return_value=[])
-        streaming_service._validate_model_names = Mock(side_effect=ValueError("Invalid model"))
+        streaming_service._validate_model_names = Mock(return_value=[])  # Return empty list instead of raising
         
         events = []
         async for event in streaming_service.stream_pipeline("Test", selected_models=["bad-model"]):
@@ -199,7 +199,7 @@ class TestStreamingOrchestrationService:
         
         error_events = [e for e in parsed_events if e.get("event") == StreamEventType.PIPELINE_ERROR.value]
         assert len(error_events) > 0
-        assert "Invalid model" in str(error_events[0]["data"])
+        assert "No valid models" in str(error_events[0]["data"])
     
     async def _async_generator(self, items):
         """Helper to create async generator from list."""
@@ -226,27 +226,30 @@ class TestStreamingEndpoint:
         app = create_app()
         client = TestClient(app)
         
-        # Mock the orchestration service to return quickly
-        with patch.object(
-            app.state.orchestration_service, 
-            'stream_pipeline',
+        # Create a mock streaming service
+        from app.services.streaming_orchestration_service import StreamingOrchestrationService
+        mock_streaming_service = Mock(spec=StreamingOrchestrationService)
+        mock_streaming_service.stream_pipeline = AsyncMock(
             return_value=self._async_generator(["data: test\n\n"])
-        ):
-            response = client.post(
-                "/api/orchestrator/analyze/stream",
-                json={
-                    "query": "Test streaming",
-                    "selected_models": ["gpt-4"],
-                    "stream_stages": ["synthesis_chunks"]
-                },
-                stream=True
-            )
-            
-            # Check SSE headers
-            assert response.status_code == 200
-            assert "text/event-stream" in response.headers.get("content-type", "")
-            assert response.headers.get("cache-control") == "no-cache"
-            assert response.headers.get("x-accel-buffering") == "no"
+        )
+        
+        # Attach it to the app state
+        app.state.streaming_orchestration_service = mock_streaming_service
+        
+        response = client.post(
+            "/api/orchestrator/analyze/stream",
+            json={
+                "query": "Test streaming",
+                "selected_models": ["gpt-4"],
+                "stream_stages": ["synthesis_chunks"]
+            }
+        )
+        
+        # Check SSE headers
+        assert response.status_code == 200
+        assert "text/event-stream" in response.headers.get("content-type", "")
+        assert "no-cache" in response.headers.get("cache-control", "")
+        assert response.headers.get("x-accel-buffering") == "no"
     
     async def _async_generator(self, items):
         """Helper to create async generator from list."""

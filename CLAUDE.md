@@ -33,6 +33,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `pytest tests/test_file.py -s` - Run with print output visible
 - `./run_e2e.sh` - Run Playwright e2e tests using local Chrome browser
 - `pytest tests/ -m "live_online" -v` - Run live tests against real LLM providers
+- `pytest tests/test_file.py -vv` - Run with extra verbose output
+- `pytest tests/ --lf` - Run only last failed tests
 
 ### Python Environment Setup (CRITICAL)
 **Always activate the virtual environment before running any Python commands:**
@@ -217,6 +219,8 @@ Main API endpoints:
 - `POST /api/auth/login` - User authentication
 - `POST /api/auth/register` - User registration
 - `GET /api/auth/me` - Get current user info
+- `GET /api/analysis/{analysis_id}` - Get analysis details by ID
+- `GET /api/users/{user_id}/analyses` - Get user's analysis history
+- `GET /api/metrics` - Get system metrics (cache hits, response times)
 - `GET /docs` - Interactive API documentation (Swagger UI)
 - `GET /redoc` - Alternative API documentation (ReDoc)
-

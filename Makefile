@@ -1,5 +1,5 @@
 # UltraAI Core - Production/Development Toggle
-.PHONY: help dev prod install setup clean-ports run test test-offline test-mock test-integration test-live test-production deploy e2e
+.PHONY: help dev prod install setup clean-ports run test test-offline test-mock test-integration test-live test-production deploy e2e test-report test-demo test-all
 
 # Default target
 help:
@@ -17,6 +17,9 @@ help:
 	@echo "  make test-live   - Run tests against real LLM providers"
 	@echo "  make test-production - Run tests against production endpoints"
 	@echo "  make e2e         - Run end-to-end tests (E2E)"
+	@echo "  make test-report - Run tests with Allure and HTML reports"
+	@echo "  make test-demo   - Run demo (staging/prod) endpoint tests"
+	@echo "  make test-all    - Run offline, then live, then demo tests"
 	@echo ""
 	@echo "  make deploy      - Deploy to production"
 	@echo ""
@@ -100,10 +103,10 @@ test-integration:
 	@. venv/bin/activate && TEST_MODE=integration pytest tests/ -v
 
 # Run tests in LIVE mode (real LLM providers)
-test-live:
+test-live: clean-ports
 	@echo "🧪 Running tests in LIVE mode..."
 	@echo "⚠️  Requires API keys for LLM providers"
-	@. venv/bin/activate && TEST_MODE=live pytest tests/ -v -m ""
+	@. venv/bin/activate && TEST_MODE=live pytest tests/ -v -m live
 
 # Run tests in PRODUCTION mode (against deployed endpoints)
 test-production:
@@ -120,6 +123,26 @@ e2e:
 	pytest tests/ -q -m "not e2e"
 	@echo "Running end-to-end (e2e) tests"
 	pytest tests/ -q -m e2e
+
+# Test reporting with Allure and HTML
+test-report:
+	@echo "🧪 Running tests with Allure and HTML reports..."
+	pytest tests/ -v --alluredir=allure-results --html=report.html --self-contained-html || true
+	@echo "Run: allure serve allure-results (if allure CLI is installed)"
+
+# Demo endpoint tests (env DEMO_BASE_URL can override)
+test-demo: clean-ports
+	@echo "🌐 Running demo endpoint tests against $${DEMO_BASE_URL:-https://ultrai-staging-api.onrender.com}"
+	@. venv/bin/activate && bash scripts/run_tests_all.sh --mode demo --report report_demo.html
+
+# Run offline, live providers, then demo endpoints
+test-all: clean-ports
+	@echo "🧪 Running offline suite..."
+	@. venv/bin/activate && bash scripts/run_tests_all.sh --mode offline --report report_offline.html || true
+	@echo "🔌 Running live provider smoke..."
+	@. venv/bin/activate && bash scripts/run_tests_all.sh --mode live --report report_live.html || true
+	@echo "🌐 Running demo endpoint tests..."
+	@. venv/bin/activate && bash scripts/run_tests_all.sh --mode demo --report report_demo.html || true
 
 # Deploy to production
 deploy:

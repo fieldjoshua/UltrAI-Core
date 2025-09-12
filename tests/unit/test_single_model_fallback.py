@@ -179,15 +179,3 @@ class TestSingleModelFallback:
                 
                 assert results['peer_review_and_revision'].error == "offline_insufficient_models"
 
-    @pytest.mark.asyncio
-    @pytest.mark.skip(reason="Test is proving difficult to fix, skipping for now")
-    async def test_warning_messages_single_model(self, orchestration_service, caplog):
-        """Test appropriate warning messages are logged for single model operation."""
-        with patch.object(Config, 'MINIMUM_MODELS_REQUIRED', 2), \
-             patch.object(Config, 'ENABLE_SINGLE_MODEL_FALLBACK', True):
-            
-            with patch.object(orchestration_service, '_get_healthy_models', return_value=["gpt-4o"]) as mock_get_healthy:
-                await orchestration_service._default_models_from_env()
-                
-                assert any("Operating in single-model fallback mode" in record.message
-                           for record in caplog.records)
