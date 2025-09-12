@@ -19,6 +19,17 @@ htmlcov/
 .coverage.*
 .hypothesis/
 
+# Test reports and artifacts
+.cursor/
+allure-results/
+reports/
+report*.html
+test_report*.html
+
+# Keep test documentation
+!tests/README.md
+!tests/**/*.md
+
 # Build outputs
 /dist
 /build
