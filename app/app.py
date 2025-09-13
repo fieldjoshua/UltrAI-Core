@@ -4,7 +4,8 @@ from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 import os
 from app.routes.health_routes import router as health_router
-from app.routes.user_routes import user_router
+# from app.routes.user_routes import user_router  # Disabled - contains financial features
+from app.routes.user_routes_simple import user_router  # Simple version without billing
 from app.config_cors import get_cors_config
 from app.config import Config
 from app.middleware.combined_auth_middleware import setup_combined_auth_middleware

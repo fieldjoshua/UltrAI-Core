@@ -17,7 +17,15 @@ import time
 from app.services.quality_evaluation import QualityEvaluationService, ResponseQuality
 from app.services.rate_limiter import RateLimiter
 from app.services.token_management_service import TokenManagementService
-from app.services.transaction_service import TransactionService
+# Transaction service - only imported if billing is enabled
+try:
+    from app.config import Config
+    if Config.ENABLE_BILLING:
+        from app.services.transaction_service import TransactionService
+    else:
+        TransactionService = None
+except ImportError:
+    TransactionService = None
 from app.services.llm_adapters import (
     OpenAIAdapter,
     AnthropicAdapter,
@@ -97,7 +105,11 @@ class OrchestrationService:
         self.quality_evaluator = quality_evaluator or QualityEvaluationService()
         self.rate_limiter = rate_limiter or RateLimiter()
         self.token_manager = token_manager or TokenManagementService()
-        self.transaction_service = transaction_service or TransactionService()
+        # Only initialize transaction service if billing is enabled
+        if Config.ENABLE_BILLING and TransactionService:
+            self.transaction_service = transaction_service or TransactionService()
+        else:
+            self.transaction_service = None
         
         # Initialize new Ultra Synthesis™ optimization components with error handling
         try:
@@ -375,10 +387,6 @@ class OrchestrationService:
 
         # Only ensure multiple models if required by configuration
         if len(healthy) < Config.MINIMUM_MODELS_REQUIRED and Config.MINIMUM_MODELS_REQUIRED > 1:
-<<<<<<< HEAD
-            # Try to add backup models to meet minimum requirement
-            backup_models = ["gemini-1.5-flash", "claude-3-5-sonnet-20241022", "gpt-4o"]
-=======
             if Config.ENVIRONMENT == "production":
                 # Do not auto-inject backups in production; signal upstream to degrade/stop
                 logger.error(
@@ -387,7 +395,6 @@ class OrchestrationService:
                 return healthy
             # In non-production, attempt to meet minimum with conservative backups
             backup_models = ["gpt-3.5-turbo", "gpt-4o", "claude-3-sonnet-20240229"]
->>>>>>> origin/main
             for backup in backup_models:
                 if backup not in healthy:
                     healthy.append(backup)
@@ -679,8 +686,8 @@ class OrchestrationService:
                 )
                 break
 
-        # Deduct total cost from user's balance if user_id is provided
-        if user_id and total_cost > 0:
+        # Deduct total cost from user's balance if billing is enabled and user_id is provided
+        if Config.ENABLE_BILLING and self.transaction_service and user_id and total_cost > 0:
             await self.transaction_service.deduct_cost(
                 user_id=user_id,
                 amount=total_cost,
