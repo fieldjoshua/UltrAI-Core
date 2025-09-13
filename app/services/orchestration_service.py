@@ -346,6 +346,15 @@ class OrchestrationService:
                     healthy.append("gemini-1.5-flash")
                 if has_anthropic:
                     healthy.append("claude-3-haiku-20240307")
+            elif Config.ENABLE_SINGLE_MODEL_FALLBACK and not healthy:
+                # Last resort: if single model fallback is enabled and we have NO models
+                logger.warning("🚨 CRITICAL: No API keys found! Using mock response mode")
+                if has_openai:
+                    healthy = ["gpt-3.5-turbo"]  # Try OpenAI as last resort
+                else:
+                    # Return empty to signal no models available
+                    logger.error("❌ No API keys configured at all")
+                    return []
             # In production with multi-model requirement, do NOT inject fallback models
             elif Config.ENVIRONMENT == "production" and Config.MINIMUM_MODELS_REQUIRED > 1:
                 logger.error(
