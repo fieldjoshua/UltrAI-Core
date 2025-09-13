@@ -58,11 +58,11 @@
   },
   "claude-3-5-sonnet-20241022": {
     "model_name": "claude-3-5-sonnet-20241022",
-    "successful_syntheses": 229,
-    "failed_syntheses": 0,
-    "average_quality_score": 8.5,
-    "average_response_time": 5.0,
-    "last_used": "2025-09-12T14:50:32.498304",
+    "successful_syntheses": 235,
+    "failed_syntheses": 1,
+    "average_quality_score": 8.071421499999998,
+    "average_response_time": 6.2605249999999995,
+    "last_used": "2025-09-12T22:40:18.233959",
     "expertise_areas": [
       "nuanced",
       "ethical",

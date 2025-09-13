@@ -172,3 +172,6 @@ FEATURE_FLAGS = {
 - **Themes**: 6 skins (night, morning, afternoon, sunset, minimalist, business)
 - **Icons**: Lucide React (no emojis in production)
 - **Error Handling**: Sourcemaps enabled for React error #310
+
+## Testing Best Practices
+- **Reset/Kill Servers**: Always reset/kill all servers before attempting server-dependent testing and scripts

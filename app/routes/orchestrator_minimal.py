@@ -3,6 +3,7 @@ Route handlers for the orchestrator service.
 """
 
 import time
+import os
 from typing import Dict, Any, Optional, List
 from fastapi import APIRouter, HTTPException, Request, Depends
 from fastapi.responses import StreamingResponse
