@@ -192,7 +192,7 @@ export default function CyberWizard() {
   useEffect(() => {
     const fetchAvailable = async () => {
       try {
-        const r = await fetch("/api/available-models", { cache: "no-store" });
+        const r = await fetch("/api/available-models?healthy_only=true", { cache: "no-store" });
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
         const d = await r.json();
         if (d && Array.isArray(d.models)) {
