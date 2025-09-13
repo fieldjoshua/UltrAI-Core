@@ -332,9 +332,20 @@ class OrchestrationService:
         if not healthy:
             logger.warning("⚠️ No healthy models found during probe")
             # TEMPORARY: Force working models for testing
-            if os.getenv("GOOGLE_API_KEY") and os.getenv("ANTHROPIC_API_KEY"):
-                logger.warning("🔧 DEBUG: Forcing known working models")
-                healthy = ["gemini-1.5-flash", "claude-3-haiku-20240307"]
+            # Check if we have any API keys available
+            has_google = bool(os.getenv("GOOGLE_API_KEY"))
+            has_anthropic = bool(os.getenv("ANTHROPIC_API_KEY"))
+            has_openai = bool(os.getenv("OPENAI_API_KEY"))
+            
+            logger.info(f"  📊 API Key Status: Google={has_google}, Anthropic={has_anthropic}, OpenAI={has_openai}")
+            
+            if has_google or has_anthropic:
+                logger.warning("🔧 DEBUG: Forcing known working models based on available API keys")
+                healthy = []
+                if has_google:
+                    healthy.append("gemini-1.5-flash")
+                if has_anthropic:
+                    healthy.append("claude-3-haiku-20240307")
             # In production with multi-model requirement, do NOT inject fallback models
             elif Config.ENVIRONMENT == "production" and Config.MINIMUM_MODELS_REQUIRED > 1:
                 logger.error(

@@ -102,6 +102,14 @@ def create_router() -> APIRouter:
             available_providers = health_summary["_system"]["available_providers"]
             degradation_message = await provider_health_manager.get_degradation_message()
             
+            # Check API key status
+            api_key_status = {
+                "openai": bool(os.getenv("OPENAI_API_KEY")),
+                "anthropic": bool(os.getenv("ANTHROPIC_API_KEY")),
+                "google": bool(os.getenv("GOOGLE_API_KEY")),
+                "huggingface": bool(os.getenv("HUGGINGFACE_API_KEY"))
+            }
+            
             # Determine service status
             from app.config import Config
             required_models = Config.MINIMUM_MODELS_REQUIRED
@@ -123,6 +131,8 @@ def create_router() -> APIRouter:
                 "status": status,
                 "service_available": service_available,
                 "message": message,
+                "environment": Config.ENVIRONMENT,
+                "api_keys_configured": api_key_status,
                 "models": {
                     "available": available_models,
                     "count": model_count,
@@ -139,7 +149,7 @@ def create_router() -> APIRouter:
             }
             
         except Exception as e:
-            logger.error(f"Error checking service status: {e}")
+            logger.error(f"Error checking service status: {e}", exc_info=True)
             return {
                 "status": "error",
                 "message": str(e),

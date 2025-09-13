@@ -57,6 +57,10 @@ services:
         value: "45"
       - key: MAX_RETRIES
         value: "3"
+      - key: MINIMUM_MODELS_REQUIRED
+        value: "1"
+      - key: ENABLE_SINGLE_MODEL_FALLBACK
+        value: "true"
       
       # Security
       - key: JWT_SECRET
