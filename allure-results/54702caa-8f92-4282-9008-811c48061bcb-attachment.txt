@@ -1,0 +1,34 @@
+[32mINFO    [0m request:structured_logging.py:603 GET /api/health
+[35mDEBUG   [0m request_id_middleware:request_id_middleware.py:45 Processing request: GET /api/health
+[1m[31mERROR   [0m health_service:health_service.py:419 Mock service health check failed: No module named 'app.services.mock_llm_service'
+[32mINFO    [0m app.middleware.telemetry_middleware:telemetry_middleware.py:89 GET /api/health completed
+[32mINFO    [0m request:structured_logging.py:655 GET /api/health 200 (1.09ms)
+[32mINFO    [0m request:structured_logging.py:603 GET /api/health/services
+[35mDEBUG   [0m request_id_middleware:request_id_middleware.py:45 Processing request: GET /api/health/services
+[1m[31mERROR   [0m health_service:health_service.py:419 Mock service health check failed: No module named 'app.services.mock_llm_service'
+[32mINFO    [0m app.middleware.telemetry_middleware:telemetry_middleware.py:89 GET /api/health/services completed
+[32mINFO    [0m request:structured_logging.py:655 GET /api/health/services 200 (1.05ms)
+[32mINFO    [0m request:structured_logging.py:603 GET /api/nonexistent
+[35mDEBUG   [0m request_id_middleware:request_id_middleware.py:45 Processing request: GET /api/nonexistent
+[33mWARNING [0m error_handler:unified_error_handler.py:625 Warning processing request: 404: Route not found
+[35mDEBUG   [0m error_handler:unified_error_handler.py:632 Exception traceback: Traceback (most recent call last):
+  File "/Users/joshuafield/Documents/Ultra/venv/lib/python3.13/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/Users/joshuafield/Documents/Ultra/venv/lib/python3.13/site-packages/starlette/routing.py", line 75, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "/Users/joshuafield/Documents/Ultra/venv/lib/python3.13/site-packages/fastapi/routing.py", line 302, in app
+    raw_response = await run_endpoint_function(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+    )
+    ^
+  File "/Users/joshuafield/Documents/Ultra/venv/lib/python3.13/site-packages/fastapi/routing.py", line 213, in run_endpoint_function
+    return await dependant.call(**values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/joshuafield/Documents/Ultra/app/app.py", line 275, in serve_frontend_routes
+    raise HTTPException(status_code=404, detail="Route not found")
+fastapi.exceptions.HTTPException: 404: Route not found
+
+[32mINFO    [0m app.middleware.telemetry_middleware:telemetry_middleware.py:89 GET /api/nonexistent completed
+[33mWARNING [0m request:structured_logging.py:653 GET /api/nonexistent 404 (4.62ms)

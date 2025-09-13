@@ -1,0 +1,77 @@
+[31m[1mERROR   [0m app.utils.sentry_integration:sentry_integration.py:73 Failed to initialize Sentry: Unknown option 'tags'
+[32mINFO    [0m security_headers_middleware:security_headers_middleware.py:207 Security headers middleware added to application
+[32mINFO    [0m performance_middleware:performance_middleware.py:152 Performance optimization middleware enabled
+[32mINFO    [0m test_app_setup:app.py:88 Performance optimization middleware enabled
+[32mINFO    [0m test_app_setup:app.py:95 Database initialized (or fallback active)
+[32mINFO    [0m test_app_setup:app.py:105 Structured logging middleware enabled
+[32mINFO    [0m app.middleware.telemetry_middleware:telemetry_middleware.py:131 Telemetry middleware added to application
+[32mINFO    [0m test_app_setup:app.py:112 Telemetry middleware enabled
+[32mINFO    [0m rate_limit_middleware:rate_limit_middleware.py:131 Rate limiting middleware added to application
+[32mINFO    [0m test_app_setup:app.py:130 Rate limiting middleware enabled
+[32mINFO    [0m combined_auth_middleware:combined_auth_middleware.py:264 Combined authentication middleware added to application
+[32mINFO    [0m test_app_setup:app.py:157 Authentication middleware enabled (JWT + API Key support)
+[32mINFO    [0m error_handler:unified_error_handler.py:1138 Exception handlers registered
+[32mINFO    [0m error_handler:unified_error_handler.py:1164 Global error handling system configured
+[32mINFO    [0m test_app_setup:app.py:162 Unified error handling system enabled
+[32mINFO    [0m transaction_service:transaction_service.py:113 Loaded financial data from file
+[32mINFO    [0m test_app_setup:app.py:220 🧪 TESTING mode – lightweight OrchestrationService attached to app.state
+[32mINFO    [0m test_app_setup:app.py:231 SmartModelSelectionService initialized
+[32mINFO    [0m security_headers_middleware:security_headers_middleware.py:81 Initialized SecurityHeadersMiddleware with 10 CSP directives
+[32mINFO    [0m app.middleware.telemetry_middleware:telemetry_middleware.py:30 Telemetry middleware initialized
+[32mINFO    [0m rate_limit_middleware:rate_limit_middleware.py:47 Initialized RateLimitMiddleware with 6 excluded paths
+[32mINFO    [0m combined_auth_middleware:combined_auth_middleware.py:52 Initialized CombinedAuthMiddleware with 9 public paths and 2 protected paths
+[32mINFO    [0m error_handler:unified_error_handler.py:792 Initialized GlobalErrorHandlingMiddleware with debug_details=True, exclude_paths=None
+[35mDEBUG   [0m error_handler:unified_error_handler.py:629 Debug info about request error: '<=' not supported between instances of 'Mock' and 'int'
+[35mDEBUG   [0m error_handler:unified_error_handler.py:632 Exception traceback: Traceback (most recent call last):
+  File "/Users/joshuafield/Documents/Ultra/venv/lib/python3.13/site-packages/starlette/middleware/base.py", line 151, in call_next
+    message = await recv_stream.receive()
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/joshuafield/Documents/Ultra/venv/lib/python3.13/site-packages/anyio/streams/memory.py", line 126, in receive
+    raise EndOfStream from None
+anyio.EndOfStream
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/joshuafield/Documents/Ultra/app/utils/unified_error_handler.py", line 821, in dispatch
+    response = await call_next(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/joshuafield/Documents/Ultra/venv/lib/python3.13/site-packages/starlette/middleware/base.py", line 159, in call_next
+    raise app_exc
+  File "/Users/joshuafield/Documents/Ultra/venv/lib/python3.13/site-packages/starlette/middleware/base.py", line 144, in coro
+    await self.app(scope, receive_or_disconnect, send_no_error)
+  File "/Users/joshuafield/Documents/Ultra/venv/lib/python3.13/site-packages/starlette/middleware/base.py", line 182, in __call__
+    with recv_stream, send_stream, collapse_excgroups():
+                                   ~~~~~~~~~~~~~~~~~~^^
+  File "/opt/homebrew/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/lib/python3.13/contextlib.py", line 162, in __exit__
+    self.gen.throw(value)
+    ~~~~~~~~~~~~~~^^^^^^^
+  File "/Users/joshuafield/Documents/Ultra/venv/lib/python3.13/site-packages/starlette/_utils.py", line 83, in collapse_excgroups
+    raise exc
+  File "/Users/joshuafield/Documents/Ultra/venv/lib/python3.13/site-packages/starlette/middleware/base.py", line 184, in __call__
+    response = await self.dispatch_func(request, call_next)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/joshuafield/Documents/Ultra/app/middleware/combined_auth_middleware.py", line 134, in dispatch
+    return await call_next(request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/joshuafield/Documents/Ultra/venv/lib/python3.13/site-packages/starlette/middleware/base.py", line 159, in call_next
+    raise app_exc
+  File "/Users/joshuafield/Documents/Ultra/venv/lib/python3.13/site-packages/starlette/middleware/base.py", line 144, in coro
+    await self.app(scope, receive_or_disconnect, send_no_error)
+  File "/Users/joshuafield/Documents/Ultra/venv/lib/python3.13/site-packages/starlette/middleware/base.py", line 182, in __call__
+    with recv_stream, send_stream, collapse_excgroups():
+                                   ~~~~~~~~~~~~~~~~~~^^
+  File "/opt/homebrew/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/lib/python3.13/contextlib.py", line 162, in __exit__
+    self.gen.throw(value)
+    ~~~~~~~~~~~~~~^^^^^^^
+  File "/Users/joshuafield/Documents/Ultra/venv/lib/python3.13/site-packages/starlette/_utils.py", line 83, in collapse_excgroups
+    raise exc
+  File "/Users/joshuafield/Documents/Ultra/venv/lib/python3.13/site-packages/starlette/middleware/base.py", line 184, in __call__
+    response = await self.dispatch_func(request, call_next)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/joshuafield/Documents/Ultra/app/middleware/rate_limit_middleware.py", line 78, in dispatch
+    result = rate_limit_service.check_rate_limit(request, user)
+  File "/Users/joshuafield/Documents/Ultra/app/services/rate_limit_service.py", line 353, in check_rate_limit
+    is_allowed = current_count <= limit
+                 ^^^^^^^^^^^^^^^^^^^^^^
+TypeError: '<=' not supported between instances of 'Mock' and 'int'

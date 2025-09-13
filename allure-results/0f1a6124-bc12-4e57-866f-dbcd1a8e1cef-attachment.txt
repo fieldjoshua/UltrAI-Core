@@ -1,0 +1,1 @@
+[32mINFO    [0m cache_service:cache_service.py:90 Redis client initialized successfully

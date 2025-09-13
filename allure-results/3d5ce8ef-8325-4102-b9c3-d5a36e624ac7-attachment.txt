@@ -1,0 +1,1 @@
+{"timestamp": "2025-09-11T22:59:04.676372", "level": "WARNING", "logger": "app.services.resilient_llm_adapter", "message": "No specific config for provider <Mock id='4926221888'>, using defaults", "correlation_id": "badb1050-bb47-449c-a5cd-581fb7afbd79", "module": "resilient_llm_adapter", "function": "__init__", "line": 208}

@@ -1,0 +1,1 @@
+{"timestamp": "2025-09-12T00:29:58.798405", "level": "INFO", "logger": "cache_service", "message": "Cache disabled or Redis URL not configured", "correlation_id": "9bb24627-4998-4af7-b559-d882604133eb", "module": "cache_service", "function": "_initialize_redis", "line": 76}

@@ -1,0 +1,5 @@
+[32mINFO    [0m transaction_service:transaction_service.py:113 Loaded financial data from file
+[35mDEBUG   [0m transaction_service:transaction_service.py:148 Saved financial data to file
+[32mINFO    [0m transaction_service:transaction_service.py:195 Added $100.00 to user user3. New balance: $100.00
+[35mDEBUG   [0m transaction_service:transaction_service.py:148 Saved financial data to file
+[32mINFO    [0m transaction_service:transaction_service.py:240 Deducted $40.00 from user user3. New balance: $60.00

@@ -1,0 +1,11 @@
+[32mINFO    [0m transaction_service:transaction_service.py:113 Loaded financial data from file
+[35mDEBUG   [0m orchestration_service:orchestration_service.py:192 ✅ Validated model: gpt-4o
+[35mDEBUG   [0m orchestration_service:orchestration_service.py:192 ✅ Validated model: claude-3-sonnet
+[32mINFO    [0m orchestration_service:orchestration_service.py:476 🔄 PROGRESS: Stage 1/3 - initial_response
+[32mINFO    [0m orchestration_service:orchestration_service.py:477 📊 PIPELINE PROGRESS: 0% complete
+[32mINFO    [0m orchestration_service:orchestration_service.py:476 🔄 PROGRESS: Stage 2/3 - peer_review_and_revision
+[32mINFO    [0m orchestration_service:orchestration_service.py:477 📊 PIPELINE PROGRESS: 33% complete
+[32mINFO    [0m orchestration_service:orchestration_service.py:476 🔄 PROGRESS: Stage 3/3 - ultra_synthesis
+[32mINFO    [0m orchestration_service:orchestration_service.py:477 📊 PIPELINE PROGRESS: 67% complete
+[32mINFO    [0m orchestration_service:orchestration_service.py:582 🎯 Using gpt-4o for ultra_synthesis stage
+[32mINFO    [0m orchestration_service:orchestration_service.py:659 Cached pipeline results for 3600 seconds

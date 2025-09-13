@@ -1,0 +1,1 @@
+[1m[31mERROR   [0m app.services.llm_adapters:llm_adapters.py:196 Anthropic API 404 for model invalid-model: Model not found or invalid endpoint

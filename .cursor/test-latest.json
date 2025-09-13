@@ -1,0 +1,578 @@
+{
+  "timestamp_utc": "20250912090858",
+  "reports": {
+    "offline": {
+      "report_html": "reports/20250912090858/report_offline.html",
+      "log": "reports/20250912090858/offline.log",
+      "summary": "==> Running mode: offline
+Mode: offline
+Report: /Users/joshuafield/Documents/Ultra/reports/20250912090858/report_offline.html
+[1m============================= test session starts ==============================[0m
+platform darwin -- Python 3.13.5, pytest-8.4.1, pluggy-1.6.0 -- /Users/joshuafield/Documents/Ultra/venv/bin/python
+cachedir: .pytest_cache
+metadata: {'Python': '3.13.5', 'Platform': 'macOS-15.6.1-arm64-arm-64bit-Mach-O', 'Packages': {'pytest': '8.4.1', 'pluggy': '1.6.0'}, 'Plugins': {'snapshot': '0.9.0', 'allure-pytest': '2.15.0', 'anyio': '4.9.0', 'sugar': '1.0.0', 'html': '4.1.1', 'Faker': '37.4.0', 'xdist': '3.8.0', 'httpx': '0.35.0', 'timeout': '2.4.0', 'metadata': '3.1.1', 'clarity': '1.0.1', 'cov': '6.2.1', 'mock': '3.14.1', 'benchmark': '5.1.0', 'base-url': '2.1.0', 'playwright': '0.7.1', 'asyncio': '1.0.0', 'aiohttp': '1.1.0', 'requests-mock': '1.12.1', 'postgresql': '7.0.2'}, 'Base URL': ''}
+benchmark: 5.1.0 (defaults: timer=time.perf_counter disable_gc=False min_rounds=5 min_time=0.000005 max_time=1.0 calibration_precision=10 warmup=False warmup_iterations=100000)
+rootdir: /Users/joshuafield/Documents/Ultra
+configfile: pytest.ini
+testpaths: tests
+plugins: snapshot-0.9.0, allure-pytest-2.15.0, anyio-4.9.0, sugar-1.0.0, html-4.1.1, Faker-37.4.0, xdist-3.8.0, httpx-0.35.0, timeout-2.4.0, metadata-3.1.1, clarity-1.0.1, cov-6.2.1, mock-3.14.1, benchmark-5.1.0, base-url-2.1.0, playwright-0.7.1, asyncio-1.0.0, aiohttp-1.1.0, requests-mock-1.12.1, postgresql-7.0.2
+timeout: 60.0s
+timeout method: thread
+timeout func_only: False
+asyncio: mode=Mode.STRICT, asyncio_default_fixture_loop_scope=function, asyncio_default_test_loop_scope=function
+[1mcollecting ... [0mcollected 513 items / 50 deselected / 463 selected
+
+tests/production/test_network_and_orchestrator.py::test_external_endpoints_reachable [33mSKIPPED[0m[33m [  0%][0m
+tests/production/test_network_and_orchestrator.py::test_orchestrator_pipeline_openai [33mSKIPPED[0m[33m [  0%][0m
+tests/test_analysis_pipeline.py::test_process_text_default_layers [32mPASSED[0m[33m [  0%][0m
+tests/test_analysis_pipeline.py::test_process_text_with_unknown_layer_skipped [32mPASSED[0m[33m [  0%][0m
+tests/test_analysis_service.py::test_get_user_analyses [32mPASSED[0m[33m            [  1%][0m
+tests/test_analysis_service.py::test_get_document_analyses_with_access [32mPASSED[0m[33m [  1%][0m
+tests/test_analysis_service.py::test_create_analysis_with_doc_check [32mPASSED[0m[33m [  1%][0m
+tests/test_analysis_service.py::test_update_analysis_status_and_permission [32mPASSED[0m[33m [  1%][0m
+tests/test_analysis_service.py::test_get_analysis_by_id_and_permission [32mPASSED[0m[33m [  1%][0m
+tests/test_analysis_service.py::test_get_pattern_stats [32mPASSED[0m[33m            [  2%][0m
+tests/test_api_failure_handler.py::test_get_statistics_initial [32mPASSED[0m[33m    [  2%][0m
+tests/test_api_failure_handler.py::test_execute_api_call_cache_hit [32mPASSED[0m[33m [  2%][0m
+tests/test_api_failure_handler.py::test_execute_api_call_provider_success [32mPASSED[0m[33m [  2%][0m
+tests/test_auth_rate_limit.py::TestAuthMiddleware::test_public_endpoints_no_auth [32mPASSED[0m[33m [  3%][0m
+tests/test_auth_rate_limit.py::TestAuthMiddleware::test_admin_endpoints_require_auth [32mPASSED[0m[33m [  3%][0m
+tests/test_auth_rate_limit.py::TestAuthMiddleware::test_debug_endpoints_require_auth [32mPASSED[0m[33m [  3%][0m
+tests/test_auth_rate_limit.py::TestAuthMiddleware::test_valid_jwt_token_allows_access [32mPASSED[0m[33m [  3%][0m
+tests/test_auth_rate_limit.py::TestAuthMiddleware::test_valid_api_key_allows_access [32mPASSED[0m[33m [  3%][0m
+tests/test_auth_rate_limit.py::TestAuthMiddleware::test_invalid_auth_rejected [32mPASSED[0m[33m [  4%][0m
+tests/test_auth_rate_limit.py::TestRateLimiting::test_rate_limit_headers_added [32mPASSED[0m[33m [  4%][0m
+tests/test_auth_rate_limit.py::TestRateLimiting::test_rate_limit_exceeded_returns_429 [32mPASSED[0m[33m [  4%][0m
+tests/test_auth_rate_limit.py::TestRateLimiting::test_per_user_rate_limiting [32mPASSED[0m[33m [  4%][0m
+tests/test_auth_rate_limit.py::TestRateLimiting::test_ip_based_rate_limiting_for_unauthenticated [32mPASSED[0m[33m [  4%][0m
+tests/test_auth_rate_limit.py::TestRateLimiting::test_rate_limiting_disabled_when_redis_unavailable [32mPASSED[0m[33m [  5%][0m
+tests/test_basic_orchestrator.py::test_orchestrate_basic_success [32mPASSED[0m[33m  [  5%][0m
+tests/test_basic_orchestrator.py::test_orchestrate_basic_empty_prompt [32mPASSED[0m[33m [  5%][0m
+tests/test_basic_orchestrator.py::test_orchestrate_basic_no_models_defaults [32mPASSED[0m[33m [  5%][0m
+tests/test_config_example.py::TestConfigurationExample::test_mode_detection [32mPASSED[0m[33m [  6%][0m
+tests/test_config_example.py::TestConfigurationExample::test_endpoint_configuration [32mPASSED[0m[33m [  6%][0m
+tests/test_config_example.py::TestConfigurationExample::test_mock_behavior [32mPASSED[0m[33m [  6%][0m
+tests/test_config_example.py::TestConfigurationExample::test_requiring_external_services [33mSKIPPED[0m[33m [  6%][0m
+tests/test_config_example.py::TestConfigurationExample::test_integration_only [33mSKIPPED[0m[33m [  6%][0m
+tests/test_config_example.py::TestConfigurationExample::test_production_endpoint [33mSKIPPED[0m[33m [  7%][0m
+tests/test_config_example.py::TestMockConfiguration::test_mock_responses_available [32mPASSED[0m[33m [  7%][0m
+tests/test_config_example.py::TestMockConfiguration::test_mock_adapter_creation [32mPASSED[0m[33m [  7%][0m
+tests/test_config_example.py::TestMockConfiguration::test_timeout_configuration [32mPASSED[0m[33m [  7%][0m
+tests/test_config_example.py::test_offline_specific [32mPASSED[0m[33m               [  7%][0m
+tests/test_configuration_system.py::TestConfigurationSystem::test_configuration_loads [32mPASSED[0m[33m [  8%][0m
+tests/test_configuration_system.py::TestConfigurationSystem::test_endpoints_configured [32mPASSED[0m[33m [  8%][0m
+tests/test_configuration_system.py::TestConfigurationSystem::test_mock_configuration [32mPASSED[0m[33m [  8%][0m
+tests/test_configuration_system.py::TestConfigurationSystem::test_timeout_configuration [32mPASSED[0m[33m [  8%][0m
+tests/test_configuration_system.py::TestConfigurationSystem::test_mock_llm_adapter [32mPASSED[0m[33m [  9%][0m
+tests/test_configuration_system.py::TestConfigurationSystem::test_skip_reasons [32mPASSED[0m[33m [  9%][0m
+tests/test_configuration_system.py::TestConfigurationSystem::test_environment_variables [32mPASSED[0m[33m [  9%][0m
+tests/test_configuration_system.py::test_pytest_working [32mPASSED[0m[33m           [  9%][0m
+tests/test_example_modes.py::TestModeExamples::test_always_runs [32mPASSED[0m[33m   [  9%][0m
+tests/test_example_modes.py::TestModeExamples::test_live_or_production [33mSKIPPED[0mod'>), current mode is TestMode.OFFLINE)[33m [ 10%][0m
+tests/test_example_modes.py::TestModeExamples::test_needs_some_services [33mSKIPPED[0m[33m [ 10%][0m
+tests/test_example_modes.py::TestModeExamples::test_check_configuration [32mPASSED[0m[33m [ 10%][0m
+tests/test_example_modes.py::TestModeExamples::test_environment_variables [32mPASSED[0m[33m [ 10%][0m
+tests/test_llm_adapters_comprehensive.py::TestBaseAdapter::test_base_adapter_requires_api_key [32mPASSED[0m[33m [ 11%][0m
+tests/test_llm_adapters_comprehensive.py::TestBaseAdapter::test_base_adapter_stores_config [32mPASSED[0m[33m [ 11%][0m
+tests/test_llm_adapters_comprehensive.py::TestBaseAdapter::test_base_adapter_generate_not_implemented [32mPASSED[0m[33m [ 11%][0m
+tests/test_llm_adapters_comprehensive.py::TestOpenAIAdapter::test_openai_adapter_initialization [32mPASSED[0m[33m [ 11%][0m
+tests/test_llm_adapters_comprehensive.py::TestOpenAIAdapter::test_openai_adapter_successful_response [32mPASSED[0m[33m [ 11%][0m
+tests/test_llm_adapters_comprehensive.py::TestOpenAIAdapter::test_openai_adapter_authentication_error [32mPASSED[0m[33m [ 12%][0m
+tests/test_llm_adapters_comprehensive.py::TestOpenAIAdapter::test_openai_adapter_model_not_found_error [32mPASSED[0m[33m [ 12%][0m
+tests/test_llm_adapters_comprehensive.py::TestOpenAIAdapter::test_openai_adapter_timeout_error [32mPASSED[0m[33m [ 12%][0m
+tests/test_llm_adapters_comprehensive.py::TestAnthropicAdapter::test_anthropic_adapter_initialization [32mPASSED[0m[33m [ 12%][0m
+tests/test_llm_adapters_comprehensive.py::TestAnthropicAdapter::test_anthropic_adapter_successful_response [32mPASSED[0m[33m [ 12%][0m
+tests/test_llm_adapters_comprehensive.py::TestAnthropicAdapter::test_anthropic_adapter_authentication_error [32mPASSED[0m[33m [ 13%][0m
+tests/test_llm_adapters_comprehensive.py::TestAnthropicAdapter::test_anthropic_adapter_model_not_found_error [32mPASSED[0m[33m [ 13%][0m
+tests/test_llm_adapters_comprehensive.py::TestGeminiAdapter::test_gemini_adapter_initialization [32mPASSED[0m[33m [ 13%][0m
+tests/test_llm_adapters_comprehensive.py::TestGeminiAdapter::test_gemini_adapter_successful_response [32mPASSED[0m[33m [ 13%][0m
+tests/test_llm_adapters_comprehensive.py::TestGeminiAdapter::test_gemini_adapter_authentication_error [32mPASSED[0m[33m [ 14%][0m
+tests/test_llm_adapters_comprehensive.py::TestGeminiAdapter::test_gemini_adapter_bad_request_error [32mPASSED[0m[33m [ 14%][0m
+tests/test_llm_adapters_comprehensive.py::TestHuggingFaceAdapter::test_huggingface_adapter_initialization [32mPASSED[0m[33m [ 14%][0m
+tests/test_llm_adapters_comprehensive.py::TestHuggingFaceAdapter::test_huggingface_adapter_successful_response [32mPASSED[0m[33m [ 14%][0m
+tests/test_llm_adapters_comprehensive.py::TestHuggingFaceAdapter::test_huggingface_adapter_model_loading_error [32mPASSED[0m[33m [ 14%][0m
+tests/test_llm_adapters_comprehensive.py::TestHuggingFaceAdapter::test_huggingface_adapter_chat_model_formatting [32mPASSED[0m[33m [ 15%][0m
+tests/test_model_registry.py::test_register_and_create_instance [32mPASSED[0m[33m   [ 15%][0m
+tests/test_model_registry.py::test_list_models_and_unregister [32mPASSED[0m[33m     [ 15%][0m
+tests/test_model_registry.py::test_update_config_and_record_usage [32mPASSED[0m[33m [ 15%][0m
+tests/test_model_registry.py::test_errors_on_invalid_operations [32mPASSED[0m[33m   [ 15%][0m
+tests/test_orchestration_service.py::test_run_pipeline_completes_all_stages [32mPASSED[0m[33m [ 16%][0m
+tests/test_orchestration_service.py::test_run_pipeline_stops_on_stage_error [32mPASSED[0m[33m [ 16%][0m
+tests/test_orchestration_synthesis.py::TestUltraSynthesisOrchestrator::test_initial_response_stage_with_single_model [32mPASSED[0m[33m [ 16%][0m
+tests/test_orchestration_synthesis.py::TestUltraSynthesisOrchestrator::test_initial_response_stage_with_multiple_models [32mPASSED[0m[33m [ 16%][0m
+tests/test_orchestration_synthesis.py::TestUltraSynthesisOrchestrator::test_meta_analysis_stage_enhances_responses [32mPASSED[0m[33m [ 17%][0m
+tests/test_orchestration_synthesis.py::TestUltraSynthesisOrchestrator::test_ultra_synthesis_stage_creates_comprehensive_synthesis [32mPASSED[0m[33m [ 17%][0m
+tests/test_prompt_service.py::test_placeholder_prompt_service [32mPASSED[0m[33m     [ 17%][0m
+tests/test_prompt_service.py::test_default_templates_registered [32mPASSED[0m[33m   [ 17%][0m
+tests/test_prompt_service.py::test_register_and_get_template [32mPASSED[0m[33m      [ 17%][0m
+tests/test_prompt_service.py::test_register_duplicate_raises [32mPASSED[0m[33m      [ 18%][0m
+tests/test_prompt_service.py::test_update_template [32mPASSED[0m[33m                [ 18%][0m
+tests/test_prompt_service.py::test_format_output_plain [32mPASSED[0m[33m            [ 18%][0m
+tests/test_prompt_service.py::test_format_output_html [32mPASSED[0m[33m             [ 18%][0m
+tests/test_prompt_service.py::test_format_output_json [32mPASSED[0m[33m             [ 19%][0m
+tests/test_prompt_service.py::test_render_template_success [32mPASSED[0m[33m        [ 19%][0m
+tests/test_prompt_service.py::test_render_template_missing_var [32mPASSED[0m[33m    [ 19%][0m
+tests/test_prompt_service.py::test_render_template_invalid_var [32mPASSED[0m[33m    [ 19%][0m
+tests/test_prompt_templates.py::test_register_and_get_template [32mPASSED[0m[33m    [ 19%][0m
+tests/test_prompt_templates.py::test_list_templates_empty [32mPASSED[0m[33m         [ 20%][0m
+tests/test_prompt_templates.py::test_render_template_success [32mPASSED[0m[33m      [ 20%][0m
+tests/test_prompt_templates.py::test_render_template_missing_strict [32mPASSED[0m[33m [ 20%][0m
+tests/test_prompt_templates.py::test_render_template_missing_not_strict [32mPASSED[0m[33m [ 20%][0m
+tests/test_prompt_templates.py::test_load_templates_from_file [32mPASSED[0m[33m     [ 20%][0m
+tests/test_quality_evaluation.py::test_evaluate_response_defaults [32mPASSED[0m[33m [ 21%][0m
+tests/test_quality_evaluation.py::test_compare_responses_returns_correct_keys [32mPASSED[0m[33m [ 21%][0m
+tests/test_quality_evaluation.py::test_generate_quality_report_selects_best [32mPASSED[0m[33m [ 21%][0m
+tests/test_rate_limit_service.py::test_placeholder_rate_limit_service [32mPASSED[0m[33m [ 21%][0m
+tests/test_rate_limit_service_logic.py::test_get_window_seconds[second-1] [32mPASSED[0m[33m [ 22%][0m
+tests/test_rate_limit_service_logic.py::test_get_window_seconds[minute-60] [32mPASSED[0m[33m [ 22%][0m
+tests/test_rate_limit_service_logic.py::test_get_window_seconds[hour-3600] [32mPASSED[0m[33m [ 22%][0m
+tests/test_rate_limit_service_logic.py::test_get_window_seconds[day-86400] [32mPASSED[0m[33m [ 22%][0m
+tests/test_rate_limit_service_logic.py::test_tier_limits_keys [32mPASSED[0m[33m     [ 22%][0m
+tests/test_rate_limit_service_logic.py::test_default_tier_is_free [32mPASSED[0m[33m [ 23%][0m
+tests/test_rate_limiter.py::test_register_endpoint_and_stats [32mPASSED[0m[33m      [ 23%][0m
+tests/test_rate_limiter.py::test_acquire_unregistered_raises [32mPASSED[0m[33m      [ 23%][0m
+tests/test_rate_limiter.py::test_acquire_increments_current_requests [32mPASSED[0m[33m [ 23%][0m
+tests/test_rate_limiter.py::test_release_unregistered_does_nothing_and_stats_empty [32mPASSED[0m[33m [ 23%][0m
+tests/test_rate_limiter.py::test_release_adjusts_backoff [32mPASSED[0m[33m          [ 24%][0m
+tests/test_resilient_llm_adapter.py::TestCircuitBreaker::test_circuit_breaker_initialization [32mPASSED[0m[33m [ 24%][0m
+tests/test_resilient_llm_adapter.py::TestCircuitBreaker::test_circuit_breaker_opens_after_failures [32mPASSED[0m[33m [ 24%][0m
+tests/test_resilient_llm_adapter.py::TestCircuitBreaker::test_circuit_breaker_half_open_after_timeout [32mPASSED[0m[33m [ 24%][0m
+tests/test_resilient_llm_adapter.py::TestCircuitBreaker::test_async_circuit_breaker [32mPASSED[0m[33m [ 25%][0m
+tests/test_resilient_llm_adapter.py::TestResilientLLMAdapter::test_successful_generation [32mPASSED[0m[33m [ 25%][0m
+tests/test_resilient_llm_adapter.py::TestResilientLLMAdapter::test_retry_on_timeout [32mPASSED[0m[33m [ 25%][0m
+tests/test_resilient_llm_adapter.py::TestResilientLLMAdapter::test_no_retry_on_client_error [32mPASSED[0m[33m [ 25%][0m
+tests/test_resilient_llm_adapter.py::TestResilientLLMAdapter::test_circuit_breaker_integration [32mPASSED[0m[33m [ 25%][0m
+tests/test_resilient_llm_adapter.py::TestResilientLLMAdapter::test_exponential_backoff_with_jitter [32mPASSED[0m[33m [ 26%][0m
+tests/test_resilient_llm_adapter.py::TestResilientLLMAdapter::test_provider_specific_timeouts [32mPASSED[0m[33m [ 26%][0m
+tests/test_resilient_llm_adapter.py::TestResilientLLMAdapter::test_metrics_tracking [32mPASSED[0m[33m [ 26%][0m
+tests/test_resilient_llm_adapter.py::TestResilientLLMAdapter::test_cleanup [32mPASSED[0m[33m [ 26%][0m
+tests/test_resilient_llm_adapter.py::TestProviderConfigurations::test_openai_config [32mPASSED[0m[33m [ 26%][0m
+tests/test_resilient_llm_adapter.py::TestProviderConfigurations::test_anthropic_config [32mPASSED[0m[33m [ 27%][0m
+tests/test_resilient_llm_adapter.py::TestProviderConfigurations::test_google_config [32mPASSED[0m[33m [ 27%][0m
+tests/test_service_instantiation.py::test_instantiate_service_class[analysis_pipeline-AnalysisPipeline-AnalysisPipeline] [32mPASSED[0m[33m [ 27%][0m
+tests/test_service_instantiation.py::test_instantiate_service_class[analysis_pipeline-AnalysisResult-AnalysisResult] [32mPASSED[0m[33m [ 27%][0m
+tests/test_service_instantiation.py::test_instantiate_service_class[analysis_pipeline-ModelRegistry-ModelRegistry] [32mPASSED[0m[33m [ 28%][0m
+tests/test_service_instantiation.py::test_instantiate_service_class[analysis_service-AnalysisService-AnalysisService] [32mPASSED[0m[33m [ 28%][0m
+tests/test_service_instantiation.py::test_instantiate_service_class[analysis_service-DocumentService-DocumentService] [32mPASSED[0m[33m [ 28%][0m
+tests/test_service_instantiation.py::test_instantiate_service_class[api_failure_handler-APICallContext-APICallContext] [32mPASSED[0m[33m [ 28%][0m
+tests/test_service_instantiation.py::test_instantiate_service_class[api_failure_handler-APIFailureHandler-APIFailureHandler] [32mPASSED[0m[33m [ 28%][0m
+tests/test_service_instantiation.py::test_instantiate_service_class[api_failure_handler-APIProvider-APIProvider] [33mSKIPPED[0m[33m [ 29%][0m
+tests/test_service_instantiation.py::test_instantiate_service_class[auth_service-AuthService-AuthService] [32mPASSED[0m[33m [ 29%][0m
+tests/test_service_instantiation.py::test_instantiate_service_class[auth_service_new-AuthService-AuthService] [32mPASSED[0m[33m [ 29%][0m
+tests/test_service_instantiation.py::test_instantiate_service_class[base_llm_adapter-EnhancedBaseAdapter-EnhancedBaseAdapter] [33mSKIPPED[0m[33m [ 29%][0m
+tests/test_service_instantiation.py::test_instantiate_service_class[cache_service-CacheService-CacheService] [32mPASSED[0m[33m [ 30%][0m
+tests/test_service_instantiation.py::test_instantiate_service_class[db_optimization_service-DatabaseOptimizationService-DatabaseOptimizationService] [32mPASSED[0m[33m [ 30%][0m
+tests/test_service_instantiation.py::test_instantiate_service_class[document_processor-UltraDocumentsOptimized-UltraDocumentsOptimized] [32mPASSED[0m[33m [ 30%][0m
+tests/test_service_instantiation.py::test_instantiate_service_class[document_service-DocumentService-DocumentService] [32mPASSED[0m[33m [ 30%][0m
+tests/test_service_instantiation.py::test_instantiate_service_class[enhanced_llm_adapters-EnhancedAnthropicAdapter-EnhancedAnthropicAdapter] [32mPASSED[0m[33m [ 30%][0m
+tests/test_service_instantiation.py::test_instantiate_service_class[enhanced_llm_adapters-EnhancedBaseAdapter-EnhancedBaseAdapter] [33mSKIPPED[0m[33m [ 31%][0m
+tests/test_service_instantiation.py::test_instantiate_service_class[enhanced_llm_adapters-EnhancedGeminiAdapter-EnhancedGeminiAdapter] [32mPASSED[0m[33m [ 31%][0m
+tests/test_service_instantiation.py::test_instantiate_service_class[enhanced_llm_adapters-EnhancedHuggingFaceAdapter-EnhancedHuggingFaceAdapter] [32mPASSED[0m[33m [ 31%][0m
+tests/test_service_instantiation.py::test_instantiate_service_class[enhanced_llm_adapters-EnhancedOpenAIAdapter-EnhancedOpenAIAdapter] [32mPASSED[0m[33m [ 31%][0m
+tests/test_service_instantiation.py::test_instantiate_service_class[health_service-HealthService-HealthService] [32mPASSED[0m[33m [ 31%][0m
+tests/test_service_instantiation.py::test_instantiate_service_class[interfaces-BillingServiceInterface-BillingServiceInterface] [33mSKIPPED[0m[33m [ 32%][0m
+tests/test_service_instantiation.py::test_instantiate_service_class[interfaces-BudgetServiceInterface-BudgetServiceInterface] [33mSKIPPED[0m[33m [ 32%][0m
+tests/test_service_instantiation.py::test_instantiate_service_class[interfaces-PricingServiceInterface-PricingServiceInterface] [33mSKIPPED[0m[33m [ 32%][0m
+tests/test_service_instantiation.py::test_instantiate_service_class[llm_adapter_factory-AnthropicAdapter-AnthropicAdapter] [32mPASSED[0m[33m [ 32%][0m
+tests/test_service_instantiation.py::test_instantiate_service_class[llm_adapter_factory-EnhancedAnthropicAdapter-EnhancedAnthropicAdapter] [32mPASSED[0m[33m [ 33%][0m
+tests/test_service_instantiation.py::test_instantiate_service_class[llm_adapter_factory-EnhancedGeminiAdapter-EnhancedGeminiAdapter] [32mPASSED[0m[33m [ 33%][0m
+tests/test_service_instantiation.py::test_instantiate_service_class[llm_adapter_factory-EnhancedHuggingFaceAdapter-EnhancedHuggingFaceAdapter] [32mPASSED[0m[33m [ 33%][0m
+tests/test_service_instantiation.py::test_instantiate_service_class[llm_adapter_factory-EnhancedOpenAIAdapter-EnhancedOpenAIAdapter] [32mPASSED[0m[33m [ 33%][0m
+tests/test_service_instantiation.py::test_instantiate_service_class[llm_adapter_factory-GeminiAdapter-GeminiAdapter] [32mPASSED[0m[33m [ 33%][0m
+tests/test_service_instantiation.py::test_instantiate_service_class[llm_adapter_factory-HuggingFaceAdapter-HuggingFaceAdapter] [32mPASSED[0m[33m [ 34%][0m
+tests/test_service_instantiation.py::test_instantiate_service_class[llm_adapter_factory-LLMAdapterFactory-LLMAdapterFactory] [32mPASSED[0m[33m [ 34%][0m
+tests/test_service_instantiation.py::test_instantiate_service_class[llm_adapter_factory-OpenAIAdapter-OpenAIAdapter] [32mPASSED[0m[33m [ 34%][0m
+tests/test_service_instantiation.py::test_instantiate_service_class[llm_adapters-AnthropicAdapter-AnthropicAdapter] [32mPASSED[0m[33m [ 34%][0m
+tests/test_service_instantiation.py::test_instantiate_service_class[llm_adapters-BaseAdapter-BaseAdapter] [32mPASSED[0m[33m [ 34%][0m
+tests/test_service_instantiation.py::test_instantiate_service_class[llm_adapters-GeminiAdapter-GeminiAdapter] [32mPASSED[0m[33m [ 35%][0m
+tests/test_service_instantiation.py::test_instantiate_service_class[llm_adapters-HuggingFaceAdapter-HuggingFaceAdapter] [32mPASSED[0m[33m [ 35%][0m
+tests/test_service_instantiation.py::test_instantiate_service_class[llm_adapters-OpenAIAdapter-OpenAIAdapter] [32mPASSED[0m[33m [ 35%][0m
+tests/test_service_instantiation.py::test_instantiate_service_class[llm_adapters-correlation_context-correlation_context] [32mPASSED[0m[33m [ 35%][0m
+tests/test_service_instantiation.py::test_instantiate_service_class[llm_config_service-LLMConfigService-LLMConfigService] [32mPASSED[0m[33m [ 36%][0m
+tests/test_service_instantiation.py::test_instantiate_service_class[manage_parameters-Colors-Colors] [32mPASSED[0m[33m [ 36%][0m
+tests/test_service_instantiation.py::test_instantiate_service_class[model_availability-AnthropicAdapter-AnthropicAdapter] [32mPASSED[0m[33m [ 36%][0m
+tests/test_service_instantiation.py::test_instantiate_service_class[model_availability-AvailabilityStatus-AvailabilityStatus] [33mSKIPPED[0m[33m [ 36%][0m
+tests/test_service_instantiation.py::test_instantiate_service_class[model_availability-GeminiAdapter-GeminiAdapter] [32mPASSED[0m[33m [ 36%][0m
+tests/test_service_instantiation.py::test_instantiate_service_class[model_availability-HuggingFaceAdapter-HuggingFaceAdapter] [32mPASSED[0m[33m [ 37%][0m
+tests/test_service_instantiation.py::test_instantiate_service_class[model_availability-ModelAvailability-ModelAvailability] [32mPASSED[0m[33m [ 37%][0m
+tests/test_service_instantiation.py::test_instantiate_service_class[model_availability-ModelAvailabilityChecker-ModelAvailabilityChecker] [32mPASSED[0m[33m [ 37%][0m
+tests/test_service_instantiation.py::test_instantiate_service_class[model_availability-OpenAIAdapter-OpenAIAdapter] [32mPASSED[0m[33m [ 37%][0m
+tests/test_service_instantiation.py::test_instantiate_service_class[model_health_cache-ModelHealthCache-ModelHealthCache] [32mPASSED[0m[33m [ 38%][0m
+tests/test_service_instantiation.py::test_instantiate_service_class[model_registry-ModelConfig-ModelConfig] [32mPASSED[0m[33m [ 38%][0m
+tests/test_service_instantiation.py::test_instantiate_service_class[model_registry-ModelInstance-ModelInstance] [32mPASSED[0m[33m [ 38%][0m
+tests/test_service_instantiation.py::test_instantiate_service_class[model_registry-ModelRegistry-ModelRegistry] [32mPASSED[0m[33m [ 38%][0m
+tests/test_service_instantiation.py::test_instantiate_service_class[model_selection-ModelPerformanceMetrics-ModelPerformanceMetrics] [32mPASSED[0m[33m [ 38%][0m
+tests/test_service_instantiation.py::test_instantiate_service_class[model_selection-SmartModelSelector-SmartModelSelector] [32mPASSED[0m[33m [ 39%][0m
+tests/test_service_instantiation.py::test_instantiate_service_class[model_selection_service-AvailabilityStatus-AvailabilityStatus] [33mSKIPPED[0m[33m [ 39%][0m
+tests/test_service_instantiation.py::test_instantiate_service_class[model_selection_service-ModelAvailabilityChecker-ModelAvailabilityChecker] [32mPASSED[0m[33m [ 39%][0m
+tests/test_service_instantiation.py::test_instantiate_service_class[model_selection_service-PricingCalculator-PricingCalculator] [32mPASSED[0m[33m [ 39%][0m
+tests/test_service_instantiation.py::test_instantiate_service_class[model_selection_service-SmartModelSelectionService-SmartModelSelectionService] [32mPASSED[0m[33m [ 39%][0m
+tests/test_service_instantiation.py::test_instantiate_service_class[model_selection_service-SmartModelSelector-SmartModelSelector] [32mPASSED[0m[33m [ 40%][0m
+tests/test_service_instantiation.py::test_instantiate_service_class[oauth_service-OAuthService-OAuthService] [32mPASSED[0m[33m [ 40%][0m
+tests/test_service_instantiation.py::test_instantiate_service_class[orchestration_retry_handler-OrchestrationRetryHandler-OrchestrationRetryHandler] [32mPASSED[0m[33m [ 40%][0m
+tests/test_service_instantiation.py::test_instantiate_service_class[orchestration_service-AnthropicAdapter-AnthropicAdapter] [32mPASSED[0m[33m [ 40%][0m
+tests/test_service_instantiation.py::test_instantiate_service_class[orchestration_service-GeminiAdapter-GeminiAdapter] [32mPASSED[0m[33m [ 41%][0m
+tests/test_service_instantiation.py::test_instantiate_service_class[orchestration_service-HuggingFaceAdapter-HuggingFaceAdapter] [32mPASSED[0m[33m [ 41%][0m
+tests/test_service_instantiation.py::test_instantiate_service_class[orchestration_service-OpenAIAdapter-OpenAIAdapter] [32mPASSED[0m[33m [ 41%][0m
+tests/test_service_instantiation.py::test_instantiate_service_class[orchestration_service-OrchestrationRetryHandler-OrchestrationRetryHandler] [32mPASSED[0m[33m [ 41%][0m
+tests/test_service_instantiation.py::test_instantiate_service_class[orchestration_service-OrchestrationService-OrchestrationService] [32mPASSED[0m[33m [ 41%][0m
+tests/test_service_instantiation.py::test_instantiate_service_class[orchestration_service-PipelineResult-PipelineResult] [32mPASSED[0m[33m [ 42%][0m
+tests/test_service_instantiation.py::test_instantiate_service_class[orchestration_service-PipelineStage-PipelineStage] [32mPASSED[0m[33m [ 42%][0m
+tests/test_service_instantiation.py::test_instantiate_service_class[orchestration_service-QualityEvaluationService-QualityEvaluationService] [32mPASSED[0m[33m [ 42%][0m
+tests/test_service_instantiation.py::test_instantiate_service_class[orchestration_service-QueryType-QueryType] [33mSKIPPED[0m[33m [ 42%][0m
+tests/test_service_instantiation.py::test_instantiate_service_class[orchestration_service-RateLimiter-RateLimiter] [32mPASSED[0m[33m [ 42%][0m
+tests/test_service_instantiation.py::test_instantiate_service_class[orchestration_service-ResponseQuality-ResponseQuality] [32mPASSED[0m[33m [ 43%][0m
+tests/test_service_instantiation.py::test_instantiate_service_class[orchestration_service-SmartModelSelector-SmartModelSelector] [32mPASSED[0m[33m [ 43%][0m
+tests/test_service_instantiation.py::test_instantiate_service_class[orchestration_service-StructuredSynthesisOutput-StructuredSynthesisOutput] [32mPASSED[0m[33m [ 43%][0m
+tests/test_service_instantiation.py::test_instantiate_service_class[orchestration_service-SynthesisPromptManager-SynthesisPromptManager] [32mPASSED[0m[33m [ 43%][0m
+tests/test_service_instantiation.py::test_instantiate_service_class[orchestration_service-TokenManagementService-TokenManagementService] [32mPASSED[0m[33m [ 44%][0m
+tests/test_service_instantiation.py::test_instantiate_service_class[orchestration_service-TransactionService-TransactionService] [32mPASSED[0m[33m [ 44%][0m
+tests/test_service_instantiation.py::test_instantiate_service_class[output_formatter-OutputFormatter-OutputFormatter] [32mPASSED[0m[33m [ 44%][0m
+tests/test_service_instantiation.py::test_instantiate_service_class[parameter_editor-Colors-Colors] [32mPASSED[0m[33m [ 44%][0m
+tests/test_service_instantiation.py::test_instantiate_service_class[parameter_glossary_generator-ParameterExtractor-ParameterExtractor] [32mPASSED[0m[33m [ 44%][0m
+tests/test_service_instantiation.py::test_instantiate_service_class[parameter_glossary_generator-ParameterInfo-ParameterInfo] [32mPASSED[0m[33m [ 45%][0m
+tests/test_service_instantiation.py::test_instantiate_service_class[pricing_service-PricingCalculator-PricingCalculator] [32mPASSED[0m[33m [ 45%][0m
+tests/test_service_instantiation.py::test_instantiate_service_class[pricing_simulator-PricingSimulator-PricingSimulator] [32mPASSED[0m[33m [ 45%][0m
+tests/test_service_instantiation.py::test_instantiate_service_class[prompt_service-ModelRegistry-ModelRegistry] [32mPASSED[0m[33m [ 45%][0m
+tests/test_service_instantiation.py::test_instantiate_service_class[prompt_service-OrchestrationService-OrchestrationService] [32mPASSED[0m[33m [ 46%][0m
+tests/test_service_instantiation.py::test_instantiate_service_class[prompt_service-PromptRequest-PromptRequest] [32mPASSED[0m[33m [ 46%][0m
+tests/test_service_instantiation.py::test_instantiate_service_class[prompt_service-PromptService-PromptService] [32mPASSED[0m[33m [ 46%][0m
+tests/test_service_instantiation.py::test_instantiate_service_class[prompt_service-Template-Template] [32mPASSED[0m[33m [ 46%][0m
+tests/test_service_instantiation.py::test_instantiate_service_class[prompt_templates-PromptTemplate-PromptTemplate] [32mPASSED[0m[33m [ 46%][0m
+tests/test_service_instantiation.py::test_instantiate_service_class[prompt_templates-PromptTemplateManager-PromptTemplateManager] [32mPASSED[0m[33m [ 47%][0m
+tests/test_service_instantiation.py::test_instantiate_service_class[provider_health_manager-ProviderHealth-ProviderHealth] [32mPASSED[0m[33m [ 47%][0m
+tests/test_service_instantiation.py::test_instantiate_service_class[provider_health_manager-ProviderHealthManager-ProviderHealthManager] [32mPASSED[0m[33m [ 47%][0m
+tests/test_service_instantiation.py::test_instantiate_service_class[quality_evaluation-QualityDimension-QualityDimension] [33mSKIPPED[0m[33m [ 47%][0m
+tests/test_service_instantiation.py::test_instantiate_service_class[quality_evaluation-QualityEvaluationService-QualityEvaluationService] [32mPASSED[0m[33m [ 47%][0m
+tests/test_service_instantiation.py::test_instantiate_service_class[quality_evaluation-QualityScore-QualityScore] [32mPASSED[0m[33m [ 48%][0m
+tests/test_service_instantiation.py::test_instantiate_service_class[quality_evaluation-ResponseQuality-ResponseQuality] [32mPASSED[0m[33m [ 48%][0m
+tests/test_service_instantiation.py::test_instantiate_service_class[rate_limit_service-RateLimitCategory-RateLimitCategory] [33mSKIPPED[0m[33m [ 48%][0m
+tests/test_service_instantiation.py::test_instantiate_service_class[rate_limit_service-RateLimitInterval-RateLimitInterval] [33mSKIPPED[0m[33m [ 48%][0m
+tests/test_service_instantiation.py::test_instantiate_service_class[rate_limit_service-RateLimitResult-RateLimitResult] [32mPASSED[0m[33m [ 49%][0m
+tests/test_service_instantiation.py::test_instantiate_service_class[rate_limit_service-RateLimitService-RateLimitService] [32mPASSED[0m[33m [ 49%][0m
+tests/test_service_instantiation.py::test_instantiate_service_class[rate_limit_service-RateLimitTier-RateLimitTier] [32mPASSED[0m[33m [ 49%][0m
+tests/test_service_instantiation.py::test_instantiate_service_class[rate_limiter-RateLimit-RateLimit] [32mPASSED[0m[33m [ 49%][0m
+tests/test_service_instantiation.py::test_instantiate_service_class[rate_limiter-RateLimiter-RateLimiter] [32mPASSED[0m[33m [ 49%][0m
+tests/test_service_instantiation.py::test_instantiate_service_class[resilient_llm_adapter-BaseAdapter-BaseAdapter] [32mPASSED[0m[33m [ 50%][0m
+tests/test_service_instantiation.py::test_instantiate_service_class[resilient_llm_adapter-CircuitBreaker-CircuitBreaker] [32mPASSED[0m[33m [ 50%][0m
+tests/test_service_instantiation.py::test_instantiate_service_class[resilient_llm_adapter-CircuitBreakerConfig-CircuitBreakerConfig] [32mPASSED[0m[33m [ 50%][0m
+tests/test_service_instantiation.py::test_instantiate_service_class[resilient_llm_adapter-CircuitState-CircuitState] [33mSKIPPED[0m[33m [ 50%][0m
+tests/test_service_instantiation.py::test_instantiate_service_class[resilient_llm_adapter-ProviderConfig-ProviderConfig] [32mPASSED[0m[33m [ 50%][0m
+tests/test_service_instantiation.py::test_instantiate_service_class[resilient_llm_adapter-ResilientLLMAdapter-ResilientLLMAdapter] [32mPASSED[0m[33m [ 51%][0m
+tests/test_service_instantiation.py::test_instantiate_service_class[resilient_llm_adapter-RetryConfig-RetryConfig] [32mPASSED[0m[33m [ 51%][0m
+tests/test_service_instantiation.py::test_instantiate_service_class[streaming_orchestration_service-OrchestrationService-OrchestrationService] [32mPASSED[0m[33m [ 51%][0m
+tests/test_service_instantiation.py::test_instantiate_service_class[streaming_orchestration_service-StreamingOrchestrationService-StreamingOrchestrationService] [33mSKIPPED[0m[33m [ 51%][0m
+tests/test_service_instantiation.py::test_instantiate_service_class[synthesis_output-ConfidenceLevel-ConfidenceLevel] [33mSKIPPED[0m[33m [ 52%][0m
+tests/test_service_instantiation.py::test_instantiate_service_class[synthesis_output-StructuredSynthesisOutput-StructuredSynthesisOutput] [32mPASSED[0m[33m [ 52%][0m
+tests/test_service_instantiation.py::test_instantiate_service_class[synthesis_output-SynthesisMetadata-SynthesisMetadata] [32mPASSED[0m[33m [ 52%][0m
+tests/test_service_instantiation.py::test_instantiate_service_class[synthesis_prompts-QueryType-QueryType] [33mSKIPPED[0m[33m [ 52%][0m
+tests/test_service_instantiation.py::test_instantiate_service_class[synthesis_prompts-SynthesisPromptManager-SynthesisPromptManager] [32mPASSED[0m[33m [ 52%][0m
+tests/test_service_instantiation.py::test_instantiate_service_class[telemetry_llm_wrapper-TelemetryLLMWrapper-TelemetryLLMWrapper] [32mPASSED[0m[33m [ 53%][0m
+tests/test_service_instantiation.py::test_instantiate_service_class[telemetry_service-TelemetryService-TelemetryService] [32mPASSED[0m[33m [ 53%][0m
+tests/test_service_instantiation.py::test_instantiate_service_class[token_management_service-TokenCost-TokenCost] [32mPASSED[0m[33m [ 53%][0m
+tests/test_service_instantiation.py::test_instantiate_service_class[token_management_service-TokenManagementService-TokenManagementService] [32mPASSED[0m[33m [ 53%][0m
+tests/test_service_instantiation.py::test_instantiate_service_class[tracked_llm_adapters-AnthropicAdapter-AnthropicAdapter] [32mPASSED[0m[33m [ 53%][0m
+tests/test_service_instantiation.py::test_instantiate_service_class[tracked_llm_adapters-GeminiAdapter-GeminiAdapter] [32mPASSED[0m[33m [ 54%][0m
+tests/test_service_instantiation.py::test_instantiate_service_class[tracked_llm_adapters-HuggingFaceAdapter-HuggingFaceAdapter] [32mPASSED[0m[33m [ 54%][0m
+tests/test_service_instantiation.py::test_instantiate_service_class[tracked_llm_adapters-OpenAIAdapter-OpenAIAdapter] [32mPASSED[0m[33m [ 54%][0m
+tests/test_service_instantiation.py::test_instantiate_service_class[tracked_llm_adapters-TrackedAnthropicAdapter-TrackedAnthropicAdapter] [32mPASSED[0m[33m [ 54%][0m
+tests/test_service_instantiation.py::test_instantiate_service_class[tracked_llm_adapters-TrackedGeminiAdapter-TrackedGeminiAdapter] [32mPASSED[0m[33m [ 55%][0m
+tests/test_service_instantiation.py::test_instantiate_service_class[tracked_llm_adapters-TrackedHTTPClient-TrackedHTTPClient] [33mSKIPPED[0m[33m [ 55%][0m
+tests/test_service_instantiation.py::test_instantiate_service_class[tracked_llm_adapters-TrackedHuggingFaceAdapter-TrackedHuggingFaceAdapter] [32mPASSED[0m[33m [ 55%][0m
+tests/test_service_instantiation.py::test_instantiate_service_class[tracked_llm_adapters-TrackedLLMAdapter-TrackedLLMAdapter] [32mPASSED[0m[33m [ 55%][0m
+tests/test_service_instantiation.py::test_instantiate_service_class[tracked_llm_adapters-TrackedOpenAIAdapter-TrackedOpenAIAdapter] [32mPASSED[0m[33m [ 55%][0m
+tests/test_service_instantiation.py::test_instantiate_service_class[tracked_orchestration_service-OrchestrationService-OrchestrationService] [32mPASSED[0m[33m [ 56%][0m
+tests/test_service_instantiation.py::test_instantiate_service_class[tracked_orchestration_service-TrackedAnthropicAdapter-TrackedAnthropicAdapter] [32mPASSED[0m[33m [ 56%][0m
+tests/test_service_instantiation.py::test_instantiate_service_class[tracked_orchestration_service-TrackedGeminiAdapter-TrackedGeminiAdapter] [32mPASSED[0m[33m [ 56%][0m
+tests/test_service_instantiation.py::test_instantiate_service_class[tracked_orchestration_service-TrackedHuggingFaceAdapter-TrackedHuggingFaceAdapter] [32mPASSED[0m[33m [ 56%][0m
+tests/test_service_instantiation.py::test_instantiate_service_class[tracked_orchestration_service-TrackedOpenAIAdapter-TrackedOpenAIAdapter] [32mPASSED[0m[33m [ 57%][0m
+tests/test_service_instantiation.py::test_instantiate_service_class[tracked_orchestration_service-TrackedOrchestrationService-TrackedOrchestrationService] [33mSKIPPED[0m[33m [ 57%][0m
+tests/test_service_instantiation.py::test_instantiate_service_class[transaction_service-Transaction-Transaction] [32mPASSED[0m[33m [ 57%][0m
+tests/test_service_instantiation.py::test_instantiate_service_class[transaction_service-TransactionService-TransactionService] [32mPASSED[0m[33m [ 57%][0m
+tests/test_token_management_service.py::test_track_usage_unknown_model_raises [32mPASSED[0m[33m [ 57%][0m
+tests/test_token_management_service.py::test_track_usage_and_get_user_usage_and_total_cost [32mPASSED[0m[33m [ 58%][0m
+tests/test_token_management_service.py::test_update_cost_rates_affects_future_costs [32mPASSED[0m[33m [ 58%][0m
+tests/test_transaction_service.py::test_get_balance_default_zero [32mPASSED[0m[33m  [ 58%][0m
+tests/test_transaction_service.py::test_add_funds_positive_amount [32mPASSED[0m[33m [ 58%][0m
+tests/test_transaction_service.py::test_add_funds_negative_amount_raises [32mPASSED[0m[33m [ 58%][0m
+tests/test_transaction_service.py::test_deduct_cost_insufficient_returns_none [32mPASSED[0m[33m [ 59%][0m
+tests/test_transaction_service.py::test_deduct_cost_negative_amount_raises [32mPASSED[0m[33m [ 59%][0m
+tests/test_transaction_service.py::test_deduct_cost_successful_after_credit [32mPASSED[0m[33m [ 59%][0m
+tests/unit/orchestrator/test_orchestrator_features.py::test_cost_estimate_present [32mPASSED[0m[33m [ 59%][0m
+tests/unit/orchestrator/test_orchestrator_features.py::test_plain_text_format [32mPASSED[0m[33m [ 60%][0m
+tests/unit/orchestrator/test_orchestrator_features.py::test_encryption_support [32mPASSED[0m[33m [ 60%][0m
+tests/unit/orchestrator/test_orchestrator_features.py::test_options_passed_to_stages [32mPASSED[0m[33m [ 60%][0m
+tests/unit/test_auth_orchestrator_protection.py::test_orchestrator_requires_auth [32mPASSED[0m[33m [ 60%][0m
+tests/unit/test_auth_service.py::test_create_and_verify_access_token [32mPASSED[0m[33m [ 60%][0m
+tests/unit/test_auth_service.py::test_create_and_verify_refresh_token [32mPASSED[0m[33m [ 61%][0m
+tests/unit/test_auth_service.py::test_verify_invalid_tokens [32mPASSED[0m[33m       [ 61%][0m
+tests/unit/test_billing_service.py::TestBillingService::test_create_invoice [33mSKIPPED[0m[33m [ 61%][0m
+tests/unit/test_billing_service.py::TestBillingService::test_send_invoice_email [33mSKIPPED[0m[33m [ 61%][0m
+tests/unit/test_billing_service.py::TestBillingService::test_process_payment_success [33mSKIPPED[0m[33m [ 61%][0m
+tests/unit/test_billing_service.py::TestBillingService::test_process_payment_failure [33mSKIPPED[0m[33m [ 62%][0m
+tests/unit/test_billing_service.py::TestBillingService::test_add_payment_method [33mSKIPPED[0m[33m [ 62%][0m
+tests/unit/test_billing_service.py::TestBillingService::test_remove_payment_method [33mSKIPPED[0m[33m [ 62%][0m
+tests/unit/test_billing_service.py::TestBillingService::test_list_payment_methods [33mSKIPPED[0m[33m [ 62%][0m
+tests/unit/test_billing_service.py::TestBillingService::test_billing_history [33mSKIPPED[0m[33m [ 63%][0m
+tests/unit/test_billing_service.py::TestBillingService::test_create_subscription [33mSKIPPED[0m[33m [ 63%][0m
+tests/unit/test_billing_service.py::TestBillingService::test_cancel_subscription [33mSKIPPED[0m[33m [ 63%][0m
+tests/unit/test_billing_service.py::TestBillingService::test_update_subscription [33mSKIPPED[0m[33m [ 63%][0m
+tests/unit/test_billing_service.py::TestBillingService::test_process_refund [33mSKIPPED[0m[33m [ 63%][0m
+tests/unit/test_billing_service.py::TestBillingService::test_webhook_handling [33mSKIPPED[0m[33m [ 64%][0m
+tests/unit/test_billing_service.py::TestBillingService::test_payment_retry_logic [33mSKIPPED[0m[33m [ 64%][0m
+tests/unit/test_billing_service.py::TestBillingService::test_invoice_overdue_handling [33mSKIPPED[0m[33m [ 64%][0m
+tests/unit/test_billing_service.py::TestBillingService::test_payment_method_validation [33mSKIPPED[0m[33m [ 64%][0m
+tests/unit/test_billing_service.py::TestBillingService::test_pci_compliance [33mSKIPPED[0m[33m [ 65%][0m
+tests/unit/test_billing_service.py::TestBillingService::test_subscription_trial_period [33mSKIPPED[0m[33m [ 65%][0m
+tests/unit/test_budget_service.py::TestBudgetService::test_check_budget_sufficient [33mSKIPPED[0m[33m [ 65%][0m
+tests/unit/test_budget_service.py::TestBudgetService::test_check_budget_insufficient [33mSKIPPED[0m[33m [ 65%][0m
+tests/unit/test_budget_service.py::TestBudgetService::test_deduct_from_budget_success [33mSKIPPED[0m[33m [ 65%][0m
+tests/unit/test_budget_service.py::TestBudgetService::test_deduct_from_budget_insufficient_funds [33mSKIPPED[0m[33m [ 66%][0m
+tests/unit/test_budget_service.py::TestBudgetService::test_refund_to_budget [33mSKIPPED[0m[33m [ 66%][0m
+tests/unit/test_budget_service.py::TestBudgetService::test_get_budget_status [33mSKIPPED[0m[33m [ 66%][0m
+tests/unit/test_budget_service.py::TestBudgetService::test_set_budget_limit [33mSKIPPED[0m[33m [ 66%][0m
+tests/unit/test_budget_service.py::TestBudgetService::test_budget_period_reset [33mSKIPPED[0m[33m [ 66%][0m
+tests/unit/test_budget_service.py::TestBudgetService::test_budget_history [33mSKIPPED[0m[33m [ 67%][0m
+tests/unit/test_budget_service.py::TestBudgetService::test_configure_budget_alerts [33mSKIPPED[0m[33m [ 67%][0m
+tests/unit/test_budget_service.py::TestBudgetService::test_trigger_budget_alerts [33mSKIPPED[0m[33m [ 67%][0m
+tests/unit/test_budget_service.py::TestBudgetService::test_usage_forecast [33mSKIPPED[0m[33m [ 67%][0m
+tests/unit/test_budget_service.py::TestBudgetService::test_concurrent_budget_operations [33mSKIPPED[0m[33m [ 68%][0m
+tests/unit/test_budget_service.py::TestBudgetService::test_budget_rollover [33mSKIPPED[0m[33m [ 68%][0m
+tests/unit/test_budget_service.py::TestBudgetService::test_admin_budget_reset [33mSKIPPED[0m[33m [ 68%][0m
+tests/unit/test_cache_service.py::test_sync_cache_operations [32mPASSED[0m[33m      [ 68%][0m
+tests/unit/test_cache_service.py::test_delete_and_flush [32mPASSED[0m[33m           [ 68%][0m
+tests/unit/test_cache_service.py::test_async_json_operations [32mPASSED[0m[33m      [ 69%][0m
+tests/unit/test_cache_service_comprehensive.py::TestCacheKeyGeneration::test_cache_key_simple_types [32mPASSED[0m[33m [ 69%][0m
+tests/unit/test_cache_service_comprehensive.py::TestCacheKeyGeneration::test_cache_key_complex_types [32mPASSED[0m[33m [ 69%][0m
+tests/unit/test_cache_service_comprehensive.py::TestCacheKeyGeneration::test_cache_key_none_handling [32mPASSED[0m[33m [ 69%][0m
+tests/unit/test_cache_service_comprehensive.py::TestCacheService::test_initialization_without_redis [32mPASSED[0m[33m [ 69%][0m
+tests/unit/test_cache_service_comprehensive.py::TestCacheService::test_initialization_with_redis [32mPASSED[0m[33m [ 70%][0m
+tests/unit/test_cache_service_comprehensive.py::TestCacheService::test_memory_cache_operations [32mPASSED[0m[33m [ 70%][0m
+tests/unit/test_cache_service_comprehensive.py::TestCacheService::test_memory_cache_ttl [32mPASSED[0m[33m [ 70%][0m
+tests/unit/test_cache_service_comprehensive.py::TestCacheService::test_redis_operations [32mPASSED[0m[33m [ 70%][0m
+tests/unit/test_cache_service_comprehensive.py::TestCacheService::test_redis_fallback_to_memory [32mPASSED[0m[33m [ 71%][0m
+tests/unit/test_cache_service_comprehensive.py::TestCacheService::test_json_operations [32mPASSED[0m[33m [ 71%][0m
+tests/unit/test_cache_service_comprehensive.py::TestCacheService::test_clear_pattern [32mPASSED[0m[33m [ 71%][0m
+tests/unit/test_cache_service_comprehensive.py::TestCacheService::test_get_stats [32mPASSED[0m[33m [ 71%][0m
+tests/unit/test_cache_service_comprehensive.py::TestCacheService::test_cleanup_memory_cache [32mPASSED[0m[33m [ 71%][0m
+tests/unit/test_cache_service_comprehensive.py::TestCacheService::test_close [32mPASSED[0m[33m [ 72%][0m
+tests/unit/test_cache_service_comprehensive.py::TestCacheDecorator::test_cached_sync_function [32mPASSED[0m[33m [ 72%][0m
+tests/unit/test_cache_service_comprehensive.py::TestCacheDecorator::test_cached_async_function [32mPASSED[0m[33m [ 72%][0m
+tests/unit/test_cache_service_comprehensive.py::TestCacheDecorator::test_cached_with_ttl [32mPASSED[0m[33m [ 72%][0m
+tests/unit/test_cache_service_comprehensive.py::TestCacheSingleton::test_get_cache_service_singleton [32mPASSED[0m[33m [ 73%][0m
+tests/unit/test_cache_service_comprehensive.py::TestCacheSingleton::test_close_cache_service [32mPASSED[0m[33m [ 73%][0m
+tests/unit/test_cache_service_comprehensive.py::TestCacheIntegrationScenarios::test_orchestration_response_caching [32mPASSED[0m[33m [ 73%][0m
+tests/unit/test_cache_service_comprehensive.py::TestCacheIntegrationScenarios::test_concurrent_cache_access [32mPASSED[0m[33m [ 73%][0m
+tests/unit/test_cache_service_comprehensive.py::TestCacheIntegrationScenarios::test_cache_size_limits [32mPASSED[0m[33m [ 73%][0m
+tests/unit/test_document_processor.py::test_process_text_file [32mPASSED[0m[33m     [ 74%][0m
+tests/unit/test_document_processor.py::test_process_unknown_file_type [32mPASSED[0m[33m [ 74%][0m
+tests/unit/test_document_service.py::test_get_user_documents [32mPASSED[0m[33m      [ 74%][0m
+tests/unit/test_document_service.py::test_get_document_by_id [32mPASSED[0m[33m      [ 74%][0m
+tests/unit/test_document_service.py::test_delete_document [32mPASSED[0m[33m         [ 74%][0m
+tests/unit/test_health_service.py::test_get_health_simple [32mPASSED[0m[33m         [ 75%][0m
+tests/unit/test_health_service.py::test_get_health_detailed [32mPASSED[0m[33m       [ 75%][0m
+tests/unit/test_jwt_secret_alias.py::test_jwt_secret_key_precedence [32mPASSED[0m[33m [ 75%][0m
+tests/unit/test_jwt_secret_alias.py::test_jwt_refresh_secret_fallback [32mPASSED[0m[33m [ 75%][0m
+tests/unit/test_jwt_secret_alias.py::test_jwt_missing_secret_raises_error [32mPASSED[0m[33m [ 76%][0m
+tests/unit/test_llm_adapters.py::test_base_adapter_missing_api_key [32mPASSED[0m[33m [ 76%][0m
+tests/unit/test_llm_adapters.py::test_openai_adapter_error [32mPASSED[0m[33m        [ 76%][0m
+tests/unit/test_llm_adapters.py::test_anthropic_adapter_error [32mPASSED[0m[33m     [ 76%][0m
+tests/unit/test_llm_adapters.py::test_gemini_adapter_error [32mPASSED[0m[33m        [ 76%][0m
+tests/unit/test_llm_adapters_comprehensive.py::TestBaseAdapter::test_mask_api_key [32mPASSED[0m[33m [ 77%][0m
+tests/unit/test_llm_adapters_comprehensive.py::TestBaseAdapter::test_base_adapter_not_implemented [32mPASSED[0m[33m [ 77%][0m
+tests/unit/test_llm_adapters_comprehensive.py::TestBaseAdapter::test_base_adapter_properties [32mPASSED[0m[33m [ 77%][0m
+tests/unit/test_llm_adapters_comprehensive.py::TestSharedHttpClient::test_shared_client_timeout [32mPASSED[0m[33m [ 77%][0m
+tests/unit/test_llm_adapters_comprehensive.py::TestSharedHttpClient::test_all_adapters_use_shared_client [32mPASSED[0m[33m [ 77%][0m
+tests/unit/test_llm_adapters_comprehensive.py::TestOpenAIAdapter::test_rate_limit_error_handling [32mPASSED[0m[33m [ 78%][0m
+tests/unit/test_llm_adapters_comprehensive.py::TestOpenAIAdapter::test_generic_exception_handling [32mPASSED[0m[33m [ 78%][0m
+tests/unit/test_llm_adapters_comprehensive.py::TestOpenAIAdapter::test_correlation_context_integration [32mPASSED[0m[33m [ 78%][0m
+tests/unit/test_llm_adapters_comprehensive.py::TestAnthropicAdapter::test_anthropic_specific_headers [32mPASSED[0m[33m [ 78%][0m
+tests/unit/test_llm_adapters_comprehensive.py::TestAnthropicAdapter::test_anthropic_model_mapping [32mPASSED[0m[33m [ 79%][0m
+tests/unit/test_llm_adapters_comprehensive.py::TestGeminiAdapter::test_api_key_not_in_url [32mPASSED[0m[33m [ 79%][0m
+tests/unit/test_llm_adapters_comprehensive.py::TestGeminiAdapter::test_api_key_in_header [32mPASSED[0m[33m [ 79%][0m
+tests/unit/test_llm_adapters_comprehensive.py::TestGeminiAdapter::test_gemini_response_format_variations [32mPASSED[0m[33m [ 79%][0m
+tests/unit/test_llm_adapters_comprehensive.py::TestHuggingFaceAdapter::test_response_format_list [32mPASSED[0m[33m [ 79%][0m
+tests/unit/test_llm_adapters_comprehensive.py::TestHuggingFaceAdapter::test_response_format_dict [32mPASSED[0m[33m [ 80%][0m
+tests/unit/test_llm_adapters_comprehensive.py::TestHuggingFaceAdapter::test_response_format_string [32mPASSED[0m[33m [ 80%][0m
+tests/unit/test_llm_adapters_comprehensive.py::TestHuggingFaceAdapter::test_response_format_unexpected [32mPASSED[0m[33m [ 80%][0m
+tests/unit/test_llm_adapters_comprehensive.py::TestHuggingFaceAdapter::test_huggingface_model_url_encoding [32mPASSED[0m[33m [ 80%][0m
+tests/unit/test_llm_adapters_comprehensive.py::TestAdapterErrorScenarios::test_connection_timeout[OpenAIAdapter-gpt-4] [32mPASSED[0m[33m [ 80%][0m
+tests/unit/test_llm_adapters_comprehensive.py::TestAdapterErrorScenarios::test_connection_timeout[AnthropicAdapter-claude-3] [32mPASSED[0m[33m [ 81%][0m
+tests/unit/test_llm_adapters_comprehensive.py::TestAdapterErrorScenarios::test_connection_timeout[GeminiAdapter-gemini-pro] [32mPASSED[0m[33m [ 81%][0m
+tests/unit/test_llm_adapters_comprehensive.py::TestAdapterErrorScenarios::test_connection_timeout[HuggingFaceAdapter-mistral] [32mPASSED[0m[33m [ 81%][0m
+tests/unit/test_llm_adapters_comprehensive.py::TestAdapterErrorScenarios::test_invalid_api_key[OpenAIAdapter-gpt-4] [32mPASSED[0m[33m [ 81%][0m
+tests/unit/test_llm_adapters_comprehensive.py::TestAdapterErrorScenarios::test_invalid_api_key[AnthropicAdapter-claude-3] [32mPASSED[0m[33m [ 82%][0m
+tests/unit/test_llm_adapters_comprehensive.py::TestAdapterErrorScenarios::test_invalid_api_key[GeminiAdapter-gemini-pro] [32mPASSED[0m[33m [ 82%][0m
+tests/unit/test_llm_adapters_comprehensive.py::TestAdapterErrorScenarios::test_invalid_api_key[HuggingFaceAdapter-mistral] [32mPASSED[0m[33m [ 82%][0m
+tests/unit/test_llm_adapters_comprehensive.py::TestAdapterErrorScenarios::test_json_decode_error[OpenAIAdapter-gpt-4] [32mPASSED[0m[33m [ 82%][0m
+tests/unit/test_llm_adapters_comprehensive.py::TestAdapterErrorScenarios::test_json_decode_error[AnthropicAdapter-claude-3] [32mPASSED[0m[33m [ 82%][0m
+tests/unit/test_llm_adapters_comprehensive.py::TestAdapterErrorScenarios::test_json_decode_error[GeminiAdapter-gemini-pro] [32mPASSED[0m[33m [ 83%][0m
+tests/unit/test_llm_adapters_comprehensive.py::TestAdapterErrorScenarios::test_json_decode_error[HuggingFaceAdapter-mistral] [32mPASSED[0m[33m [ 83%][0m
+tests/unit/test_middleware.py::test_security_headers_present [32mPASSED[0m[33m      [ 83%][0m
+tests/unit/test_middleware.py::test_rate_limit_headers_present [32mPASSED[0m[33m    [ 83%][0m
+tests/unit/test_model_selection_service.py::test_model_selection_ranks_models_by_score [32mPASSED[0m[33m [ 84%][0m
+tests/unit/test_oauth_service.py::test_generate_oauth_url_unsupported [32mPASSED[0m[33m [ 84%][0m
+tests/unit/test_oauth_service.py::test_generate_oauth_url_google [32mPASSED[0m[33m  [ 84%][0m
+tests/unit/test_oauth_service.py::test_validate_oauth_state [32mPASSED[0m[33m       [ 84%][0m
+tests/unit/test_pricing_service.py::TestPricingService::test_calculate_cost_single_model [33mSKIPPED[0m[33m [ 84%][0m
+tests/unit/test_pricing_service.py::TestPricingService::test_calculate_cost_batch [33mSKIPPED[0m[33m [ 85%][0m
+tests/unit/test_pricing_service.py::TestPricingService::test_get_model_pricing [33mSKIPPED[0m[33m [ 85%][0m
+tests/unit/test_pricing_service.py::TestPricingService::test_get_historical_pricing [33mSKIPPED[0m[33m [ 85%][0m
+tests/unit/test_pricing_service.py::TestPricingService::test_list_all_model_pricing [33mSKIPPED[0m[33m [ 85%][0m
+tests/unit/test_pricing_service.py::TestPricingService::test_estimate_cost_from_prompt [33mSKIPPED[0m[33m [ 85%][0m
+tests/unit/test_pricing_service.py::TestPricingService::test_update_pricing_admin [33mSKIPPED[0m[33m [ 86%][0m
+tests/unit/test_pricing_service.py::TestPricingService::test_pricing_not_found_error [33mSKIPPED[0m[33m [ 86%][0m
+tests/unit/test_pricing_service.py::TestPricingService::test_usage_cost_summary [33mSKIPPED[0m[33m [ 86%][0m
+tests/unit/test_pricing_service.py::TestPricingService::test_export_usage_report [33mSKIPPED[0m[33m [ 86%][0m
+tests/unit/test_pricing_service.py::TestPricingService::test_token_counting_accuracy [33mSKIPPED[0m[33m [ 87%][0m
+tests/unit/test_pricing_service.py::TestPricingService::test_multi_currency_support [33mSKIPPED[0m[33m [ 87%][0m
+tests/unit/test_pricing_service.py::TestPricingService::test_pricing_cache_performance [33mSKIPPED[0m[33m [ 87%][0m
+tests/unit/test_pricing_service.py::TestPricingService::test_concurrent_cost_calculations [33mSKIPPED[0m[33m [ 87%][0m
+tests/unit/test_recovery_service.py::test_retry_on_timeout [31mFAILED[0m[31m        [ 87%][0m
+tests/unit/test_recovery_service.py::test_circuit_breaker_integration [31mFAILED[0m[31m [ 88%][0m
+tests/unit/test_recovery_service_simple.py::test_retry_on_timeout [32mPASSED[0m[31m [ 88%][0m
+tests/unit/test_recovery_service_simple.py::test_circuit_breaker_integration [32mPASSED[0m[31m [ 88%][0m
+tests/unit/test_request_tracking.py::TestRequestIDMiddleware::test_generates_request_id [32mPASSED[0m[31m [ 88%][0m
+tests/unit/test_request_tracking.py::TestRequestIDMiddleware::test_preserves_existing_request_id [32mPASSED[0m[31m [ 88%][0m
+tests/unit/test_request_tracking.py::TestRequestIDMiddleware::test_correlation_id_handling [32mPASSED[0m[31m [ 89%][0m
+tests/unit/test_request_tracking.py::TestRequestIDMiddleware::test_uses_request_id_as_correlation_fallback [32mPASSED[0m[31m [ 89%][0m
+tests/unit/test_request_tracking.py::TestRequestIDInjector::test_inject_headers [32mPASSED[0m[31m [ 89%][0m
+tests/unit/test_request_tracking.py::TestRequestIDInjector::test_from_request [32mPASSED[0m[31m [ 89%][0m
+tests/unit/test_request_tracking.py::TestTrackedOrchestrationService::test_set_request_context [32mPASSED[0m[31m [ 90%][0m
+tests/unit/test_request_tracking.py::TestTrackedOrchestrationService::test_create_adapter_with_tracking [32mPASSED[0m[31m [ 90%][0m
+tests/unit/test_request_tracking.py::TestTrackedLLMAdapters::test_tracked_adapter_logging [32mPASSED[0m[31m [ 90%][0m
+tests/unit/test_request_tracking.py::TestTrackedLLMAdapters::test_tracked_http_client [32mPASSED[0m[31m [ 90%][0m
+tests/unit/test_request_tracking.py::TestCorrelationContext::test_correlation_context_lifecycle [32mPASSED[0m[31m [ 90%][0m
+tests/unit/test_service_unavailable.py::TestServiceUnavailable::test_service_unavailable_with_one_model [32mPASSED[0m[31m [ 91%][0m
+tests/unit/test_service_unavailable.py::TestServiceUnavailable::test_service_available_with_multiple_models [32mPASSED[0m[31m [ 91%][0m
+tests/unit/test_service_unavailable.py::TestServiceUnavailable::test_service_status_endpoint [32mPASSED[0m[31m [ 91%][0m
+tests/unit/test_service_unavailable.py::TestServiceUnavailable::test_zero_models_available [32mPASSED[0m[31m [ 91%][0m
+tests/unit/test_service_unavailable.py::TestServiceUnavailable::test_error_message_clarity [32mPASSED[0m[31m [ 92%][0m
+tests/unit/test_single_model_fallback.py::TestSingleModelFallback::test_single_model_operation_enabled [32mPASSED[0m[31m [ 92%][0m
+tests/unit/test_single_model_fallback.py::TestSingleModelFallback::test_single_model_operation_disabled [32mPASSED[0m[31m [ 92%][0m
+tests/unit/test_single_model_fallback.py::TestSingleModelFallback::test_default_models_with_single_fallback [32mPASSED[0m[31m [ 92%][0m
+tests/unit/test_single_model_fallback.py::TestSingleModelFallback::test_peer_review_skipped_with_single_model [32mPASSED[0m[31m [ 92%][0m
+tests/unit/test_single_model_fallback.py::TestSingleModelFallback::test_ultra_synthesis_with_single_model [32mPASSED[0m[31m [ 93%][0m
+tests/unit/test_single_model_fallback.py::TestSingleModelFallback::test_minimum_models_configuration [32mPASSED[0m[31m [ 93%][0m
+tests/unit/test_standardized_llm_errors.py::TestStandardizedErrors::test_authentication_error_openai [32mPASSED[0m[31m [ 93%][0m
+tests/unit/test_standardized_llm_errors.py::TestStandardizedErrors::test_authentication_error_anthropic [32mPASSED[0m[31m [ 93%][0m
+tests/unit/test_standardized_llm_errors.py::TestStandardizedErrors::test_rate_limit_error_all_providers [32mPASSED[0m[31m [ 93%][0m
+tests/unit/test_standardized_llm_errors.py::TestStandardizedErrors::test_model_not_found_error [32mPASSED[0m[31m [ 94%][0m
+tests/unit/test_standardized_llm_errors.py::TestStandardizedErrors::test_timeout_error [32mPASSED[0m[31m [ 94%][0m
+tests/unit/test_standardized_llm_errors.py::TestStandardizedErrors::test_huggingface_model_loading [32mPASSED[0m[31m [ 94%][0m
+tests/unit/test_standardized_llm_errors.py::TestStandardizedErrors::test_success_response_format [32mPASSED[0m[31m [ 94%][0m
+tests/unit/test_standardized_llm_errors.py::TestErrorResponseModel::test_error_response_to_legacy_format [32mPASSED[0m[31m [ 95%][0m
+tests/unit/test_standardized_llm_errors.py::TestErrorResponseModel::test_authentication_error_legacy_format [32mPASSED[0m[31m [ 95%][0m
+tests/unit/test_streaming_orchestration.py::TestStreamingOrchestrationService::test_stream_pipeline_start_event [32mPASSED[0m[31m [ 95%][0m
+tests/unit/test_streaming_orchestration.py::TestStreamingOrchestrationService::test_sse_format [32mPASSED[0m[31m [ 95%][0m
+tests/unit/test_streaming_orchestration.py::TestStreamingOrchestrationService::test_stage_events_emitted [32mPASSED[0m[31m [ 95%][0m
+tests/unit/test_streaming_orchestration.py::TestStreamingOrchestrationService::test_synthesis_chunking [32mPASSED[0m[31m [ 96%][0m
+tests/unit/test_streaming_orchestration.py::TestStreamingOrchestrationService::test_model_response_streaming [32mPASSED[0m[31m [ 96%][0m
+tests/unit/test_streaming_orchestration.py::TestStreamingOrchestrationService::test_streaming_config [32mPASSED[0m[31m [ 96%][0m
+tests/unit/test_streaming_orchestration.py::TestStreamingOrchestrationService::test_error_event_on_failure [32mPASSED[0m[31m [ 96%][0m
+tests/unit/test_streaming_orchestration.py::TestStreamingEndpoint::test_streaming_endpoint_headers [32mPASSED[0m[31m [ 96%][0m
+tests/unit/test_telemetry.py::TestTelemetryService::test_telemetry_initialization [32mPASSED[0m[31m [ 97%][0m
+tests/unit/test_telemetry.py::TestTelemetryService::test_record_request [32mPASSED[0m[31m [ 97%][0m
+tests/unit/test_telemetry.py::TestTelemetryService::test_record_llm_request [32mPASSED[0m[31m [ 97%][0m
+tests/unit/test_telemetry.py::TestTelemetryService::test_record_stage_duration [32mPASSED[0m[31m [ 97%][0m
+tests/unit/test_telemetry.py::TestTelemetryService::test_record_error [32mPASSED[0m[31m [ 98%][0m
+tests/unit/test_telemetry.py::TestTelemetryService::test_trace_span_context_manager [32mPASSED[0m[31m [ 98%][0m
+tests/unit/test_telemetry.py::TestTelemetryService::test_measure_stage_context_manager [32mPASSED[0m[31m [ 98%][0m
+tests/unit/test_telemetry.py::TestTelemetryLLMWrapper::test_wrapper_initialization [32mPASSED[0m[31m [ 98%][0m
+tests/unit/test_telemetry.py::TestTelemetryLLMWrapper::test_wrapper_generate_success [32mPASSED[0m[31m [ 98%][0m
+tests/unit/test_telemetry.py::TestTelemetryLLMWrapper::test_wrapper_generate_error [32mPASSED[0m[31m [ 99%][0m
+tests/unit/test_telemetry.py::TestTelemetryLLMWrapper::test_wrapper_generate_exception [32mPASSED[0m[31m [ 99%][0m
+tests/unit/test_telemetry.py::TestTelemetryLLMWrapper::test_token_estimation [32mPASSED[0m[31m [ 99%][0m
+tests/unit/test_telemetry.py::TestTelemetryLLMWrapper::test_cost_calculation [32mPASSED[0m[31m [ 99%][0m
+tests/unit/test_telemetry.py::TestTelemetryLLMWrapper::test_wrapper_metrics [32mPASSED[0m[31m [100%][0m
+
+=================================== FAILURES ===================================
+[31m[1m____________________________ test_retry_on_timeout _____________________________[0m
+[1m[31mtests/unit/test_recovery_service.py[0m:7: in test_retry_on_timeout
+    [0m[94mfrom[39;49;00m[90m [39;49;00m[04m[96mapp[39;49;00m[04m[96m.[39;49;00m[04m[96mservices[39;49;00m[04m[96m.[39;49;00m[04m[96mrecovery_service[39;49;00m[90m [39;49;00m[94mimport[39;49;00m RecoveryService, RecoveryType[90m[39;49;00m
+[1m[31mapp/services/recovery_service.py[0m:19: in <module>
+    [0m[94mfrom[39;49;00m[90m [39;49;00m[04m[96mapp[39;49;00m[04m[96m.[39;49;00m[04m[96mutils[39;49;00m[04m[96m.[39;49;00m[04m[96merrors[39;49;00m[90m [39;49;00m[94mimport[39;49;00m RecoveryError, [96mSystemError[39;49;00m[90m[39;49;00m
+[1m[31mE   ImportError: cannot import name 'RecoveryError' from 'app.utils.errors' (unknown location)[0m
+[31m[1m_______________________ test_circuit_breaker_integration _______________________[0m
+[1m[31mtests/unit/test_recovery_service.py[0m:46: in test_circuit_breaker_integration
+    [0m[94mfrom[39;49;00m[90m [39;49;00m[04m[96mapp[39;49;00m[04m[96m.[39;49;00m[04m[96mservices[39;49;00m[04m[96m.[39;49;00m[04m[96mrecovery_service[39;49;00m[90m [39;49;00m[94mimport[39;49;00m RecoveryService, RecoveryType[90m[39;49;00m
+[1m[31mapp/services/recovery_service.py[0m:19: in <module>
+    [0m[94mfrom[39;49;00m[90m [39;49;00m[04m[96mapp[39;49;00m[04m[96m.[39;49;00m[04m[96mutils[39;49;00m[04m[96m.[39;49;00m[04m[96merrors[39;49;00m[90m [39;49;00m[94mimport[39;49;00m RecoveryError, [96mSystemError[39;49;00m[90m[39;49;00m
+[1m[31mE   ImportError: cannot import name 'RecoveryError' from 'app.utils.errors' (unknown location)[0m
+- Generated html report: file:///Users/joshuafield/Documents/Ultra/reports/20250912090858/report_offline.html -
+[36m[1m=========================== short test summary info ============================[0m
+[31mFAILED[0m tests/unit/test_recovery_service.py::[1mtest_retry_on_timeout[0m - ImportError: cannot import name 'RecoveryError' from 'app.utils.errors' (unknown location)
+[31mFAILED[0m tests/unit/test_recovery_service.py::[1mtest_circuit_breaker_integration[0m - ImportError: cannot import name 'RecoveryError' from 'app.utils.errors' (unknown location)
+[31m==== [31m[1m2 failed[0m, [32m389 passed[0m, [33m72 skipped[0m, [33m50 deselected[0m, [33m76 warnings[0m[31m in 10.64s[0m[31m ====[0m
+<== Mode offline exit code: 1
+(no summary found)"
+    },
+    "live": {
+      "report_html": "reports/20250912090858/report_live.html",
+      "log": "reports/20250912090858/live.log",
+      "summary": "==> Running mode: live
+Mode: live
+Report: /Users/joshuafield/Documents/Ultra/reports/20250912090858/report_live.html
+[1m============================= test session starts ==============================[0m
+platform darwin -- Python 3.13.5, pytest-8.4.1, pluggy-1.6.0 -- /Users/joshuafield/Documents/Ultra/venv/bin/python
+cachedir: .pytest_cache
+metadata: {'Python': '3.13.5', 'Platform': 'macOS-15.6.1-arm64-arm-64bit-Mach-O', 'Packages': {'pytest': '8.4.1', 'pluggy': '1.6.0'}, 'Plugins': {'snapshot': '0.9.0', 'allure-pytest': '2.15.0', 'anyio': '4.9.0', 'sugar': '1.0.0', 'html': '4.1.1', 'Faker': '37.4.0', 'xdist': '3.8.0', 'httpx': '0.35.0', 'timeout': '2.4.0', 'metadata': '3.1.1', 'clarity': '1.0.1', 'cov': '6.2.1', 'mock': '3.14.1', 'benchmark': '5.1.0', 'base-url': '2.1.0', 'playwright': '0.7.1', 'asyncio': '1.0.0', 'aiohttp': '1.1.0', 'requests-mock': '1.12.1', 'postgresql': '7.0.2'}, 'Base URL': ''}
+benchmark: 5.1.0 (defaults: timer=time.perf_counter disable_gc=False min_rounds=5 min_time=0.000005 max_time=1.0 calibration_precision=10 warmup=False warmup_iterations=100000)
+rootdir: /Users/joshuafield/Documents/Ultra
+configfile: pytest.ini
+testpaths: tests
+plugins: snapshot-0.9.0, allure-pytest-2.15.0, anyio-4.9.0, sugar-1.0.0, html-4.1.1, Faker-37.4.0, xdist-3.8.0, httpx-0.35.0, timeout-2.4.0, metadata-3.1.1, clarity-1.0.1, cov-6.2.1, mock-3.14.1, benchmark-5.1.0, base-url-2.1.0, playwright-0.7.1, asyncio-1.0.0, aiohttp-1.1.0, requests-mock-1.12.1, postgresql-7.0.2
+timeout: 60.0s
+timeout method: thread
+timeout func_only: False
+asyncio: mode=Mode.STRICT, asyncio_default_fixture_loop_scope=function, asyncio_default_test_loop_scope=function
+[1mcollecting ... [0mcollected 512 items / 505 deselected / 7 selected
+
+tests/live/test_demo_endpoints.py::test_demo_health_available_models [33mSKIPPED[0m[33m [ 14%][0m
+tests/live/test_demo_endpoints.py::test_demo_models_providers_summary [33mSKIPPED[0m[33m [ 28%][0m
+tests/live/test_live_providers.py::test_openai_smoke [32mPASSED[0m[33m              [ 42%][0m
+tests/live/test_live_providers.py::test_anthropic_smoke [32mPASSED[0m[33m           [ 57%][0m
+tests/live/test_live_providers.py::test_gemini_smoke [32mPASSED[0m[33m              [ 71%][0m
+tests/live/test_live_providers.py::test_huggingface_smoke [33mSKIPPED[0m[33m        [ 85%][0m
+tests/test_config_example.py::TestConfigurationExample::test_live_api_call [32mPASSED[0m[33m [100%][0m
+
+- Generated html report: file:///Users/joshuafield/Documents/Ultra/reports/20250912090858/report_live.html -
+[33m========== [32m4 passed[0m, [33m[1m3 skipped[0m, [33m[1m505 deselected[0m, [33m[1m11 warnings[0m[33m in 3.43s[0m[33m ===========[0m
+Done.
+<== Mode live exit code: 0
+(no summary found)"
+    },
+    "demo": {
+      "base_url": "https://ultrai-staging-api.onrender.com",
+      "report_html": "reports/20250912090858/report_demo.html",
+      "log": "reports/20250912090858/demo.log",
+      "summary": "==> Running mode: demo
+Mode: demo
+Report: /Users/joshuafield/Documents/Ultra/reports/20250912090858/report_demo.html
+[1m============================= test session starts ==============================[0m
+platform darwin -- Python 3.13.5, pytest-8.4.1, pluggy-1.6.0 -- /Users/joshuafield/Documents/Ultra/venv/bin/python
+cachedir: .pytest_cache
+metadata: {'Python': '3.13.5', 'Platform': 'macOS-15.6.1-arm64-arm-64bit-Mach-O', 'Packages': {'pytest': '8.4.1', 'pluggy': '1.6.0'}, 'Plugins': {'snapshot': '0.9.0', 'allure-pytest': '2.15.0', 'anyio': '4.9.0', 'sugar': '1.0.0', 'html': '4.1.1', 'Faker': '37.4.0', 'xdist': '3.8.0', 'httpx': '0.35.0', 'timeout': '2.4.0', 'metadata': '3.1.1', 'clarity': '1.0.1', 'cov': '6.2.1', 'mock': '3.14.1', 'benchmark': '5.1.0', 'base-url': '2.1.0', 'playwright': '0.7.1', 'asyncio': '1.0.0', 'aiohttp': '1.1.0', 'requests-mock': '1.12.1', 'postgresql': '7.0.2'}, 'Base URL': ''}
+benchmark: 5.1.0 (defaults: timer=time.perf_counter disable_gc=False min_rounds=5 min_time=0.000005 max_time=1.0 calibration_precision=10 warmup=False warmup_iterations=100000)
+rootdir: /Users/joshuafield/Documents/Ultra
+configfile: pytest.ini
+testpaths: tests
+plugins: snapshot-0.9.0, allure-pytest-2.15.0, anyio-4.9.0, sugar-1.0.0, html-4.1.1, Faker-37.4.0, xdist-3.8.0, httpx-0.35.0, timeout-2.4.0, metadata-3.1.1, clarity-1.0.1, cov-6.2.1, mock-3.14.1, benchmark-5.1.0, base-url-2.1.0, playwright-0.7.1, asyncio-1.0.0, aiohttp-1.1.0, requests-mock-1.12.1, postgresql-7.0.2
+timeout: 60.0s
+timeout method: thread
+timeout func_only: False
+asyncio: mode=Mode.STRICT, asyncio_default_fixture_loop_scope=function, asyncio_default_test_loop_scope=function
+[1mcollecting ... [0mcollected 512 items / 510 deselected / 2 selected
+
+tests/live/test_demo_endpoints.py::test_demo_health_available_models [33mSKIPPED[0m[33m [ 50%][0m
+tests/live/test_demo_endpoints.py::test_demo_models_providers_summary [33mSKIPPED[0m[33m [100%][0m
+
+- Generated html report: file:///Users/joshuafield/Documents/Ultra/reports/20250912090858/report_demo.html -
+[33m=============== [33m[1m2 skipped[0m, [33m[1m510 deselected[0m, [33m[1m11 warnings[0m[33m in 2.09s[0m[33m ================[0m
+Done.
+<== Mode demo exit code: 0
+(no summary found)"
+    }
+  },
+  "categories_file": ".cursor/test-categories.json"
+}

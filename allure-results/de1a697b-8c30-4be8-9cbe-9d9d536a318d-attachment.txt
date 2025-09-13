@@ -1,0 +1,1 @@
+[1m[31mERROR   [0m app.services.base_llm_adapter:base_llm_adapter.py:62 openai error: model_not_found - Model 'gpt-4' not found. You may need access to this model.

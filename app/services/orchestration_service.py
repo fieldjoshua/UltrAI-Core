@@ -357,8 +357,10 @@ class OrchestrationService:
         candidates = [
             ("gpt-4o", os.getenv("OPENAI_API_KEY")),
             ("gpt-3.5-turbo", os.getenv("OPENAI_API_KEY")),
-            ("claude-3-sonnet-20240229", os.getenv("ANTHROPIC_API_KEY")),
+            ("claude-3-5-sonnet-20241022", os.getenv("ANTHROPIC_API_KEY")),
+            ("claude-3-5-haiku-20241022", os.getenv("ANTHROPIC_API_KEY")),
             ("gemini-1.5-pro", os.getenv("GOOGLE_API_KEY")),
+            ("gemini-1.5-flash", os.getenv("GOOGLE_API_KEY")),
             ("meta-llama/Meta-Llama-3-8B-Instruct", os.getenv("HUGGINGFACE_API_KEY")),
             ("mistralai/Mixtral-8x7B-Instruct-v0.1", os.getenv("HUGGINGFACE_API_KEY")),
         ]
@@ -406,7 +408,7 @@ class OrchestrationService:
         # Only ensure multiple models if required by configuration
         if len(healthy) < Config.MINIMUM_MODELS_REQUIRED and Config.MINIMUM_MODELS_REQUIRED > 1:
             # Try to add backup models to meet minimum requirement
-            backup_models = ["gpt-3.5-turbo", "gpt-4o", "claude-3-sonnet-20240229"]
+            backup_models = ["gemini-1.5-flash", "claude-3-5-sonnet-20241022", "gpt-4o"]
             for backup in backup_models:
                 if backup not in healthy:
                     healthy.append(backup)

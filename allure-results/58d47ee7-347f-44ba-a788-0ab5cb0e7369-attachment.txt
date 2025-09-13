@@ -1,0 +1,1 @@
+[33mWARNING [0m app.services.analysis_service:analysis_service.py:181 User x attempted to access analysis 5 owned by u5

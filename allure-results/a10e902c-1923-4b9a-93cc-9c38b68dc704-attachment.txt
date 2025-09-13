@@ -1,0 +1,5 @@
+[32mINFO    [0m model_registry:model_registry.py:68 Registered model class: u
+[32mINFO    [0m model_registry:model_registry.py:114 Created model instance: u
+[32mINFO    [0m model_registry:model_registry.py:164 Updated model config: u
+[35mDEBUG   [0m model_registry:model_registry.py:185 Recorded model usage: u (success=True)
+[35mDEBUG   [0m model_registry:model_registry.py:185 Recorded model usage: u (success=False)

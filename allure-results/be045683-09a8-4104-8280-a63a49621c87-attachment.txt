@@ -1,0 +1,2 @@
+{"timestamp": "2025-09-12T00:30:02.864147", "level": "INFO", "logger": "tracked_llm_adapters", "message": "Sending request to Mock", "correlation_id": "corr-456", "module": "tracked_llm_adapters", "function": "generate", "line": 59}
+{"timestamp": "2025-09-12T00:30:02.864218", "level": "INFO", "logger": "tracked_llm_adapters", "message": "Received response from Mock", "correlation_id": "corr-456", "module": "tracked_llm_adapters", "function": "generate", "line": 74}

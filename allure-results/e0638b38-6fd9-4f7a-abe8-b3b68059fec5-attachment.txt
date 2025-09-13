@@ -1,0 +1,2 @@
+{"timestamp": "2025-09-11T23:10:29.867571", "level": "INFO", "logger": "transaction_service", "message": "Loaded financial data from file", "correlation_id": "00cb3fb3-f039-4d4c-916b-c36efea95ed5", "module": "transaction_service", "function": "_load_data", "line": 113}
+{"timestamp": "2025-09-11T23:10:29.868165", "level": "INFO", "logger": "tracked_orchestration", "message": "Set orchestration request context", "correlation_id": "corr-456", "module": "tracked_orchestration_service", "function": "set_request_context", "line": 49}

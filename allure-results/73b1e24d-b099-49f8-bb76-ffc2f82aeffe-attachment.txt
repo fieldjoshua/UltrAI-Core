@@ -1,0 +1,5 @@
+[32mINFO    [0m request:structured_logging.py:603 GET /api/health/services
+[35mDEBUG   [0m request_id_middleware:request_id_middleware.py:45 Processing request: GET /api/health/services
+[1m[31mERROR   [0m health_service:health_service.py:419 Mock service health check failed: No module named 'app.services.mock_llm_service'
+[32mINFO    [0m app.middleware.telemetry_middleware:telemetry_middleware.py:89 GET /api/health/services completed
+[32mINFO    [0m request:structured_logging.py:655 GET /api/health/services 200 (1.19ms)

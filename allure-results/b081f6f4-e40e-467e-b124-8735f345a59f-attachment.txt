@@ -1,0 +1,7 @@
+[32mINFO    [0m transaction_service:transaction_service.py:113 Loaded financial data from file
+[35mDEBUG   [0m orchestration_service:orchestration_service.py:192 ✅ Validated model: gpt-4o
+[32mINFO    [0m orchestration_service:orchestration_service.py:476 🔄 PROGRESS: Stage 1/3 - initial_response
+[32mINFO    [0m orchestration_service:orchestration_service.py:477 📊 PIPELINE PROGRESS: 0% complete
+[32mINFO    [0m orchestration_service:orchestration_service.py:476 🔄 PROGRESS: Stage 2/3 - peer_review_and_revision
+[32mINFO    [0m orchestration_service:orchestration_service.py:477 📊 PIPELINE PROGRESS: 33% complete
+[1m[31mERROR   [0m orchestration_service:orchestration_service.py:517 🚨 SERVICE UNAVAILABLE: Only 1 model(s) available. UltrAI requires at least 2 models for operation.

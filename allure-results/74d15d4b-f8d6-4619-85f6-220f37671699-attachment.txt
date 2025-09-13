@@ -1,0 +1,9 @@
+
+Current test configuration:
+  Mode: offline
+  Use mocks: True
+  Mock LLMs: True
+  Use real Redis: False
+  Use real DB: False
+  Base URL: http://testserver
+  Timeout: 5.0s

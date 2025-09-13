@@ -1,0 +1,1 @@
+[1m[31mERROR   [0m health_service:health_service.py:419 Mock service health check failed: No module named 'app.services.mock_llm_service'

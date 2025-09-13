@@ -1,0 +1,2 @@
+[32mINFO    [0m model_registry:model_registry.py:68 Registered model class: d
+[32mINFO    [0m model_registry:model_registry.py:114 Created model instance: d

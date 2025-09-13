@@ -1,0 +1,2 @@
+[32mINFO    [0m security_headers_middleware:security_headers_middleware.py:207 Security headers middleware added to application
+[32mINFO    [0m security_headers_middleware:security_headers_middleware.py:81 Initialized SecurityHeadersMiddleware with 10 CSP directives

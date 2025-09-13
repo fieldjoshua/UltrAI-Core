@@ -1,0 +1,66 @@
+[1m[31mERROR   [0m app.utils.sentry_integration:sentry_integration.py:73 Failed to initialize Sentry: Unknown option 'tags'
+[32mINFO    [0m security_headers_middleware:security_headers_middleware.py:207 Security headers middleware added to application
+[32mINFO    [0m performance_middleware:performance_middleware.py:152 Performance optimization middleware enabled
+[32mINFO    [0m test_app_setup:app.py:88 Performance optimization middleware enabled
+[32mINFO    [0m test_app_setup:app.py:95 Database initialized (or fallback active)
+[32mINFO    [0m test_app_setup:app.py:105 Structured logging middleware enabled
+[32mINFO    [0m app.middleware.telemetry_middleware:telemetry_middleware.py:131 Telemetry middleware added to application
+[32mINFO    [0m test_app_setup:app.py:112 Telemetry middleware enabled
+[32mINFO    [0m rate_limit_middleware:rate_limit_middleware.py:131 Rate limiting middleware added to application
+[32mINFO    [0m test_app_setup:app.py:130 Rate limiting middleware enabled
+[32mINFO    [0m error_handler:unified_error_handler.py:1138 Exception handlers registered
+[32mINFO    [0m error_handler:unified_error_handler.py:1164 Global error handling system configured
+[32mINFO    [0m test_app_setup:app.py:162 Unified error handling system enabled
+[32mINFO    [0m transaction_service:transaction_service.py:113 Loaded financial data from file
+[32mINFO    [0m test_app_setup:app.py:220 🧪 TESTING mode – lightweight OrchestrationService attached to app.state
+[32mINFO    [0m test_app_setup:app.py:231 SmartModelSelectionService initialized
+[32mINFO    [0m security_headers_middleware:security_headers_middleware.py:81 Initialized SecurityHeadersMiddleware with 10 CSP directives
+[32mINFO    [0m app.middleware.telemetry_middleware:telemetry_middleware.py:30 Telemetry middleware initialized
+[32mINFO    [0m rate_limit_middleware:rate_limit_middleware.py:47 Initialized RateLimitMiddleware with 6 excluded paths
+[32mINFO    [0m error_handler:unified_error_handler.py:792 Initialized GlobalErrorHandlingMiddleware with debug_details=True, exclude_paths=None
+[32mINFO    [0m request:structured_logging.py:603 GET /api/admin/test
+[35mDEBUG   [0m request_id_middleware:request_id_middleware.py:45 Processing request: GET /api/admin/test
+[33mWARNING [0m error_handler:unified_error_handler.py:625 Warning processing request: 404: Route not found
+[35mDEBUG   [0m error_handler:unified_error_handler.py:632 Exception traceback: Traceback (most recent call last):
+  File "/Users/joshuafield/Documents/Ultra/venv/lib/python3.13/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/Users/joshuafield/Documents/Ultra/venv/lib/python3.13/site-packages/starlette/routing.py", line 75, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "/Users/joshuafield/Documents/Ultra/venv/lib/python3.13/site-packages/fastapi/routing.py", line 302, in app
+    raw_response = await run_endpoint_function(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+    )
+    ^
+  File "/Users/joshuafield/Documents/Ultra/venv/lib/python3.13/site-packages/fastapi/routing.py", line 213, in run_endpoint_function
+    return await dependant.call(**values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/joshuafield/Documents/Ultra/app/app.py", line 275, in serve_frontend_routes
+    raise HTTPException(status_code=404, detail="Route not found")
+fastapi.exceptions.HTTPException: 404: Route not found
+
+[32mINFO    [0m app.middleware.telemetry_middleware:telemetry_middleware.py:89 GET /api/admin/test completed
+[33mWARNING [0m request:structured_logging.py:653 GET /api/admin/test 404 (1.48ms)
+[1m[31mERROR   [0m app.utils.sentry_integration:sentry_integration.py:73 Failed to initialize Sentry: Unknown option 'tags'
+[32mINFO    [0m security_headers_middleware:security_headers_middleware.py:207 Security headers middleware added to application
+[32mINFO    [0m performance_middleware:performance_middleware.py:152 Performance optimization middleware enabled
+[32mINFO    [0m test_app_setup:app.py:88 Performance optimization middleware enabled
+[32mINFO    [0m test_app_setup:app.py:95 Database initialized (or fallback active)
+[32mINFO    [0m test_app_setup:app.py:105 Structured logging middleware enabled
+[32mINFO    [0m app.middleware.telemetry_middleware:telemetry_middleware.py:131 Telemetry middleware added to application
+[32mINFO    [0m test_app_setup:app.py:112 Telemetry middleware enabled
+[32mINFO    [0m error_handler:unified_error_handler.py:1138 Exception handlers registered
+[32mINFO    [0m error_handler:unified_error_handler.py:1164 Global error handling system configured
+[32mINFO    [0m test_app_setup:app.py:162 Unified error handling system enabled
+[32mINFO    [0m transaction_service:transaction_service.py:113 Loaded financial data from file
+[32mINFO    [0m test_app_setup:app.py:220 🧪 TESTING mode – lightweight OrchestrationService attached to app.state
+[32mINFO    [0m test_app_setup:app.py:231 SmartModelSelectionService initialized
+[32mINFO    [0m security_headers_middleware:security_headers_middleware.py:81 Initialized SecurityHeadersMiddleware with 10 CSP directives
+[32mINFO    [0m app.middleware.telemetry_middleware:telemetry_middleware.py:30 Telemetry middleware initialized
+[32mINFO    [0m error_handler:unified_error_handler.py:792 Initialized GlobalErrorHandlingMiddleware with debug_details=True, exclude_paths=None
+[32mINFO    [0m request:structured_logging.py:603 GET /api/health
+[35mDEBUG   [0m request_id_middleware:request_id_middleware.py:45 Processing request: GET /api/health
+[1m[31mERROR   [0m health_service:health_service.py:419 Mock service health check failed: No module named 'app.services.mock_llm_service'
+[32mINFO    [0m app.middleware.telemetry_middleware:telemetry_middleware.py:89 GET /api/health completed
+[32mINFO    [0m request:structured_logging.py:655 GET /api/health 200 (1.11ms)
