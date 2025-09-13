@@ -263,6 +263,27 @@ const OrchestratorInterface = () => {
         </div>
       )}
 
+      {/* Model availability warning */}
+      {availableModels.length < 2 && !isLoadingModels && (
+        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+          <div className="flex items-start">
+            <svg className="w-5 h-5 text-red-600 mt-0.5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+            <div>
+              <h3 className="text-sm font-semibold text-red-800">Service Unavailable</h3>
+              <p className="text-sm text-red-700 mt-1">
+                UltraAI requires at least 2 different AI models for its multi-model orchestration system. 
+                Currently, only {availableModels.length} model{availableModels.length === 1 ? ' is' : 's are'} available.
+              </p>
+              <p className="text-xs text-red-600 mt-2">
+                Please ensure API keys are configured for at least 2 different AI providers.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Input form */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
         {/* Main form column */}
@@ -403,18 +424,21 @@ const OrchestratorInterface = () => {
               <button
                 type="submit"
                 data-testid="run-analysis"
-                disabled={isProcessing}
+                disabled={isProcessing || availableModels.length < 2}
+                title={availableModels.length < 2 ? 'At least 2 AI models required for orchestration' : ''}
                 className={`px-6 py-3 rounded-lg font-medium transition-all ${
-                  isProcessing
+                  isProcessing || availableModels.length < 2
                     ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                     : useFeatherOrchestration
                       ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700 shadow-lg'
                       : 'bg-blue-600 text-white hover:bg-blue-700'
                 }`}
               >
-                {isProcessing 
-                  ? (useFeatherOrchestration ? 'Running Ultra Synthesis™...' : 'Processing...')
-                  : (useFeatherOrchestration ? 'Start Ultra Synthesis™' : 'Generate Response')
+                {availableModels.length < 2
+                  ? 'Insufficient Models (2+ Required)'
+                  : isProcessing 
+                    ? (useFeatherOrchestration ? 'Running Ultra Synthesis™...' : 'Processing...')
+                    : (useFeatherOrchestration ? 'Start Ultra Synthesis™' : 'Generate Response')
                 }
               </button>
             </div>

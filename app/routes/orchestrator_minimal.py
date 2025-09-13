@@ -189,6 +189,27 @@ def create_router() -> APIRouter:
 
             orchestration_service = http_request.app.state.orchestration_service
             
+            # Check model availability BEFORE processing
+            available_models = await orchestration_service._default_models_from_env()
+            model_count = len(available_models)
+            
+            # Enforce minimum model requirement
+            from app.config import Config
+            if model_count < 2:  # Require at least 2 models for multi-model orchestration
+                logger.error(f"Insufficient models available: {model_count} < 2")
+                raise HTTPException(
+                    status_code=503,
+                    detail={
+                        "error": "SERVICE_UNAVAILABLE",
+                        "message": "UltraAI requires at least 2 AI models for orchestration",
+                        "details": {
+                            "available_models": model_count,
+                            "required_models": 2,
+                            "reason": "Multi-model orchestration ensures higher quality responses through peer review"
+                        }
+                    }
+                )
+            
             # Use tracked orchestration if available
             if hasattr(orchestration_service, "set_request_context"):
                 orchestration_service.set_request_context(http_request)

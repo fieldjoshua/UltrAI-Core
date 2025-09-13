@@ -449,8 +449,8 @@ class OrchestrationService:
         if not selected_models:
             selected_models = await self._default_models_from_env()
         
-        # Check if we have any models available
-        if not selected_models or len(selected_models) == 0:
+        # Enforce minimum 2 models for orchestration
+        if not selected_models or len(selected_models) < 2:
             # Get provider health status for detailed error message
             health_summary = await provider_health_manager.get_health_summary()
             available_providers = health_summary["_system"]["available_providers"]
