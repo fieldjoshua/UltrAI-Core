@@ -11,7 +11,7 @@ echo ""
 if [ "$environment" = "staging" ]; then
     url="https://ultrai-staging-api.onrender.com"
 elif [ "$environment" = "production" ]; then
-    url="https://ultrai-core.onrender.com"
+    url="https://ultrai-prod-api.onrender.com"
 else
     echo "❌ Invalid environment. Use 'staging' or 'production'"
     exit 1
