@@ -3,7 +3,7 @@ import { useEffect, useState, useMemo, useCallback, memo } from "react";
 import { Button } from "./ui/button";
 import { Checkbox } from "./ui/checkbox";
 import { Card } from "./ui/card";
-import { processWithFeatherOrchestration } from "../api/orchestrator";
+import { processWithFeatherOrchestration, getAvailableModels } from "../api/orchestrator";
 import StatusUpdater from "./StatusUpdater";
 import { RadioGroup, RadioGroupItem } from "./ui/radio-group";
 import { Textarea } from "./ui/textarea";
@@ -188,25 +188,24 @@ export default function CyberWizard() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [currentStep, steps.length, showStatus]);
 
-  // Load available models for Step 3 (only show keyed models)
+  // Load available models for Step 4 (only show healthy & keyed models)
   useEffect(() => {
     const fetchAvailable = async () => {
       try {
-        const r = await fetch("/api/available-models?healthy_only=true", { cache: "no-store" });
-        if (!r.ok) throw new Error(`HTTP ${r.status}`);
-        const d = await r.json();
+        const d = await getAvailableModels();
         if (d && Array.isArray(d.models)) {
-          const names = d.models.map((m: any) => m.name);
+          const names = d.models.map((m: any) => (typeof m === 'string' ? m : m.name)).filter(Boolean);
           setAvailableModels(names);
           const infoMap: Record<string, { provider: string; cost_per_1k_tokens: number }> = {};
           const statusMap: Record<string, 'checking' | 'ready' | 'error'> = {};
-          d.models.forEach((m: any) => {
-            infoMap[String(m.name)] = {
-              provider: String(m.provider || ''),
-              cost_per_1k_tokens: Number(m.cost_per_1k_tokens || 0),
+          (d.models as any[]).forEach((m: any) => {
+            const name = typeof m === 'string' ? m : m.name;
+            if (!name) return;
+            infoMap[name] = {
+              provider: String((typeof m === 'object' && m?.provider) || ''),
+              cost_per_1k_tokens: Number((typeof m === 'object' && m?.cost_per_1k_tokens) || 0),
             };
-            // Set all models as ready since they're returned by the API
-            statusMap[String(m.name)] = 'ready';
+            statusMap[name] = 'ready';
           });
           setAvailableModelInfos(infoMap);
           setModelStatuses(statusMap);
