@@ -18,6 +18,7 @@ from app.utils.structured_logging import (
     setup_structured_logging_middleware as setup_structured_logging,
     apply_structured_logging_middleware as apply_structured_logging,
 )
+from app.utils.unified_error_handler import setup_error_handling
 from app.database.connection import init_db
 from app.services.model_selection_service import SmartModelSelectionService
 from app.utils.sentry_integration import init_sentry
@@ -117,7 +118,7 @@ def create_app() -> FastAPI:
         # Exclude paths from rate limiting
         excluded_paths = [
             "/health",
-            # Don't exclude /api/health so responses include rate limit headers
+            "/api/health",
             "/api/docs",
             "/api/redoc",
             "/api/openapi.json",
@@ -140,7 +141,7 @@ def create_app() -> FastAPI:
             "/api/docs",
             "/api/redoc",
             "/api/openapi.json",
-            # Keep analyze/orchestrator protected to exercise auth + rate limiting in tests
+            # Keep analyze/orchestrator protected (removed from public)
             "/api/available-models",  # Public for model discovery
             "/api/pricing",  # Public for pricing info
         ]
@@ -154,6 +155,11 @@ def create_app() -> FastAPI:
         # Setup combined authentication middleware
         setup_combined_auth_middleware(app, public_paths=public_paths, protected_paths=protected_paths)
         logger.info("Authentication middleware enabled (JWT + API Key support)")
+
+    # Setup unified error handling
+    include_debug = Config.DEBUG or Config.ENVIRONMENT != "production"
+    setup_error_handling(app, include_debug_details=include_debug)
+    logger.info("Unified error handling system enabled")
 
     # Include initial routers (mounted under API prefix below)
     app.include_router(user_router, prefix="/api")
@@ -264,7 +270,9 @@ def create_app() -> FastAPI:
                 or path.startswith("health")
                 or path.startswith("assets/")
             ):
-                return {"error": "Route not found"}
+                # Return 404 for non-existent API routes
+                from fastapi import HTTPException
+                raise HTTPException(status_code=404, detail="Route not found")
 
             # If the requested path directly matches a built file in dist, serve it (e.g., images)
             candidate = os.path.join(frontend_dist, path)
@@ -280,31 +288,5 @@ def create_app() -> FastAPI:
                 return FileResponse(index_file)
             return {"message": "Frontend not built"}
 
-    # Correlate requests with X-Request-ID
-    @app.middleware("http")
-    async def request_id_middleware(request, call_next):
-        try:
-            import uuid
-            request_id = request.headers.get("X-Request-ID") or str(uuid.uuid4())
-            # Process request
-            response = await call_next(request)
-            # Echo header
-            try:
-                response.headers["X-Request-ID"] = request_id
-            except Exception:
-                pass
-            return response
-        except Exception:
-            # Ensure a response even if middleware fails
-            from starlette.responses import JSONResponse
-            return JSONResponse(
-                status_code=500,
-                content={
-                    "status": "error",
-                    "message": "Unhandled error",
-                    "code": "INTERNAL",
-                },
-                headers={"X-Request-ID": request.headers.get("X-Request-ID", "unknown")},
-            )
 
     return app

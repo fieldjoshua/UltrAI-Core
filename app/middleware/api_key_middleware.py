@@ -13,6 +13,7 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.types import ASGIApp
 
 from app.models.base_models import ErrorResponse
+from app.config import Config
 from app.utils.api_key_manager import ApiKeyScope, api_key_manager
 from app.utils.logging import get_logger, log_audit
 
@@ -79,8 +80,9 @@ class ApiKeyMiddleware(BaseHTTPMiddleware):
         if any(request.url.path.startswith(path) for path in self.public_paths):
             return await call_next(request)
 
-        # Skip API key authentication for test requests (used in production tests)
-        if request.headers.get("X-Test-Mode") == "true":
+        # Skip API key authentication for test requests only when TESTING is enabled
+        if Config.TESTING and request.headers.get("X-Test-Mode") == "true":
+            logger.info("🧪 TESTING bypass active via X-Test-Mode header (API key middleware)")
             # Add dummy API key info to request state for downstream handlers
             request.state.api_key = "test-api-key"
             request.state.user_id = "test-user-id"

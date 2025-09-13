@@ -12,9 +12,69 @@ from app.services.orchestration_service import OrchestrationService
 from app.services.quality_evaluation import QualityEvaluationService
 from app.services.rate_limiter import RateLimiter
 from app.services.model_selection import SmartModelSelector
+from app.services.provider_health_manager import provider_health_manager
 from app.utils.logging import get_logger
+from app.config import Config
+import os
+import sys
 
 logger = get_logger("main")
+
+
+def validate_production_requirements() -> bool:
+    """
+    Validate that production requirements are met.
+    
+    Returns:
+        bool: True if requirements are met, False otherwise
+    """
+    if Config.ENVIRONMENT != "production":
+        return True  # Skip validation for non-production environments
+    
+    # Check minimum models requirement
+    if Config.MINIMUM_MODELS_REQUIRED < 2:
+        logger.error(
+            "⚠️ PRODUCTION CONFIG ERROR: MINIMUM_MODELS_REQUIRED must be at least 2 in production. "
+            f"Current value: {Config.MINIMUM_MODELS_REQUIRED}"
+        )
+        return False
+    
+    # Check for required API keys (at least 2 providers must be configured)
+    configured_providers = []
+    
+    if os.getenv("OPENAI_API_KEY"):
+        configured_providers.append("OpenAI")
+    if os.getenv("ANTHROPIC_API_KEY"):
+        configured_providers.append("Anthropic")
+    if os.getenv("GOOGLE_API_KEY"):
+        configured_providers.append("Google")
+    if os.getenv("HUGGINGFACE_API_KEY"):
+        configured_providers.append("HuggingFace")
+    
+    if len(configured_providers) < 2:
+        logger.error(
+            "⚠️ PRODUCTION CONFIG ERROR: At least 2 LLM provider API keys must be configured. "
+            f"Currently configured: {configured_providers}"
+        )
+        logger.error(
+            "Please set at least 2 of the following environment variables: "
+            "OPENAI_API_KEY, ANTHROPIC_API_KEY, GOOGLE_API_KEY, HUGGINGFACE_API_KEY"
+        )
+        return False
+    
+    # Check single model fallback is disabled
+    if Config.ENABLE_SINGLE_MODEL_FALLBACK:
+        logger.warning(
+            "⚠️ PRODUCTION WARNING: ENABLE_SINGLE_MODEL_FALLBACK is enabled. "
+            "This should be disabled in production for proper multi-model orchestration."
+        )
+    
+    logger.info(
+        f"✅ Production validation passed: {len(configured_providers)} providers configured "
+        f"({', '.join(configured_providers)}), minimum models: {Config.MINIMUM_MODELS_REQUIRED}"
+    )
+    
+    return True
 
 
 def initialize_services() -> Dict[str, Any]:
@@ -74,6 +134,13 @@ def configure_app(app: FastAPI, services: Dict[str, Any]) -> None:
 
 def create_production_app() -> FastAPI:
     """Create and configure the production FastAPI application."""
+    # Validate production requirements
+    if not validate_production_requirements():
+        logger.error("🚨 PRODUCTION REQUIREMENTS NOT MET - SERVICE CANNOT START")
+        if Config.ENVIRONMENT == "production":
+            # In production, fail fast to prevent deploying a broken service
+            sys.exit(1)
+    
     # Create base app
     app = create_app()
 

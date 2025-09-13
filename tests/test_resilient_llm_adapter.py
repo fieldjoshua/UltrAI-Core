@@ -2,6 +2,11 @@
 Tests for resilient LLM adapter with circuit breakers, retries, and timeouts.
 """
 
+import os
+# Set environment variables BEFORE any app imports
+os.environ["TESTING"] = "true"
+os.environ["JWT_SECRET_KEY"] = "test-secret-key"
+
 import asyncio
 import pytest
 from unittest.mock import Mock, AsyncMock, patch
@@ -48,7 +53,7 @@ class TestCircuitBreaker:
 
     def test_circuit_breaker_half_open_after_timeout(self):
         """Test circuit breaker transitions to half-open after timeout"""
-        config = CircuitBreakerConfig(failure_threshold=2, timeout=0.1)  # 100ms timeout
+        config = CircuitBreakerConfig(failure_threshold=2, timeout=0.1, success_threshold=1, min_calls=2)  # 100ms timeout
         breaker = CircuitBreaker(config)
         
         # Cause failures to open circuit
@@ -64,17 +69,14 @@ class TestCircuitBreaker:
         import time
         time.sleep(0.2)
         
-        # Next call should transition to half-open
-        try:
-            breaker.call(lambda: "success")
-        except Exception as e:
-            if "Circuit breaker is OPEN" not in str(e):
-                assert breaker.state == CircuitState.HALF_OPEN
+        # A successful call in half-open state should close the circuit
+        breaker.call(lambda: "success")
+        assert breaker.state == CircuitState.CLOSED
 
     @pytest.mark.asyncio
     async def test_async_circuit_breaker(self):
         """Test async circuit breaker operations"""
-        config = CircuitBreakerConfig(failure_threshold=2, success_threshold=1)
+        config = CircuitBreakerConfig(failure_threshold=2, success_threshold=1, min_calls=2)
         breaker = CircuitBreaker(config)
         
         # Test successful async call
@@ -90,10 +92,8 @@ class TestCircuitBreaker:
             raise Exception("Test error")
         
         for i in range(2):
-            try:
+            with pytest.raises(Exception, match="Test error"):
                 await breaker.async_call(async_failure)
-            except:
-                pass
         
         assert breaker.state == CircuitState.OPEN
 

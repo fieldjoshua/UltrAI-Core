@@ -18,7 +18,7 @@ from app.utils.circuit_breaker import (
     CircuitOpenError,
 )
 from app.utils.error_rate_limiter import ErrorRateLimitConfig, ErrorRateLimiter
-from app.utils.errors import LLMError, NetworkError, SystemError
+from app.utils.errors import LLMProviderError, NetworkError, SystemError as AppSystemError
 from app.utils.logging import get_logger
 from app.utils.retry_handler import RetryConfig, RetryError, RetryHandler
 from app.utils.timeout_handler import TimeoutConfig, TimeoutError, TimeoutHandler
@@ -79,7 +79,7 @@ class APIFailureHandler:
             max_delay=self.config.get("retry_max_delay", 60.0),
             exponential_base=2.0,
             jitter=True,
-            retry_on=(NetworkError, TimeoutError, LLMError),
+            retry_on=(NetworkError, TimeoutError, LLMProviderError),
             exclude=(ValueError, KeyError, CircuitOpenError),
         )
         self.retry_handler = RetryHandler(retry_config)
@@ -159,7 +159,7 @@ class APIFailureHandler:
             API response or cached/fallback response
 
         Raises:
-            LLMError: If all providers fail and no cache available
+            LLMProviderError: If all providers fail and no cache available
         """
         context = APICallContext(
             provider=primary_provider,
@@ -272,7 +272,7 @@ class APIFailureHandler:
 
         # Complete failure
         self.stats["failed_calls"] += 1
-        raise LLMError(
+        raise LLMProviderError(
             message=f"All API providers failed for operation '{operation}'",
             code="LLM_004",
             status_code=503,
@@ -304,7 +304,7 @@ class APIFailureHandler:
                 logger.warning(f"Rate limited, delaying {delay}s for {provider.value}")
                 await asyncio.sleep(delay)
             else:
-                raise LLMError(
+                raise LLMProviderError(
                     message="API rate limit exceeded",
                     code="LLM_005",
                     status_code=429,

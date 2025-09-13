@@ -2,8 +2,8 @@
 Cache management routes.
 """
 
-from fastapi import APIRouter, Depends, HTTPException, Query
-from typing import Dict, Any
+from fastapi import APIRouter, Depends, HTTPException, Query, Body
+from typing import Dict, Any, Optional
 
 from app.middleware.auth_dependencies import get_current_admin_user
 from app.services.cache_service import get_cache_service
@@ -15,7 +15,7 @@ router = APIRouter(prefix="/cache", tags=["Cache"])
 
 @router.get("/stats", response_model=Dict[str, Any])
 async def get_cache_stats(
-    current_user=Depends(get_current_admin_user)
+    current_user: Any = Depends(get_current_admin_user)
 ) -> Dict[str, Any]:
     """Get cache statistics (admin only)."""
     try:
@@ -27,79 +27,63 @@ async def get_cache_stats(
             "stats": stats
         }
     except Exception as e:
-        logger.error(f"Failed to get cache stats: {e}")
+        logger.error(f"Failed to get cache stats: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail="Failed to retrieve cache statistics")
 
 
-@router.delete("/clear")
+@router.post("/clear")
 async def clear_cache(
-    pattern: str = Query(None, description="Optional pattern to match keys (e.g., 'pipeline:*')"),
-    current_user=Depends(get_current_admin_user)
+    payload: Optional[Dict[str, str]] = Body(None),
+    current_user: Any = Depends(get_current_admin_user)
 ) -> Dict[str, Any]:
     """Clear cache entries (admin only)."""
     try:
         cache_service = get_cache_service()
+        pattern = payload.get("pattern") if payload else None
         
         if pattern:
             # Clear specific pattern
             count = await cache_service.clear_pattern(pattern)
             message = f"Cleared {count} cache entries matching pattern: {pattern}"
+            cleared_count = count
         else:
             # Clear all cache
-            # For Redis: use FLUSHDB
-            count = 0
-            if cache_service.redis_client:
-                await cache_service.redis_client.flushdb()
-                count += 1
-            
-            # Clear memory cache
-            memory_count = len(cache_service.memory_cache)
-            cache_service.memory_cache.clear()
-            count += memory_count
-            
-            message = f"Cleared all cache entries (Redis + {memory_count} memory entries)"
-        
+            await cache_service.flush()
+            message = "Cleared all cache entries (Redis + memory)"
+            cleared_count = -1  # Indicates a full flush
+
         logger.info(message)
         
         return {
             "status": "success",
             "message": message,
-            "cleared_count": count
+            "cleared": cleared_count,
+            "pattern": pattern
         }
     except Exception as e:
-        logger.error(f"Failed to clear cache: {e}")
+        logger.error(f"Failed to clear cache: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail="Failed to clear cache")
 
 
-@router.get("/health")
+@router.get("/health", response_model=Dict[str, Any])
 async def cache_health() -> Dict[str, Any]:
     """Check cache service health."""
     try:
         cache_service = get_cache_service()
         
         # Test Redis connectivity
-        redis_healthy = False
-        if cache_service.redis_client:
-            try:
-                await cache_service.redis_client.ping()
-                redis_healthy = True
-            except Exception:
-                pass
+        redis_healthy = cache_service.is_redis_available()
         
         return {
-            "status": "healthy",
-            "redis": {
-                "connected": redis_healthy,
-                "url_configured": bool(cache_service.redis_client)
-            },
-            "memory_cache": {
-                "size": len(cache_service.memory_cache),
-                "enabled": True
-            }
+            "healthy": True,
+            "redis_available": redis_healthy,
+            "memory_cache_size": len(cache_service.memory_cache),
         }
     except Exception as e:
-        logger.error(f"Cache health check failed: {e}")
+        logger.error(f"Cache health check failed: {e}", exc_info=True)
         return {
-            "status": "unhealthy",
+            "healthy": False,
+            "redis_available": False,
+            "memory_cache_size": 0,
             "error": str(e)
         }

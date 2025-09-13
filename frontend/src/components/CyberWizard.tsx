@@ -105,19 +105,47 @@ export default function CyberWizard() {
   // Check if we're in demo/mock mode based on environment
   const isDemoMode = import.meta.env.VITE_API_MODE === 'mock' || import.meta.env.VITE_DEMO_MODE === 'true';
 
-  // Auto-populate demo data when in demo mode
+  // Auto-populate and auto-run demo dataset when in demo mode
   useEffect(() => {
-    if (isDemoMode && userQuery === "") {
-      // Pre-fill demo data
-      setUserQuery("What are the best strategies for sustainable urban transportation?");
-      setSelectedModels(["gpt-4-turbo-preview", "claude-3-opus-20240229", "gemini-1.5-pro-latest"]);
-      setSelectedGoals(["Creative ideas", "Deep analysis"]);
-      setSummary([
-        { label: "Creative ideas", cost: 0.05, color: "mint", section: "1. Goals" },
-        { label: "Deep analysis", cost: 0.08, color: "mint", section: "1. Goals" }
-      ]);
-      setTotalCost(0.13);
-    }
+    if (!isDemoMode) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch('/demo/ultrai_demo.json', { cache: 'no-store' });
+        if (!res.ok) {
+          // Fallback to simple demo prefill
+          if (!cancelled && userQuery === "") {
+            setUserQuery("Top 10 angel investors likely to fund a democratizing multi-LLM AI portal...");
+            setSelectedModels(["gpt-4o", "claude-3-5-sonnet-20241022", "gemini-1.5-pro"]);
+            setSelectedGoals(["Deep analysis"]);
+            setSummary([{ label: "Deep analysis", cost: 0.08, color: "mint", section: "1. Goals" }]);
+            setTotalCost(0.08);
+            setShowStatus(true);
+          }
+          return;
+        }
+        const data = await res.json();
+        if (cancelled) return;
+        if (userQuery === "" && typeof data?.prompt === 'string') {
+          setUserQuery(data.prompt);
+        }
+        if (Array.isArray(data?.models_used) && data.models_used.length >= 2) {
+          setSelectedModels(data.models_used);
+        } else {
+          setSelectedModels(["gpt-4o", "claude-3-5-sonnet-20241022", "gemini-1.5-pro"]);
+        }
+        // Auto-run the pipeline to show curated synthesis
+        setShowStatus(true);
+      } catch (e) {
+        if (!cancelled && userQuery === "") {
+          // Graceful fallback
+          setUserQuery("Top 10 angel investors likely to fund a democratizing multi-LLM AI portal...");
+          setSelectedModels(["gpt-4o", "claude-3-5-sonnet-20241022", "gemini-1.5-pro"]);
+          setShowStatus(true);
+        }
+      }
+    })();
+    return () => { cancelled = true; };
   }, [isDemoMode]);
 
   useEffect(() => {
@@ -533,14 +561,8 @@ The convergence of autonomous vehicles, renewable energy, and smart city infrast
                     `
                   }}
                 >
-                  <h1 className="text-3xl font-bold tracking-wider" style={{
-                    color: '#00ff9f',
-                    textShadow: `
-                      0 0 10px #00ff9f,
-                      0 0 20px #00ff9f,
-                      0 0 30px #00ff9f,
-                      0 0 40px #00ff9f
-                    `
+                  <h1 className="text-3xl font-bold tracking-wider text-cyber-accent" style={{
+                    textShadow: 'var(--shadow-neon, 0 0 40px currentColor)'
                   }}>
                     ULTRA AI
                   </h1>
@@ -591,19 +613,17 @@ The convergence of autonomous vehicles, renewable energy, and smart city infrast
               {/* Main narrative */}
               <div className="max-w-3xl mx-auto mt-8">
                 <p className="text-lg leading-relaxed text-center text-white/90">
-                  Welcome to the future of <span className="font-bold" style={{
-                    color: '#00ff9f',
-                    textShadow: '0 0 5px #00ff9f, 0 0 10px #00ff9f'
+                  Welcome to the future of <span className="font-bold text-cyber-accent" style={{
+                    textShadow: 'var(--shadow-text-glow, 0 0 10px currentColor)'
                   }}>Intelligence Multiplication</span>. 
                   We orchestrate a sophisticated ensemble of leading AI models, each contributing their unique strengths 
-                  to deliver <span className="font-bold" style={{
-                    color: '#00d4ff',
-                    textShadow: '0 0 5px #00d4ff, 0 0 10px #00d4ff'
-                  }}>unprecedented quality</span> and <span className="font-bold" style={{
-                    color: '#ff6600',
-                    textShadow: '0 0 5px #ff6600, 0 0 10px #ff6600'
+                  to deliver <span className="font-bold text-cyber-primary" style={{
+                    textShadow: 'var(--shadow-text-glow, 0 0 10px currentColor)'
+                  }}>unprecedented quality</span> and <span className="font-bold text-warning" style={{
+                    textShadow: 'var(--shadow-text-glow, 0 0 10px currentColor)'
                   }}>comprehensive insights</span>.
                 </p>
+<<<<<<< HEAD
                 <div className="flex justify-center gap-6 text-sm mt-6">
                   <span className="text-white/80" style={{
                     textShadow: '0 0 5px rgba(255,255,255,0.3)'
@@ -615,6 +635,19 @@ The convergence of autonomous vehicles, renewable energy, and smart city infrast
                   <span className="text-white/50">•</span>
                   <span className="text-white/80" style={{
                     textShadow: '0 0 5px rgba(255,255,255,0.3)'
+=======
+                <div className="flex justify-center gap-6 text-sm mt-6 text-white/90">
+                  <span className="text-white" style={{
+                    textShadow: 'var(--shadow-text-subtle, 0 0 5px rgba(255,255,255,0.3))'
+                  }}>Pay-as-you-go</span>
+                  <span className="text-white/70">•</span>
+                  <span className="text-white" style={{
+                    textShadow: 'var(--shadow-text-subtle, 0 0 5px rgba(255,255,255,0.3))'
+                  }}>No commitments</span>
+                  <span className="text-white/70">•</span>
+                  <span className="text-white" style={{
+                    textShadow: 'var(--shadow-text-subtle, 0 0 5px rgba(255,255,255,0.3))'
+>>>>>>> origin/main
                   }}>Enterprise-grade</span>
                 </div>
               </div>
@@ -683,82 +716,25 @@ The convergence of autonomous vehicles, renewable energy, and smart city infrast
       {isNonTimeSkin && (
         <div className="fixed top-10 left-1/2 transform -translate-x-1/2 z-10">
           <div className="relative">
-            {/* Billboard structure based on actual logo */}
-            <svg width="280" height="180" viewBox="0 0 280 180" className={currentSkin === 'minimalist' ? 'drop-shadow-2xl' : 'drop-shadow-lg'}>
-              {/* Main billboard panel with 3D effect */}
-              <g>
-                {/* Back panel shadow */}
-                <rect x="35" y="25" width="210" height="80" 
-                  fill="rgba(0,0,0,0.3)" rx="2" />
-                
-                {/* Main billboard back */}
-                <rect x="30" y="20" width="220" height="85" 
-                  fill={currentSkin === 'minimalist' ? '#1a1a1a' : '#2c3e50'} 
-                  rx="3" />
-                
-                {/* Billboard front face */}
-                <rect x="35" y="25" width="210" height="75" 
-                  fill={currentSkin === 'minimalist' ? '#ffffff' : '#ecf0f1'} 
-                  stroke={currentSkin === 'minimalist' ? '#000000' : '#34495e'}
-                  strokeWidth="3" rx="2" />
-                
-                {/* Inner frame */}
-                <rect x="40" y="30" width="200" height="65" 
-                  fill="none"
-                  stroke={currentSkin === 'minimalist' ? '#000000' : '#34495e'}
-                  strokeWidth="1" rx="1" />
-              </g>
-              
-              {/* UltrAI text with better typography */}
-              <text x="140" y="70" 
-                fontFamily={currentSkin === 'business' ? "'Helvetica Neue', Arial, sans-serif" : "'Courier New', monospace"}
-                fontSize="36" fontWeight="bold" textAnchor="middle"
-                fill={currentSkin === 'minimalist' ? '#000000' : '#2c3e50'}>
-                UltrAI
-              </text>
-              
-              {/* Support structure */}
-              <g>
-                {/* Left support */}
-                <rect x="60" y="105" width="12" height="60" 
-                  fill={currentSkin === 'minimalist' ? '#000000' : '#34495e'} />
-                <rect x="62" y="107" width="8" height="56" 
-                  fill={currentSkin === 'minimalist' ? '#333333' : '#2c3e50'} />
-                
-                {/* Right support */}
-                <rect x="208" y="105" width="12" height="60" 
-                  fill={currentSkin === 'minimalist' ? '#000000' : '#34495e'} />
-                <rect x="210" y="107" width="8" height="56" 
-                  fill={currentSkin === 'minimalist' ? '#333333' : '#2c3e50'} />
-                
-                {/* Cross braces */}
-                <line x1="72" y1="120" x2="208" y2="150" 
-                  stroke={currentSkin === 'minimalist' ? '#666666' : '#7f8c8d'} 
-                  strokeWidth="2" />
-                <line x1="72" y1="150" x2="208" y2="120" 
-                  stroke={currentSkin === 'minimalist' ? '#666666' : '#7f8c8d'} 
-                  strokeWidth="2" />
-              </g>
-              
-              {/* Ground/base */}
-              <rect x="20" y="165" width="240" height="8" 
-                fill={currentSkin === 'minimalist' ? '#000000' : '#2c3e50'} rx="1" />
-              <rect x="40" y="168" width="200" height="2" 
-                fill={currentSkin === 'minimalist' ? '#333333' : '#34495e'} />
-              
-              {/* Lights on top */}
-              <g>
-                <ellipse cx="80" cy="15" rx="8" ry="6" 
-                  fill={currentSkin === 'minimalist' ? '#333333' : '#2c3e50'} />
-                <ellipse cx="80" cy="13" rx="6" ry="4" 
-                  fill="#00ff00" opacity="0.9" />
-                
-                <ellipse cx="200" cy="15" rx="8" ry="6" 
-                  fill={currentSkin === 'minimalist' ? '#333333' : '#2c3e50'} />
-                <ellipse cx="200" cy="13" rx="6" ry="4" 
-                  fill="#00ff00" opacity="0.9" />
-              </g>
-            </svg>
+            {(currentSkin === 'minimalist' || currentSkin === 'business') ? (
+              <img
+                src="/assets/ultrai-billboard.png"
+                alt="UltrAI"
+                className={currentSkin === 'minimalist' ? 'drop-shadow-2xl' : 'drop-shadow-lg'}
+                style={{ width: 280, height: 180, objectFit: 'contain' }}
+              />
+            ) : (
+              /* Fallback original SVG for time-based variants if ever shown */
+              <svg width="280" height="180" viewBox="0 0 280 180" className="drop-shadow-lg">
+                <g>
+                  <rect x="35" y="25" width="210" height="80" fill="rgba(0,0,0,0.3)" rx="2" />
+                  <rect x="30" y="20" width="220" height="85" fill="#2c3e50" rx="3" />
+                  <rect x="35" y="25" width="210" height="75" fill="#ecf0f1" stroke="#34495e" strokeWidth="3" rx="2" />
+                  <rect x="40" y="30" width="200" height="65" fill="none" stroke="#34495e" strokeWidth="1" rx="1" />
+                </g>
+                <text x="140" y="70" fontFamily="'Courier New', monospace" fontSize="36" fontWeight="bold" textAnchor="middle" fill="#2c3e50">UltrAI</text>
+              </svg>
+            )}
           </div>
         </div>
       )}
@@ -1550,7 +1526,7 @@ The convergence of autonomous vehicles, renewable energy, and smart city infrast
                     {receiptSections}
                   </div>
                   <div className="mt-3 font-bold text-pink-400 text-lg text-center transition-all duration-300 hover:scale-105" style={{
-                    textShadow: '0 0 10px rgba(255, 0, 212, 0.5)'
+                    textShadow: 'var(--shadow-text-glow, 0 0 10px currentColor)'
                   }}>{`Total: $${totalCost.toFixed(2)}`}</div>
                   {addonsSubmitted ? (
                     selectedModels.length >= 2 ? (

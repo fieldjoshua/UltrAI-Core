@@ -411,11 +411,36 @@ export async function processWithFeatherOrchestration({
     }
   }
   
+<<<<<<< HEAD
   // Stage 1: Initialize providers & health check (2-5s)
   await new Promise(resolve => setTimeout(resolve, 2000 + Math.random() * 3000));
   
   // Use provided models or select defaults (top models)
   let selectedModels = models || ['gpt-5', 'claude-4.1', 'gemini-2.5'];
+=======
+  // If a demo dataset is available, return it directly to reflect manual UltrAI search
+  try {
+    const demoRes = await fetch('/demo/ultrai_demo.json', { cache: 'no-store' });
+    if (demoRes.ok) {
+      const demo = await demoRes.json();
+      return {
+        status: 'success',
+        ultra_response: demo.ultra_response,
+        models_used: demo.models_used || ['gpt-4o', 'claude-3-5-sonnet-20241022', 'gemini-1.5-pro'],
+        processing_time: 2.5,
+        pattern_used: pattern,
+        initial_responses: {},
+        meta_analysis: { content: 'Loaded curated demo dataset', patterns: ['curated'], confidence: 0.99 },
+        ultra_synthesis: { content: demo.ultra_response, confidence: 0.99, synthesis_method: 'curated_demo' }
+      };
+    }
+  } catch (e) {
+    // Fallback to generated mock if demo file missing
+  }
+
+  // Use provided models or select defaults
+  let selectedModels = models || ['gpt-4o', 'claude-3-5-sonnet-20241022', 'gemini-1.5-pro'];
+>>>>>>> origin/main
   
   // Ensure at least 2 models for Ultra Synthesis
   if (selectedModels.length < 2) {

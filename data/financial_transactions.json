@@ -1,0 +1,168 @@
+{
+  "balances": {
+    "user1": 600.0,
+    "user3": 360.0,
+    "test_user": 150.0
+  },
+  "transactions": {
+    "user1": [
+      {
+        "user_id": "user1",
+        "amount": 100.0,
+        "type": "credit",
+        "description": "Test credit",
+        "timestamp": "2025-09-10T12:37:10.371998",
+        "status": "pending"
+      },
+      {
+        "user_id": "user1",
+        "amount": 100.0,
+        "type": "credit",
+        "description": "Test credit",
+        "timestamp": "2025-09-10T12:37:54.992665",
+        "status": "pending"
+      },
+      {
+        "user_id": "user1",
+        "amount": 100.0,
+        "type": "credit",
+        "description": "Test credit",
+        "timestamp": "2025-09-10T12:38:44.362863",
+        "status": "pending"
+      },
+      {
+        "user_id": "user1",
+        "amount": 100.0,
+        "type": "credit",
+        "description": "Test credit",
+        "timestamp": "2025-09-10T12:39:16.758099",
+        "status": "pending"
+      },
+      {
+        "user_id": "user1",
+        "amount": 100.0,
+        "type": "credit",
+        "description": "Test credit",
+        "timestamp": "2025-09-10T12:42:22.922333",
+        "status": "pending"
+      },
+      {
+        "user_id": "user1",
+        "amount": 100.0,
+        "type": "credit",
+        "description": "Test credit",
+        "timestamp": "2025-09-10T12:50:48.073027",
+        "status": "pending"
+      }
+    ],
+    "user3": [
+      {
+        "user_id": "user3",
+        "amount": 100.0,
+        "type": "credit",
+        "description": "Initial credit",
+        "timestamp": "2025-09-10T12:37:10.371998",
+        "status": "pending"
+      },
+      {
+        "user_id": "user3",
+        "amount": 40.0,
+        "type": "debit",
+        "description": "Test debit",
+        "timestamp": "2025-09-10T12:37:10.371998",
+        "status": "pending"
+      },
+      {
+        "user_id": "user3",
+        "amount": 100.0,
+        "type": "credit",
+        "description": "Initial credit",
+        "timestamp": "2025-09-10T12:37:54.992665",
+        "status": "pending"
+      },
+      {
+        "user_id": "user3",
+        "amount": 40.0,
+        "type": "debit",
+        "description": "Test debit",
+        "timestamp": "2025-09-10T12:37:54.992665",
+        "status": "pending"
+      },
+      {
+        "user_id": "user3",
+        "amount": 100.0,
+        "type": "credit",
+        "description": "Initial credit",
+        "timestamp": "2025-09-10T12:38:44.362863",
+        "status": "pending"
+      },
+      {
+        "user_id": "user3",
+        "amount": 40.0,
+        "type": "debit",
+        "description": "Test debit",
+        "timestamp": "2025-09-10T12:38:44.362863",
+        "status": "pending"
+      },
+      {
+        "user_id": "user3",
+        "amount": 100.0,
+        "type": "credit",
+        "description": "Initial credit",
+        "timestamp": "2025-09-10T12:39:16.758099",
+        "status": "pending"
+      },
+      {
+        "user_id": "user3",
+        "amount": 40.0,
+        "type": "debit",
+        "description": "Test debit",
+        "timestamp": "2025-09-10T12:39:16.758099",
+        "status": "pending"
+      },
+      {
+        "user_id": "user3",
+        "amount": 100.0,
+        "type": "credit",
+        "description": "Initial credit",
+        "timestamp": "2025-09-10T12:42:22.922333",
+        "status": "pending"
+      },
+      {
+        "user_id": "user3",
+        "amount": 40.0,
+        "type": "debit",
+        "description": "Test debit",
+        "timestamp": "2025-09-10T12:42:22.922333",
+        "status": "pending"
+      },
+      {
+        "user_id": "user3",
+        "amount": 100.0,
+        "type": "credit",
+        "description": "Initial credit",
+        "timestamp": "2025-09-10T12:50:48.073027",
+        "status": "pending"
+      },
+      {
+        "user_id": "user3",
+        "amount": 40.0,
+        "type": "debit",
+        "description": "Test debit",
+        "timestamp": "2025-09-10T12:50:48.073027",
+        "status": "pending"
+      }
+    ],
+    "test_user": [
+      {
+        "user_id": "test_user",
+        "amount": 150.0,
+        "type": "credit",
+        "description": "Test deposit",
+        "timestamp": "2025-09-10T12:37:54.992665",
+        "status": "pending"
+      }
+    ]
+  },
+  "last_updated": "2025-09-10T12:50:53.307491"
+}

@@ -1,4 +1,12 @@
 {
   "css.lint.unknownAtRules": "ignore",
-  "scss.lint.unknownAtRules": "ignore"
+  "scss.lint.unknownAtRules": "ignore",
+  "python.testing.pytestArgs": [
+    "."
+  ],
+  "python.testing.unittestEnabled": false,
+  "python.testing.pytestEnabled": true,
+  "python.defaultInterpreterPath": "./venv/bin/python",
+  "mypy-type-checker.dmypyExecutable": "./venv/bin/dmypy",
+  "mypy-type-checker.path": ["./venv/bin/mypy"]
 }

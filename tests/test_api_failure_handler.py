@@ -25,6 +25,7 @@ sys.modules["app.utils.errors"] = err_mod
 import pytest
 from unittest.mock import AsyncMock
 from app.services.api_failure_handler import APIFailureHandler, APIProvider
+from app.services.cache_service import CacheService
 
 
 @pytest.mark.asyncio
@@ -40,11 +41,14 @@ async def test_get_statistics_initial():
 @pytest.mark.asyncio
 async def test_execute_api_call_cache_hit(monkeypatch):
     handler = APIFailureHandler()
-    # Stub cache_service.get to return cached response
-    monkeypatch.setattr(
-        "app.services.api_failure_handler.cache_service.get",
-        AsyncMock(return_value="cached"),
-    )
+    # Create mock cache service
+    mock_cache = CacheService()
+    mock_cache.aget = AsyncMock(return_value="cached")
+    
+    # Replace cache_service with our mock
+    import app.services.api_failure_handler
+    app.services.api_failure_handler.cache_service = mock_cache
+    
     # Ensure _call_provider is not called
     handler._call_provider = AsyncMock()
     result = await handler.execute_api_call(
@@ -59,17 +63,18 @@ async def test_execute_api_call_cache_hit(monkeypatch):
 @pytest.mark.asyncio
 async def test_execute_api_call_provider_success(monkeypatch):
     handler = APIFailureHandler()
-    # No cache hit
-    monkeypatch.setattr(
-        "app.services.api_failure_handler.cache_service.get",
-        AsyncMock(return_value=None),
-    )
+    # Create mock cache service with no cache hit
+    mock_cache = CacheService()
+    mock_cache.aget = AsyncMock(return_value=None)
+    mock_cache.aset = AsyncMock()
+    
+    # Replace cache_service with our mock
+    import app.services.api_failure_handler
+    app.services.api_failure_handler.cache_service = mock_cache
+    
     # Stub provider call
     handler._call_provider = AsyncMock(return_value={"data": 123})
-    # Stub cache_service.set to no-op
-    monkeypatch.setattr(
-        "app.services.api_failure_handler.cache_service.set", AsyncMock()
-    )
+    
     result = await handler.execute_api_call(
         APIProvider.ANTHROPIC, AsyncMock(), operation="gen"
     )

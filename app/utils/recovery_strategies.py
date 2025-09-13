@@ -10,13 +10,12 @@ This module provides various recovery strategies to handle failures in a resilie
 """
 
 import asyncio
-import functools
 import inspect
 import logging
 import time
 from enum import Enum
 from functools import wraps
-from typing import Any, Callable, Dict, List, Optional, Set, Type, TypeVar, Union, cast
+from typing import Any, Callable, List, Optional, Type, TypeVar, cast
 
 from app.utils.domain_exceptions import (
     CircuitOpenException,
@@ -383,6 +382,31 @@ class ExponentialBackoffRetryStrategy(RetryStrategy):
                 return retry_type
 
         return None
+
+
+# Backwards-compatible aliases expected by other modules
+class RecoveryStrategy(RetryStrategy):
+    """Alias for legacy imports expecting RecoveryStrategy base."""
+
+    pass
+
+
+class ExponentialBackoffStrategy(ExponentialBackoffRetryStrategy):
+    """Alias for legacy imports expecting ExponentialBackoffStrategy."""
+
+    pass
+
+
+class LinearBackoffStrategy(FixedRetryStrategy):
+    """Alias mapping linear backoff to fixed-delay retry strategy."""
+
+    pass
+
+
+class AdaptiveStrategy(ExponentialBackoffRetryStrategy):
+    """Simplified adaptive strategy alias using exponential backoff by default."""
+
+    pass
 
 
 class CircuitBreaker:

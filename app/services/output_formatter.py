@@ -9,8 +9,9 @@ from typing import Dict, List, Any, Literal
 import re
 from datetime import datetime
 import base64
+import os
 
-from app.config.orchestrator_config import CONFIG  # type: ignore
+from app.config import Config
 
 Format = Literal["md", "text"]
 
@@ -356,7 +357,7 @@ def format_output(
 
     # Encrypt if requested
     if encrypt:
-        used_key = key or CONFIG.ENCRYPTION_KEY
+        used_key = key or os.getenv("ENCRYPTION_KEY") or Config.API_KEY_ENCRYPTION_KEY
         if not used_key:
             raise ValueError("Encryption requested but no key provided or configured")
         response_to_return = _encrypt(response_to_return, used_key)

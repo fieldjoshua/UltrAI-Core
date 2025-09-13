@@ -18,10 +18,16 @@ from sqlalchemy import (
     String,
     Text,
 )
-from sqlalchemy.dialects.postgresql import ARRAY, JSONB
 from sqlalchemy.orm import relationship
 
 from app.database.models.base import Base
+from app.database.db_types import get_json_type, get_array_type
+
+# Get appropriate types based on database
+# In production, this would be determined by the actual database dialect
+# For testing with SQLite, we use the fallback types
+JSONB = get_json_type()
+ARRAY = get_array_type
 
 
 class AnalysisStatus(enum.Enum):

@@ -14,7 +14,8 @@ from __future__ import annotations
 import os
 from typing import Dict
 
-from app.config.orchestrator_config import CONFIG  # type: ignore
+# Default price per 1K tokens if provider is unknown
+DEFAULT_PRICE_PER_1K = float(os.getenv("DEFAULT_PRICE_PER_1K", "0.005"))
 
 # ---------------------------------------------------------------------------
 # Pricing table (USD per 1K tokens)
@@ -37,6 +38,6 @@ def estimate_cost(token_counts: Dict[str, int], provider: str | None = None) -> 
         Cost in USD (rounded to 4 decimal places).
     """
     total_tokens = sum(token_counts.values())
-    price_per_1k = _DEFAULT_PRICING.get(provider or "", CONFIG.DEFAULT_PRICE_PER_1K)
+    price_per_1k = _DEFAULT_PRICING.get(provider or "", DEFAULT_PRICE_PER_1K)
     cost = (total_tokens / 1000.0) * price_per_1k
     return round(cost, 4)

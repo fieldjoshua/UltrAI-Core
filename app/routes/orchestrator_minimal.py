@@ -3,6 +3,7 @@ Route handlers for the orchestrator service.
 """
 
 import time
+import os
 from typing import Dict, Any, Optional, List
 from fastapi import APIRouter, HTTPException, Request, Depends
 from fastapi.responses import StreamingResponse
@@ -10,8 +11,9 @@ from pydantic import BaseModel, Field
 
 from app.utils.logging import get_logger
 from app.services.output_formatter import OutputFormatter
-from app.middleware.auth_middleware import require_auth, AuthUser
+from app.middleware.combined_auth_middleware import require_auth, AuthUser
 from app.models.streaming_response import StreamingAnalysisRequest, StreamingConfig
+from app.services.provider_health_manager import provider_health_manager
 
 logger = get_logger("orchestrator_routes")
 
@@ -95,38 +97,59 @@ def create_router() -> APIRouter:
             available_models = await orchestration_service._default_models_from_env()
             model_count = len(available_models)
             
+            # Get provider health summary
+            health_summary = await provider_health_manager.get_health_summary()
+            available_providers = health_summary["_system"]["available_providers"]
+            degradation_message = await provider_health_manager.get_degradation_message()
+            
+            # Check API key status
+            api_key_status = {
+                "openai": bool(os.getenv("OPENAI_API_KEY")),
+                "anthropic": bool(os.getenv("ANTHROPIC_API_KEY")),
+                "google": bool(os.getenv("GOOGLE_API_KEY")),
+                "huggingface": bool(os.getenv("HUGGINGFACE_API_KEY"))
+            }
+            
             # Determine service status
             from app.config import Config
             required_models = Config.MINIMUM_MODELS_REQUIRED
             
-            if model_count >= required_models:
+            if model_count >= required_models and len(available_providers) >= 2:
                 status = "healthy"
                 service_available = True
                 message = f"Service operational with {model_count} models"
             elif model_count >= 1 and Config.ENABLE_SINGLE_MODEL_FALLBACK:
                 status = "degraded"
                 service_available = True
-                message = f"Service in degraded mode with only {model_count} model(s)"
+                message = degradation_message or f"Service in degraded mode with only {model_count} model(s)"
             else:
                 status = "unavailable"
                 service_available = False
-                message = f"Service unavailable. Only {model_count} model(s) available, {required_models} required"
+                message = degradation_message or f"Service unavailable. Only {model_count} model(s) available, {required_models} required"
             
             return {
                 "status": status,
                 "service_available": service_available,
                 "message": message,
+                "environment": Config.ENVIRONMENT,
+                "api_keys_configured": api_key_status,
                 "models": {
                     "available": available_models,
                     "count": model_count,
                     "required": required_models,
                     "single_model_fallback": Config.ENABLE_SINGLE_MODEL_FALLBACK
                 },
+                "provider_health": {
+                    "available_providers": available_providers,
+                    "total_providers": health_summary["_system"]["total_providers"],
+                    "meets_requirements": health_summary["_system"]["meets_requirements"],
+                    "details": {k: v for k, v in health_summary.items() if k != "_system"}
+                },
                 "timestamp": time.time()
             }
             
         except Exception as e:
-            logger.error(f"Error checking service status: {e}")
+            logger.error(f"Error checking service status: {e}", exc_info=True)
             return {
                 "status": "error",
                 "message": str(e),
@@ -165,6 +188,27 @@ def create_router() -> APIRouter:
                 )
 
             orchestration_service = http_request.app.state.orchestration_service
+            
+            # Check model availability BEFORE processing
+            available_models = await orchestration_service._default_models_from_env()
+            model_count = len(available_models)
+            
+            # Enforce minimum model requirement
+            from app.config import Config
+            if model_count < 2:  # Require at least 2 models for multi-model orchestration
+                logger.error(f"Insufficient models available: {model_count} < 2")
+                raise HTTPException(
+                    status_code=503,
+                    detail={
+                        "error": "SERVICE_UNAVAILABLE",
+                        "message": "UltraAI requires at least 2 AI models for orchestration",
+                        "details": {
+                            "available_models": model_count,
+                            "required_models": 2,
+                            "reason": "Multi-model orchestration ensures higher quality responses through peer review"
+                        }
+                    }
+                )
             
             # Use tracked orchestration if available
             if hasattr(orchestration_service, "set_request_context"):
@@ -421,6 +465,11 @@ def create_router() -> APIRouter:
                 "pipeline_type": "3-stage optimized" if len(completed_stages) >= 3 else "partial",
                 "include_details": request.include_pipeline_details,
             }
+            
+            # Add degradation message if service is degraded
+            degradation_message = await provider_health_manager.get_degradation_message()
+            if degradation_message:
+                pipeline_info["service_status"] = degradation_message
 
             logger.info(f"Analysis completed in {processing_time:.2f} seconds")
             logger.info(f"Pipeline stages completed: {completed_stages}")

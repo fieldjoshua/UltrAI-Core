@@ -298,6 +298,16 @@ class SystemError(BaseError):
     severity = ErrorSeverity.HIGH
 
 
+class RecoveryError(SystemError):
+    """Error during recovery process."""
+    
+    default_message = "Recovery process failed"
+    severity = ErrorSeverity.HIGH
+    
+    def _generate_code(self) -> str:
+        return "SYS_005"
+
+
 class InternalServerError(SystemError):
     """Generic internal server error."""
 
@@ -406,6 +416,7 @@ ERROR_REGISTRY = {
     "SYS_002": DatabaseUnavailableError,
     "SYS_003": ServiceOverloadedError,
     "SYS_004": ConfigurationError,
+    "SYS_005": RecoveryError,
     # Network
     "NET_001": ConnectionTimeoutError,
     "NET_002": DNSResolutionError,

@@ -9,10 +9,13 @@ from datetime import datetime
 from typing import Optional
 
 from sqlalchemy import Column, DateTime, Enum, Float, ForeignKey, Integer, String, Text
-from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import relationship
 
 from app.database.models.base import Base
+from app.database.db_types import get_json_type
+
+# Get appropriate JSON type based on database
+JSONB = get_json_type()
 
 
 class DocumentStatus(enum.Enum):
