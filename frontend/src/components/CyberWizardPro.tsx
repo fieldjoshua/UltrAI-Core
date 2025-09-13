@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { processWithFeatherOrchestration } from "../api/orchestrator";
-import StatusUpdater from "./StatusUpdater";
+import StatusUpdater from "@components/wizard/StatusUpdater";
 import BridgeAnimation from "./BridgeAnimation";
 import "../styles/cyberpunk-vars.css";
 

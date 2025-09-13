@@ -13,8 +13,8 @@ export default defineConfig(({ mode }) => {
   console.log('API URL Vite sees:', env.VITE_API_URL || 'Not found');
   console.log('IS_DOCKER value:', env.VITE_IS_DOCKER);
 
-  const apiUrl = 'https://ultrai-core.onrender.com/api';
-
+  // Prefer environment-provided API URL; fallback to sensible default
+  const apiUrl = env.VITE_API_URL || '/api';
   console.log('Using API URL:', apiUrl);
 
   return {
@@ -25,6 +25,10 @@ export default defineConfig(({ mode }) => {
     resolve: {
       alias: {
         '@': path.resolve(__dirname, './src'),
+        '@components': path.resolve(__dirname, './src/components'),
+        '@api': path.resolve(__dirname, './src/api'),
+        '@internal': path.resolve(__dirname, './src/internal'),
+        '@skins': path.resolve(__dirname, './src/skins'),
         '/api': path.resolve(__dirname, './api'),
         'react': path.resolve(__dirname, 'node_modules/react'),
         'react-dom': path.resolve(__dirname, 'node_modules/react-dom'),

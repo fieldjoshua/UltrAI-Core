@@ -1,0 +1,2 @@
+[32mINFO    [0m rate_limit_middleware:rate_limit_middleware.py:131 Rate limiting middleware added to application
+[32mINFO    [0m rate_limit_middleware:rate_limit_middleware.py:47 Initialized RateLimitMiddleware with 7 excluded paths

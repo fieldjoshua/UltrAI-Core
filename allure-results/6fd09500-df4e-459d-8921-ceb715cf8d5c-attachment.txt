@@ -1,0 +1,1 @@
+{"timestamp": "2025-09-12T14:05:48.447706", "level": "DEBUG", "logger": "request_id_middleware", "message": "Processing request: GET /test", "correlation_id": "req_c3236c7dc38c4cfd", "module": "request_id_middleware", "function": "dispatch", "line": 45}

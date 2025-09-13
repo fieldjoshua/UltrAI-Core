@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { jest } from '@jest/globals';
-import { Navigation } from '@/components/Navigation';
+import { Navigation } from '@/components/layout/Navigation';
 
 describe('Navigation', () => {
   it('handles click selection', () => {

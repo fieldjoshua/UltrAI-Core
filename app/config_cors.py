@@ -19,7 +19,10 @@ def get_cors_config() -> dict:
     production_origins = [
         "https://ultr-ai-core.vercel.app",
         "https://ultrai-core.onrender.com",
-        "https://ultrai-core-4lut.onrender.com"  # Render preview URL
+        "https://ultrai-core-4lut.onrender.com",  # Render preview URL
+        # Current production/demo UI hosts
+        "https://ultrai-prod-ui.onrender.com",
+        "https://ultrai-demo-ui.onrender.com",
     ]
     # Development origins
     development_origins = [

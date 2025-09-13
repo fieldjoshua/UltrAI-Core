@@ -1,0 +1,9 @@
+[33mWARNING [0m app.services.resilient_llm_adapter:resilient_llm_adapter.py:208 No specific config for provider test, using defaults
+[32mINFO    [0m app.services.resilient_llm_adapter:resilient_llm_adapter.py:230 Starting resilient request for test
+[31m[1mERROR   [0m app.services.resilient_llm_adapter:resilient_llm_adapter.py:301 All retries exhausted for test: API Error
+[32mINFO    [0m app.services.resilient_llm_adapter:resilient_llm_adapter.py:230 Starting resilient request for test
+[33mWARNING [0m app.services.resilient_llm_adapter:resilient_llm_adapter.py:178 Circuit breaker opened after 2 failures
+[31m[1mERROR   [0m app.services.resilient_llm_adapter:resilient_llm_adapter.py:301 All retries exhausted for test: API Error
+[32mINFO    [0m app.services.resilient_llm_adapter:resilient_llm_adapter.py:230 Starting resilient request for test
+[31m[1mERROR   [0m app.services.resilient_llm_adapter:resilient_llm_adapter.py:264 Circuit breaker open for test
+[31m[1mERROR   [0m app.services.resilient_llm_adapter:resilient_llm_adapter.py:301 All retries exhausted for test: Circuit breaker is OPEN

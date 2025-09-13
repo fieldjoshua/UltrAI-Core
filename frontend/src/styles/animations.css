@@ -52,10 +52,12 @@
 
 @keyframes pulse {
   0%, 100% { 
-    opacity: 1; 
+    opacity: 1;
+    box-shadow: 0 4px 20px rgba(0, 255, 159, 0.4), 0 0 60px rgba(0, 212, 255, 0.3);
   }
   50% { 
-    opacity: 0.7; 
+    opacity: 0.9;
+    box-shadow: 0 4px 30px rgba(0, 255, 159, 0.6), 0 0 80px rgba(0, 212, 255, 0.5);
   }
 }
 
@@ -65,4 +67,29 @@
 
 .animate-neonFlash {
   animation: neonFlash 1s ease;
+}
+
+/* Optimize background image rendering */
+.bg-optimized {
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
+  backface-visibility: hidden;
+  transform: translateZ(0);
+  will-change: filter;
+}
+
+/* Blur-up loading effect */
+@keyframes blurUp {
+  from {
+    filter: blur(20px);
+    transform: scale(1.1);
+  }
+  to {
+    filter: blur(0);
+    transform: scale(1);
+  }
+}
+
+.bg-loading {
+  animation: blurUp 0.8s ease-out forwards;
 }

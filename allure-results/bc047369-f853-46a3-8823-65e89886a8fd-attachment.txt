@@ -1,0 +1,2 @@
+[32mINFO    [0m cache_service:cache_service.py:76 Cache disabled or Redis URL not configured
+[32mINFO    [0m api_failure_handler:api_failure_handler.py:183 Cache hit for op on openai

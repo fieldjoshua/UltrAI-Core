@@ -1,0 +1,3332 @@
+{
+  "modes": {
+    "offline": {
+      "categories": {
+        "other": [
+          {
+            "name": "test_external_endpoints_reachable",
+            "classname": "tests.production.test_network_and_orchestrator",
+            "time": 0.0,
+            "status": "skipped",
+            "details": "Production tests require OPENAI_API_KEY and ANTHROPIC_API_KEY"
+          },
+          {
+            "name": "test_orchestrator_pipeline_openai",
+            "classname": "tests.production.test_network_and_orchestrator",
+            "time": 0.0,
+            "status": "skipped",
+            "details": "Production test requires OPENAI_API_KEY"
+          },
+          {
+            "name": "test_process_text_default_layers",
+            "classname": "tests.test_analysis_pipeline",
+            "time": 0.065,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_process_text_with_unknown_layer_skipped",
+            "classname": "tests.test_analysis_pipeline",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_get_user_analyses",
+            "classname": "tests.test_analysis_service",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_get_document_analyses_with_access",
+            "classname": "tests.test_analysis_service",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_create_analysis_with_doc_check",
+            "classname": "tests.test_analysis_service",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_update_analysis_status_and_permission",
+            "classname": "tests.test_analysis_service",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_get_analysis_by_id_and_permission",
+            "classname": "tests.test_analysis_service",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_get_pattern_stats",
+            "classname": "tests.test_analysis_service",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_get_statistics_initial",
+            "classname": "tests.test_api_failure_handler",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_execute_api_call_cache_hit",
+            "classname": "tests.test_api_failure_handler",
+            "time": 0.002,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_execute_api_call_provider_success",
+            "classname": "tests.test_api_failure_handler",
+            "time": 0.002,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_public_endpoints_no_auth",
+            "classname": "tests.test_auth_rate_limit.TestAuthMiddleware",
+            "time": 0.022,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_admin_endpoints_require_auth",
+            "classname": "tests.test_auth_rate_limit.TestAuthMiddleware",
+            "time": 0.012,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_debug_endpoints_require_auth",
+            "classname": "tests.test_auth_rate_limit.TestAuthMiddleware",
+            "time": 0.008,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_valid_jwt_token_allows_access",
+            "classname": "tests.test_auth_rate_limit.TestAuthMiddleware",
+            "time": 0.014,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_valid_api_key_allows_access",
+            "classname": "tests.test_auth_rate_limit.TestAuthMiddleware",
+            "time": 0.013,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_invalid_auth_rejected",
+            "classname": "tests.test_auth_rate_limit.TestAuthMiddleware",
+            "time": 0.011,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_rate_limit_headers_added",
+            "classname": "tests.test_auth_rate_limit.TestRateLimiting",
+            "time": 0.01,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_rate_limit_exceeded_returns_429",
+            "classname": "tests.test_auth_rate_limit.TestRateLimiting",
+            "time": 0.017,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_per_user_rate_limiting",
+            "classname": "tests.test_auth_rate_limit.TestRateLimiting",
+            "time": 0.013,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_ip_based_rate_limiting_for_unauthenticated",
+            "classname": "tests.test_auth_rate_limit.TestRateLimiting",
+            "time": 0.015,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_rate_limiting_disabled_when_redis_unavailable",
+            "classname": "tests.test_auth_rate_limit.TestRateLimiting",
+            "time": 0.014,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_orchestrate_basic_success",
+            "classname": "tests.test_basic_orchestrator",
+            "time": 0.39,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_orchestrate_basic_empty_prompt",
+            "classname": "tests.test_basic_orchestrator",
+            "time": 0.327,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_orchestrate_basic_no_models_defaults",
+            "classname": "tests.test_basic_orchestrator",
+            "time": 0.557,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_mode_detection",
+            "classname": "tests.test_config_example.TestConfigurationExample",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_endpoint_configuration",
+            "classname": "tests.test_config_example.TestConfigurationExample",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_mock_behavior",
+            "classname": "tests.test_config_example.TestConfigurationExample",
+            "time": 0.003,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_requiring_external_services",
+            "classname": "tests.test_config_example.TestConfigurationExample",
+            "time": 0.0,
+            "status": "skipped",
+            "details": "Test skipped in OFFLINE mode"
+          },
+          {
+            "name": "test_production_endpoint",
+            "classname": "tests.test_config_example.TestConfigurationExample",
+            "time": 0.004,
+            "status": "skipped",
+            "details": "Test requires PRODUCTION mode"
+          },
+          {
+            "name": "test_mock_responses_available",
+            "classname": "tests.test_config_example.TestMockConfiguration",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_mock_adapter_creation",
+            "classname": "tests.test_config_example.TestMockConfiguration",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_timeout_configuration",
+            "classname": "tests.test_config_example.TestMockConfiguration",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_offline_specific",
+            "classname": "tests.test_config_example",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_configuration_loads",
+            "classname": "tests.test_configuration_system.TestConfigurationSystem",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_endpoints_configured",
+            "classname": "tests.test_configuration_system.TestConfigurationSystem",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_mock_configuration",
+            "classname": "tests.test_configuration_system.TestConfigurationSystem",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_timeout_configuration",
+            "classname": "tests.test_configuration_system.TestConfigurationSystem",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_mock_llm_adapter",
+            "classname": "tests.test_configuration_system.TestConfigurationSystem",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_skip_reasons",
+            "classname": "tests.test_configuration_system.TestConfigurationSystem",
+            "time": 0.002,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_environment_variables",
+            "classname": "tests.test_configuration_system.TestConfigurationSystem",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_pytest_working",
+            "classname": "tests.test_configuration_system",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_always_runs",
+            "classname": "tests.test_example_modes.TestModeExamples",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_live_or_production",
+            "classname": "tests.test_example_modes.TestModeExamples",
+            "time": 0.0,
+            "status": "skipped",
+            "details": "Test requires mode (<TestMode.LIVE: 'live'>, <TestMode.PRODUCTION: 'prod'>), current mode is TestMode.OFFLINE"
+          },
+          {
+            "name": "test_needs_some_services",
+            "classname": "tests.test_example_modes.TestModeExamples",
+            "time": 0.0,
+            "status": "skipped",
+            "details": "Test skipped in mode TestMode.OFFLINE"
+          },
+          {
+            "name": "test_check_configuration",
+            "classname": "tests.test_example_modes.TestModeExamples",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_environment_variables",
+            "classname": "tests.test_example_modes.TestModeExamples",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_base_adapter_requires_api_key",
+            "classname": "tests.test_llm_adapters_comprehensive.TestBaseAdapter",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_base_adapter_stores_config",
+            "classname": "tests.test_llm_adapters_comprehensive.TestBaseAdapter",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_base_adapter_generate_not_implemented",
+            "classname": "tests.test_llm_adapters_comprehensive.TestBaseAdapter",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_openai_adapter_initialization",
+            "classname": "tests.test_llm_adapters_comprehensive.TestOpenAIAdapter",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_openai_adapter_successful_response",
+            "classname": "tests.test_llm_adapters_comprehensive.TestOpenAIAdapter",
+            "time": 0.004,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_openai_adapter_authentication_error",
+            "classname": "tests.test_llm_adapters_comprehensive.TestOpenAIAdapter",
+            "time": 0.002,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_openai_adapter_model_not_found_error",
+            "classname": "tests.test_llm_adapters_comprehensive.TestOpenAIAdapter",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_openai_adapter_timeout_error",
+            "classname": "tests.test_llm_adapters_comprehensive.TestOpenAIAdapter",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_anthropic_adapter_initialization",
+            "classname": "tests.test_llm_adapters_comprehensive.TestAnthropicAdapter",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_anthropic_adapter_successful_response",
+            "classname": "tests.test_llm_adapters_comprehensive.TestAnthropicAdapter",
+            "time": 0.002,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_anthropic_adapter_authentication_error",
+            "classname": "tests.test_llm_adapters_comprehensive.TestAnthropicAdapter",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_anthropic_adapter_model_not_found_error",
+            "classname": "tests.test_llm_adapters_comprehensive.TestAnthropicAdapter",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_gemini_adapter_initialization",
+            "classname": "tests.test_llm_adapters_comprehensive.TestGeminiAdapter",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_gemini_adapter_successful_response",
+            "classname": "tests.test_llm_adapters_comprehensive.TestGeminiAdapter",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_gemini_adapter_authentication_error",
+            "classname": "tests.test_llm_adapters_comprehensive.TestGeminiAdapter",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_gemini_adapter_bad_request_error",
+            "classname": "tests.test_llm_adapters_comprehensive.TestGeminiAdapter",
+            "time": 0.002,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_huggingface_adapter_initialization",
+            "classname": "tests.test_llm_adapters_comprehensive.TestHuggingFaceAdapter",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_huggingface_adapter_successful_response",
+            "classname": "tests.test_llm_adapters_comprehensive.TestHuggingFaceAdapter",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_huggingface_adapter_model_loading_error",
+            "classname": "tests.test_llm_adapters_comprehensive.TestHuggingFaceAdapter",
+            "time": 0.002,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_huggingface_adapter_chat_model_formatting",
+            "classname": "tests.test_llm_adapters_comprehensive.TestHuggingFaceAdapter",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_register_and_create_instance",
+            "classname": "tests.test_model_registry",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_list_models_and_unregister",
+            "classname": "tests.test_model_registry",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_update_config_and_record_usage",
+            "classname": "tests.test_model_registry",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_errors_on_invalid_operations",
+            "classname": "tests.test_model_registry",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_run_pipeline_completes_all_stages",
+            "classname": "tests.test_orchestration_service",
+            "time": 0.004,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_run_pipeline_stops_on_stage_error",
+            "classname": "tests.test_orchestration_service",
+            "time": 0.002,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_initial_response_stage_with_single_model",
+            "classname": "tests.test_orchestration_synthesis.TestUltraSynthesisOrchestrator",
+            "time": 0.002,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_initial_response_stage_with_multiple_models",
+            "classname": "tests.test_orchestration_synthesis.TestUltraSynthesisOrchestrator",
+            "time": 0.002,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_meta_analysis_stage_enhances_responses",
+            "classname": "tests.test_orchestration_synthesis.TestUltraSynthesisOrchestrator",
+            "time": 0.002,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_ultra_synthesis_stage_creates_comprehensive_synthesis",
+            "classname": "tests.test_orchestration_synthesis.TestUltraSynthesisOrchestrator",
+            "time": 0.002,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_placeholder_prompt_service",
+            "classname": "tests.test_prompt_service",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_default_templates_registered",
+            "classname": "tests.test_prompt_service",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_register_and_get_template",
+            "classname": "tests.test_prompt_service",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_register_duplicate_raises",
+            "classname": "tests.test_prompt_service",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_update_template",
+            "classname": "tests.test_prompt_service",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_format_output_plain",
+            "classname": "tests.test_prompt_service",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_format_output_html",
+            "classname": "tests.test_prompt_service",
+            "time": 0.002,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_format_output_json",
+            "classname": "tests.test_prompt_service",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_render_template_success",
+            "classname": "tests.test_prompt_service",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_render_template_missing_var",
+            "classname": "tests.test_prompt_service",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_render_template_invalid_var",
+            "classname": "tests.test_prompt_service",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_register_and_get_template",
+            "classname": "tests.test_prompt_templates",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_list_templates_empty",
+            "classname": "tests.test_prompt_templates",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_render_template_success",
+            "classname": "tests.test_prompt_templates",
+            "time": 0.002,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_render_template_missing_strict",
+            "classname": "tests.test_prompt_templates",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_render_template_missing_not_strict",
+            "classname": "tests.test_prompt_templates",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_load_templates_from_file",
+            "classname": "tests.test_prompt_templates",
+            "time": 0.003,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_evaluate_response_defaults",
+            "classname": "tests.test_quality_evaluation",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_compare_responses_returns_correct_keys",
+            "classname": "tests.test_quality_evaluation",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_generate_quality_report_selects_best",
+            "classname": "tests.test_quality_evaluation",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_placeholder_rate_limit_service",
+            "classname": "tests.test_rate_limit_service",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_get_window_seconds[second-1]",
+            "classname": "tests.test_rate_limit_service_logic",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_get_window_seconds[minute-60]",
+            "classname": "tests.test_rate_limit_service_logic",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_get_window_seconds[hour-3600]",
+            "classname": "tests.test_rate_limit_service_logic",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_get_window_seconds[day-86400]",
+            "classname": "tests.test_rate_limit_service_logic",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_tier_limits_keys",
+            "classname": "tests.test_rate_limit_service_logic",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_default_tier_is_free",
+            "classname": "tests.test_rate_limit_service_logic",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_register_endpoint_and_stats",
+            "classname": "tests.test_rate_limiter",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_acquire_unregistered_raises",
+            "classname": "tests.test_rate_limiter",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_acquire_increments_current_requests",
+            "classname": "tests.test_rate_limiter",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_release_unregistered_does_nothing_and_stats_empty",
+            "classname": "tests.test_rate_limiter",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_release_adjusts_backoff",
+            "classname": "tests.test_rate_limiter",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_circuit_breaker_initialization",
+            "classname": "tests.test_resilient_llm_adapter.TestCircuitBreaker",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_circuit_breaker_opens_after_failures",
+            "classname": "tests.test_resilient_llm_adapter.TestCircuitBreaker",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_circuit_breaker_half_open_after_timeout",
+            "classname": "tests.test_resilient_llm_adapter.TestCircuitBreaker",
+            "time": 0.205,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_async_circuit_breaker",
+            "classname": "tests.test_resilient_llm_adapter.TestCircuitBreaker",
+            "time": 0.002,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_successful_generation",
+            "classname": "tests.test_resilient_llm_adapter.TestResilientLLMAdapter",
+            "time": 0.008,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_retry_on_timeout",
+            "classname": "tests.test_resilient_llm_adapter.TestResilientLLMAdapter",
+            "time": 1.02,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_no_retry_on_client_error",
+            "classname": "tests.test_resilient_llm_adapter.TestResilientLLMAdapter",
+            "time": 0.009,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_exponential_backoff_with_jitter",
+            "classname": "tests.test_resilient_llm_adapter.TestResilientLLMAdapter",
+            "time": 0.294,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_provider_specific_timeouts",
+            "classname": "tests.test_resilient_llm_adapter.TestResilientLLMAdapter",
+            "time": 0.031,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_metrics_tracking",
+            "classname": "tests.test_resilient_llm_adapter.TestResilientLLMAdapter",
+            "time": 0.009,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_cleanup",
+            "classname": "tests.test_resilient_llm_adapter.TestResilientLLMAdapter",
+            "time": 0.009,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_openai_config",
+            "classname": "tests.test_resilient_llm_adapter.TestProviderConfigurations",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_anthropic_config",
+            "classname": "tests.test_resilient_llm_adapter.TestProviderConfigurations",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_google_config",
+            "classname": "tests.test_resilient_llm_adapter.TestProviderConfigurations",
+            "time": 0.002,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_instantiate_service_class[analysis_pipeline-AnalysisPipeline-AnalysisPipeline]",
+            "classname": "tests.test_service_instantiation",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_instantiate_service_class[analysis_pipeline-AnalysisResult-AnalysisResult]",
+            "classname": "tests.test_service_instantiation",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_instantiate_service_class[analysis_pipeline-ModelRegistry-ModelRegistry]",
+            "classname": "tests.test_service_instantiation",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_instantiate_service_class[analysis_service-AnalysisService-AnalysisService]",
+            "classname": "tests.test_service_instantiation",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_instantiate_service_class[analysis_service-DocumentService-DocumentService]",
+            "classname": "tests.test_service_instantiation",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_instantiate_service_class[api_failure_handler-APICallContext-APICallContext]",
+            "classname": "tests.test_service_instantiation",
+            "time": 0.002,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_instantiate_service_class[api_failure_handler-APIFailureHandler-APIFailureHandler]",
+            "classname": "tests.test_service_instantiation",
+            "time": 0.002,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_instantiate_service_class[api_failure_handler-APIProvider-APIProvider]",
+            "classname": "tests.test_service_instantiation",
+            "time": 0.002,
+            "status": "skipped",
+            "details": "Could not instantiate api_failure_handler.APIProvider"
+          },
+          {
+            "name": "test_instantiate_service_class[auth_service-AuthService-AuthService]",
+            "classname": "tests.test_service_instantiation",
+            "time": 0.002,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_instantiate_service_class[auth_service_new-AuthService-AuthService]",
+            "classname": "tests.test_service_instantiation",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_instantiate_service_class[base_llm_adapter-EnhancedBaseAdapter-EnhancedBaseAdapter]",
+            "classname": "tests.test_service_instantiation",
+            "time": 0.001,
+            "status": "skipped",
+            "details": "Could not instantiate base_llm_adapter.EnhancedBaseAdapter"
+          },
+          {
+            "name": "test_instantiate_service_class[cache_service-CacheService-CacheService]",
+            "classname": "tests.test_service_instantiation",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_instantiate_service_class[db_optimization_service-DatabaseOptimizationService-DatabaseOptimizationService]",
+            "classname": "tests.test_service_instantiation",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_instantiate_service_class[document_processor-UltraDocumentsOptimized-UltraDocumentsOptimized]",
+            "classname": "tests.test_service_instantiation",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_instantiate_service_class[document_service-DocumentService-DocumentService]",
+            "classname": "tests.test_service_instantiation",
+            "time": 0.003,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_instantiate_service_class[enhanced_llm_adapters-EnhancedAnthropicAdapter-EnhancedAnthropicAdapter]",
+            "classname": "tests.test_service_instantiation",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_instantiate_service_class[enhanced_llm_adapters-EnhancedBaseAdapter-EnhancedBaseAdapter]",
+            "classname": "tests.test_service_instantiation",
+            "time": 0.001,
+            "status": "skipped",
+            "details": "Could not instantiate enhanced_llm_adapters.EnhancedBaseAdapter"
+          },
+          {
+            "name": "test_instantiate_service_class[enhanced_llm_adapters-EnhancedGeminiAdapter-EnhancedGeminiAdapter]",
+            "classname": "tests.test_service_instantiation",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_instantiate_service_class[enhanced_llm_adapters-EnhancedHuggingFaceAdapter-EnhancedHuggingFaceAdapter]",
+            "classname": "tests.test_service_instantiation",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_instantiate_service_class[enhanced_llm_adapters-EnhancedOpenAIAdapter-EnhancedOpenAIAdapter]",
+            "classname": "tests.test_service_instantiation",
+            "time": 0.002,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_instantiate_service_class[health_service-HealthService-HealthService]",
+            "classname": "tests.test_service_instantiation",
+            "time": 0.002,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_instantiate_service_class[interfaces-BillingServiceInterface-BillingServiceInterface]",
+            "classname": "tests.test_service_instantiation",
+            "time": 0.002,
+            "status": "skipped",
+            "details": "Could not instantiate interfaces.BillingServiceInterface"
+          },
+          {
+            "name": "test_instantiate_service_class[interfaces-BudgetServiceInterface-BudgetServiceInterface]",
+            "classname": "tests.test_service_instantiation",
+            "time": 0.001,
+            "status": "skipped",
+            "details": "Could not instantiate interfaces.BudgetServiceInterface"
+          },
+          {
+            "name": "test_instantiate_service_class[interfaces-PricingServiceInterface-PricingServiceInterface]",
+            "classname": "tests.test_service_instantiation",
+            "time": 0.001,
+            "status": "skipped",
+            "details": "Could not instantiate interfaces.PricingServiceInterface"
+          },
+          {
+            "name": "test_instantiate_service_class[llm_adapter_factory-AnthropicAdapter-AnthropicAdapter]",
+            "classname": "tests.test_service_instantiation",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_instantiate_service_class[llm_adapter_factory-EnhancedAnthropicAdapter-EnhancedAnthropicAdapter]",
+            "classname": "tests.test_service_instantiation",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_instantiate_service_class[llm_adapter_factory-EnhancedGeminiAdapter-EnhancedGeminiAdapter]",
+            "classname": "tests.test_service_instantiation",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_instantiate_service_class[llm_adapter_factory-EnhancedHuggingFaceAdapter-EnhancedHuggingFaceAdapter]",
+            "classname": "tests.test_service_instantiation",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_instantiate_service_class[llm_adapter_factory-EnhancedOpenAIAdapter-EnhancedOpenAIAdapter]",
+            "classname": "tests.test_service_instantiation",
+            "time": 0.002,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_instantiate_service_class[llm_adapter_factory-GeminiAdapter-GeminiAdapter]",
+            "classname": "tests.test_service_instantiation",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_instantiate_service_class[llm_adapter_factory-HuggingFaceAdapter-HuggingFaceAdapter]",
+            "classname": "tests.test_service_instantiation",
+            "time": 0.002,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_instantiate_service_class[llm_adapter_factory-LLMAdapterFactory-LLMAdapterFactory]",
+            "classname": "tests.test_service_instantiation",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_instantiate_service_class[llm_adapter_factory-OpenAIAdapter-OpenAIAdapter]",
+            "classname": "tests.test_service_instantiation",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_instantiate_service_class[llm_adapters-AnthropicAdapter-AnthropicAdapter]",
+            "classname": "tests.test_service_instantiation",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_instantiate_service_class[llm_adapters-BaseAdapter-BaseAdapter]",
+            "classname": "tests.test_service_instantiation",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_instantiate_service_class[llm_adapters-GeminiAdapter-GeminiAdapter]",
+            "classname": "tests.test_service_instantiation",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_instantiate_service_class[llm_adapters-HuggingFaceAdapter-HuggingFaceAdapter]",
+            "classname": "tests.test_service_instantiation",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_instantiate_service_class[llm_adapters-OpenAIAdapter-OpenAIAdapter]",
+            "classname": "tests.test_service_instantiation",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_instantiate_service_class[llm_adapters-correlation_context-correlation_context]",
+            "classname": "tests.test_service_instantiation",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_instantiate_service_class[llm_config_service-LLMConfigService-LLMConfigService]",
+            "classname": "tests.test_service_instantiation",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_instantiate_service_class[manage_parameters-Colors-Colors]",
+            "classname": "tests.test_service_instantiation",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_instantiate_service_class[model_availability-AnthropicAdapter-AnthropicAdapter]",
+            "classname": "tests.test_service_instantiation",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_instantiate_service_class[model_availability-AvailabilityStatus-AvailabilityStatus]",
+            "classname": "tests.test_service_instantiation",
+            "time": 0.001,
+            "status": "skipped",
+            "details": "Could not instantiate model_availability.AvailabilityStatus"
+          },
+          {
+            "name": "test_instantiate_service_class[model_availability-GeminiAdapter-GeminiAdapter]",
+            "classname": "tests.test_service_instantiation",
+            "time": 0.002,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_instantiate_service_class[model_availability-HuggingFaceAdapter-HuggingFaceAdapter]",
+            "classname": "tests.test_service_instantiation",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_instantiate_service_class[model_availability-ModelAvailability-ModelAvailability]",
+            "classname": "tests.test_service_instantiation",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_instantiate_service_class[model_availability-ModelAvailabilityChecker-ModelAvailabilityChecker]",
+            "classname": "tests.test_service_instantiation",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_instantiate_service_class[model_availability-OpenAIAdapter-OpenAIAdapter]",
+            "classname": "tests.test_service_instantiation",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_instantiate_service_class[model_health_cache-ModelHealthCache-ModelHealthCache]",
+            "classname": "tests.test_service_instantiation",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_instantiate_service_class[model_registry-ModelConfig-ModelConfig]",
+            "classname": "tests.test_service_instantiation",
+            "time": 0.002,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_instantiate_service_class[model_registry-ModelInstance-ModelInstance]",
+            "classname": "tests.test_service_instantiation",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_instantiate_service_class[model_registry-ModelRegistry-ModelRegistry]",
+            "classname": "tests.test_service_instantiation",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_instantiate_service_class[model_selection-ModelPerformanceMetrics-ModelPerformanceMetrics]",
+            "classname": "tests.test_service_instantiation",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_instantiate_service_class[model_selection-SmartModelSelector-SmartModelSelector]",
+            "classname": "tests.test_service_instantiation",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_instantiate_service_class[model_selection_service-AvailabilityStatus-AvailabilityStatus]",
+            "classname": "tests.test_service_instantiation",
+            "time": 0.001,
+            "status": "skipped",
+            "details": "Could not instantiate model_selection_service.AvailabilityStatus"
+          },
+          {
+            "name": "test_instantiate_service_class[model_selection_service-ModelAvailabilityChecker-ModelAvailabilityChecker]",
+            "classname": "tests.test_service_instantiation",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_instantiate_service_class[model_selection_service-PricingCalculator-PricingCalculator]",
+            "classname": "tests.test_service_instantiation",
+            "time": 0.002,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_instantiate_service_class[model_selection_service-SmartModelSelectionService-SmartModelSelectionService]",
+            "classname": "tests.test_service_instantiation",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_instantiate_service_class[model_selection_service-SmartModelSelector-SmartModelSelector]",
+            "classname": "tests.test_service_instantiation",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_instantiate_service_class[oauth_service-OAuthService-OAuthService]",
+            "classname": "tests.test_service_instantiation",
+            "time": 0.002,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_instantiate_service_class[orchestration_retry_handler-OrchestrationRetryHandler-OrchestrationRetryHandler]",
+            "classname": "tests.test_service_instantiation",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_instantiate_service_class[orchestration_service-AnthropicAdapter-AnthropicAdapter]",
+            "classname": "tests.test_service_instantiation",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_instantiate_service_class[orchestration_service-GeminiAdapter-GeminiAdapter]",
+            "classname": "tests.test_service_instantiation",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_instantiate_service_class[orchestration_service-HuggingFaceAdapter-HuggingFaceAdapter]",
+            "classname": "tests.test_service_instantiation",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_instantiate_service_class[orchestration_service-OpenAIAdapter-OpenAIAdapter]",
+            "classname": "tests.test_service_instantiation",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_instantiate_service_class[orchestration_service-OrchestrationRetryHandler-OrchestrationRetryHandler]",
+            "classname": "tests.test_service_instantiation",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_instantiate_service_class[orchestration_service-OrchestrationService-OrchestrationService]",
+            "classname": "tests.test_service_instantiation",
+            "time": 0.002,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_instantiate_service_class[orchestration_service-PipelineResult-PipelineResult]",
+            "classname": "tests.test_service_instantiation",
+            "time": 0.002,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_instantiate_service_class[orchestration_service-PipelineStage-PipelineStage]",
+            "classname": "tests.test_service_instantiation",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_instantiate_service_class[orchestration_service-QualityEvaluationService-QualityEvaluationService]",
+            "classname": "tests.test_service_instantiation",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_instantiate_service_class[orchestration_service-QueryType-QueryType]",
+            "classname": "tests.test_service_instantiation",
+            "time": 0.002,
+            "status": "skipped",
+            "details": "Could not instantiate orchestration_service.QueryType"
+          },
+          {
+            "name": "test_instantiate_service_class[orchestration_service-RateLimiter-RateLimiter]",
+            "classname": "tests.test_service_instantiation",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_instantiate_service_class[orchestration_service-ResponseQuality-ResponseQuality]",
+            "classname": "tests.test_service_instantiation",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_instantiate_service_class[orchestration_service-SmartModelSelector-SmartModelSelector]",
+            "classname": "tests.test_service_instantiation",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_instantiate_service_class[orchestration_service-StructuredSynthesisOutput-StructuredSynthesisOutput]",
+            "classname": "tests.test_service_instantiation",
+            "time": 0.002,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_instantiate_service_class[orchestration_service-SynthesisPromptManager-SynthesisPromptManager]",
+            "classname": "tests.test_service_instantiation",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_instantiate_service_class[orchestration_service-TokenManagementService-TokenManagementService]",
+            "classname": "tests.test_service_instantiation",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_instantiate_service_class[orchestration_service-TransactionService-TransactionService]",
+            "classname": "tests.test_service_instantiation",
+            "time": 0.002,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_instantiate_service_class[output_formatter-OutputFormatter-OutputFormatter]",
+            "classname": "tests.test_service_instantiation",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_instantiate_service_class[parameter_editor-Colors-Colors]",
+            "classname": "tests.test_service_instantiation",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_instantiate_service_class[parameter_glossary_generator-ParameterExtractor-ParameterExtractor]",
+            "classname": "tests.test_service_instantiation",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_instantiate_service_class[parameter_glossary_generator-ParameterInfo-ParameterInfo]",
+            "classname": "tests.test_service_instantiation",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_instantiate_service_class[pricing_service-PricingCalculator-PricingCalculator]",
+            "classname": "tests.test_service_instantiation",
+            "time": 0.002,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_instantiate_service_class[pricing_simulator-PricingSimulator-PricingSimulator]",
+            "classname": "tests.test_service_instantiation",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_instantiate_service_class[prompt_service-ModelRegistry-ModelRegistry]",
+            "classname": "tests.test_service_instantiation",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_instantiate_service_class[prompt_service-OrchestrationService-OrchestrationService]",
+            "classname": "tests.test_service_instantiation",
+            "time": 0.002,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_instantiate_service_class[prompt_service-PromptRequest-PromptRequest]",
+            "classname": "tests.test_service_instantiation",
+            "time": 0.002,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_instantiate_service_class[prompt_service-PromptService-PromptService]",
+            "classname": "tests.test_service_instantiation",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_instantiate_service_class[prompt_service-Template-Template]",
+            "classname": "tests.test_service_instantiation",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_instantiate_service_class[prompt_templates-PromptTemplate-PromptTemplate]",
+            "classname": "tests.test_service_instantiation",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_instantiate_service_class[prompt_templates-PromptTemplateManager-PromptTemplateManager]",
+            "classname": "tests.test_service_instantiation",
+            "time": 0.002,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_instantiate_service_class[provider_health_manager-ProviderHealth-ProviderHealth]",
+            "classname": "tests.test_service_instantiation",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_instantiate_service_class[provider_health_manager-ProviderHealthManager-ProviderHealthManager]",
+            "classname": "tests.test_service_instantiation",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_instantiate_service_class[quality_evaluation-QualityDimension-QualityDimension]",
+            "classname": "tests.test_service_instantiation",
+            "time": 0.001,
+            "status": "skipped",
+            "details": "Could not instantiate quality_evaluation.QualityDimension"
+          },
+          {
+            "name": "test_instantiate_service_class[quality_evaluation-QualityEvaluationService-QualityEvaluationService]",
+            "classname": "tests.test_service_instantiation",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_instantiate_service_class[quality_evaluation-QualityScore-QualityScore]",
+            "classname": "tests.test_service_instantiation",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_instantiate_service_class[quality_evaluation-ResponseQuality-ResponseQuality]",
+            "classname": "tests.test_service_instantiation",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_instantiate_service_class[rate_limit_service-RateLimitCategory-RateLimitCategory]",
+            "classname": "tests.test_service_instantiation",
+            "time": 0.002,
+            "status": "skipped",
+            "details": "Could not instantiate rate_limit_service.RateLimitCategory"
+          },
+          {
+            "name": "test_instantiate_service_class[rate_limit_service-RateLimitInterval-RateLimitInterval]",
+            "classname": "tests.test_service_instantiation",
+            "time": 0.001,
+            "status": "skipped",
+            "details": "Could not instantiate rate_limit_service.RateLimitInterval"
+          },
+          {
+            "name": "test_instantiate_service_class[rate_limit_service-RateLimitResult-RateLimitResult]",
+            "classname": "tests.test_service_instantiation",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_instantiate_service_class[rate_limit_service-RateLimitService-RateLimitService]",
+            "classname": "tests.test_service_instantiation",
+            "time": 0.003,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_instantiate_service_class[rate_limit_service-RateLimitTier-RateLimitTier]",
+            "classname": "tests.test_service_instantiation",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_instantiate_service_class[rate_limiter-RateLimit-RateLimit]",
+            "classname": "tests.test_service_instantiation",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_instantiate_service_class[rate_limiter-RateLimiter-RateLimiter]",
+            "classname": "tests.test_service_instantiation",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_instantiate_service_class[resilient_llm_adapter-BaseAdapter-BaseAdapter]",
+            "classname": "tests.test_service_instantiation",
+            "time": 0.002,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_instantiate_service_class[resilient_llm_adapter-CircuitBreaker-CircuitBreaker]",
+            "classname": "tests.test_service_instantiation",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_instantiate_service_class[resilient_llm_adapter-CircuitBreakerConfig-CircuitBreakerConfig]",
+            "classname": "tests.test_service_instantiation",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_instantiate_service_class[resilient_llm_adapter-CircuitState-CircuitState]",
+            "classname": "tests.test_service_instantiation",
+            "time": 0.001,
+            "status": "skipped",
+            "details": "Could not instantiate resilient_llm_adapter.CircuitState"
+          },
+          {
+            "name": "test_instantiate_service_class[resilient_llm_adapter-ProviderConfig-ProviderConfig]",
+            "classname": "tests.test_service_instantiation",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_instantiate_service_class[resilient_llm_adapter-ResilientLLMAdapter-ResilientLLMAdapter]",
+            "classname": "tests.test_service_instantiation",
+            "time": 0.008,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_instantiate_service_class[resilient_llm_adapter-RetryConfig-RetryConfig]",
+            "classname": "tests.test_service_instantiation",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_instantiate_service_class[streaming_orchestration_service-OrchestrationService-OrchestrationService]",
+            "classname": "tests.test_service_instantiation",
+            "time": 0.002,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_instantiate_service_class[streaming_orchestration_service-StreamingOrchestrationService-StreamingOrchestrationService]",
+            "classname": "tests.test_service_instantiation",
+            "time": 0.001,
+            "status": "skipped",
+            "details": "Could not instantiate streaming_orchestration_service.StreamingOrchestrationService"
+          },
+          {
+            "name": "test_instantiate_service_class[synthesis_output-ConfidenceLevel-ConfidenceLevel]",
+            "classname": "tests.test_service_instantiation",
+            "time": 0.001,
+            "status": "skipped",
+            "details": "Could not instantiate synthesis_output.ConfidenceLevel"
+          },
+          {
+            "name": "test_instantiate_service_class[synthesis_output-StructuredSynthesisOutput-StructuredSynthesisOutput]",
+            "classname": "tests.test_service_instantiation",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_instantiate_service_class[synthesis_output-SynthesisMetadata-SynthesisMetadata]",
+            "classname": "tests.test_service_instantiation",
+            "time": 0.038,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_instantiate_service_class[synthesis_prompts-QueryType-QueryType]",
+            "classname": "tests.test_service_instantiation",
+            "time": 0.002,
+            "status": "skipped",
+            "details": "Could not instantiate synthesis_prompts.QueryType"
+          },
+          {
+            "name": "test_instantiate_service_class[synthesis_prompts-SynthesisPromptManager-SynthesisPromptManager]",
+            "classname": "tests.test_service_instantiation",
+            "time": 0.002,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_instantiate_service_class[telemetry_llm_wrapper-TelemetryLLMWrapper-TelemetryLLMWrapper]",
+            "classname": "tests.test_service_instantiation",
+            "time": 0.002,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_instantiate_service_class[telemetry_service-TelemetryService-TelemetryService]",
+            "classname": "tests.test_service_instantiation",
+            "time": 0.002,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_instantiate_service_class[token_management_service-TokenCost-TokenCost]",
+            "classname": "tests.test_service_instantiation",
+            "time": 0.002,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_instantiate_service_class[token_management_service-TokenManagementService-TokenManagementService]",
+            "classname": "tests.test_service_instantiation",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_instantiate_service_class[tracked_llm_adapters-AnthropicAdapter-AnthropicAdapter]",
+            "classname": "tests.test_service_instantiation",
+            "time": 0.002,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_instantiate_service_class[tracked_llm_adapters-GeminiAdapter-GeminiAdapter]",
+            "classname": "tests.test_service_instantiation",
+            "time": 0.002,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_instantiate_service_class[tracked_llm_adapters-HuggingFaceAdapter-HuggingFaceAdapter]",
+            "classname": "tests.test_service_instantiation",
+            "time": 0.002,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_instantiate_service_class[tracked_llm_adapters-OpenAIAdapter-OpenAIAdapter]",
+            "classname": "tests.test_service_instantiation",
+            "time": 0.002,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_instantiate_service_class[tracked_llm_adapters-TrackedAnthropicAdapter-TrackedAnthropicAdapter]",
+            "classname": "tests.test_service_instantiation",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_instantiate_service_class[tracked_llm_adapters-TrackedGeminiAdapter-TrackedGeminiAdapter]",
+            "classname": "tests.test_service_instantiation",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_instantiate_service_class[tracked_llm_adapters-TrackedHTTPClient-TrackedHTTPClient]",
+            "classname": "tests.test_service_instantiation",
+            "time": 0.001,
+            "status": "skipped",
+            "details": "Could not instantiate tracked_llm_adapters.TrackedHTTPClient"
+          },
+          {
+            "name": "test_instantiate_service_class[tracked_llm_adapters-TrackedHuggingFaceAdapter-TrackedHuggingFaceAdapter]",
+            "classname": "tests.test_service_instantiation",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_instantiate_service_class[tracked_llm_adapters-TrackedLLMAdapter-TrackedLLMAdapter]",
+            "classname": "tests.test_service_instantiation",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_instantiate_service_class[tracked_llm_adapters-TrackedOpenAIAdapter-TrackedOpenAIAdapter]",
+            "classname": "tests.test_service_instantiation",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_instantiate_service_class[tracked_orchestration_service-OrchestrationService-OrchestrationService]",
+            "classname": "tests.test_service_instantiation",
+            "time": 0.002,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_instantiate_service_class[tracked_orchestration_service-TrackedAnthropicAdapter-TrackedAnthropicAdapter]",
+            "classname": "tests.test_service_instantiation",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_instantiate_service_class[tracked_orchestration_service-TrackedGeminiAdapter-TrackedGeminiAdapter]",
+            "classname": "tests.test_service_instantiation",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_instantiate_service_class[tracked_orchestration_service-TrackedHuggingFaceAdapter-TrackedHuggingFaceAdapter]",
+            "classname": "tests.test_service_instantiation",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_instantiate_service_class[tracked_orchestration_service-TrackedOpenAIAdapter-TrackedOpenAIAdapter]",
+            "classname": "tests.test_service_instantiation",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_instantiate_service_class[tracked_orchestration_service-TrackedOrchestrationService-TrackedOrchestrationService]",
+            "classname": "tests.test_service_instantiation",
+            "time": 0.001,
+            "status": "skipped",
+            "details": "Could not instantiate tracked_orchestration_service.TrackedOrchestrationService"
+          },
+          {
+            "name": "test_instantiate_service_class[transaction_service-Transaction-Transaction]",
+            "classname": "tests.test_service_instantiation",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_instantiate_service_class[transaction_service-TransactionService-TransactionService]",
+            "classname": "tests.test_service_instantiation",
+            "time": 0.002,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_track_usage_unknown_model_raises",
+            "classname": "tests.test_token_management_service",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_track_usage_and_get_user_usage_and_total_cost",
+            "classname": "tests.test_token_management_service",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_update_cost_rates_affects_future_costs",
+            "classname": "tests.test_token_management_service",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_get_balance_default_zero",
+            "classname": "tests.test_transaction_service",
+            "time": 0.002,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_add_funds_positive_amount",
+            "classname": "tests.test_transaction_service",
+            "time": 0.002,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_add_funds_negative_amount_raises",
+            "classname": "tests.test_transaction_service",
+            "time": 0.002,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_deduct_cost_insufficient_returns_none",
+            "classname": "tests.test_transaction_service",
+            "time": 0.002,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_deduct_cost_negative_amount_raises",
+            "classname": "tests.test_transaction_service",
+            "time": 0.002,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_deduct_cost_successful_after_credit",
+            "classname": "tests.test_transaction_service",
+            "time": 0.003,
+            "status": "passed",
+            "details": null
+          }
+        ],
+        "integration": [
+          {
+            "name": "test_integration_only",
+            "classname": "tests.test_config_example.TestConfigurationExample",
+            "time": 0.0,
+            "status": "skipped",
+            "details": "Test requires TestMode.INTEGRATION mode"
+          },
+          {
+            "name": "test_circuit_breaker_integration",
+            "classname": "tests.test_resilient_llm_adapter.TestResilientLLMAdapter",
+            "time": 0.01,
+            "status": "passed",
+            "details": null
+          }
+        ],
+        "unit": [
+          {
+            "name": "test_cost_estimate_present",
+            "classname": "tests.unit.orchestrator.test_orchestrator_features",
+            "time": 0.003,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_plain_text_format",
+            "classname": "tests.unit.orchestrator.test_orchestrator_features",
+            "time": 0.003,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_encryption_support",
+            "classname": "tests.unit.orchestrator.test_orchestrator_features",
+            "time": 0.003,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_options_passed_to_stages",
+            "classname": "tests.unit.orchestrator.test_orchestrator_features",
+            "time": 0.003,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_orchestrator_requires_auth",
+            "classname": "tests.unit.test_auth_orchestrator_protection",
+            "time": 0.014,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_create_and_verify_access_token",
+            "classname": "tests.unit.test_auth_service",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_create_and_verify_refresh_token",
+            "classname": "tests.unit.test_auth_service",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_verify_invalid_tokens",
+            "classname": "tests.unit.test_auth_service",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_create_invoice",
+            "classname": "tests.unit.test_billing_service.TestBillingService",
+            "time": 0.0,
+            "status": "skipped",
+            "details": "Billing service pending specialist implementation"
+          },
+          {
+            "name": "test_send_invoice_email",
+            "classname": "tests.unit.test_billing_service.TestBillingService",
+            "time": 0.0,
+            "status": "skipped",
+            "details": "Billing service pending specialist implementation"
+          },
+          {
+            "name": "test_process_payment_success",
+            "classname": "tests.unit.test_billing_service.TestBillingService",
+            "time": 0.0,
+            "status": "skipped",
+            "details": "Billing service pending specialist implementation"
+          },
+          {
+            "name": "test_process_payment_failure",
+            "classname": "tests.unit.test_billing_service.TestBillingService",
+            "time": 0.0,
+            "status": "skipped",
+            "details": "Billing service pending specialist implementation"
+          },
+          {
+            "name": "test_add_payment_method",
+            "classname": "tests.unit.test_billing_service.TestBillingService",
+            "time": 0.0,
+            "status": "skipped",
+            "details": "Billing service pending specialist implementation"
+          },
+          {
+            "name": "test_remove_payment_method",
+            "classname": "tests.unit.test_billing_service.TestBillingService",
+            "time": 0.0,
+            "status": "skipped",
+            "details": "Billing service pending specialist implementation"
+          },
+          {
+            "name": "test_list_payment_methods",
+            "classname": "tests.unit.test_billing_service.TestBillingService",
+            "time": 0.0,
+            "status": "skipped",
+            "details": "Billing service pending specialist implementation"
+          },
+          {
+            "name": "test_billing_history",
+            "classname": "tests.unit.test_billing_service.TestBillingService",
+            "time": 0.0,
+            "status": "skipped",
+            "details": "Billing service pending specialist implementation"
+          },
+          {
+            "name": "test_create_subscription",
+            "classname": "tests.unit.test_billing_service.TestBillingService",
+            "time": 0.0,
+            "status": "skipped",
+            "details": "Billing service pending specialist implementation"
+          },
+          {
+            "name": "test_cancel_subscription",
+            "classname": "tests.unit.test_billing_service.TestBillingService",
+            "time": 0.0,
+            "status": "skipped",
+            "details": "Billing service pending specialist implementation"
+          },
+          {
+            "name": "test_update_subscription",
+            "classname": "tests.unit.test_billing_service.TestBillingService",
+            "time": 0.0,
+            "status": "skipped",
+            "details": "Billing service pending specialist implementation"
+          },
+          {
+            "name": "test_process_refund",
+            "classname": "tests.unit.test_billing_service.TestBillingService",
+            "time": 0.0,
+            "status": "skipped",
+            "details": "Billing service pending specialist implementation"
+          },
+          {
+            "name": "test_webhook_handling",
+            "classname": "tests.unit.test_billing_service.TestBillingService",
+            "time": 0.0,
+            "status": "skipped",
+            "details": "Billing service pending specialist implementation"
+          },
+          {
+            "name": "test_payment_retry_logic",
+            "classname": "tests.unit.test_billing_service.TestBillingService",
+            "time": 0.0,
+            "status": "skipped",
+            "details": "Billing service pending specialist implementation"
+          },
+          {
+            "name": "test_invoice_overdue_handling",
+            "classname": "tests.unit.test_billing_service.TestBillingService",
+            "time": 0.0,
+            "status": "skipped",
+            "details": "Billing service pending specialist implementation"
+          },
+          {
+            "name": "test_payment_method_validation",
+            "classname": "tests.unit.test_billing_service.TestBillingService",
+            "time": 0.0,
+            "status": "skipped",
+            "details": "Billing service pending specialist implementation"
+          },
+          {
+            "name": "test_pci_compliance",
+            "classname": "tests.unit.test_billing_service.TestBillingService",
+            "time": 0.0,
+            "status": "skipped",
+            "details": "Billing service pending specialist implementation"
+          },
+          {
+            "name": "test_subscription_trial_period",
+            "classname": "tests.unit.test_billing_service.TestBillingService",
+            "time": 0.0,
+            "status": "skipped",
+            "details": "Billing service pending specialist implementation"
+          },
+          {
+            "name": "test_check_budget_sufficient",
+            "classname": "tests.unit.test_budget_service.TestBudgetService",
+            "time": 0.0,
+            "status": "skipped",
+            "details": "Budget service pending specialist implementation"
+          },
+          {
+            "name": "test_check_budget_insufficient",
+            "classname": "tests.unit.test_budget_service.TestBudgetService",
+            "time": 0.002,
+            "status": "skipped",
+            "details": "Budget service pending specialist implementation"
+          },
+          {
+            "name": "test_deduct_from_budget_success",
+            "classname": "tests.unit.test_budget_service.TestBudgetService",
+            "time": 0.0,
+            "status": "skipped",
+            "details": "Budget service pending specialist implementation"
+          },
+          {
+            "name": "test_deduct_from_budget_insufficient_funds",
+            "classname": "tests.unit.test_budget_service.TestBudgetService",
+            "time": 0.0,
+            "status": "skipped",
+            "details": "Budget service pending specialist implementation"
+          },
+          {
+            "name": "test_refund_to_budget",
+            "classname": "tests.unit.test_budget_service.TestBudgetService",
+            "time": 0.0,
+            "status": "skipped",
+            "details": "Budget service pending specialist implementation"
+          },
+          {
+            "name": "test_get_budget_status",
+            "classname": "tests.unit.test_budget_service.TestBudgetService",
+            "time": 0.0,
+            "status": "skipped",
+            "details": "Budget service pending specialist implementation"
+          },
+          {
+            "name": "test_set_budget_limit",
+            "classname": "tests.unit.test_budget_service.TestBudgetService",
+            "time": 0.0,
+            "status": "skipped",
+            "details": "Budget service pending specialist implementation"
+          },
+          {
+            "name": "test_budget_period_reset",
+            "classname": "tests.unit.test_budget_service.TestBudgetService",
+            "time": 0.0,
+            "status": "skipped",
+            "details": "Budget service pending specialist implementation"
+          },
+          {
+            "name": "test_budget_history",
+            "classname": "tests.unit.test_budget_service.TestBudgetService",
+            "time": 0.0,
+            "status": "skipped",
+            "details": "Budget service pending specialist implementation"
+          },
+          {
+            "name": "test_configure_budget_alerts",
+            "classname": "tests.unit.test_budget_service.TestBudgetService",
+            "time": 0.0,
+            "status": "skipped",
+            "details": "Budget service pending specialist implementation"
+          },
+          {
+            "name": "test_trigger_budget_alerts",
+            "classname": "tests.unit.test_budget_service.TestBudgetService",
+            "time": 0.0,
+            "status": "skipped",
+            "details": "Budget service pending specialist implementation"
+          },
+          {
+            "name": "test_usage_forecast",
+            "classname": "tests.unit.test_budget_service.TestBudgetService",
+            "time": 0.0,
+            "status": "skipped",
+            "details": "Budget service pending specialist implementation"
+          },
+          {
+            "name": "test_concurrent_budget_operations",
+            "classname": "tests.unit.test_budget_service.TestBudgetService",
+            "time": 0.0,
+            "status": "skipped",
+            "details": "Budget service pending specialist implementation"
+          },
+          {
+            "name": "test_budget_rollover",
+            "classname": "tests.unit.test_budget_service.TestBudgetService",
+            "time": 0.0,
+            "status": "skipped",
+            "details": "Budget service pending specialist implementation"
+          },
+          {
+            "name": "test_admin_budget_reset",
+            "classname": "tests.unit.test_budget_service.TestBudgetService",
+            "time": 0.0,
+            "status": "skipped",
+            "details": "Budget service pending specialist implementation"
+          },
+          {
+            "name": "test_sync_cache_operations",
+            "classname": "tests.unit.test_cache_service",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_delete_and_flush",
+            "classname": "tests.unit.test_cache_service",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_async_json_operations",
+            "classname": "tests.unit.test_cache_service",
+            "time": 0.002,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_cache_key_simple_types",
+            "classname": "tests.unit.test_cache_service_comprehensive.TestCacheKeyGeneration",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_cache_key_complex_types",
+            "classname": "tests.unit.test_cache_service_comprehensive.TestCacheKeyGeneration",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_cache_key_none_handling",
+            "classname": "tests.unit.test_cache_service_comprehensive.TestCacheKeyGeneration",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_initialization_without_redis",
+            "classname": "tests.unit.test_cache_service_comprehensive.TestCacheService",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_initialization_with_redis",
+            "classname": "tests.unit.test_cache_service_comprehensive.TestCacheService",
+            "time": 0.103,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_memory_cache_operations",
+            "classname": "tests.unit.test_cache_service_comprehensive.TestCacheService",
+            "time": 0.002,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_memory_cache_ttl",
+            "classname": "tests.unit.test_cache_service_comprehensive.TestCacheService",
+            "time": 2.212,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_redis_operations",
+            "classname": "tests.unit.test_cache_service_comprehensive.TestCacheService",
+            "time": 0.004,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_redis_fallback_to_memory",
+            "classname": "tests.unit.test_cache_service_comprehensive.TestCacheService",
+            "time": 0.005,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_json_operations",
+            "classname": "tests.unit.test_cache_service_comprehensive.TestCacheService",
+            "time": 0.002,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_clear_pattern",
+            "classname": "tests.unit.test_cache_service_comprehensive.TestCacheService",
+            "time": 0.002,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_get_stats",
+            "classname": "tests.unit.test_cache_service_comprehensive.TestCacheService",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_cleanup_memory_cache",
+            "classname": "tests.unit.test_cache_service_comprehensive.TestCacheService",
+            "time": 0.207,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_close",
+            "classname": "tests.unit.test_cache_service_comprehensive.TestCacheService",
+            "time": 0.004,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_cached_sync_function",
+            "classname": "tests.unit.test_cache_service_comprehensive.TestCacheDecorator",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_cached_async_function",
+            "classname": "tests.unit.test_cache_service_comprehensive.TestCacheDecorator",
+            "time": 0.013,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_cached_with_ttl",
+            "classname": "tests.unit.test_cache_service_comprehensive.TestCacheDecorator",
+            "time": 1.107,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_get_cache_service_singleton",
+            "classname": "tests.unit.test_cache_service_comprehensive.TestCacheSingleton",
+            "time": 0.002,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_close_cache_service",
+            "classname": "tests.unit.test_cache_service_comprehensive.TestCacheSingleton",
+            "time": 0.003,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_orchestration_response_caching",
+            "classname": "tests.unit.test_cache_service_comprehensive.TestCacheIntegrationScenarios",
+            "time": 0.002,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_concurrent_cache_access",
+            "classname": "tests.unit.test_cache_service_comprehensive.TestCacheIntegrationScenarios",
+            "time": 0.003,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_cache_size_limits",
+            "classname": "tests.unit.test_cache_service_comprehensive.TestCacheIntegrationScenarios",
+            "time": 0.003,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_process_text_file",
+            "classname": "tests.unit.test_document_processor",
+            "time": 0.004,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_process_unknown_file_type",
+            "classname": "tests.unit.test_document_processor",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_get_user_documents",
+            "classname": "tests.unit.test_document_service",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_get_document_by_id",
+            "classname": "tests.unit.test_document_service",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_delete_document",
+            "classname": "tests.unit.test_document_service",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_get_health_simple",
+            "classname": "tests.unit.test_health_service",
+            "time": 0.002,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_get_health_detailed",
+            "classname": "tests.unit.test_health_service",
+            "time": 0.067,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_jwt_secret_key_precedence",
+            "classname": "tests.unit.test_jwt_secret_alias",
+            "time": 0.002,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_jwt_refresh_secret_fallback",
+            "classname": "tests.unit.test_jwt_secret_alias",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_jwt_missing_secret_raises_error",
+            "classname": "tests.unit.test_jwt_secret_alias",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_base_adapter_missing_api_key",
+            "classname": "tests.unit.test_llm_adapters",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_openai_adapter_error",
+            "classname": "tests.unit.test_llm_adapters",
+            "time": 0.072,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_anthropic_adapter_error",
+            "classname": "tests.unit.test_llm_adapters",
+            "time": 0.002,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_gemini_adapter_error",
+            "classname": "tests.unit.test_llm_adapters",
+            "time": 0.002,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_mask_api_key",
+            "classname": "tests.unit.test_llm_adapters_comprehensive.TestBaseAdapter",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_base_adapter_not_implemented",
+            "classname": "tests.unit.test_llm_adapters_comprehensive.TestBaseAdapter",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_base_adapter_properties",
+            "classname": "tests.unit.test_llm_adapters_comprehensive.TestBaseAdapter",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_shared_client_timeout",
+            "classname": "tests.unit.test_llm_adapters_comprehensive.TestSharedHttpClient",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_all_adapters_use_shared_client",
+            "classname": "tests.unit.test_llm_adapters_comprehensive.TestSharedHttpClient",
+            "time": 0.001,
+            "status": "failed",
+            "details": "AttributeError: 'Timeout' object has no attribute 'total'"
+          },
+          {
+            "name": "test_rate_limit_error_handling",
+            "classname": "tests.unit.test_llm_adapters_comprehensive.TestOpenAIAdapter",
+            "time": 0.002,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_generic_exception_handling",
+            "classname": "tests.unit.test_llm_adapters_comprehensive.TestOpenAIAdapter",
+            "time": 0.002,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_correlation_context_integration",
+            "classname": "tests.unit.test_llm_adapters_comprehensive.TestOpenAIAdapter",
+            "time": 0.002,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_anthropic_specific_headers",
+            "classname": "tests.unit.test_llm_adapters_comprehensive.TestAnthropicAdapter",
+            "time": 0.003,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_anthropic_model_mapping",
+            "classname": "tests.unit.test_llm_adapters_comprehensive.TestAnthropicAdapter",
+            "time": 0.003,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_api_key_not_in_url",
+            "classname": "tests.unit.test_llm_adapters_comprehensive.TestGeminiAdapter",
+            "time": 0.002,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_api_key_in_header",
+            "classname": "tests.unit.test_llm_adapters_comprehensive.TestGeminiAdapter",
+            "time": 0.002,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_gemini_response_format_variations",
+            "classname": "tests.unit.test_llm_adapters_comprehensive.TestGeminiAdapter",
+            "time": 0.002,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_response_format_list",
+            "classname": "tests.unit.test_llm_adapters_comprehensive.TestHuggingFaceAdapter",
+            "time": 0.002,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_response_format_dict",
+            "classname": "tests.unit.test_llm_adapters_comprehensive.TestHuggingFaceAdapter",
+            "time": 0.002,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_response_format_string",
+            "classname": "tests.unit.test_llm_adapters_comprehensive.TestHuggingFaceAdapter",
+            "time": 0.002,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_response_format_unexpected",
+            "classname": "tests.unit.test_llm_adapters_comprehensive.TestHuggingFaceAdapter",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_huggingface_model_url_encoding",
+            "classname": "tests.unit.test_llm_adapters_comprehensive.TestHuggingFaceAdapter",
+            "time": 0.002,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_connection_timeout[OpenAIAdapter-gpt-4]",
+            "classname": "tests.unit.test_llm_adapters_comprehensive.TestAdapterErrorScenarios",
+            "time": 0.002,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_connection_timeout[AnthropicAdapter-claude-3]",
+            "classname": "tests.unit.test_llm_adapters_comprehensive.TestAdapterErrorScenarios",
+            "time": 0.002,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_connection_timeout[GeminiAdapter-gemini-pro]",
+            "classname": "tests.unit.test_llm_adapters_comprehensive.TestAdapterErrorScenarios",
+            "time": 0.002,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_connection_timeout[HuggingFaceAdapter-mistral]",
+            "classname": "tests.unit.test_llm_adapters_comprehensive.TestAdapterErrorScenarios",
+            "time": 0.002,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_invalid_api_key[OpenAIAdapter-gpt-4]",
+            "classname": "tests.unit.test_llm_adapters_comprehensive.TestAdapterErrorScenarios",
+            "time": 0.002,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_invalid_api_key[AnthropicAdapter-claude-3]",
+            "classname": "tests.unit.test_llm_adapters_comprehensive.TestAdapterErrorScenarios",
+            "time": 0.002,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_invalid_api_key[GeminiAdapter-gemini-pro]",
+            "classname": "tests.unit.test_llm_adapters_comprehensive.TestAdapterErrorScenarios",
+            "time": 0.002,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_invalid_api_key[HuggingFaceAdapter-mistral]",
+            "classname": "tests.unit.test_llm_adapters_comprehensive.TestAdapterErrorScenarios",
+            "time": 0.002,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_json_decode_error[OpenAIAdapter-gpt-4]",
+            "classname": "tests.unit.test_llm_adapters_comprehensive.TestAdapterErrorScenarios",
+            "time": 0.002,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_json_decode_error[AnthropicAdapter-claude-3]",
+            "classname": "tests.unit.test_llm_adapters_comprehensive.TestAdapterErrorScenarios",
+            "time": 0.002,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_json_decode_error[GeminiAdapter-gemini-pro]",
+            "classname": "tests.unit.test_llm_adapters_comprehensive.TestAdapterErrorScenarios",
+            "time": 0.002,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_json_decode_error[HuggingFaceAdapter-mistral]",
+            "classname": "tests.unit.test_llm_adapters_comprehensive.TestAdapterErrorScenarios",
+            "time": 0.002,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_security_headers_present",
+            "classname": "tests.unit.test_middleware",
+            "time": 0.003,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_rate_limit_headers_present",
+            "classname": "tests.unit.test_middleware",
+            "time": 0.002,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_model_selection_ranks_models_by_score",
+            "classname": "tests.unit.test_model_selection_service",
+            "time": 0.003,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_generate_oauth_url_unsupported",
+            "classname": "tests.unit.test_oauth_service",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_generate_oauth_url_google",
+            "classname": "tests.unit.test_oauth_service",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_validate_oauth_state",
+            "classname": "tests.unit.test_oauth_service",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_calculate_cost_single_model",
+            "classname": "tests.unit.test_pricing_service.TestPricingService",
+            "time": 0.0,
+            "status": "skipped",
+            "details": "Pricing service pending specialist implementation"
+          },
+          {
+            "name": "test_calculate_cost_batch",
+            "classname": "tests.unit.test_pricing_service.TestPricingService",
+            "time": 0.0,
+            "status": "skipped",
+            "details": "Pricing service pending specialist implementation"
+          },
+          {
+            "name": "test_get_model_pricing",
+            "classname": "tests.unit.test_pricing_service.TestPricingService",
+            "time": 0.0,
+            "status": "skipped",
+            "details": "Pricing service pending specialist implementation"
+          },
+          {
+            "name": "test_get_historical_pricing",
+            "classname": "tests.unit.test_pricing_service.TestPricingService",
+            "time": 0.0,
+            "status": "skipped",
+            "details": "Pricing service pending specialist implementation"
+          },
+          {
+            "name": "test_list_all_model_pricing",
+            "classname": "tests.unit.test_pricing_service.TestPricingService",
+            "time": 0.0,
+            "status": "skipped",
+            "details": "Pricing service pending specialist implementation"
+          },
+          {
+            "name": "test_estimate_cost_from_prompt",
+            "classname": "tests.unit.test_pricing_service.TestPricingService",
+            "time": 0.0,
+            "status": "skipped",
+            "details": "Pricing service pending specialist implementation"
+          },
+          {
+            "name": "test_update_pricing_admin",
+            "classname": "tests.unit.test_pricing_service.TestPricingService",
+            "time": 0.0,
+            "status": "skipped",
+            "details": "Pricing service pending specialist implementation"
+          },
+          {
+            "name": "test_pricing_not_found_error",
+            "classname": "tests.unit.test_pricing_service.TestPricingService",
+            "time": 0.0,
+            "status": "skipped",
+            "details": "Pricing service pending specialist implementation"
+          },
+          {
+            "name": "test_usage_cost_summary",
+            "classname": "tests.unit.test_pricing_service.TestPricingService",
+            "time": 0.0,
+            "status": "skipped",
+            "details": "Pricing service pending specialist implementation"
+          },
+          {
+            "name": "test_export_usage_report",
+            "classname": "tests.unit.test_pricing_service.TestPricingService",
+            "time": 0.0,
+            "status": "skipped",
+            "details": "Pricing service pending specialist implementation"
+          },
+          {
+            "name": "test_token_counting_accuracy",
+            "classname": "tests.unit.test_pricing_service.TestPricingService",
+            "time": 0.0,
+            "status": "skipped",
+            "details": "Pricing service pending specialist implementation"
+          },
+          {
+            "name": "test_multi_currency_support",
+            "classname": "tests.unit.test_pricing_service.TestPricingService",
+            "time": 0.0,
+            "status": "skipped",
+            "details": "Pricing service pending specialist implementation"
+          },
+          {
+            "name": "test_pricing_cache_performance",
+            "classname": "tests.unit.test_pricing_service.TestPricingService",
+            "time": 0.0,
+            "status": "skipped",
+            "details": "Pricing service pending specialist implementation"
+          },
+          {
+            "name": "test_concurrent_cost_calculations",
+            "classname": "tests.unit.test_pricing_service.TestPricingService",
+            "time": 0.0,
+            "status": "skipped",
+            "details": "Pricing service pending specialist implementation"
+          },
+          {
+            "name": "test_retry_on_timeout",
+            "classname": "tests.unit.test_recovery_service",
+            "time": 0.002,
+            "status": "failed",
+            "details": "ImportError: cannot import name 'RecoveryError' from 'app.utils.errors' (unknown location)"
+          },
+          {
+            "name": "test_circuit_breaker_integration",
+            "classname": "tests.unit.test_recovery_service",
+            "time": 0.002,
+            "status": "failed",
+            "details": "ImportError: cannot import name 'RecoveryError' from 'app.utils.errors' (unknown location)"
+          },
+          {
+            "name": "test_retry_on_timeout",
+            "classname": "tests.unit.test_recovery_service_simple",
+            "time": 0.002,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_circuit_breaker_integration",
+            "classname": "tests.unit.test_recovery_service_simple",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_generates_request_id",
+            "classname": "tests.unit.test_request_tracking.TestRequestIDMiddleware",
+            "time": 0.002,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_preserves_existing_request_id",
+            "classname": "tests.unit.test_request_tracking.TestRequestIDMiddleware",
+            "time": 0.003,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_correlation_id_handling",
+            "classname": "tests.unit.test_request_tracking.TestRequestIDMiddleware",
+            "time": 0.002,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_uses_request_id_as_correlation_fallback",
+            "classname": "tests.unit.test_request_tracking.TestRequestIDMiddleware",
+            "time": 0.002,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_inject_headers",
+            "classname": "tests.unit.test_request_tracking.TestRequestIDInjector",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_from_request",
+            "classname": "tests.unit.test_request_tracking.TestRequestIDInjector",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_set_request_context",
+            "classname": "tests.unit.test_request_tracking.TestTrackedOrchestrationService",
+            "time": 0.002,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_create_adapter_with_tracking",
+            "classname": "tests.unit.test_request_tracking.TestTrackedOrchestrationService",
+            "time": 0.034,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_tracked_adapter_logging",
+            "classname": "tests.unit.test_request_tracking.TestTrackedLLMAdapters",
+            "time": 0.004,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_tracked_http_client",
+            "classname": "tests.unit.test_request_tracking.TestTrackedLLMAdapters",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_correlation_context_lifecycle",
+            "classname": "tests.unit.test_request_tracking.TestCorrelationContext",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_service_unavailable_with_one_model",
+            "classname": "tests.unit.test_service_unavailable.TestServiceUnavailable",
+            "time": 0.003,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_service_available_with_multiple_models",
+            "classname": "tests.unit.test_service_unavailable.TestServiceUnavailable",
+            "time": 0.003,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_service_status_endpoint",
+            "classname": "tests.unit.test_service_unavailable.TestServiceUnavailable",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_zero_models_available",
+            "classname": "tests.unit.test_service_unavailable.TestServiceUnavailable",
+            "time": 0.003,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_error_message_clarity",
+            "classname": "tests.unit.test_service_unavailable.TestServiceUnavailable",
+            "time": 0.002,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_single_model_operation_enabled",
+            "classname": "tests.unit.test_single_model_fallback.TestSingleModelFallback",
+            "time": 0.003,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_single_model_operation_disabled",
+            "classname": "tests.unit.test_single_model_fallback.TestSingleModelFallback",
+            "time": 0.002,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_default_models_with_single_fallback",
+            "classname": "tests.unit.test_single_model_fallback.TestSingleModelFallback",
+            "time": 0.002,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_peer_review_skipped_with_single_model",
+            "classname": "tests.unit.test_single_model_fallback.TestSingleModelFallback",
+            "time": 0.002,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_ultra_synthesis_with_single_model",
+            "classname": "tests.unit.test_single_model_fallback.TestSingleModelFallback",
+            "time": 0.002,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_minimum_models_configuration",
+            "classname": "tests.unit.test_single_model_fallback.TestSingleModelFallback",
+            "time": 0.006,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_authentication_error_openai",
+            "classname": "tests.unit.test_standardized_llm_errors.TestStandardizedErrors",
+            "time": 0.003,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_authentication_error_anthropic",
+            "classname": "tests.unit.test_standardized_llm_errors.TestStandardizedErrors",
+            "time": 0.003,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_rate_limit_error_all_providers",
+            "classname": "tests.unit.test_standardized_llm_errors.TestStandardizedErrors",
+            "time": 0.003,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_model_not_found_error",
+            "classname": "tests.unit.test_standardized_llm_errors.TestStandardizedErrors",
+            "time": 0.003,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_timeout_error",
+            "classname": "tests.unit.test_standardized_llm_errors.TestStandardizedErrors",
+            "time": 0.003,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_huggingface_model_loading",
+            "classname": "tests.unit.test_standardized_llm_errors.TestStandardizedErrors",
+            "time": 0.003,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_success_response_format",
+            "classname": "tests.unit.test_standardized_llm_errors.TestStandardizedErrors",
+            "time": 0.003,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_error_response_to_legacy_format",
+            "classname": "tests.unit.test_standardized_llm_errors.TestErrorResponseModel",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_authentication_error_legacy_format",
+            "classname": "tests.unit.test_standardized_llm_errors.TestErrorResponseModel",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_stream_pipeline_start_event",
+            "classname": "tests.unit.test_streaming_orchestration.TestStreamingOrchestrationService",
+            "time": 0.003,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_sse_format",
+            "classname": "tests.unit.test_streaming_orchestration.TestStreamingOrchestrationService",
+            "time": 0.002,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_stage_events_emitted",
+            "classname": "tests.unit.test_streaming_orchestration.TestStreamingOrchestrationService",
+            "time": 0.002,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_synthesis_chunking",
+            "classname": "tests.unit.test_streaming_orchestration.TestStreamingOrchestrationService",
+            "time": 0.002,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_model_response_streaming",
+            "classname": "tests.unit.test_streaming_orchestration.TestStreamingOrchestrationService",
+            "time": 0.002,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_streaming_config",
+            "classname": "tests.unit.test_streaming_orchestration.TestStreamingOrchestrationService",
+            "time": 0.002,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_error_event_on_failure",
+            "classname": "tests.unit.test_streaming_orchestration.TestStreamingOrchestrationService",
+            "time": 0.002,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_streaming_endpoint_headers",
+            "classname": "tests.unit.test_streaming_orchestration.TestStreamingEndpoint",
+            "time": 0.092,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_telemetry_initialization",
+            "classname": "tests.unit.test_telemetry.TestTelemetryService",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_record_request",
+            "classname": "tests.unit.test_telemetry.TestTelemetryService",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_record_llm_request",
+            "classname": "tests.unit.test_telemetry.TestTelemetryService",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_record_stage_duration",
+            "classname": "tests.unit.test_telemetry.TestTelemetryService",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_record_error",
+            "classname": "tests.unit.test_telemetry.TestTelemetryService",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_trace_span_context_manager",
+            "classname": "tests.unit.test_telemetry.TestTelemetryService",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_measure_stage_context_manager",
+            "classname": "tests.unit.test_telemetry.TestTelemetryService",
+            "time": 0.102,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_wrapper_initialization",
+            "classname": "tests.unit.test_telemetry.TestTelemetryLLMWrapper",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_wrapper_generate_success",
+            "classname": "tests.unit.test_telemetry.TestTelemetryLLMWrapper",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_wrapper_generate_error",
+            "classname": "tests.unit.test_telemetry.TestTelemetryLLMWrapper",
+            "time": 0.002,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_wrapper_generate_exception",
+            "classname": "tests.unit.test_telemetry.TestTelemetryLLMWrapper",
+            "time": 0.003,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_token_estimation",
+            "classname": "tests.unit.test_telemetry.TestTelemetryLLMWrapper",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_cost_calculation",
+            "classname": "tests.unit.test_telemetry.TestTelemetryLLMWrapper",
+            "time": 0.001,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_wrapper_metrics",
+            "classname": "tests.unit.test_telemetry.TestTelemetryLLMWrapper",
+            "time": 0.006,
+            "status": "passed",
+            "details": null
+          }
+        ]
+      }
+    },
+    "live": {
+      "categories": {
+        "demo_endpoints": [
+          {
+            "name": "test_demo_health_available_models",
+            "classname": "tests.live.test_demo_endpoints",
+            "time": 0.348,
+            "status": "skipped",
+            "details": "Endpoint /health returned 502 (service unavailable)"
+          },
+          {
+            "name": "test_demo_models_providers_summary",
+            "classname": "tests.live.test_demo_endpoints",
+            "time": 0.237,
+            "status": "skipped",
+            "details": "Endpoint /models/providers-summary returned 502 (service unavailable)"
+          }
+        ],
+        "other": [
+          {
+            "name": "test_openai_smoke",
+            "classname": "tests.live.test_live_providers",
+            "time": 0.623,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_anthropic_smoke",
+            "classname": "tests.live.test_live_providers",
+            "time": 0.223,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_gemini_smoke",
+            "classname": "tests.live.test_live_providers",
+            "time": 0.111,
+            "status": "passed",
+            "details": null
+          },
+          {
+            "name": "test_huggingface_smoke",
+            "classname": "tests.live.test_live_providers",
+            "time": 0.001,
+            "status": "skipped",
+            "details": "HUGGINGFACE_API_KEY not set"
+          },
+          {
+            "name": "test_live_api_call",
+            "classname": "tests.test_config_example.TestConfigurationExample",
+            "time": 0.005,
+            "status": "passed",
+            "details": null
+          }
+        ]
+      }
+    },
+    "demo": {
+      "categories": {
+        "demo_endpoints": [
+          {
+            "name": "test_demo_health_available_models",
+            "classname": "tests.live.test_demo_endpoints",
+            "time": 0.182,
+            "status": "skipped",
+            "details": "Endpoint /health returned 502 (service unavailable)"
+          },
+          {
+            "name": "test_demo_models_providers_summary",
+            "classname": "tests.live.test_demo_endpoints",
+            "time": 0.135,
+            "status": "skipped",
+            "details": "Endpoint /models/providers-summary returned 502 (service unavailable)"
+          }
+        ]
+      }
+    }
+  }
+}

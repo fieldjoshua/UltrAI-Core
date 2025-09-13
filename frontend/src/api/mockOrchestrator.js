@@ -1,12 +1,99 @@
 // Mock Orchestrator API for demo mode
 // Provides realistic simulated responses for demonstrations
 
+// Error simulation configuration
+const ERROR_SCENARIOS = {
+  NETWORK_TIMEOUT: 'network_timeout',
+  NO_MODELS_AVAILABLE: 'no_models_available',
+  AUTHENTICATION_FAILURE: 'authentication_failure',
+  NONE: 'none'
+};
+
+// Global error simulation state
+let currentErrorScenario = ERROR_SCENARIOS.NONE;
+let errorProbability = 0; // 0-1 probability of random errors
+
+// Error simulation control functions
+export function setErrorScenario(scenario) {
+  if (Object.values(ERROR_SCENARIOS).includes(scenario)) {
+    currentErrorScenario = scenario;
+    console.log(`Mock Orchestrator: Error scenario set to ${scenario}`);
+  }
+}
+
+export function setRandomErrorProbability(probability) {
+  errorProbability = Math.max(0, Math.min(1, probability));
+  console.log(`Mock Orchestrator: Random error probability set to ${errorProbability}`);
+}
+
+export function clearErrorSimulation() {
+  currentErrorScenario = ERROR_SCENARIOS.NONE;
+  errorProbability = 0;
+  console.log('Mock Orchestrator: Error simulation cleared');
+}
+
+// Helper to check if we should simulate an error
+function shouldSimulateError() {
+  if (currentErrorScenario !== ERROR_SCENARIOS.NONE) {
+    return currentErrorScenario;
+  }
+  if (Math.random() < errorProbability) {
+    // Randomly select an error scenario
+    const scenarios = [
+      ERROR_SCENARIOS.NETWORK_TIMEOUT,
+      ERROR_SCENARIOS.NO_MODELS_AVAILABLE,
+      ERROR_SCENARIOS.AUTHENTICATION_FAILURE
+    ];
+    return scenarios[Math.floor(Math.random() * scenarios.length)];
+  }
+  return null;
+}
+
+// Simulate network timeout
+async function simulateNetworkTimeout() {
+  // Wait for a realistic timeout period
+  await new Promise(resolve => setTimeout(resolve, 30000)); // 30 second timeout
+  throw new Error('Network timeout: Request took too long to complete');
+}
+
+// Simulate authentication failure
+function simulateAuthenticationFailure() {
+  const error = new Error('Authentication failed');
+  error.status = 401;
+  error.response = {
+    status: 401,
+    statusText: 'Unauthorized',
+    json: async () => ({
+      detail: 'Invalid or expired authentication token',
+      error_code: 'AUTH_FAILED'
+    })
+  };
+  throw error;
+}
+
+// Simulate no models available
+function simulateNoModelsAvailable() {
+  const error = new Error('No models available');
+  error.status = 503;
+  error.response = {
+    status: 503,
+    statusText: 'Service Unavailable',
+    json: async () => ({
+      detail: 'No AI models are currently available. All providers are experiencing issues.',
+      error_code: 'NO_MODELS_AVAILABLE',
+      available_models: []
+    })
+  };
+  throw error;
+}
+
 const DEMO_MODELS = [
-  { id: 'gpt-4o', provider: 'openai', cost_per_1k_tokens: 0.005 },
+  { id: 'gpt-5', provider: 'openai', cost_per_1k_tokens: 0.006 },
+  { id: 'claude-4.1', provider: 'anthropic', cost_per_1k_tokens: 0.004 },
+  { id: 'gemini-2.5', provider: 'google', cost_per_1k_tokens: 0.0045 },
+  // Additional demo models remain available
   { id: 'gpt-4o-mini', provider: 'openai', cost_per_1k_tokens: 0.00015 },
-  { id: 'claude-3-5-sonnet-20241022', provider: 'anthropic', cost_per_1k_tokens: 0.003 },
   { id: 'claude-3-haiku-20240307', provider: 'anthropic', cost_per_1k_tokens: 0.00025 },
-  { id: 'gemini-1.5-pro', provider: 'google', cost_per_1k_tokens: 0.0035 },
   { id: 'gemini-1.5-flash', provider: 'google', cost_per_1k_tokens: 0.00035 },
   { id: 'llama-3.1-70b-versatile', provider: 'groq', cost_per_1k_tokens: 0.00059 },
   { id: 'mixtral-8x7b-32768', provider: 'groq', cost_per_1k_tokens: 0.00024 },
@@ -17,7 +104,9 @@ const generateDemoResponse = (query, models) => {
   const lowerQuery = query.toLowerCase();
   
   // Detect query type and generate appropriate response
-  if (lowerQuery.includes('code') || lowerQuery.includes('program') || lowerQuery.includes('function')) {
+  if (lowerQuery.includes('angel investor') || lowerQuery.includes('top 10 angel')) {
+    return generateAngelInvestorResponse(query, models);
+  } else if (lowerQuery.includes('code') || lowerQuery.includes('program') || lowerQuery.includes('function')) {
     return generateCodeResponse(query, models);
   } else if (lowerQuery.includes('analyze') || lowerQuery.includes('compare')) {
     return generateAnalysisResponse(query, models);
@@ -148,30 +237,153 @@ ${query.slice(0, 50)}... can be understood as a fundamental concept that bridges
 *This explanation benefits from cross-model validation for maximum accuracy and clarity.*`;
 };
 
+const generateAngelInvestorResponse = (query, models) => {
+  // Return the actual Claude response from the CSV file
+  return `Based on my research, here are the Top 10 Angel Investors most likely to fund your AI portal with democratizing features and campus-based P2P marketing:
+
+1. **Nat Friedman**
+   Contact: n***@gmail.com (available via RocketReach)
+   Reasoning: Co-founded AI Grant and has the largest AI angel portfolio with 138 investments. Former GitHub CEO with deep developer community understanding. Actively invested in AI infrastructure and democratization through AI Grant program. Perfect fit for developer-focused AI tools.
+
+2. **Sam Altman**
+   Contact: sam@openai.com or through OpenAI Startup Fund
+   Reasoning: OpenAI CEO with 168+ angel investments focused on AI accessibility. Believes in democratizing AI through affordable access models. Previously led Y Combinator and has extensive student/campus network connections. Ideal for scalable AI democratization plays.
+
+3. **Reid Hoffman**
+   Contact: rhoffman@greylock.com
+   Reasoning: LinkedIn founder and Greylock partner with 37+ AI investments. Champions AI democratization and wrote extensively about "AI benefiting humanity." Strong track record with network effect businesses and educational platforms. Excellent fit for AI platform with viral campus distribution.
+
+4. **Naval Ravikant**
+   Contact: naval@angellist.com or through AngelList Syndicate
+   Reasoning: AngelList founder who literally built the infrastructure for democratizing startup investing. 131 investments with focus on platforms that increase accessibility. Strong belief in technology democratization and reducing barriers to entry. Perfect alignment with accessibility mission.
+
+5. **Jason Calacanis**
+   Contact: jmc@launch.co
+   Reasoning: LAUNCH founder who invests in 100+ startups annually with focus on education and accessibility. Runs Founder University and Angel University programs targeting students. Deep campus connections and pay-as-you-go business model expertise. Ideal for campus-based P2P marketing model.
+
+6. **Elad Gil**
+   Contact: Available through blog.eladgil.com contact form
+   Reasoning: Solo VC with 296 investments including early AI companies like Perplexity, Character.AI, Harvey. Focus on AI infrastructure and tools that democratize access to advanced capabilities. Strong track record with B2B AI platforms serving diverse user bases. Perfect for AI infrastructure democratization.
+
+7. **Fabrice Grinda**
+   Contact: fabrice@fjlabs.com or fabrice@grinda.org
+   Reasoning: FJ Labs founder with 1000+ investments focused on marketplaces that democratize access. Strong thesis on platforms connecting underserved users to premium services. Extensive experience with pay-as-you-go and accessibility models. Excellent fit for democratizing premium AI access.
+
+8. **Dharmesh Shah**
+   Contact: dharmesh@hubspot.com
+   Reasoning: HubSpot co-founder and CTO with $140M+ invested in AI startups. Created ChatSpot AI and focuses on making technology accessible to non-technical users. Strong believer in freemium and bottom-up SaaS adoption. Ideal for AI tools with campus-first go-to-market.
+
+9. **Alexandr Wang**
+   Contact: alex@scale.com
+   Reasoning: Scale AI founder (age 27) who understands student/young founder dynamics. Built $7.3B company democratizing AI data labeling. Active angel investor in AI infrastructure and tools. Perfect for understanding campus distribution and young user adoption patterns.
+
+10. **Lachy Groom**
+   Contact: hello@lachy.com
+   Reasoning: Former Stripe exec turned prolific angel with 200+ investments. Focus on developer tools and API-first businesses with usage-based pricing. Strong track record with bottom-up SaaS and PLG models. Ideal match for pay-as-you-go AI platform with student ambassadors.
+
+**Key Insights:**
+- Warm introductions dramatically increase response rates (10-50x higher than cold outreach)
+- Use university alumni networks and LinkedIn to find mutual connections
+- Lead with traction metrics: student ambassadors signed up, campuses covered, early usage data
+- Emphasize the network effects of your P2P campus distribution model
+- Highlight pay-as-you-go accessibility vs expensive enterprise AI subscriptions
+
+**Pro tip:** Start with investors who have portfolios in both AI/ML and education/campus markets. They'll immediately understand your distribution advantage.`;
+};
+
 const generateGeneralResponse = (query, models) => {
-  return `Ultra Synthesis™ has processed your query through ${models.length} specialized AI models:
+  // Extract key terms from query for more relevant response
+  const queryTerms = query.toLowerCase().split(' ').filter(word => word.length > 3);
+  const topic = queryTerms.length > 0 ? queryTerms.join(' ') : 'your inquiry';
+  
+  return `# Ultra Synthesis™ Analysis Report
 
-**Comprehensive Multi-Model Response:**
+## Query Analysis
+**Original Query:** "${query}"
+**Processing Time:** ${(12.5 + Math.random() * 5).toFixed(2)} seconds
+**Models Engaged:** ${models.length} specialized AI systems
 
-🎯 **Executive Summary:**
-Your query has been analyzed from multiple perspectives, yielding a consensus-driven response with enhanced accuracy and depth.
+---
 
-📊 **Synthesis Results:**
-1. **Primary Response**: [Core answer with 95% model agreement]
-2. **Additional Insights**: [Unique perspectives from individual models]
-3. **Confidence Level**: High (backed by multi-model validation)
+## 🧠 Intelligence Multiplication Results
 
-💡 **Key Takeaways:**
-- Main finding supported by ${models.length} independent AI analyses
-- Edge cases and exceptions identified through diverse model perspectives
-- Actionable recommendations based on synthesized intelligence
+### Stage 1: Initial Model Responses (Parallel Processing)
+${models.map((model, i) => `
+**${model}** (${(1.2 + Math.random()).toFixed(2)}s):
+- Primary insight: Identified ${3 + i} key factors related to ${topic}
+- Confidence: ${(85 + Math.random() * 10).toFixed(1)}%
+- Unique perspective: ${
+  model.includes('gpt') ? 'Comprehensive analysis with strong general knowledge' :
+  model.includes('claude') ? 'Nuanced understanding with ethical considerations' :
+  model.includes('gemini') ? 'Technical depth with multimodal insights' :
+  'Specialized domain expertise with efficient processing'
+}`).join('\n')}
 
-**Quality Metrics:**
-- Response Accuracy: 97.3%
-- Comprehensiveness: 94.8%
-- Practical Value: High
+### Stage 2: Meta-Analysis (Cross-Model Synthesis)
+🔄 **Pattern Recognition Results:**
+- **Consensus Areas** (${(88 + Math.random() * 10).toFixed(1)}% agreement):
+  • All models identified similar core themes around ${topic}
+  • Shared understanding of fundamental principles
+  • Consistent factual accuracy across responses
 
-*This response represents the cutting edge of AI collaboration and intelligence multiplication.*`;
+- **Divergence Points** (Valuable unique insights):
+  • GPT models emphasized broader context and implications
+  • Claude models highlighted potential edge cases and ethical dimensions
+  • Gemini models provided technical implementation details
+  • Open-source models offered alternative perspectives
+
+### Stage 3: Ultra Synthesis™ (Intelligence Multiplication)
+
+📈 **Synthesized Insights:**
+
+1. **Core Finding** (Supported by ${models.length}/${models.length} models):
+   Based on comprehensive analysis, ${topic} involves multiple interconnected factors that require careful consideration. The synthesis reveals both immediate practical applications and long-term strategic implications.
+
+2. **Multi-Dimensional Analysis:**
+   - **Technical Perspective**: Implementation requires attention to scalability, efficiency, and maintainability
+   - **Strategic Perspective**: Long-term value creation through systematic approach
+   - **Risk Perspective**: ${Math.floor(Math.random() * 3) + 2} potential challenges identified with mitigation strategies
+   - **Opportunity Perspective**: ${Math.floor(Math.random() * 4) + 3} growth vectors discovered through cross-model insights
+
+3. **Actionable Recommendations** (Priority-ranked):
+   🥇 **Immediate Actions** (0-30 days):
+   - Implement the consensus approach validated by all ${models.length} models
+   - Begin with pilot testing in controlled environment
+   - Establish measurement frameworks for success metrics
+   
+   🥈 **Short-term Initiatives** (1-3 months):
+   - Scale successful patterns identified in synthesis
+   - Address edge cases surfaced by specialized analysis
+   - Optimize based on initial performance data
+   
+   🥉 **Strategic Roadmap** (3-12 months):
+   - Leverage compound benefits from integrated approach
+   - Expand into adjacent opportunities identified
+   - Build sustainable competitive advantages
+
+## 📊 Quality Assurance Metrics
+
+| Metric | Score | Benchmark |
+|--------|-------|-----------|
+| Inter-Model Agreement | ${(92 + Math.random() * 6).toFixed(1)}% | >85% ✅ |
+| Factual Consistency | ${(95 + Math.random() * 4).toFixed(1)}% | >90% ✅ |
+| Novel Insights Generated | ${Math.floor(8 + Math.random() * 7)} | >5 ✅ |
+| Confidence Level | ${(88 + Math.random() * 10).toFixed(1)}% | >80% ✅ |
+| Comprehensiveness | ${(93 + Math.random() * 6).toFixed(1)}% | >85% ✅ |
+
+## 🚀 Value Delivered
+
+Through Ultra Synthesis™, you've received:
+- **${models.length}x perspective multiplication** vs single model response
+- **${(35 + Math.random() * 25).toFixed(0)}% more insights** through cross-model synthesis
+- **${(92 + Math.random() * 7).toFixed(0)}% confidence level** through consensus validation
+- **Unique discoveries** that no single model would have identified
+
+---
+
+*This Ultra Synthesis™ report represents the cutting edge of AI orchestration, where multiple intelligences collaborate to deliver insights beyond the capability of any single model. Each response is unique, contextual, and optimized for maximum value delivery.*
+
+**Report ID:** US-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
 };
 
 // Mock API implementation
@@ -182,9 +394,30 @@ export async function processWithFeatherOrchestration({
   ultraModel = null,
   outputFormat = 'plain'
 }) {
-  // Simulate network delay
-  await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 2000));
+  const orchestrationStartTime = Date.now();
+  // Check for error simulation
+  const errorScenario = shouldSimulateError();
+  if (errorScenario) {
+    switch (errorScenario) {
+      case ERROR_SCENARIOS.NETWORK_TIMEOUT:
+        await simulateNetworkTimeout();
+        break;
+      case ERROR_SCENARIOS.NO_MODELS_AVAILABLE:
+        simulateNoModelsAvailable();
+        break;
+      case ERROR_SCENARIOS.AUTHENTICATION_FAILURE:
+        simulateAuthenticationFailure();
+        break;
+    }
+  }
   
+<<<<<<< HEAD
+  // Stage 1: Initialize providers & health check (2-5s)
+  await new Promise(resolve => setTimeout(resolve, 2000 + Math.random() * 3000));
+  
+  // Use provided models or select defaults (top models)
+  let selectedModels = models || ['gpt-5', 'claude-4.1', 'gemini-2.5'];
+=======
   // If a demo dataset is available, return it directly to reflect manual UltrAI search
   try {
     const demoRes = await fetch('/demo/ultrai_demo.json', { cache: 'no-store' });
@@ -207,6 +440,7 @@ export async function processWithFeatherOrchestration({
 
   // Use provided models or select defaults
   let selectedModels = models || ['gpt-4o', 'claude-3-5-sonnet-20241022', 'gemini-1.5-pro'];
+>>>>>>> origin/main
   
   // Ensure at least 2 models for Ultra Synthesis
   if (selectedModels.length < 2) {
@@ -214,34 +448,64 @@ export async function processWithFeatherOrchestration({
     selectedModels = ['gpt-4o', 'claude-3-5-sonnet-20241022'];
   }
   
-  // Generate initial responses
+  // Stage 2: Query dispatch (0.3-0.8s)
+  await new Promise(resolve => setTimeout(resolve, 300 + Math.random() * 500));
+  
+  // Stage 3: Model generation in parallel (8-15s for slowest)
   const initialResponses = {};
-  for (const model of selectedModels) {
-    await new Promise(resolve => setTimeout(resolve, 500)); // Simulate per-model delay
+  
+  // Simulate parallel processing - all models work simultaneously
+  const modelPromises = selectedModels.map(async (model) => {
+    // Each model has different response times
+    const modelDelay = model.includes('gpt-5') ? 8000 + Math.random() * 7000 :  // GPT-5: 8-15s
+                      model.includes('claude-4.1') ? 6000 + Math.random() * 6000 :  // Claude: 6-12s
+                      model.includes('gemini') ? 6000 + Math.random() * 4000 :      // Gemini: 6-10s
+                      5000 + Math.random() * 5000;                                  // Others: 5-10s
+    
+    await new Promise(resolve => setTimeout(resolve, modelDelay));
+    
     initialResponses[model] = {
       content: `[${model}] Initial analysis of: "${prompt.slice(0, 50)}..."`,
-      processingTime: 1.2 + Math.random(),
+      processingTime: modelDelay / 1000,
       confidence: 0.85 + Math.random() * 0.15
     };
+  });
+  
+  // Wait for all models to complete (parallel execution)
+  await Promise.all(modelPromises);
+  
+  // Stage 4: Cross-check & fan-out (2-5s)
+  await new Promise(resolve => setTimeout(resolve, 2000 + Math.random() * 3000));
+  
+  // Stage 5: Critique & revision loop (5-20s total for 1-2 passes)
+  const revisionPasses = Math.random() < 0.7 ? 1 : 2; // 70% chance of 1 pass, 30% chance of 2
+  for (let pass = 0; pass < revisionPasses; pass++) {
+    await new Promise(resolve => setTimeout(resolve, 5000 + Math.random() * 5000));
   }
   
-  // Generate meta analysis
-  await new Promise(resolve => setTimeout(resolve, 1000));
+  // Stage 6: Meta-draft assembly (2-4s)
+  await new Promise(resolve => setTimeout(resolve, 2000 + Math.random() * 2000));
+  
+  // Stage 7: Meta-analysis & synthesis (6-12s)
+  await new Promise(resolve => setTimeout(resolve, 6000 + Math.random() * 6000));
   const metaAnalysis = {
     content: `Meta-analysis identified ${Object.keys(initialResponses).length} key patterns across models with 92% consensus rate.`,
     patterns: ['consensus', 'divergence', 'synthesis'],
     confidence: 0.91
   };
   
-  // Generate ultra synthesis
-  await new Promise(resolve => setTimeout(resolve, 1500));
+  // Stage 8: Final formatting & delivery (4-8s)
+  await new Promise(resolve => setTimeout(resolve, 4000 + Math.random() * 4000));
   const ultraResponse = generateDemoResponse(prompt, selectedModels);
+  
+  // Add network/rate-limit jitter (1-3s)
+  await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 2000));
   
   return {
     status: 'success',
     ultra_response: ultraResponse,
     models_used: selectedModels,
-    processing_time: 4.5 + Math.random() * 2,
+    processing_time: (Date.now() - orchestrationStartTime) / 1000, // Actual elapsed time
     pattern_used: pattern,
     initial_responses: initialResponses,
     meta_analysis: metaAnalysis,
@@ -254,8 +518,35 @@ export async function processWithFeatherOrchestration({
 }
 
 export async function getAvailableModels() {
-  // Simulate network delay
-  await new Promise(resolve => setTimeout(resolve, 300));
+  // Check for error simulation
+  const errorScenario = shouldSimulateError();
+  if (errorScenario) {
+    switch (errorScenario) {
+      case ERROR_SCENARIOS.NETWORK_TIMEOUT:
+        await simulateNetworkTimeout();
+        break;
+      case ERROR_SCENARIOS.NO_MODELS_AVAILABLE:
+        // For getAvailableModels, return empty list instead of throwing
+        return {
+          models: [],
+          totalCount: 0,
+          providers: {
+            openai: [],
+            anthropic: [],
+            google: [],
+            groq: [],
+          },
+          modelInfos: {},
+          error: 'No models available'
+        };
+      case ERROR_SCENARIOS.AUTHENTICATION_FAILURE:
+        simulateAuthenticationFailure();
+        break;
+    }
+  }
+  
+  // Simulate network delay (slower)
+  await new Promise(resolve => setTimeout(resolve, 1000));
   
   return {
     models: DEMO_MODELS.map(m => m.id),
@@ -274,6 +565,26 @@ export async function getAvailableModels() {
 }
 
 export async function checkModelStatus(modelId) {
+  // Check for error simulation
+  const errorScenario = shouldSimulateError();
+  if (errorScenario) {
+    switch (errorScenario) {
+      case ERROR_SCENARIOS.NETWORK_TIMEOUT:
+        await simulateNetworkTimeout();
+        break;
+      case ERROR_SCENARIOS.NO_MODELS_AVAILABLE:
+        return {
+          available: false,
+          status: 'all_models_unavailable',
+          lastChecked: new Date().toISOString(),
+          error: 'No models are currently available'
+        };
+      case ERROR_SCENARIOS.AUTHENTICATION_FAILURE:
+        simulateAuthenticationFailure();
+        break;
+    }
+  }
+  
   // Simulate network delay
   await new Promise(resolve => setTimeout(resolve, 200));
   
@@ -284,5 +595,47 @@ export async function checkModelStatus(modelId) {
     available: !unavailableModels.includes(modelId),
     status: unavailableModels.includes(modelId) ? 'temporarily_unavailable' : 'ready',
     lastChecked: new Date().toISOString()
+  };
+}
+
+// Export error scenarios for testing
+export { ERROR_SCENARIOS };
+
+// Utility function for testing error scenarios
+export function simulateError(scenario, duration = null) {
+  if (scenario === 'random') {
+    // Enable random errors with 30% probability
+    setRandomErrorProbability(0.3);
+    console.log('Mock Orchestrator: Random errors enabled (30% probability)');
+    
+    if (duration) {
+      setTimeout(() => {
+        clearErrorSimulation();
+        console.log('Mock Orchestrator: Random errors disabled after timeout');
+      }, duration);
+    }
+  } else if (Object.values(ERROR_SCENARIOS).includes(scenario)) {
+    setErrorScenario(scenario);
+    console.log(`Mock Orchestrator: Simulating ${scenario} errors`);
+    
+    if (duration) {
+      setTimeout(() => {
+        clearErrorSimulation();
+        console.log(`Mock Orchestrator: ${scenario} simulation ended after timeout`);
+      }, duration);
+    }
+  } else {
+    console.error(`Mock Orchestrator: Unknown error scenario "${scenario}"`);
+  }
+}
+
+// Window-level access for browser console testing
+if (typeof window !== 'undefined') {
+  window.mockOrchestratorErrors = {
+    simulateError,
+    clearErrorSimulation,
+    setErrorScenario,
+    setRandomErrorProbability,
+    scenarios: ERROR_SCENARIOS
   };
 }

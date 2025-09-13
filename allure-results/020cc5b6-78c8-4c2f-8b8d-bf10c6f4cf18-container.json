@@ -1,0 +1,1 @@
+{"uuid": "d7510d24-76c4-4210-9216-66316cee2699", "children": ["4729e9f0-86c9-4371-97cd-2048ae69ab1d"], "befores": [{"name": "mock_model_registry", "status": "passed", "start": 1757657429905, "stop": 1757657429905}], "start": 1757657429905, "stop": 1757657429908}

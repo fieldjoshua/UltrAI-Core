@@ -1,0 +1,1 @@
+[32mINFO    [0m prompt_service:prompt_service.py:181 Updated template: analysis

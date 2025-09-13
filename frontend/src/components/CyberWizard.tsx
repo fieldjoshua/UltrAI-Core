@@ -92,13 +92,6 @@ export default function CyberWizard() {
   // Sync bgTheme with currentSkin for non-minimalist skins
   const [bgTheme, setBgTheme] = useState<'morning' | 'afternoon' | 'sunset' | 'night'>('night');
   
-  // Set document title for accessibility and SEO
-  useEffect(() => {
-    const previousTitle = document.title;
-    document.title = 'UltrAI – Wizard';
-    return () => { document.title = previousTitle; };
-  }, []);
-  
   useEffect(() => {
     if (!isNonTimeSkin && ['morning', 'afternoon', 'sunset', 'night'].includes(currentSkin)) {
       setBgTheme(currentSkin as any);
@@ -171,7 +164,26 @@ export default function CyberWizard() {
     load();
   }, []);
 
-  
+  if (steps.length === 0) {
+    return (
+      <div className="max-w-5xl mx-auto p-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="space-y-3">
+            <div className="animate-pulse h-6 w-40 bg-gray-200/60 dark:bg-gray-700/50 rounded" />
+            <div className="animate-pulse h-28 w-full bg-gray-200/60 dark:bg-gray-700/50 rounded" />
+          </div>
+          <div className="space-y-3">
+            <div className="animate-pulse h-6 w-32 bg-gray-200/60 dark:bg-gray-700/50 rounded" />
+            <div className="animate-pulse h-28 w-full bg-gray-200/60 dark:bg-gray-700/50 rounded" />
+          </div>
+          <div className="space-y-3">
+            <div className="animate-pulse h-6 w-24 bg-gray-200/60 dark:bg-gray-700/50 rounded" />
+            <div className="animate-pulse h-28 w-full bg-gray-200/60 dark:bg-gray-700/50 rounded" />
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   // Keyboard navigation
   useEffect(() => {
@@ -204,35 +216,26 @@ export default function CyberWizard() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [currentStep, steps.length, showStatus]);
 
-  // Load available models for Step 3 (only show keyed models)
+  // Load available models for Step 4 (only show healthy & keyed models)
   useEffect(() => {
     const fetchAvailable = async () => {
       try {
         const d = await getAvailableModels();
         if (d && Array.isArray(d.models)) {
-          setAvailableModels(d.models);
+          const names = d.models.map((m: any) => (typeof m === 'string' ? m : m.name)).filter(Boolean);
+          setAvailableModels(names);
+          const infoMap: Record<string, { provider: string; cost_per_1k_tokens: number }> = {};
           const statusMap: Record<string, 'checking' | 'ready' | 'error'> = {};
-          
-          // Check if we have modelInfos in the response
-          if (d.modelInfos) {
-            setAvailableModelInfos(d.modelInfos);
-            // Set all models as ready
-            d.models.forEach((modelName: string) => {
-              statusMap[modelName] = 'ready';
-            });
-          } else {
-            // Legacy format - create info map from models array
-            const infoMap: Record<string, { provider: string; cost_per_1k_tokens: number }> = {};
-            d.models.forEach((m: any) => {
-              const name = typeof m === 'string' ? m : m.name;
-              infoMap[name] = {
-                provider: m.provider || '',
-                cost_per_1k_tokens: m.cost_per_1k_tokens || 0,
-              };
-              statusMap[name] = 'ready';
-            });
-            setAvailableModelInfos(infoMap);
-          }
+          (d.models as any[]).forEach((m: any) => {
+            const name = typeof m === 'string' ? m : m.name;
+            if (!name) return;
+            infoMap[name] = {
+              provider: String((typeof m === 'object' && m?.provider) || ''),
+              cost_per_1k_tokens: Number((typeof m === 'object' && m?.cost_per_1k_tokens) || 0),
+            };
+            statusMap[name] = 'ready';
+          });
+          setAvailableModelInfos(infoMap);
           setModelStatuses(statusMap);
         } else {
           setAvailableModels([]);
@@ -253,27 +256,61 @@ export default function CyberWizard() {
       try {
         setOrchestratorError(null);
         
-        // Use the orchestrator API (which will use mock in demo mode)
-        const models = selectedModels.length > 0 ? selectedModels : null;
-        const res = await processWithFeatherOrchestration({
-          prompt: userQuery || "",
-          models,
-          pattern: "comparative",
-          ultraModel: null,
-          outputFormat: "plain",
-        });
-        
-        // Check if the API returned an error in the response
-        if ((res as any)?.error) {
-          const errVal: any = (res as any).error;
-          const errorMessage = typeof errVal === 'object' 
-            ? errVal?.message || JSON.stringify(errVal)
-            : String(errVal);
-          setOrchestratorError(errorMessage);
-          setOrchestratorResult(null);
+        if (isDemoMode) {
+          // For demo mode, use the separate demo service
+          // You can configure this to point to your demo Render service
+          await new Promise(resolve => setTimeout(resolve, 8000)); // 8 seconds to show all steps
+          
+          // Simulate a successful response for demo
+          const demoResult = {
+            status: 'success',
+            ultra_response: `Based on my multi-model analysis using advanced intelligence multiplication techniques, here's a comprehensive response to your query about sustainable urban transportation:
+
+**Key Findings:**
+1. **Electric Public Transit**: Cities implementing electric bus fleets have seen 40% reduction in emissions
+2. **Bike Infrastructure**: Protected bike lanes increase cycling adoption by 75%
+3. **Smart Traffic Management**: AI-powered traffic systems reduce congestion by 25%
+
+**Recommendations:**
+- Prioritize investment in electric mass transit systems
+- Create dedicated cycling infrastructure with physical barriers
+- Implement dynamic pricing for parking to discourage car use
+- Develop integrated mobility apps for seamless multi-modal journeys
+
+**Future Outlook:**
+The convergence of autonomous vehicles, renewable energy, and smart city infrastructure will revolutionize urban mobility by 2030.
+
+*This analysis synthesized insights from GPT-4, Claude 3, and Gemini Pro to provide a comprehensive perspective.*`,
+            models_used: ["gpt-4-turbo-preview", "claude-3-opus-20240229", "gemini-1.5-pro-latest"],
+            processing_time: 4.73,
+            pattern_used: "comparative"
+          };
+          
+          setOrchestratorResult(demoResult);
+          console.log("Demo Ultra Synthesis result", demoResult);
         } else {
-          setOrchestratorResult(res);
-          console.log("Ultra Synthesis result", res);
+          // Real API call
+          const models = selectedModels.length > 0 ? selectedModels : null;
+          const res = await processWithFeatherOrchestration({
+            prompt: userQuery || "",
+            models,
+            pattern: "comparative",
+            ultraModel: null,
+            outputFormat: "plain",
+          });
+          
+          // Check if the API returned an error in the response
+          if ((res as any)?.error) {
+            const errVal: any = (res as any).error;
+            const errorMessage = typeof errVal === 'object' 
+              ? errVal?.message || JSON.stringify(errVal)
+              : String(errVal);
+            setOrchestratorError(errorMessage);
+            setOrchestratorResult(null);
+          } else {
+            setOrchestratorResult(res);
+            console.log("Ultra Synthesis result", res);
+          }
         }
       } catch (e: any) {
         console.error("Ultra Synthesis failed", e);
@@ -282,7 +319,7 @@ export default function CyberWizard() {
         setIsRunning(false);
       }
     })();
-  }, [showStatus, userQuery, selectedModels]);
+  }, [showStatus, isDemoMode]);
 
   const addSelection = (label: string, cost: number | undefined, color: string, section?: string) => {
     const appliedCost = typeof cost === 'number' ? cost : 0;
@@ -312,28 +349,28 @@ export default function CyberWizard() {
     : c === 'pink' ? `rgba(255,0,149,${alpha})`
     : `rgba(214,0,255,${alpha})`;
 
-  const colorHex = useMemo(() => step?.color ? mapColorHex(step.color) : '#00ff9f', [step]);
+  const colorHex = useMemo(() => step ? mapColorHex(step.color) : '#00ff9f', [step]);
   const receiptColor = '#ff6600'; // Cyberpunk orange
 
   const handleGoalToggle = useCallback((label: string) => {
     if (!step) return;
     const option = step.options?.find(o => o.label === label);
     const cost = option?.cost;
-    setSelectedGoals(prev => prev.includes(label) ? (removeSelectionCost(cost), prev.filter(l => l !== label)) : (addSelection(label, cost, step?.color || 'mint', step?.title || ''), [...prev, label]));
+    setSelectedGoals(prev => prev.includes(label) ? (removeSelectionCost(cost), prev.filter(l => l !== label)) : (addSelection(label, cost, step.color, step.title), [...prev, label]));
   }, [step]);
   
   const handleInputToggle = useCallback((label: string) => {
     if (!step) return;
     const option = step.options?.find(o => o.label === label);
     const cost = option?.cost;
-    setSelectedInputs(prev => prev.includes(label) ? (removeSelectionCost(cost), prev.filter(l => l !== label)) : (addSelection(label, cost, step?.color || 'blue', step?.title || ''), [...prev, label]));
+    setSelectedInputs(prev => prev.includes(label) ? (removeSelectionCost(cost), prev.filter(l => l !== label)) : (addSelection(label, cost, step.color, step.title), [...prev, label]));
   }, [step]);
   
   const handleModelToggle = useCallback((label: string) => {
     if (!step) return;
     const option = step.options?.find(o => o.label === label);
     const cost = option?.cost;
-    setSelectedModels(prev => prev.includes(label) ? (removeSelectionCost(cost), prev.filter(l => l !== label)) : (addSelection(label, cost, step?.color || 'deepblue', step?.title || ''), [...prev, label]));
+    setSelectedModels(prev => prev.includes(label) ? (removeSelectionCost(cost), prev.filter(l => l !== label)) : (addSelection(label, cost, step.color, step.title), [...prev, label]));
   }, [step]);
 
   const monoStack = 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace';
@@ -393,10 +430,10 @@ export default function CyberWizard() {
       case 'afternoon':
         return 'rgba(0, 0, 0, 0.30)'; // Darker for bright afternoon
       case 'sunset':
-        return 'rgba(0, 0, 0, 0.25)'; // Slightly darker for better contrast
+        return 'rgba(0, 0, 0, 0.20)'; // Medium for sunset
       case 'night':
       default:
-        return 'rgba(0, 0, 0, 0.25)'; // Darker for night to improve legibility
+        return 'rgba(0, 0, 0, 0.15)'; // Lighter for dark night
     }
   }, [bgTheme]);
 
@@ -460,17 +497,8 @@ export default function CyberWizard() {
     setUserQuery(improvedQuery);
   }, [userQuery, selectedGoals]);
 
-  // Show loading state while steps are being loaded
-  if (steps.length === 0) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
-          <p className="text-white opacity-70">Loading UltrAI...</p>
-        </div>
-      </div>
-    );
-  }
+  // Loading state check - after all hooks
+  if (steps.length === 0) return <div>Loading…</div>;
 
   // Step 0: Intro — render with background and billboard
   if (currentStep === 0 && step && step.type === 'intro') {
@@ -595,6 +623,19 @@ export default function CyberWizard() {
                     textShadow: 'var(--shadow-text-glow, 0 0 10px currentColor)'
                   }}>comprehensive insights</span>.
                 </p>
+<<<<<<< HEAD
+                <div className="flex justify-center gap-6 text-sm mt-6">
+                  <span className="text-white/80" style={{
+                    textShadow: '0 0 5px rgba(255,255,255,0.3)'
+                  }}>Pay-as-you-go</span>
+                  <span className="text-white/50">•</span>
+                  <span className="text-white/80" style={{
+                    textShadow: '0 0 5px rgba(255,255,255,0.3)'
+                  }}>No commitments</span>
+                  <span className="text-white/50">•</span>
+                  <span className="text-white/80" style={{
+                    textShadow: '0 0 5px rgba(255,255,255,0.3)'
+=======
                 <div className="flex justify-center gap-6 text-sm mt-6 text-white/90">
                   <span className="text-white" style={{
                     textShadow: 'var(--shadow-text-subtle, 0 0 5px rgba(255,255,255,0.3))'
@@ -606,6 +647,7 @@ export default function CyberWizard() {
                   <span className="text-white/70">•</span>
                   <span className="text-white" style={{
                     textShadow: 'var(--shadow-text-subtle, 0 0 5px rgba(255,255,255,0.3))'
+>>>>>>> origin/main
                   }}>Enterprise-grade</span>
                 </div>
               </div>
@@ -626,7 +668,7 @@ export default function CyberWizard() {
               </div>
 
               {/* Trust indicators */}
-              <div className="flex justify-center gap-8 text-sm text-white/80">
+              <div className="flex justify-center gap-8 text-sm text-white/60">
                 <div className="flex items-center gap-2">
                   <span className="text-green-400">✓</span>
                   <span>20+ AI Models</span>
@@ -652,10 +694,6 @@ export default function CyberWizard() {
 
   return (
     <div className="relative flex flex-col min-h-screen w-full text-white font-cyber text-sm">
-      {/* Skip link for keyboard users */}
-      <a href="#main-content" className="sr-only focus:not-sr-only fixed top-2 left-2 z-50 bg-black text-white px-3 py-2 rounded">
-        Skip to content
-      </a>
       {/* Background layer - only show for time-based skins */}
       {!isNonTimeSkin && (
         <>
@@ -792,8 +830,7 @@ export default function CyberWizard() {
       )}
 
       {/* Main Content - Below Billboard */}
-      <div className="relative z-10 w-full" id="main-content" role="main">
-        <h1 className="sr-only">UltrAI Wizard</h1>
+      <div className="relative z-10 w-full">
         <div className="flex items-center justify-center" style={{ minHeight: '100vh', paddingTop: isNonTimeSkin ? '25vh' : '37.5vh' }}>
           <div className="w-full max-w-7xl px-8">
             <div className="grid grid-cols-12 gap-4">
@@ -815,7 +852,7 @@ export default function CyberWizard() {
                     clipPath: 'polygon(0 0, calc(100% - 15px) 0, 100% 15px, 100% 100%, 15px 100%, 0 calc(100% - 15px))'
                   }}
                 >
-                  <div role="heading" aria-level={2} className="text-xs font-bold text-white mb-3 uppercase tracking-wider opacity-80">System Status</div>
+                  <h3 className="text-xs font-bold text-white mb-3 uppercase tracking-wider opacity-80">System Status</h3>
                   
                   {/* Model Status */}
                   <div className="flex items-center justify-between mb-3">
@@ -886,7 +923,7 @@ export default function CyberWizard() {
                 <>
                   <div className="text-center mb-4">
                     <div className="text-[16px] font-extrabold tracking-[0.35em] text-white">ULTRA SYNTHESIS™</div>
-                    <div className="text-[10px] text-white/90">— PROCESSING STATUS —</div>
+                    <div className="text-[10px] text-white/70">— PROCESSING STATUS —</div>
                     {isDemoMode && (
                       <div className="mt-2 inline-flex items-center gap-2 px-3 py-1 rounded-full bg-green-500/20 border border-green-400/50">
                         <span className="text-green-300 text-[11px] font-medium">🎮 DEMO MODE</span>
@@ -924,7 +961,7 @@ export default function CyberWizard() {
                           <span>Running Ultra Synthesis™ Pipeline...</span>
                           <span className="animate-spin">⚡</span>
                         </div>
-                        <div className="mt-3 text-[11px] text-white/80">
+                        <div className="mt-3 text-[11px] text-white/60">
                           Processing with {selectedModels.length} models
                         </div>
                       </div>
@@ -943,7 +980,7 @@ export default function CyberWizard() {
                 <>
                   {/* Step markers (centered) - exclude Step 0 (Intro) */}
               <div className="w-full mb-4">
-                <nav aria-label="Wizard steps" className="flex items-center justify-center">
+                <div className="flex items-center justify-center">
                       {steps.map((s, idx) => ({ s, idx })).filter(x => x.idx !== 0).map(({ s, idx }) => {
                         const stepIndex = idx; // real index in steps
                         const isActive = stepIndex === currentStep;
@@ -954,10 +991,6 @@ export default function CyberWizard() {
                             <div 
                               onClick={() => { setCurrentStep(stepIndex); setStepFadeKey(k => k+1); }} 
                               className="relative cursor-pointer group"
-                              role="button"
-                              tabIndex={0}
-                              aria-current={isActive ? 'step' : undefined}
-                              aria-label={`Go to step ${stepIndex}: ${s.title}`}
                             >
                               <div 
                                 className={`w-8 h-8 rounded-full flex items-center justify-center transition-smooth will-change-transform ${
@@ -1001,7 +1034,7 @@ export default function CyberWizard() {
                       </div>
                     );
                   })}
-                </nav>
+                </div>
               </div>
 
               <h2 
@@ -1015,7 +1048,7 @@ export default function CyberWizard() {
                 {step.title}
               </h2>
               {step.narrative && (
-                <p className="text-[11px] text-white opacity-95 mb-2 text-center whitespace-pre-line">
+                <p className="text-[11px] text-white opacity-90 mb-2 text-center whitespace-pre-line">
                   {currentStep === 2 && selectedGoals.length > 0 
                     ? `Based on your selected goals (${selectedGoals.slice(0, 3).join(', ')}${selectedGoals.length > 3 ? '...' : ''}), tell us what you need.`
                     : step.narrative}
@@ -1070,7 +1103,7 @@ export default function CyberWizard() {
                         Enter UltrAI
                       </button>
                     </div>
-                    <div className="text-center mt-3 text-[10px] text-white/80 animate-pulse">
+                    <div className="text-center mt-3 text-[10px] text-white/50 animate-pulse">
                       Press Enter or →
                     </div>
                   </>
@@ -1096,7 +1129,7 @@ export default function CyberWizard() {
                     </div>
                     {/* Dynamic typing indicator */}
                     {queryFocused && userQuery.length > 0 && (
-                      <div className="absolute -top-6 left-0 text-[10px] animate-fade-in text-white" style={{ color: undefined }}>
+                      <div className="absolute -top-6 left-0 text-[10px] animate-fade-in" style={{ color: colorHex }}>
                         <span className="animate-pulse">✨</span> AI is ready to enhance your query...
                       </div>
                     )}
@@ -1116,7 +1149,7 @@ export default function CyberWizard() {
                   {/* Add optimization button for Step 2 */}
                   {userQuery.trim() && (
                     <div className="mt-4">
-                      <Button variant="secondary" onClick={optimizeQuery} className="w-full">
+                      <Button variant="secondary" fullWidth onClick={optimizeQuery}>
                         🚀 Allow UltrAI to optimize my query
                       </Button>
                       <p className="text-[10px] text-white/60 text-center mt-2">
@@ -1534,24 +1567,25 @@ export default function CyberWizard() {
                   ) : (
                     <div className="mt-3 text-center text-[11px] text-white/60">
                       Complete all steps to proceed
-                    </div>
-                  )}
+              </div>
+            )}
                 </>
               ) : (
                 <>
                   <div className="text-center mb-2">
                     <div className="text-[14px] font-extrabold tracking-[0.35em] text-white">ULTRAI</div>
                     <div className="text-[10px] text-white/70">— PROCESSING —</div>
-                  </div>
+              </div>
                   <div className="text-center mt-8">
                     <div className="text-[12px] text-white/60">Ultra Synthesis™ in progress</div>
                     <div className="text-[10px] text-white/40 mt-2">Check the status in the main panel</div>
                   </div>
                 </>
-              )}
+            )}
             </Card>
           </div>
         </div>
+          
         </div>
 
         {/* Status Section Below removed; status now appears in right panel after approval */}

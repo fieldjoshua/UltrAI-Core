@@ -2,12 +2,16 @@
 Route handlers for available models service.
 """
 
-from typing import Dict, List, Any
-from fastapi import APIRouter, Request
+from typing import List
+from fastapi import APIRouter, Request, Query
 from pydantic import BaseModel, Field
 import os
 
 from app.utils.logging import get_logger
+from app.services.model_availability import (
+    ModelAvailabilityChecker,
+    AvailabilityStatus,
+)
 
 logger = get_logger("available_models_routes")
 
@@ -38,7 +42,10 @@ def create_router() -> APIRouter:
     router = APIRouter(tags=["Available_Models"])
 
     @router.get("/available-models", response_model=AvailableModelsResponse)
-    async def get_available_models(http_request: Request):
+    async def get_available_models(
+        http_request: Request,
+        healthy_only: bool = Query(False, description="Return only models that are healthy right now"),
+    ):
         """
         Get list of available LLM models and their status.
         
@@ -283,19 +290,43 @@ def create_router() -> APIRouter:
                             if reg_model.get('error_count', 0) > 10:
                                 model_info.status = "degraded"
                             break
+
+            # Optionally filter to only currently healthy models using active checks
+            if healthy_only and available_models:
+                try:
+                    model_selector = None
+                    if hasattr(http_request.app.state, "services"):
+                        model_selector = http_request.app.state.services.get("model_selector")
+
+                    checker = ModelAvailabilityChecker(model_selector=model_selector)
+                    model_names = [m.name for m in available_models]
+                    results = await checker.check_all_models(models=model_names, query=None, parallel=True)
+                    healthy_names = {
+                        name for name, availability in results.items() if availability.status == AvailabilityStatus.AVAILABLE
+                    }
+                    # Preserve order from available_models while filtering
+                    available_models = [m for m in available_models if m.name in healthy_names]
+                    logger.info(f"Filtered to {len(available_models)} healthy models (requested healthy_only)")
+                except Exception as e:
+                    logger.error(f"Healthy-only filtering failed: {str(e)}")
             
             # Count healthy models
             healthy_count = sum(1 for m in available_models if m.status == "available")
             
             # Log summary
-            logger.info(f"Returning {len(available_models)} available models ({healthy_count} healthy)")
+            logger.info(
+                "Returning %d available models (%d healthy), healthy_only=%s",
+                len(available_models),
+                healthy_count,
+                str(healthy_only),
+            )
             if not available_models:
                 logger.warning("No models available - check API key configuration")
             
             return AvailableModelsResponse(
                 models=available_models,
                 total_count=len(available_models),
-                healthy_count=healthy_count
+                healthy_count=healthy_count,
             )
             
         except Exception as e:
@@ -306,7 +337,7 @@ def create_router() -> APIRouter:
             return AvailableModelsResponse(
                 models=available_models,
                 total_count=len(available_models),
-                healthy_count=healthy_count
+                healthy_count=healthy_count,
             )
 
     @router.get("/models/health")
@@ -320,7 +351,7 @@ def create_router() -> APIRouter:
         except Exception as e:
             return {"status": "error", "service": "model_registry", "error": str(e)}
 
-    @router.get("/models/providers-summary") 
+    @router.get("/models/providers-summary")
     async def get_providers_summary(http_request: Request):
         """Get summary of configured providers and their model counts."""
         providers = {
@@ -332,28 +363,53 @@ def create_router() -> APIRouter:
             "anthropic": {
                 "configured": bool(os.getenv("ANTHROPIC_API_KEY")),
                 "model_count": 6,
-                "models": ["claude-3-5-sonnet-20241022", "claude-3-5-haiku-20241022", "claude-3-opus-20240229", "claude-3-sonnet-20240229", "claude-3-haiku-20240307", "claude-3-sonnet"]
+                "models": [
+                    "claude-3-5-sonnet-20241022",
+                    "claude-3-5-haiku-20241022",
+                    "claude-3-opus-20240229",
+                    "claude-3-sonnet-20240229",
+                    "claude-3-haiku-20240307",
+                    "claude-3-sonnet",
+                ],
             },
             "google": {
                 "configured": bool(os.getenv("GOOGLE_API_KEY")),
                 "model_count": 6,
-                "models": ["gemini-1.5-pro", "gemini-1.5-pro-latest", "gemini-1.5-flash", "gemini-1.5-flash-latest", "gemini-2.0-flash-exp", "gemini-pro"]
+                "models": [
+                    "gemini-1.5-pro",
+                    "gemini-1.5-pro-latest",
+                    "gemini-1.5-flash",
+                    "gemini-1.5-flash-latest",
+                    "gemini-2.0-flash-exp",
+                    "gemini-pro",
+                ],
             },
             "huggingface": {
                 "configured": bool(os.getenv("HUGGINGFACE_API_KEY")),
                 "model_count": 6,
-                "models": ["meta-llama/Meta-Llama-3-8B-Instruct", "meta-llama/Meta-Llama-3-70B-Instruct", "mistralai/Mistral-7B-Instruct-v0.1", "mistralai/Mixtral-8x7B-Instruct-v0.1", "google/gemma-7b-it", "microsoft/phi-2"]
-            }
+                "models": [
+                    "meta-llama/Meta-Llama-3-8B-Instruct",
+                    "meta-llama/Meta-Llama-3-70B-Instruct",
+                    "mistralai/Mistral-7B-Instruct-v0.1",
+                    "mistralai/Mixtral-8x7B-Instruct-v0.1",
+                    "google/gemma-7b-it",
+                    "microsoft/phi-2",
+                ],
+            },
         }
         
-        configured_providers = [name for name, info in providers.items() if info["configured"]]
-        total_available_models = sum(info["model_count"] for name, info in providers.items() if info["configured"])
+        configured_providers = [
+            name for name, info in providers.items() if info["configured"]
+        ]
+        total_available_models = sum(
+            info["model_count"] for name, info in providers.items() if info["configured"]
+        )
         
         return {
             "providers": providers,
             "configured_providers": configured_providers,
             "total_configured_providers": len(configured_providers),
-            "total_available_models": total_available_models
+            "total_available_models": total_available_models,
         }
 
     return router

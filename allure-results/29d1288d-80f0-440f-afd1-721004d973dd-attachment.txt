@@ -1,0 +1,1 @@
+[1m[31mERROR   [0m app.services.llm_adapters:llm_adapters.py:134 OpenAI API error for model gpt-4: Invalid JSON: line 1 column 1 (char 0)

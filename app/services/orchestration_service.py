@@ -7,6 +7,7 @@ This service coordinates multi-model and multi-stage workflows according to the 
 from typing import Any, Dict, List, Optional, Tuple
 from dataclasses import dataclass
 from datetime import datetime, timedelta
+import inspect
 import asyncio
 import os
 import json
@@ -294,8 +295,10 @@ class OrchestrationService:
         candidates = [
             ("gpt-4o", os.getenv("OPENAI_API_KEY")),
             ("gpt-3.5-turbo", os.getenv("OPENAI_API_KEY")),
-            ("claude-3-sonnet-20240229", os.getenv("ANTHROPIC_API_KEY")),
+            ("claude-3-5-sonnet-20241022", os.getenv("ANTHROPIC_API_KEY")),
+            ("claude-3-5-haiku-20241022", os.getenv("ANTHROPIC_API_KEY")),
             ("gemini-1.5-pro", os.getenv("GOOGLE_API_KEY")),
+            ("gemini-1.5-flash", os.getenv("GOOGLE_API_KEY")),
             ("meta-llama/Meta-Llama-3-8B-Instruct", os.getenv("HUGGINGFACE_API_KEY")),
             ("mistralai/Mixtral-8x7B-Instruct-v0.1", os.getenv("HUGGINGFACE_API_KEY")),
         ]
@@ -372,6 +375,10 @@ class OrchestrationService:
 
         # Only ensure multiple models if required by configuration
         if len(healthy) < Config.MINIMUM_MODELS_REQUIRED and Config.MINIMUM_MODELS_REQUIRED > 1:
+<<<<<<< HEAD
+            # Try to add backup models to meet minimum requirement
+            backup_models = ["gemini-1.5-flash", "claude-3-5-sonnet-20241022", "gpt-4o"]
+=======
             if Config.ENVIRONMENT == "production":
                 # Do not auto-inject backups in production; signal upstream to degrade/stop
                 logger.error(
@@ -380,6 +387,7 @@ class OrchestrationService:
                 return healthy
             # In non-production, attempt to meet minimum with conservative backups
             backup_models = ["gpt-3.5-turbo", "gpt-4o", "claude-3-sonnet-20240229"]
+>>>>>>> origin/main
             for backup in backup_models:
                 if backup not in healthy:
                     healthy.append(backup)
@@ -553,16 +561,26 @@ class OrchestrationService:
                                 error="service_unavailable",
                                 performance_metrics={"reason": "insufficient_models", "available": model_count, "required": Config.MINIMUM_MODELS_REQUIRED}
                             )
-                            # Return early with service unavailable error
-                            return {
-                                "error": "SERVICE_UNAVAILABLE",
-                                "message": error_msg,
-                                "details": {
-                                    "models_required": Config.MINIMUM_MODELS_REQUIRED,
-                                    "models_available": model_count,
-                                    "service_status": "degraded"
-                                }
-                            }
+                            # Return early with service unavailable as a typed PipelineResult
+                            results["service_unavailable"] = PipelineResult(
+                                stage_name="service_unavailable",
+                                output={
+                                    "error": "SERVICE_UNAVAILABLE",
+                                    "message": error_msg,
+                                    "details": {
+                                        "models_required": Config.MINIMUM_MODELS_REQUIRED,
+                                        "models_available": model_count,
+                                        "service_status": "degraded",
+                                    },
+                                },
+                                error="service_unavailable",
+                                performance_metrics={
+                                    "reason": "insufficient_models",
+                                    "available": model_count,
+                                    "required": Config.MINIMUM_MODELS_REQUIRED,
+                                },
+                            )
+                            return results
 
                 # Override models for stages that use selected_models
                 if (
@@ -626,10 +644,22 @@ class OrchestrationService:
                 # Track token usage and costs if user_id is provided
                 if user_id and stage_result.token_usage:
                     for model, usage in stage_result.token_usage.items():
+                        # Support both dict and numeric usage formats
+                        if isinstance(usage, dict):
+                            input_tokens = int(usage.get("input", 0) or 0)
+                            output_tokens = int(usage.get("output", 0) or 0)
+                        else:
+                            # Treat non-dict as total output tokens, no input tokens recorded
+                            try:
+                                output_tokens = int(usage)  # type: ignore[arg-type]
+                            except Exception:
+                                output_tokens = 0
+                            input_tokens = 0
+
                         cost = await self.token_manager.track_usage(
                             model=model,
-                            input_tokens=usage.get("input", 0),
-                            output_tokens=usage.get("output", 0),
+                            input_tokens=input_tokens,
+                            output_tokens=output_tokens,
                             user_id=user_id,
                         )
                         total_cost += cost.total_cost
@@ -738,12 +768,18 @@ class OrchestrationService:
                 if not callable(method):
                     raise ValueError(f"Stage method {stage.name} not found")
 
-                # Run the stage
-                stage_output = await method(input_data, stage.required_models, options)
+                # Run the stage (support both async and sync stage methods)
+                result_obj = method(input_data, stage.required_models, options)
+                if inspect.isawaitable(result_obj):
+                    stage_output = await result_obj
+                else:
+                    stage_output = result_obj
 
-                # Track token usage if available
-                if hasattr(stage_output, "token_usage"):
-                    token_usage = stage_output.token_usage
+                # Track token usage if available and safely accessible
+                try:
+                    token_usage = getattr(stage_output, "token_usage")  # type: ignore[attr-defined]
+                except Exception:
+                    token_usage = {}
 
                 # Evaluate quality if evaluator is available
                 if self.quality_evaluator:
@@ -1299,7 +1335,7 @@ class OrchestrationService:
         # Process results and collect successful responses
         failed_models = {}
         for result in results:
-            if isinstance(result, Exception):
+            if isinstance(result, BaseException):
                 logger.error(f"Task execution failed: {str(result)}")
                 continue
 
@@ -1551,7 +1587,7 @@ After critically reviewing these peer responses, please provide your revised ans
         successful_revisions = []
 
         for result in results:
-            if isinstance(result, Exception):
+            if isinstance(result, BaseException):
                 logger.error(f"Peer review task failed: {str(result)}")
                 continue
 

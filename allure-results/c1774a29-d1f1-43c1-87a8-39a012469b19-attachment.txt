@@ -1,0 +1,1 @@
+[32mINFO    [0m app.services.telemetry_llm_wrapper:telemetry_llm_wrapper.py:169 LLM request completed: openai/gpt-4

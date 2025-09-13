@@ -6,6 +6,7 @@ import ErrorBoundary from "./components/ErrorBoundary";
 
 // Layout
 import NavBar from "./components/layout/NavBar";
+import DemoIndicator from "./components/DemoIndicator";
 
 // Immediate load for critical pages
 import WizardPage from "./pages/wizard";

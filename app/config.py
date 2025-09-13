@@ -175,6 +175,12 @@ class Config:
         "/api/auth/password-reset",
     ]
 
+    # Multi-model policy
+    # Enforce at least N healthy models to keep UltrAI online.
+    MINIMUM_MODELS_REQUIRED = int(os.getenv("MINIMUM_MODELS_REQUIRED", "2"))
+    # Explicitly control single-model fallback behavior
+    ENABLE_SINGLE_MODEL_FALLBACK = os.getenv("ENABLE_SINGLE_MODEL_FALLBACK", "false").lower() == "true"
+
     @classmethod
     def create_directories(cls) -> None:
         """Create necessary directories for the application"""

@@ -1,0 +1,1 @@
+[32mINFO    [0m app.database.session:session.py:132 Database tables created at sqlite:////private/var/folders/rh/kj2lx5rn5gv51fwfv3b3_9qw0000gn/T/pytest-of-joshuafield/pytest-56/test_transaction_rollback0/test_integration.db

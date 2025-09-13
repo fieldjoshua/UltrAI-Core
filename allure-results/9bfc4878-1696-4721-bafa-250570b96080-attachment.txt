@@ -1,0 +1,1 @@
+{"timestamp": "2025-09-12T14:06:00.475583", "level": "INFO", "logger": "transaction_service", "message": "Loaded financial data from file", "correlation_id": "82d04241-1c2a-44ed-a778-e3afcec49cfc", "module": "transaction_service", "function": "_load_data", "line": 113}

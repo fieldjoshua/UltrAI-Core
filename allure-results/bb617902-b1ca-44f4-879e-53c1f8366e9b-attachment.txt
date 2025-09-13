@@ -1,0 +1,1 @@
+[1m[31mERROR   [0m app.services.llm_adapters:llm_adapters.py:103 OpenAI API authentication failed for model gpt-4: Invalid API key (inv***key)

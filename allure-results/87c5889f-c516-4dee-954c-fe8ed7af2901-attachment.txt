@@ -1,0 +1,20 @@
+[32mINFO    [0m transaction_service:transaction_service.py:113 Loaded financial data from file
+[35mDEBUG   [0m orchestration_service:orchestration_service.py:192 ✅ Validated model: gpt-4
+[35mDEBUG   [0m orchestration_service:orchestration_service.py:192 ✅ Validated model: gpt-4-turbo
+[32mINFO    [0m orchestration_service:orchestration_service.py:476 🔄 PROGRESS: Stage 1/3 - initial_response
+[32mINFO    [0m orchestration_service:orchestration_service.py:477 📊 PIPELINE PROGRESS: 0% complete
+[32mINFO    [0m orchestration_service:orchestration_service.py:476 🔄 PROGRESS: Stage 2/3 - peer_review_and_revision
+[32mINFO    [0m orchestration_service:orchestration_service.py:477 📊 PIPELINE PROGRESS: 33% complete
+[32mINFO    [0m orchestration_service:orchestration_service.py:1348 🔄 Starting peer review and revision with 2 models
+[32mINFO    [0m orchestration_service:orchestration_service.py:1369 Initial responses from: ['gpt-4', 'gpt-4-turbo']
+[32mINFO    [0m orchestration_service:orchestration_service.py:1398 Processing peer review for: ['gpt-4', 'gpt-4-turbo']
+[32mINFO    [0m orchestration_service:orchestration_service.py:1519 🚀 Starting concurrent peer review for 2 models
+[33mWARNING [0m orchestration_service:orchestration_service.py:1542 ⚠️ gpt-4 revision failed, using original response
+[33mWARNING [0m orchestration_service:orchestration_service.py:1542 ⚠️ gpt-4-turbo revision failed, using original response
+[32mINFO    [0m orchestration_service:orchestration_service.py:1556 ✅ Peer review completed for 2/2 models
+[32mINFO    [0m orchestration_service:orchestration_service.py:1563   gpt-4 revised: Renewable energy offers three main benefits: 1) Environmental sustainability by reducing carbon emis...
+[32mINFO    [0m orchestration_service:orchestration_service.py:1563   gpt-4-turbo revised: The primary advantages of renewable energy include: Economic benefits through job creation and cost ...
+[32mINFO    [0m orchestration_service:orchestration_service.py:476 🔄 PROGRESS: Stage 3/3 - ultra_synthesis
+[32mINFO    [0m orchestration_service:orchestration_service.py:477 📊 PIPELINE PROGRESS: 67% complete
+[32mINFO    [0m orchestration_service:orchestration_service.py:582 🎯 Using gpt-4 for ultra_synthesis stage
+[32mINFO    [0m orchestration_service:orchestration_service.py:659 Cached pipeline results for 3600 seconds

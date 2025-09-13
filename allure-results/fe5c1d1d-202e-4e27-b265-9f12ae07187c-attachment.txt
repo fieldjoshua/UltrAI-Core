@@ -1,0 +1,1 @@
+[33mWARNING [0m app.services.llm_adapters:llm_adapters.py:95 OpenAI request timed out for model gpt-4.

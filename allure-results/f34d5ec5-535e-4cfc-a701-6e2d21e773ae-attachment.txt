@@ -1,0 +1,2 @@
+[32mINFO    [0m tracked_llm_adapters:tracked_llm_adapters.py:59 Sending request to Mock
+[32mINFO    [0m tracked_llm_adapters:tracked_llm_adapters.py:74 Received response from Mock

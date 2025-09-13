@@ -1,0 +1,1 @@
+[1m[31mERROR   [0m app.services.llm_adapters:llm_adapters.py:254 Google Gemini API 400 for model gemini-1.5-pro: Bad request or invalid model

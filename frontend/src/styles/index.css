@@ -1,10 +1,46 @@
 /* Git update timestamp: 2023-04-03 */
 @import './animations.css';
 @import './cyberpunk-vars.css';
+@import './mobile-fixes.css';
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@keyframes slideProgress {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(400%);
+  }
+}
+
+@keyframes dropDown {
+  0% {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: translateY(20px) scale(0.95);
+    opacity: 0.8;
+  }
+  100% {
+    transform: translateY(100px) scale(0.9);
+    opacity: 0;
+  }
+}
+
+@keyframes fadeInUp {
+  0% {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
 
 @layer base {
   :root {

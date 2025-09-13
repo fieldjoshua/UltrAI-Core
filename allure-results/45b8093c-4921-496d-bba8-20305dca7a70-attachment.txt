@@ -1,0 +1,2 @@
+{"timestamp": "2025-09-12T14:05:40.388415", "level": "INFO", "logger": "cache_service", "message": "Cache disabled or Redis URL not configured", "correlation_id": "ea43bfa1-dcc2-49fa-a95c-685d43fb5357", "module": "cache_service", "function": "_initialize_redis", "line": 76}
+{"timestamp": "2025-09-12T14:05:40.388812", "level": "INFO", "logger": "api_failure_handler", "message": "Cache hit for op on openai", "correlation_id": "ea43bfa1-dcc2-49fa-a95c-685d43fb5357", "module": "api_failure_handler", "function": "execute_api_call", "line": 183}

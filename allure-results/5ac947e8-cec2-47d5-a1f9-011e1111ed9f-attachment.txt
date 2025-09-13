@@ -1,0 +1,15 @@
+[32mINFO    [0m transaction_service:transaction_service.py:113 Loaded financial data from file
+[32mINFO    [0m orchestration_service:orchestration_service.py:305 🔑 Checking API keys availability...
+[32mINFO    [0m orchestration_service:orchestration_service.py:312   ✅ gpt-4o: API key found (test...-key)
+[33mWARNING [0m orchestration_service:orchestration_service.py:321   📦 gpt-4o: Using cached health status (unhealthy)
+[32mINFO    [0m orchestration_service:orchestration_service.py:312   ✅ gpt-3.5-turbo: API key found (test...-key)
+[33mWARNING [0m orchestration_service:orchestration_service.py:321   📦 gpt-3.5-turbo: Using cached health status (unhealthy)
+[33mWARNING [0m orchestration_service:orchestration_service.py:309   ❌ claude-3-sonnet-20240229: No API key configured
+[33mWARNING [0m orchestration_service:orchestration_service.py:309   ❌ gemini-1.5-pro: No API key configured
+[32mINFO    [0m orchestration_service:orchestration_service.py:312   ✅ meta-llama/Meta-Llama-3-8B-Instruct: API key found (hf_t...bbau)
+[33mWARNING [0m orchestration_service:orchestration_service.py:321   📦 meta-llama/Meta-Llama-3-8B-Instruct: Using cached health status (unhealthy)
+[32mINFO    [0m orchestration_service:orchestration_service.py:312   ✅ mistralai/Mixtral-8x7B-Instruct-v0.1: API key found (hf_t...bbau)
+[33mWARNING [0m orchestration_service:orchestration_service.py:321   📦 mistralai/Mixtral-8x7B-Instruct-v0.1: Using cached health status (unhealthy)
+[33mWARNING [0m orchestration_service:orchestration_service.py:333 ⚠️ No healthy models found during probe
+[32mINFO    [0m orchestration_service:orchestration_service.py:347 ✨ Healthy models available: ['gpt-4o']
+[33mWARNING [0m orchestration_service:orchestration_service.py:371 🔧 Operating in single-model mode with: gpt-4o

@@ -76,7 +76,7 @@ export async function getAvailableModels() {
   }
 
   try {
-    const response = await fetch(`${API_BASE}/available-models`);
+    const response = await fetch(`${API_BASE}/available-models?healthy_only=true`);
     if (!response.ok) {
       throw new Error(`HTTP ${response.status}`);
     }

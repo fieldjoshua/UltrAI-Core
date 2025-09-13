@@ -1,0 +1,51 @@
+[1m[31mERROR   [0m app.utils.sentry_integration:sentry_integration.py:73 Failed to initialize Sentry: Unknown option 'tags'
+[32mINFO    [0m security_headers_middleware:security_headers_middleware.py:207 Security headers middleware added to application
+[32mINFO    [0m performance_middleware:performance_middleware.py:152 Performance optimization middleware enabled
+[32mINFO    [0m test_app_setup:app.py:88 Performance optimization middleware enabled
+[32mINFO    [0m test_app_setup:app.py:95 Database initialized (or fallback active)
+[32mINFO    [0m test_app_setup:app.py:105 Structured logging middleware enabled
+[32mINFO    [0m app.middleware.telemetry_middleware:telemetry_middleware.py:131 Telemetry middleware added to application
+[32mINFO    [0m test_app_setup:app.py:112 Telemetry middleware enabled
+[32mINFO    [0m rate_limit_middleware:rate_limit_middleware.py:131 Rate limiting middleware added to application
+[32mINFO    [0m test_app_setup:app.py:130 Rate limiting middleware enabled
+[32mINFO    [0m error_handler:unified_error_handler.py:1138 Exception handlers registered
+[32mINFO    [0m error_handler:unified_error_handler.py:1164 Global error handling system configured
+[32mINFO    [0m test_app_setup:app.py:162 Unified error handling system enabled
+[32mINFO    [0m transaction_service:transaction_service.py:113 Loaded financial data from file
+[32mINFO    [0m test_app_setup:app.py:220 🧪 TESTING mode – lightweight OrchestrationService attached to app.state
+[32mINFO    [0m test_app_setup:app.py:231 SmartModelSelectionService initialized
+[32mINFO    [0m transaction_service:transaction_service.py:113 Loaded financial data from file
+[32mINFO    [0m main:main.py:128 ✅ App loaded correctly
+[32mINFO    [0m main:main.py:129 Available orchestrator endpoints:
+[32mINFO    [0m main:main.py:130   - POST /api/orchestrator/analyze
+[32mINFO    [0m main:main.py:131   - POST /api/orchestrator/compare
+[32mINFO    [0m main:main.py:132   - POST /api/orchestrator/evaluate
+[32mINFO    [0m security_headers_middleware:security_headers_middleware.py:81 Initialized SecurityHeadersMiddleware with 10 CSP directives
+[32mINFO    [0m app.middleware.telemetry_middleware:telemetry_middleware.py:30 Telemetry middleware initialized
+[32mINFO    [0m rate_limit_middleware:rate_limit_middleware.py:47 Initialized RateLimitMiddleware with 6 excluded paths
+[32mINFO    [0m error_handler:unified_error_handler.py:792 Initialized GlobalErrorHandlingMiddleware with debug_details=True, exclude_paths=None
+[32mINFO    [0m request:structured_logging.py:603 POST /api/orchestrator/analyze
+[35mDEBUG   [0m request_id_middleware:request_id_middleware.py:45 Processing request: POST /api/orchestrator/analyze
+[32mINFO    [0m orchestrator_routes:orchestrator_minimal.py:165 Starting analysis for query: Briefly describe the Eiffel Tower in two sentences....
+[32mINFO    [0m orchestrator_routes:orchestrator_minimal.py:191 📊 Models requested by client: ['gpt-3.5-turbo']
+[35mDEBUG   [0m orchestration_service:orchestration_service.py:192 ✅ Validated model: gpt-3.5-turbo
+[32mINFO    [0m orchestration_service:orchestration_service.py:476 🔄 PROGRESS: Stage 1/3 - initial_response
+[32mINFO    [0m orchestration_service:orchestration_service.py:477 📊 PIPELINE PROGRESS: 0% complete
+[32mINFO    [0m orchestration_service:orchestration_service.py:1241 🚀 Starting concurrent execution of 1 models: ['gpt-3.5-turbo']
+[32mINFO    [0m app.services.resilient_llm_adapter:resilient_llm_adapter.py:230 Starting resilient request for openai
+[33mWARNING [0m app.services.llm_adapters:llm_adapters.py:119 OpenAI API rate-limited for model gpt-3.5-turbo. Returning standard retry message.
+[32mINFO    [0m app.services.telemetry_llm_wrapper:telemetry_llm_wrapper.py:169 LLM request completed: openai/gpt-3.5-turbo
+[33mWARNING [0m orchestration_service:orchestration_service.py:975 ❌ Error response from gpt-3.5-turbo: Error: Rate limit exceeded. Please try again later.
+[33mWARNING [0m provider_health_manager:provider_health_manager.py:126 Provider openai failure recorded. Status: degraded, Consecutive failures: 1, Error: Error: Rate limit exceeded. Please try again later.
+[32mINFO    [0m orchestration_service:orchestration_service.py:1256 ✅ Concurrent execution completed with 1 results
+[32mINFO    [0m orchestration_service:orchestration_service.py:1297 ⚠️ Using fallback response for gpt-3.5-turbo in test mode
+[33mWARNING [0m orchestration_service:orchestration_service.py:1317 🧪 TESTING – proceeding with degraded single-model pipeline
+[32mINFO    [0m orchestration_service:orchestration_service.py:1321 ✅ Real responses from 1/1 models: ['gpt-3.5-turbo']
+[32mINFO    [0m orchestration_service:orchestration_service.py:1328   gpt-3.5-turbo: Stubbed response for testing purposes. This placeholder text simulates a realistic model answer with...
+[32mINFO    [0m orchestration_service:orchestration_service.py:476 🔄 PROGRESS: Stage 2/3 - peer_review_and_revision
+[32mINFO    [0m orchestration_service:orchestration_service.py:477 📊 PIPELINE PROGRESS: 33% complete
+[1m[31mERROR   [0m orchestration_service:orchestration_service.py:517 🚨 SERVICE UNAVAILABLE: Only 1 model(s) available. UltrAI requires at least 2 models for operation.
+[1m[31mERROR   [0m orchestrator_routes:orchestrator_minimal.py:233 Service unavailable: Service temporarily unavailable. UltrAI requires at least 2 different AI models to provide multi-model intelligence multiplication. Currently only 1 model(s) are operational.
+[1m[31mERROR   [0m orchestrator_routes:orchestrator_minimal.py:456 Analysis failed: 503: {'error': 'SERVICE_UNAVAILABLE', 'message': 'Service temporarily unavailable. UltrAI requires at least 2 different AI models to provide multi-model intelligence multiplication. Currently only 1 model(s) are operational.', 'details': {'models_required': 2, 'models_available': 1, 'service_status': 'degraded'}}
+[32mINFO    [0m app.middleware.telemetry_middleware:telemetry_middleware.py:89 POST /api/orchestrator/analyze completed
+[32mINFO    [0m request:structured_logging.py:655 POST /api/orchestrator/analyze 200 (1844.47ms)

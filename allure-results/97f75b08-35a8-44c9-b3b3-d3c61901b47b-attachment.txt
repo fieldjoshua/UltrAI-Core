@@ -1,0 +1,1 @@
+[33mWARNING [0m app.services.resilient_llm_adapter:resilient_llm_adapter.py:178 Circuit breaker opened after 2 failures

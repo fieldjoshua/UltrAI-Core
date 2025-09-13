@@ -123,6 +123,7 @@ services:
     name: ultrai-redis
     plan: free  # Change to 'starter' or higher for production
     maxmemoryPolicy: allkeys-lru
+    ipAllowList: []
     
   # Background worker (optional - for async tasks)
   # - type: worker
@@ -147,7 +148,7 @@ databases:
     plan: free  # Change to 'starter' or higher for production
     databaseName: ultrai_production
     user: ultrai_user
-    postgresMajorVersion: 15
+    postgresMajorVersion: "15"
     
 # Cron jobs (optional)
 # cronJobs:
