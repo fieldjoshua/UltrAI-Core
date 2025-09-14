@@ -118,6 +118,17 @@ Key endpoints:
 3. **Test-Driven Development** - Tests before implementation
 4. **Deployment Verification** - Test production URL before marking complete
 
+### Collaboration & Oversight (Required)
+- Adhere to signals: `[PLAN]`, `[CLAUDE_DO]`, `[ULTRA_DO]`, `[STATUS]`, `[REVIEW]`, `[BLOCKER]`, `[COMPLETE]`
+- Before push/merge you must provide evidence:
+  - Local test outputs and commands
+  - Security checks (dependency audit, secret/regex scan, injection/XSS basics)
+  - Model availability policy satisfied (≥2 healthy models; single-model fallback disabled)
+  - Endpoint verifications (`/api/available-models?healthy_only=true`, `/api/orchestrator/status`)
+- Drift prevention: if off track, say "I'm getting off track. Returning to [ORIGINAL_TASK]" and realign
+- No refactors/optimizations/features unless explicitly requested
+- See `docs/OVERSIGHT_README.md` for full policy
+
 ### Multi-AI Coordination (if using worktrees)
 1. Check `STATUS.md` for current AI assignment
 2. Update with your identifier (e.g., Claude-1, Cursor-2)

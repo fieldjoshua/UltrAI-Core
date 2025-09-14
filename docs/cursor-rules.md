@@ -85,3 +85,36 @@ git push origin ultrai-play-clientx-v1
 👉 Do you want me to also merge this with the intro + readme package I gave you earlier into a single master docs/README.md so Cursor users only need to open one doc to see rules, skins, and env setup?
 
 
+
+⸻
+
+🤝 Collaboration & Oversight
+
+• Roles
+	• Claude-1 (Implementation AI): core implementation & PRs
+	• UltrAI (Oversight AI): planning, review, guardrails, bounded one-offs
+
+• Signals (use as message headers)
+	• [PLAN] – Plan-of-Record updates
+	• [CLAUDE_DO] – Assign core work to Claude-1
+	• [ULTRA_DO] – Assign one-offs to UltrAI
+	• [STATUS] – Status updates
+	• [REVIEW] – Request verification; include PR links + evidence
+	• [BLOCKER] – Risks/dependencies
+	• [COMPLETE] – Completion notice
+
+• Push Gates (must pass before push/merge)
+	• Local tests green; commands + outputs documented
+	• Security checks: dependency audit, secret/regex scan, basic injection/XSS checks
+	• Model policy: ≥2 healthy models online; single-model fallback disabled
+	• CORS and env vars verified for target env
+
+• Review Cadence
+	• After first PR; after integration; pre-deploy
+	• Provide curl verifications and logs
+
+• Drift Prevention
+	• If off track, state: "I'm getting off track. Returning to [ORIGINAL_TASK]"
+	• No refactors/optimizations/features unless explicitly requested
+
+See `docs/OVERSIGHT_README.md` for full details.
