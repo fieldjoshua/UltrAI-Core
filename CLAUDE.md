@@ -12,7 +12,7 @@ make prod                 # Start production server (full features)
 source venv/bin/activate  # CRITICAL: Activate virtual environment before Python commands
 ```
 
-### Backend Testing
+### Testing Commands
 ```bash
 # Run specific test categories
 pytest tests/ -m "unit" -v              # Unit tests only
@@ -25,21 +25,19 @@ pytest tests/test_file.py::test_function -v  # Single test function
 pytest tests/ -k "pattern" -v               # Tests matching pattern
 pytest tests/ --lf                          # Only last failed tests
 
-# Test with reports
+# Test reporting
 make test-report          # Run with Allure and HTML reports
-./scripts/run_all_with_cursor_tracking.sh  # Full test suite with tracking
+make test-demo            # Test against staging/production endpoints
 ```
 
-### Worktree & Multi-AI Coordination
+### Deployment & Verification
 ```bash
-# Worktree management
-./scripts/coordinate-ais.sh              # Check AI assignments across worktrees
-./scripts/check-worktree-status.sh       # Git status for all worktrees
-./scripts/update-status.sh billing-system Claude-1 45%  # Update worktree status
+make deploy               # Commit, push, and trigger Render deployment
+git push origin main      # Manual push (Render auto-deploys from GitHub)
 
-# Switch between worktrees
-cd ../Ultra-worktrees/billing-system     # Feature development
-cd ../Ultra-worktrees/test-unit-enhancement  # Test improvements
+# Verify deployment
+curl https://ultrai-staging-api.onrender.com/api/health  # Staging
+curl https://ultrai-prod-api.onrender.com/api/health     # Production
 ```
 
 ### AICheck Action Management
@@ -55,7 +53,7 @@ cd ../Ultra-worktrees/test-unit-enhancement  # Test improvements
 make clean-ports                         # Kill stuck processes on 8000-8001
 poetry sync                              # Fix dependency issues
 source venv/bin/activate                 # Fix import errors
-which python                             # Verify Python interpreter
+./scripts/verify-render-config.sh        # Verify Render configuration
 ```
 
 ## High-Level Architecture
@@ -89,24 +87,12 @@ The UltrAI project implements a **patented LLM orchestration system** using inte
    - Request ID tracking across all services
    - At least 2 LLM models must be functional for viability
 
-### Worktree Development Model
-The project uses **12 Git worktrees** for parallel development:
-
-- **Main**: Config/auth consolidation
-- **Testing** (5): unit, integration, e2e, live/performance
-- **Features** (7): UI/UX, billing, services, docs, CI/CD, recovery, performance
-
-Each worktree:
-- Has specific file ownership boundaries
-- Maintains STATUS.md for AI coordination
-- Can be deployed independently
-- Uses feature flags for isolation
-
-### Deployment & Operations
-- **Production**: Render.com (auto-deploy from GitHub)
-- **URL**: https://ultrai-core.onrender.com/
-- **Deploy Command**: `make deploy` (commits & pushes)
-- **Verification**: No action is complete without deployment verification
+### Deployment Architecture
+- **Production**: https://ultrai-prod-api.onrender.com (manual deploy)
+- **Staging**: https://ultrai-staging-api.onrender.com (auto-deploy from main)
+- **Services**: 3 separate Render services with different configurations
+- **Build**: Uses `pip` with `requirements-production.txt` (not Poetry in production)
+- **Critical**: Never hardcode PORT - Render assigns dynamically
 
 ### API Endpoints
 Key endpoints:
@@ -119,29 +105,32 @@ Key endpoints:
 
 ## Project Rules & Conventions
 
-### From .cursorrc and AICheck
+### AICheck Deployment Requirements (CRITICAL)
+**NO ACTION IS COMPLETE WITHOUT DEPLOYMENT VERIFICATION**
+- Code must be deployed to production/staging
+- Production URL must be tested and verified
+- Document test results in `supporting_docs/deployment-verification.md`
+- See `.aicheck/rules.md` for complete deployment checklist
+
+### Development Workflow
 1. **One ActiveAction Rule** - Only one action active per contributor
 2. **Documentation-First** - Plan in `.aicheck/actions/[action]/[action]-plan.md`
 3. **Test-Driven Development** - Tests before implementation
-4. **Worktree Awareness** - Check STATUS.md before starting work
-5. **Feature Flags** - Use for worktree-specific features
-6. **No Duplicate Names** - Files with same name in different directories forbidden
+4. **Deployment Verification** - Test production URL before marking complete
 
-### Multi-AI Coordination Protocol
-When working in a worktree:
+### Multi-AI Coordination (if using worktrees)
 1. Check `STATUS.md` for current AI assignment
 2. Update with your identifier (e.g., Claude-1, Cursor-2)
 3. Document decisions in communication log
 4. Commit STATUS.md before switching context
-5. Mock dependencies being developed in other worktrees
 
 ## Environment Configuration
 
 ### Required Environment Variables
 ```bash
 # Core
-ENVIRONMENT=development|production
-PORT=8000
+ENVIRONMENT=development|staging|production
+PORT=8000  # Local only - Render assigns dynamically
 
 # Database & Caching
 DATABASE_URL=postgresql://...
@@ -150,10 +139,11 @@ REDIS_URL=redis://...
 # Authentication
 JWT_SECRET=your-secret-key
 
-# LLM Provider API Keys
+# LLM Provider API Keys (set in Render dashboard)
 OPENAI_API_KEY=...
 ANTHROPIC_API_KEY=...
-GEMINI_API_KEY=...
+GOOGLE_API_KEY=...       # For Gemini
+HUGGINGFACE_API_KEY=...  # Optional
 ```
 
 ### Feature Flags (app/config.py)
@@ -171,7 +161,11 @@ FEATURE_FLAGS = {
 - **Styling**: Tailwind CSS + Design tokens
 - **Themes**: 6 skins (night, morning, afternoon, sunset, minimalist, business)
 - **Icons**: Lucide React (no emojis in production)
-- **Error Handling**: Sourcemaps enabled for React error #310
 
-## Testing Best Practices
-- **Reset/Kill Servers**: Always reset/kill all servers before attempting server-dependent testing and scripts
+## Render Deployment Notes
+- **Config Files**: `render.yaml` (main), `render-staging.yaml`, `render-production.yaml`
+- **Build Command**: Includes frontend build (`npm ci && npm run build`)
+- **Start Command**: `python app_production.py` (handles dynamic port)
+- **Health Check**: `/api/health` endpoint
+- **Auto-deploy**: Staging only; Production requires manual deploy
+- **Verification Script**: Run `./scripts/verify-render-config.sh` to check setup

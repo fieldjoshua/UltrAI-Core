@@ -76,11 +76,31 @@ export async function getAvailableModels() {
   }
 
   try {
+    // Prefer healthy-only models
     const response = await fetch(`${API_BASE}/available-models?healthy_only=true`);
     if (!response.ok) {
       throw new Error(`HTTP ${response.status}`);
     }
-    return await response.json();
+    const healthyData = await response.json();
+    const healthyList = Array.isArray(healthyData?.models) ? healthyData.models : [];
+    if (healthyList.length > 0) {
+      return healthyData;
+    }
+
+    // Fallback: use orchestrator-reported available models if health probe is strict
+    // This prevents UI from going empty while providers are otherwise usable
+    console.warn('[getAvailableModels] healthy_only returned empty; falling back to /orchestrator/status');
+    const statusRes = await fetch(`${API_BASE}/orchestrator/status`);
+    if (statusRes.ok) {
+      const statusData = await statusRes.json();
+      const reported = Array.isArray(statusData?.models?.available) ? statusData.models.available : [];
+      if (reported.length > 0) {
+        return { models: reported, totalCount: reported.length };
+      }
+    }
+
+    // Final fallback: return empty
+    return { models: [], totalCount: 0 };
   } catch (error) {
     console.error('Error fetching available models:', error);
     return { models: [], totalCount: 0 };

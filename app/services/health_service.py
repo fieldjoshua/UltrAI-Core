@@ -244,13 +244,25 @@ class HealthService:
                             if status.get("status") in ["healthy", "ok"]
                         ]
 
-                        if available_providers:
+                        # Count providers by status
+                        rate_limited_providers = [
+                            p for p, status in providers_status.items()
+                            if "rate" in status.get("message", "").lower() or 
+                               status.get("status_code") == 429
+                        ]
+                        
+                        # More forgiving logic: if we have models and at least one provider
+                        # is either available OR just rate limited, consider service healthy
+                        if available_providers or rate_limited_providers:
+                            total_functional = len(available_providers) + len(rate_limited_providers)
                             self.service_status["llm"] = {
-                                "status": "healthy",
-                                "message": f"LLM services are available ({len(models)} models, {len(available_providers)} providers)",
+                                "status": "healthy" if total_functional >= 1 else "degraded",
+                                "message": f"LLM services are available ({len(models)} models, {len(available_providers)} OK, {len(rate_limited_providers)} rate-limited)",
                                 "providers": [
                                     model["provider"] for model in models.values()
                                 ],
+                                "available_providers": available_providers,
+                                "rate_limited_providers": rate_limited_providers,
                                 "last_checked": datetime.datetime.now().isoformat(),
                                 "provider_details": providers_status,
                             }

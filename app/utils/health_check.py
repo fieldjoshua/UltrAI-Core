@@ -33,6 +33,8 @@ health_check_lock = threading.RLock()
 HEALTH_CHECK_CACHE_TTL = int(os.getenv("HEALTH_CHECK_CACHE_TTL", "60"))
 # Health check timeout in seconds
 HEALTH_CHECK_TIMEOUT = int(os.getenv("HEALTH_CHECK_TIMEOUT", "5"))
+# Skip API calls in health checks (useful for staging/high-frequency checks)
+HEALTH_CHECK_SKIP_API_CALLS = os.getenv("HEALTH_CHECK_SKIP_API_CALLS", "false").lower() == "true"
 
 
 class HealthStatus(str, Enum):
@@ -671,6 +673,17 @@ def check_llm_provider_health(provider: str, api_key_env_var: str) -> Dict[str, 
             "status": HealthStatus.UNAVAILABLE,
             "message": f"No API key found for {provider}",
             "api_key_configured": False,
+            "timestamp": datetime.utcnow().isoformat(),
+        }
+    
+    # If configured to skip API calls, just check configuration
+    if HEALTH_CHECK_SKIP_API_CALLS:
+        return {
+            "status": HealthStatus.OK,
+            "message": f"{provider} API key configured (API check skipped)",
+            "provider": provider,
+            "api_key_configured": True,
+            "api_check_skipped": True,
             "timestamp": datetime.utcnow().isoformat(),
         }
 
