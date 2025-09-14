@@ -139,12 +139,18 @@ class ModelAvailabilityChecker:
                 
                 response_time = (datetime.now() - start_time).total_seconds()
                 
-                if response and not response.lower().startswith("request rate-limited"):
+                # Extract text from response dict
+                response_text = response.get("generated_text", "") if isinstance(response, dict) else str(response)
+                
+                if response_text and not response_text.lower().startswith("error:"):
                     availability.status = AvailabilityStatus.AVAILABLE
                     availability.response_time = response_time
-                else:
+                elif "rate limit" in response_text.lower():
                     availability.status = AvailabilityStatus.RATE_LIMITED
                     availability.error_message = "Rate limited"
+                else:
+                    availability.status = AvailabilityStatus.ERROR
+                    availability.error_message = response_text
                     
             except asyncio.TimeoutError:
                 availability.status = AvailabilityStatus.ERROR
