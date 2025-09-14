@@ -1,0 +1,64 @@
+# Render configuration for PRODUCTION environment
+# Service: ultrai-prod-api.onrender.com
+
+services:
+  - type: web
+    name: ultrai-prod-api
+    runtime: python
+    plan: free  # Consider upgrading for production
+    buildCommand: |
+      pip install -r requirements-production.txt
+      cd frontend && npm ci && npm run build && cd ..
+    startCommand: python app_production.py
+    
+    # Manual deploy only - NO auto-deploy
+    branch: main
+    autoDeploy: false  # IMPORTANT: Manual control for production
+    
+    # Health check
+    healthCheckPath: /api/health
+    
+    envVars:
+      # Core configuration
+      - key: ENVIRONMENT
+        value: production
+      - key: DEBUG
+        value: "false"
+      
+      # Enable production features
+      - key: ENABLE_BILLING
+        value: "false"  # Enable when ready
+      - key: ENABLE_PRICING
+        value: "false"  # Enable when ready
+      - key: ENABLE_AUTH
+        value: "true"
+      - key: ENABLE_RATE_LIMIT
+        value: "true"
+      
+      # Security
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_REFRESH_SECRET
+        generateValue: true
+      
+      # LLM API Keys (set in dashboard)
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: GOOGLE_API_KEY
+        sync: false
+      - key: HUGGINGFACE_API_KEY
+        sync: false
+      
+      # Database (if needed)
+      - key: DATABASE_URL
+        sync: false  # Set in dashboard if using database
+      
+      # Redis (if needed)
+      - key: REDIS_URL
+        sync: false  # Set in dashboard if using Redis
+      
+      # CORS
+      - key: CORS_ALLOWED_ORIGINS
+        value: "https://ultrai-prod-api.onrender.com"

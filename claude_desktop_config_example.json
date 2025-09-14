@@ -1,0 +1,18 @@
+{
+  "mcpServers": {
+    "filesystem": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-filesystem"],
+      "env": {
+        "ALLOW_WRITE": "true"
+      }
+    },
+    "render": {
+      "command": "npx",
+      "args": ["-y", "@renderco/mcp-server-render"],
+      "env": {
+        "RENDER_API_KEY": "rnd_NfrFXrFHdSs0kU2LfFfaWPkN6lzH"
+      }
+    }
+  }
+}

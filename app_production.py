@@ -13,6 +13,19 @@ if env_path.exists():
 
 # Now import the app after environment is loaded
 from app.main import create_production_app
+import uvicorn
 
 # Create the production app instance
 app = create_production_app()
+
+# Run with uvicorn if this file is executed directly
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 8000))
+    uvicorn.run(
+        "app_production:app",
+        host="0.0.0.0",
+        port=port,
+        workers=1,
+        loop="uvloop",
+        access_log=True
+    )

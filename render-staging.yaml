@@ -1,0 +1,50 @@
+# Render configuration for STAGING environment
+# Service: ultrai-staging-api.onrender.com
+
+services:
+  - type: web
+    name: ultrai-staging-api
+    runtime: python
+    plan: free
+    buildCommand: |
+      pip install -r requirements-production.txt
+      cd frontend && npm ci && npm run build && cd ..
+    startCommand: python app_production.py
+    
+    # Auto-deploy from main branch
+    branch: main
+    autoDeploy: true
+    
+    # Health check
+    healthCheckPath: /api/health
+    
+    envVars:
+      # Core configuration
+      - key: ENVIRONMENT
+        value: staging
+      - key: DEBUG
+        value: "true"
+      
+      # Disable financial features for staging
+      - key: ENABLE_BILLING
+        value: "false"
+      - key: ENABLE_PRICING
+        value: "false"
+      - key: ENABLE_AUTH
+        value: "false"
+      - key: ENABLE_RATE_LIMIT
+        value: "false"
+      
+      # LLM API Keys (copy from production)
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: GOOGLE_API_KEY
+        sync: false
+      - key: HUGGINGFACE_API_KEY
+        sync: false
+      
+      # CORS
+      - key: CORS_ALLOWED_ORIGINS
+        value: "https://ultrai-staging-api.onrender.com,http://localhost:5173,http://localhost:3009"
