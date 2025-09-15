@@ -6,9 +6,7 @@ services:
     name: ultrai-prod-api
     runtime: python
     plan: free  # Consider upgrading for production
-    buildCommand: |
-      pip install -r requirements-production.txt
-      cd frontend && npm ci && npm run build && cd ..
+    buildCommand: pip install -r requirements-production.txt
     startCommand: python app_production.py
     
     # Manual deploy only - NO auto-deploy
@@ -61,4 +59,4 @@ services:
       
       # CORS
       - key: CORS_ALLOWED_ORIGINS
-        value: "https://ultrai-prod-api.onrender.com"
+        value: "https://ultrai.com,https://www.ultrai.com,https://demo-ultrai.onrender.com,https://ultrai-prod-api.onrender.com"

@@ -1,0 +1,41 @@
+# Render configuration for PRODUCTION Frontend
+# Service: ultrai.com
+
+services:
+  - type: web
+    name: ultrai-prod
+    runtime: static
+    plan: free  # Consider upgrading for production
+    buildCommand: |
+      cd frontend
+      npm ci
+      npm run build
+    staticPublishPath: ./frontend/dist
+    
+    # Deploy from production branch - MANUAL ONLY
+    branch: production
+    autoDeploy: false  # IMPORTANT: Manual control for production
+    
+    # Routes configuration for SPA
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    
+    # Custom domain
+    domains:
+      - domain: ultrai.com
+        redirects:
+          - from: www.ultrai.com
+            to: ultrai.com
+    
+    # Environment variables for build
+    envVars:
+      - key: VITE_APP_MODE
+        value: production
+      - key: VITE_API_MODE
+        value: live
+      - key: VITE_API_URL
+        value: https://ultrai-prod-api.onrender.com
+      - key: VITE_DEFAULT_SKIN
+        value: night

@@ -1,11 +1,11 @@
-#!/bin/bash
+#\!/bin/bash
 
 echo "🔍 Verifying Render Configuration..."
 echo "===================================="
 
 # Check for configuration files
 echo -e "\n📄 Configuration Files:"
-for file in render.yaml render-staging.yaml render-production.yaml; do
+for file in render.yaml render-staging.yaml render-production.yaml render-frontend-staging.yaml render-frontend-production.yaml render-frontend-demo.yaml; do
     if [ -f "$file" ]; then
         echo "✅ $file exists"
     else
@@ -65,24 +65,34 @@ done
 echo -e "\n🔐 API Keys Configuration:"
 for file in render*.yaml; do
     if [ -f "$file" ]; then
-        echo -e "\n$file:"
-        for key in OPENAI_API_KEY ANTHROPIC_API_KEY GOOGLE_API_KEY; do
-            if grep -q "$key" "$file"; then
-                echo "  ✅ $key configured"
-            else
-                echo "  ❌ $key missing"
-            fi
-        done
+        # Skip frontend configs for API key check
+        if [[ ! "$file" =~ "frontend" ]]; then
+            echo -e "\n$file:"
+            for key in OPENAI_API_KEY ANTHROPIC_API_KEY GOOGLE_API_KEY; do
+                if grep -q "$key" "$file"; then
+                    echo "  ✅ $key configured"
+                else
+                    echo "  ❌ $key missing"
+                fi
+            done
+        fi
     fi
 done
+
+# Check service architecture
+echo -e "\n🏗️  Service Architecture:"
+backend_count=$(ls render*-api.yaml 2>/dev/null | wc -l)
+frontend_count=$(ls render-frontend*.yaml 2>/dev/null | wc -l)
+echo "Backend services: $backend_count"
+echo "Frontend services: $frontend_count"
 
 # Summary
 echo -e "\n📊 Summary:"
 echo "==========="
-echo "1. Main service (ultrai-core) uses Poetry"
-echo "2. Staging/Production use pip with requirements-production.txt"
-echo "3. All services should build frontend assets"
-echo "4. Never hardcode PORT in environment variables"
-echo "5. Set API keys in Render dashboard, not in YAML files"
+echo "1. Backend services (staging/production) use pip with requirements-production.txt"
+echo "2. Frontend services are separate static deployments"
+echo "3. All services should NOT hardcode PORT in environment variables"
+echo "4. Set API keys in Render dashboard, not in YAML files"
+echo "5. Frontend services build with npm, backend services with pip"
 
 echo -e "\n✨ Configuration verification complete!"

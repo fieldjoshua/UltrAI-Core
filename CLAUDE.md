@@ -30,6 +30,15 @@ make test-report          # Run with Allure and HTML reports
 make test-demo            # Test against staging/production endpoints
 ```
 
+### Database Commands
+```bash
+# Database migrations (when DATABASE_URL is configured)
+alembic upgrade head      # Apply all migrations
+alembic revision --autogenerate -m "description"  # Create new migration
+alembic downgrade -1      # Rollback one migration
+alembic history           # View migration history
+```
+
 ### Deployment & Verification
 ```bash
 make deploy               # Commit, push, and trigger Render deployment
@@ -38,6 +47,11 @@ git push origin main      # Manual push (Render auto-deploys from GitHub)
 # Verify deployment
 curl https://ultrai-staging-api.onrender.com/api/health  # Staging
 curl https://ultrai-prod-api.onrender.com/api/health     # Production
+
+# Frontend deployment verification
+curl https://staging-ultrai.onrender.com    # Staging frontend
+curl https://ultrai.com                     # Production frontend
+curl https://demo-ultrai.onrender.com       # Demo (mock API)
 ```
 
 ### AICheck Action Management
@@ -76,7 +90,7 @@ The UltrAI project implements a **patented LLM orchestration system** using inte
    │   ├── llm_adapters.py            # Unified LLM interface
    │   ├── interfaces/                # Service abstractions
    │   └── synthesis_prompts.py       # Stage-specific prompts
-   ├── middleware/      # Auth, CSRF, telemetry
+   ├── middleware/      # Auth, CSRF, telemetry, rate limiting
    └── database/        # PostgreSQL + Alembic migrations
    ```
 
@@ -85,12 +99,24 @@ The UltrAI project implements a **patented LLM orchestration system** using inte
    - Redis caching with local memory fallback
    - JWT + API key authentication on protected endpoints
    - Request ID tracking across all services
-   - At least 2 LLM models must be functional for viability
+   - At least 2 LLM models must be functional for viability (configurable via `MINIMUM_MODELS_REQUIRED`)
+
+### Frontend Architecture
+- **Framework**: React + TypeScript + Vite
+- **API Client**: Custom hooks with type-safe API integration
+- **State Management**: Zustand stores
+- **Styling**: Tailwind CSS + custom design tokens
+- **Themes**: Multiple skins (night, morning, afternoon, sunset)
+- **Key Components**: OrchestratorInterface, ModelMonitor, SSEPanel
 
 ### Deployment Architecture
-- **Production**: https://ultrai-prod-api.onrender.com (manual deploy)
-- **Staging**: https://ultrai-staging-api.onrender.com (auto-deploy from main)
-- **Services**: 3 separate Render services with different configurations
+- **Backend Services**:
+  - Production: https://ultrai-prod-api.onrender.com (manual deploy)
+  - Staging: https://ultrai-staging-api.onrender.com (auto-deploy from main)
+- **Frontend Services**:
+  - Production: https://ultrai.com (branch: production)
+  - Staging: https://staging-ultrai.onrender.com (branch: main)
+  - Demo: https://demo-ultrai.onrender.com (production branch + mock API)
 - **Build**: Uses `pip` with `requirements-production.txt` (not Poetry in production)
 - **Critical**: Never hardcode PORT - Render assigns dynamically
 
@@ -101,6 +127,7 @@ Key endpoints:
 - `GET /api/model-health` - Model availability/performance
 - `POST /api/auth/login` - Authentication
 - `GET /api/metrics` - System metrics (cache hits, response times)
+- `GET /api/orchestrator/events` - SSE for real-time monitoring
 - `GET /docs` - Swagger UI documentation
 
 ## Project Rules & Conventions
@@ -111,6 +138,13 @@ Key endpoints:
 - Production URL must be tested and verified
 - Document test results in `supporting_docs/deployment-verification.md`
 - See `.aicheck/rules.md` for complete deployment checklist
+
+### Git Workflow & Branches
+- **main**: Staging branch (active development)
+- **production**: Production branch (stable, curated features)
+- **ultrai-play-***: Playground branches for experiments
+- Never commit directly to production
+- Promote staging → production via merge or cherry-pick
 
 ### Development Workflow
 1. **One ActiveAction Rule** - Only one action active per contributor
@@ -127,7 +161,7 @@ Key endpoints:
   - Endpoint verifications (`/api/available-models?healthy_only=true`, `/api/orchestrator/status`)
 - Drift prevention: if off track, say "I'm getting off track. Returning to [ORIGINAL_TASK]" and realign
 - No refactors/optimizations/features unless explicitly requested
-- See `docs/OVERSIGHT_README.md` for full policy
+- See `docs/OVERSIGHT_README.md` and `docs/cursor-rules.md` for full policies
 
 #### Real-time Monitoring & Check-ins
 - Subscribe to SSE when applicable: `GET /api/orchestrator/events?correlation_id=…`
@@ -160,6 +194,10 @@ OPENAI_API_KEY=...
 ANTHROPIC_API_KEY=...
 GOOGLE_API_KEY=...       # For Gemini
 HUGGINGFACE_API_KEY=...  # Optional
+
+# Frontend (for Vite builds)
+VITE_APP_MODE=staging|production|playground
+VITE_API_MODE=live|mock
 ```
 
 ### Feature Flags (app/config.py)
@@ -171,12 +209,31 @@ FEATURE_FLAGS = {
 }
 ```
 
-## Frontend Architecture
-- **Build**: Vite + React + TypeScript
-- **State**: Zustand
-- **Styling**: Tailwind CSS + Design tokens
-- **Themes**: 6 skins (night, morning, afternoon, sunset, minimalist, business)
-- **Icons**: Lucide React (no emojis in production)
+### Model Availability Policy
+```python
+MINIMUM_MODELS_REQUIRED = 2  # Configurable in app/config.py
+ENABLE_SINGLE_MODEL_FALLBACK = False
+```
+
+## Testing Strategy
+
+### Test Organization
+- `tests/unit/` - Fast, isolated unit tests
+- `tests/integration/` - Tests with local services
+- `tests/e2e/` - End-to-end tests
+- `tests/live/` - Tests against real APIs (marked with `@pytest.mark.live_online`)
+
+### Test Markers
+- `@pytest.mark.unit` - Unit tests
+- `@pytest.mark.integration` - Integration tests
+- `@pytest.mark.live_online` - Requires real API keys
+- `@pytest.mark.slow` - Long-running tests
+
+## Security Notes
+- `.env.staging` is excluded from git (contains secrets)
+- All secrets must be in environment variables or Render dashboard
+- GitHub push protection will block commits with exposed secrets
+- Run security checks before pushing (see Collaboration section)
 
 ## Render Deployment Notes
 - **Config Files**: `render.yaml` (main), `render-staging.yaml`, `render-production.yaml`

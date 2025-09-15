@@ -6,9 +6,7 @@ services:
     name: ultrai-staging-api
     runtime: python
     plan: free
-    buildCommand: |
-      pip install -r requirements-production.txt
-      cd frontend && npm ci && npm run build && cd ..
+    buildCommand: pip install -r requirements-production.txt
     startCommand: python app_production.py
     
     # Auto-deploy from main branch
@@ -47,4 +45,4 @@ services:
       
       # CORS
       - key: CORS_ALLOWED_ORIGINS
-        value: "https://ultrai-staging-api.onrender.com,http://localhost:5173,http://localhost:3009"
+        value: "https://staging-ultrai.onrender.com,https://ultrai-staging-api.onrender.com,http://localhost:5173,http://localhost:3009"
