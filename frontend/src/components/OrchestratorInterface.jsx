@@ -42,6 +42,14 @@ const OrchestratorInterface = () => {
   // State for detailed breakdown visibility
   const [showDetailedBreakdown, setShowDetailedBreakdown] = useState(false);
 
+  // Simple toast notifications (success/warn/error)
+  const [toast, setToast] = useState({ visible: false, type: 'info', message: '' });
+  const showToast = (type, message, timeoutMs = 3500) => {
+    setToast({ visible: true, type, message });
+    window.clearTimeout(showToast._t);
+    showToast._t = window.setTimeout(() => setToast({ visible: false, type: 'info', message: '' }), timeoutMs);
+  };
+
   // Load available models and patterns on component mount
   useEffect(() => {
     const loadModels = async () => {
@@ -199,10 +207,25 @@ const OrchestratorInterface = () => {
       }
 
       setResults(response);
+
+      // Toast on completion or degradation
+      try {
+        if (response && response.status === 'success') {
+          const secs = typeof response.processing_time === 'number' ? response.processing_time.toFixed(2) : undefined;
+          showToast('success', `Analysis completed${secs ? ` in ${secs}s` : ''}.`);
+        } else if (response && response.status === 'error') {
+          showToast('error', response.error || 'Analysis failed');
+        }
+        const degraded = response?.pipeline_info?.service_status;
+        if (degraded) {
+          showToast('warning', degraded);
+        }
+      } catch (_) {}
     } catch (err) {
       setError(`Error processing request: ${err.message}`);
       setProgressStatus('error');
       console.error('Processing error:', err);
+      showToast('error', err.message || 'Processing error');
     } finally {
       setIsProcessing(false);
     }
@@ -323,24 +346,15 @@ const OrchestratorInterface = () => {
               </h3>
 
               {isLoadingModels ? (
-                <div className="flex items-center space-x-2 text-gray-500 p-4 border rounded-md">
-                  <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
-                    <circle
-                      className="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      strokeWidth="4"
-                      fill="none"
-                    ></circle>
-                    <path
-                      className="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                    ></path>
-                  </svg>
-                  <span>Loading available models...</span>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {Array.from({ length: 6 }).map((_, i) => (
+                    <div key={i} className="border rounded-lg p-4">
+                      <div className="animate-pulse space-y-3">
+                        <div className="h-4 bg-gray-200 rounded w-2/3"></div>
+                        <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -390,6 +404,13 @@ const OrchestratorInterface = () => {
                 </div>
               )}
             </div>
+
+            {/* Inline helper when insufficient models */}
+            {availableModels.length < 2 && !isLoadingModels && (
+              <div className="mt-2 text-xs text-gray-600">
+                At least two models are required. <a href="/admin" className="text-blue-600 underline">Configure API keys</a>
+              </div>
+            )}
 
             {/* Legacy analysis type (only for non-Feather mode) */}
             {!useFeatherOrchestration && (
@@ -456,12 +477,13 @@ const OrchestratorInterface = () => {
             <div className="bg-white rounded-lg shadow-md p-6">
               <h3 className="text-lg font-semibold mb-4">Analysis Pattern</h3>
               {isLoadingPatterns ? (
-                <div className="flex items-center space-x-2 text-gray-500 p-4">
-                  <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  <span>Loading patterns...</span>
+                <div className="space-y-3">
+                  {Array.from({ length: 4 }).map((_, i) => (
+                    <div key={i} className="animate-pulse">
+                      <div className="h-4 bg-gray-200 rounded w-1/3 mb-2"></div>
+                      <div className="h-3 bg-gray-200 rounded w-2/3"></div>
+                    </div>
+                  ))}
                 </div>
               ) : (
                 <AnalysisPatternSelector
@@ -683,6 +705,17 @@ const OrchestratorInterface = () => {
               <p className="text-red-700">{results.error || 'An unknown error occurred'}</p>
             </div>
           )}
+        </div>
+      )}
+
+      {/* Toast container */}
+      {toast.visible && (
+        <div className={`fixed bottom-6 right-6 z-50 px-4 py-3 rounded shadow-lg text-sm ${
+          toast.type === 'success' ? 'bg-green-600 text-white' : toast.type === 'warning' ? 'bg-yellow-600 text-white' : toast.type === 'error' ? 'bg-red-600 text-white' : 'bg-gray-800 text-white'
+        }`}
+        role="status"
+        >
+          {toast.message}
         </div>
       )}
     </div>

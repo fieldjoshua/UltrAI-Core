@@ -1,166 +1,195 @@
-// ARIA role constants
-export const ARIA_ROLES = {
-  ALERT: 'alert',
-  ALERTDIALOG: 'alertdialog',
-  BUTTON: 'button',
-  CHECKBOX: 'checkbox',
-  DIALOG: 'dialog',
-  GRID: 'grid',
-  LINK: 'link',
-  LISTBOX: 'listbox',
-  MENU: 'menu',
-  MENUITEM: 'menuitem',
-  PROGRESSBAR: 'progressbar',
-  RADIO: 'radio',
-  RADIOGROUP: 'radiogroup',
-  SCROLLBAR: 'scrollbar',
-  SLIDER: 'slider',
-  SPINBUTTON: 'spinbutton',
-  STATUS: 'status',
-  TAB: 'tab',
-  TABLIST: 'tablist',
-  TABPANEL: 'tabpanel',
-  TEXTBOX: 'textbox',
-  TIMER: 'timer',
-  TOOLTIP: 'tooltip',
-  TREE: 'tree',
-  TREEGRID: 'treegrid',
-  TREEGRIDITEM: 'treegriditem',
-  TREEITEM: 'treeitem',
-} as const;
+// Shim module to provide a stable accessibility import path
+// Re-export ARIA constants and expose a simple screenReader announcer.
 
-// ARIA state constants
-export const ARIA_STATES = {
-  EXPANDED: 'aria-expanded',
-  HIDDEN: 'aria-hidden',
-  SELECTED: 'aria-selected',
-  CHECKED: 'aria-checked',
-  DISABLED: 'aria-disabled',
-  INVALID: 'aria-invalid',
-  PRESSED: 'aria-pressed',
-  READONLY: 'aria-readonly',
-  REQUIRED: 'aria-required',
-} as const;
+export { ARIA_ROLES, ARIA_STATES } from './aria';
 
-// Keyboard navigation constants
-export const KEYBOARD_KEYS = {
-  ENTER: 'Enter',
-  SPACE: ' ',
-  ESCAPE: 'Escape',
-  TAB: 'Tab',
-  ARROW_UP: 'ArrowUp',
-  ARROW_DOWN: 'ArrowDown',
-  ARROW_LEFT: 'ArrowLeft',
-  ARROW_RIGHT: 'ArrowRight',
-  HOME: 'Home',
-  END: 'End',
-} as const;
+type Politeness = 'polite' | 'assertive';
 
-// Focus management utilities
+function getOrCreateLiveRegion(politeness: Politeness): HTMLElement {
+  const id = politeness === 'assertive' ? 'sr-live-assertive' : 'sr-live-polite';
+  let region = document.getElementById(id) as HTMLElement | null;
+  if (!region) {
+    region = document.createElement('div');
+    region.id = id;
+    region.setAttribute('role', 'status');
+    region.setAttribute('aria-live', politeness);
+    region.setAttribute('aria-atomic', 'true');
+    Object.assign(region.style, {
+      position: 'absolute',
+      width: '1px',
+      height: '1px',
+      margin: '-1px',
+      border: '0',
+      padding: '0',
+      overflow: 'hidden',
+      clip: 'rect(0 0 0 0)',
+      clipPath: 'inset(50%)',
+      whiteSpace: 'nowrap',
+    } as CSSStyleDeclaration);
+    document.body.appendChild(region);
+  }
+  return region;
+}
+
+export const screenReader = {
+  announce(message: string, politeness: Politeness = 'polite'): void {
+    try {
+      const region = getOrCreateLiveRegion(politeness);
+      // Clear then set to ensure announcement
+      region.textContent = '';
+      // Slight delay to allow AT to detect change
+      window.setTimeout(() => {
+        region!.textContent = message;
+      }, 30);
+    } catch (_e) {
+      // No-op in non-DOM environments
+    }
+  },
+};
+
+/**
+ * Accessibility utilities for WCAG compliance
+ */
+
+export const a11yLabels = {
+  // Navigation
+  mainNavigation: 'Main navigation',
+  skipToContent: 'Skip to main content',
+  closeModal: 'Close modal',
+  
+  // Theme
+  themeSelector: 'Select visual theme',
+  selectTheme: (theme: string) => `Select ${theme} theme`,
+  currentTheme: (theme: string) => `Current theme: ${theme}`,
+  
+  // Wizard steps
+  wizardProgress: 'Analysis wizard progress',
+  currentStep: (step: number, total: number) => `Step ${step} of ${total}`,
+  goToStep: (step: number) => `Go to step ${step}`,
+  nextStep: 'Continue to next step',
+  previousStep: 'Go back to previous step',
+  
+  // Form elements
+  selectGoal: (goal: string) => `Select goal: ${goal}`,
+  selectedGoal: (goal: string) => `${goal} goal selected`,
+  queryInput: 'Enter your analysis query',
+  characterCount: (current: number, max: number) => `${current} of ${max} characters`,
+  
+  // Model selection
+  selectModel: (model: string) => `Select AI model: ${model}`,
+  selectedModel: (model: string) => `${model} model selected`,
+  modelStatus: (model: string, status: string) => `${model} model status: ${status}`,
+  autoModelSelection: 'Automatic model selection based on your preferences',
+  manualModelSelection: 'Manually select AI models',
+  
+  // Receipt
+  receiptTotal: (amount: string) => `Total cost: ${amount}`,
+  receiptItem: (item: string, cost: string) => `${item}: ${cost}`,
+  expandReceipt: 'Expand receipt details',
+  collapseReceipt: 'Collapse receipt details',
+  
+  // Processing
+  processingStatus: 'Analysis processing status',
+  processingPhase: (phase: string) => `Processing phase: ${phase}`,
+  processingComplete: 'Analysis complete',
+  viewResults: 'View analysis results',
+  startNewAnalysis: 'Start a new analysis',
+  
+  // Status indicators
+  systemOnline: 'System status: Online',
+  systemOffline: 'System status: Offline',
+  modelsAvailable: (count: number, total: number) => `${count} of ${total} models available`,
+  latency: (time: string) => `Average latency: ${time}`,
+  
+  // Actions
+  submit: 'Submit for analysis',
+  cancel: 'Cancel',
+  reset: 'Reset form',
+  copy: 'Copy to clipboard',
+  download: 'Download results',
+  share: 'Share results',
+  
+  // Loading states
+  loading: 'Loading...',
+  loadingStep: (step: string) => `Loading ${step}...`,
+  
+  // Errors
+  error: 'Error',
+  errorMessage: (message: string) => `Error: ${message}`,
+  retry: 'Retry',
+  
+  // Success
+  success: 'Success',
+  successMessage: (message: string) => `Success: ${message}`,
+};
+
+/**
+ * Generate ARIA live region announcement
+ */
+export const announce = (message: string, priority: 'polite' | 'assertive' = 'polite') => {
+  const announcement = document.createElement('div');
+  announcement.setAttribute('role', 'status');
+  announcement.setAttribute('aria-live', priority);
+  announcement.setAttribute('aria-atomic', 'true');
+  announcement.className = 'sr-only';
+  announcement.textContent = message;
+  
+  document.body.appendChild(announcement);
+  
+  // Remove after announcement
+  setTimeout(() => {
+    document.body.removeChild(announcement);
+  }, 1000);
+};
+
+/**
+ * Screen reader only class for Tailwind
+ */
+export const srOnly = 'sr-only';
+
+/**
+ * Focus management utilities
+ */
 export const focusManagement = {
-  // Trap focus within an element
-  trapFocus: (element: HTMLElement): (() => void) => {
-    const focusableElements = element.querySelectorAll(
-      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+  // Trap focus within a container
+  trapFocus: (container: HTMLElement) => {
+    const focusableElements = container.querySelectorAll(
+      'a[href], button, textarea, input[type="text"], input[type="radio"], input[type="checkbox"], select'
     );
     const firstFocusable = focusableElements[0] as HTMLElement;
-    const lastFocusable = focusableElements[
-      focusableElements.length - 1
-    ] as HTMLElement;
+    const lastFocusable = focusableElements[focusableElements.length - 1] as HTMLElement;
 
-    const handleTabKey = (e: KeyboardEvent) => {
-      if (e.key === KEYBOARD_KEYS.TAB) {
-        if (e.shiftKey) {
-          if (document.activeElement === firstFocusable) {
-            e.preventDefault();
-            lastFocusable.focus();
-          }
-        } else {
-          if (document.activeElement === lastFocusable) {
-            e.preventDefault();
-            firstFocusable.focus();
-          }
+    container.addEventListener('keydown', (e) => {
+      if (e.key === 'Tab') {
+        if (e.shiftKey && document.activeElement === firstFocusable) {
+          e.preventDefault();
+          lastFocusable.focus();
+        } else if (!e.shiftKey && document.activeElement === lastFocusable) {
+          e.preventDefault();
+          firstFocusable.focus();
         }
       }
-    };
+    });
 
-    element.addEventListener('keydown', handleTabKey);
-    return () => element.removeEventListener('keydown', handleTabKey);
+    firstFocusable?.focus();
   },
 
-  // Focus first focusable element
-  focusFirstElement: (element: HTMLElement): void => {
-    const focusableElements = element.querySelectorAll(
-      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
-    );
-    const firstFocusable = focusableElements[0] as HTMLElement;
-    if (firstFocusable) {
-      firstFocusable.focus();
-    }
-  },
-
-  // Focus last focusable element
-  focusLastElement: (element: HTMLElement): void => {
-    const focusableElements = element.querySelectorAll(
-      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
-    );
-    const lastFocusable = focusableElements[
-      focusableElements.length - 1
-    ] as HTMLElement;
-    if (lastFocusable) {
-      lastFocusable.focus();
-    }
+  // Return focus to a specific element
+  returnFocus: (element: HTMLElement) => {
+    element.focus();
   },
 };
 
-// Screen reader utilities
-export const screenReader = {
-  // Announce message to screen readers
-  announce: (
-    message: string,
-    politeness: 'polite' | 'assertive' = 'polite'
-  ): void => {
-    const announcement = document.createElement('div');
-    announcement.setAttribute('role', 'status');
-    announcement.setAttribute('aria-live', politeness);
-    announcement.setAttribute('aria-atomic', 'true');
-    announcement.style.position = 'absolute';
-    announcement.style.width = '1px';
-    announcement.style.height = '1px';
-    announcement.style.padding = '0';
-    announcement.style.margin = '-1px';
-    announcement.style.overflow = 'hidden';
-    announcement.style.clip = 'rect(0, 0, 0, 0)';
-    announcement.style.whiteSpace = 'nowrap';
-    announcement.style.border = '0';
-    announcement.textContent = message;
-    document.body.appendChild(announcement);
-    setTimeout(() => document.body.removeChild(announcement), 1000);
-  },
-};
-
-// Heading hierarchy utilities
-export const headingHierarchy = {
-  // Get next heading level
-  getNextLevel: (currentLevel: number): number => {
-    return Math.min(currentLevel + 1, 6);
-  },
-
-  // Get previous heading level
-  getPreviousLevel: (currentLevel: number): number => {
-    return Math.max(currentLevel - 1, 1);
-  },
-
-  // Validate heading hierarchy
-  validateHierarchy: (headings: HTMLElement[]): boolean => {
-    let currentLevel = 0;
-    for (const heading of headings) {
-      const level = parseInt(heading.tagName[1]);
-      if (level > currentLevel + 1) {
-        return false;
-      }
-      currentLevel = level;
-    }
-    return true;
-  },
+/**
+ * Keyboard navigation helpers
+ */
+export const keyboardNav = {
+  isEnter: (e: KeyboardEvent) => e.key === 'Enter',
+  isSpace: (e: KeyboardEvent) => e.key === ' ',
+  isEscape: (e: KeyboardEvent) => e.key === 'Escape',
+  isArrowUp: (e: KeyboardEvent) => e.key === 'ArrowUp',
+  isArrowDown: (e: KeyboardEvent) => e.key === 'ArrowDown',
+  isArrowLeft: (e: KeyboardEvent) => e.key === 'ArrowLeft',
+  isArrowRight: (e: KeyboardEvent) => e.key === 'ArrowRight',
+  isTab: (e: KeyboardEvent) => e.key === 'Tab',
 };
