@@ -6,8 +6,8 @@
 // @ts-ignore
 (globalThis as any).import.meta.env = {
   ...(globalThis as any).import.meta.env,
-  VITE_APP_MODE: 'staging',
-  VITE_API_MODE: 'mock',
+  VITE_APP_MODE: 'test',
+  VITE_API_MODE: 'test',
   VITE_DEFAULT_SKIN: 'night',
   VITE_API_URL: 'http://localhost:8000/api',
 };
