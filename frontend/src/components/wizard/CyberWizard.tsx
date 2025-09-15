@@ -10,6 +10,7 @@ import { RadioGroup, RadioGroupItem } from "@components/ui/radio-group";
 import { Input } from "@components/ui/input";
 import { OutlineIcon } from "@components/icons/OutlineIcons";
 import { Rocket, Film, Check, Copy, Zap, Activity, Sparkles, Brain, Network, Download } from 'lucide-react';
+import SkinSwitcher from "@components/SkinSwitcher";
 // Bridge animation disabled for professional static look
 
 interface StepOption { label: string; cost?: number; icon?: string; description?: string }
@@ -671,6 +672,10 @@ export default function CyberWizard() {
       <a href="#main-content" className="sr-only focus:not-sr-only fixed top-2 left-2 z-50 bg-black text-white px-3 py-2 rounded">
         Skip to content
       </a>
+      
+      {/* Skin Switcher with Animation Toggle */}
+      <SkinSwitcher />
+      
       {/* Background layer - only show for time-based skins */}
       {!isNonTimeSkin && (
         <>

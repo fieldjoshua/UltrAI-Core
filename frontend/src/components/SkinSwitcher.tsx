@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { config, Skin } from "../config";
 import { loadSkin } from "../skins";
+import { AnimationToggle } from "./AnimationToggle";
 
 export default function SkinSwitcher() {
   const params = useMemo(() => new URLSearchParams(window.location.search), []);
@@ -140,6 +141,9 @@ export default function SkinSwitcher() {
             </button>
           );
         })}
+      </div>
+      <div className="mt-3 pt-3 border-t border-white/20">
+        <AnimationToggle />
       </div>
     </div>
   );

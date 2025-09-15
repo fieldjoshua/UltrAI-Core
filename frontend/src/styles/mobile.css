@@ -243,11 +243,69 @@
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
   
+  /* Remove all animations */
   .animate-pulse,
   .animate-spin,
-  .animate-bounce-subtle {
+  .animate-bounce-subtle,
+  .animate-fade-in,
+  .animate-slide-in-bottom,
+  .animate-slide-in-top,
+  .animate-scale-in,
+  .animate-pulse-glow,
+  .animate-slide-right,
+  .animate-shimmer,
+  .animate-flicker,
+  .animate-border-hum,
+  .animate-float,
+  .animate-gradient-x,
+  .animate-pulse-slow,
+  .animate-pulse-neon,
+  .animate-spin-slow {
     animation: none !important;
+  }
+  
+  /* Remove transform transitions */
+  .transition-smooth,
+  .transition-all,
+  .transition-colors,
+  .transition-opacity,
+  .transition-transform {
+    transition: none !important;
+  }
+  
+  /* Disable parallax effects */
+  .parallax,
+  [style*="transform"] {
+    transform: none !important;
+  }
+  
+  /* Disable backdrop filters for performance */
+  .glass-panel,
+  .glass,
+  .glass-strong {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    background: rgba(0, 0, 0, 0.95) !important;
+  }
+  
+  /* Static glow effects */
+  .glow-mint,
+  .glow-blue,
+  .glow-purple,
+  .glow-pink,
+  .glow-orange {
+    box-shadow: none !important;
+  }
+  
+  /* Disable text shadows */
+  .text-shadow-neon-mint,
+  .text-shadow-neon-blue,
+  .text-shadow-neon-purple,
+  .text-shadow-neon-pink,
+  [style*="text-shadow"] {
+    text-shadow: none !important;
   }
 }
