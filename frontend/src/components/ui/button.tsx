@@ -1,5 +1,6 @@
 import React, { ButtonHTMLAttributes, forwardRef } from 'react';
 import { cn } from '../../lib/utils';
+import { tokens } from '../../design-tokens/tokens';
 
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?:
@@ -29,7 +30,12 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   ) => {
     // Base styles
     const baseStyles =
-      'inline-flex items-center justify-center rounded-md font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed';
+      'inline-flex items-center justify-center font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed rounded-[var(--btn-radius)] transition-colors';
+
+    // Bridge some token values via CSS variables to avoid large class rewrites
+    const tokenVars = {
+      ['--btn-radius' as any]: tokens.borderRadius.base,
+    } as React.CSSProperties;
 
     // Variant styles
     const variantMap = {
@@ -42,12 +48,12 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       link: 'bg-transparent underline-offset-4 hover:underline text-blue-600',
     };
 
-    // Size styles
+    // Size styles - ensuring minimum touch target of 44px height
     const sizeMap = {
-      default: 'h-10 py-2 px-4',
-      sm: 'h-8 px-3 text-sm',
-      lg: 'h-12 px-6 text-lg',
-      icon: 'h-10 w-10',
+      default: `min-h-[44px] h-11 py-[${tokens.spacing.sm}] px-[${tokens.spacing.md}]`,
+      sm: `min-h-[44px] h-11 px-[${tokens.spacing.sm}] text-sm`,
+      lg: `min-h-[48px] h-12 px-[${tokens.spacing.lg}] text-lg`,
+      icon: 'min-h-[44px] min-w-[44px] h-11 w-11',
     };
 
     // Make sure the variant and size values are valid
@@ -57,6 +63,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     return (
       <button
         ref={ref}
+        style={tokenVars}
         className={cn(baseStyles, variantStyle, sizeStyle, className)}
         disabled={disabled || isLoading}
         {...props}

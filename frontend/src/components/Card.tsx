@@ -1,6 +1,7 @@
 import React from 'react';
 import { screenReader } from '../utils/accessibility';
 import { ARIA_ROLES } from '../utils/accessibility';
+import { tokens } from '../design-tokens/tokens';
 
 interface CardProps {
   title?: string;
@@ -38,7 +39,10 @@ export const Card: React.FC<CardProps> = ({
   );
 
   const baseClasses =
-    'bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden';
+    'bg-white shadow-sm border border-gray-200 overflow-hidden rounded-[var(--card-radius)]';
+  const tokenVars = {
+    ['--card-radius' as any]: tokens.borderRadius.base,
+  } as React.CSSProperties;
   const interactiveClasses = isInteractive
     ? 'cursor-pointer hover:shadow-md transition-shadow duration-200'
     : '';
@@ -47,6 +51,7 @@ export const Card: React.FC<CardProps> = ({
     return (
       <button
         onClick={onClick}
+        style={tokenVars}
         className={`w-full text-left ${baseClasses} ${interactiveClasses}`}
         aria-label={ariaLabel}
         aria-describedby={ariaDescribedBy}
@@ -59,6 +64,7 @@ export const Card: React.FC<CardProps> = ({
   return (
     <div
       role="article"
+      style={tokenVars}
       className={baseClasses}
       aria-label={ariaLabel}
       aria-describedby={ariaDescribedBy}
