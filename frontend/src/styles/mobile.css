@@ -1,0 +1,253 @@
+/* Mobile-responsive styles for UltrAI */
+
+/* Base mobile styles */
+@media (max-width: 1024px) {
+  /* Adjust main grid for tablets */
+  .wizard-container {
+    padding: 1rem;
+  }
+  
+  .wizard-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  /* Stack panels vertically on tablets */
+  .system-status-panel {
+    grid-column: span 12;
+    max-width: 100%;
+  }
+  
+  .wizard-main-panel {
+    grid-column: span 12;
+  }
+  
+  .receipt-panel {
+    grid-column: span 12;
+    position: relative !important;
+    max-height: 300px;
+  }
+}
+
+/* Phone styles */
+@media (max-width: 768px) {
+  /* Remove fixed positioning for mobile */
+  .skin-switcher {
+    position: relative !important;
+    top: auto !important;
+    right: auto !important;
+    margin: 0.5rem;
+    display: flex;
+    justify-content: flex-end;
+  }
+  
+  /* Reduce padding on mobile */
+  .wizard-container {
+    padding: 0.5rem;
+    padding-top: 1rem !important;
+  }
+  
+  /* Make cards full width */
+  .glass-panel {
+    margin: 0.5rem 0;
+    padding: 1rem !important;
+  }
+  
+  /* Adjust wizard panel height */
+  .wizard-main-panel > div {
+    height: auto !important;
+    min-height: 400px;
+    max-height: 70vh;
+  }
+  
+  /* Make step markers scrollable */
+  .step-markers-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 0.5rem 0;
+  }
+  
+  .step-markers-container > div {
+    min-width: max-content;
+    padding: 0 1rem;
+  }
+  
+  /* Larger touch targets */
+  input[type="checkbox"],
+  input[type="radio"] {
+    min-width: 24px;
+    min-height: 24px;
+    width: 24px;
+    height: 24px;
+  }
+  
+  button {
+    min-height: 44px;
+    padding: 0.75rem 1rem;
+  }
+  
+  /* Adjust text sizes */
+  .text-[16px] { font-size: 14px; }
+  .text-[14px] { font-size: 13px; }
+  .text-[12px] { font-size: 11px; }
+  .text-[11px] { font-size: 10px; }
+  .text-[10px] { font-size: 9px; }
+  
+  /* Make modals full screen on mobile */
+  .modal-content {
+    width: 100vw;
+    height: 100vh;
+    max-width: none;
+    margin: 0;
+    border-radius: 0;
+  }
+  
+  /* Adjust grid layouts */
+  .grid-cols-3 { grid-template-columns: 1fr; }
+  .grid-cols-2 { grid-template-columns: 1fr; }
+  
+  /* Stack goal selection vertically */
+  .goal-selection-grid {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+  
+  /* Make receipt collapsible */
+  .receipt-panel.collapsed {
+    max-height: 60px;
+    overflow: hidden;
+  }
+  
+  .receipt-toggle {
+    display: block;
+    width: 100%;
+    text-align: center;
+    padding: 0.5rem;
+    background: rgba(255, 255, 255, 0.05);
+    border: none;
+    color: inherit;
+  }
+  
+  /* Hide billboard on very small screens */
+  .billboard-logo {
+    display: none;
+  }
+  
+  /* Adjust intro screen */
+  .intro-hero {
+    margin-top: 10vh !important;
+    padding: 1rem;
+  }
+  
+  .intro-features {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  /* Status cards in column */
+  .status-stats-grid {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+}
+
+/* Extra small phones */
+@media (max-width: 375px) {
+  /* Further reduce padding */
+  .glass-panel {
+    padding: 0.75rem !important;
+  }
+  
+  /* Single column for everything */
+  .grid {
+    grid-template-columns: 1fr !important;
+  }
+  
+  /* Reduce font sizes more */
+  .text-2xl { font-size: 1.25rem; }
+  .text-xl { font-size: 1rem; }
+  .text-lg { font-size: 0.875rem; }
+  
+  /* Hide decorative elements */
+  .decorative-glow,
+  .clip-path-decoration {
+    display: none;
+  }
+}
+
+/* Touch-friendly hover states */
+@media (hover: none) and (pointer: coarse) {
+  /* Remove hover effects on touch devices */
+  .hover\:scale-105:hover {
+    transform: none;
+  }
+  
+  /* Add active states for better feedback */
+  button:active,
+  .interactive:active {
+    transform: scale(0.98);
+    opacity: 0.9;
+  }
+  
+  /* Larger tap areas */
+  .tap-target {
+    position: relative;
+  }
+  
+  .tap-target::before {
+    content: '';
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    bottom: -8px;
+    left: -8px;
+  }
+}
+
+/* Landscape orientation adjustments */
+@media (max-height: 500px) and (orientation: landscape) {
+  .wizard-container {
+    padding-top: 0.5rem !important;
+  }
+  
+  .wizard-main-panel > div {
+    max-height: 90vh;
+  }
+  
+  .intro-hero {
+    margin-top: 5vh !important;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .glass-panel {
+    border-width: 2px;
+    border-color: rgba(255, 255, 255, 0.5);
+  }
+  
+  button {
+    border: 2px solid currentColor;
+  }
+  
+  input[type="checkbox"]:checked,
+  input[type="radio"]:checked {
+    background: white;
+    border-color: white;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  
+  .animate-pulse,
+  .animate-spin,
+  .animate-bounce-subtle {
+    animation: none !important;
+  }
+}

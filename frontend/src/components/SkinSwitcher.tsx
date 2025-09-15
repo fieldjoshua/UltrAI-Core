@@ -61,7 +61,7 @@ export default function SkinSwitcher() {
   };
 
   return (
-    <div style={{
+    <div className="skin-switcher" style={{
       position: "fixed",
       top: 70,
       right: 10,
@@ -75,17 +75,24 @@ export default function SkinSwitcher() {
       border: "1px solid rgba(255, 255, 255, 0.1)",
       boxShadow: "0 4px 20px rgba(0, 0, 0, 0.3)"
     }}>
-      <div style={{ 
-        fontSize: 11, 
-        fontWeight: "bold", 
-        marginBottom: 8,
-        textTransform: "uppercase",
-        letterSpacing: 1,
-        opacity: 0.8
-      }}>
+      <div 
+        style={{ 
+          fontSize: 11, 
+          fontWeight: "bold", 
+          marginBottom: 8,
+          textTransform: "uppercase",
+          letterSpacing: 1,
+          opacity: 0.8
+        }}
+        id="theme-selector-label"
+      >
         Theme
       </div>
-      <div style={{ display: "flex", gap: 4 }}>
+      <div 
+        style={{ display: "flex", gap: 4 }}
+        role="radiogroup"
+        aria-labelledby="theme-selector-label"
+      >
         {config.availableSkins.map((s) => {
           const isActive = skin === s;
           const themeColor = getThemeColor(s);
@@ -94,6 +101,9 @@ export default function SkinSwitcher() {
               key={s}
               onClick={() => handleChange(s as Skin)}
               title={s.charAt(0).toUpperCase() + s.slice(1)}
+              role="radio"
+              aria-checked={isActive}
+              aria-label={`Select ${s} theme`}
               style={{
                 background: isActive ? `${themeColor}20` : "rgba(255, 255, 255, 0.05)",
                 border: isActive ? `2px solid ${themeColor}` : "1px solid rgba(255, 255, 255, 0.2)",

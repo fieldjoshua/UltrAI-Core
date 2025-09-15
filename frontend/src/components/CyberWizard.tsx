@@ -8,6 +8,8 @@ import StatusUpdater from "./StatusUpdater";
 import { RadioGroup, RadioGroupItem } from "./ui/radio-group";
 import { Textarea } from "./ui/textarea";
 import { Input } from "./ui/input";
+import { CollapsibleReceipt } from "./CollapsibleReceipt";
+import { a11yLabels, announce } from "../utils/accessibility";
 // Bridge animation disabled for professional static look
 
 interface StepOption { label: string; cost?: number; icon?: string; description?: string }
@@ -336,12 +338,12 @@ The convergence of autonomous vehicles, renewable energy, and smart city infrast
   };
 
   const step = steps[currentStep];
-  const mapColorHex = (c: string) => c === 'mint' ? '#00ff9f'
-    : c === 'blue' ? '#00d4ff'
-    : c === 'deepblue' ? '#4169ff'
-    : c === 'purple' ? '#bd00ff'
-    : c === 'pink' ? '#ff0095'
-    : '#d600ff';
+  const mapColorHex = (c: string) => c === 'mint' ? 'var(--wcag-neon-mint, #00ffaa)'
+    : c === 'blue' ? 'var(--wcag-neon-blue, #4db8ff)'
+    : c === 'deepblue' ? 'var(--wcag-neon-blue, #4db8ff)'
+    : c === 'purple' ? 'var(--wcag-neon-purple, #cc80ff)'
+    : c === 'pink' ? 'var(--wcag-neon-pink, #ff80d5)'
+    : 'var(--wcag-neon-purple, #cc80ff)';
   const mapColorRGBA = (c: string, alpha: number) => c === 'mint' ? `rgba(0,255,159,${alpha})`
     : c === 'blue' ? `rgba(0,212,255,${alpha})`
     : c === 'deepblue' ? `rgba(65,105,255,${alpha})`
@@ -543,7 +545,7 @@ The convergence of autonomous vehicles, renewable energy, and smart city infrast
         </div>
 
         {/* Hero content */}
-        <div className="relative z-10 w-full mx-auto max-w-5xl px-8" style={{ marginTop: '25vh' }}>
+        <div className="relative z-10 w-full mx-auto max-w-5xl px-4 md:px-8 intro-hero" style={{ marginTop: '25vh' }}>
           
           {/* Neon Billboard sitting on top of box */}
           <div className="relative">
@@ -588,7 +590,7 @@ The convergence of autonomous vehicles, renewable energy, and smart city infrast
 
             <div className="relative space-y-8">
               {/* Feature pills */}
-              <div className="flex flex-wrap gap-3 justify-center">
+              <div className="flex flex-wrap gap-2 md:gap-3 justify-center intro-features">
                 {[
                   { icon: '🚀', text: 'Multi-Model Orchestration', color: 'mint' },
                   { icon: '⚡', text: 'Real-time Synthesis', color: 'blue' },
@@ -597,7 +599,7 @@ The convergence of autonomous vehicles, renewable energy, and smart city infrast
                 ].map((feature, i) => (
                   <span 
                     key={i}
-                    className={`px-6 py-2 rounded-full text-sm font-semibold border backdrop-blur animate-slide-in-bottom hover:scale-105 transition-smooth cursor-pointer`}
+                    className={`px-3 md:px-6 py-2 rounded-full text-xs md:text-sm font-semibold border backdrop-blur animate-slide-in-bottom hover:scale-105 transition-smooth cursor-pointer`}
                     style={{
                       background: `${mapColorRGBA(feature.color, 0.2)}`,
                       borderColor: `${mapColorHex(feature.color)}50`,
@@ -659,10 +661,11 @@ The convergence of autonomous vehicles, renewable energy, and smart city infrast
                   size="lg"
                   onClick={() => { setCurrentStep(1); setStepFadeKey(k => k + 1); }}
                   className="px-12 py-5 text-xl font-bold"
+                  aria-label="Start using UltrAI analysis wizard"
                 >
                   <span className="flex items-center gap-3 justify-center">
                     <span>Enter UltrAI</span>
-                    <span>→</span>
+                    <span aria-hidden="true">→</span>
                   </span>
                 </Button>
               </div>
@@ -831,14 +834,17 @@ The convergence of autonomous vehicles, renewable energy, and smart city infrast
 
       {/* Main Content - Below Billboard */}
       <div className="relative z-10 w-full">
-        <div className="flex items-center justify-center" style={{ minHeight: '100vh', paddingTop: isNonTimeSkin ? '25vh' : '37.5vh' }}>
-          <div className="w-full max-w-7xl px-8">
-            <div className="grid grid-cols-12 gap-4">
+        <div className="flex items-center justify-center wizard-container" style={{ minHeight: '100vh', paddingTop: isNonTimeSkin ? '25vh' : '37.5vh' }}>
+          <div className="w-full max-w-7xl px-4 md:px-8">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 wizard-grid">
 
           {/* Left Panel: System Status */}
-              <div className="col-span-2">
+              <div className="col-span-12 lg:col-span-2 system-status-panel order-2 lg:order-1">
                 {/* Model Status Box */}
-                <Card className="relative p-4 rounded-2xl transition-smooth"
+                <Card 
+                  className="relative p-4 rounded-2xl transition-smooth"
+                  role="region"
+                  aria-label="System status information"
                   style={{ 
                     background: glassBackground,
                     backdropFilter: 'blur(40px)',
@@ -860,7 +866,15 @@ The convergence of autonomous vehicles, renewable energy, and smart city infrast
                       <span style={{ color: colorHex }}>🤖</span>
                       <div className="text-[10px] font-semibold text-white">Models</div>
                     </div>
-                    <div className="text-[14px] font-bold" style={{ color: colorHex }}>
+                    <div 
+                      className="text-[14px] font-bold" 
+                      style={{ color: colorHex }}
+                      aria-live="polite"
+                      aria-label={availableModels ? a11yLabels.modelsAvailable(
+                        availableModels.filter(m => modelStatuses[m] === 'ready').length,
+                        availableModels.length
+                      ) : 'Models loading'}
+                    >
                       {availableModels ? `${availableModels.filter(m => modelStatuses[m] === 'ready').length}/${availableModels.length}` : '—'}
                     </div>
                   </div>
@@ -892,7 +906,7 @@ The convergence of autonomous vehicles, renewable energy, and smart city infrast
               </div>
 
           {/* Wizard Panel (center) */}
-              <div className="col-span-7">
+              <div className="col-span-12 lg:col-span-7 wizard-main-panel order-1 lg:order-2">
                 <div
                   className={`relative p-8 rounded-2xl overflow-hidden transition-smooth will-change-transform ${
                     step.color === 'mint' ? 'glow-mint' :
@@ -979,8 +993,8 @@ The convergence of autonomous vehicles, renewable energy, and smart city infrast
                 // Show normal wizard content
                 <>
                   {/* Step markers (centered) - exclude Step 0 (Intro) */}
-              <div className="w-full mb-4">
-                <div className="flex items-center justify-center">
+              <div className="w-full mb-4 step-markers-container overflow-x-auto" role="navigation" aria-label={a11yLabels.wizardProgress}>
+                <div className="flex items-center justify-center min-w-max px-4">
                       {steps.map((s, idx) => ({ s, idx })).filter(x => x.idx !== 0).map(({ s, idx }) => {
                         const stepIndex = idx; // real index in steps
                         const isActive = stepIndex === currentStep;
@@ -988,9 +1002,11 @@ The convergence of autonomous vehicles, renewable energy, and smart city infrast
                     const dotHex = mapColorHex(s.color);
                     return (
                           <div key={s.title} className="flex items-center">
-                            <div 
+                            <button 
                               onClick={() => { setCurrentStep(stepIndex); setStepFadeKey(k => k+1); }} 
                               className="relative cursor-pointer group"
+                              aria-label={a11yLabels.goToStep(stepIndex)}
+                              aria-current={isActive ? 'step' : undefined}
                             >
                               <div 
                                 className={`w-8 h-8 rounded-full flex items-center justify-center transition-smooth will-change-transform ${
@@ -1021,7 +1037,7 @@ The convergence of autonomous vehicles, renewable energy, and smart city infrast
                                   {s.title.split('. ')[1]}
                                 </div>
                               </div>
-                            </div>
+                            </button>
                             {idx < steps.length - 1 && (
                               <div 
                                 className="w-12 h-0.5 mx-2 transition-all duration-300" 
@@ -1119,12 +1135,20 @@ The convergence of autonomous vehicles, renewable energy, and smart city infrast
                       onChange={(e) => setUserQuery(e.target.value)}
                       onFocus={() => setQueryFocused(true)}
                       onBlur={() => setQueryFocused(false)}
+                      aria-label={a11yLabels.queryInput}
+                      aria-describedby="character-count"
                     />
                     {/* Character counter */}
-                    <div className="absolute bottom-2 right-2 text-[10px] transition-opacity duration-200" style={{
-                      color: userQuery.length > 500 ? '#ff00d4' : userQuery.length > 300 ? '#ffeb55' : colorHex,
-                      opacity: queryFocused || userQuery.length > 0 ? 1 : 0
-                    }}>
+                    <div 
+                      id="character-count"
+                      className="absolute bottom-2 right-2 text-[10px] transition-opacity duration-200" 
+                      style={{
+                        color: userQuery.length > 500 ? '#ff00d4' : userQuery.length > 300 ? '#ffeb55' : colorHex,
+                        opacity: queryFocused || userQuery.length > 0 ? 1 : 0
+                      }}
+                      aria-live="polite"
+                      aria-label={a11yLabels.characterCount(userQuery.length, 1000)}
+                    >
                       {userQuery.length} / 1000
                     </div>
                     {/* Dynamic typing indicator */}
@@ -1163,8 +1187,8 @@ The convergence of autonomous vehicles, renewable energy, and smart city infrast
                   <div className="grid grid-cols-2 gap-2">
                     <RadioGroup onValueChange={(val) => addSelection(val, step.options?.find(s => s.label===val)?.cost, step.color, step.title)}>
                       {step.options.map(o => (
-                        <label key={o.label} className="flex items-center text-[11px] leading-tight truncate opacity-95 hover:opacity-100 gap-2">
-                          <RadioGroupItem value={o.label} id={`radio-${currentStep}-${o.label}`} />
+                        <label key={o.label} className="flex items-center text-[11px] leading-tight truncate opacity-95 hover:opacity-100 gap-2 py-2 tap-target">
+                          <RadioGroupItem value={o.label} id={`radio-${currentStep}-${o.label}`} className="touch-target" />
                           <span className="align-middle truncate tracking-wide text-white">{o.icon ? `${o.icon} ` : ""}{o.label}{typeof o.cost === 'number' ? ` ($${o.cost})` : ""}</span>
                         </label>
                       ))}
@@ -1176,8 +1200,8 @@ The convergence of autonomous vehicles, renewable energy, and smart city infrast
                   currentStep === 0 ? (
                     <div className="grid grid-cols-2 gap-2">
                       {step.options.slice(0, 12).map(o => (
-                        <label key={o.label} className="flex items-center text-[11px] leading-tight truncate opacity-95 hover:opacity-100">
-                          <Checkbox onChange={() => handleGoalToggle(o.label)} checked={selectedGoals.includes(o.label)} />{" "}
+                        <label key={o.label} className="flex items-center text-[11px] leading-tight truncate opacity-95 hover:opacity-100 py-2 tap-target">
+                          <Checkbox onChange={() => handleGoalToggle(o.label)} checked={selectedGoals.includes(o.label)} className="touch-target" />{" "}
                           <span className="align-middle truncate tracking-wide text-white">{o.icon ? `${o.icon} ` : ""}{o.label}</span>
                         </label>
                       ))}
@@ -1367,7 +1391,7 @@ The convergence of autonomous vehicles, renewable energy, and smart city infrast
                   ) : (
                     (step.title || '').toLowerCase().includes('select your goals') ? (
                       <div className="space-y-3">
-                        <div className="grid grid-cols-3 gap-2">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 goal-selection-grid">
                           {step.options.map(o => {
                             const isSelected = selectedGoals.includes(o.label);
                             return (
@@ -1375,6 +1399,16 @@ The convergence of autonomous vehicles, renewable energy, and smart city infrast
                                 key={o.label}
                                 className="relative group cursor-pointer"
                                 onClick={() => handleGoalToggle(o.label)}
+                                role="checkbox"
+                                aria-checked={isSelected}
+                                aria-label={a11yLabels.selectGoal(o.label)}
+                                tabIndex={0}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter' || e.key === ' ') {
+                                    e.preventDefault();
+                                    handleGoalToggle(o.label);
+                                  }
+                                }}
                               >
                                 <div
                                   className="p-3 rounded-lg transition-all duration-200 hover:scale-105"
@@ -1480,11 +1514,14 @@ The convergence of autonomous vehicles, renewable energy, and smart city infrast
                       if (currentStep === steps.length - 1) {
                         // Mark add-ons as submitted
                         setAddonsSubmitted(true);
+                        announce('Add-ons submitted');
                       } else {
                         setCurrentStep(Math.min(currentStep + 1, steps.length - 1));
                         setStepFadeKey(k => k + 1);
+                        announce(`Moving to step ${currentStep + 1}`);
                       }
                     }}
+                    aria-label={currentStep === steps.length - 1 ? 'Submit add-on selections' : a11yLabels.nextStep}
                   >
                     {currentStep===steps.length-1 ? "Submit Add-ons" : "Submit"}
                   </button>
@@ -1497,37 +1534,15 @@ The convergence of autonomous vehicles, renewable energy, and smart city infrast
           </div>
 
           {/* Right Panel: Receipt transforms into Status after approval */}
-          <div className="col-span-3">
-            <Card 
-              className="relative p-6 rounded-2xl transition-smooth"
-              style={{ 
-                fontFamily: monoStack, 
-                background: 'rgba(0, 0, 0, 0.1)',
-                backdropFilter: 'blur(40px)',
-                WebkitBackdropFilter: 'blur(40px)',
-                border: `2px solid ${receiptColor}`,
-                minHeight: '420px',
-                width: '100%',
-                boxShadow: `
-                  0 8px 32px rgba(0, 0, 0, 0.3),
-                  0 0 60px ${receiptColor}10,
-                  0 0 0 1px ${receiptColor}20,
-                  inset 0 0 60px rgba(255, 255, 255, 0.05)
-                `,
-                clipPath: 'polygon(0 0, calc(100% - 20px) 0, 100% 20px, 100% 100%, 20px 100%, 0 calc(100% - 20px))'
-              }}>
-              {!showStatus ? (
-                <>
-                  <div className="text-center mb-2">
-                    <div className="text-[14px] font-extrabold tracking-[0.35em] text-white">ULTRAI</div>
-                    <div className="text-[10px] text-white/70">— ITEMIZED RECEIPT —</div>
-                  </div>
-                  <div className="space-y-2" style={{ maxHeight: '360px', overflowY: 'auto', paddingRight: 6 }}>
-                    {receiptSections}
-                  </div>
-                  <div className="mt-3 font-bold text-pink-400 text-lg text-center transition-all duration-300 hover:scale-105" style={{
-                    textShadow: 'var(--shadow-text-glow, 0 0 10px currentColor)'
-                  }}>{`Total: $${totalCost.toFixed(2)}`}</div>
+          <div className="col-span-12 lg:col-span-3 receipt-panel order-3">
+            <CollapsibleReceipt
+              items={summary}
+              totalCost={totalCost}
+              isProcessing={showStatus}
+              monoStack={monoStack}
+              colorHex={colorHex}
+              receiptColor={receiptColor}
+            >
                   {addonsSubmitted ? (
                     selectedModels.length >= 2 ? (
                       <button
@@ -1538,7 +1553,11 @@ The convergence of autonomous vehicles, renewable energy, and smart city infrast
                           background: 'rgba(255,0,212,0.08)',
                           boxShadow: '0 0 20px rgba(255,0,212,0.3)'
                         }}
-                        onClick={() => setShowStatus(true)}
+                        onClick={() => {
+                          setShowStatus(true);
+                          announce('Starting Ultra Synthesis analysis', 'assertive');
+                        }}
+                        aria-label="Start Ultra Synthesis analysis with selected options"
                       >
                         🚀 Initialize UltrAI
                 </button>
@@ -1569,20 +1588,7 @@ The convergence of autonomous vehicles, renewable energy, and smart city infrast
                       Complete all steps to proceed
               </div>
             )}
-                </>
-              ) : (
-                <>
-                  <div className="text-center mb-2">
-                    <div className="text-[14px] font-extrabold tracking-[0.35em] text-white">ULTRAI</div>
-                    <div className="text-[10px] text-white/70">— PROCESSING —</div>
-              </div>
-                  <div className="text-center mt-8">
-                    <div className="text-[12px] text-white/60">Ultra Synthesis™ in progress</div>
-                    <div className="text-[10px] text-white/40 mt-2">Check the status in the main panel</div>
-                  </div>
-                </>
-            )}
-            </Card>
+            </CollapsibleReceipt>
           </div>
         </div>
           

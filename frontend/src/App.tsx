@@ -47,6 +47,22 @@ function Profile() {
 
 function App() {
   const { fetchCurrentUser } = useAuthStore();
+  
+  // Add skip navigation link for accessibility
+  useEffect(() => {
+    const skipLink = document.createElement('a');
+    skipLink.href = '#main-content';
+    skipLink.className = 'skip-link';
+    skipLink.textContent = 'Skip to main content';
+    skipLink.setAttribute('aria-label', 'Skip to main content');
+    document.body.insertBefore(skipLink, document.body.firstChild);
+    
+    return () => {
+      if (skipLink.parentNode) {
+        skipLink.parentNode.removeChild(skipLink);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     // Try to fetch current user on app load if token exists

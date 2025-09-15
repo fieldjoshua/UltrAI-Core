@@ -2,6 +2,12 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Import mobile responsive styles */
+@import './mobile.css';
+
+/* Import WCAG compliant color system */
+@import './wcag-colors.css';
+
 /* Step 0 animations */
 @keyframes grid-move {
   0% { transform: translate(0, 0); }
@@ -382,11 +388,16 @@
 
 /* Glassmorphism base classes */
 .glass-panel {
-  background: rgba(0, 0, 0, 0.1);
+  background: rgba(0, 0, 0, 0.6); /* Increased opacity for better contrast */
   backdrop-filter: blur(20px) saturate(180%);
   -webkit-backdrop-filter: blur(20px) saturate(180%);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2); /* More visible border */
   position: relative;
+}
+
+/* Text inside glass panels needs shadow for readability */
+.glass-panel * {
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
 }
 
 .glass-panel::before {
@@ -441,8 +452,8 @@ input[type="radio"] {
   -webkit-appearance: none;
   width: 16px;
   height: 16px;
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  background: rgba(255, 255, 255, 0.05);
+  border: 2px solid var(--wcag-text-secondary, rgba(255, 255, 255, 0.6));
+  background: var(--wcag-bg-secondary, rgba(255, 255, 255, 0.1));
   cursor: pointer;
   transition: all 0.2s ease;
   position: relative;
@@ -460,9 +471,16 @@ input[type="radio"] {
 
 input[type="checkbox"]:hover,
 input[type="radio"]:hover {
-  border-color: rgba(255, 255, 255, 0.5);
-  background: rgba(255, 255, 255, 0.1);
+  border-color: var(--wcag-text-primary, rgba(255, 255, 255, 0.8));
+  background: var(--wcag-hover-bg, rgba(255, 255, 255, 0.15));
   transform: scale(1.1);
+}
+
+/* Focus styles for better visibility */
+input[type="checkbox"]:focus-visible,
+input[type="radio"]:focus-visible {
+  outline: 3px solid var(--wcag-focus-outline, #4db8ff);
+  outline-offset: 2px;
 }
 
 input[type="checkbox"]:checked,
