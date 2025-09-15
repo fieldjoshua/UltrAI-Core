@@ -1464,7 +1464,7 @@ class OrchestrationService:
             }
 
         initial_responses = data["responses"]
-        original_prompt = data.get("prompt", "Unknown query")
+        # original_prompt was previously captured for logs, but it is unused here; removing assignment
         successful_models = data.get("successful_models", [])
 
         logger.info(f"Initial responses from: {list(initial_responses.keys())}")
@@ -1700,11 +1700,11 @@ After critically reviewing these peer responses, please provide your revised ans
             if "original_responses" in data and isinstance(
                 data["original_responses"], dict
             ):
-                original_prompt = data["original_responses"].get(
+                _ = data["original_responses"].get(
                     "prompt", "Unknown prompt"
                 )
             else:
-                original_prompt = "Unknown prompt"
+                _ = "Unknown prompt"
             logger.info(
                 f"✅ Meta-analysis using {len(responses_to_analyze)} peer-revised responses"
             )
@@ -1716,7 +1716,7 @@ After critically reviewing these peer responses, please provide your revised ans
             inner = data["input"] if isinstance(data["input"], dict) else {}
             if "responses" in inner:
                 responses_to_analyze = inner["responses"]
-                original_prompt = inner.get("prompt", "Unknown prompt")
+                # remove unused original_prompt
                 logger.info(
                     "⚠️ Peer review skipped. Using initial responses for meta-analysis."
                 )
@@ -1731,7 +1731,6 @@ After critically reviewing these peer responses, please provide your revised ans
         elif isinstance(data, dict) and "responses" in data:
             # Fallback: if peer review failed, use initial responses
             responses_to_analyze = data["responses"]
-            original_prompt = data.get("prompt", "Unknown prompt")
             logger.warning(
                 "⚠️ Meta-analysis falling back to initial responses (peer review may have failed)"
             )
@@ -1745,14 +1744,14 @@ After critically reviewing these peer responses, please provide your revised ans
                 "⚠️ Emergency fallback: synthesizing directly from initial responses"
             )
             initial_responses = data["input"]["responses"]
-            analysis_text = "\\n\\n".join(
+            analysis_text = "\n\n".join(
                 [
                     f"**{model}:** {response}"
                     for model, response in initial_responses.items()
                 ]
             )
-            _meta_analysis = f"Multiple AI responses:\\n{analysis_text}"
-            _source_models = list(initial_responses.keys())
+            # Use analysis_text downstream if needed; avoid unused locals
+            _ = analysis_text
         elif (
             "input" in data
             and isinstance(data["input"], dict)
@@ -1774,7 +1773,7 @@ After critically reviewing these peer responses, please provide your revised ans
             return {"stage": "meta_analysis", "error": "Invalid input data structure"}
 
         # Create meta-analysis prompt using the revised/available responses
-        analysis_text = "\\n\\n".join(
+        analysis_text = "\n\n".join(
             [
                 f"**{model}:** {response}"
                 for model, response in responses_to_analyze.items()
@@ -1891,11 +1890,11 @@ Prepare this analysis to enable true intelligence multiplication in the subseque
             _source_models = data.get("successful_models", list(revised_responses.keys()))
 
             # Create analysis text from peer-reviewed responses
-            analysis_text = "\\n\\n".join([
+            analysis_text = "\n\n".join([
                 f"**{model} (Peer-Reviewed):** {response}"
                 for model, response in revised_responses.items()
             ])
-            _meta_analysis = f"Peer-Reviewed Multi-Model Responses:\\n{analysis_text}"
+            _meta_analysis = f"Peer-Reviewed Multi-Model Responses:\n{analysis_text}"
             logger.info("✅ Using peer-reviewed responses for Ultra Synthesis (3-stage pipeline)")
 
         elif "responses" in data and data["responses"]:
@@ -1904,11 +1903,11 @@ Prepare this analysis to enable true intelligence multiplication in the subseque
             initial_responses = data["responses"]
             _source_models = data.get("successful_models", list(initial_responses.keys()))
 
-            analysis_text = "\\n\\n".join([
+            analysis_text = "\n\n".join([
                 f"**{model}:** {response}"
                 for model, response in initial_responses.items()
             ])
-            _meta_analysis = f"Multi-Model Initial Responses:\\n{analysis_text}"
+            _meta_analysis = f"Multi-Model Initial Responses:\n{analysis_text}"
 
         # Additional fallback: if peer-review wrapper object provided input with prior stage payload
         elif isinstance(data.get("input"), dict) and (

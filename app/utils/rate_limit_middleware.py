@@ -7,14 +7,13 @@ based on user subscription tier, path, and method.
 
 import time
 import uuid
-from typing import Any, Callable, Dict, List, Optional
+from typing import Callable, Dict, List, Optional
 
 from fastapi import FastAPI, Request, Response, status
 from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.types import ASGIApp
 
-from app.database.models.user import User
 from app.models.base_models import ErrorResponse
 from app.services.auth_service import auth_service
 from app.utils.logging import get_logger
@@ -56,7 +55,9 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         ]
         self.quota_paths = quota_paths or {}
         logger.info(
-            f"[Deprecated utils middleware] Initialized with {len(self.exclude_paths)} excluded paths and {len(self.quota_paths)} path-specific quotas."
+            "[Deprecated utils middleware] Initialized with %d excluded paths and %d path-specific quotas.",
+            len(self.exclude_paths),
+            len(self.quota_paths),
         )
 
     async def dispatch(self, request: Request, call_next: Callable) -> Response:

@@ -7,27 +7,24 @@ failure scenarios in the Ultra application.
 import asyncio
 import time
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import datetime
 from enum import Enum
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from typing import Any, Callable, Dict, List, Optional
 
 from app.services.cache_service import cache_service
 import os
 from app.services.health_service import HealthService
-from app.utils.errors import RecoveryError, SystemError as AppSystemError
+from app.utils.errors import RecoveryError
 from app.utils.logging import get_logger
 from app.utils.recovery_strategies import (
     AdaptiveStrategy,
     ExponentialBackoffStrategy,
     LinearBackoffStrategy,
-    RecoveryStrategy,
 )
-from dataclasses import dataclass
 
 
-\1
-
-\1WorkflowStep:
+@dataclass
+class WorkflowStep:
     name: str
     action: Callable[["RecoveryContext"], Any]
     retry_on_failure: bool = False
@@ -36,18 +33,16 @@ from dataclasses import dataclass
     on_failure: Optional[Callable[["RecoveryContext", Exception], Any]] = None
 
 
-
-\1
-
-\1RecoveryWorkflow:
+@dataclass
+class RecoveryWorkflow:
     name: str
     steps: List[WorkflowStep]
+
 
 logger = get_logger("recovery_service", "logs/recovery_service.log")
 
 
-
-\1RecoveryType(Enum):
+class RecoveryType(Enum):
     """Types of recovery procedures."""
 
     AUTOMATIC = "automatic"
@@ -56,8 +51,7 @@ logger = get_logger("recovery_service", "logs/recovery_service.log")
     EMERGENCY = "emergency"
 
 
-
-\1RecoveryState(Enum):
+class RecoveryState(Enum):
     """States of recovery process."""
 
     IDLE = "idle"
@@ -67,10 +61,8 @@ logger = get_logger("recovery_service", "logs/recovery_service.log")
     CANCELLED = "cancelled"
 
 
-
-\1
-
-\1RecoveryContext:
+@dataclass
+class RecoveryContext:
     """Context for recovery operations."""
 
     recovery_id: str
@@ -82,10 +74,8 @@ logger = get_logger("recovery_service", "logs/recovery_service.log")
     metadata: Dict[str, Any] = field(default_factory=dict)
 
 
-
-\1
-
-\1RecoveryResult:
+@dataclass
+class RecoveryResult:
     """Result of recovery operation."""
 
     success: bool
@@ -96,8 +86,7 @@ logger = get_logger("recovery_service", "logs/recovery_service.log")
     metadata: Dict[str, Any] = field(default_factory=dict)
 
 
-
-\1RecoveryService:
+class RecoveryService:
     """Service for managing recovery procedures."""
 
     def __init__(self, config: Optional[Dict[str, Any]] = None):
