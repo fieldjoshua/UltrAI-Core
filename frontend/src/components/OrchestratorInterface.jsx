@@ -5,7 +5,7 @@ import {
   processWithFeatherOrchestration,
   processWithOrchestrator,
 } from '../api/orchestrator';
-import { AnalysisPatternSelector } from './AnalysisPatternSelector';
+const AnalysisPatternSelector = React.lazy(() => import('./AnalysisPatternSelector').then(m => ({ default: m.AnalysisPatternSelector })));
 import { AnalysisProgress } from './atoms/AnalysisProgress';
 const SSEPanel = React.lazy(() => import('./panels/SSEPanel'));
 

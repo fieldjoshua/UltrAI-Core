@@ -25,6 +25,22 @@ export const AnalysisProgress: React.FC<AnalysisProgressProps> = ({
   const [progress, setProgress] = useState(0);
   const [elapsedTime, setElapsedTime] = useState(0);
   const [startTime] = useState(Date.now());
+  const [reducedMotion, setReducedMotion] = useState(false);
+
+  // Detect prefers-reduced-motion
+  useEffect(() => {
+    try {
+      const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
+      const update = () => setReducedMotion(!!mq.matches);
+      update();
+      mq.addEventListener?.('change', update);
+      return () => {
+        mq.removeEventListener?.('change', update);
+      };
+    } catch (_) {
+      // No-op on SSR
+    }
+  }, []);
 
   // Calculate progress percentage
   useEffect(() => {
@@ -74,7 +90,7 @@ export const AnalysisProgress: React.FC<AnalysisProgressProps> = ({
       case 'analyzing':
         return (
           <svg
-            className="animate-spin h-5 w-5 text-blue-500"
+            className={`${reducedMotion ? 'animate-none' : 'animate-spin'} h-5 w-5 text-blue-500`}
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
             viewBox="0 0 24 24"

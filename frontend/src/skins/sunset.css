@@ -6,7 +6,11 @@ body {
 
 /* Apply background image for sunset skin */
 body.skin-sunset {
-  background-image: url('/bg-sunset.jpeg');
+  background-image: image-set(
+    url('/bg-sunset.avif') type('image/avif'),
+    url('/bg-sunset.webp') type('image/webp'),
+    url('/bg-sunset.jpg') type('image/jpeg')
+  );
   background-size: cover;
   background-position: center;
   background-attachment: fixed;
