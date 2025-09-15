@@ -625,19 +625,6 @@ The convergence of autonomous vehicles, renewable energy, and smart city infrast
                     textShadow: 'var(--shadow-text-glow, 0 0 10px currentColor)'
                   }}>comprehensive insights</span>.
                 </p>
-<<<<<<< HEAD
-                <div className="flex justify-center gap-6 text-sm mt-6">
-                  <span className="text-white/80" style={{
-                    textShadow: '0 0 5px rgba(255,255,255,0.3)'
-                  }}>Pay-as-you-go</span>
-                  <span className="text-white/50">•</span>
-                  <span className="text-white/80" style={{
-                    textShadow: '0 0 5px rgba(255,255,255,0.3)'
-                  }}>No commitments</span>
-                  <span className="text-white/50">•</span>
-                  <span className="text-white/80" style={{
-                    textShadow: '0 0 5px rgba(255,255,255,0.3)'
-=======
                 <div className="flex justify-center gap-6 text-sm mt-6 text-white/90">
                   <span className="text-white" style={{
                     textShadow: 'var(--shadow-text-subtle, 0 0 5px rgba(255,255,255,0.3))'
@@ -649,7 +636,6 @@ The convergence of autonomous vehicles, renewable energy, and smart city infrast
                   <span className="text-white/70">•</span>
                   <span className="text-white" style={{
                     textShadow: 'var(--shadow-text-subtle, 0 0 5px rgba(255,255,255,0.3))'
->>>>>>> origin/main
                   }}>Enterprise-grade</span>
                 </div>
               </div>

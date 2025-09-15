@@ -4,7 +4,13 @@ import pytest
 from app.services.llm_adapter_factory import LLMAdapterFactory
 
 
-pytestmark = pytest.mark.live
+pytestmark = [
+    pytest.mark.live,
+    pytest.mark.skipif(
+        os.getenv("ULTRA_RUN_LIVE") != "1",
+        reason="Live provider tests disabled by default; set ULTRA_RUN_LIVE=1 to enable",
+    ),
+]
 
 
 def _has(key: str) -> bool:

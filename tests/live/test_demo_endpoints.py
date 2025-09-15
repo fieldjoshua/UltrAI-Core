@@ -3,6 +3,13 @@ import pytest
 import requests
 
 
+# Only run live demo tests when explicitly enabled
+pytestmark = pytest.mark.skipif(
+    os.getenv("ULTRA_RUN_LIVE") != "1",
+    reason="Live demo tests disabled by default; set ULTRA_RUN_LIVE=1 to enable",
+)
+
+
 def get_base_url() -> str:
     url = os.environ.get("DEMO_BASE_URL")
     if url:

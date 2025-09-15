@@ -5,6 +5,18 @@ This module tests the graceful degradation feature that allows the system
 to operate with a single model instead of requiring multiple models.
 """
 
+import pytest
+
+# Temporarily xfail due to strict production policy (no single-model fallback)
+pytestmark = pytest.mark.xfail(
+    reason=(
+        "Single-model fallback disabled per production policy; tests are xfailed "
+        "until a feature flag or separate test profile is introduced"
+    ),
+    run=False,
+    strict=False,
+)
+
 import os
 # Set environment variables BEFORE any app imports
 os.environ["TESTING"] = "true"

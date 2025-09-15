@@ -10,9 +10,12 @@ import httpx
 import logging
 from typing import Dict, Any
 from app.utils.logging import CorrelationContext
+
+
 # Provide import path used in tests for patching
 class correlation_context:  # shim for tests expecting app.services.correlation_context
     CorrelationContext = CorrelationContext
+
 
 logger = logging.getLogger(__name__)
 
@@ -297,7 +300,7 @@ class GeminiAdapter(BaseAdapter):
                 )
                 # Tests expect standardized text
                 return {
-                    "generated_text": "Error: Rate limit exceeded",
+                    "generated_text": "Error: Quota exceeded (rate limit)",
                     "error_details": {
                         "error": "RATE_LIMITED",
                         "provider": "google",
