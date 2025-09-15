@@ -2,6 +2,7 @@ import React, { useRef } from 'react';
 import { useKeyboardNavigation } from '../hooks/useKeyboardNavigation';
 import { screenReader } from '../utils/accessibility';
 import { ARIA_ROLES } from '../utils/accessibility';
+import { tokens } from '../design-tokens/tokens';
 
 interface TextareaProps {
   id: string;
@@ -85,7 +86,8 @@ export const Textarea: React.FC<TextareaProps> = ({
           rows={rows}
           maxLength={maxLength}
           onKeyDown={handleKeyDown}
-          className={`w-full px-3 py-2 bg-white border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+          style={{ ['--ta-radius' as any]: tokens.borderRadius.base, ['--ta-pad-y' as any]: tokens.spacing.sm, ['--ta-pad-x' as any]: tokens.spacing.md } as React.CSSProperties}
+          className={`w-full bg-white border rounded-[var(--ta-radius)] shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 py-[var(--ta-pad-y)] px-[var(--ta-pad-x)] ${
             error ? 'border-red-300' : 'border-gray-300'
           } ${disabled ? 'cursor-not-allowed opacity-50' : 'resize-none'}`}
         />

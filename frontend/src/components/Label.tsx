@@ -1,6 +1,7 @@
 import React from 'react';
 import { screenReader } from '../utils/accessibility';
 import { ARIA_ROLES } from '../utils/accessibility';
+import { tokens } from '../design-tokens/tokens';
 
 interface LabelProps {
   htmlFor: string;
@@ -22,6 +23,7 @@ export const Label: React.FC<LabelProps> = ({
   return (
     <label
       htmlFor={htmlFor}
+      style={{ ['--label-spacing' as any]: tokens.spacing.xs } as React.CSSProperties}
       className={`block text-sm font-medium ${
         disabled ? 'text-gray-400' : 'text-gray-700'
       }`}
@@ -29,12 +31,12 @@ export const Label: React.FC<LabelProps> = ({
     >
       {children}
       {required && (
-        <span className="ml-1 text-red-500" aria-hidden="true">
+        <span className="text-red-500" style={{ marginLeft: 'var(--label-spacing)' }} aria-hidden="true">
           *
         </span>
       )}
       {error && (
-        <span className="ml-2 text-red-600" role="alert">
+        <span className="text-red-600" style={{ marginLeft: tokens.spacing.sm }} role="alert">
           {error}
         </span>
       )}
