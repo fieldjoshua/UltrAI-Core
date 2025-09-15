@@ -23,6 +23,8 @@ const FAQ = lazy(() => import("./pages/FAQ"));
 const DocumentsPage = lazy(() => import("./pages/DocumentsPage"));
 const OrchestratorPage = lazy(() => import("./pages/OrchestratorPage"));
 const ModelRunnerDemo = lazy(() => import("./pages/ModelRunnerDemo"));
+const ModelMonitor = lazy(() => import("./pages/ModelMonitor"));
+const Admin = lazy(() => import("./pages/Admin"));
 
 // Loading component
 const PageLoader = () => (
@@ -71,6 +73,8 @@ function App() {
             <Route path="/outputs" element={<Outputs />} />
             <Route path="/faq" element={<FAQ />} />
             <Route path="/profile" element={<Profile />} />
+            <Route path="/monitor" element={<ModelMonitor />} />
+            <Route path="/admin" element={<Admin />} />
 
             {/* Protected Routes */}
             <Route 

@@ -1,0 +1,1 @@
+:root{--bg: #f6f7fb;--fg: #0b1020}body{background-color:var(--bg);color:var(--fg)}body.skin-afternoon{background-image:url(/bg-afternoon.jpg);background-size:cover;background-position:center;background-attachment:fixed}

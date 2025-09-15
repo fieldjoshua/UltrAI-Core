@@ -12,7 +12,7 @@
       "comprehensive",
       "code"
     ],
-    "availability_score": 1.0
+    "availability_score": 0.7
   },
   "gpt-4-turbo": {
     "model_name": "gpt-4-turbo",
@@ -54,23 +54,15 @@
       "mathematical",
       "strategic"
     ],
-    "availability_score": 1.0
+    "availability_score": 0.7
   },
   "claude-3-5-sonnet-20241022": {
     "model_name": "claude-3-5-sonnet-20241022",
-<<<<<<< HEAD
-    "successful_syntheses": 28,
+    "successful_syntheses": 0,
     "failed_syntheses": 0,
-    "average_quality_score": 8.5,
-    "average_response_time": 5.0,
-    "last_used": "2025-09-12T23:18:36.114570",
-=======
-    "successful_syntheses": 235,
-    "failed_syntheses": 1,
-    "average_quality_score": 8.071421499999998,
-    "average_response_time": 6.2605249999999995,
-    "last_used": "2025-09-12T22:40:18.233959",
->>>>>>> origin/main
+    "average_quality_score": 0.0,
+    "average_response_time": 0.0,
+    "last_used": null,
     "expertise_areas": [
       "nuanced",
       "ethical",
@@ -120,7 +112,7 @@
       "multimodal",
       "research"
     ],
-    "availability_score": 1.0
+    "availability_score": 0.7
   },
   "gemini-1.5-flash": {
     "model_name": "gemini-1.5-flash",
@@ -134,7 +126,7 @@
       "efficient",
       "factual"
     ],
-    "availability_score": 0.7
+    "availability_score": 1.0
   },
   "gemini-2.0-flash-exp": {
     "model_name": "gemini-2.0-flash-exp",
@@ -148,6 +140,36 @@
       "fast",
       "innovative"
     ],
+    "availability_score": 1.0
+  },
+  "o1-mini": {
+    "model_name": "o1-mini",
+    "successful_syntheses": 0,
+    "failed_syntheses": 0,
+    "average_quality_score": 0.0,
+    "average_response_time": 0.0,
+    "last_used": null,
+    "expertise_areas": [],
+    "availability_score": 0.7
+  },
+  "gpt-4o-mini": {
+    "model_name": "gpt-4o-mini",
+    "successful_syntheses": 0,
+    "failed_syntheses": 0,
+    "average_quality_score": 0.0,
+    "average_response_time": 0.0,
+    "last_used": null,
+    "expertise_areas": [],
+    "availability_score": 0.7
+  },
+  "claude-3-opus-20240229": {
+    "model_name": "claude-3-opus-20240229",
+    "successful_syntheses": 0,
+    "failed_syntheses": 0,
+    "average_quality_score": 0.0,
+    "average_response_time": 0.0,
+    "last_used": null,
+    "expertise_areas": [],
     "availability_score": 1.0
   }
 }

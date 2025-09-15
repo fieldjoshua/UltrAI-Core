@@ -29,7 +29,6 @@ try:
     from opentelemetry.instrumentation.httpx import HTTPXClientInstrumentor
     from opentelemetry.instrumentation.sqlalchemy import SQLAlchemyInstrumentor
     from opentelemetry.trace import Status, StatusCode
-    from opentelemetry.metrics import Counter, Histogram, UpDownCounter
     
     TELEMETRY_AVAILABLE = True
 except ImportError:

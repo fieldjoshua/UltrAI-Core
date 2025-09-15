@@ -48,7 +48,7 @@ def create_router() -> APIRouter:
     ):
         """
         Get list of available LLM models and their status.
-        
+
         Returns information about all configured models including
         their availability, token limits, and basic cost information.
         Only shows models that have API keys configured.
@@ -58,16 +58,16 @@ def create_router() -> APIRouter:
         anthropic_configured = bool(os.getenv("ANTHROPIC_API_KEY"))
         google_configured = bool(os.getenv("GOOGLE_API_KEY"))
         huggingface_configured = bool(os.getenv("HUGGINGFACE_API_KEY"))
-        
+
         available_models = []
-        
+
         # OpenAI Models (only add if API key is configured)
         if openai_configured:
             openai_models = [
                 # GPT-4 Models
                 ModelInfo(
                     name="gpt-4o",
-                    provider="openai", 
+                    provider="openai",
                     status="available",
                     max_tokens=128000,
                     cost_per_1k_tokens=0.005
@@ -75,7 +75,7 @@ def create_router() -> APIRouter:
                 ModelInfo(
                     name="gpt-4o-mini",
                     provider="openai",
-                    status="available", 
+                    status="available",
                     max_tokens=128000,
                     cost_per_1k_tokens=0.00015
                 ),
@@ -97,14 +97,14 @@ def create_router() -> APIRouter:
                 ModelInfo(
                     name="o1-preview",
                     provider="openai",
-                    status="available", 
+                    status="available",
                     max_tokens=128000,
                     cost_per_1k_tokens=0.015
                 ),
                 ModelInfo(
                     name="o1-mini",
                     provider="openai",
-                    status="available", 
+                    status="available",
                     max_tokens=65536,
                     cost_per_1k_tokens=0.003
                 ),
@@ -125,7 +125,7 @@ def create_router() -> APIRouter:
                 ),
             ]
             available_models.extend(openai_models)
-            
+
         # Anthropic Models (only add if API key is configured)
         if anthropic_configured:
             anthropic_models = [
@@ -176,7 +176,7 @@ def create_router() -> APIRouter:
                 ),
             ]
             available_models.extend(anthropic_models)
-            
+
         # Google Models (only add if API key is configured)
         if google_configured:
             google_models = [
@@ -227,7 +227,7 @@ def create_router() -> APIRouter:
                 ),
             ]
             available_models.extend(google_models)
-            
+
         # HuggingFace Models (only add if API key is configured)
         if huggingface_configured:
             huggingface_models = [
@@ -275,13 +275,13 @@ def create_router() -> APIRouter:
                 ),
             ]
             available_models.extend(huggingface_models)
-        
+
         try:
             # Check if we have the model registry for dynamic model info
             if hasattr(http_request.app.state, 'model_registry'):
                 model_registry = http_request.app.state.model_registry
                 registered_models = model_registry.list_models()
-                
+
                 # Update status based on registry info
                 for model_info in available_models:
                     for reg_model in registered_models:
@@ -305,14 +305,38 @@ def create_router() -> APIRouter:
                         name for name, availability in results.items() if availability.status == AvailabilityStatus.AVAILABLE
                     }
                     # Preserve order from available_models while filtering
-                    available_models = [m for m in available_models if m.name in healthy_names]
-                    logger.info(f"Filtered to {len(available_models)} healthy models (requested healthy_only)")
+                    filtered = [m for m in available_models if m.name in healthy_names]
+
+                    # Soft-fail: if no healthy models were found, fall back to orchestrator-reported available models
+                    if not filtered:
+                        fallback_names = []
+                        try:
+                            if hasattr(http_request.app.state, "orchestration_service"):
+                                svc = http_request.app.state.orchestration_service
+                                if hasattr(svc, "_default_models_from_env"):
+                                    fallback_names = await svc._default_models_from_env()
+                        except Exception as fe:
+                            logger.warning(f"healthy_only fallback via orchestrator status failed: {str(fe)}")
+
+                        if fallback_names:
+                            filtered = [m for m in available_models if m.name in set(fallback_names)]
+                            logger.info(
+                                "healthy_only: using orchestrator status fallback with %d models",
+                                len(filtered),
+                            )
+
+                    # If still empty after fallback, do not drop to zero — return unfiltered list
+                    available_models = filtered if filtered else available_models
+                    logger.info(
+                        "Filtered to %d models for healthy_only (soft-fail enabled)",
+                        len(available_models),
+                    )
                 except Exception as e:
                     logger.error(f"Healthy-only filtering failed: {str(e)}")
-            
+
             # Count healthy models
             healthy_count = sum(1 for m in available_models if m.status == "available")
-            
+
             # Log summary
             logger.info(
                 "Returning %d available models (%d healthy), healthy_only=%s",
@@ -322,18 +346,18 @@ def create_router() -> APIRouter:
             )
             if not available_models:
                 logger.warning("No models available - check API key configuration")
-            
+
             return AvailableModelsResponse(
                 models=available_models,
                 total_count=len(available_models),
                 healthy_count=healthy_count,
             )
-            
+
         except Exception as e:
             logger.error(f"Error fetching available models: {str(e)}")
             # Return whatever we have even if registry check fails
             healthy_count = sum(1 for m in available_models if m.status == "available")
-            
+
             return AvailableModelsResponse(
                 models=available_models,
                 total_count=len(available_models),
@@ -397,14 +421,14 @@ def create_router() -> APIRouter:
                 ],
             },
         }
-        
+
         configured_providers = [
             name for name, info in providers.items() if info["configured"]
         ]
         total_available_models = sum(
             info["model_count"] for name, info in providers.items() if info["configured"]
         )
-        
+
         return {
             "providers": providers,
             "configured_providers": configured_providers,

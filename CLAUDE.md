@@ -129,6 +129,11 @@ Key endpoints:
 - No refactors/optimizations/features unless explicitly requested
 - See `docs/OVERSIGHT_README.md` for full policy
 
+#### Real-time Monitoring & Check-ins
+- Subscribe to SSE when applicable: `GET /api/orchestrator/events?correlation_id=…`
+- Events to expect: analysis_start, model_selected, initial_start, pipeline_complete, model_completed, analysis_complete, service_unavailable
+- Post oversight check-ins as needed: `POST /api/oversight/checkin` with `{task_id, status, evidence?, notes?}`
+
 ### Multi-AI Coordination (if using worktrees)
 1. Check `STATUS.md` for current AI assignment
 2. Update with your identifier (e.g., Claude-1, Cursor-2)

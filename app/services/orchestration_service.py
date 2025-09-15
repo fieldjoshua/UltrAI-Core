@@ -6,7 +6,7 @@ This service coordinates multi-model and multi-stage workflows according to the 
 
 from typing import Any, Dict, List, Optional, Tuple
 from dataclasses import dataclass
-from datetime import datetime, timedelta
+from datetime import datetime
 import inspect
 import asyncio
 import os
@@ -31,18 +31,18 @@ from app.services.llm_adapters import (
     AnthropicAdapter,
     GeminiAdapter,
     HuggingFaceAdapter,
-    CLIENT,
 )
 from app.services.resilient_llm_adapter import create_resilient_adapter
 from app.services.telemetry_service import telemetry
 from app.services.telemetry_llm_wrapper import wrap_llm_adapter_with_telemetry
-from app.services.synthesis_prompts import SynthesisPromptManager, QueryType
+from app.services.synthesis_prompts import SynthesisPromptManager
 from app.services.model_selection import SmartModelSelector
 from app.services.synthesis_output import StructuredSynthesisOutput
 from app.services.cache_service import get_cache_service, cache_key
 from app.services.orchestration_retry_handler import OrchestrationRetryHandler
 from app.services.model_health_cache import model_health_cache
 from app.services.provider_health_manager import provider_health_manager
+from app.services.provider_fallback_manager import provider_fallback_manager
 from app.config import Config
 from app.utils.logging import get_logger
 from app.utils.sentry_integration import sentry_context
@@ -55,7 +55,6 @@ STUB_RESPONSE = (
     "meaningful words in the synthesis output."
 )
 
-
 @dataclass
 class PipelineStage:
     """Configuration for a pipeline stage."""
@@ -64,7 +63,6 @@ class PipelineStage:
     description: str
     required_models: List[str]
     timeout_seconds: int = 30
-
 
 @dataclass
 class PipelineResult:
@@ -76,7 +74,6 @@ class PipelineResult:
     performance_metrics: Optional[Dict[str, Any]] = None
     error: Optional[str] = None
     token_usage: Optional[Dict[str, int]] = None
-
 
 class OrchestrationService:
     """
@@ -110,7 +107,7 @@ class OrchestrationService:
             self.transaction_service = transaction_service or TransactionService()
         else:
             self.transaction_service = None
-        
+
         # Initialize new Ultra Synthesis™ optimization components with error handling
         try:
             self.synthesis_prompt_manager = SynthesisPromptManager()
@@ -152,17 +149,17 @@ class OrchestrationService:
     # ------------------------------------------------------------------
     # Security: Input validation for model names
     # ------------------------------------------------------------------
-    
+
     def _validate_model_names(self, models: List[str]) -> List[str]:
         """
         Validate and sanitize model names to prevent injection attacks.
-        
+
         Args:
             models: List of model names to validate
-            
+
         Returns:
             List of validated model names
-            
+
         Raises:
             ValueError: If invalid model names are detected
         """
@@ -171,7 +168,7 @@ class OrchestrationService:
             r"^gpt-[34](\.[0-9])?(-turbo)?(-instruct)?$",
             r"^gpt-4o(-mini)?$",
             r"^o1(-preview|-mini)?$",
-            # Anthropic models  
+            # Anthropic models
             r"^claude-3(-5)?-(sonnet|haiku|opus)(-\d{8})?$",
             # Google models
             r"^gemini-(1\.5-)?(pro|flash)(-exp)?$",
@@ -179,43 +176,43 @@ class OrchestrationService:
             # HuggingFace models (org/model format)
             r"^[a-zA-Z0-9_-]+/[a-zA-Z0-9_.-]+$"
         ]
-        
+
         import re
         validated_models = []
-        
+
         for model in models:
             # Basic safety checks
             if not isinstance(model, str):
                 logger.warning(f"⚠️ Invalid model type: {type(model)}, skipping")
                 continue
-                
+
             if len(model) > 100:  # Reasonable length limit
                 logger.warning(f"⚠️ Model name too long: {model[:50]}..., skipping")
                 continue
-                
+
             # Check against allowed patterns
             is_valid = False
             for pattern in ALLOWED_MODEL_PATTERNS:
                 if re.match(pattern, model):
                     is_valid = True
                     break
-                    
+
             if is_valid:
                 validated_models.append(model)
                 logger.debug(f"✅ Validated model: {model}")
             else:
                 logger.warning(f"⚠️ Invalid model name pattern: {model}, skipping")
-                
+
         return validated_models
-    
+
     def _create_adapter(self, model: str, prompt_type: str = "generation"):
         """
         Create appropriate adapter for model with proper API key and model mapping.
-        
+
         Args:
             model: Model name to create adapter for
             prompt_type: Type of prompt (generation, peer_review)
-            
+
         Returns:
             Tuple of (adapter, mapped_model) or (None, None) if creation fails
         """
@@ -230,7 +227,7 @@ class OrchestrationService:
                 resilient_adapter = create_resilient_adapter(adapter)
                 telemetry_adapter = wrap_llm_adapter_with_telemetry(resilient_adapter, "openai", mapped_model)
                 return telemetry_adapter, mapped_model
-                
+
             elif model.startswith("claude"):
                 api_key = os.getenv("ANTHROPIC_API_KEY")
                 if not api_key:
@@ -248,7 +245,7 @@ class OrchestrationService:
                 resilient_adapter = create_resilient_adapter(adapter)
                 telemetry_adapter = wrap_llm_adapter_with_telemetry(resilient_adapter, "anthropic", mapped_model)
                 return telemetry_adapter, mapped_model
-                
+
             elif model.startswith("gemini"):
                 api_key = os.getenv("GOOGLE_API_KEY")
                 if not api_key:
@@ -268,7 +265,7 @@ class OrchestrationService:
                 resilient_adapter = create_resilient_adapter(adapter)
                 telemetry_adapter = wrap_llm_adapter_with_telemetry(resilient_adapter, "google", mapped_model)
                 return telemetry_adapter, mapped_model
-                
+
             elif "/" in model:  # HuggingFace model ID format
                 api_key = os.getenv("HUGGINGFACE_API_KEY")
                 if not api_key:
@@ -278,11 +275,11 @@ class OrchestrationService:
                 resilient_adapter = create_resilient_adapter(adapter)
                 telemetry_adapter = wrap_llm_adapter_with_telemetry(resilient_adapter, "huggingface", model)
                 return telemetry_adapter, model
-                
+
             else:
                 logger.warning(f"Unknown model provider for: {model}")
                 return None, None
-                
+
         except Exception as e:
             logger.error(f"Failed to create adapter for {model}: {e}")
             return None, None
@@ -316,8 +313,8 @@ class OrchestrationService:
         ]
 
         healthy: List[str] = []
-        
-        logger.info(f"🔑 Checking API keys availability...")
+
+        logger.info("🔑 Checking API keys availability...")
 
         for model, key in candidates:
             if not key:
@@ -351,9 +348,9 @@ class OrchestrationService:
             has_google = bool(os.getenv("GOOGLE_API_KEY"))
             has_anthropic = bool(os.getenv("ANTHROPIC_API_KEY"))
             has_openai = bool(os.getenv("OPENAI_API_KEY"))
-            
+
             logger.info(f"  📊 API Key Status: Google={has_google}, Anthropic={has_anthropic}, OpenAI={has_openai}")
-            
+
             if has_google or has_anthropic:
                 logger.warning("🔧 DEBUG: Forcing known working models based on available API keys")
                 healthy = []
@@ -382,7 +379,7 @@ class OrchestrationService:
                 healthy.extend(["gpt-4o", "gpt-3.5-turbo"])
             else:
                 healthy.append("gpt-4o")
-        
+
         logger.info(f"✨ Healthy models available: {healthy}")
 
         # Only ensure multiple models if required by configuration
@@ -400,7 +397,7 @@ class OrchestrationService:
                     healthy.append(backup)
                     if len(healthy) >= Config.MINIMUM_MODELS_REQUIRED:
                         break
-        
+
         # Log if operating in single-model mode (disabled for production multi-model requirement)
         if (
             len(healthy) == 1
@@ -408,7 +405,7 @@ class OrchestrationService:
             and not (Config.ENVIRONMENT == "production" and Config.MINIMUM_MODELS_REQUIRED > 1)
         ):
             logger.warning(f"🔧 Operating in single-model mode with: {healthy[0]}")
-        
+
         return healthy
 
     async def run_pipeline(
@@ -432,7 +429,7 @@ class OrchestrationService:
         # Check cache if caching is enabled
         cache_service = get_cache_service()
         cache_enabled = options.get("enable_cache", True) if options else True
-        
+
         if cache_enabled:
             # Generate cache key from inputs using hash for long content
             import hashlib
@@ -444,7 +441,7 @@ class OrchestrationService:
                 "options": options or {}
             }
             cache_key_str = f"pipeline:{cache_key(cache_key_data)}"
-            
+
             # Try to get from cache
             # Try async getter if available, else sync
             try:
@@ -459,30 +456,48 @@ class OrchestrationService:
                         stage_result.metadata["cached"] = True
                         stage_result.metadata["cache_hit_at"] = datetime.utcnow().isoformat()
                 return cached_result
-        
+
         # Default model selection for test environment when none provided
         if not selected_models:
             selected_models = await self._default_models_from_env()
         
+        # Check for rate-limited models and get fallbacks if needed
+        final_models = []
+        for model in selected_models:
+            provider = self._get_provider_from_model(model)
+            if provider in provider_fallback_manager._rate_limited_providers:
+                logger.info(f"Model {model} from rate-limited provider {provider}, getting fallback")
+                fallback_models = provider_fallback_manager.get_fallback_models(provider, 1)
+                if fallback_models:
+                    final_models.extend(fallback_models)
+                    logger.info(f"Using fallback model {fallback_models[0]} instead of {model}")
+                else:
+                    # No fallback available, keep original
+                    final_models.append(model)
+            else:
+                final_models.append(model)
+        
+        selected_models = final_models[:3]  # Limit to 3 models max
+
         # Enforce minimum 2 models for orchestration
         if not selected_models or len(selected_models) < 2:
             # Get provider health status for detailed error message
             health_summary = await provider_health_manager.get_health_summary()
             available_providers = health_summary["_system"]["available_providers"]
-            
+
             error_msg = (
                 f"Service temporarily unavailable. UltrAI requires at least {Config.MINIMUM_MODELS_REQUIRED} "
-                f"different AI models to provide multi-model intelligence multiplication. "
+                "different AI models to provide multi-model intelligence multiplication. "
                 f"Currently {len(available_providers)} provider(s) are operational."
             )
-            
+
             # Add degradation message if available
             degradation_msg = await provider_health_manager.get_degradation_message()
             if degradation_msg:
                 error_msg = degradation_msg
-            
+
             return {
-                "error": "SERVICE_UNAVAILABLE", 
+                "error": "SERVICE_UNAVAILABLE",
                 "message": error_msg,
                 "details": {
                     "models_required": Config.MINIMUM_MODELS_REQUIRED,
@@ -491,7 +506,7 @@ class OrchestrationService:
                     "service_status": "unavailable"
                 }
             }
-        
+
         # SECURITY: Validate and sanitize model names
         selected_models = self._validate_model_names(selected_models)
         if not selected_models:
@@ -559,14 +574,14 @@ class OrchestrationService:
                             )
                             error_msg = (
                                 f"Service temporarily unavailable. UltrAI requires at least {Config.MINIMUM_MODELS_REQUIRED} "
-                                f"different AI models to provide multi-model intelligence multiplication. "
+                                "different AI models to provide multi-model intelligence multiplication. "
                                 f"Currently only {model_count} model(s) are operational."
                             )
                             results[stage.name] = PipelineResult(
                                 stage_name=stage.name,
                                 output=None,
                                 error="service_unavailable",
-                                performance_metrics={"reason": "insufficient_models", "available": model_count, "required": Config.MINIMUM_MODELS_REQUIRED}
+                                performance_metrics={"reason": "insufficient_models", "available": model_count, "required": Config.MINIMUM_MODELS_REQUIRED}  # noqa: E501
                             )
                             # Return early with service unavailable as a typed PipelineResult
                             results["service_unavailable"] = PipelineResult(
@@ -753,7 +768,7 @@ class OrchestrationService:
                 query_type=options.get("query_type", "unknown") if options else "unknown",
                 model_count=len(stage.required_models)
             )
-            
+
             try:
                 # Acquire rate limit tokens for all required models
                 for model in stage.required_models:
@@ -813,7 +828,7 @@ class OrchestrationService:
                 for model in stage.required_models
             },
         }
-        
+
         # Check for performance issues and alert
         expected_duration = stage.timeout_seconds * 0.8  # Alert at 80% of timeout
         if duration > expected_duration and error is None:
@@ -839,11 +854,11 @@ class OrchestrationService:
 
     async def _execute_model_with_retry(self, model: str, prompt: str) -> Dict[str, Any]:
         """Execute a model with retry logic and rate limit handling.
-        
+
         Args:
             model: Model name to execute
             prompt: Prompt to send to the model
-            
+
         Returns:
             Dict with either 'generated_text' or 'error' key
         """
@@ -855,41 +870,60 @@ class OrchestrationService:
                 logger.info(f"🧪 TESTING mode – providing stubbed response for {model}")
                 return {"generated_text": STUB_RESPONSE}
             return {"error": "Missing API key", "error_details": error_msg}
-        
+
         # Determine provider from model name
         provider = self._get_provider_from_model(model)
-        
+
         # Get the adapter
         adapter, mapped_model = self._create_adapter(model)
         if adapter is None:
             return {"error": "Failed to create adapter", "provider": provider}
-        
+
         # Define the execution function
         async def execute():
             return await adapter.generate(prompt)
-        
+
         # Execute with retry
         success, result = await self.retry_handler.execute_with_retry(
             execute, provider, model
         )
-        
+
         if success:
             # Process successful result
             if isinstance(result, dict) and "generated_text" in result:
                 gen_text = result.get("generated_text", "")
-                
+
                 # Check for error indicators in the response
                 if "Error:" in gen_text:
                     return {"error": gen_text}
-                    
+
                 # Handle test mode rate limiting
                 if os.getenv("TESTING") == "true" and gen_text.lower().startswith("request rate-limited"):
                     gen_text = STUB_RESPONSE
-                    
+
                 return {"generated_text": gen_text}
             else:
                 return {"error": "Invalid response format"}
         else:
+            # Check if this is a rate limit error
+            error_str = str(result.get("error", ""))
+            if self.retry_handler.detect_rate_limit(error_str, provider):
+                # Mark provider as rate limited
+                provider_fallback_manager.mark_rate_limited(provider)
+                
+                # Log rate limit for monitoring
+                logger.warning(f"Rate limit detected for {provider} provider with model {model}")
+                
+                # Add fallback suggestion to error
+                alternative = provider_fallback_manager.suggest_alternative_provider(provider)
+                if alternative:
+                    fallback_models = provider_fallback_manager.get_fallback_models(provider, 2)
+                    result["fallback_suggestion"] = {
+                        "provider": alternative,
+                        "models": fallback_models,
+                        "message": f"Consider using {alternative} provider as {provider} is rate limited"
+                    }
+            
             # Return error from retry handler
             return result
 
@@ -908,34 +942,34 @@ class OrchestrationService:
 
     def _validate_api_key(self, model: str) -> Tuple[bool, Optional[str]]:
         """Validate if API key exists for the given model.
-        
+
         Args:
             model: Model name to validate
-            
+
         Returns:
             Tuple of (is_valid, error_message)
         """
         provider = self._get_provider_from_model(model)
-        
+
         api_key_map = {
             "openai": ("OPENAI_API_KEY", "OpenAI"),
             "anthropic": ("ANTHROPIC_API_KEY", "Anthropic"),
             "google": ("GOOGLE_API_KEY", "Google"),
             "huggingface": ("HUGGINGFACE_API_KEY", "HuggingFace"),
         }
-        
+
         if provider == "unknown":
             return False, f"Unknown provider for model: {model}"
-            
+
         env_var, provider_name = api_key_map.get(provider, (None, None))
-        
+
         if env_var and not os.getenv(env_var):
             error_msg = (
                 f"{provider_name} API key not configured. "
                 f"Please set {env_var} environment variable to use {model}."
             )
             return False, error_msg
-            
+
         return True, None
 
     async def initial_response(
@@ -972,7 +1006,7 @@ class OrchestrationService:
             """Execute a single model and return (model_name, result)"""
             start_time = time.time()
             provider = self._get_provider_from_model(model)
-            
+
             try:
                 # Apply model name mapping if needed
                 mapped_model = model_mappings.get(model, model)
@@ -1027,29 +1061,29 @@ class OrchestrationService:
                                 "request rate-limited"
                             ):
                                 gen_text = STUB_RESPONSE
-                            
+
                             # Record success in provider health manager
                             latency_ms = (time.time() - start_time) * 1000
                             await provider_health_manager.record_success(
-                                provider="openai", 
+                                provider="openai",
                                 model=model,
                                 latency_ms=latency_ms
                             )
-                            
+
                             return model, {"generated_text": gen_text}
                         else:
                             error_msg = result.get("generated_text", "Unknown error")
                             logger.warning(
                                 f"❌ Error response from {model}: {error_msg}"
                             )
-                            
+
                             # Record failure in provider health manager
                             await provider_health_manager.record_failure(
                                 provider="openai",
                                 error_message=error_msg,
                                 model=model
                             )
-                            
+
                             return model, {"error": error_msg}
                 elif model.startswith("claude"):
                     api_key = os.getenv("ANTHROPIC_API_KEY")
@@ -1059,7 +1093,7 @@ class OrchestrationService:
                                 f"🧪 TESTING mode – providing stubbed Anthropic response for {model}"
                             )
                             return model, {
-                                "generated_text": "Stubbed Anthropic response generated for testing purposes. This placeholder simulates actual model output enabling full pipeline flow without API access."
+                                "generated_text": "Stubbed Anthropic response generated for testing purposes. This placeholder simulates actual model output enabling full pipeline flow without API access."  # noqa: E501
                             }
                         logger.warning(
                             f"No Anthropic API key found for {model}, skipping"
@@ -1092,29 +1126,29 @@ class OrchestrationService:
                             "request rate-limited"
                         ):
                             gen_text = STUB_RESPONSE
-                        
+
                         # Record success in provider health manager
                         latency_ms = (time.time() - start_time) * 1000
                         await provider_health_manager.record_success(
-                            provider="anthropic", 
+                            provider="anthropic",
                             model=model,
                             latency_ms=latency_ms
                         )
-                        
+
                         return model, {"generated_text": gen_text}
                     else:
                         error_msg = result.get("generated_text", "Unknown error")
                         logger.warning(
                             f"❌ Error response from {model}: {error_msg}"
                         )
-                        
+
                         # Record failure in provider health manager
                         await provider_health_manager.record_failure(
                             provider="anthropic",
                             error_message=error_msg,
                             model=model
                         )
-                        
+
                         return model, {"error": error_msg}
                 elif model.startswith("gemini"):
                     api_key = os.getenv("GOOGLE_API_KEY")
@@ -1156,29 +1190,29 @@ class OrchestrationService:
                             "request rate-limited"
                         ):
                             gen_text = STUB_RESPONSE
-                        
+
                         # Record success in provider health manager
                         latency_ms = (time.time() - start_time) * 1000
                         await provider_health_manager.record_success(
-                            provider="google", 
+                            provider="google",
                             model=model,
                             latency_ms=latency_ms
                         )
-                        
+
                         return model, {"generated_text": gen_text}
                     else:
                         error_msg = result.get("generated_text", "Unknown error")
                         logger.warning(
                             f"❌ Error response from {model}: {error_msg}"
                         )
-                        
+
                         # Record failure in provider health manager
                         await provider_health_manager.record_failure(
                             provider="google",
                             error_message=error_msg,
                             model=model
                         )
-                        
+
                         return model, {"error": error_msg}
                 elif "/" in model:  # HuggingFace model ID format (org/model-name)
                     # HuggingFace models - require API key for real responses
@@ -1197,7 +1231,7 @@ class OrchestrationService:
                         )
                         return model, {
                             "error": "Missing API key",
-                            "error_details": f"HuggingFace API key not configured. Please set HUGGINGFACE_API_KEY environment variable to use {model}.",
+                            "error_details": f"HuggingFace API key not configured. Please set HUGGINGFACE_API_KEY environment variable to use {model}.",  # noqa: E501
                             "provider": "HuggingFace"
                         }
 
@@ -1238,7 +1272,7 @@ class OrchestrationService:
 
                 # Should never be reached, but satisfies static analysis tools.
                 return model, {"error": "Unexpected execution fallthrough"}
-        
+
             except Exception as e:
                 logger.error(f"Unexpected error in execute_model for {model}: {str(e)}")
                 # Track model error in Sentry
@@ -1251,14 +1285,14 @@ class OrchestrationService:
                         "provider": self._get_provider_from_model(model)
                     }
                 )
-                
+
                 # Record failure in provider health manager
                 await provider_health_manager.record_failure(
                     provider=provider,
                     error_message=f"Exception: {str(e)}",
                     model=model
                 )
-                
+
                 return model, {"error": f"Unexpected error: {str(e)}"}
 
         # --------------------------------------------------------------
@@ -1310,10 +1344,10 @@ class OrchestrationService:
             len(executable_models),
             executable_models,
         )
-        
+
         # Create asyncio tasks for proper timeout handling
         async_tasks = [asyncio.create_task(execute_model(model)) for model in executable_models]
-        
+
         # Add timeout protection for concurrent execution
         try:
             results = await asyncio.wait_for(
@@ -1445,7 +1479,7 @@ class OrchestrationService:
                 "error": "No models available for peer review",
                 "original_responses": initial_responses,
             }
-        
+
         # Check if we have enough models for peer review
         if len(working_models) < 2:
             logger.warning(f"⚠️ Only {len(working_models)} model available - peer review requires multiple models")
@@ -1480,7 +1514,7 @@ class OrchestrationService:
                         peer_responses_text += f"\n{peer_model}: {peer_response}\n"
 
                 # Create the peer review prompt - more critical and less assumptive
-                peer_review_prompt = f"""Please review the responses from other LLMs given the same query you just completed. Do not assume anything is factual, but would you like to edit your initial response after seeing the work of your peers?
+                peer_review_prompt = """Please review the responses from other LLMs given the same query you just completed. Do not assume anything is factual, but would you like to edit your initial response after seeing the work of your peers?  # noqa: E501
 
 Original Query: {original_prompt}
 
@@ -1490,7 +1524,7 @@ Your Initial Response:
 Responses from Other LLMs:
 {peer_responses_text}
 
-After critically reviewing these peer responses, please provide your revised answer to the original query. You may keep your original response if you believe it's already optimal, or incorporate insights from the peer responses where they improve accuracy, completeness, or clarity."""
+After critically reviewing these peer responses, please provide your revised answer to the original query. You may keep your original response if you believe it's already optimal, or incorporate insights from the peer responses where they improve accuracy, completeness, or clarity."""  # noqa: E501
 
                 # Execute the peer review using the same model adapters as initial_response
                 if model.startswith("gpt") or model.startswith("o1"):
@@ -1498,7 +1532,7 @@ After critically reviewing these peer responses, please provide your revised ans
                     if not api_key:
                         return model, {
                             "error": "Missing API key",
-                            "error_details": f"OpenAI API key not configured for peer review. Please set OPENAI_API_KEY environment variable to use {model}.",
+                            "error_details": f"OpenAI API key not configured for peer review. Please set OPENAI_API_KEY environment variable to use {model}.",  # noqa: E501
                             "fallback_response": own_response
                         }
                     base_adapter = OpenAIAdapter(api_key, model)
@@ -1510,7 +1544,7 @@ After critically reviewing these peer responses, please provide your revised ans
                     if not api_key:
                         return model, {
                             "error": "Missing API key",
-                            "error_details": f"Anthropic API key not configured for peer review. Please set ANTHROPIC_API_KEY environment variable to use {model}.",
+                            "error_details": f"Anthropic API key not configured for peer review. Please set ANTHROPIC_API_KEY environment variable to use {model}.",  # noqa: E501
                             "fallback_response": own_response
                         }
                     # Fix model name mapping for Anthropic
@@ -1530,7 +1564,7 @@ After critically reviewing these peer responses, please provide your revised ans
                     if not api_key:
                         return model, {
                             "error": "Missing API key",
-                            "error_details": f"Google API key not configured for peer review. Please set GOOGLE_API_KEY environment variable to use {model}.",
+                            "error_details": f"Google API key not configured for peer review. Please set GOOGLE_API_KEY environment variable to use {model}.",  # noqa: E501
                             "fallback_response": own_response
                         }
                     # Fix model name mapping for Gemini
@@ -1552,7 +1586,7 @@ After critically reviewing these peer responses, please provide your revised ans
                     if not api_key:
                         return model, {
                             "error": "Missing API key",
-                            "error_details": f"HuggingFace API key not configured for peer review. Please set HUGGINGFACE_API_KEY environment variable to use {model}.",
+                            "error_details": f"HuggingFace API key not configured for peer review. Please set HUGGINGFACE_API_KEY environment variable to use {model}.",  # noqa: E501
                             "fallback_response": own_response
                         }
                     base_adapter = HuggingFaceAdapter(api_key, model)
@@ -1717,8 +1751,8 @@ After critically reviewing these peer responses, please provide your revised ans
                     for model, response in initial_responses.items()
                 ]
             )
-            meta_analysis = f"Multiple AI responses:\\n{analysis_text}"
-            source_models = list(initial_responses.keys())
+            _meta_analysis = f"Multiple AI responses:\\n{analysis_text}"
+            _source_models = list(initial_responses.keys())
         elif (
             "input" in data
             and isinstance(data["input"], dict)
@@ -1748,14 +1782,14 @@ After critically reviewing these peer responses, please provide your revised ans
         )
 
         # Meta-analysis prompt (requires multiple responses)
-        meta_prompt = f"""MULTI-COGNITIVE FRAMEWORK ANALYSIS
+        meta_prompt = """MULTI-COGNITIVE FRAMEWORK ANALYSIS
 
 Original Inquiry: {original_prompt}
 
 AI Model Responses:
 {analysis_text}
 
-Your task is to perform a comprehensive meta-analysis that prepares for Ultra Synthesis™ intelligence multiplication. Analyze these responses as different cognitive frameworks approaching the same problem.
+Your task is to perform a comprehensive meta-analysis that prepares for Ultra Synthesis™ intelligence multiplication. Analyze these responses as different cognitive frameworks approaching the same problem.  # noqa: E501
 
 ANALYSIS REQUIREMENTS:
 1. **Cross-Model Validation**: Identify areas where multiple models converge (high confidence insights)
@@ -1854,55 +1888,55 @@ Prepare this analysis to enable true intelligence multiplication in the subseque
         if "revised_responses" in data and data["revised_responses"]:
             # PRIMARY CASE: Use peer-reviewed responses for synthesis
             revised_responses = data["revised_responses"]
-            source_models = data.get("successful_models", list(revised_responses.keys()))
-            
+            _source_models = data.get("successful_models", list(revised_responses.keys()))
+
             # Create analysis text from peer-reviewed responses
             analysis_text = "\\n\\n".join([
                 f"**{model} (Peer-Reviewed):** {response}"
                 for model, response in revised_responses.items()
             ])
-            meta_analysis = f"Peer-Reviewed Multi-Model Responses:\\n{analysis_text}"
+            _meta_analysis = f"Peer-Reviewed Multi-Model Responses:\\n{analysis_text}"
             logger.info("✅ Using peer-reviewed responses for Ultra Synthesis (3-stage pipeline)")
-            
+
         elif "responses" in data and data["responses"]:
             # FALLBACK: Use initial responses if peer review was skipped
             logger.warning("⚠️ Using initial responses (peer review may have been skipped)")
             initial_responses = data["responses"]
-            source_models = data.get("successful_models", list(initial_responses.keys()))
-            
+            _source_models = data.get("successful_models", list(initial_responses.keys()))
+
             analysis_text = "\\n\\n".join([
                 f"**{model}:** {response}"
                 for model, response in initial_responses.items()
             ])
-            meta_analysis = f"Multi-Model Initial Responses:\\n{analysis_text}"
-            
+            _meta_analysis = f"Multi-Model Initial Responses:\\n{analysis_text}"
+
         # Additional fallback: if peer-review wrapper object provided input with prior stage payload
         elif isinstance(data.get("input"), dict) and (
             ("revised_responses" in data["input"] and data["input"]["revised_responses"]) or
-            ("responses" in data["input"] and data["input"]["responses"]) 
+            ("responses" in data["input"] and data["input"]["responses"])
         ):
             inner = data["input"]
             if "revised_responses" in inner and inner["revised_responses"]:
                 revised_responses = inner["revised_responses"]
-                source_models = inner.get("successful_models", list(revised_responses.keys()))
+                _source_models = inner.get("successful_models", list(revised_responses.keys()))
                 analysis_text = "\n\n".join([
                     f"**{model} (Peer-Reviewed):** {response}"
                     for model, response in revised_responses.items()
                 ])
-                meta_analysis = f"Peer-Reviewed Multi-Model Responses:\n{analysis_text}"
+                _meta_analysis = f"Peer-Reviewed Multi-Model Responses:\n{analysis_text}"
                 logger.info("✅ Using nested peer-reviewed responses for Ultra Synthesis")
             else:
                 initial_responses = inner.get("responses", {})
-                source_models = inner.get("successful_models", list(initial_responses.keys()))
+                _source_models = inner.get("successful_models", list(initial_responses.keys()))
                 analysis_text = "\n\n".join([
                     f"**{model}:** {response}"
                     for model, response in initial_responses.items()
                 ])
-                meta_analysis = f"Multi-Model Initial Responses (nested):\n{analysis_text}"
+                _meta_analysis = f"Multi-Model Initial Responses (nested):\n{analysis_text}"
                 logger.warning("⚠️ Using nested initial responses (peer review likely skipped)")
 
             # Optional single-model fallback gate
-            if len(source_models) < 2:
+            if len(_source_models) < 2:
                 use_single_fallback = os.getenv("USE_SINGLE_MODEL_FALLBACK", "false").lower() == "true"
                 if use_single_fallback:
                     logger.info("🔧 Single-model fallback enabled via USE_SINGLE_MODEL_FALLBACK=true")
@@ -1923,7 +1957,7 @@ Prepare this analysis to enable true intelligence multiplication in the subseque
             )
             return {
                 "stage": "ultra_synthesis",
-                "error": f"Invalid input data structure - missing analysis. Available keys: {list(data.keys()) if isinstance(data, dict) else 'not a dict'}",
+                "error": f"Invalid input data structure - missing analysis. Available keys: {list(data.keys()) if isinstance(data, dict) else 'not a dict'}",  # noqa: E501
             }
 
         # Extract the original prompt properly
@@ -1945,24 +1979,24 @@ Prepare this analysis to enable true intelligence multiplication in the subseque
         logger.info(
             f"Ultra Synthesis using original prompt: {original_prompt[:100]}..."
         )
-        logger.info(f"Meta-analysis length: {len(str(meta_analysis))}")
-        logger.info(f"Source models: {source_models}")
+        logger.info(f"Meta-analysis length: {len(str(_meta_analysis))}")
+        logger.info(f"Source models: {_source_models}")
 
         # Use enhanced synthesis prompt if available, otherwise fall back to original
         if self.use_enhanced_synthesis and self.synthesis_prompt_manager:
             synthesis_prompt = self.synthesis_prompt_manager.get_synthesis_prompt(
                 original_query=original_prompt,
-                model_responses=meta_analysis
+                model_responses=_meta_analysis
             )
             logger.info(f"📝 Using query type: {self.synthesis_prompt_manager.detect_query_type(original_prompt).value}")
         else:
             # Fallback to original prompt
-            synthesis_prompt = f"""Given the user's initial query, please review the revised drafts from all LLMs. Keep commentary to a minimum unless it helps with the original inquiry. Do not reference the process, but produce the best, most thorough answer to the original query. Include process analysis only if helpful. Do not omit ANY relevant data from the other models.
+            synthesis_prompt = """Given the user's initial query, please review the revised drafts from all LLMs. Keep commentary to a minimum unless it helps with the original inquiry. Do not reference the process, but produce the best, most thorough answer to the original query. Include process analysis only if helpful. Do not omit ANY relevant data from the other models.  # noqa: E501
 
 ORIGINAL QUERY: {original_prompt}
 
 REVISED LLM DRAFTS:
-{meta_analysis}
+{_meta_analysis}
 
 Create a comprehensive Ultra Synthesis™ document that:
 - Directly answers the original query with maximum thoroughness
@@ -1976,20 +2010,20 @@ Begin with the ultra synthesis document."""
         available_models: List[str] = []
         if models:
             available_models.extend(models)
-        if source_models:
-            for model in source_models:
+        if _source_models:
+            for model in _source_models:
                 if model not in available_models:
                     available_models.append(model)
         if "claude-3-5-sonnet-20241022" not in available_models:
             available_models.append("claude-3-5-sonnet-20241022")
-        
+
         # Use smart model selection if available, otherwise use original order
         if self.use_enhanced_synthesis and self.model_selector and self.synthesis_prompt_manager:
             query_type = self.synthesis_prompt_manager.detect_query_type(original_prompt)
             candidate_models = await self.model_selector.select_best_synthesis_model(
                 available_models=available_models,
                 query_type=query_type.value,
-                recent_performers=source_models[:3] if source_models else None  # Top 3 performers from peer review
+                recent_performers=_source_models[:3] if _source_models else None  # Top 3 performers from peer review
             )
             logger.info(f"🎯 Smart model selection ranked models: {candidate_models}")
         else:
@@ -2019,7 +2053,7 @@ Begin with the ultra synthesis document."""
                 ):
                     synthesis_response = list(synthesis_result["responses"].values())[0]
                     logger.info(f"✅ Ultra-synthesis completed using {synthesis_model}")
-                    
+
                     # Track successful synthesis if enhanced features are available
                     if self.use_enhanced_synthesis and self.model_selector:
                         response_time = synthesis_result.get("timing", {}).get("total_time", 5.0)
@@ -2029,7 +2063,7 @@ Begin with the ultra synthesis document."""
                             quality_score=8.5,  # Can be enhanced with actual quality evaluation
                             response_time=response_time
                         )
-                    
+
                     # Use enhanced output formatting if available
                     if self.use_enhanced_synthesis and self.synthesis_output_formatter:
                         # Build model responses dict for structured output
@@ -2038,12 +2072,12 @@ Begin with the ultra synthesis document."""
                             model_responses = data["revised_responses"]
                         elif "responses" in data and data["responses"]:
                             model_responses = data["responses"]
-                        
+
                         # Get query type if available
                         query_type_value = "general"
                         if self.synthesis_prompt_manager:
                             query_type_value = self.synthesis_prompt_manager.detect_query_type(original_prompt).value
-                        
+
                         # Format synthesis with structured output
                         formatted_output = self.synthesis_output_formatter.format_synthesis_output(
                             synthesis_text=synthesis_response,
@@ -2058,7 +2092,7 @@ Begin with the ultra synthesis document."""
                             include_metadata=options.get("include_metadata", False) if options else False,
                             include_confidence=options.get("include_confidence", True) if options else True
                         )
-                        
+
                         return {
                             "stage": "ultra_synthesis",
                             "synthesis": formatted_output.get("synthesis", synthesis_response),
@@ -2066,8 +2100,8 @@ Begin with the ultra synthesis document."""
                             "quality_indicators": formatted_output.get("quality_indicators", {}),
                             "metadata": formatted_output.get("metadata", {}) if options and options.get("include_metadata") else {},
                             "model_used": synthesis_model,
-                            "meta_analysis": meta_analysis,
-                            "source_models": source_models,
+                            "meta_analysis": _meta_analysis,
+                            "source_models": _source_models,
                         }
                     else:
                         # Fallback to original response format
@@ -2075,8 +2109,8 @@ Begin with the ultra synthesis document."""
                             "stage": "ultra_synthesis",
                             "synthesis": synthesis_response,
                             "model_used": synthesis_model,
-                            "meta_analysis": meta_analysis,
-                            "source_models": source_models,
+                            "meta_analysis": _meta_analysis,
+                            "source_models": _source_models,
                         }
 
                 last_error = "Rate limited or empty response"
@@ -2112,7 +2146,7 @@ Begin with the ultra synthesis document."""
             )
             return {
                 "stage": "ultra_synthesis",
-                "synthesis": "Stubbed ultra synthesis response for testing purposes. This placeholder text is intentionally long enough to satisfy basic length checks without revealing model details.",
+                "synthesis": "Stubbed ultra synthesis response for testing purposes. This placeholder text is intentionally long enough to satisfy basic length checks without revealing model details.",  # noqa: E501
                 "model_used": "stub",
                 "error": last_error,
             }
@@ -2257,7 +2291,7 @@ Begin with the ultra synthesis document."""
 
                     f.write("\n")
 
-            logger.info(f"✅ Pipeline outputs saved:")
+            logger.info("✅ Pipeline outputs saved:")
             logger.info(f"   JSON: {json_file}")
             logger.info(f"   TXT:  {txt_file}")
 

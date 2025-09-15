@@ -10,7 +10,7 @@ export async function processWithFeatherOrchestration({
   pattern = 'comparative',
   ultraModel = null,
   outputFormat = 'plain'
-}) {
+}, correlationId = undefined) {
   // Use mock API in demo mode
   if (isDemoMode) {
     return mockApi.processWithFeatherOrchestration({
@@ -23,11 +23,15 @@ export async function processWithFeatherOrchestration({
   }
 
   try {
+    const headers = {
+      'Content-Type': 'application/json',
+    };
+    if (correlationId) {
+      headers['X-Correlation-ID'] = correlationId;
+    }
     const response = await fetch(`${API_BASE}/orchestrator/analyze`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers,
       body: JSON.stringify({
         query: prompt,
         selected_models: models,
@@ -59,6 +63,7 @@ export async function processWithFeatherOrchestration({
       initial_responses: data.results?.initial_responses,
       meta_analysis: data.results?.meta_analysis,
       ultra_synthesis: data.results?.ultra_synthesis,
+      correlation_id: correlationId || response.headers.get('X-Correlation-ID') || '',
     };
   } catch (error) {
     console.error('Orchestration error:', error);

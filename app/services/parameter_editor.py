@@ -111,7 +111,7 @@ def save_changes(changes: List[Dict[str, Any]]) -> bool:
             # Try different patterns to replace the parameter value
             patterns = [
                 # For regular constants: NAME = value
-                re.compile(f"({simple_name}\s*=\s*)(.*?)(\s*(?:#|$|\n))", re.MULTILINE),
+                re.compile(f"({simple_name}\\s*=\\s*)(.*?)(\\s*(?:#|$|\\n))", re.MULTILINE),
                 # For os.environ.get calls: os.environ.get("NAME", "default")
                 re.compile(
                     f"(os\\.environ\\.get\\([\"']\\s*{simple_name}\\s*[\"'],\\s*(?:[\"'])?)(.*?)([\"']?\\s*\\))",
@@ -124,7 +124,7 @@ def save_changes(changes: List[Dict[str, Any]]) -> bool:
                 ),
                 # For class variables: self.NAME = value
                 re.compile(
-                    f"(self\\.{simple_name}\\s*=\\s*)(.*?)(\s*(?:#|$|\n))", re.MULTILINE
+                    f"(self\\.{simple_name}\\s*=\\s*)(.*?)(\\s*(?:#|$|\\n))", re.MULTILINE
                 ),
             ]
 

@@ -60,6 +60,7 @@ class TestCacheRedisIntegration:
         await service.close()
 
     @pytest.mark.asyncio
+    @pytest.mark.requires_redis
     @pytest.mark.skipif(not os.getenv("REDIS_URL"), reason="Redis URL not configured")
     async def test_redis_connection_and_operations(self, cache_with_real_redis):
         """Test real Redis connection and operations"""
@@ -74,6 +75,7 @@ class TestCacheRedisIntegration:
         assert await cache_with_real_redis.aexists("test_key") is False
 
     @pytest.mark.asyncio
+    @pytest.mark.requires_redis
     @pytest.mark.skipif(not os.getenv("REDIS_URL"), reason="Redis URL not configured")
     async def test_redis_ttl_expiration(self, cache_with_real_redis):
         """Test TTL expiration in Redis"""
@@ -89,6 +91,7 @@ class TestCacheRedisIntegration:
         assert await cache_with_real_redis.aget("expiring_key") is None
 
     @pytest.mark.asyncio
+    @pytest.mark.requires_redis
     @pytest.mark.skipif(not os.getenv("REDIS_URL"), reason="Redis URL not configured")
     async def test_redis_increment_operations(self, cache_with_real_redis):
         """Test increment operations in Redis"""
@@ -103,6 +106,7 @@ class TestCacheRedisIntegration:
         assert await cache_with_real_redis.aget("counter") == "6"
 
     @pytest.mark.asyncio
+    @pytest.mark.requires_redis
     @pytest.mark.skipif(not os.getenv("REDIS_URL"), reason="Redis URL not configured")
     async def test_redis_pattern_operations(self, cache_with_real_redis):
         """Test pattern-based operations in Redis"""
@@ -126,6 +130,7 @@ class TestCacheRedisIntegration:
         assert await cache_with_real_redis.aget("post:1:title") == "Hello"
 
     @pytest.mark.asyncio
+    @pytest.mark.requires_redis
     @pytest.mark.skipif(not os.getenv("REDIS_URL"), reason="Redis URL not configured")
     async def test_redis_json_operations(self, cache_with_real_redis):
         """Test JSON serialization with Redis"""
@@ -154,6 +159,7 @@ class TestCacheRedisIntegration:
         assert len(retrieved["responses"]) == 2
 
     @pytest.mark.asyncio
+    @pytest.mark.requires_redis
     @pytest.mark.skipif(not os.getenv("REDIS_URL"), reason="Redis URL not configured")
     async def test_redis_fallback_on_connection_loss(self, cache_with_real_redis):
         """Test fallback to memory when Redis connection is lost"""
@@ -181,6 +187,7 @@ class TestCacheRedisIntegration:
         cache_with_real_redis._is_redis_available = True
 
     @pytest.mark.asyncio
+    @pytest.mark.requires_redis
     @pytest.mark.skipif(not os.getenv("REDIS_URL"), reason="Redis URL not configured")
     async def test_redis_concurrent_operations(self, cache_with_real_redis):
         """Test concurrent operations with Redis"""
@@ -208,6 +215,8 @@ class TestCacheRedisIntegration:
         assert max(all_values) == 50
 
     @pytest.mark.asyncio
+    @pytest.mark.requires_redis
+    @pytest.mark.slow
     @pytest.mark.skipif(not os.getenv("REDIS_URL"), reason="Redis URL not configured")
     async def test_redis_performance_comparison(self, cache_with_real_redis):
         """Compare performance of Redis vs memory cache"""

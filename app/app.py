@@ -23,6 +23,12 @@ from app.utils.unified_error_handler import setup_error_handling
 from app.database.connection import init_db
 from app.services.model_selection_service import SmartModelSelectionService
 from app.utils.sentry_integration import init_sentry
+from app.utils.recovery_workflows import (
+    RecoveryConfig,
+    RecoveryWorkflow,
+    RecoveryAction,
+    HealthCheckRecovery,
+)
 
 logger = get_logger("test_app_setup")
 
@@ -33,7 +39,7 @@ def create_app() -> FastAPI:
     sentry_enabled = init_sentry()
     if sentry_enabled:
         logger.info("Sentry error tracking and APM enabled")
-    
+
     app = FastAPI()
 
     # Add CORS middleware with flexible configuration
@@ -82,7 +88,7 @@ def create_app() -> FastAPI:
 
     # Correlation IDs
     setup_request_id_middleware(app)
-    
+
     # Performance optimizations (compression, caching headers)
     try:
         setup_performance_middleware(app)
@@ -142,10 +148,19 @@ def create_app() -> FastAPI:
             "/api/docs",
             "/api/redoc",
             "/api/openapi.json",
-            # Keep analyze/orchestrator protected (removed from public)
+            # Keep analyze/orchestrator protected by default
             "/api/available-models",  # Public for model discovery
             "/api/pricing",  # Public for pricing info
         ]
+
+        # Optionally allow public orchestration for demos (off by default)
+        if getattr(Config, "ALLOW_PUBLIC_ORCHESTRATION", False):
+            public_paths.extend([
+                "/api/orchestrator/analyze",
+                "/api/orchestrator/analyze/stream",
+                "/api/orchestrator/status",
+                "/api/orchestrator/health",
+            ])
 
         # Protected paths that require authentication
         protected_paths = [
@@ -162,6 +177,55 @@ def create_app() -> FastAPI:
     setup_error_handling(app, include_debug_details=include_debug)
     logger.info("Unified error handling system enabled")
 
+    # ---------------- Recovery hooks (background health monitor) ----------------
+    try:
+        # Define minimal no-op recovery workflow; actions can be extended later
+        class NoOpRecoveryAction(RecoveryAction):
+            def __init__(self, name: str = "noop"):
+                self._name = name
+
+            @property
+            def name(self) -> str:
+                return self._name
+
+            async def execute(self, context):
+                return True
+
+        recovery_workflow = RecoveryWorkflow(
+            name="core_recovery",
+            actions=[NoOpRecoveryAction()],
+            config=RecoveryConfig(health_check_interval=30),
+        )
+
+        # Basic health checks (HTTP) - endpoints exist in all environments
+        health_check_config = {
+            "api_health": {"type": "http", "url": "/health"},
+            "orchestrator_health": {"type": "http", "url": "/api/orchestrator/health"},
+        }
+
+        health_recovery = HealthCheckRecovery(
+            recovery_workflow=recovery_workflow,
+            health_check_config=health_check_config,
+        )
+
+        @app.on_event("startup")
+        async def _start_health_monitor():
+            try:
+                await health_recovery.start()
+            except Exception as _e:
+                logger.warning(f"Health monitor failed to start: {_e}")
+
+        @app.on_event("shutdown")
+        async def _stop_health_monitor():
+            try:
+                await health_recovery.stop()
+            except Exception:
+                pass
+
+        logger.info("Recovery health monitor wired")
+    except Exception as e:
+        logger.warning(f"Failed to wire recovery hooks: {e}")
+
     # Include initial routers (mounted under API prefix below)
     app.include_router(user_router, prefix="/api")
     # Include all main application routers
@@ -169,6 +233,7 @@ def create_app() -> FastAPI:
     from app.routes.document_routes import document_router
     from app.routes.analyze_routes import analyze_router
     from app.routes.orchestrator_minimal import router as orchestrator_router
+    from app.routes.admin_routes import router as admin_router
     from app.routes.llm_routes import llm_router
     from app.routes.document_analysis_routes import document_analysis_router
     from app.routes.docker_modelrunner_routes import router as docker_modelrunner_router
@@ -190,6 +255,7 @@ def create_app() -> FastAPI:
     app.include_router(document_router, prefix=api_prefix)
     app.include_router(analyze_router, prefix=api_prefix)
     app.include_router(orchestrator_router, prefix=api_prefix)
+    app.include_router(admin_router, prefix=api_prefix)
     app.include_router(llm_router, prefix=api_prefix)
     app.include_router(document_analysis_router, prefix=api_prefix)
     app.include_router(docker_modelrunner_router, prefix=api_prefix)
@@ -288,6 +354,5 @@ def create_app() -> FastAPI:
             if os.path.exists(index_file):
                 return FileResponse(index_file)
             return {"message": "Frontend not built"}
-
 
     return app

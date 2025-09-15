@@ -7,6 +7,7 @@ import {
 } from '../api/orchestrator';
 import { AnalysisPatternSelector } from './AnalysisPatternSelector';
 import { AnalysisProgress } from './atoms/AnalysisProgress';
+import SSEPanel from './panels/SSEPanel';
 
 /**
  * OrchestratorInterface component provides a user interface for
@@ -31,6 +32,7 @@ const OrchestratorInterface = () => {
   const [results, setResults] = useState(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState(null);
+  const [correlationId, setCorrelationId] = useState('');
   
   // State for 4-stage progress tracking
   const [progressStatus, setProgressStatus] = useState('idle');
@@ -159,7 +161,10 @@ const OrchestratorInterface = () => {
 
     try {
       let response;
-      
+      // Generate/refresh correlation id for this run
+      const newCorr = `corr_${Math.random().toString(36).slice(2, 12)}`;
+      setCorrelationId(newCorr);
+ 
       if (useFeatherOrchestration) {
         // Use Ultra Synthesis™ 3-stage orchestration
         setProgressStatus('preparing');
@@ -174,7 +179,7 @@ const OrchestratorInterface = () => {
           pattern: selectedPattern,
           ultraModel: leadModel || selectedModels[0],
           outputFormat: 'plain'
-        });
+        }, newCorr);
         
         clearInterval(progressInterval);
         setProgressStatus('complete');
@@ -471,6 +476,10 @@ const OrchestratorInterface = () => {
                 <p className="text-xs text-yellow-800">
                   <strong>Patent-Protected:</strong> Ultra Synthesis™ represents sophisticated intellectual property with 3-stage intelligence multiplication.
                 </p>
+              </div>
+
+              <div className="mt-6">
+                <SSEPanel correlationId={correlationId} title="Live Model Events" />
               </div>
             </div>
           )}

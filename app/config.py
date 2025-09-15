@@ -1,6 +1,5 @@
 import logging
 import os
-import sys
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
@@ -87,7 +86,7 @@ class Config:
     ULTRA_SYNTHESIS_TIMEOUT = int(os.getenv("ULTRA_SYNTHESIS_TIMEOUT", "60"))
     LLM_REQUEST_TIMEOUT = int(os.getenv("LLM_REQUEST_TIMEOUT", "45"))
     CONCURRENT_EXECUTION_TIMEOUT = int(os.getenv("CONCURRENT_EXECUTION_TIMEOUT", "70"))
-    
+
     # Orchestration Model Requirements
     MINIMUM_MODELS_REQUIRED = int(os.getenv("MINIMUM_MODELS_REQUIRED", "2"))
     ENABLE_SINGLE_MODEL_FALLBACK = os.getenv("ENABLE_SINGLE_MODEL_FALLBACK", "false").lower() == "true"
@@ -136,7 +135,11 @@ class Config:
     ENABLE_HTTPS_REDIRECT = (
         os.getenv("ENABLE_HTTPS_REDIRECT", "false").lower() == "true"
     )
-    
+    # Allow public access to orchestration analyze endpoints for demos (default: false)
+    ALLOW_PUBLIC_ORCHESTRATION = (
+        os.getenv("ALLOW_PUBLIC_ORCHESTRATION", "false").lower() == "true"
+    )
+
     # Pricing and billing feature flags
     ENABLE_PRICING = os.getenv("ENABLE_PRICING", "false").lower() == "true"
     ENABLE_BUDGET_ENFORCEMENT = os.getenv("ENABLE_BUDGET_ENFORCEMENT", "false").lower() == "true"
@@ -189,7 +192,7 @@ class Config:
             os.makedirs(cls.DOCUMENT_STORAGE_PATH, exist_ok=True)
             os.makedirs(cls.TEMP_PATH, exist_ok=True)
             os.makedirs(cls.LOGS_PATH, exist_ok=True)
-            logger.info(f"Created required directories")
+            logger.info("Created required directories")
         except (OSError, PermissionError) as e:
             # If we can't create directories (e.g., in Docker with read-only filesystem)
             # just log a warning and continue - the app will use in-memory storage

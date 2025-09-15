@@ -49,6 +49,17 @@ pytest_asyncio.fixture(scope="function")
 import pytest
 pytest_plugins = ('pytest_asyncio',)
 
+# Register custom markers
+def pytest_configure(config):
+    """Register custom pytest markers."""
+    config.addinivalue_line("markers", "unit: mark test as a unit test")
+    config.addinivalue_line("markers", "integration: mark test as an integration test")
+    config.addinivalue_line("markers", "e2e: mark test as an end-to-end test")
+    config.addinivalue_line("markers", "requires_redis: mark test as requiring Redis")
+    config.addinivalue_line("markers", "requires_api_keys: mark test as requiring API keys")
+    config.addinivalue_line("markers", "slow: mark test as slow (>1 second)")
+    config.addinivalue_line("markers", "live_online: mark test as requiring live online services")
+
 # No mocking - tests will use real network calls
 
 # (OpenAIAdapter stub removed – real adapter will be used with individual tests patching requests)

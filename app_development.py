@@ -215,6 +215,14 @@ try:
         logger.info("Model availability routes mounted under /api")
     except Exception:
         logger.warning("Model availability routes not available in dev app", exc_info=True)
+
+    # Include admin routes for local testing
+    try:
+        from app.routes.admin_routes import router as admin_router
+        app.include_router(admin_router, prefix="/api")
+        logger.info("Admin routes mounted under /api")
+    except Exception:
+        logger.warning("Admin routes not available in dev app", exc_info=True)
 except Exception:
     logger.warning("Failed to initialize dev static/API helpers", exc_info=True)
 

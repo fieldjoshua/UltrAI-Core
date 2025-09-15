@@ -117,4 +117,9 @@ git push origin ultrai-play-clientx-v1
 	• If off track, state: "I'm getting off track. Returning to [ORIGINAL_TASK]"
 	• No refactors/optimizations/features unless explicitly requested
 
+• Real-time Monitoring & Check-ins
+	• SSE: `GET /api/orchestrator/events?correlation_id=…`
+	• Events: analysis_start, model_selected, initial_start, pipeline_complete, model_completed, analysis_complete, service_unavailable
+	• Check-in: `POST /api/oversight/checkin` with {task_id, status, evidence?, notes?}
+
 See `docs/OVERSIGHT_README.md` for full details.

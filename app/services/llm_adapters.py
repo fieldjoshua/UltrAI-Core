@@ -121,7 +121,15 @@ class OpenAIAdapter(BaseAdapter):
                     extra={"requestId": CorrelationContext.get_correlation_id()},
                 )
                 # Tests expect standardized text containing 'Rate limit exceeded' and guidance
-                return {"generated_text": "Error: Rate limit exceeded. Please try again later."}
+                return {
+                    "generated_text": "Error: Rate limit exceeded. Please try again later.",
+                    "error_details": {
+                        "error": "RATE_LIMITED",
+                        "provider": "openai",
+                        "model": self.model,
+                        "message": "OpenAI API rate limit reached. Consider using a different provider or waiting before retrying."
+                    }
+                }
             else:
                 logger.error(
                     f"OpenAI API HTTP error for model {self.model}: {e.response.status_code} - {e}",
@@ -191,7 +199,15 @@ class AnthropicAdapter(BaseAdapter):
                     f"Anthropic API rate-limited for model {self.model}. Returning standard retry message.",
                     extra={"requestId": CorrelationContext.get_correlation_id()},
                 )
-                return {"generated_text": "Error: Rate limit exceeded"}
+                return {
+                    "generated_text": "Error: Rate limit exceeded",
+                    "error_details": {
+                        "error": "RATE_LIMITED",
+                        "provider": "anthropic",
+                        "model": self.model,
+                        "message": "Anthropic API rate limit reached. Consider using a different provider or waiting before retrying."
+                    }
+                }
             elif e.response.status_code == 404:
                 logger.error(
                     f"Anthropic API 404 for model {self.model}: Model not found or invalid endpoint",
@@ -280,7 +296,15 @@ class GeminiAdapter(BaseAdapter):
                     extra={"requestId": CorrelationContext.get_correlation_id()},
                 )
                 # Tests expect standardized text
-                return {"generated_text": "Error: Rate limit exceeded"}
+                return {
+                    "generated_text": "Error: Rate limit exceeded",
+                    "error_details": {
+                        "error": "RATE_LIMITED",
+                        "provider": "google",
+                        "model": self.model,
+                        "message": "Google API rate limit reached. Consider using a different provider or waiting before retrying."
+                    }
+                }
             else:
                 logger.error(
                     f"Google Gemini API HTTP error for model {self.model}: {e.response.status_code} - {e}",

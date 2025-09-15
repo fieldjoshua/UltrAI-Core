@@ -6,10 +6,10 @@ when providers are unavailable or performing poorly.
 """
 
 import asyncio
-import time
+import os
 from collections import defaultdict
 from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Set, Tuple
+from typing import Dict, List, Optional, Tuple
 from dataclasses import dataclass, field
 
 from app.utils.logging import get_logger
@@ -49,7 +49,7 @@ class ProviderHealthManager:
     # Health thresholds
     ERROR_RATE_THRESHOLD = 0.3  # 30% error rate triggers degraded status
     CONSECUTIVE_FAILURE_THRESHOLD = 3  # 3 consecutive failures = unhealthy
-    RECOVERY_WINDOW_MINUTES = 5  # Time to wait before retrying unhealthy provider
+    RECOVERY_WINDOW_MINUTES = int(os.getenv("PROVIDER_RECOVERY_WINDOW_MINUTES", "5"))  # Time to wait before retrying unhealthy provider
     LATENCY_DEGRADED_THRESHOLD_MS = 10000  # 10s latency = degraded
     
     def __init__(self):
@@ -153,44 +153,55 @@ class ProviderHealthManager:
     
     async def get_health_summary(self) -> Dict[str, Dict]:
         """Get comprehensive health summary for all providers."""
-        async with self._lock:
-            summary = {}
-            
-            for provider, health in self._provider_health.items():
-                summary[provider] = {
-                    "status": health.status,
-                    "is_available": health.is_available,
-                    "consecutive_failures": health.consecutive_failures,
-                    "error_rate": round(health.error_rate, 3),
-                    "average_latency_ms": round(health.average_latency_ms, 0),
-                    "models_available": health.models_available,
-                    "last_success": health.last_success.isoformat() if health.last_success else None,
-                    "last_failure": health.last_failure.isoformat() if health.last_failure else None,
-                    "minutes_since_last_success": health.minutes_since_last_success,
-                    "last_error": health.last_error_message[:100] if health.last_error_message else None
+        try:
+            async with self._lock:
+                summary = {}
+                for provider, health in self._provider_health.items():
+                    summary[provider] = {
+                        "status": health.status,
+                        "is_available": health.is_available,
+                        "consecutive_failures": health.consecutive_failures,
+                        "error_rate": round(health.error_rate, 3),
+                        "average_latency_ms": round(health.average_latency_ms, 0),
+                        "models_available": health.models_available,
+                        "last_success": health.last_success.isoformat() if health.last_success else None,
+                        "last_failure": health.last_failure.isoformat() if health.last_failure else None,
+                        "minutes_since_last_success": health.minutes_since_last_success,
+                        "last_error": health.last_error_message[:100] if health.last_error_message else None,
+                    }
+
+                # Add overall system health
+                available_providers = await self.get_available_providers()
+                total_providers = len(self._provider_health)
+
+                system_status = "healthy"
+                if len(available_providers) == 0:
+                    system_status = "critical"
+                elif len(available_providers) == 1:
+                    system_status = "degraded"
+                elif len(available_providers) < total_providers:
+                    system_status = "partial"
+
+                summary["_system"] = {
+                    "status": system_status,
+                    "available_providers": available_providers,
+                    "total_providers": total_providers,
+                    "minimum_required": 2,  # For Ultra orchestration
+                    "meets_requirements": len(available_providers) >= 2,
                 }
-            
-            # Add overall system health
-            available_providers = await self.get_available_providers()
-            total_providers = len(self._provider_health)
-            
-            system_status = "healthy"
-            if len(available_providers) == 0:
-                system_status = "critical"
-            elif len(available_providers) == 1:
-                system_status = "degraded"
-            elif len(available_providers) < total_providers:
-                system_status = "partial"
-            
-            summary["_system"] = {
-                "status": system_status,
-                "available_providers": available_providers,
-                "total_providers": total_providers,
-                "minimum_required": 2,  # For Ultra orchestration
-                "meets_requirements": len(available_providers) >= 2
+                return summary
+        except Exception as e:
+            # Non-fatal: return minimal summary instead of raising
+            logger.warning(f"get_health_summary failed: {e}")
+            return {
+                "_system": {
+                    "status": "unknown",
+                    "available_providers": [],
+                    "total_providers": 0,
+                    "minimum_required": 2,
+                    "meets_requirements": False,
+                }
             }
-            
-            return summary
     
     async def get_degradation_message(self) -> Optional[str]:
         """Get user-friendly message about current degradation status."""

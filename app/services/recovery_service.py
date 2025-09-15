@@ -5,7 +5,6 @@ failure scenarios in the Ultra application.
 """
 
 import asyncio
-import logging
 import time
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
@@ -15,7 +14,6 @@ from typing import Any, Callable, Dict, List, Optional, Tuple
 from app.services.cache_service import cache_service
 import os
 from app.services.health_service import HealthService
-from app.utils.circuit_breaker import CircuitBreaker, CircuitState
 from app.utils.errors import RecoveryError, SystemError as AppSystemError
 from app.utils.logging import get_logger
 from app.utils.recovery_strategies import (
@@ -26,8 +24,10 @@ from app.utils.recovery_strategies import (
 )
 from dataclasses import dataclass
 
-@dataclass
-class WorkflowStep:
+
+\1
+
+\1WorkflowStep:
     name: str
     action: Callable[["RecoveryContext"], Any]
     retry_on_failure: bool = False
@@ -36,15 +36,18 @@ class WorkflowStep:
     on_failure: Optional[Callable[["RecoveryContext", Exception], Any]] = None
 
 
-@dataclass
-class RecoveryWorkflow:
+
+\1
+
+\1RecoveryWorkflow:
     name: str
     steps: List[WorkflowStep]
 
 logger = get_logger("recovery_service", "logs/recovery_service.log")
 
 
-class RecoveryType(Enum):
+
+\1RecoveryType(Enum):
     """Types of recovery procedures."""
 
     AUTOMATIC = "automatic"
@@ -53,7 +56,8 @@ class RecoveryType(Enum):
     EMERGENCY = "emergency"
 
 
-class RecoveryState(Enum):
+
+\1RecoveryState(Enum):
     """States of recovery process."""
 
     IDLE = "idle"
@@ -63,8 +67,10 @@ class RecoveryState(Enum):
     CANCELLED = "cancelled"
 
 
-@dataclass
-class RecoveryContext:
+
+\1
+
+\1RecoveryContext:
     """Context for recovery operations."""
 
     recovery_id: str
@@ -76,8 +82,10 @@ class RecoveryContext:
     metadata: Dict[str, Any] = field(default_factory=dict)
 
 
-@dataclass
-class RecoveryResult:
+
+\1
+
+\1RecoveryResult:
     """Result of recovery operation."""
 
     success: bool
@@ -88,7 +96,8 @@ class RecoveryResult:
     metadata: Dict[str, Any] = field(default_factory=dict)
 
 
-class RecoveryService:
+
+\1RecoveryService:
     """Service for managing recovery procedures."""
 
     def __init__(self, config: Optional[Dict[str, Any]] = None):

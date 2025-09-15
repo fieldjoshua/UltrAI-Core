@@ -12,6 +12,7 @@ def _has(key: str) -> bool:
 
 
 @pytest.mark.asyncio
+@pytest.mark.requires_api_keys
 @pytest.mark.skipif(not _has("OPENAI_API_KEY"), reason="OPENAI_API_KEY not set")
 async def test_openai_smoke():
     adapter = LLMAdapterFactory.create_adapter(
@@ -24,6 +25,7 @@ async def test_openai_smoke():
 
 
 @pytest.mark.asyncio
+@pytest.mark.requires_api_keys
 @pytest.mark.skipif(not _has("ANTHROPIC_API_KEY"), reason="ANTHROPIC_API_KEY not set")
 async def test_anthropic_smoke():
     adapter = LLMAdapterFactory.create_adapter(
@@ -36,6 +38,7 @@ async def test_anthropic_smoke():
 
 
 @pytest.mark.asyncio
+@pytest.mark.requires_api_keys
 @pytest.mark.skipif(not _has("GOOGLE_API_KEY"), reason="GOOGLE_API_KEY not set")
 async def test_gemini_smoke():
     adapter = LLMAdapterFactory.create_adapter(
@@ -48,6 +51,7 @@ async def test_gemini_smoke():
 
 
 @pytest.mark.asyncio
+@pytest.mark.requires_api_keys
 @pytest.mark.skipif(not _has("HUGGINGFACE_API_KEY"), reason="HUGGINGFACE_API_KEY not set")
 async def test_huggingface_smoke():
     adapter = LLMAdapterFactory.create_adapter(

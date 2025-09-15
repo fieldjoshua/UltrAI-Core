@@ -17,6 +17,29 @@ Use clear headers in messages and artifacts:
 - `[BLOCKER]` Blocker, risk, or dependency
 - `[COMPLETE]` Task completion
 
+## Real-time Monitoring (SSE)
+- Endpoint: `GET /api/orchestrator/events?correlation_id=<id>`
+- Events emitted:
+  - `analysis_start` – pipeline start
+  - `model_selected` – per-model selection
+  - `initial_start` – initial stage begins
+  - `pipeline_complete` – pipeline finished running
+  - `model_completed` – per-model completion
+  - `analysis_complete` – finalization with `processing_time`, `stages`
+  - `service_unavailable` – health/policy prevented run
+- Subscribe example:
+```bash
+curl -NsS 'http://localhost:8000/api/orchestrator/events?correlation_id=test-123'
+```
+
+## Oversight Check-ins
+- Endpoint: `POST /api/oversight/checkin`
+- Payload:
+```json
+{ "task_id": "DELEGATION_001", "status": "completed", "evidence": {"tests": "ok"}, "notes": "verified" }
+```
+- Purpose: persist lightweight completion and evidence for the Task Ledger / logs.
+
 ## Push Gates (Must Pass Before Push/Merge)
 1. Local tests pass with documented commands and outputs
 2. Security checks executed:

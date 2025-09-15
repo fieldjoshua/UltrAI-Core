@@ -59,7 +59,10 @@ class ModelAvailabilityChecker:
         """
         self.model_selector = model_selector
         self.cache: Dict[str, ModelAvailability] = {}
-        self.cache_duration = timedelta(minutes=5)
+        # Configurable cache TTL with default of 5 minutes
+        cache_ttl_minutes = int(os.getenv("MODEL_HEALTH_CACHE_TTL_MINUTES", "5"))
+        self.cache_duration = timedelta(minutes=cache_ttl_minutes)
+        logger.info(f"Model health cache TTL set to {cache_ttl_minutes} minutes")
         
         # Quick check prompt for availability
         self.availability_prompt = "Hi"
