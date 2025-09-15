@@ -1,3 +1,4 @@
+
 # Test Suite Consolidation Report
 
 ## Executive Summary
@@ -98,3 +99,18 @@ pytest -m "not slow"
 # Run tests that don't need API keys
 pytest -m "not requires_api_keys"
 ```
+
+## Orchestrator/API Consolidation (Latest)
+
+- **Backend**: Orchestrator route now enforces `Config.MINIMUM_MODELS_REQUIRED` (no hardcoded values). Render config explicitly sets `MINIMUM_MODELS_REQUIRED=2` and `ENABLE_SINGLE_MODEL_FALLBACK=false` to keep UltrAI offline below 2 models.
+- **Frontend**: Consolidated to a single source of truth in `frontend/src/api/orchestrator.js`.
+  - All requests use `POST /api/orchestrator/analyze` and models from `/api/available-models?healthy_only=true`.
+  - Removed legacy `frontend/api/orchestrator.js`; `frontend/api/index.js` re-exports from `src/api`.
+  - UI toggle label clarified to avoid implying distinct backends.
+- **Rate limiting**: Deprecated duplicate utils middleware to prevent divergence; official middleware under `app/middleware/` remains in use.
+- **Tests/build**: Targeted unit tests passed (33 passed, 2 warnings). Frontend build succeeded.
+
+### Impact
+- Eliminates endpoint drift and mode confusion.
+- Aligns runtime behavior with production policy for multi-model requirement.
+- Reduces future maintenance burden by removing duplicate client/middleware paths.

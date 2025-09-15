@@ -1,33 +1,11 @@
-import sys
-import types
-
-# Create dummy errors module
-err_mod = types.ModuleType("app.utils.errors")
-
-
-class LLMError(Exception):
-    pass
-
-
-class NetworkError(Exception):
-    pass
-
-
-class SystemError(Exception):
-    pass
-
-
-setattr(err_mod, "LLMError", LLMError)
-setattr(err_mod, "NetworkError", NetworkError)
-setattr(err_mod, "SystemError", SystemError)
-sys.modules["app.utils.errors"] = err_mod
-
 import pytest
-from unittest.mock import AsyncMock
+from unittest.mock import AsyncMock, patch, MagicMock
 from app.services.api_failure_handler import APIFailureHandler, APIProvider
 from app.services.cache_service import CacheService
 
 
+@pytest.mark.unit
+@pytest.mark.unit
 @pytest.mark.asyncio
 async def test_get_statistics_initial():
     handler = APIFailureHandler()
@@ -38,6 +16,7 @@ async def test_get_statistics_initial():
     assert stats["cache_hits"] == 0
 
 
+@pytest.mark.unit
 @pytest.mark.asyncio
 async def test_execute_api_call_cache_hit(monkeypatch):
     handler = APIFailureHandler()
@@ -60,6 +39,7 @@ async def test_execute_api_call_cache_hit(monkeypatch):
     assert stats["total_calls"] == 1
 
 
+@pytest.mark.unit
 @pytest.mark.asyncio
 async def test_execute_api_call_provider_success(monkeypatch):
     handler = APIFailureHandler()

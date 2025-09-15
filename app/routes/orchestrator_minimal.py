@@ -245,7 +245,7 @@ def create_router() -> APIRouter:
             # Get orchestration service from app state
             if not hasattr(http_request.app.state, "orchestration_service"):
                 raise HTTPException(
-                    status_code=503, 
+                    status_code=503,
                     detail={
                         "error": "SERVICE_UNAVAILABLE",
                         "message": "Orchestration service is not initialized",
@@ -263,7 +263,9 @@ def create_router() -> APIRouter:
             model_count = len(available_models)
 
             # Enforce minimum model requirement
-            if model_count < 2:  # Require at least 2 models for multi-model orchestration
+            from app.config import Config as _Cfg  # local import to avoid top-level cycles
+            required_models_cfg = getattr(_Cfg, "MINIMUM_MODELS_REQUIRED", 2)
+            if model_count < required_models_cfg:
                 logger.error(f"Insufficient models available: {model_count} < 2")
                 # Gather provider availability details for human-readable error
                 try:
@@ -282,10 +284,10 @@ def create_router() -> APIRouter:
                     status_code=503,
                     detail={
                         "error": "SERVICE_UNAVAILABLE",
-                        "message": "UltraAI requires at least 2 AI models for orchestration",
+                        "message": f"UltraAI requires at least {required_models_cfg} AI models for orchestration",
                         "details": {
                             "available_models": model_count,
-                            "required_models": 2,
+                            "required_models": required_models_cfg,
                             "reason": "Multi-model orchestration ensures higher quality responses through peer review",
                             "provider_counts": {
                                 "available": len(available_providers),
@@ -644,7 +646,7 @@ def create_router() -> APIRouter:
             # Get orchestration service
             if not hasattr(http_request.app.state, "orchestration_service"):
                 raise HTTPException(
-                    status_code=503, 
+                    status_code=503,
                     detail={
                         "error": "SERVICE_UNAVAILABLE",
                         "message": "Orchestration service is not initialized",

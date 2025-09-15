@@ -265,8 +265,8 @@ const analyzeWithDocuments = async ({
 // Export all API functions
 export { analyzePrompt, uploadDocuments, analyzeWithDocuments };
 
-// Handle orchestrator exports
-export { getOrchestratorModels, processWithOrchestrator } from './orchestrator';
+// Handle orchestrator exports (source of truth lives in src/api/orchestrator.js)
+export { getAvailableModels as getOrchestratorModels, processWithFeatherOrchestration as processWithOrchestrator } from '../src/api/orchestrator';
 
 // Additional client functions with different names to avoid conflicts
 export async function getApiStatus() {
@@ -328,9 +328,9 @@ export async function deleteDocument(documentId) {
 
 // Import orchestrator functions for default export
 import {
-  getOrchestratorModels as importedGetOrchestratorModels,
-  processWithOrchestrator as importedProcessWithOrchestrator,
-} from './orchestrator';
+  getAvailableModels as importedGetOrchestratorModels,
+  processWithFeatherOrchestration as importedProcessWithOrchestrator,
+} from '../src/api/orchestrator';
 
 // Create a comprehensive default export with all API functions
 export default {

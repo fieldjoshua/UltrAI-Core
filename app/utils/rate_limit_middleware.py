@@ -30,7 +30,7 @@ BYPASS_KEY_HEADER = "X-Rate-Limit-Bypass"
 
 
 class RateLimitMiddleware(BaseHTTPMiddleware):
-    """Middleware for enforcing rate limits on API requests"""
+    """[Deprecated] Use app.middleware.rate_limit_middleware.RateLimitMiddleware instead."""
 
     def __init__(
         self,
@@ -56,7 +56,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         ]
         self.quota_paths = quota_paths or {}
         logger.info(
-            f"Initialized RateLimitMiddleware with {len(self.exclude_paths)} excluded paths and {len(self.quota_paths)} path-specific quotas"
+            f"[Deprecated utils middleware] Initialized with {len(self.exclude_paths)} excluded paths and {len(self.quota_paths)} path-specific quotas."
         )
 
     async def dispatch(self, request: Request, call_next: Callable) -> Response:

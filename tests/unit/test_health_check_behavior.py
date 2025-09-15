@@ -13,9 +13,11 @@ from app.utils.health_check import (
 from app.services.health_service import HealthService
 
 
+@pytest.mark.unit
 class TestHealthCheckBehavior:
     """Test suite for health check behavior updates."""
     
+    @pytest.mark.unit
     def test_skip_api_calls_when_configured(self, monkeypatch):
         """Test that health checks skip API calls when configured."""
         # Set environment variable to skip API calls
@@ -34,6 +36,7 @@ class TestHealthCheckBehavior:
         assert "API check skipped" in result["message"]
         assert result["api_key_configured"] is True
     
+    @pytest.mark.unit
     def test_rate_limited_providers_considered_healthy(self, monkeypatch):
         """Test that rate-limited providers don't cause degraded status."""
         # Mock the provider health check responses
@@ -56,19 +59,34 @@ class TestHealthCheckBehavior:
             "claude-3": {"provider": "anthropic"}
         }
         
-        # Patch the health service
-        with patch('app.services.health_service.llm_config_service', mock_llm_config):
-            with patch.object(HealthService, '_check_llm_provider_connectivity', 
-                            return_value=mock_provider_status):
-                service = HealthService()
-                service._check_llm_services()
-                
-                # Service should be healthy even with rate-limited provider
-                assert service.service_status["llm"]["status"] == "healthy"
-                assert "rate-limited" in service.service_status["llm"]["message"]
-                assert service.service_status["llm"]["rate_limited_providers"] == ["openai"]
-                assert service.service_status["llm"]["available_providers"] == ["anthropic"]
+        # Patch Config to disable mock modes
+        from app.config import Config
+        with patch.object(Config, 'USE_MOCK', False):
+            with patch.object(Config, 'MOCK_MODE', False):
+                with patch.object(Config, 'TESTING', False):
+                    # Also patch os.getenv to return "false" for TESTING
+                    with patch('os.getenv') as mock_getenv:
+                        # Set up getenv to return appropriate values
+                        def custom_getenv(key, default=None):
+                            if key == "TESTING":
+                                return "false"
+                            return os.environ.get(key, default)
+                        mock_getenv.side_effect = custom_getenv
+                        
+                        # Patch the health service
+                        with patch('app.services.health_service.llm_config_service', mock_llm_config):
+                            with patch.object(HealthService, '_check_llm_provider_connectivity', 
+                                            return_value=mock_provider_status):
+                                service = HealthService()
+                                service._check_llm_services()
+                                
+                                # Service should be healthy even with rate-limited provider
+                                assert service.service_status["llm"]["status"] == "healthy"
+                                assert "rate-limited" in service.service_status["llm"]["message"]
+                                assert service.service_status["llm"]["rate_limited_providers"] == ["openai"]
+                                assert service.service_status["llm"]["available_providers"] == ["anthropic"]
     
+    @pytest.mark.unit
     def test_all_providers_rate_limited_still_healthy(self, monkeypatch):
         """Test that all rate-limited providers still show as healthy."""
         # Mock all providers as rate limited
@@ -80,7 +98,8 @@ class TestHealthCheckBehavior:
             },
             "anthropic": {
                 "status": "degraded",
-                "message": "Too many requests - rate limited"
+                "message": "Too many requests - rate limited",
+                "status_code": 429
             }
         }
         
@@ -90,16 +109,24 @@ class TestHealthCheckBehavior:
             "claude-3": {"provider": "anthropic"}
         }
         
-        with patch('app.services.health_service.llm_config_service', mock_llm_config):
-            with patch.object(HealthService, '_check_llm_provider_connectivity',
-                            return_value=mock_provider_status):
-                service = HealthService()
-                service._check_llm_services()
-                
-                # Should still be healthy as rate limiting is temporary
-                assert service.service_status["llm"]["status"] == "healthy"
-                assert len(service.service_status["llm"]["rate_limited_providers"]) == 2
+        # Patch Config to disable mock modes
+        from app.config import Config
+        with patch.dict(os.environ, {'TESTING': 'false'}):
+            with patch.object(Config, 'USE_MOCK', False):
+                with patch.object(Config, 'MOCK_MODE', False):
+                    with patch.object(Config, 'TESTING', False):
+                        with patch('app.services.health_service.llm_config_service', mock_llm_config):
+                            with patch.object(HealthService, '_check_llm_provider_connectivity',
+                                            return_value=mock_provider_status):
+                                service = HealthService()
+                                service._check_llm_services()
+                                
+                                # Should still be healthy as rate limiting is temporary
+                                assert service.service_status["llm"]["status"] == "healthy"
+                                assert "rate_limited_providers" in service.service_status["llm"]
+                                assert len(service.service_status["llm"]["rate_limited_providers"]) == 2
     
+    @pytest.mark.unit
     def test_truly_unavailable_providers_cause_degraded(self, monkeypatch):
         """Test that truly unavailable providers cause degraded status."""
         # Mock all providers as unavailable (not just rate limited)
@@ -121,20 +148,29 @@ class TestHealthCheckBehavior:
             "claude-3": {"provider": "anthropic"}
         }
         
-        with patch('app.services.health_service.llm_config_service', mock_llm_config):
-            with patch.object(HealthService, '_check_llm_provider_connectivity',
-                            return_value=mock_provider_status):
-                service = HealthService()
-                service._check_llm_services()
-                
-                # Should be degraded when no providers are available
-                assert service.service_status["llm"]["status"] == "degraded"
-                assert "no providers are reachable" in service.service_status["llm"]["message"]
+        # Patch Config to disable mock modes
+        from app.config import Config
+        with patch.dict(os.environ, {'TESTING': 'false'}):
+            with patch.object(Config, 'USE_MOCK', False):
+                with patch.object(Config, 'MOCK_MODE', False):
+                    with patch.object(Config, 'TESTING', False):
+                        with patch('app.services.health_service.llm_config_service', mock_llm_config):
+                            with patch.object(HealthService, '_check_llm_provider_connectivity',
+                                            return_value=mock_provider_status):
+                                service = HealthService()
+                                service._check_llm_services()
+                                
+                                # Should be degraded when no providers are available
+                                assert service.service_status["llm"]["status"] == "degraded"
+                                assert "no providers are reachable" in service.service_status["llm"]["message"]
+                                # rate_limited_providers field is not included when all providers are down
 
 
+@pytest.mark.unit
 class TestHealthCheckEndpoints:
     """Test that endpoints use correct paths."""
     
+    @pytest.mark.unit
     def test_correct_endpoint_paths(self):
         """Document correct endpoint paths for health checks."""
         correct_endpoints = {

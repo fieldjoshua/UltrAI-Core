@@ -243,7 +243,7 @@ const OrchestratorInterface = () => {
               onChange={(e) => setUseFeatherOrchestration(e.target.checked)}
               className="mr-2"
             />
-            <span className="text-sm font-medium">Use Ultra Synthesis™ Orchestration</span>
+            <span className="text-sm font-medium">Use Ultra Synthesis™ Orchestration (recommended)</span>
           </label>
         </div>
       </div>
@@ -395,7 +395,7 @@ const OrchestratorInterface = () => {
             {!useFeatherOrchestration && (
               <div className="mb-6">
                 <h3 className="text-sm font-medium text-gray-700 mb-3">
-                  Legacy Analysis Type
+                  Basic Analysis Type (legacy display)
                 </h3>
                 <div className="flex space-x-6">
                   <label className="flex items-center cursor-pointer">
