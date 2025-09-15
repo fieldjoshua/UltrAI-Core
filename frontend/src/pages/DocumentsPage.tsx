@@ -1,6 +1,6 @@
 import React from 'react';
-import DocumentList from '../features/documents/components/DocumentList';
-import DocumentUpload from '../features/documents/components/DocumentUpload';
+import DocumentList from '../components/documents/DocumentList';
+import DocumentUpload from '../components/documents/DocumentUpload';
 
 const DocumentsPage: React.FC = () => {
   return (
