@@ -7,7 +7,7 @@ import {
 } from '../api/orchestrator';
 import { AnalysisPatternSelector } from './AnalysisPatternSelector';
 import { AnalysisProgress } from './atoms/AnalysisProgress';
-import SSEPanel from './panels/SSEPanel';
+const SSEPanel = React.lazy(() => import('./panels/SSEPanel'));
 
 /**
  * OrchestratorInterface component provides a user interface for
@@ -52,6 +52,17 @@ const OrchestratorInterface = () => {
 
   // Load available models and patterns on component mount
   useEffect(() => {
+    // Restore session
+    try {
+      const saved = JSON.parse(localStorage.getItem('orchestrator_session') || 'null');
+      if (saved) {
+        if (typeof saved.prompt === 'string') setPrompt(saved.prompt);
+        if (Array.isArray(saved.selectedModels)) setSelectedModels(saved.selectedModels);
+        if (typeof saved.leadModel === 'string') setLeadModel(saved.leadModel);
+        if (typeof saved.selectedPattern === 'string') setSelectedPattern(saved.selectedPattern);
+      }
+    } catch (_) {}
+
     const loadModels = async () => {
       setIsLoadingModels(true);
       try {
@@ -95,6 +106,18 @@ const OrchestratorInterface = () => {
     loadModels();
     loadPatterns();
   }, []);
+
+  // Persist session
+  useEffect(() => {
+    try {
+      localStorage.setItem('orchestrator_session', JSON.stringify({
+        prompt,
+        selectedModels,
+        leadModel,
+        selectedPattern,
+      }));
+    } catch (_) {}
+  }, [prompt, selectedModels, leadModel, selectedPattern]);
 
   // Handle model selection changes
   const handleModelToggle = (model) => {
@@ -501,7 +524,9 @@ const OrchestratorInterface = () => {
               </div>
 
               <div className="mt-6">
-                <SSEPanel correlationId={correlationId} title="Live Model Events" />
+                <React.Suspense fallback={<div className="text-sm text-gray-500">Loading live events…</div>}>
+                  <SSEPanel correlationId={correlationId} title="Live Model Events" />
+                </React.Suspense>
               </div>
             </div>
           )}
