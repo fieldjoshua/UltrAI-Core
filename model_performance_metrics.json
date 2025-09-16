@@ -12,7 +12,7 @@
       "comprehensive",
       "code"
     ],
-    "availability_score": 0.7
+    "availability_score": 0.39999999999999997
   },
   "gpt-4-turbo": {
     "model_name": "gpt-4-turbo",
@@ -30,17 +30,17 @@
   },
   "gpt-4o": {
     "model_name": "gpt-4o",
-    "successful_syntheses": 45,
+    "successful_syntheses": 46,
     "failed_syntheses": 0,
     "average_quality_score": 8.5,
     "average_response_time": 5.0,
-    "last_used": "2025-09-15T04:58:04.959839",
+    "last_used": "2025-09-16T06:01:44.391567",
     "expertise_areas": [
       "multimodal",
       "technical",
       "reasoning"
     ],
-    "availability_score": 0.7
+    "availability_score": 0.39999999999999997
   },
   "o1-preview": {
     "model_name": "o1-preview",
@@ -54,15 +54,15 @@
       "mathematical",
       "strategic"
     ],
-    "availability_score": 0.7
+    "availability_score": 0.39999999999999997
   },
   "claude-3-5-sonnet-20241022": {
     "model_name": "claude-3-5-sonnet-20241022",
-    "successful_syntheses": 0,
+    "successful_syntheses": 2,
     "failed_syntheses": 0,
-    "average_quality_score": 0.0,
-    "average_response_time": 0.0,
-    "last_used": null,
+    "average_quality_score": 8.5,
+    "average_response_time": 5.0,
+    "last_used": "2025-09-16T06:21:49.308995",
     "expertise_areas": [
       "nuanced",
       "ethical",
@@ -112,21 +112,21 @@
       "multimodal",
       "research"
     ],
-    "availability_score": 0.7
+    "availability_score": 0.39999999999999997
   },
   "gemini-1.5-flash": {
     "model_name": "gemini-1.5-flash",
-    "successful_syntheses": 23,
+    "successful_syntheses": 25,
     "failed_syntheses": 0,
     "average_quality_score": 8.5,
     "average_response_time": 5.0,
-    "last_used": "2025-09-15T04:58:04.952386",
+    "last_used": "2025-09-16T05:55:08.778084",
     "expertise_areas": [
       "fast",
       "efficient",
       "factual"
     ],
-    "availability_score": 1.0
+    "availability_score": 0.7
   },
   "gemini-2.0-flash-exp": {
     "model_name": "gemini-2.0-flash-exp",
@@ -150,7 +150,7 @@
     "average_response_time": 0.0,
     "last_used": null,
     "expertise_areas": [],
-    "availability_score": 0.7
+    "availability_score": 0.39999999999999997
   },
   "gpt-4o-mini": {
     "model_name": "gpt-4o-mini",
@@ -160,7 +160,7 @@
     "average_response_time": 0.0,
     "last_used": null,
     "expertise_areas": [],
-    "availability_score": 0.7
+    "availability_score": 0.39999999999999997
   },
   "claude-3-opus-20240229": {
     "model_name": "claude-3-opus-20240229",

@@ -29,7 +29,11 @@ except TypeError:
     # Fallback construction for older/newer httpx versions
     timeout = httpx.Timeout(connect=45.0, read=45.0, write=45.0, pool=45.0)
 
-CLIENT = httpx.AsyncClient(timeout=timeout)
+# Configure limits for better concurrent performance
+# Allow up to 100 connections total, 10 per host
+limits = httpx.Limits(max_keepalive_connections=20, max_connections=100, keepalive_expiry=30.0)
+
+CLIENT = httpx.AsyncClient(timeout=timeout, limits=limits)
 
 # Backward-compat: some tests expect `CLIENT.timeout.total == 45.0`
 try:  # best-effort; ignore if httpx changes internals
