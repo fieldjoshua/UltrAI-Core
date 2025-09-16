@@ -88,7 +88,7 @@ class Config:
     CONCURRENT_EXECUTION_TIMEOUT = int(os.getenv("CONCURRENT_EXECUTION_TIMEOUT", "70"))
 
     # Orchestration Model Requirements
-    MINIMUM_MODELS_REQUIRED = int(os.getenv("MINIMUM_MODELS_REQUIRED", "2"))
+    MINIMUM_MODELS_REQUIRED = int(os.getenv("MINIMUM_MODELS_REQUIRED", "3"))
     ENABLE_SINGLE_MODEL_FALLBACK = os.getenv("ENABLE_SINGLE_MODEL_FALLBACK", "false").lower() == "true"
 
     # Retry configuration (aligns with legacy app.config.Config)
@@ -180,7 +180,7 @@ class Config:
 
     # Multi-model policy
     # Enforce at least N healthy models to keep UltrAI online.
-    MINIMUM_MODELS_REQUIRED = int(os.getenv("MINIMUM_MODELS_REQUIRED", "2"))
+    MINIMUM_MODELS_REQUIRED = int(os.getenv("MINIMUM_MODELS_REQUIRED", "3"))
     # Explicitly control single-model fallback behavior
     ENABLE_SINGLE_MODEL_FALLBACK = os.getenv("ENABLE_SINGLE_MODEL_FALLBACK", "false").lower() == "true"
 
