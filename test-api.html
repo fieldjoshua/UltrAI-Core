@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>UltrAI API Test - 3 LLMs</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; }
+        button { padding: 10px 20px; font-size: 16px; margin: 10px; }
+        #result { margin-top: 20px; padding: 20px; background: #f0f0f0; }
+        .success { color: green; }
+        .error { color: red; }
+        .model { margin: 10px 0; padding: 10px; background: white; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <h1>UltrAI Backend Test - Verify 3 LLMs Working</h1>
+    
+    <button onclick="testHealth()">Test API Health</button>
+    <button onclick="testModels()">Test Available Models</button>
+    <button onclick="testOrchestration()">Test Orchestration</button>
+    
+    <div id="result"></div>
+
+    <script>
+        const API_URL = 'https://ultrai-staging-api.onrender.com';
+        
+        async function testHealth() {
+            const result = document.getElementById('result');
+            try {
+                const response = await fetch(`${API_URL}/api/health`);
+                const data = await response.json();
+                result.innerHTML = `<h3 class="success">Health Check</h3><pre>${JSON.stringify(data, null, 2)}</pre>`;
+            } catch (error) {
+                result.innerHTML = `<h3 class="error">Error</h3><pre>${error.message}</pre>`;
+            }
+        }
+        
+        async function testModels() {
+            const result = document.getElementById('result');
+            try {
+                const response = await fetch(`${API_URL}/api/available-models`);
+                const data = await response.json();
+                
+                // Group by provider
+                const byProvider = {};
+                data.models.forEach(model => {
+                    if (!byProvider[model.provider]) byProvider[model.provider] = [];
+                    byProvider[model.provider].push(model.name);
+                });
+                
+                let html = '<h3 class="success">Available Models (' + data.healthy_count + ' healthy)</h3>';
+                for (const [provider, models] of Object.entries(byProvider)) {
+                    html += `<div class="model"><strong>${provider.toUpperCase()}</strong>: ${models.length} models<br>${models.join(', ')}</div>`;
+                }
+                result.innerHTML = html;
+            } catch (error) {
+                result.innerHTML = `<h3 class="error">Error</h3><pre>${error.message}</pre>`;
+            }
+        }
+        
+        async function testOrchestration() {
+            const result = document.getElementById('result');
+            result.innerHTML = '<h3>Testing orchestration...</h3>';
+            
+            try {
+                const response = await fetch(`${API_URL}/api/orchestrator/simple`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        query: "What is 2+2? (This is a test of the UltrAI 3-model orchestration system)",
+                        analysis_type: "quick"
+                    })
+                });
+                
+                const data = await response.json();
+                result.innerHTML = `<h3 class="${data.status === 'success' ? 'success' : 'error'}">Orchestration Result</h3><pre>${JSON.stringify(data, null, 2)}</pre>`;
+            } catch (error) {
+                result.innerHTML = `<h3 class="error">Error</h3><pre>${error.message}</pre>`;
+            }
+        }
+    </script>
+</body>
+</html>
