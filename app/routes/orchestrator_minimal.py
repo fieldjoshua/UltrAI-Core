@@ -264,9 +264,9 @@ def create_router() -> APIRouter:
 
             # Enforce minimum model requirement
             from app.config import Config as _Cfg  # local import to avoid top-level cycles
-            required_models_cfg = getattr(_Cfg, "MINIMUM_MODELS_REQUIRED", 2)
+            required_models_cfg = getattr(_Cfg, "MINIMUM_MODELS_REQUIRED", 3)
             if model_count < required_models_cfg:
-                logger.error(f"Insufficient models available: {model_count} < 2")
+                logger.error(f"Insufficient models available: {model_count} < {required_models_cfg}")
                 # Gather provider availability details for human-readable error
                 try:
                     health_summary = await provider_health_manager.get_health_summary()

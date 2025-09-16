@@ -479,8 +479,8 @@ class OrchestrationService:
         
         selected_models = final_models[:3]  # Limit to 3 models max
 
-        # Enforce minimum 2 models for orchestration
-        if not selected_models or len(selected_models) < 2:
+        # Enforce minimum required models for orchestration
+        if not selected_models or len(selected_models) < Config.MINIMUM_MODELS_REQUIRED:
             # Get provider health status for detailed error message
             health_summary = await provider_health_manager.get_health_summary()
             available_providers = health_summary["_system"]["available_providers"]

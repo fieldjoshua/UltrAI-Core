@@ -294,7 +294,12 @@ export default function CyberWizard() {
 
   // Kick off Ultra Synthesis pipeline when status is shown (hook placed before any conditional returns)
   useEffect(() => {
+    // Enforce minimum 3 selected models client-side to avoid unnecessary calls
     if (!showStatus || isRunning) return;
+    if ((selectedModels?.length || 0) > 0 && selectedModels.length < 3) {
+      setOrchestratorError('At least 3 models are required to run Ultra Synthesis.');
+      return;
+    }
     setIsRunning(true);
     (async () => {
       try {
