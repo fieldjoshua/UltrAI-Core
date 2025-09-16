@@ -86,7 +86,13 @@ export const Textarea: React.FC<TextareaProps> = ({
           rows={rows}
           maxLength={maxLength}
           onKeyDown={handleKeyDown}
-          style={{ ['--ta-radius' as any]: tokens.borderRadius.base, ['--ta-pad-y' as any]: tokens.spacing.sm, ['--ta-pad-x' as any]: tokens.spacing.md } as React.CSSProperties}
+          style={
+            {
+              ['--ta-radius' as any]: tokens.borderRadius.base,
+              ['--ta-pad-y' as any]: tokens.spacing.sm,
+              ['--ta-pad-x' as any]: tokens.spacing.md,
+            } as React.CSSProperties
+          }
           className={`w-full bg-white border rounded-[var(--ta-radius)] shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 py-[var(--ta-pad-y)] px-[var(--ta-pad-x)] ${
             error ? 'border-red-300' : 'border-gray-300'
           } ${disabled ? 'cursor-not-allowed opacity-50' : 'resize-none'}`}

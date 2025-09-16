@@ -14,8 +14,10 @@ export const Alert = forwardRef<HTMLDivElement, AlertProps>(
         className={cn(
           'relative w-full rounded-lg border p-4',
           {
-            'bg-white text-gray-950 dark:bg-gray-950 dark:text-gray-50': variant === 'default',
-            'border-red-500/50 text-red-600 dark:border-red-500 [&>svg]:text-red-600': variant === 'destructive',
+            'bg-white text-gray-950 dark:bg-gray-950 dark:text-gray-50':
+              variant === 'default',
+            'border-red-500/50 text-red-600 dark:border-red-500 [&>svg]:text-red-600':
+              variant === 'destructive',
           },
           className
         )}
@@ -27,19 +29,21 @@ export const Alert = forwardRef<HTMLDivElement, AlertProps>(
 
 Alert.displayName = 'Alert';
 
-export interface AlertDescriptionProps extends HTMLAttributes<HTMLParagraphElement> {}
+export interface AlertDescriptionProps
+  extends HTMLAttributes<HTMLParagraphElement> {}
 
-export const AlertDescription = forwardRef<HTMLParagraphElement, AlertDescriptionProps>(
-  ({ className, ...props }, ref) => {
-    return (
-      <div
-        ref={ref}
-        className={cn('text-sm [&_p]:leading-relaxed', className)}
-        {...props}
-      />
-    );
-  }
-);
+export const AlertDescription = forwardRef<
+  HTMLParagraphElement,
+  AlertDescriptionProps
+>(({ className, ...props }, ref) => {
+  return (
+    <div
+      ref={ref}
+      className={cn('text-sm [&_p]:leading-relaxed', className)}
+      {...props}
+    />
+  );
+});
 
 AlertDescription.displayName = 'AlertDescription';
 
@@ -50,7 +54,10 @@ export const AlertTitle = forwardRef<HTMLParagraphElement, AlertTitleProps>(
     return (
       <h5
         ref={ref}
-        className={cn('mb-1 font-medium leading-none tracking-tight', className)}
+        className={cn(
+          'mb-1 font-medium leading-none tracking-tight',
+          className
+        )}
         {...props}
       />
     );

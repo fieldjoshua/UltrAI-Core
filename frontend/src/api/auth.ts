@@ -1,7 +1,8 @@
 import axios from 'axios';
 
 // @ts-ignore
-const API_URL = (globalThis.import?.meta?.env?.VITE_API_URL) || 'http://localhost:8000/api';
+const API_URL =
+  globalThis.import?.meta?.env?.VITE_API_URL || 'http://localhost:8000/api';
 
 export interface LoginResponse {
   user: {
@@ -27,7 +28,10 @@ export interface User {
   name?: string;
 }
 
-export async function login(email: string, password: string): Promise<LoginResponse> {
+export async function login(
+  email: string,
+  password: string
+): Promise<LoginResponse> {
   const response = await axios.post(`${API_URL}/auth/login`, {
     email,
     password,
@@ -35,7 +39,11 @@ export async function login(email: string, password: string): Promise<LoginRespo
   return response.data;
 }
 
-export async function register(email: string, password: string, name?: string): Promise<RegisterResponse> {
+export async function register(
+  email: string,
+  password: string,
+  name?: string
+): Promise<RegisterResponse> {
   const response = await axios.post(`${API_URL}/auth/register`, {
     email,
     password,
@@ -44,7 +52,9 @@ export async function register(email: string, password: string, name?: string): 
   return response.data;
 }
 
-export async function refreshToken(refresh_token: string): Promise<RefreshTokenResponse> {
+export async function refreshToken(
+  refresh_token: string
+): Promise<RefreshTokenResponse> {
   const response = await axios.post(`${API_URL}/auth/refresh`, {
     refresh_token,
   });

@@ -78,15 +78,15 @@ const AnalysisForm = () => {
   }, []);
 
   // Handle model selection
-  const handleModelSelect = (model) => {
+  const handleModelSelect = model => {
     // If already selected, remove it (unless it's the last one)
     if (selectedModels.includes(model)) {
       if (selectedModels.length > 1) {
-        setSelectedModels(selectedModels.filter((m) => m !== model));
+        setSelectedModels(selectedModels.filter(m => m !== model));
 
         // If removing the primary model, set a new one
         if (primaryModel === model) {
-          setPrimaryModel(selectedModels.filter((m) => m !== model)[0]);
+          setPrimaryModel(selectedModels.filter(m => m !== model)[0]);
         }
       }
     } else {
@@ -96,7 +96,7 @@ const AnalysisForm = () => {
   };
 
   // Set primary model
-  const handlePrimaryModelChange = (model) => {
+  const handlePrimaryModelChange = model => {
     // Ensure model is selected
     if (!selectedModels.includes(model)) {
       setSelectedModels([...selectedModels, model]);
@@ -105,7 +105,7 @@ const AnalysisForm = () => {
   };
 
   // Handle form submission
-  const handleSubmit = async (e) => {
+  const handleSubmit = async e => {
     e.preventDefault();
 
     // Validate form
@@ -151,7 +151,7 @@ const AnalysisForm = () => {
   };
 
   // Format model name for display
-  const formatModelName = (model) => {
+  const formatModelName = model => {
     // Convert model IDs to readable names
     const modelMap = {
       gpt4o: 'GPT-4o',
@@ -200,7 +200,7 @@ const AnalysisForm = () => {
           <textarea
             id="prompt"
             value={prompt}
-            onChange={(e) => setPrompt(e.target.value)}
+            onChange={e => setPrompt(e.target.value)}
             className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
             rows={4}
             placeholder="What would you like to analyze?"
@@ -221,7 +221,7 @@ const AnalysisForm = () => {
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
-              {availableModels.map((model) => (
+              {availableModels.map(model => (
                 <div
                   key={model}
                   className={`border rounded-md p-3 cursor-pointer ${
@@ -279,7 +279,7 @@ const AnalysisForm = () => {
           </h3>
 
           <div className="space-y-2">
-            {patterns.map((p) => (
+            {patterns.map(p => (
               <div
                 key={p.id}
                 className={`border rounded-md p-3 cursor-pointer ${

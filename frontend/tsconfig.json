@@ -32,6 +32,11 @@
     "plugins": [{ "name": "typescript-plugin-css-modules" }]
   },
   "include": ["src", "**/*.d.ts"],
-  "exclude": ["src/**/__tests__/**/*", "src/tests/**/*", "**/*.test.*", "**/*.spec.*"],
+  "exclude": [
+    "src/**/__tests__/**/*",
+    "src/tests/**/*",
+    "**/*.test.*",
+    "**/*.spec.*"
+  ],
   "references": [{ "path": "./tsconfig.node.json" }]
 }

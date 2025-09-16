@@ -7,9 +7,11 @@ const REFRESH_TOKEN_KEY = 'ultra_refresh_token';
 
 // Check if we're in a secure context (HTTPS or localhost)
 const isSecureContext = () => {
-  return window.location.protocol === 'https:' || 
-         window.location.hostname === 'localhost' || 
-         window.location.hostname === '127.0.0.1';
+  return (
+    window.location.protocol === 'https:' ||
+    window.location.hostname === 'localhost' ||
+    window.location.hostname === '127.0.0.1'
+  );
 };
 
 // Secure token storage functions
@@ -51,7 +53,7 @@ const clearSecureTokens = (): void => {
 // console.log to aid debugging
 // Jest-safe env resolution (setupEnv.ts defines globalThis["import"].meta.env)
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const viteEnvApi: any = (globalThis as any)["import"]?.meta?.env ?? {};
+const viteEnvApi: any = (globalThis as any)['import']?.meta?.env ?? {};
 const API_URL = viteEnvApi.VITE_API_URL || 'http://localhost:8000/api';
 
 // Configuration for API calls (moved from component)
@@ -75,15 +77,15 @@ const apiClient: AxiosInstance = axios.create({
 if (appConfig.apiMode === 'mock') {
   const latencyMs = Number(viteEnvApi.VITE_MOCK_LATENCY_MS ?? 50000);
 
-  apiClient.interceptors.request.use(async (cfg) => {
+  apiClient.interceptors.request.use(async cfg => {
     // Simulate latency
-    await new Promise((r) => setTimeout(r, isNaN(latencyMs) ? 0 : latencyMs));
+    await new Promise(r => setTimeout(r, isNaN(latencyMs) ? 0 : latencyMs));
     return cfg;
   });
 
   apiClient.interceptors.response.use(
-    (response) => response,
-    async (error) => {
+    response => response,
+    async error => {
       const url = (error?.config?.url || '') as string;
       // Provide minimal mock responses for known endpoints
       if (url.includes('/available-models')) {
@@ -92,12 +94,30 @@ if (appConfig.apiMode === 'mock') {
           status: 200,
           data: {
             models: [
-              { name: 'gpt-4', provider: 'openai', status: 'mock', max_tokens: 8192, cost_per_1k_tokens: 0.0 },
-              { name: 'claude-3-sonnet', provider: 'anthropic', status: 'mock', max_tokens: 200000, cost_per_1k_tokens: 0.0 },
-              { name: 'gemini-pro', provider: 'google', status: 'mock', max_tokens: 32768, cost_per_1k_tokens: 0.0 }
+              {
+                name: 'gpt-4',
+                provider: 'openai',
+                status: 'mock',
+                max_tokens: 8192,
+                cost_per_1k_tokens: 0.0,
+              },
+              {
+                name: 'claude-3-sonnet',
+                provider: 'anthropic',
+                status: 'mock',
+                max_tokens: 200000,
+                cost_per_1k_tokens: 0.0,
+              },
+              {
+                name: 'gemini-pro',
+                provider: 'google',
+                status: 'mock',
+                max_tokens: 32768,
+                cost_per_1k_tokens: 0.0,
+              },
             ],
             total_count: 3,
-            healthy_count: 3
+            healthy_count: 3,
           },
           config: error.config,
           request: error.request,
@@ -112,20 +132,29 @@ if (appConfig.apiMode === 'mock') {
             initial_response: {
               output: {
                 responses: {
-                  'gpt-4-turbo-preview': 'Focus on electric public transportation and cycling infrastructure. Cities that invest in electric bus fleets and protected bike lanes see significant emission reductions and improved quality of life.',
-                  'claude-3-opus-20240229': 'Sustainable urban transport requires integrated planning that combines mass transit, cycling infrastructure, and smart traffic management. Key is reducing car dependency through convenient alternatives.',
-                  'gemini-1.5-pro-latest': 'Smart traffic management systems using AI can reduce congestion by 25%. Combined with investment in public transit and bike infrastructure, cities can achieve carbon neutrality in transport by 2030.'
+                  'gpt-4-turbo-preview':
+                    'Focus on electric public transportation and cycling infrastructure. Cities that invest in electric bus fleets and protected bike lanes see significant emission reductions and improved quality of life.',
+                  'claude-3-opus-20240229':
+                    'Sustainable urban transport requires integrated planning that combines mass transit, cycling infrastructure, and smart traffic management. Key is reducing car dependency through convenient alternatives.',
+                  'gemini-1.5-pro-latest':
+                    'Smart traffic management systems using AI can reduce congestion by 25%. Combined with investment in public transit and bike infrastructure, cities can achieve carbon neutrality in transport by 2030.',
                 },
-                successful_models: ['gpt-4-turbo-preview', 'claude-3-opus-20240229', 'gemini-1.5-pro-latest']
-              }
+                successful_models: [
+                  'gpt-4-turbo-preview',
+                  'claude-3-opus-20240229',
+                  'gemini-1.5-pro-latest',
+                ],
+              },
             },
             peer_review_and_revision: {
               output: {
                 revised_responses: {
-                  'gpt-4-turbo-preview': 'Added specific statistics: Cities implementing electric bus fleets have seen 40% reduction in emissions. Protected bike lanes increase cycling adoption by 75%.',
-                  'claude-3-opus-20240229': 'Enhanced with policy recommendations: Implement dynamic parking pricing, develop integrated mobility apps, and create car-free zones in city centers.'
-                }
-              }
+                  'gpt-4-turbo-preview':
+                    'Added specific statistics: Cities implementing electric bus fleets have seen 40% reduction in emissions. Protected bike lanes increase cycling adoption by 75%.',
+                  'claude-3-opus-20240229':
+                    'Enhanced with policy recommendations: Implement dynamic parking pricing, develop integrated mobility apps, and create car-free zones in city centers.',
+                },
+              },
             },
             ultra_synthesis: {
               output: {
@@ -145,26 +174,52 @@ if (appConfig.apiMode === 'mock') {
 **Future Outlook:**
 The convergence of autonomous vehicles, renewable energy, and smart city infrastructure will revolutionize urban mobility by 2030.
 
-*This analysis synthesized insights from GPT-4, Claude 3, and Gemini Pro to provide a comprehensive perspective.*`
-              }
+*This analysis synthesized insights from GPT-4, Claude 3, and Gemini Pro to provide a comprehensive perspective.*`,
+              },
             },
-            formatted_synthesis: 'Ultra Synthesis™ Complete'
+            formatted_synthesis: 'Ultra Synthesis™ Complete',
           },
           pipeline_info: {
-            models_used: ['gpt-4-turbo-preview', 'claude-3-opus-20240229', 'gemini-1.5-pro-latest'],
-            pattern: 'comparative'
-          }
+            models_used: [
+              'gpt-4-turbo-preview',
+              'claude-3-opus-20240229',
+              'gemini-1.5-pro-latest',
+            ],
+            pattern: 'comparative',
+          },
         };
-        return { ...error, status: 200, data: mockData, config: error.config, request: error.request } as any;
+        return {
+          ...error,
+          status: 200,
+          data: mockData,
+          config: error.config,
+          request: error.request,
+        } as any;
       }
 
       if (url.includes('/analyze')) {
-        const mockSimple = { success: true, model_used: 'gpt-4', analysis: 'Mock simple analysis result' };
-        return { ...error, status: 200, data: mockSimple, config: error.config, request: error.request } as any;
+        const mockSimple = {
+          success: true,
+          model_used: 'gpt-4',
+          analysis: 'Mock simple analysis result',
+        };
+        return {
+          ...error,
+          status: 200,
+          data: mockSimple,
+          config: error.config,
+          request: error.request,
+        } as any;
       }
 
       if (url.includes('/health')) {
-        return { ...error, status: 200, data: { status: 'ok', mode: 'mock' }, config: error.config, request: error.request } as any;
+        return {
+          ...error,
+          status: 200,
+          data: { status: 'ok', mode: 'mock' },
+          config: error.config,
+          request: error.request,
+        } as any;
       }
 
       // Default: return a 501-like stub to surface missing mocks clearly
@@ -180,7 +235,7 @@ The convergence of autonomous vehicles, renewable energy, and smart city infrast
 }
 
 // Add retry interceptor (moved from component)
-apiClient.interceptors.response.use(undefined, async (error) => {
+apiClient.interceptors.response.use(undefined, async error => {
   const { config, response = {} } = error;
 
   // Skip retry for specific error status codes or if we've already retried the maximum times
@@ -201,7 +256,7 @@ apiClient.interceptors.response.use(undefined, async (error) => {
     API_CONFIG.retryDelay * Math.pow(2, (config as any).__retryCount - 1);
 
   // Wait for the delay
-  await new Promise((resolve) => setTimeout(resolve, delay));
+  await new Promise(resolve => setTimeout(resolve, delay));
 
   // Retry the request
   return apiClient(config);
@@ -211,14 +266,14 @@ apiClient.interceptors.response.use(undefined, async (error) => {
 const PUBLIC_ENDPOINTS = [
   '/available-models',
   '/health',
-  '/orchestrator/feather' // Updated to use Feather orchestration
+  '/orchestrator/feather', // Updated to use Feather orchestration
 ];
 
 // Request interceptor (keep existing)
 apiClient.interceptors.request.use(
-  (config) => {
+  config => {
     // Check if this is a public endpoint
-    const isPublicEndpoint = PUBLIC_ENDPOINTS.some(endpoint => 
+    const isPublicEndpoint = PUBLIC_ENDPOINTS.some(endpoint =>
       config.url?.includes(endpoint)
     );
 
@@ -232,7 +287,7 @@ apiClient.interceptors.request.use(
 
     return config;
   },
-  (error) => {
+  error => {
     console.error('Request error:', error);
     return Promise.reject(error);
   }
@@ -241,8 +296,8 @@ apiClient.interceptors.request.use(
 // Response interceptor (keep existing token refresh logic, merge retry logic)
 // Note: Retry logic moved above to avoid duplication
 apiClient.interceptors.response.use(
-  (response) => response,
-  async (error) => {
+  response => response,
+  async error => {
     const originalRequest = error.config;
 
     // Handle token refresh for 401 errors
@@ -323,7 +378,7 @@ export const endpoints = {
   // Analysis endpoints
   analysis: {
     analyze: '/analyze', // Simple analysis endpoint
-    orchestrator: '/orchestrator/analyze', // Multi-stage orchestrator endpoint  
+    orchestrator: '/orchestrator/analyze', // Multi-stage orchestrator endpoint
     analyzeWithDocs: '/analyze-with-docs',
     getById: (id: string) => `/analysis/${id}`,
     getHistory: '/analysis/history',
@@ -391,7 +446,7 @@ export const fetchAvailableModels = async (): Promise<string[]> => {
     console.warn('Using fallback model list');
     const fallbackModels = [
       'gpt-4',
-      'gpt-4-turbo', 
+      'gpt-4-turbo',
       'claude-3-sonnet',
       'claude-3-haiku',
       'gemini-pro',
@@ -449,27 +504,30 @@ export const analyzePrompt = async (
   try {
     // Use orchestrator for multimodal analysis when multiple models selected
     const useOrchestrator = payload.selected_models.length > 1;
-    
+
     let response;
-    
+
     if (useOrchestrator) {
       // Use orchestrator for multi-model analysis
       const orchestratorPayload = {
         query: payload.prompt,
         analysis_type: payload.pattern || 'comprehensive',
         options: payload.options || {},
-        selected_models: payload.selected_models
+        selected_models: payload.selected_models,
       };
 
-      console.log('Sending orchestrator request with payload:', orchestratorPayload);
-      
+      console.log(
+        'Sending orchestrator request with payload:',
+        orchestratorPayload
+      );
+
       response = await apiClient.post<any>(
         endpoints.analysis.orchestrator,
         orchestratorPayload
       );
-      
+
       console.log('Received orchestrator response:', response.data);
-      
+
       if (!response.data.success) {
         throw new Error(response.data.error || 'Orchestrator analysis failed');
       }
@@ -477,30 +535,46 @@ export const analyzePrompt = async (
       // Transform orchestrator response to expected format
       const modelResponses: any = {};
       const results = response.data.results;
-      
+
       // Check if initial_response stage has output with responses
-      if (results.initial_response && results.initial_response.output && results.initial_response.output.responses) {
-        Object.entries(results.initial_response.output.responses).forEach(([model, content]: [string, any]) => {
-          modelResponses[model] = {
-            response: typeof content === 'string' ? content : JSON.stringify(content),
-            model: model,
-            status: 'success'
-          };
-        });
+      if (
+        results.initial_response &&
+        results.initial_response.output &&
+        results.initial_response.output.responses
+      ) {
+        Object.entries(results.initial_response.output.responses).forEach(
+          ([model, content]: [string, any]) => {
+            modelResponses[model] = {
+              response:
+                typeof content === 'string' ? content : JSON.stringify(content),
+              model: model,
+              status: 'success',
+            };
+          }
+        );
       } else {
         // Fallback: check if there are any stage results we can use
         console.log('Orchestrator response structure:', results);
         for (const [stageName, stageResult] of Object.entries(results)) {
-          if (stageResult && typeof stageResult === 'object' && (stageResult as any).output) {
+          if (
+            stageResult &&
+            typeof stageResult === 'object' &&
+            (stageResult as any).output
+          ) {
             const output = (stageResult as any).output;
             if (output && typeof output === 'object' && output.responses) {
-              Object.entries(output.responses).forEach(([model, content]: [string, any]) => {
-                modelResponses[model] = {
-                  response: typeof content === 'string' ? content : JSON.stringify(content),
-                  model: model,
-                  status: 'success'
-                };
-              });
+              Object.entries(output.responses).forEach(
+                ([model, content]: [string, any]) => {
+                  modelResponses[model] = {
+                    response:
+                      typeof content === 'string'
+                        ? content
+                        : JSON.stringify(content),
+                    model: model,
+                    status: 'success',
+                  };
+                }
+              );
               break; // Use the first stage with responses
             }
           }
@@ -509,7 +583,7 @@ export const analyzePrompt = async (
 
       // Create a more readable combined response
       let combinedResponse = 'Multimodal Analysis Results:\n\n';
-      
+
       // Add individual model responses
       if (Object.keys(modelResponses).length > 0) {
         combinedResponse += '=== Individual Model Responses ===\n\n';
@@ -517,33 +591,36 @@ export const analyzePrompt = async (
           combinedResponse += `${model}:\n${(response as any).response}\n\n`;
         }
       }
-      
+
       // Add meta-analysis if available
       if (results.meta_analysis && results.meta_analysis.output) {
         combinedResponse += '=== Meta-Analysis ===\n\n';
-        combinedResponse += typeof results.meta_analysis.output === 'string' 
-          ? results.meta_analysis.output 
-          : JSON.stringify(results.meta_analysis.output, null, 2);
+        combinedResponse +=
+          typeof results.meta_analysis.output === 'string'
+            ? results.meta_analysis.output
+            : JSON.stringify(results.meta_analysis.output, null, 2);
         combinedResponse += '\n\n';
       }
-      
+
       // Add ultra-synthesis if available
       if (results.ultra_synthesis && results.ultra_synthesis.output) {
         combinedResponse += '=== Ultra-Synthesis ===\n\n';
-        combinedResponse += typeof results.ultra_synthesis.output === 'string' 
-          ? results.ultra_synthesis.output 
-          : JSON.stringify(results.ultra_synthesis.output, null, 2);
+        combinedResponse +=
+          typeof results.ultra_synthesis.output === 'string'
+            ? results.ultra_synthesis.output
+            : JSON.stringify(results.ultra_synthesis.output, null, 2);
         combinedResponse += '\n\n';
       }
-      
+
       // Add hyper-level analysis if available
       if (results.hyper_level_analysis && results.hyper_level_analysis.output) {
         combinedResponse += '=== Hyper-Level Analysis ===\n\n';
-        combinedResponse += typeof results.hyper_level_analysis.output === 'string' 
-          ? results.hyper_level_analysis.output 
-          : JSON.stringify(results.hyper_level_analysis.output, null, 2);
+        combinedResponse +=
+          typeof results.hyper_level_analysis.output === 'string'
+            ? results.hyper_level_analysis.output
+            : JSON.stringify(results.hyper_level_analysis.output, null, 2);
       }
-      
+
       // Fallback if no structured content
       if (combinedResponse === 'Multimodal Analysis Results:\n\n') {
         combinedResponse = JSON.stringify(results, null, 2);
@@ -555,18 +632,20 @@ export const analyzePrompt = async (
         model_responses: modelResponses,
         combined_response: combinedResponse,
         timestamp: new Date().toISOString(),
-        processing_time: response.data.processing_time
+        processing_time: response.data.processing_time,
       };
-      
     } else {
       // Use simple analysis for single model
       const simplePayload = {
         text: payload.prompt,
         model: payload.selected_models[0] || 'gpt-4',
-        temperature: 0.7
+        temperature: 0.7,
       };
 
-      console.log('Sending simple analysis request with payload:', simplePayload);
+      console.log(
+        'Sending simple analysis request with payload:',
+        simplePayload
+      );
 
       response = await apiClient.post<any>(
         endpoints.analysis.analyze,
@@ -587,11 +666,11 @@ export const analyzePrompt = async (
           [response.data.model_used]: {
             response: response.data.analysis,
             model: response.data.model_used,
-            status: 'success'
-          }
+            status: 'success',
+          },
         },
         combined_response: response.data.analysis,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       };
     }
   } catch (error: any) {
@@ -625,6 +704,12 @@ export const analyzePrompt = async (
 };
 
 // Export secure token management functions
-export { setSecureToken, getSecureToken, setSecureRefreshToken, getSecureRefreshToken, clearSecureTokens };
+export {
+  setSecureToken,
+  getSecureToken,
+  setSecureRefreshToken,
+  getSecureRefreshToken,
+  clearSecureTokens,
+};
 
 export default apiClient;

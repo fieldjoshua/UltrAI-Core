@@ -49,7 +49,7 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
 
   const toggleSection = (sectionId: string) => {
     if (expandedSections.includes(sectionId)) {
-      setExpandedSections(expandedSections.filter((id) => id !== sectionId));
+      setExpandedSections(expandedSections.filter(id => id !== sectionId));
     } else {
       setExpandedSections([...expandedSections, sectionId]);
     }
@@ -177,7 +177,7 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
         <div className="flex items-center space-x-2">
           <select
             value={viewMode}
-            onChange={(e) => setViewMode(e.target.value as any)}
+            onChange={e => setViewMode(e.target.value as any)}
             className="text-sm border border-gray-300 rounded-md px-2 py-1"
           >
             <option value="standard">Standard View</option>
@@ -191,7 +191,7 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
               downloadAsFile(
                 results
                   .map(
-                    (r) =>
+                    r =>
                       `# ${formatModelName(r.modelId, r.modelName)}\n\n${r.content}`
                   )
                   .join('\n\n---\n\n'),
@@ -212,7 +212,7 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
         className="w-full"
       >
         <TabsList className="w-full flex overflow-x-auto mb-2">
-          {results.map((result) => (
+          {results.map(result => (
             <TabsTrigger
               key={result.modelId}
               value={result.modelId}
@@ -229,7 +229,7 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
         </TabsList>
 
         {/* Individual model tabs */}
-        {results.map((result) => (
+        {results.map(result => (
           <TabsContent
             key={result.modelId}
             value={result.modelId}
@@ -276,7 +276,7 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
               {/* Sectioned content */}
               {result.sections && result.sections.length > 0 ? (
                 <div className="space-y-4">
-                  {result.sections.map((section) => {
+                  {result.sections.map(section => {
                     const isExpanded = expandedSections.includes(section.id);
 
                     return (
@@ -331,7 +331,7 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
             <div
               className={`grid ${viewMode === 'compact' ? 'grid-cols-1' : 'grid-cols-1 lg:grid-cols-2'} gap-4`}
             >
-              {results.map((result) => (
+              {results.map(result => (
                 <Card
                   key={result.modelId}
                   className="p-4 h-full overflow-hidden"

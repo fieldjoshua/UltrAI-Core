@@ -28,4 +28,4 @@ The cloud frontend works with the [cloud backend](../../backend/cloud) to provid
 
 ---
 
-*Note: This cloud frontend has been migrated as part of the Codebase Reorganization Plan. The original location was in `/cloud_frontend/`.*
+_Note: This cloud frontend has been migrated as part of the Codebase Reorganization Plan. The original location was in `/cloud_frontend/`._

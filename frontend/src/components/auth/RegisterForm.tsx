@@ -10,7 +10,7 @@ import { Alert, AlertDescription } from '../../components/ui/alert';
 export const RegisterForm: React.FC = () => {
   const navigate = useNavigate();
   const { register, isLoading, error, clearError } = useAuthStore();
-  
+
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -24,7 +24,7 @@ export const RegisterForm: React.FC = () => {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData(prev => ({
       ...prev,
-      [e.target.name]: e.target.value
+      [e.target.name]: e.target.value,
     }));
     // Clear errors when user types
     if (error) clearError();
@@ -36,7 +36,7 @@ export const RegisterForm: React.FC = () => {
       setValidationError('Passwords do not match');
       return false;
     }
-    
+
     if (formData.password.length < 8) {
       setValidationError('Password must be at least 8 characters long');
       return false;
@@ -54,19 +54,19 @@ export const RegisterForm: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validateForm()) {
       return;
     }
 
     try {
       await register(
-        formData.email, 
+        formData.email,
         formData.password,
         formData.username || undefined,
         formData.fullName || undefined
       );
-      
+
       // Show success message and redirect to login
       navigate('/login?registered=true');
     } catch (err) {
@@ -167,20 +167,22 @@ export const RegisterForm: React.FC = () => {
 
         <div className="text-xs text-gray-500 dark:text-gray-400">
           By creating an account, you agree to our{' '}
-          <Link to="/terms" className="text-blue-600 hover:underline dark:text-blue-400">
+          <Link
+            to="/terms"
+            className="text-blue-600 hover:underline dark:text-blue-400"
+          >
             Terms of Service
           </Link>{' '}
           and{' '}
-          <Link to="/privacy" className="text-blue-600 hover:underline dark:text-blue-400">
+          <Link
+            to="/privacy"
+            className="text-blue-600 hover:underline dark:text-blue-400"
+          >
             Privacy Policy
           </Link>
         </div>
 
-        <Button 
-          type="submit" 
-          className="w-full"
-          disabled={isLoading}
-        >
+        <Button type="submit" className="w-full" disabled={isLoading}>
           {isLoading ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -197,8 +199,8 @@ export const RegisterForm: React.FC = () => {
 
       <div className="text-center text-sm">
         Already have an account?{' '}
-        <Link 
-          to="/login" 
+        <Link
+          to="/login"
           className="text-blue-600 hover:underline dark:text-blue-400 font-medium"
         >
           Sign in

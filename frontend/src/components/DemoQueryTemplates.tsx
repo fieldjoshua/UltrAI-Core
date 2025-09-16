@@ -7,50 +7,53 @@ interface DemoQueryTemplatesProps {
 
 const DEMO_QUERIES = [
   {
-    category: "Business Analysis",
-    icon: "📊",
+    category: 'Business Analysis',
+    icon: '📊',
     queries: [
-      "Analyze the market opportunity for AI-powered educational tools targeting K-12 schools",
-      "Create a comprehensive business plan for a sustainable fashion marketplace",
-      "Evaluate the competitive landscape for electric vehicle charging networks"
-    ]
+      'Analyze the market opportunity for AI-powered educational tools targeting K-12 schools',
+      'Create a comprehensive business plan for a sustainable fashion marketplace',
+      'Evaluate the competitive landscape for electric vehicle charging networks',
+    ],
   },
   {
-    category: "Technical",
-    icon: "🔧",
+    category: 'Technical',
+    icon: '🔧',
     queries: [
-      "Design a scalable microservices architecture for a real-time collaboration platform",
-      "Compare different approaches to implementing real-time data synchronization",
-      "Create a technical roadmap for migrating from monolith to microservices"
-    ]
+      'Design a scalable microservices architecture for a real-time collaboration platform',
+      'Compare different approaches to implementing real-time data synchronization',
+      'Create a technical roadmap for migrating from monolith to microservices',
+    ],
   },
   {
-    category: "Creative",
-    icon: "🎨",
+    category: 'Creative',
+    icon: '🎨',
     queries: [
-      "Write a compelling pitch deck narrative for an AI mental health startup",
-      "Create a brand strategy for a Gen-Z focused financial app",
-      "Develop a content marketing strategy for a B2B SaaS platform"
-    ]
+      'Write a compelling pitch deck narrative for an AI mental health startup',
+      'Create a brand strategy for a Gen-Z focused financial app',
+      'Develop a content marketing strategy for a B2B SaaS platform',
+    ],
   },
   {
-    category: "Research",
-    icon: "🔬",
+    category: 'Research',
+    icon: '🔬',
     queries: [
-      "Analyze the ethical implications of AGI development",
-      "Research the future of quantum computing in cryptography",
-      "Investigate the impact of remote work on urban development"
-    ]
-  }
+      'Analyze the ethical implications of AGI development',
+      'Research the future of quantum computing in cryptography',
+      'Investigate the impact of remote work on urban development',
+    ],
+  },
 ];
 
-const DemoQueryTemplates = memo(function DemoQueryTemplates({ onSelectQuery, currentQuery }: DemoQueryTemplatesProps) {
+const DemoQueryTemplates = memo(function DemoQueryTemplates({
+  onSelectQuery,
+  currentQuery,
+}: DemoQueryTemplatesProps) {
   return (
     <div className="space-y-4">
       <div className="text-xs text-white/60 text-center mb-4">
         Try one of these example queries:
       </div>
-      
+
       <div className="grid grid-cols-2 gap-4">
         {DEMO_QUERIES.map((category, idx) => (
           <div key={idx} className="space-y-2">
@@ -58,7 +61,7 @@ const DemoQueryTemplates = memo(function DemoQueryTemplates({ onSelectQuery, cur
               <span>{category.icon}</span>
               <span>{category.category}</span>
             </div>
-            
+
             <div className="space-y-1">
               {category.queries.map((query, qIdx) => (
                 <button
@@ -77,7 +80,7 @@ const DemoQueryTemplates = memo(function DemoQueryTemplates({ onSelectQuery, cur
           </div>
         ))}
       </div>
-      
+
       <div className="text-center mt-6">
         <div className="text-[10px] text-white/50">
           Or type your own query above

@@ -34,7 +34,7 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({
   const groupedModels = useMemo(() => {
     const groups: Record<string, Model[]> = {};
 
-    availableModels.forEach((model) => {
+    availableModels.forEach(model => {
       if (!groups[model.provider]) {
         groups[model.provider] = [];
       }
@@ -48,7 +48,7 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({
   const [expanded, setExpanded] = useState<Record<string, boolean>>(() => {
     const initial: Record<string, boolean> = {};
     // Default to expanding all provider groups
-    Object.keys(groupedModels).forEach((provider) => {
+    Object.keys(groupedModels).forEach(provider => {
       initial[provider] = true;
     });
     return initial;
@@ -58,7 +58,7 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({
   const toggleModel = (modelId: string) => {
     if (selectedModels.includes(modelId)) {
       // Remove model from selection
-      onSelectionChange(selectedModels.filter((id) => id !== modelId));
+      onSelectionChange(selectedModels.filter(id => id !== modelId));
     } else {
       // Add model to selection if under max limit
       if (selectedModels.length < maxSelections) {
@@ -69,7 +69,7 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({
 
   // Toggle provider expansion
   const toggleProvider = (provider: string) => {
-    setExpanded((prev) => ({
+    setExpanded(prev => ({
       ...prev,
       [provider]: !prev[provider],
     }));
@@ -78,15 +78,15 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({
   // Select all models in a provider group
   const selectAllInProvider = (provider: string) => {
     const modelIds = groupedModels[provider]
-      .filter((model) => model.isAvailable)
-      .map((model) => model.id);
+      .filter(model => model.isAvailable)
+      .map(model => model.id);
 
     // Only add models up to max selections
     const currentSelected = [...selectedModels];
 
     // Remove any currently selected models from this provider
     const filteredSelected = currentSelected.filter(
-      (id) => !modelIds.includes(id)
+      id => !modelIds.includes(id)
     );
 
     // Add as many models as we can from this provider
@@ -98,23 +98,23 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({
 
   // Clear all selections from a provider
   const clearProvider = (provider: string) => {
-    const modelIds = groupedModels[provider].map((model) => model.id);
-    onSelectionChange(selectedModels.filter((id) => !modelIds.includes(id)));
+    const modelIds = groupedModels[provider].map(model => model.id);
+    onSelectionChange(selectedModels.filter(id => !modelIds.includes(id)));
   };
 
   // Check if all models in a provider are selected
   const isProviderFullySelected = (provider: string) => {
     const availableModelIds = groupedModels[provider]
-      .filter((model) => model.isAvailable)
-      .map((model) => model.id);
+      .filter(model => model.isAvailable)
+      .map(model => model.id);
 
-    return availableModelIds.every((id) => selectedModels.includes(id));
+    return availableModelIds.every(id => selectedModels.includes(id));
   };
 
   // Count selected models in a provider
   const countSelectedInProvider = (provider: string) => {
-    const modelIds = groupedModels[provider].map((model) => model.id);
-    return selectedModels.filter((id) => modelIds.includes(id)).length;
+    const modelIds = groupedModels[provider].map(model => model.id);
+    return selectedModels.filter(id => modelIds.includes(id)).length;
   };
 
   if (isLoading) {
@@ -123,7 +123,7 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({
         <div className="animate-pulse">
           <div className="h-6 bg-gray-200 rounded w-1/3 mb-4"></div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {[1, 2, 3, 4].map((i) => (
+            {[1, 2, 3, 4].map(i => (
               <div key={i} className="h-24 bg-gray-200 rounded"></div>
             ))}
           </div>
@@ -169,13 +169,13 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({
                   <div className="font-medium">{provider}</div>
                   <div className="ml-2 text-sm text-gray-500">
                     ({countSelectedInProvider(provider)} of{' '}
-                    {models.filter((m) => m.isAvailable).length} selected)
+                    {models.filter(m => m.isAvailable).length} selected)
                   </div>
                 </div>
                 <div className="flex items-center space-x-4">
                   <div className="flex space-x-2">
                     <button
-                      onClick={(e) => {
+                      onClick={e => {
                         e.stopPropagation();
                         selectAllInProvider(provider);
                       }}
@@ -184,7 +184,7 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({
                       Select All
                     </button>
                     <button
-                      onClick={(e) => {
+                      onClick={e => {
                         e.stopPropagation();
                         clearProvider(provider);
                       }}
@@ -204,7 +204,7 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({
               {/* Models in this provider */}
               {expanded[provider] && (
                 <div className="p-3 space-y-2 bg-white">
-                  {models.map((model) => (
+                  {models.map(model => (
                     <div
                       key={model.id}
                       className={`

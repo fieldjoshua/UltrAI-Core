@@ -28,7 +28,7 @@ export function useReducedMotion(): boolean {
     if (mediaQuery.addEventListener) {
       mediaQuery.addEventListener('change', handleChange);
       return () => mediaQuery.removeEventListener('change', handleChange);
-    } 
+    }
     // Legacy browsers
     else if (mediaQuery.addListener) {
       mediaQuery.addListener(handleChange);

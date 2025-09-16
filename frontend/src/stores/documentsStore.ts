@@ -20,10 +20,14 @@ interface DocumentsState {
   isLoading: boolean;
   error: string | null;
   uploadProgress: Record<string, number>;
-  
+
   // Actions
   fetchDocuments: () => Promise<void>;
-  uploadDocument: (file: File, description?: string, tags?: string[]) => Promise<void>;
+  uploadDocument: (
+    file: File,
+    description?: string,
+    tags?: string[]
+  ) => Promise<void>;
   deleteDocument: (documentId: string) => Promise<void>;
   setSelectedDocuments: (documentIds: string[]) => void;
   toggleDocumentSelection: (documentId: string) => void;
@@ -35,7 +39,8 @@ interface DocumentsState {
 }
 
 // @ts-ignore
-const API_URL = (globalThis.import?.meta?.env?.VITE_API_URL) || 'http://localhost:8000/api';
+const API_URL =
+  globalThis.import?.meta?.env?.VITE_API_URL || 'http://localhost:8000/api';
 
 export const useDocumentsStore = create<DocumentsState>()(
   devtools(
@@ -52,20 +57,24 @@ export const useDocumentsStore = create<DocumentsState>()(
         set({ isLoading: true, error: null });
         try {
           const response = await axios.get(`${API_URL}/documents`);
-          set({ 
-            documents: response.data.documents || [], 
-            isLoading: false 
+          set({
+            documents: response.data.documents || [],
+            isLoading: false,
           });
         } catch (error: any) {
-          set({ 
+          set({
             error: error.response?.data?.error || 'Failed to fetch documents',
-            isLoading: false 
+            isLoading: false,
           });
         }
       },
 
       // Upload document
-      uploadDocument: async (file: File, description?: string, tags?: string[]) => {
+      uploadDocument: async (
+        file: File,
+        description?: string,
+        tags?: string[]
+      ) => {
         const fileId = `${file.name}-${Date.now()}`;
         set({ error: null });
 
@@ -76,34 +85,40 @@ export const useDocumentsStore = create<DocumentsState>()(
 
         try {
           // Set initial progress
-          set((state) => ({
-            uploadProgress: { ...state.uploadProgress, [fileId]: 0 }
+          set(state => ({
+            uploadProgress: { ...state.uploadProgress, [fileId]: 0 },
           }));
 
-          const response = await axios.post(`${API_URL}/documents/upload`, formData, {
-            headers: { 'Content-Type': 'multipart/form-data' },
-            onUploadProgress: (progressEvent) => {
-              const progress = progressEvent.total
-                ? Math.round((progressEvent.loaded * 100) / progressEvent.total)
-                : 0;
-              get().setUploadProgress(fileId, progress);
+          const response = await axios.post(
+            `${API_URL}/documents/upload`,
+            formData,
+            {
+              headers: { 'Content-Type': 'multipart/form-data' },
+              onUploadProgress: progressEvent => {
+                const progress = progressEvent.total
+                  ? Math.round(
+                      (progressEvent.loaded * 100) / progressEvent.total
+                    )
+                  : 0;
+                get().setUploadProgress(fileId, progress);
+              },
             }
-          });
+          );
 
           // Add the new document to the list
           get().addDocument(response.data);
 
           // Clear upload progress
-          set((state) => {
+          set(state => {
             const { [fileId]: _, ...rest } = state.uploadProgress;
             return { uploadProgress: rest };
           });
         } catch (error: any) {
-          set({ 
-            error: error.response?.data?.error || 'Failed to upload document' 
+          set({
+            error: error.response?.data?.error || 'Failed to upload document',
           });
           // Clear upload progress on error
-          set((state) => {
+          set(state => {
             const { [fileId]: _, ...rest } = state.uploadProgress;
             return { uploadProgress: rest };
           });
@@ -118,8 +133,8 @@ export const useDocumentsStore = create<DocumentsState>()(
           await axios.delete(`${API_URL}/documents/${documentId}`);
           get().removeDocument(documentId);
         } catch (error: any) {
-          set({ 
-            error: error.response?.data?.error || 'Failed to delete document' 
+          set({
+            error: error.response?.data?.error || 'Failed to delete document',
           });
           throw error;
         }
@@ -132,17 +147,17 @@ export const useDocumentsStore = create<DocumentsState>()(
 
       // Toggle document selection
       toggleDocumentSelection: (documentId: string) => {
-        set((state) => ({
+        set(state => ({
           selectedDocuments: state.selectedDocuments.includes(documentId)
             ? state.selectedDocuments.filter(id => id !== documentId)
-            : [...state.selectedDocuments, documentId]
+            : [...state.selectedDocuments, documentId],
         }));
       },
 
       // Set upload progress
       setUploadProgress: (fileId: string, progress: number) => {
-        set((state) => ({
-          uploadProgress: { ...state.uploadProgress, [fileId]: progress }
+        set(state => ({
+          uploadProgress: { ...state.uploadProgress, [fileId]: progress },
         }));
       },
 
@@ -153,26 +168,28 @@ export const useDocumentsStore = create<DocumentsState>()(
 
       // Add document
       addDocument: (document: Document) => {
-        set((state) => ({
-          documents: [...state.documents, document]
+        set(state => ({
+          documents: [...state.documents, document],
         }));
       },
 
       // Remove document
       removeDocument: (documentId: string) => {
-        set((state) => ({
+        set(state => ({
           documents: state.documents.filter(doc => doc.id !== documentId),
-          selectedDocuments: state.selectedDocuments.filter(id => id !== documentId)
+          selectedDocuments: state.selectedDocuments.filter(
+            id => id !== documentId
+          ),
         }));
       },
 
       // Clear all documents
       clearDocuments: () => {
         set({ documents: [], selectedDocuments: [] });
-      }
+      },
     }),
     {
-      name: 'documents-store'
+      name: 'documents-store',
     }
   )
 );

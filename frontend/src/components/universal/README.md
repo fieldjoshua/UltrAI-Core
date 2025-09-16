@@ -50,7 +50,7 @@ import PrimaryUIPanel from './components/universal/PrimaryUIPanel';
   onSubmit={(value, attachments) => {
     /* Handle submission */
   }}
-  onNext={(autoConfig) => {
+  onNext={autoConfig => {
     /* Handle next step */
   }}
   styleConfig={
@@ -183,7 +183,7 @@ const YourComponent = () => {
       <PrimaryUIPanel
         placeholder="What would you like to analyze?"
         styleConfig={primaryStyle}
-        onNext={(autoConfig) => {
+        onNext={autoConfig => {
           /* Handle next */
         }}
       />

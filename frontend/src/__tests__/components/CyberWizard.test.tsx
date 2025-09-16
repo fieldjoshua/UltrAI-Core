@@ -5,29 +5,18 @@ import CyberWizard from '../../components/CyberWizard';
 // @ts-ignore
 const jest = globalThis.jest;
 
-// Mock the fetch API
-global.fetch = jest.fn();
+// Use a fetch spy so MSW can still intercept
+let fetchSpy: jest.SpyInstance;
 
 describe('CyberWizard', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    
-    // Mock wizard steps response
-    (global.fetch as jest.Mock).mockResolvedValueOnce({
-      ok: true,
-      json: async () => [
-        {
-          title: "0. Welcome",
-          color: "mint",
-          type: "intro",
-          narrative: "Welcome to UltrAI"
-        }
-      ],
-    });
+    fetchSpy = jest.spyOn(globalThis as any, 'fetch');
   });
 
   afterEach(() => {
     jest.restoreAllMocks();
+    fetchSpy?.mockRestore();
   });
 
   it('should render the welcome screen', async () => {
@@ -52,7 +41,9 @@ describe('CyberWizard', () => {
     render(<CyberWizard />);
 
     await waitFor(() => {
-      expect(global.fetch).toHaveBeenCalledWith('/wizard_steps.json', { cache: 'no-store' });
+      expect(global.fetch).toHaveBeenCalledWith('/wizard_steps.json', {
+        cache: 'no-store',
+      });
     });
   });
 });

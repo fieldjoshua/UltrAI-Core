@@ -16,7 +16,7 @@ export default function Dashboard() {
       setStats({
         totalAnalyses: 42,
         modelsAvailable: 6,
-        avgProcessingTime: 3.2
+        avgProcessingTime: 3.2,
       });
       setIsLoading(false);
     }, 1500);
@@ -27,7 +27,7 @@ export default function Dashboard() {
   return (
     <div className="text-white space-y-6">
       <h1 className="text-2xl font-bold mb-2">Dashboard</h1>
-      
+
       {/* Welcome Alert */}
       <Alert className="bg-blue-500/10 border-blue-500/50">
         <AlertTitle>Welcome back!</AlertTitle>
@@ -40,7 +40,9 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {/* Total Analyses */}
         <div className="glass-panel p-6 rounded-lg">
-          <h3 className="text-sm font-medium opacity-70 mb-2">Total Analyses</h3>
+          <h3 className="text-sm font-medium opacity-70 mb-2">
+            Total Analyses
+          </h3>
           {isLoading ? (
             <Skeleton className="h-8 w-20" />
           ) : (
@@ -50,17 +52,23 @@ export default function Dashboard() {
 
         {/* Models Available */}
         <div className="glass-panel p-6 rounded-lg">
-          <h3 className="text-sm font-medium opacity-70 mb-2">Models Available</h3>
+          <h3 className="text-sm font-medium opacity-70 mb-2">
+            Models Available
+          </h3>
           {isLoading ? (
             <Skeleton className="h-8 w-16" />
           ) : (
-            <p className="text-3xl font-bold text-green-400">{stats?.modelsAvailable}</p>
+            <p className="text-3xl font-bold text-green-400">
+              {stats?.modelsAvailable}
+            </p>
           )}
         </div>
 
         {/* Avg Processing Time */}
         <div className="glass-panel p-6 rounded-lg">
-          <h3 className="text-sm font-medium opacity-70 mb-2">Avg Processing Time</h3>
+          <h3 className="text-sm font-medium opacity-70 mb-2">
+            Avg Processing Time
+          </h3>
           {isLoading ? (
             <Skeleton className="h-8 w-24" />
           ) : (

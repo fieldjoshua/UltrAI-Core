@@ -5,27 +5,33 @@ This directory contains all Zustand stores for the Ultra frontend application.
 ## Stores
 
 ### 🔐 authStore.ts
+
 Manages user authentication state including login, logout, and session management.
 
 **Key features:**
+
 - JWT token management
 - User profile state
 - Authentication status
 - Auto-refresh tokens
 
-### 📄 documentsStore.ts  
+### 📄 documentsStore.ts
+
 Handles document upload, listing, and management functionality.
 
 **Key features:**
+
 - Document CRUD operations
 - Multi-select functionality
 - Upload progress tracking
 - Error handling
 
 ### 🎨 uiStore.ts
+
 Controls UI state including toast notifications and global loading states.
 
 **Key features:**
+
 - Toast notification system (success, error, warning, info)
 - Global error handling
 - Pending request tracking
@@ -39,12 +45,12 @@ import { showSuccessToast } from '@/stores/uiStore';
 
 function MyComponent() {
   const { documents, fetchDocuments, isLoading } = useDocumentsStore();
-  
+
   const handleRefresh = async () => {
     await fetchDocuments();
     showSuccessToast('Documents refreshed!');
   };
-  
+
   return (
     <div>
       {isLoading ? <Spinner /> : <DocumentList documents={documents} />}
@@ -77,11 +83,11 @@ beforeEach(() => {
 // Test store actions
 it('should add document', () => {
   const { result } = renderHook(() => useDocumentsStore());
-  
+
   act(() => {
     result.current.addDocument(mockDocument);
   });
-  
+
   expect(result.current.documents).toContain(mockDocument);
 });
 ```
@@ -89,17 +95,20 @@ it('should add document', () => {
 ## Migration Status
 
 ✅ **Migrated from Redux:**
+
 - Documents management (from `features/documents/documentsSlice`)
 - UI/Error handling (from `features/errors/errorsSlice`)
 - Toast notifications
 
 ✅ **Components Updated:**
+
 - DocumentUpload
 - DocumentList
 - Toast
 - DocumentsPage
 
 ⚠️ **Redux Dependencies to Remove:**
+
 - `@reduxjs/toolkit`
 - `react-redux`
 - Old Redux store files in `src/store/`

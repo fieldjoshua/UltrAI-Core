@@ -5,16 +5,16 @@ export const getOptimizedBackground = (theme: string): string => {
   // Try to use optimized JPG first, fall back to PNG
   const backgrounds: Record<string, string> = {
     morning: '/bg-morning.jpg',
-    afternoon: '/bg-afternoon.jpg', 
+    afternoon: '/bg-afternoon.jpg',
     sunset: '/bg-sunset.jpg',
     night: '/bg-night.jpg',
     // Fallbacks
     'morning-png': '/bg-morning.png',
     'afternoon-png': '/bg-afternoon.png',
     'sunset-png': '/bg-sunset.png',
-    'night-png': '/bg-night.png'
+    'night-png': '/bg-night.png',
   };
-  
+
   return backgrounds[theme] || backgrounds.night;
 };
 

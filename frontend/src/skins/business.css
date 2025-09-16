@@ -7,34 +7,37 @@
   --skin-secondary: #3730a3;
   --skin-accent: #2563eb;
   --skin-accent-hover: #1d4ed8;
-  
+
   /* Text colors */
-  --skin-text-primary: #1A202C;
-  --skin-text-secondary: #4A5568;
+  --skin-text-primary: #1a202c;
+  --skin-text-secondary: #4a5568;
   --skin-text-light: #718096;
-  
+
   /* Backgrounds */
-  --skin-bg-primary: #FFFFFF;
-  --skin-bg-secondary: #F7FAFC;
-  --skin-bg-tertiary: #EDF2F7;
-  
+  --skin-bg-primary: #ffffff;
+  --skin-bg-secondary: #f7fafc;
+  --skin-bg-tertiary: #edf2f7;
+
   /* Borders */
-  --skin-border-light: #E2E8F0;
-  --skin-border-medium: #CBD5E0;
-  --skin-border-dark: #A0AEC0;
-  
+  --skin-border-light: #e2e8f0;
+  --skin-border-medium: #cbd5e0;
+  --skin-border-dark: #a0aec0;
+
   /* Status colors */
-  --skin-success: #38A169;
-  --skin-warning: #D69E2E;
-  --skin-error: #E53E3E;
-  --skin-info: #3182CE;
-  
+  --skin-success: #38a169;
+  --skin-warning: #d69e2e;
+  --skin-error: #e53e3e;
+  --skin-info: #3182ce;
+
   /* Shadows - professional depth */
   --skin-shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --skin-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  --skin-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-  --skin-shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-  
+  --skin-shadow-md:
+    0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --skin-shadow-lg:
+    0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --skin-shadow-xl:
+    0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+
   /* Transitions */
   --skin-transition: all 0.15s ease-in-out;
 }
@@ -42,12 +45,32 @@
 /* Override global styles for business theme */
 body.skin-business {
   background-color: #fafafa;
-  background-image: 
-    radial-gradient(circle at 20% 80%, rgba(37, 99, 235, 0.05) 0%, transparent 50%),
-    radial-gradient(circle at 80% 20%, rgba(147, 51, 234, 0.05) 0%, transparent 50%),
-    radial-gradient(circle at 40% 40%, rgba(59, 130, 246, 0.03) 0%, transparent 50%);
+  background-image:
+    radial-gradient(
+      circle at 20% 80%,
+      rgba(37, 99, 235, 0.05) 0%,
+      transparent 50%
+    ),
+    radial-gradient(
+      circle at 80% 20%,
+      rgba(147, 51, 234, 0.05) 0%,
+      transparent 50%
+    ),
+    radial-gradient(
+      circle at 40% 40%,
+      rgba(59, 130, 246, 0.03) 0%,
+      transparent 50%
+    );
   color: var(--skin-text-primary);
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-family:
+    'Inter',
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    Roboto,
+    'Helvetica Neue',
+    Arial,
+    sans-serif;
   font-weight: 400;
   letter-spacing: -0.011em;
 }
@@ -59,7 +82,9 @@ body.skin-business h3,
 body.skin-business h4,
 body.skin-business h5,
 body.skin-business h6 {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-family:
+    -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue',
+    Arial, sans-serif;
   font-weight: 600;
   color: var(--skin-text-primary);
 }
@@ -69,7 +94,7 @@ body.skin-business h6 {
   background: rgba(255, 255, 255, 0.8);
   backdrop-filter: blur(10px);
   border: 1px solid rgba(229, 231, 235, 0.6);
-  box-shadow: 
+  box-shadow:
     0 1px 3px rgba(0, 0, 0, 0.1),
     0 1px 2px rgba(0, 0, 0, 0.06),
     inset 0 2px 4px rgba(255, 255, 255, 0.8);
@@ -80,7 +105,7 @@ body.skin-business h6 {
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(20px);
   border: 1px solid rgba(229, 231, 235, 0.8);
-  box-shadow: 
+  box-shadow:
     0 10px 15px -3px rgba(0, 0, 0, 0.1),
     0 4px 6px -2px rgba(0, 0, 0, 0.05),
     inset 0 2px 8px rgba(255, 255, 255, 0.9);
@@ -88,10 +113,14 @@ body.skin-business h6 {
 }
 
 .skin-business .glass-panel {
-  background: linear-gradient(to bottom right, rgba(255, 255, 255, 0.95), rgba(249, 250, 251, 0.95));
+  background: linear-gradient(
+    to bottom right,
+    rgba(255, 255, 255, 0.95),
+    rgba(249, 250, 251, 0.95)
+  );
   backdrop-filter: blur(20px) saturate(180%);
   border: 1px solid rgba(229, 231, 235, 0.5);
-  box-shadow: 
+  box-shadow:
     0 20px 25px -5px rgba(0, 0, 0, 0.1),
     0 10px 10px -5px rgba(0, 0, 0, 0.04),
     inset 0 1px 0 rgba(255, 255, 255, 0.9);
@@ -109,15 +138,24 @@ body.skin-business h6 {
   left: 0;
   right: 0;
   height: 1px;
-  background: linear-gradient(to right, transparent, rgba(37, 99, 235, 0.2), transparent);
+  background: linear-gradient(
+    to right,
+    transparent,
+    rgba(37, 99, 235, 0.2),
+    transparent
+  );
 }
 
 /* Buttons - refined professional style with micro-interactions */
 .skin-business .btn-neon {
-  background: linear-gradient(135deg, var(--skin-accent) 0%, var(--skin-accent-hover) 100%);
+  background: linear-gradient(
+    135deg,
+    var(--skin-accent) 0%,
+    var(--skin-accent-hover) 100%
+  );
   color: white;
   border: none;
-  box-shadow: 
+  box-shadow:
     0 4px 6px -1px rgba(37, 99, 235, 0.2),
     0 2px 4px -1px rgba(37, 99, 235, 0.12),
     inset 0 1px 0 rgba(255, 255, 255, 0.2);
@@ -146,7 +184,7 @@ body.skin-business h6 {
 
 .skin-business .btn-neon:hover {
   transform: translateY(-2px);
-  box-shadow: 
+  box-shadow:
     0 10px 15px -3px rgba(37, 99, 235, 0.3),
     0 4px 6px -2px rgba(37, 99, 235, 0.15),
     inset 0 1px 0 rgba(255, 255, 255, 0.3);
@@ -158,7 +196,7 @@ body.skin-business h6 {
 
 .skin-business .btn-neon:active {
   transform: translateY(0);
-  box-shadow: 
+  box-shadow:
     0 2px 4px -1px rgba(37, 99, 235, 0.2),
     0 1px 2px -1px rgba(37, 99, 235, 0.12),
     inset 0 2px 4px rgba(0, 0, 0, 0.1);
@@ -176,10 +214,18 @@ body.skin-business h6 {
 }
 
 /* Status indicators */
-.skin-business .text-green-400 { color: var(--skin-success) !important; }
-.skin-business .text-yellow-400 { color: var(--skin-warning) !important; }
-.skin-business .text-red-400 { color: var(--skin-error) !important; }
-.skin-business .text-blue-400 { color: var(--skin-info) !important; }
+.skin-business .text-green-400 {
+  color: var(--skin-success) !important;
+}
+.skin-business .text-yellow-400 {
+  color: var(--skin-warning) !important;
+}
+.skin-business .text-red-400 {
+  color: var(--skin-error) !important;
+}
+.skin-business .text-blue-400 {
+  color: var(--skin-info) !important;
+}
 
 /* Borders */
 .skin-business .border-mint-400,
@@ -204,7 +250,7 @@ body.skin-business h6 {
   font-family: inherit;
   background: rgba(255, 255, 255, 0.8);
   border: 2px solid rgba(229, 231, 235, 0.6);
-  box-shadow: 
+  box-shadow:
     0 1px 3px rgba(0, 0, 0, 0.05),
     inset 0 1px 2px rgba(0, 0, 0, 0.02);
   border-radius: 8px;
@@ -224,7 +270,7 @@ body.skin-business h6 {
 .skin-business select:focus {
   border-color: var(--skin-accent);
   outline: none;
-  box-shadow: 
+  box-shadow:
     0 0 0 4px rgba(37, 99, 235, 0.1),
     0 1px 3px rgba(0, 0, 0, 0.05),
     inset 0 1px 2px rgba(0, 0, 0, 0.02);
@@ -258,7 +304,7 @@ body.skin-business h6 {
 }
 
 /* Clean hover states */
-.skin-business [class*="hover:"]:hover {
+.skin-business [class*='hover:']:hover {
   transition: var(--skin-transition);
 }
 
@@ -275,8 +321,8 @@ body.skin-business h6 {
 }
 
 /* Checkboxes and radio buttons - refined design */
-.skin-business input[type="checkbox"],
-.skin-business input[type="radio"] {
+.skin-business input[type='checkbox'],
+.skin-business input[type='radio'] {
   width: 20px;
   height: 20px;
   border: 2px solid #e5e7eb;
@@ -284,12 +330,12 @@ body.skin-business h6 {
   transition: all 0.15s ease;
 }
 
-.skin-business input[type="checkbox"]:checked {
+.skin-business input[type='checkbox']:checked {
   background: var(--skin-accent);
   border-color: var(--skin-accent);
 }
 
-.skin-business input[type="radio"]:checked {
+.skin-business input[type='radio']:checked {
   background: var(--skin-accent);
   border-color: var(--skin-accent);
 }
@@ -303,7 +349,11 @@ body.skin-business h6 {
 }
 
 .skin-business .progress-fill {
-  background: linear-gradient(to right, var(--skin-accent), var(--skin-accent-hover));
+  background: linear-gradient(
+    to right,
+    var(--skin-accent),
+    var(--skin-accent-hover)
+  );
   height: 100%;
   transition: width 0.3s ease;
   position: relative;
@@ -326,8 +376,12 @@ body.skin-business h6 {
 }
 
 @keyframes shimmer {
-  0% { transform: translateX(-100%); }
-  100% { transform: translateX(100%); }
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
 }
 
 /* Card hover effects */
@@ -335,16 +389,24 @@ body.skin-business h6 {
 .skin-business .glass-strong:hover,
 .skin-business .glass-panel:hover {
   transform: translateY(-2px);
-  box-shadow: 
+  box-shadow:
     0 25px 30px -10px rgba(0, 0, 0, 0.15),
     0 15px 15px -10px rgba(0, 0, 0, 0.08);
 }
 
 /* Status indicators with refined colors */
-.skin-business .text-green-400 { color: #10b981 !important; }
-.skin-business .text-yellow-400 { color: #f59e0b !important; }
-.skin-business .text-red-400 { color: #ef4444 !important; }
-.skin-business .text-blue-400 { color: #3b82f6 !important; }
+.skin-business .text-green-400 {
+  color: #10b981 !important;
+}
+.skin-business .text-yellow-400 {
+  color: #f59e0b !important;
+}
+.skin-business .text-red-400 {
+  color: #ef4444 !important;
+}
+.skin-business .text-blue-400 {
+  color: #3b82f6 !important;
+}
 
 /* Refined animations */
 .skin-business * {
@@ -353,36 +415,44 @@ body.skin-business h6 {
 
 /* Step 0 Welcome Screen - Business Style */
 .skin-business .text-transparent.bg-clip-text {
-  background: linear-gradient(135deg, var(--skin-accent) 0%, var(--skin-secondary) 100%) !important;
+  background: linear-gradient(
+    135deg,
+    var(--skin-accent) 0%,
+    var(--skin-secondary) 100%
+  ) !important;
   -webkit-background-clip: text !important;
   -webkit-text-fill-color: transparent !important;
   font-weight: 800;
   letter-spacing: -0.03em;
 }
 
-.skin-business .bg-gradient-to-r[class*="from-"][class*="to-"] {
-  background: linear-gradient(to right, var(--skin-accent), var(--skin-accent-hover)) !important;
+.skin-business .bg-gradient-to-r[class*='from-'][class*='to-'] {
+  background: linear-gradient(
+    to right,
+    var(--skin-accent),
+    var(--skin-accent-hover)
+  ) !important;
   height: 3px !important;
   border-radius: 2px !important;
 }
 
 /* Welcome boxes - professional cards */
-.skin-business .glass[class*="border-mint-400"],
-.skin-business .glass[class*="border-blue-400"] {
+.skin-business .glass[class*='border-mint-400'],
+.skin-business .glass[class*='border-blue-400'] {
   background: rgba(255, 255, 255, 0.9) !important;
   backdrop-filter: blur(10px) !important;
   border: 1px solid rgba(229, 231, 235, 0.5) !important;
-  box-shadow: 
+  box-shadow:
     0 4px 6px -1px rgba(0, 0, 0, 0.1),
     0 2px 4px -1px rgba(0, 0, 0, 0.06),
     inset 0 2px 4px rgba(255, 255, 255, 0.9) !important;
   transition: all 0.2s ease !important;
 }
 
-.skin-business .glass[class*="border-mint-400"]:hover,
-.skin-business .glass[class*="border-blue-400"]:hover {
+.skin-business .glass[class*='border-mint-400']:hover,
+.skin-business .glass[class*='border-blue-400']:hover {
   transform: translateY(-2px);
-  box-shadow: 
+  box-shadow:
     0 10px 15px -3px rgba(0, 0, 0, 0.1),
     0 4px 6px -2px rgba(0, 0, 0, 0.05),
     inset 0 2px 4px rgba(255, 255, 255, 0.9) !important;
@@ -397,17 +467,21 @@ body.skin-business h6 {
   color: var(--skin-secondary) !important;
 }
 
-.skin-business [class*="bg-mint-400"],
-.skin-business [class*="bg-blue-400"] {
+.skin-business [class*='bg-mint-400'],
+.skin-business [class*='bg-blue-400'] {
   background: transparent !important;
 }
 
 /* Itemized summary box - premium card */
 .skin-business .glass.rounded-xl.inline-block {
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(249, 250, 251, 0.95)) !important;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.95),
+    rgba(249, 250, 251, 0.95)
+  ) !important;
   backdrop-filter: blur(20px) saturate(180%) !important;
   border: 1px solid rgba(229, 231, 235, 0.5) !important;
-  box-shadow: 
+  box-shadow:
     0 20px 25px -5px rgba(0, 0, 0, 0.1),
     0 10px 10px -5px rgba(0, 0, 0, 0.04),
     inset 0 1px 0 rgba(255, 255, 255, 0.9) !important;
@@ -422,9 +496,13 @@ body.skin-business h6 {
 
 /* Enter button - premium CTA */
 .skin-business .btn-neon.text-lg {
-  background: linear-gradient(135deg, var(--skin-accent) 0%, var(--skin-accent-hover) 100%) !important;
+  background: linear-gradient(
+    135deg,
+    var(--skin-accent) 0%,
+    var(--skin-accent-hover) 100%
+  ) !important;
   border: none !important;
-  box-shadow: 
+  box-shadow:
     0 10px 15px -3px rgba(37, 99, 235, 0.4),
     0 4px 6px -2px rgba(37, 99, 235, 0.2),
     inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
@@ -436,14 +514,14 @@ body.skin-business h6 {
 
 .skin-business .btn-neon.text-lg:hover {
   transform: translateY(-3px) !important;
-  box-shadow: 
+  box-shadow:
     0 20px 25px -5px rgba(37, 99, 235, 0.4),
     0 10px 10px -5px rgba(37, 99, 235, 0.2),
     inset 0 1px 0 rgba(255, 255, 255, 0.4) !important;
 }
 
 /* Demo environment indicator */
-.skin-business [class*="text-green-300"] {
+.skin-business [class*='text-green-300'] {
   color: #10b981 !important;
   background: rgba(16, 185, 129, 0.1);
   padding: 4px 12px;

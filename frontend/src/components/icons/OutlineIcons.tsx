@@ -1,12 +1,12 @@
-import { 
-  Microscope, 
-  PenTool, 
-  FileText, 
-  Code2, 
-  TrendingUp, 
-  Palette, 
-  BookOpen, 
-  LineChart, 
+import {
+  Microscope,
+  PenTool,
+  FileText,
+  Code2,
+  TrendingUp,
+  Palette,
+  BookOpen,
+  LineChart,
   Sparkles,
   Rocket,
   Upload,
@@ -40,7 +40,7 @@ import {
   Crosshair,
   Stars,
   RefreshCw,
-  LucideIcon
+  LucideIcon,
 } from 'lucide-react';
 
 interface IconProps {
@@ -50,7 +50,7 @@ interface IconProps {
 
 // Goal icons mapping
 export const goalIcons: Record<string, LucideIcon> = {
-  'Research': Microscope,
+  Research: Microscope,
   'Writing/Editing': PenTool,
   'Document Analysis': FileText,
   'Code Creation': Code2,
@@ -58,23 +58,23 @@ export const goalIcons: Record<string, LucideIcon> = {
   'Creative Projects': Palette,
   'Learning & Education': BookOpen,
   'Data Analysis': LineChart,
-  'Other': Sparkles,
+  Other: Sparkles,
 };
 
 // Analysis type icons
 export const analysisIcons: Record<string, LucideIcon> = {
   'UltrAI Intelligence Multiplier': Rocket,
   'Fact-check & Confidence': Shield,
-  'Devil\'s Advocate': Swords,
+  "Devil's Advocate": Swords,
   'Convergence/Divergence': GitBranch,
 };
 
 // Model selection icons
 export const modelIcons: Record<string, LucideIcon> = {
-  'Premium': Target,
-  'Speed': Zap,
-  'Budget': Coins,
-  'Cost': DollarSign,
+  Premium: Target,
+  Speed: Zap,
+  Budget: Coins,
+  Cost: DollarSign,
 };
 
 // Add-on icons
@@ -92,28 +92,28 @@ export const addonIcons: Record<string, LucideIcon> = {
 
 // Processing status icons
 export const statusIcons: Record<string, LucideIcon> = {
-  'boot': Rocket,
-  'submit': Upload,
-  'initial': Brain,
-  'distribute': Share2,
-  'revise': Edit3,
-  'meta_submit': FileCheck,
-  'meta_analyze': FlaskConical,
-  'write': FileType,
+  boot: Rocket,
+  submit: Upload,
+  initial: Brain,
+  distribute: Share2,
+  revise: Edit3,
+  meta_submit: FileCheck,
+  meta_analyze: FlaskConical,
+  write: FileType,
   'Models Used': Bot,
   'Processing Time': Clock,
-  'Pattern': Crosshair,
-  'Enhanced': Stars,
+  Pattern: Crosshair,
+  Enhanced: Stars,
 };
 
 // UI action icons
 export const actionIcons: Record<string, LucideIcon> = {
-  'copy': Copy,
-  'download': Download,
-  'settings': Settings,
-  'check': Check,
-  'Results': FileText,
-  'Restart': RefreshCw,
+  copy: Copy,
+  download: Download,
+  settings: Settings,
+  check: Check,
+  Results: FileText,
+  Restart: RefreshCw,
 };
 
 // Helper component to render icons
@@ -124,7 +124,7 @@ export const OutlineIcon: React.FC<{
   size?: number;
 }> = ({ name, category = 'goal', className = '', size = 20 }) => {
   let Icon: LucideIcon | undefined;
-  
+
   switch (category) {
     case 'goal':
       Icon = goalIcons[name];
@@ -145,10 +145,10 @@ export const OutlineIcon: React.FC<{
       Icon = actionIcons[name];
       break;
   }
-  
+
   if (!Icon) {
     return <Sparkles className={className} size={size} />;
   }
-  
+
   return <Icon className={className} size={size} />;
 };

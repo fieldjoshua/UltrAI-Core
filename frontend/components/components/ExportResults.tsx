@@ -356,7 +356,8 @@ ${analysisData.result}
     rtf += '{\\fonttbl\\f0\\fswiss\\fcharset0 Helvetica;}\n';
     rtf += '{\\colortbl;\\red0\\green0\\blue0;}\n';
     rtf += '\\margl1440\\margr1440\\vieww11520\\viewh8400\\viewkind0\n';
-    rtf += '\\pard\\tx720\\tx1440\\tx2160\\tx2880\\tx3600\\tx4320\\tx5040\\tx5760\\tx6480\\tx7200\\tx7920\\tx8640\\pardirnatural\\partightenfactor0\n\n';
+    rtf +=
+      '\\pard\\tx720\\tx1440\\tx2160\\tx2880\\tx3600\\tx4320\\tx5040\\tx5760\\tx6480\\tx7200\\tx7920\\tx8640\\pardirnatural\\partightenfactor0\n\n';
     rtf += '\\f0\\fs24 \\cf0 ';
 
     // Convert markdown to RTF
@@ -477,7 +478,7 @@ ${analysisData.result}
           Export Format:
           <select
             value={exportFormat}
-            onChange={(e) => setExportFormat(e.target.value as any)}
+            onChange={e => setExportFormat(e.target.value as any)}
             className="export-format-select"
             disabled={isExporting}
           >

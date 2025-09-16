@@ -157,7 +157,7 @@ export const PerformanceMonitor = React.memo(() => {
 
   // Handle auto-refresh toggle
   const toggleAutoRefresh = () => {
-    setAutoRefresh((prev) => !prev);
+    setAutoRefresh(prev => !prev);
   };
 
   if (loading && !metrics) {

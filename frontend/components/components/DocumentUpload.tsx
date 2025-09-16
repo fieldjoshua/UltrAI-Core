@@ -71,7 +71,7 @@ export const DocumentUpload = React.memo(
     // Formatted accepted types for display
     const formattedTypes = useMemo(() => {
       return acceptedTypes
-        .map((type) => type.replace('.', '').toUpperCase())
+        .map(type => type.replace('.', '').toUpperCase())
         .join(', ');
     }, [acceptedTypes]);
 
@@ -92,7 +92,7 @@ export const DocumentUpload = React.memo(
         const validFiles: File[] = [];
         const invalidFiles: string[] = [];
 
-        Array.from(newFiles).forEach((file) => {
+        Array.from(newFiles).forEach(file => {
           // Validate file size
           if (file.size > maxSizeBytes) {
             invalidFiles.push(`${file.name} (exceeds ${maxSizeMB}MB)`);

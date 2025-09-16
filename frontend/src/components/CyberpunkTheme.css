@@ -31,51 +31,105 @@
 
 /* Animations */
 @keyframes neonPulse {
-  0%, 100% {
-    text-shadow: 0 0 10px #ff00de, 0 0 20px #ff00de, 0 0 30px #ff00de, 0 0 40px #ff00de;
+  0%,
+  100% {
+    text-shadow:
+      0 0 10px #ff00de,
+      0 0 20px #ff00de,
+      0 0 30px #ff00de,
+      0 0 40px #ff00de;
   }
   50% {
-    text-shadow: 0 0 20px #00ffff, 0 0 30px #00ffff, 0 0 40px #00ffff, 0 0 50px #00ffff;
+    text-shadow:
+      0 0 20px #00ffff,
+      0 0 30px #00ffff,
+      0 0 40px #00ffff,
+      0 0 50px #00ffff;
   }
 }
 
 @keyframes backgroundShift {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
 }
 
 @keyframes glitch {
-  0% { transform: translate(0) }
-  20% { transform: translate(-5px, 5px) }
-  40% { transform: translate(-5px, -5px) }
-  60% { transform: translate(5px, 5px) }
-  80% { transform: translate(5px, -5px) }
-  100% { transform: translate(0) }
+  0% {
+    transform: translate(0);
+  }
+  20% {
+    transform: translate(-5px, 5px);
+  }
+  40% {
+    transform: translate(-5px, -5px);
+  }
+  60% {
+    transform: translate(5px, 5px);
+  }
+  80% {
+    transform: translate(5px, -5px);
+  }
+  100% {
+    transform: translate(0);
+  }
 }
 
 @keyframes flicker {
-  0%, 19.999%, 22%, 62.999%, 64%, 64.999%, 70%, 100% {
+  0%,
+  19.999%,
+  22%,
+  62.999%,
+  64%,
+  64.999%,
+  70%,
+  100% {
     opacity: 1;
   }
-  20%, 21.999%, 63%, 63.999%, 65%, 69.999% {
+  20%,
+  21.999%,
+  63%,
+  63.999%,
+  65%,
+  69.999% {
     opacity: 0.33;
   }
 }
 
 @keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.6; }
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
 }
 
 @keyframes float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-10px); }
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
 }
 
 @keyframes cityGlow {
-  0%, 100% { filter: brightness(0.8) saturate(1.2); }
-  50% { filter: brightness(1.2) saturate(1.5); }
+  0%,
+  100% {
+    filter: brightness(0.8) saturate(1.2);
+  }
+  50% {
+    filter: brightness(1.2) saturate(1.5);
+  }
 }
 
 /* Header area with billboard and scaffolding */
@@ -255,7 +309,11 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.8) 0%, rgba(0, 0, 0, 0) 40%);
+  background: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0.8) 0%,
+    rgba(0, 0, 0, 0) 40%
+  );
   z-index: 1;
 }
 
@@ -497,7 +555,12 @@
   left: -100%;
   width: 100%;
   height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(0, 255, 159, 0.4), transparent);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(0, 255, 159, 0.4),
+    transparent
+  );
   transition: 0.5s;
 }
 
@@ -510,15 +573,15 @@
   .billboard h1 {
     font-size: 2rem;
   }
-  
+
   .main-building {
     width: 100%;
   }
-  
+
   .cyberpunk-container {
     padding: 130px 1rem 1rem;
   }
-  
+
   .floating-cost,
   .floating-credit {
     font-size: 14px;

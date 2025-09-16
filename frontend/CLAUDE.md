@@ -5,6 +5,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Frontend Development Commands
 
 ### Development
+
 ```bash
 npm run dev          # Start Vite dev server (port 3009)
 npm run build        # Build for production
@@ -13,6 +14,7 @@ npm run storybook    # Start Storybook on port 6006
 ```
 
 ### Testing
+
 ```bash
 npm test                                    # Run all Jest tests
 npm run test:watch                          # Run tests in watch mode
@@ -22,6 +24,7 @@ npm test -- --testNamePattern="renders"     # Run tests matching pattern
 ```
 
 ### Code Quality
+
 ```bash
 npm run lint                # Run ESLint (max warnings: 0)
 npm run build-storybook     # Build Storybook for deployment
@@ -30,6 +33,7 @@ npm run build-storybook     # Build Storybook for deployment
 ## High-Level Frontend Architecture
 
 ### Core Technology Stack
+
 - **React 18.3** with TypeScript 5.2
 - **Vite 6.3** for bundling and dev server
 - **Tailwind CSS** with custom design tokens
@@ -150,6 +154,7 @@ The application supports 6 distinct themes with a sophisticated loading mechanis
    - Production sourcemaps enabled for debugging
 
 2. **Build Process**:
+
    ```bash
    npm run build
    # Outputs to dist/
@@ -173,6 +178,7 @@ The application supports 6 distinct themes with a sophisticated loading mechanis
 ### Testing Patterns
 
 1. **Component Testing**:
+
    ```typescript
    // Use testing-library for behavior-driven tests
    render(<Component />, { wrapper: AllTheProviders });
@@ -193,6 +199,7 @@ The application supports 6 distinct themes with a sophisticated loading mechanis
 ### Current Development Context
 
 **Active Work Areas**:
+
 - Mobile responsiveness improvements
 - WCAG AA compliance
 - Performance optimizations (WebP/AVIF, lazy loading)
@@ -200,6 +207,7 @@ The application supports 6 distinct themes with a sophisticated loading mechanis
 - Results iteration viewing (initial/meta/final)
 
 **Technical Debt**:
+
 - Some components in `legacy/` need migration
 - Storybook stories incomplete for newer components
 - Test coverage gaps in wizard flow

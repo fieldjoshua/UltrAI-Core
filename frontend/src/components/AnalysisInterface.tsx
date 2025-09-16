@@ -18,7 +18,7 @@ import type { AnalysisResult } from './atoms/ResultsDisplay';
 // Mock API functions - replace with actual API calls
 const fetchModels = async (): Promise<Model[]> => {
   // Simulated API delay
-  await new Promise((resolve) => setTimeout(resolve, 1000));
+  await new Promise(resolve => setTimeout(resolve, 1000));
 
   return [
     {
@@ -74,7 +74,7 @@ const fetchModels = async (): Promise<Model[]> => {
 
 const fetchPatterns = async (): Promise<AnalysisPattern[]> => {
   // Simulated API delay
-  await new Promise((resolve) => setTimeout(resolve, 800));
+  await new Promise(resolve => setTimeout(resolve, 800));
 
   return [
     {
@@ -139,11 +139,11 @@ const submitAnalysis = async (
   results: AnalysisResult[];
 }> => {
   // Simulate a multi-step analysis process with updates
-  await new Promise((resolve) => setTimeout(resolve, 2000));
+  await new Promise(resolve => setTimeout(resolve, 2000));
 
   return {
     status: 'complete',
-    results: selectedModels.map((modelId) => ({
+    results: selectedModels.map(modelId => ({
       modelId,
       modelName:
         modelId === 'gpt4o'
@@ -252,11 +252,11 @@ export const AnalysisInterface: React.FC = () => {
 
       // Simulate step progress
       const progressInterval = setInterval(() => {
-        setAnalysisStep((step) => {
+        setAnalysisStep(step => {
           if (step < 3) return step + 1;
           return step;
         });
-        setEstimatedTimeRemaining((time) => Math.max(0, time - 3));
+        setEstimatedTimeRemaining(time => Math.max(0, time - 3));
       }, 3000);
 
       setTimeout(() => {

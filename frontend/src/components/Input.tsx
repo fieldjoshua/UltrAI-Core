@@ -91,7 +91,15 @@ export const Input: React.FC<InputProps> = ({
           step={step}
           autoComplete={autoComplete}
           onKeyDown={handleKeyDown}
-          style={{ ['--input-radius' as any]: tokens.borderRadius.base, ['--input-pad-y' as any]: tokens.components.input.padding.split(' ')[0], ['--input-pad-x' as any]: tokens.components.input.padding.split(' ')[1] } as React.CSSProperties}
+          style={
+            {
+              ['--input-radius' as any]: tokens.borderRadius.base,
+              ['--input-pad-y' as any]:
+                tokens.components.input.padding.split(' ')[0],
+              ['--input-pad-x' as any]:
+                tokens.components.input.padding.split(' ')[1],
+            } as React.CSSProperties
+          }
           className={`w-full bg-white border shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-[var(--input-radius)] py-[var(--input-pad-y)] px-[var(--input-pad-x)] ${
             error ? 'border-red-300' : 'border-gray-300'
           } ${disabled ? 'cursor-not-allowed opacity-50' : ''}`}

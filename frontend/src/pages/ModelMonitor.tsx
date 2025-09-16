@@ -31,14 +31,17 @@ const ModelMonitor: React.FC = () => {
         <Card className="mb-6 p-6">
           <div className="flex gap-4 items-end">
             <div className="flex-1">
-              <label htmlFor="correlation-id" className="block text-sm font-medium text-gray-700 mb-1">
+              <label
+                htmlFor="correlation-id"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
                 Correlation ID
               </label>
               <Input
                 id="correlation-id"
                 type="text"
                 value={correlationId}
-                onChange={(e) => setCorrelationId(e.target.value)}
+                onChange={e => setCorrelationId(e.target.value)}
                 placeholder="Enter correlation ID to monitor"
                 className="w-full"
               />
@@ -49,7 +52,8 @@ const ModelMonitor: React.FC = () => {
           </div>
           <div className="mt-2 text-sm text-gray-500">
             <AlertCircle className="inline h-4 w-4 mr-1" />
-            Tip: You can find the correlation ID in the analysis response or request headers
+            Tip: You can find the correlation ID in the analysis response or
+            request headers
           </div>
         </Card>
 
@@ -58,9 +62,9 @@ const ModelMonitor: React.FC = () => {
             <h2 className="text-xl font-semibold text-gray-800">
               Monitoring: {activeId}
             </h2>
-            <SSEPanel 
-              correlationId={activeId} 
-              title="Real-Time Model Events" 
+            <SSEPanel
+              correlationId={activeId}
+              title="Real-Time Model Events"
               maxEvents={200}
             />
           </div>
@@ -70,7 +74,8 @@ const ModelMonitor: React.FC = () => {
           <Card className="p-12 text-center">
             <Activity className="h-16 w-16 text-gray-300 mx-auto mb-4" />
             <p className="text-gray-500">
-              Enter a correlation ID above to start monitoring orchestration events
+              Enter a correlation ID above to start monitoring orchestration
+              events
             </p>
           </Card>
         )}

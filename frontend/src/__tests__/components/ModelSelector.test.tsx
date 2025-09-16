@@ -5,7 +5,12 @@ import { ModelSelector, type Model } from '@/components/atoms/ModelSelector';
 
 const models: Model[] = [
   { id: 'gpt-4o', name: 'GPT-4o', provider: 'openai', isAvailable: true },
-  { id: 'claude-3', name: 'Claude 3', provider: 'anthropic', isAvailable: true },
+  {
+    id: 'claude-3',
+    name: 'Claude 3',
+    provider: 'anthropic',
+    isAvailable: true,
+  },
   { id: 'gemini', name: 'Gemini', provider: 'google', isAvailable: false },
 ];
 
@@ -27,5 +32,3 @@ describe('ModelSelector', () => {
     expect(onChange).toHaveBeenCalledWith(['gpt-4o']);
   });
 });
-
-

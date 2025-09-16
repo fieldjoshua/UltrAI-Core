@@ -1,39 +1,51 @@
 // Mock Orchestrator API for demo mode
 // Provides realistic simulated responses for demonstrations
 
+import type {
+  OrchestrationRequest,
+  OrchestrationResponse,
+  AvailableModelsResponse,
+  ModelHealthResponse,
+  OrchestratorStatusResponse,
+} from './types';
+
 // Error simulation configuration
 const ERROR_SCENARIOS = {
   NETWORK_TIMEOUT: 'network_timeout',
   NO_MODELS_AVAILABLE: 'no_models_available',
   AUTHENTICATION_FAILURE: 'authentication_failure',
-  NONE: 'none'
-};
+  NONE: 'none',
+} as const;
+
+type ErrorScenario = typeof ERROR_SCENARIOS[keyof typeof ERROR_SCENARIOS];
 
 // Global error simulation state
-let currentErrorScenario = ERROR_SCENARIOS.NONE;
+let currentErrorScenario: ErrorScenario = ERROR_SCENARIOS.NONE;
 let errorProbability = 0; // 0-1 probability of random errors
 
 // Error simulation control functions
-export function setErrorScenario(scenario) {
+export function setErrorScenario(scenario: ErrorScenario): void {
   if (Object.values(ERROR_SCENARIOS).includes(scenario)) {
     currentErrorScenario = scenario;
     console.log(`Mock Orchestrator: Error scenario set to ${scenario}`);
   }
 }
 
-export function setRandomErrorProbability(probability) {
+export function setRandomErrorProbability(probability: number): void {
   errorProbability = Math.max(0, Math.min(1, probability));
-  console.log(`Mock Orchestrator: Random error probability set to ${errorProbability}`);
+  console.log(
+    `Mock Orchestrator: Random error probability set to ${errorProbability}`
+  );
 }
 
-export function clearErrorSimulation() {
+export function clearErrorSimulation(): void {
   currentErrorScenario = ERROR_SCENARIOS.NONE;
   errorProbability = 0;
   console.log('Mock Orchestrator: Error simulation cleared');
 }
 
 // Helper to check if we should simulate an error
-function shouldSimulateError() {
+function shouldSimulateError(): ErrorScenario | null {
   if (currentErrorScenario !== ERROR_SCENARIOS.NONE) {
     return currentErrorScenario;
   }
@@ -42,7 +54,7 @@ function shouldSimulateError() {
     const scenarios = [
       ERROR_SCENARIOS.NETWORK_TIMEOUT,
       ERROR_SCENARIOS.NO_MODELS_AVAILABLE,
-      ERROR_SCENARIOS.AUTHENTICATION_FAILURE
+      ERROR_SCENARIOS.AUTHENTICATION_FAILURE,
     ];
     return scenarios[Math.floor(Math.random() * scenarios.length)];
   }
@@ -50,39 +62,40 @@ function shouldSimulateError() {
 }
 
 // Simulate network timeout
-async function simulateNetworkTimeout() {
+async function simulateNetworkTimeout(): Promise<never> {
   // Wait for a realistic timeout period
   await new Promise(resolve => setTimeout(resolve, 30000)); // 30 second timeout
   throw new Error('Network timeout: Request took too long to complete');
 }
 
 // Simulate authentication failure
-function simulateAuthenticationFailure() {
-  const error = new Error('Authentication failed');
+function simulateAuthenticationFailure(): never {
+  const error: any = new Error('Authentication failed');
   error.status = 401;
   error.response = {
     status: 401,
     statusText: 'Unauthorized',
     json: async () => ({
       detail: 'Invalid or expired authentication token',
-      error_code: 'AUTH_FAILED'
-    })
+      error_code: 'AUTH_FAILED',
+    }),
   };
   throw error;
 }
 
 // Simulate no models available
-function simulateNoModelsAvailable() {
-  const error = new Error('No models available');
+function simulateNoModelsAvailable(): never {
+  const error: any = new Error('No models available');
   error.status = 503;
   error.response = {
     status: 503,
     statusText: 'Service Unavailable',
     json: async () => ({
-      detail: 'No AI models are currently available. All providers are experiencing issues.',
+      detail:
+        'No AI models are currently available. All providers are experiencing issues.',
       error_code: 'NO_MODELS_AVAILABLE',
-      available_models: []
-    })
+      available_models: [],
+    }),
   };
   throw error;
 }
@@ -93,33 +106,56 @@ const DEMO_MODELS = [
   { id: 'gemini-2.5', provider: 'google', cost_per_1k_tokens: 0.0045 },
   // Additional demo models remain available
   { id: 'gpt-4o-mini', provider: 'openai', cost_per_1k_tokens: 0.00015 },
-  { id: 'claude-3-haiku-20240307', provider: 'anthropic', cost_per_1k_tokens: 0.00025 },
+  {
+    id: 'claude-3-haiku-20240307',
+    provider: 'anthropic',
+    cost_per_1k_tokens: 0.00025,
+  },
   { id: 'gemini-1.5-flash', provider: 'google', cost_per_1k_tokens: 0.00035 },
-  { id: 'llama-3.1-70b-versatile', provider: 'groq', cost_per_1k_tokens: 0.00059 },
+  {
+    id: 'llama-3.1-70b-versatile',
+    provider: 'groq',
+    cost_per_1k_tokens: 0.00059,
+  },
   { id: 'mixtral-8x7b-32768', provider: 'groq', cost_per_1k_tokens: 0.00024 },
 ];
 
 // Simulate different types of responses based on query patterns
-const generateDemoResponse = (query, models) => {
+const generateDemoResponse = (query: string, models: string[]): string => {
   const lowerQuery = query.toLowerCase();
-  
+
   // Detect query type and generate appropriate response
-  if (lowerQuery.includes('angel investor') || lowerQuery.includes('top 10 angel')) {
+  if (
+    lowerQuery.includes('angel investor') ||
+    lowerQuery.includes('top 10 angel')
+  ) {
     return generateAngelInvestorResponse(query, models);
-  } else if (lowerQuery.includes('code') || lowerQuery.includes('program') || lowerQuery.includes('function')) {
+  } else if (
+    lowerQuery.includes('code') ||
+    lowerQuery.includes('program') ||
+    lowerQuery.includes('function')
+  ) {
     return generateCodeResponse(query, models);
   } else if (lowerQuery.includes('analyze') || lowerQuery.includes('compare')) {
     return generateAnalysisResponse(query, models);
-  } else if (lowerQuery.includes('creative') || lowerQuery.includes('story') || lowerQuery.includes('write')) {
+  } else if (
+    lowerQuery.includes('creative') ||
+    lowerQuery.includes('story') ||
+    lowerQuery.includes('write')
+  ) {
     return generateCreativeResponse(query, models);
-  } else if (lowerQuery.includes('explain') || lowerQuery.includes('how') || lowerQuery.includes('what')) {
+  } else if (
+    lowerQuery.includes('explain') ||
+    lowerQuery.includes('how') ||
+    lowerQuery.includes('what')
+  ) {
     return generateExplanationResponse(query, models);
   } else {
     return generateGeneralResponse(query, models);
   }
 };
 
-const generateCodeResponse = (query, models) => {
+const generateCodeResponse = (query: string, models: string[]): string => {
   return `Based on comprehensive analysis across ${models.length} specialized AI models, here's the optimal solution:
 
 **Code Implementation:**
@@ -153,7 +189,7 @@ def optimize_performance(data):
 *This synthesis leverages the unique strengths of each model to deliver production-ready code.*`;
 };
 
-const generateAnalysisResponse = (query, models) => {
+const generateAnalysisResponse = (query: string, models: string[]): string => {
   return `Through advanced multi-model orchestration, I've synthesized insights from ${models.length} leading AI systems:
 
 **Comparative Analysis Results:**
@@ -183,7 +219,7 @@ const generateAnalysisResponse = (query, models) => {
 *This Ultra Synthesis™ combines diverse AI perspectives for unparalleled analytical depth.*`;
 };
 
-const generateCreativeResponse = (query, models) => {
+const generateCreativeResponse = (query: string, models: string[]): string => {
   return `Leveraging creative synthesis across ${models.length} AI models, here's a uniquely crafted response:
 
 **Creative Synthesis Output:**
@@ -210,7 +246,7 @@ const generateCreativeResponse = (query, models) => {
 *This creative fusion represents the pinnacle of AI collaboration in artistic expression.*`;
 };
 
-const generateExplanationResponse = (query, models) => {
+const generateExplanationResponse = (query: string, models: string[]): string => {
   return `Synthesizing explanations from ${models.length} expert AI models for maximum clarity:
 
 **Multi-Level Explanation:**
@@ -237,7 +273,7 @@ ${query.slice(0, 50)}... can be understood as a fundamental concept that bridges
 *This explanation benefits from cross-model validation for maximum accuracy and clarity.*`;
 };
 
-const generateAngelInvestorResponse = (query, models) => {
+const generateAngelInvestorResponse = (query: string, models: string[]): string => {
   // Return the actual Claude response from the CSV file
   return `Based on my research, here are the Top 10 Angel Investors most likely to fund your AI portal with democratizing features and campus-based P2P marketing:
 
@@ -291,11 +327,14 @@ const generateAngelInvestorResponse = (query, models) => {
 **Pro tip:** Start with investors who have portfolios in both AI/ML and education/campus markets. They'll immediately understand your distribution advantage.`;
 };
 
-const generateGeneralResponse = (query, models) => {
+const generateGeneralResponse = (query: string, models: string[]): string => {
   // Extract key terms from query for more relevant response
-  const queryTerms = query.toLowerCase().split(' ').filter(word => word.length > 3);
+  const queryTerms = query
+    .toLowerCase()
+    .split(' ')
+    .filter(word => word.length > 3);
   const topic = queryTerms.length > 0 ? queryTerms.join(' ') : 'your inquiry';
-  
+
   return `# Ultra Synthesis™ Analysis Report
 
 ## Query Analysis
@@ -308,16 +347,23 @@ const generateGeneralResponse = (query, models) => {
 ## 🧠 Intelligence Multiplication Results
 
 ### Stage 1: Initial Model Responses (Parallel Processing)
-${models.map((model, i) => `
+${models
+  .map(
+    (model, i) => `
 **${model}** (${(1.2 + Math.random()).toFixed(2)}s):
 - Primary insight: Identified ${3 + i} key factors related to ${topic}
 - Confidence: ${(85 + Math.random() * 10).toFixed(1)}%
 - Unique perspective: ${
-  model.includes('gpt') ? 'Comprehensive analysis with strong general knowledge' :
-  model.includes('claude') ? 'Nuanced understanding with ethical considerations' :
-  model.includes('gemini') ? 'Technical depth with multimodal insights' :
-  'Specialized domain expertise with efficient processing'
-}`).join('\n')}
+      model.includes('gpt')
+        ? 'Comprehensive analysis with strong general knowledge'
+        : model.includes('claude')
+          ? 'Nuanced understanding with ethical considerations'
+          : model.includes('gemini')
+            ? 'Technical depth with multimodal insights'
+            : 'Specialized domain expertise with efficient processing'
+    }`
+  )
+  .join('\n')}
 
 ### Stage 2: Meta-Analysis (Cross-Model Synthesis)
 🔄 **Pattern Recognition Results:**
@@ -387,14 +433,12 @@ Through Ultra Synthesis™, you've received:
 };
 
 // Mock API implementation
-export async function processWithFeatherOrchestration({
-  prompt,
-  models = null,
-  pattern = 'comparative',
-  ultraModel = null,
-  outputFormat = 'plain'
-}) {
+export async function processWithFeatherOrchestration(
+  request: OrchestrationRequest
+): Promise<OrchestrationResponse> {
   const orchestrationStartTime = Date.now();
+  const { prompt, models = null, pattern = 'comparative' } = request;
+  
   // Check for error simulation
   const errorScenario = shouldSimulateError();
   if (errorScenario) {
@@ -410,21 +454,35 @@ export async function processWithFeatherOrchestration({
         break;
     }
   }
-  
+
   // If a demo dataset is available, return it directly to reflect manual UltrAI search
   try {
-    const demoRes = await fetch('/demo/ultrai_demo.json', { cache: 'no-store' });
+    const demoRes = await fetch('/demo/ultrai_demo.json', {
+      cache: 'no-store',
+    });
     if (demoRes.ok) {
       const demo = await demoRes.json();
       return {
         status: 'success',
         ultra_response: demo.ultra_response,
-        models_used: demo.models_used || ['gpt-4o', 'claude-3-5-sonnet-20241022', 'gemini-1.5-pro'],
+        models_used: demo.models_used || [
+          'gpt-4o',
+          'claude-3-5-sonnet-20241022',
+          'gemini-1.5-pro',
+        ],
         processing_time: 2.5,
         pattern_used: pattern,
         initial_responses: {},
-        meta_analysis: { content: 'Loaded curated demo dataset', patterns: ['curated'], confidence: 0.99 },
-        ultra_synthesis: { content: demo.ultra_response, confidence: 0.99, synthesis_method: 'curated_demo' }
+        meta_analysis: {
+          content: 'Loaded curated demo dataset',
+          patterns: ['curated'],
+          confidence: 0.99,
+        },
+        ultra_synthesis: {
+          content: demo.ultra_response,
+          confidence: 0.99,
+          synthesis_method: 'curated_demo',
+        },
       };
     }
   } catch (e) {
@@ -432,70 +490,93 @@ export async function processWithFeatherOrchestration({
   }
 
   // Stage 1: Initialize providers & health check (2-5s)
-  await new Promise(resolve => setTimeout(resolve, 2000 + Math.random() * 3000));
-  
+  await new Promise(resolve =>
+    setTimeout(resolve, 2000 + Math.random() * 3000)
+  );
+
   // Use provided models or select defaults
-  let selectedModels = models || ['gpt-4o', 'claude-3-5-sonnet-20241022', 'gemini-1.5-pro'];
-  
+  let selectedModels = models || [
+    'gpt-4o',
+    'claude-3-5-sonnet-20241022',
+    'gemini-1.5-pro',
+  ];
+
   // Ensure at least 2 models for Ultra Synthesis
   if (selectedModels.length < 2) {
-    console.warn('Less than 2 models selected, adding defaults for Ultra Synthesis');
+    console.warn(
+      'Less than 2 models selected, adding defaults for Ultra Synthesis'
+    );
     selectedModels = ['gpt-4o', 'claude-3-5-sonnet-20241022'];
   }
-  
+
   // Stage 2: Query dispatch (0.3-0.8s)
   await new Promise(resolve => setTimeout(resolve, 300 + Math.random() * 500));
-  
+
   // Stage 3: Model generation in parallel (8-15s for slowest)
-  const initialResponses = {};
-  
+  const initialResponses: Record<string, any> = {};
+
   // Simulate parallel processing - all models work simultaneously
-  const modelPromises = selectedModels.map(async (model) => {
+  const modelPromises = selectedModels.map(async model => {
     // Each model has different response times
-    const modelDelay = model.includes('gpt-5') ? 8000 + Math.random() * 7000 :  // GPT-5: 8-15s
-                      model.includes('claude-4.1') ? 6000 + Math.random() * 6000 :  // Claude: 6-12s
-                      model.includes('gemini') ? 6000 + Math.random() * 4000 :      // Gemini: 6-10s
-                      5000 + Math.random() * 5000;                                  // Others: 5-10s
-    
+    const modelDelay = model.includes('gpt-5')
+      ? 8000 + Math.random() * 7000 // GPT-5: 8-15s
+      : model.includes('claude-4.1')
+        ? 6000 + Math.random() * 6000 // Claude: 6-12s
+        : model.includes('gemini')
+          ? 6000 + Math.random() * 4000 // Gemini: 6-10s
+          : 5000 + Math.random() * 5000; // Others: 5-10s
+
     await new Promise(resolve => setTimeout(resolve, modelDelay));
-    
+
     initialResponses[model] = {
       content: `[${model}] Initial analysis of: "${prompt.slice(0, 50)}..."`,
       processingTime: modelDelay / 1000,
-      confidence: 0.85 + Math.random() * 0.15
+      confidence: 0.85 + Math.random() * 0.15,
     };
   });
-  
+
   // Wait for all models to complete (parallel execution)
   await Promise.all(modelPromises);
-  
+
   // Stage 4: Cross-check & fan-out (2-5s)
-  await new Promise(resolve => setTimeout(resolve, 2000 + Math.random() * 3000));
-  
+  await new Promise(resolve =>
+    setTimeout(resolve, 2000 + Math.random() * 3000)
+  );
+
   // Stage 5: Critique & revision loop (5-20s total for 1-2 passes)
   const revisionPasses = Math.random() < 0.7 ? 1 : 2; // 70% chance of 1 pass, 30% chance of 2
   for (let pass = 0; pass < revisionPasses; pass++) {
-    await new Promise(resolve => setTimeout(resolve, 5000 + Math.random() * 5000));
+    await new Promise(resolve =>
+      setTimeout(resolve, 5000 + Math.random() * 5000)
+    );
   }
-  
+
   // Stage 6: Meta-draft assembly (2-4s)
-  await new Promise(resolve => setTimeout(resolve, 2000 + Math.random() * 2000));
-  
+  await new Promise(resolve =>
+    setTimeout(resolve, 2000 + Math.random() * 2000)
+  );
+
   // Stage 7: Meta-analysis & synthesis (6-12s)
-  await new Promise(resolve => setTimeout(resolve, 6000 + Math.random() * 6000));
+  await new Promise(resolve =>
+    setTimeout(resolve, 6000 + Math.random() * 6000)
+  );
   const metaAnalysis = {
     content: `Meta-analysis identified ${Object.keys(initialResponses).length} key patterns across models with 92% consensus rate.`,
     patterns: ['consensus', 'divergence', 'synthesis'],
-    confidence: 0.91
+    confidence: 0.91,
   };
-  
+
   // Stage 8: Final formatting & delivery (4-8s)
-  await new Promise(resolve => setTimeout(resolve, 4000 + Math.random() * 4000));
+  await new Promise(resolve =>
+    setTimeout(resolve, 4000 + Math.random() * 4000)
+  );
   const ultraResponse = generateDemoResponse(prompt, selectedModels);
-  
+
   // Add network/rate-limit jitter (1-3s)
-  await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 2000));
-  
+  await new Promise(resolve =>
+    setTimeout(resolve, 1000 + Math.random() * 2000)
+  );
+
   return {
     status: 'success',
     ultra_response: ultraResponse,
@@ -507,12 +588,12 @@ export async function processWithFeatherOrchestration({
     ultra_synthesis: {
       content: ultraResponse,
       confidence: 0.94,
-      synthesis_method: 'advanced_orchestration'
-    }
+      synthesis_method: 'advanced_orchestration',
+    },
   };
 }
 
-export async function getAvailableModels() {
+export async function getAvailableModels(): Promise<AvailableModelsResponse> {
   // Check for error simulation
   const errorScenario = shouldSimulateError();
   if (errorScenario) {
@@ -524,42 +605,64 @@ export async function getAvailableModels() {
         // For getAvailableModels, return empty list instead of throwing
         return {
           models: [],
-          totalCount: 0,
-          providers: {
-            openai: [],
-            anthropic: [],
-            google: [],
-            groq: [],
-          },
-          modelInfos: {},
-          error: 'No models available'
-        };
+        } as any;
       case ERROR_SCENARIOS.AUTHENTICATION_FAILURE:
         simulateAuthenticationFailure();
         break;
     }
   }
-  
+
   // Simulate network delay (slower)
   await new Promise(resolve => setTimeout(resolve, 1000));
-  
+
   return {
     models: DEMO_MODELS.map(m => m.id),
-    totalCount: DEMO_MODELS.length,
-    providers: {
-      openai: DEMO_MODELS.filter(m => m.provider === 'openai').map(m => m.id),
-      anthropic: DEMO_MODELS.filter(m => m.provider === 'anthropic').map(m => m.id),
-      google: DEMO_MODELS.filter(m => m.provider === 'google').map(m => m.id),
-      groq: DEMO_MODELS.filter(m => m.provider === 'groq').map(m => m.id),
-    },
-    modelInfos: DEMO_MODELS.reduce((acc, m) => {
-      acc[m.id] = { provider: m.provider, cost_per_1k_tokens: m.cost_per_1k_tokens };
+  } as any;
+}
+
+export async function getModelHealth(): Promise<ModelHealthResponse> {
+  // Simulate network delay
+  await new Promise(resolve => setTimeout(resolve, 500));
+
+  return {
+    models: DEMO_MODELS.reduce((acc: any, model) => {
+      acc[model.id] = {
+        status: 'healthy',
+        latency_ms: 200 + Math.random() * 300,
+        success_rate: 0.95 + Math.random() * 0.05,
+        last_check: new Date().toISOString(),
+      };
       return acc;
-    }, {})
+    }, {}),
+    overall_health: 'healthy',
+    healthy_models: DEMO_MODELS.length,
+    total_models: DEMO_MODELS.length,
   };
 }
 
-export async function checkModelStatus(modelId) {
+export async function getOrchestratorStatus(): Promise<OrchestratorStatusResponse> {
+  // Simulate network delay
+  await new Promise(resolve => setTimeout(resolve, 300));
+
+  return {
+    status: 'operational',
+    version: '1.0.0',
+    uptime_seconds: 86400,
+    total_requests: 1234,
+    success_rate: 0.98,
+    average_latency_ms: 450,
+    active_models: DEMO_MODELS.length,
+    queue_size: 0,
+    last_error: null,
+  };
+}
+
+export async function checkModelStatus(modelId: string): Promise<{ 
+  available: boolean; 
+  status: string; 
+  error?: string;
+  lastChecked?: string;
+}> {
   // Check for error simulation
   const errorScenario = shouldSimulateError();
   if (errorScenario) {
@@ -572,24 +675,26 @@ export async function checkModelStatus(modelId) {
           available: false,
           status: 'all_models_unavailable',
           lastChecked: new Date().toISOString(),
-          error: 'No models are currently available'
+          error: 'No models are currently available',
         };
       case ERROR_SCENARIOS.AUTHENTICATION_FAILURE:
         simulateAuthenticationFailure();
         break;
     }
   }
-  
+
   // Simulate network delay
   await new Promise(resolve => setTimeout(resolve, 200));
-  
+
   // Simulate some models being temporarily unavailable
   const unavailableModels = Math.random() > 0.8 ? ['mixtral-8x7b-32768'] : [];
-  
+
   return {
     available: !unavailableModels.includes(modelId),
-    status: unavailableModels.includes(modelId) ? 'temporarily_unavailable' : 'ready',
-    lastChecked: new Date().toISOString()
+    status: unavailableModels.includes(modelId)
+      ? 'temporarily_unavailable'
+      : 'ready',
+    lastChecked: new Date().toISOString(),
   };
 }
 
@@ -597,26 +702,28 @@ export async function checkModelStatus(modelId) {
 export { ERROR_SCENARIOS };
 
 // Utility function for testing error scenarios
-export function simulateError(scenario, duration = null) {
+export function simulateError(scenario: string, duration?: number): void {
   if (scenario === 'random') {
     // Enable random errors with 30% probability
     setRandomErrorProbability(0.3);
     console.log('Mock Orchestrator: Random errors enabled (30% probability)');
-    
+
     if (duration) {
       setTimeout(() => {
         clearErrorSimulation();
         console.log('Mock Orchestrator: Random errors disabled after timeout');
       }, duration);
     }
-  } else if (Object.values(ERROR_SCENARIOS).includes(scenario)) {
-    setErrorScenario(scenario);
+  } else if (Object.values(ERROR_SCENARIOS).includes(scenario as ErrorScenario)) {
+    setErrorScenario(scenario as ErrorScenario);
     console.log(`Mock Orchestrator: Simulating ${scenario} errors`);
-    
+
     if (duration) {
       setTimeout(() => {
         clearErrorSimulation();
-        console.log(`Mock Orchestrator: ${scenario} simulation ended after timeout`);
+        console.log(
+          `Mock Orchestrator: ${scenario} simulation ended after timeout`
+        );
       }, duration);
     }
   } else {
@@ -626,11 +733,11 @@ export function simulateError(scenario, duration = null) {
 
 // Window-level access for browser console testing
 if (typeof window !== 'undefined') {
-  window.mockOrchestratorErrors = {
+  (window as any).mockOrchestratorErrors = {
     simulateError,
     clearErrorSimulation,
     setErrorScenario,
     setRandomErrorProbability,
-    scenarios: ERROR_SCENARIOS
+    scenarios: ERROR_SCENARIOS,
   };
 }

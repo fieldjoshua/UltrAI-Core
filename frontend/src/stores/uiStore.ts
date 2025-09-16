@@ -14,13 +14,13 @@ export interface Toast {
 interface UIState {
   // Global error state
   globalError: string | null;
-  
+
   // Toast notifications
   toasts: Toast[];
-  
+
   // Loading states
   pendingRequests: number;
-  
+
   // Actions
   setGlobalError: (error: string | null) => void;
   showToast: (message: string, type?: ToastType, duration?: number) => void;
@@ -28,7 +28,7 @@ interface UIState {
   clearAllToasts: () => void;
   incrementPendingRequests: () => void;
   decrementPendingRequests: () => void;
-  
+
   // Computed
   isLoading: () => boolean;
 }
@@ -47,12 +47,16 @@ export const useUIStore = create<UIState>()(
       },
 
       // Show toast notification
-      showToast: (message: string, type: ToastType = 'info', duration: number = 5000) => {
+      showToast: (
+        message: string,
+        type: ToastType = 'info',
+        duration: number = 5000
+      ) => {
         const id = `${Date.now()}-${Math.random()}`;
         const toast: Toast = { id, message, type, duration };
-        
-        set((state) => ({
-          toasts: [...state.toasts, toast]
+
+        set(state => ({
+          toasts: [...state.toasts, toast],
         }));
 
         // Auto-remove toast after duration
@@ -65,8 +69,8 @@ export const useUIStore = create<UIState>()(
 
       // Remove specific toast
       removeToast: (id: string) => {
-        set((state) => ({
-          toasts: state.toasts.filter(toast => toast.id !== id)
+        set(state => ({
+          toasts: state.toasts.filter(toast => toast.id !== id),
         }));
       },
 
@@ -77,25 +81,25 @@ export const useUIStore = create<UIState>()(
 
       // Increment pending requests
       incrementPendingRequests: () => {
-        set((state) => ({
-          pendingRequests: state.pendingRequests + 1
+        set(state => ({
+          pendingRequests: state.pendingRequests + 1,
         }));
       },
 
       // Decrement pending requests
       decrementPendingRequests: () => {
-        set((state) => ({
-          pendingRequests: Math.max(0, state.pendingRequests - 1)
+        set(state => ({
+          pendingRequests: Math.max(0, state.pendingRequests - 1),
         }));
       },
 
       // Check if any requests are loading
       isLoading: () => {
         return get().pendingRequests > 0;
-      }
+      },
     }),
     {
-      name: 'ui-store'
+      name: 'ui-store',
     }
   )
 );

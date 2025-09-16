@@ -195,7 +195,7 @@ export const PricingDisplay = ({
     let hasPremiumModel = false;
 
     // Calculate model-specific costs
-    selectedModels.forEach((modelId) => {
+    selectedModels.forEach(modelId => {
       const pricing = MODEL_PRICING[modelId];
       if (!pricing) return;
 

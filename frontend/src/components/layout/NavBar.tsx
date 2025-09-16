@@ -22,14 +22,16 @@ export default function NavBar() {
   const [isThemePanelOpen, setIsThemePanelOpen] = React.useState(false);
   const [isSkinMenuOpen, setIsSkinMenuOpen] = React.useState(false);
   const { isAuthenticated } = useAuthStore();
-  
+
   // Get current skin from body class
   const [currentSkin, setCurrentSkin] = React.useState(() => {
-    return Array.from(document.body.classList)
-      .find(cls => cls.startsWith('skin-'))
-      ?.replace('skin-', '') || 'night';
+    return (
+      Array.from(document.body.classList)
+        .find(cls => cls.startsWith('skin-'))
+        ?.replace('skin-', '') || 'night'
+    );
   });
-  
+
   const skins = [
     { name: 'morning', icon: '🌅', color: '#FFD27A' },
     { name: 'afternoon', icon: '☀️', color: '#7AD1FF' },
@@ -101,7 +103,7 @@ export default function NavBar() {
           >
             <User size={18} />
           </Link>
-          
+
           {/* Skin Switcher */}
           <div className="relative">
             <button
@@ -115,36 +117,46 @@ export default function NavBar() {
             >
               <Paintbrush size={18} />
             </button>
-            
+
             {/* Skin menu */}
             {isSkinMenuOpen && (
               <div className="absolute left-full ml-2 top-0 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg p-2 min-w-[200px]">
                 <div className="text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider mb-2 px-2">
                   Themes
                 </div>
-                {skins.map((skin) => (
+                {skins.map(skin => (
                   <button
                     key={skin.name}
                     onClick={() => {
                       // Update body class
-                      document.body.className = document.body.className.replace(/skin-\w+/g, '');
+                      document.body.className = document.body.className.replace(
+                        /skin-\w+/g,
+                        ''
+                      );
                       document.body.classList.add(`skin-${skin.name}`);
                       setCurrentSkin(skin.name);
                       localStorage.setItem('selectedSkin', skin.name);
-                      
+
                       // Load the skin CSS
                       import(`../../skins/${skin.name}.css`);
-                      
+
                       setIsSkinMenuOpen(false);
                     }}
                     className={`w-full flex items-center gap-3 px-2 py-2 rounded text-sm hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors ${
-                      currentSkin === skin.name ? 'bg-gray-100 dark:bg-gray-800' : ''
+                      currentSkin === skin.name
+                        ? 'bg-gray-100 dark:bg-gray-800'
+                        : ''
                     }`}
                   >
                     <span className="text-lg">{skin.icon}</span>
-                    <span className="flex-1 text-left capitalize">{skin.name}</span>
+                    <span className="flex-1 text-left capitalize">
+                      {skin.name}
+                    </span>
                     {currentSkin === skin.name && (
-                      <div className="w-2 h-2 rounded-full" style={{ backgroundColor: skin.color }} />
+                      <div
+                        className="w-2 h-2 rounded-full"
+                        style={{ backgroundColor: skin.color }}
+                      />
                     )}
                   </button>
                 ))}
@@ -171,19 +183,52 @@ export default function NavBar() {
       <header className="md:hidden bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 sticky top-0 z-40">
         <div className="px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <span className="text-blue-600 dark:text-blue-400"><Zap size={22} /></span>
-            <span className="text-lg font-bold text-gray-900 dark:text-white">UltrAI</span>
+            <span className="text-blue-600 dark:text-blue-400">
+              <Zap size={22} />
+            </span>
+            <span className="text-lg font-bold text-gray-900 dark:text-white">
+              UltrAI
+            </span>
           </div>
-          <Button variant="ghost" size="sm" onClick={() => setIsMenuOpen(!isMenuOpen)} className="text-gray-700 dark:text-gray-300">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+            className="text-gray-700 dark:text-gray-300"
+          >
             {isMenuOpen ? <X size={20} /> : <Menu size={20} />}
           </Button>
         </div>
         {isMenuOpen && (
           <nav className="px-2 pb-3 space-y-1">
-            <Link to="/dashboard" className="block px-3 py-2 rounded-md text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800" onClick={() => setIsMenuOpen(false)}>Dashboard</Link>
-            <Link to="/outputs" className="block px-3 py-2 rounded-md text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800" onClick={() => setIsMenuOpen(false)}>Outputs</Link>
-            <Link to="/faq" className="block px-3 py-2 rounded-md text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800" onClick={() => setIsMenuOpen(false)}>FAQ</Link>
-            <Link to="/profile" className="block px-3 py-2 rounded-md text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800" onClick={() => setIsMenuOpen(false)}>Profile</Link>
+            <Link
+              to="/dashboard"
+              className="block px-3 py-2 rounded-md text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
+              onClick={() => setIsMenuOpen(false)}
+            >
+              Dashboard
+            </Link>
+            <Link
+              to="/outputs"
+              className="block px-3 py-2 rounded-md text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
+              onClick={() => setIsMenuOpen(false)}
+            >
+              Outputs
+            </Link>
+            <Link
+              to="/faq"
+              className="block px-3 py-2 rounded-md text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
+              onClick={() => setIsMenuOpen(false)}
+            >
+              FAQ
+            </Link>
+            <Link
+              to="/profile"
+              className="block px-3 py-2 rounded-md text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
+              onClick={() => setIsMenuOpen(false)}
+            >
+              Profile
+            </Link>
           </nav>
         )}
       </header>
@@ -194,7 +239,12 @@ export default function NavBar() {
           <div className="bg-white dark:bg-gray-900 rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center p-4 border-b border-gray-200 dark:border-gray-800">
               <h2 className="text-xl font-bold">Customize Theme</h2>
-              <Button variant="ghost" size="sm" onClick={() => setIsThemePanelOpen(false)} className="text-gray-700 dark:text-gray-300">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setIsThemePanelOpen(false)}
+                className="text-gray-700 dark:text-gray-300"
+              >
                 <X size={20} />
               </Button>
             </div>

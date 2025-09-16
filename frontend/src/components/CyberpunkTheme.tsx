@@ -16,13 +16,13 @@ interface CyberpunkThemeProps {
 const CyberpunkTheme: React.FC<CyberpunkThemeProps> = ({
   children,
   showBillboard = true,
-  billboardTitle = "ULTRA AI - MULTIPLY YOUR AI!",
-  billboardSubtitle = "Intelligence Multiplication System",
+  billboardTitle = 'ULTRA AI - MULTIPLY YOUR AI!',
+  billboardSubtitle = 'Intelligence Multiplication System',
   showCityscape = true,
   showGrid = true,
   showFloatingElements = true,
-  cost = 12.50,
-  credit = 87.50
+  cost = 12.5,
+  credit = 87.5,
 }) => {
   const [isDay, setIsDay] = useState(false);
   const [currentTime, setCurrentTime] = useState('22:30');
@@ -32,39 +32,39 @@ const CyberpunkTheme: React.FC<CyberpunkThemeProps> = ({
   // Generate random city lights
   const generateCityLights = () => {
     if (!cityLightsRef.current) return;
-    
+
     const numLights = 300;
     const fragment = document.createDocumentFragment();
-    
+
     for (let i = 0; i < numLights; i++) {
       const light = document.createElement('div');
       light.classList.add('light');
-      
+
       // Position randomly, but more concentrated in the middle height
       const x = Math.random() * 100; // percentage
       const yFactor = Math.pow(Math.random(), 1.5);
       const y = (1 - yFactor) * 90; // percentage
-      
+
       light.style.left = `${x}%`;
       light.style.bottom = `${y}%`;
-      
+
       // Random sizes for variation
       const size = 1 + Math.random() * 2;
       light.style.width = `${size}px`;
       light.style.height = `${size}px`;
-      
+
       // Random animation delay
       light.style.animationDelay = `${Math.random() * 5}s`;
-      
+
       // Slightly different colors
       const hue = 50 + Math.random() * 10;
       const saturation = 80 + Math.random() * 20;
       const lightness = 70 + Math.random() * 30;
       light.style.backgroundColor = `hsla(${hue}, ${saturation}%, ${lightness}%, ${0.6 + Math.random() * 0.4})`;
-      
+
       fragment.appendChild(light);
     }
-    
+
     cityLightsRef.current.appendChild(fragment);
   };
 
@@ -79,7 +79,7 @@ const CyberpunkTheme: React.FC<CyberpunkThemeProps> = ({
     if (showCityscape) {
       generateCityLights();
     }
-    
+
     // Show grid after a short delay
     if (showGrid) {
       const timer = setTimeout(() => {
@@ -92,9 +92,11 @@ const CyberpunkTheme: React.FC<CyberpunkThemeProps> = ({
   return (
     <div className="cyberpunk-theme">
       <div className={`scene ${isDay ? 'day' : ''}`}></div>
-      
+
       {showGrid && (
-        <div className={`grid-background ${gridVisible ? 'visible' : ''}`}></div>
+        <div
+          className={`grid-background ${gridVisible ? 'visible' : ''}`}
+        ></div>
       )}
 
       {showBillboard && (
@@ -120,7 +122,7 @@ const CyberpunkTheme: React.FC<CyberpunkThemeProps> = ({
         <div className="cityscape">
           <div className="buildings"></div>
           <div className="city-lights" ref={cityLightsRef}></div>
-          
+
           <div className="main-building">
             <div className="building-top-light"></div>
             <div className="building-windows">
@@ -132,15 +134,13 @@ const CyberpunkTheme: React.FC<CyberpunkThemeProps> = ({
         </div>
       )}
 
-      <div className="cyberpunk-container">
-        {children}
-      </div>
+      <div className="cyberpunk-container">{children}</div>
 
       {showFloatingElements && (
         <>
           <div className="floating-cost">Cost: ${cost.toFixed(2)}</div>
           <div className="floating-credit">Credit: ${credit.toFixed(2)}</div>
-          
+
           <div className="toggle-container">
             <button className="day-night-toggle" onClick={toggleDayNight}>
               Toggle Day/Night

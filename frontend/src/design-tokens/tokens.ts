@@ -7,14 +7,14 @@ export const tokens = {
   // Spacing Scale (4px base)
   spacing: {
     none: '0',
-    xs: '0.25rem',    // 4px
-    sm: '0.5rem',     // 8px
-    md: '1rem',       // 16px
-    lg: '1.5rem',     // 24px
-    xl: '2rem',       // 32px
-    '2xl': '3rem',    // 48px
-    '3xl': '4rem',    // 64px
-    '4xl': '6rem',    // 96px
+    xs: '0.25rem', // 4px
+    sm: '0.5rem', // 8px
+    md: '1rem', // 16px
+    lg: '1.5rem', // 24px
+    xl: '2rem', // 32px
+    '2xl': '3rem', // 48px
+    '3xl': '4rem', // 64px
+    '4xl': '6rem', // 96px
   },
 
   // Typography Scale
@@ -25,15 +25,15 @@ export const tokens = {
       sans: ['Inter', 'system-ui', 'sans-serif'],
     },
     fontSize: {
-      xs: { size: '0.75rem', lineHeight: '1rem' },       // 12px
-      sm: { size: '0.875rem', lineHeight: '1.25rem' },   // 14px
-      base: { size: '1rem', lineHeight: '1.5rem' },      // 16px
-      lg: { size: '1.125rem', lineHeight: '1.75rem' },   // 18px
-      xl: { size: '1.25rem', lineHeight: '1.75rem' },    // 20px
-      '2xl': { size: '1.5rem', lineHeight: '2rem' },     // 24px
-      '3xl': { size: '1.875rem', lineHeight: '2.25rem' },// 30px
-      '4xl': { size: '2.25rem', lineHeight: '2.5rem' },  // 36px
-      '5xl': { size: '3rem', lineHeight: '1' },          // 48px
+      xs: { size: '0.75rem', lineHeight: '1rem' }, // 12px
+      sm: { size: '0.875rem', lineHeight: '1.25rem' }, // 14px
+      base: { size: '1rem', lineHeight: '1.5rem' }, // 16px
+      lg: { size: '1.125rem', lineHeight: '1.75rem' }, // 18px
+      xl: { size: '1.25rem', lineHeight: '1.75rem' }, // 20px
+      '2xl': { size: '1.5rem', lineHeight: '2rem' }, // 24px
+      '3xl': { size: '1.875rem', lineHeight: '2.25rem' }, // 30px
+      '4xl': { size: '2.25rem', lineHeight: '2.5rem' }, // 36px
+      '5xl': { size: '3rem', lineHeight: '1' }, // 48px
     },
     fontWeight: {
       normal: 400,
@@ -56,12 +56,12 @@ export const tokens = {
   // Border Radius
   borderRadius: {
     none: '0',
-    sm: '0.25rem',    // 4px
-    base: '0.5rem',   // 8px
-    md: '0.75rem',    // 12px
-    lg: '1rem',       // 16px
-    xl: '1.5rem',     // 24px
-    '2xl': '2rem',    // 32px
+    sm: '0.25rem', // 4px
+    base: '0.5rem', // 8px
+    md: '0.75rem', // 12px
+    lg: '1rem', // 16px
+    xl: '1.5rem', // 24px
+    '2xl': '2rem', // 32px
     full: '9999px',
   },
 
@@ -74,7 +74,8 @@ export const tokens = {
     lg: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
     xl: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
     '2xl': '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
-    glass: '0 8px 32px rgba(0, 0, 0, 0.3), inset 0 0 40px rgba(255, 255, 255, 0.02)',
+    glass:
+      '0 8px 32px rgba(0, 0, 0, 0.3), inset 0 0 40px rgba(255, 255, 255, 0.02)',
     neon: (color: string) => `0 0 20px ${color}, 0 0 40px ${color}20`,
   },
 
@@ -126,9 +127,9 @@ export const tokens = {
   components: {
     button: {
       height: {
-        sm: '2.5rem',   // 40px
+        sm: '2.5rem', // 40px
         base: '2.75rem', // 44px (touch target)
-        lg: '3rem',     // 48px
+        lg: '3rem', // 48px
       },
       padding: {
         sm: '0.75rem 1rem',
@@ -150,10 +151,10 @@ export const tokens = {
     },
     modal: {
       width: {
-        sm: '24rem',    // 384px
-        base: '32rem',  // 512px
-        lg: '48rem',    // 768px
-        xl: '64rem',    // 1024px
+        sm: '24rem', // 384px
+        base: '32rem', // 512px
+        lg: '48rem', // 768px
+        xl: '64rem', // 1024px
       },
     },
   },
@@ -180,15 +181,21 @@ export const tokens = {
 
 // Helper functions
 export const space = (key: keyof typeof tokens.spacing) => tokens.spacing[key];
-export const fontSize = (key: keyof typeof tokens.typography.fontSize) => tokens.typography.fontSize[key];
-export const shadow = (key: keyof typeof tokens.shadows | 'neon', color?: string) => {
+export const fontSize = (key: keyof typeof tokens.typography.fontSize) =>
+  tokens.typography.fontSize[key];
+export const shadow = (
+  key: keyof typeof tokens.shadows | 'neon',
+  color?: string
+) => {
   if (key === 'neon' && color) {
     return tokens.shadows.neon(color);
   }
   return tokens.shadows[key as keyof typeof tokens.shadows];
 };
-export const radius = (key: keyof typeof tokens.borderRadius) => tokens.borderRadius[key];
-export const duration = (key: keyof typeof tokens.duration) => tokens.duration[key];
+export const radius = (key: keyof typeof tokens.borderRadius) =>
+  tokens.borderRadius[key];
+export const duration = (key: keyof typeof tokens.duration) =>
+  tokens.duration[key];
 
 // Type exports
 export type SpacingKey = keyof typeof tokens.spacing;

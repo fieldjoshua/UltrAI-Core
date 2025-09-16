@@ -12,7 +12,7 @@ let API_BASE_URL = 'http://localhost:8085';
  * @param {Object} request - Request containing prompt, models, and pattern
  * @returns {Promise<Object>} - Analysis results
  */
-export const analyzePrompt = async (request) => {
+export const analyzePrompt = async request => {
   try {
     const response = await fetch(`${API_BASE_URL}/api/analyze`, {
       method: 'POST',
@@ -36,7 +36,7 @@ export const analyzePrompt = async (request) => {
       return {
         result: 'Simulated response - backend returned invalid JSON',
         model_responses: Object.fromEntries(
-          request.selectedModels.map((model) => [
+          request.selectedModels.map(model => [
             model,
             `This is a simulated response for ${model} since the backend returned invalid JSON.`,
           ])
@@ -62,7 +62,7 @@ export const analyzePrompt = async (request) => {
  * @param {File[]} files - Files to upload
  * @returns {Promise<Object>} - Processed document information
  */
-export const uploadDocuments = async (files) => {
+export const uploadDocuments = async files => {
   try {
     const formData = new FormData();
 
@@ -132,7 +132,7 @@ export const analyzeWithDocuments = async ({
     formData.append('pattern', pattern || 'Confidence Analysis');
 
     // Add files to the form data
-    files.forEach((file) => {
+    files.forEach(file => {
       formData.append('files', file);
     });
 
@@ -147,14 +147,14 @@ export const analyzeWithDocuments = async ({
       data: {
         analysis: `Analysis of ${files.length} documents with prompt: "${prompt}" (simulated frontend response)`,
         model_responses: Object.fromEntries(
-          selectedModels.map((model) => [
+          selectedModels.map(model => [
             model,
             `This is a simulated response for ${model} analyzing the documents.`,
           ])
         ),
       },
       document_metadata: {
-        documents_used: files.map((f) => f.name),
+        documents_used: files.map(f => f.name),
         chunks_used: files.length * 3,
         timestamp: new Date().toISOString(),
       },

@@ -8,9 +8,12 @@ export const setSecureToken = jest.fn();
 export const clearSecureTokens = jest.fn();
 export const getSecureToken = jest.fn(() => null);
 export const getSecureRefreshToken = jest.fn(() => null);
-export const endpoints = { analysis: { availableModels: '/available-models', orchestrator: '/orchestrator/analyze', analyze: '/analyze' } };
+export const endpoints = {
+  analysis: {
+    availableModels: '/available-models',
+    orchestrator: '/orchestrator/analyze',
+    analyze: '/analyze',
+  },
+};
 
 export default mockApi;
-
-
-

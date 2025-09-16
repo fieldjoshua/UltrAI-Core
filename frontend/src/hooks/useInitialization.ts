@@ -22,7 +22,7 @@ export const useInitialization = () => {
     steps: [],
     overall_status: 'initializing',
     progress: 0,
-    message: 'Starting initialization...'
+    message: 'Starting initialization...',
   });
 
   const [isComplete, setIsComplete] = useState(false);
@@ -34,36 +34,36 @@ export const useInitialization = () => {
       try {
         // Check various endpoints to determine initialization status
         const checks = [
-          { 
-            id: 'env', 
+          {
+            id: 'env',
             name: 'Environment Configuration',
             description: 'Loading environment variables and API keys',
-            endpoint: '/test/env-check' 
+            endpoint: '/test/env-check',
           },
-          { 
-            id: 'models', 
+          {
+            id: 'models',
             name: 'AI Model Registry',
             description: 'Initializing available LLM models',
-            endpoint: '/available-models' 
+            endpoint: '/available-models',
           },
-          { 
-            id: 'health', 
+          {
+            id: 'health',
             name: 'System Health',
             description: 'Verifying core services',
-            endpoint: '/health' 
+            endpoint: '/health',
           },
-          { 
-            id: 'cache', 
+          {
+            id: 'cache',
             name: 'Cache Service',
             description: 'Checking cache connectivity',
-            endpoint: '/cache/health' 
+            endpoint: '/cache/health',
           },
-          { 
-            id: 'orchestrator', 
+          {
+            id: 'orchestrator',
             name: 'Orchestrator Service',
             description: 'Initializing AI orchestration',
-            endpoint: '/orchestrator/health' 
-          }
+            endpoint: '/orchestrator/health',
+          },
         ];
 
         const steps: InitializationStep[] = [];
@@ -77,41 +77,44 @@ export const useInitialization = () => {
             steps: [
               ...steps,
               { ...check, status: 'loading' },
-              ...checks.slice(checks.indexOf(check) + 1).map(c => ({ 
-                ...c, 
-                status: 'pending' as const 
-              }))
+              ...checks.slice(checks.indexOf(check) + 1).map(c => ({
+                ...c,
+                status: 'pending' as const,
+              })),
             ],
             progress: (steps.length / checks.length) * 100,
-            message: `Checking ${check.name}...`
+            message: `Checking ${check.name}...`,
           }));
 
           try {
             const response = await apiClient.get(check.endpoint);
-            
+
             // Extract relevant details based on endpoint
             let details: any = {};
             if (check.id === 'env' && response.data.api_keys) {
               const keyCount = response.data.total_keys_found || 0;
               details = { api_keys_found: keyCount };
             } else if (check.id === 'models' && response.data.models) {
-              details = { 
+              details = {
                 total_models: response.data.total_count,
-                healthy_models: response.data.healthy_count 
+                healthy_models: response.data.healthy_count,
               };
             }
 
             steps.push({
               ...check,
               status: 'success',
-              details
+              details,
             });
             successCount++;
           } catch (error: any) {
             steps.push({
               ...check,
               status: 'error',
-              error: error.response?.data?.message || error.message || 'Check failed'
+              error:
+                error.response?.data?.message ||
+                error.message ||
+                'Check failed',
             });
           }
 
@@ -125,7 +128,9 @@ export const useInitialization = () => {
           steps,
           overall_status: allSuccess ? 'ready' : 'error',
           progress: 100,
-          message: allSuccess ? 'All systems ready!' : 'Some services failed to initialize'
+          message: allSuccess
+            ? 'All systems ready!'
+            : 'Some services failed to initialize',
         });
 
         if (allSuccess) {
@@ -139,7 +144,7 @@ export const useInitialization = () => {
         setStatus(prev => ({
           ...prev,
           overall_status: 'error',
-          message: 'Failed to check system status'
+          message: 'Failed to check system status',
         }));
       }
     };

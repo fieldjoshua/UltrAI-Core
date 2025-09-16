@@ -140,7 +140,13 @@ const SimpleAnalysis: React.FC = () => {
       } catch (err) {
         console.error('Failed to fetch models:', err);
         // Fallback to some default models
-        setAvailableModels(['gpt-4', 'gpt-3.5-turbo', 'claude-3-opus', 'claude-3-sonnet', 'claude-3-haiku']);
+        setAvailableModels([
+          'gpt-4',
+          'gpt-3.5-turbo',
+          'claude-3-opus',
+          'claude-3-sonnet',
+          'claude-3-haiku',
+        ]);
       } finally {
         setModelsLoading(false);
       }
@@ -154,11 +160,11 @@ const SimpleAnalysis: React.FC = () => {
     if (selectedModels.includes(model)) {
       // Don't allow deselecting the last model
       if (selectedModels.length > 1) {
-        setSelectedModels(selectedModels.filter((m) => m !== model));
+        setSelectedModels(selectedModels.filter(m => m !== model));
 
         // If removing the primary model, set a new one
         if (primaryModel === model) {
-          setPrimaryModel(selectedModels.filter((m) => m !== model)[0]);
+          setPrimaryModel(selectedModels.filter(m => m !== model)[0]);
         }
       }
     } else {
@@ -210,11 +216,12 @@ const SimpleAnalysis: React.FC = () => {
       console.log('Sending analysis request:', payload);
       const result = await analyzePrompt(payload);
       // Ensure ultra_response is a string
-      const ultraResponse = typeof result.ultra_response === 'string' 
-        ? result.ultra_response 
-        : typeof result.ultra_response === 'object' 
-          ? JSON.stringify(result.ultra_response, null, 2)
-          : String(result.ultra_response || '');
+      const ultraResponse =
+        typeof result.ultra_response === 'string'
+          ? result.ultra_response
+          : typeof result.ultra_response === 'object'
+            ? JSON.stringify(result.ultra_response, null, 2)
+            : String(result.ultra_response || '');
       setOutput(ultraResponse);
 
       // Handle individual model responses
@@ -226,17 +233,21 @@ const SimpleAnalysis: React.FC = () => {
           // Handle both string and object formats for backwards compatibility
           let response: string;
           const modelResponseData = result.model_responses[model];
-          
+
           if (typeof modelResponseData === 'string') {
             response = modelResponseData;
-          } else if (modelResponseData && typeof modelResponseData === 'object') {
+          } else if (
+            modelResponseData &&
+            typeof modelResponseData === 'object'
+          ) {
             // Try common response fields
-            response = modelResponseData.content ||
-                      modelResponseData.response ||
-                      modelResponseData.text ||
-                      modelResponseData.message ||
-                      'Response format not recognized';
-            
+            response =
+              modelResponseData.content ||
+              modelResponseData.response ||
+              modelResponseData.text ||
+              modelResponseData.message ||
+              'Response format not recognized';
+
             // If still object, stringify it properly
             if (typeof response === 'object') {
               response = JSON.stringify(response, null, 2);
@@ -244,7 +255,7 @@ const SimpleAnalysis: React.FC = () => {
           } else {
             response = `No response from ${model}`;
           }
-          
+
           console.log(`Response from ${model}:`, response);
 
           individualResponses.push({
@@ -379,7 +390,7 @@ const SimpleAnalysis: React.FC = () => {
             <div className="mb-4">
               <textarea
                 value={prompt}
-                onChange={(e) => setPrompt(e.target.value)}
+                onChange={e => setPrompt(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600 dark:placeholder-gray-400"
                 rows={5}
                 placeholder="What would you like to analyze?"
@@ -407,7 +418,7 @@ const SimpleAnalysis: React.FC = () => {
             ) : (
               <div className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  {availableModels.map((model) => (
+                  {availableModels.map(model => (
                     <div
                       key={model}
                       className={`border p-3 rounded-md cursor-pointer ${
@@ -476,7 +487,7 @@ const SimpleAnalysis: React.FC = () => {
             </p>
 
             <div className="space-y-3">
-              {patterns.map((pattern) => (
+              {patterns.map(pattern => (
                 <div
                   key={pattern.key}
                   className={`border p-3 rounded-md cursor-pointer ${
@@ -550,11 +561,14 @@ const SimpleAnalysis: React.FC = () => {
                       )}
                     </div>
                     <div className="p-4 whitespace-pre-wrap">
-                      {typeof response.response === 'string' 
-                        ? response.response 
-                        : typeof response.response === 'object' && response.response !== null
+                      {typeof response.response === 'string'
+                        ? response.response
+                        : typeof response.response === 'object' &&
+                            response.response !== null
                           ? JSON.stringify(response.response, null, 2)
-                          : String(response.response || 'No response available')}
+                          : String(
+                              response.response || 'No response available'
+                            )}
                     </div>
                   </div>
                 ))}
@@ -718,11 +732,14 @@ const SimpleAnalysis: React.FC = () => {
                 </div>
                 <div className="p-4 overflow-auto max-h-[400px]">
                   <pre className="whitespace-pre-wrap text-sm text-gray-900 dark:text-gray-100">
-                    {typeof modelResponse.response === 'string' 
-                      ? modelResponse.response 
-                      : typeof modelResponse.response === 'object' && modelResponse.response !== null
+                    {typeof modelResponse.response === 'string'
+                      ? modelResponse.response
+                      : typeof modelResponse.response === 'object' &&
+                          modelResponse.response !== null
                         ? JSON.stringify(modelResponse.response, null, 2)
-                        : String(modelResponse.response || 'No response available')}
+                        : String(
+                            modelResponse.response || 'No response available'
+                          )}
                   </pre>
                 </div>
               </div>
@@ -749,11 +766,14 @@ const SimpleAnalysis: React.FC = () => {
                 </div>
                 <div className="p-4 overflow-auto max-h-[400px]">
                   <pre className="whitespace-pre-wrap text-sm text-gray-900 dark:text-gray-100">
-                    {typeof modelResponse.response === 'string' 
-                      ? modelResponse.response 
-                      : typeof modelResponse.response === 'object' && modelResponse.response !== null
+                    {typeof modelResponse.response === 'string'
+                      ? modelResponse.response
+                      : typeof modelResponse.response === 'object' &&
+                          modelResponse.response !== null
                         ? JSON.stringify(modelResponse.response, null, 2)
-                        : String(modelResponse.response || 'No response available')}
+                        : String(
+                            modelResponse.response || 'No response available'
+                          )}
                   </pre>
                 </div>
               </div>

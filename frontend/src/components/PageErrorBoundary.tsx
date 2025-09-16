@@ -44,7 +44,7 @@ export class PageErrorBoundary extends Component<Props, State> {
               Oops! Something went wrong
             </h1>
             <p className="text-white/70 mb-6">
-              {this.props.pageName 
+              {this.props.pageName
                 ? `An error occurred on the ${this.props.pageName} page.`
                 : 'An unexpected error occurred.'}
             </p>
@@ -54,14 +54,14 @@ export class PageErrorBoundary extends Component<Props, State> {
               </pre>
             )}
             <div className="space-y-2">
-              <Button 
+              <Button
                 onClick={this.handleReset}
                 className="w-full"
                 variant="default"
               >
                 Refresh Page
               </Button>
-              <Button 
+              <Button
                 onClick={() => window.history.back()}
                 className="w-full"
                 variant="outline"

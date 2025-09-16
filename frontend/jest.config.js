@@ -5,7 +5,10 @@ export default {
   testEnvironment: 'jsdom',
   roots: ['<rootDir>/src'],
   testMatch: ['<rootDir>/src/__tests__/**/*.test.ts?(x)'],
-  testPathIgnorePatterns: ['/node_modules/', '<rootDir>/src/components/__tests__/'],
+  testPathIgnorePatterns: [
+    '/node_modules/',
+    '<rootDir>/src/components/__tests__/',
+  ],
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json'],
   setupFiles: ['<rootDir>/src/test/setupEnv.ts'],
   transform: {
@@ -31,7 +34,11 @@ export default {
   },
   setupFilesAfterEnv: ['<rootDir>/src/test/setupTests.ts'],
   collectCoverage: true,
-  collectCoverageFrom: ['src/**/*.{ts,tsx}', '!src/**/index.{ts,tsx}', '!src/test/**'],
+  collectCoverageFrom: [
+    'src/**/*.{ts,tsx}',
+    '!src/**/index.{ts,tsx}',
+    '!src/test/**',
+  ],
   coverageDirectory: '<rootDir>/coverage',
   coverageReporters: ['text', 'lcov'],
   coverageThreshold: {
@@ -43,5 +50,3 @@ export default {
     },
   },
 };
-
-

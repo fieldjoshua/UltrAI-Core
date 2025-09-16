@@ -16,5 +16,3 @@ export const Basic: Story = {
     children: 'Card content goes here',
   },
 };
-
-

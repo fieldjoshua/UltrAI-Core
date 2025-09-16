@@ -7,34 +7,34 @@
   --skin-secondary: #1a1a1a;
   --skin-accent: #000000;
   --skin-accent-hover: #1a1a1a;
-  
+
   /* Text colors */
   --skin-text-primary: #000000;
   --skin-text-secondary: #666666;
   --skin-text-light: #999999;
-  
+
   /* Backgrounds */
   --skin-bg-primary: #ffffff;
   --skin-bg-secondary: #f5f5f5;
   --skin-bg-tertiary: #eeeeee;
-  
+
   /* Borders */
   --skin-border-light: #e0e0e0;
   --skin-border-medium: #cccccc;
   --skin-border-dark: #999999;
-  
+
   /* Status colors */
   --skin-success: #000000;
   --skin-warning: #666666;
   --skin-error: #000000;
   --skin-info: #333333;
-  
+
   /* Shadows - more pronounced for black/white theme */
   --skin-shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.15);
   --skin-shadow-md: 0 4px 8px rgba(0, 0, 0, 0.2);
   --skin-shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.25);
   --skin-shadow-xl: 0 12px 24px rgba(0, 0, 0, 0.3);
-  
+
   /* Transitions */
   --skin-transition: all 0.2s ease;
 }
@@ -42,18 +42,19 @@
 /* Override global styles for minimalist theme */
 body.skin-minimalist {
   background-color: #ffffff;
-  background-image: 
-    repeating-linear-gradient(
-      0deg,
-      #ffffff,
-      #ffffff 10px,
-      #f8f8f8 10px,
-      #f8f8f8 11px
-    );
+  background-image: repeating-linear-gradient(
+    0deg,
+    #ffffff,
+    #ffffff 10px,
+    #f8f8f8 10px,
+    #f8f8f8 11px
+  );
   background-attachment: fixed;
   color: var(--skin-text-primary);
   position: relative;
-  font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+  font-family:
+    'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New',
+    monospace;
 }
 
 /* Add subtle paper texture overlay */
@@ -64,7 +65,7 @@ body.skin-minimalist::before {
   left: 0;
   right: 0;
   bottom: 0;
-  background: 
+  background:
     repeating-linear-gradient(
       90deg,
       rgba(0, 0, 0, 0.03),
@@ -94,7 +95,7 @@ body.skin-minimalist > * {
   background: #ffffff;
   backdrop-filter: none;
   border: 3px solid #000000;
-  box-shadow: 
+  box-shadow:
     8px 8px 0px #000000,
     8px 8px 20px rgba(0, 0, 0, 0.2);
   position: relative;
@@ -104,7 +105,7 @@ body.skin-minimalist > * {
   background: #ffffff;
   backdrop-filter: none;
   border: 3px solid #000000;
-  box-shadow: 
+  box-shadow:
     12px 12px 0px #000000,
     12px 12px 30px rgba(0, 0, 0, 0.3);
   position: relative;
@@ -113,7 +114,7 @@ body.skin-minimalist > * {
 .skin-minimalist .glass-panel {
   background: #ffffff;
   border: 4px solid #000000;
-  box-shadow: 
+  box-shadow:
     16px 16px 0px #000000,
     16px 16px 40px rgba(0, 0, 0, 0.3);
   backdrop-filter: none;
@@ -255,13 +256,13 @@ body.skin-minimalist > * {
 }
 
 /* Hover states */
-.skin-minimalist [class*="hover:"]:hover {
+.skin-minimalist [class*='hover:']:hover {
   transition: var(--skin-transition);
 }
 
 /* Checkboxes and radio buttons - custom stark design */
-.skin-minimalist input[type="checkbox"],
-.skin-minimalist input[type="radio"] {
+.skin-minimalist input[type='checkbox'],
+.skin-minimalist input[type='radio'] {
   appearance: none;
   width: 20px;
   height: 20px;
@@ -271,11 +272,11 @@ body.skin-minimalist > * {
   cursor: pointer;
 }
 
-.skin-minimalist input[type="checkbox"]:checked {
+.skin-minimalist input[type='checkbox']:checked {
   background: #000000;
 }
 
-.skin-minimalist input[type="checkbox"]:checked::after {
+.skin-minimalist input[type='checkbox']:checked::after {
   content: '✓';
   position: absolute;
   top: 50%;
@@ -285,7 +286,7 @@ body.skin-minimalist > * {
   font-weight: bold;
 }
 
-.skin-minimalist input[type="radio"]:checked::after {
+.skin-minimalist input[type='radio']:checked::after {
   content: '';
   position: absolute;
   top: 50%;
@@ -355,13 +356,13 @@ body.skin-minimalist > * {
   letter-spacing: 2px;
 }
 
-.skin-minimalist .bg-gradient-to-r[class*="from-"][class*="to-"] {
+.skin-minimalist .bg-gradient-to-r[class*='from-'][class*='to-'] {
   background: #000000 !important;
 }
 
 /* Welcome boxes */
-.skin-minimalist .glass[class*="border-mint-400"],
-.skin-minimalist .glass[class*="border-blue-400"] {
+.skin-minimalist .glass[class*='border-mint-400'],
+.skin-minimalist .glass[class*='border-blue-400'] {
   background: #ffffff !important;
   border: 3px solid #000000 !important;
   box-shadow: 6px 6px 0px #000000 !important;
@@ -372,8 +373,8 @@ body.skin-minimalist > * {
   color: #000000 !important;
 }
 
-.skin-minimalist [class*="bg-mint-400"],
-.skin-minimalist [class*="bg-blue-400"] {
+.skin-minimalist [class*='bg-mint-400'],
+.skin-minimalist [class*='bg-blue-400'] {
   background: transparent !important;
 }
 
@@ -412,7 +413,7 @@ body.skin-minimalist > * {
   font-weight: 900 !important;
 }
 
-.skin-minimalist [class*="text-"][class*="px"].opacity-80 {
+.skin-minimalist [class*='text-'][class*='px'].opacity-80 {
   opacity: 1 !important;
   color: #000000 !important;
 }
@@ -424,7 +425,7 @@ body.skin-minimalist > * {
 }
 
 /* Demo indicator */
-.skin-minimalist [class*="text-green-300"] {
+.skin-minimalist [class*='text-green-300'] {
   color: #000000 !important;
   border: 2px solid #000000;
   padding: 2px 8px;

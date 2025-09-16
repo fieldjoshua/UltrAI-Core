@@ -4,7 +4,8 @@ import { Switch } from './ui/switch';
 
 export const AnimationToggle: React.FC = () => {
   const prefersReducedMotion = useReducedMotion();
-  const [animationsEnabled, setAnimationsEnabled] = React.useState(!prefersReducedMotion);
+  const [animationsEnabled, setAnimationsEnabled] =
+    React.useState(!prefersReducedMotion);
 
   React.useEffect(() => {
     // Update body class based on preference
@@ -23,8 +24,8 @@ export const AnimationToggle: React.FC = () => {
         onCheckedChange={setAnimationsEnabled}
         aria-label="Toggle animations"
       />
-      <label 
-        htmlFor="animation-toggle" 
+      <label
+        htmlFor="animation-toggle"
         className="text-[11px] text-white/70 cursor-pointer select-none font-medium"
       >
         Animations

@@ -32,7 +32,7 @@ const ThemePanel: React.FC<ThemePanelProps> = ({
     key: K,
     value: ThemePreferences[K]
   ) => {
-    setLocalTheme((prev) => ({ ...prev, [key]: value }));
+    setLocalTheme(prev => ({ ...prev, [key]: value }));
   };
 
   // Apply local theme settings to global theme
@@ -179,7 +179,7 @@ const ThemePanel: React.FC<ThemePanelProps> = ({
             <h3 className="text-lg font-semibold mb-3">Style</h3>
             <div className="grid grid-cols-3 gap-4">
               {(['cyberpunk', 'corporate', 'classic'] as ThemeStyle[]).map(
-                (style) => (
+                style => (
                   <label
                     key={style}
                     className={`flex flex-col items-center cursor-pointer ${
@@ -244,7 +244,7 @@ const ThemePanel: React.FC<ThemePanelProps> = ({
             <div className="flex flex-wrap gap-3">
               {(
                 ['cyan', 'purple', 'orange', 'green', 'pink'] as AccentColor[]
-              ).map((color) => (
+              ).map(color => (
                 <label
                   key={color}
                   className="cursor-pointer"
@@ -311,7 +311,7 @@ const ThemePanel: React.FC<ThemePanelProps> = ({
               max="1.2"
               step="0.05"
               value={localTheme.fontSize}
-              onChange={(e) =>
+              onChange={e =>
                 updateLocalTheme('fontSize', parseFloat(e.target.value))
               }
               className="w-full"
@@ -341,7 +341,7 @@ const ThemePanel: React.FC<ThemePanelProps> = ({
               max="5"
               step="1"
               value={localTheme.contrastLevel}
-              onChange={(e) =>
+              onChange={e =>
                 updateLocalTheme('contrastLevel', parseInt(e.target.value))
               }
               className="w-full"
@@ -359,7 +359,7 @@ const ThemePanel: React.FC<ThemePanelProps> = ({
                     type="checkbox"
                     className="absolute w-6 h-6 opacity-0 rounded-full peer"
                     checked={localTheme.animationsEnabled}
-                    onChange={(e) =>
+                    onChange={e =>
                       updateLocalTheme('animationsEnabled', e.target.checked)
                     }
                   />
@@ -375,7 +375,7 @@ const ThemePanel: React.FC<ThemePanelProps> = ({
                     type="checkbox"
                     className="absolute w-6 h-6 opacity-0 rounded-full peer"
                     checked={localTheme.reducedMotion}
-                    onChange={(e) =>
+                    onChange={e =>
                       updateLocalTheme('reducedMotion', e.target.checked)
                     }
                   />

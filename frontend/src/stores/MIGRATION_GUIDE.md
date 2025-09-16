@@ -1,6 +1,7 @@
 # Redux to Zustand Migration Guide
 
 ## Overview
+
 This guide documents the migration from Redux Toolkit to Zustand for state management in the Ultra frontend.
 
 ## Migration Status
@@ -37,6 +38,7 @@ This guide documents the migration from Redux Toolkit to Zustand for state manag
 ## Key Differences
 
 ### Redux Toolkit
+
 ```typescript
 // Redux slice
 const documentsSlice = createSlice({
@@ -45,13 +47,13 @@ const documentsSlice = createSlice({
   reducers: {
     setDocuments: (state, action) => {
       state.documents = action.payload;
-    }
+    },
   },
-  extraReducers: (builder) => {
+  extraReducers: builder => {
     builder.addCase(fetchDocuments.fulfilled, (state, action) => {
       state.documents = action.payload;
     });
-  }
+  },
 });
 
 // Component usage
@@ -61,14 +63,15 @@ dispatch(fetchDocuments());
 ```
 
 ### Zustand
+
 ```typescript
 // Zustand store
-const useDocumentsStore = create((set) => ({
+const useDocumentsStore = create(set => ({
   documents: [],
   fetchDocuments: async () => {
     const response = await api.get('/documents');
     set({ documents: response.data });
-  }
+  },
 }));
 
 // Component usage
@@ -100,12 +103,14 @@ fetchDocuments();
 ## Component Import Updates
 
 ### Old imports (Redux)
+
 ```typescript
 import { useAppDispatch, useAppSelector } from '../hooks/redux';
 import { fetchDocuments } from '../features/documents/documentsSlice';
 ```
 
 ### New imports (Zustand)
+
 ```typescript
 import { useDocumentsStore } from '../stores/documentsStore';
 import { showSuccessToast, showErrorToast } from '../stores/uiStore';

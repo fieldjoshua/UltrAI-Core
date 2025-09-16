@@ -37,17 +37,16 @@ export const Toast: React.FC = () => {
 
   return (
     <div className="fixed bottom-4 right-4 z-50 space-y-2">
-      {toasts.map((toast) => (
-        <div
-          key={toast.id}
-          className="animate-fade-in-up"
-        >
+      {toasts.map(toast => (
+        <div key={toast.id} className="animate-fade-in-up">
           <div
             className={`rounded-md border px-4 py-3 shadow-md ${getBackgroundColor(toast.type)}`}
           >
             <div className="flex items-center">
               <div className="mr-3">{getIcon(toast.type)}</div>
-              <div className="mr-2 max-w-[300px] break-words">{toast.message}</div>
+              <div className="mr-2 max-w-[300px] break-words">
+                {toast.message}
+              </div>
               <button
                 onClick={() => removeToast(toast.id)}
                 className="ml-auto rounded-full p-1 transition-colors hover:bg-opacity-20 hover:bg-gray-500"

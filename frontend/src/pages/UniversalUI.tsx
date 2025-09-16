@@ -127,7 +127,7 @@ const ThemePreview: React.FC = () => {
               onChangeReceipt={(items, cost) => {
                 // store to preview panel (below)
               }}
-              onLaunch={(payload) => {
+              onLaunch={payload => {
                 console.log('Launch UltrAI with:', payload);
               }}
             />

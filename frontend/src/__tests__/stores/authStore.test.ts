@@ -2,11 +2,29 @@ import { renderHook, act, waitFor } from '@testing-library/react';
 import { useAuthStore } from '../../stores/authStore';
 import * as authApi from '../../api/auth';
 import axios from 'axios';
-
-// Mock dependencies
 import { jest } from '@jest/globals';
-jest.mock('../../api/auth');
-jest.mock('axios');
+
+// Mock dependencies with factories so methods are mocks
+jest.mock('../../api/auth', () => ({
+  __esModule: true,
+  ...jest.requireActual('../../api/auth'),
+  login: jest.fn(),
+  register: jest.fn(),
+  refreshToken: jest.fn(),
+  getCurrentUser: jest.fn(),
+}));
+jest.mock('axios', () => {
+  const actual = jest.requireActual('axios');
+  return {
+    __esModule: true,
+    default: {
+      ...actual,
+      defaults: { headers: { common: {} } },
+      post: jest.fn(),
+      get: jest.fn(),
+    },
+  };
+});
 
 describe('authStore', () => {
   // Helper to get current store state
@@ -73,8 +91,12 @@ describe('authStore', () => {
         await result.current.login(mockLoginData.email, mockLoginData.password);
       });
 
-      expect(localStorage.getItem('access_token')).toBe(mockLoginResponse.access_token);
-      expect(localStorage.getItem('refresh_token')).toBe(mockLoginResponse.refresh_token);
+      expect(localStorage.getItem('access_token')).toBe(
+        mockLoginResponse.access_token
+      );
+      expect(localStorage.getItem('refresh_token')).toBe(
+        mockLoginResponse.refresh_token
+      );
     });
 
     it('should set axios default authorization header', async () => {
@@ -93,7 +115,9 @@ describe('authStore', () => {
 
     it('should handle login errors', async () => {
       const errorMessage = 'Invalid credentials';
-      (authApi.login as jest.Mock).mockRejectedValueOnce(new Error(errorMessage));
+      (authApi.login as jest.Mock).mockRejectedValueOnce(
+        new Error(errorMessage)
+      );
 
       const { result } = renderHook(() => useAuthStore());
 
@@ -108,7 +132,7 @@ describe('authStore', () => {
 
     it('should set loading state during login', async () => {
       let resolveLogin: (value: any) => void;
-      const loginPromise = new Promise((resolve) => {
+      const loginPromise = new Promise(resolve => {
         resolveLogin = resolve;
       });
 
@@ -200,7 +224,9 @@ describe('authStore', () => {
     };
 
     it('should successfully register a new user', async () => {
-      (authApi.register as jest.Mock).mockResolvedValueOnce(mockRegisterResponse);
+      (authApi.register as jest.Mock).mockResolvedValueOnce(
+        mockRegisterResponse
+      );
 
       const { result } = renderHook(() => useAuthStore());
 
@@ -219,7 +245,9 @@ describe('authStore', () => {
 
     it('should handle registration errors', async () => {
       const errorMessage = 'Email already exists';
-      (authApi.register as jest.Mock).mockRejectedValueOnce(new Error(errorMessage));
+      (authApi.register as jest.Mock).mockRejectedValueOnce(
+        new Error(errorMessage)
+      );
 
       const { result } = renderHook(() => useAuthStore());
 
@@ -249,7 +277,9 @@ describe('authStore', () => {
     });
 
     it('should refresh access token successfully', async () => {
-      (authApi.refreshToken as jest.Mock).mockResolvedValueOnce(mockRefreshResponse);
+      (authApi.refreshToken as jest.Mock).mockResolvedValueOnce(
+        mockRefreshResponse
+      );
 
       const { result } = renderHook(() => useAuthStore());
 
@@ -258,7 +288,9 @@ describe('authStore', () => {
       });
 
       expect(result.current.token).toBe(mockRefreshResponse.access_token);
-      expect(localStorage.getItem('access_token')).toBe(mockRefreshResponse.access_token);
+      expect(localStorage.getItem('access_token')).toBe(
+        mockRefreshResponse.access_token
+      );
       expect(axios.defaults.headers.common['Authorization']).toBe(
         `Bearer ${mockRefreshResponse.access_token}`
       );
@@ -278,7 +310,9 @@ describe('authStore', () => {
     });
 
     it('should logout if refresh fails', async () => {
-      (authApi.refreshToken as jest.Mock).mockRejectedValueOnce(new Error('Invalid refresh token'));
+      (authApi.refreshToken as jest.Mock).mockRejectedValueOnce(
+        new Error('Invalid refresh token')
+      );
 
       const { result } = renderHook(() => useAuthStore());
       const logoutSpy = jest.spyOn(result.current, 'logout');
@@ -300,7 +334,9 @@ describe('authStore', () => {
 
     it('should fetch current user when token exists', async () => {
       localStorage.setItem('access_token', 'valid-token');
-      (authApi.getCurrentUser as jest.Mock).mockResolvedValueOnce(mockUserResponse);
+      (authApi.getCurrentUser as jest.Mock).mockResolvedValueOnce(
+        mockUserResponse
+      );
 
       const { result } = renderHook(() => useAuthStore());
 
@@ -327,7 +363,9 @@ describe('authStore', () => {
 
     it('should handle fetch user errors silently', async () => {
       localStorage.setItem('access_token', 'valid-token');
-      (authApi.getCurrentUser as jest.Mock).mockRejectedValueOnce(new Error('Network error'));
+      (authApi.getCurrentUser as jest.Mock).mockRejectedValueOnce(
+        new Error('Network error')
+      );
 
       const { result } = renderHook(() => useAuthStore());
 
@@ -362,7 +400,8 @@ describe('authStore', () => {
 
       // Force re-initialization by clearing and re-importing the store
       jest.resetModules();
-      const { useAuthStore: freshAuthStore } = require('../../stores/authStore');
+      const fresh = await import('../../stores/authStore');
+      const { useAuthStore: freshAuthStore } = fresh;
 
       const { result } = renderHook(() => freshAuthStore());
 
@@ -374,11 +413,14 @@ describe('authStore', () => {
       localStorage.setItem('access_token', 'stored-token');
 
       jest.resetModules();
-      const { useAuthStore: freshAuthStore } = require('../../stores/authStore');
+      const fresh = await import('../../stores/authStore');
+      const { useAuthStore: freshAuthStore } = fresh;
 
       renderHook(() => freshAuthStore());
 
-      expect(axios.defaults.headers.common['Authorization']).toBe('Bearer stored-token');
+      expect(axios.defaults.headers.common['Authorization']).toBe(
+        'Bearer stored-token'
+      );
     });
   });
 });

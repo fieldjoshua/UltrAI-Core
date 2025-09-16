@@ -5,7 +5,13 @@ const CyberpunkCity: React.FC = () => (
     viewBox="0 0 1840 1035"
     xmlns="http://www.w3.org/2000/svg"
     className="cyberpunk-svg"
-    style={{ width: '100%', maxWidth: 900, height: 220, display: 'block', margin: '0 auto' }}
+    style={{
+      width: '100%',
+      maxWidth: 900,
+      height: 220,
+      display: 'block',
+      margin: '0 auto',
+    }}
   >
     {/* Example buildings (replace with actual paths for more detail) */}
     <g className="cyber-building">

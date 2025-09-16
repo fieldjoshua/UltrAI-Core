@@ -30,7 +30,7 @@ export const LoginPage: React.FC = () => {
             </AlertDescription>
           </Alert>
         )}
-        
+
         <LoginForm />
       </div>
     </div>

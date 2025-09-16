@@ -127,7 +127,9 @@
 
 .ultra-logo-v2__background {
   stroke-width: 10;
-  transition: fill 0.3s, stroke 0.3s;
+  transition:
+    fill 0.3s,
+    stroke 0.3s;
 }
 
 .ultra-logo-v2__circle {
@@ -135,7 +137,9 @@
 }
 
 .ultra-logo-v2__u-shape {
-  transition: fill 0.3s, stroke 0.3s;
+  transition:
+    fill 0.3s,
+    stroke 0.3s;
 }
 
 .ultra-logo-v2__arrow {

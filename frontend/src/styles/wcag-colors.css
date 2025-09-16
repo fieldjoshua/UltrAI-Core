@@ -9,33 +9,33 @@
 
 :root {
   /* Dark Theme Base Colors (default) */
-  --wcag-bg-primary: #0a0a0a;      /* Main background */
-  --wcag-bg-secondary: #1a1a1a;    /* Card backgrounds */
-  --wcag-bg-tertiary: #252525;     /* Elevated surfaces */
-  
+  --wcag-bg-primary: #0a0a0a; /* Main background */
+  --wcag-bg-secondary: #1a1a1a; /* Card backgrounds */
+  --wcag-bg-tertiary: #252525; /* Elevated surfaces */
+
   /* Text Colors - All meet 4.5:1 on dark backgrounds */
-  --wcag-text-primary: #ffffff;     /* 21:1 on primary bg */
-  --wcag-text-secondary: #e0e0e0;   /* 15.5:1 on primary bg */
-  --wcag-text-tertiary: #b3b3b3;    /* 9.7:1 on primary bg */
-  --wcag-text-muted: #999999;       /* 7:1 on primary bg */
-  
+  --wcag-text-primary: #ffffff; /* 21:1 on primary bg */
+  --wcag-text-secondary: #e0e0e0; /* 15.5:1 on primary bg */
+  --wcag-text-tertiary: #b3b3b3; /* 9.7:1 on primary bg */
+  --wcag-text-muted: #999999; /* 7:1 on primary bg */
+
   /* Neon Colors - Adjusted for accessibility */
-  --wcag-neon-mint: #00ffaa;        /* 15.3:1 on dark bg */
-  --wcag-neon-blue: #4db8ff;        /* 8.9:1 on dark bg */
-  --wcag-neon-purple: #cc80ff;      /* 7.2:1 on dark bg */
-  --wcag-neon-pink: #ff80d5;        /* 7.8:1 on dark bg */
-  --wcag-neon-orange: #ff9933;      /* 7.5:1 on dark bg */
-  
+  --wcag-neon-mint: #00ffaa; /* 15.3:1 on dark bg */
+  --wcag-neon-blue: #4db8ff; /* 8.9:1 on dark bg */
+  --wcag-neon-purple: #cc80ff; /* 7.2:1 on dark bg */
+  --wcag-neon-pink: #ff80d5; /* 7.8:1 on dark bg */
+  --wcag-neon-orange: #ff9933; /* 7.5:1 on dark bg */
+
   /* Interactive States */
   --wcag-focus-outline: #4db8ff;
   --wcag-hover-bg: rgba(255, 255, 255, 0.1);
   --wcag-active-bg: rgba(255, 255, 255, 0.15);
-  
+
   /* Status Colors */
-  --wcag-success: #00e676;          /* 13.8:1 on dark bg */
-  --wcag-warning: #ffb300;          /* 9.5:1 on dark bg */
-  --wcag-error: #ff5252;            /* 5.9:1 on dark bg */
-  --wcag-info: #40c4ff;             /* 9.3:1 on dark bg */
+  --wcag-success: #00e676; /* 13.8:1 on dark bg */
+  --wcag-warning: #ffb300; /* 9.5:1 on dark bg */
+  --wcag-error: #ff5252; /* 5.9:1 on dark bg */
+  --wcag-info: #40c4ff; /* 9.3:1 on dark bg */
 }
 
 /* Light Theme Overrides */
@@ -43,22 +43,22 @@
   --wcag-bg-primary: #ffffff;
   --wcag-bg-secondary: #f5f5f5;
   --wcag-bg-tertiary: #e8e8e8;
-  
-  --wcag-text-primary: #000000;     /* 21:1 on white */
-  --wcag-text-secondary: #424242;   /* 10.5:1 on white */
-  --wcag-text-tertiary: #616161;    /* 7.5:1 on white */
-  --wcag-text-muted: #757575;       /* 5.9:1 on white */
-  
-  --wcag-neon-mint: #00a052;        /* 4.8:1 on white */
-  --wcag-neon-blue: #0277bd;        /* 5.4:1 on white */
-  --wcag-neon-purple: #6a1b9a;      /* 6.9:1 on white */
-  --wcag-neon-pink: #c2185b;        /* 5.7:1 on white */
-  --wcag-neon-orange: #e65100;      /* 5.9:1 on white */
-  
+
+  --wcag-text-primary: #000000; /* 21:1 on white */
+  --wcag-text-secondary: #424242; /* 10.5:1 on white */
+  --wcag-text-tertiary: #616161; /* 7.5:1 on white */
+  --wcag-text-muted: #757575; /* 5.9:1 on white */
+
+  --wcag-neon-mint: #00a052; /* 4.8:1 on white */
+  --wcag-neon-blue: #0277bd; /* 5.4:1 on white */
+  --wcag-neon-purple: #6a1b9a; /* 6.9:1 on white */
+  --wcag-neon-pink: #c2185b; /* 5.7:1 on white */
+  --wcag-neon-orange: #e65100; /* 5.9:1 on white */
+
   --wcag-focus-outline: #0277bd;
   --wcag-hover-bg: rgba(0, 0, 0, 0.04);
   --wcag-active-bg: rgba(0, 0, 0, 0.08);
-  
+
   --wcag-success: #00a652;
   --wcag-warning: #f57c00;
   --wcag-error: #d32f2f;
@@ -88,24 +88,24 @@
 /* Text on glass panels */
 .glass-text-fix {
   /* Add text shadow for better readability on glass */
-  text-shadow: 
+  text-shadow:
     0 1px 2px rgba(0, 0, 0, 0.8),
     0 0 4px rgba(0, 0, 0, 0.5);
 }
 
 /* Input fields */
-input[type="text"],
-input[type="email"],
-input[type="password"],
+input[type='text'],
+input[type='email'],
+input[type='password'],
 textarea {
   background-color: var(--wcag-bg-secondary);
   color: var(--wcag-text-primary);
   border: 2px solid var(--wcag-text-tertiary);
 }
 
-input[type="text"]:focus,
-input[type="email"]:focus,
-input[type="password"]:focus,
+input[type='text']:focus,
+input[type='email']:focus,
+input[type='password']:focus,
 textarea:focus {
   border-color: var(--wcag-focus-outline);
   outline: 3px solid var(--wcag-focus-outline);
@@ -113,20 +113,20 @@ textarea:focus {
 }
 
 /* Checkbox and Radio fixes */
-input[type="checkbox"],
-input[type="radio"] {
+input[type='checkbox'],
+input[type='radio'] {
   border: 2px solid var(--wcag-text-secondary);
   background-color: var(--wcag-bg-secondary);
 }
 
-input[type="checkbox"]:checked,
-input[type="radio"]:checked {
+input[type='checkbox']:checked,
+input[type='radio']:checked {
   background-color: var(--wcag-neon-blue);
   border-color: var(--wcag-neon-blue);
 }
 
-input[type="checkbox"]:focus-visible,
-input[type="radio"]:focus-visible {
+input[type='checkbox']:focus-visible,
+input[type='radio']:focus-visible {
   outline: 3px solid var(--wcag-focus-outline);
   outline-offset: 2px;
 }
@@ -173,19 +173,19 @@ a:focus-visible {
     --wcag-text-secondary: #ffffff;
     --wcag-text-tertiary: #e0e0e0;
     --wcag-text-muted: #cccccc;
-    
+
     --wcag-neon-mint: #00ff00;
     --wcag-neon-blue: #00ddff;
     --wcag-neon-purple: #ff00ff;
     --wcag-neon-pink: #ff0099;
     --wcag-neon-orange: #ff9900;
   }
-  
+
   /* Stronger borders in high contrast */
   * {
     border-width: 2px !important;
   }
-  
+
   /* Remove transparency in high contrast */
   .glass-panel {
     background: var(--wcag-bg-secondary) !important;

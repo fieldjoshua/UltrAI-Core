@@ -3,15 +3,15 @@ import { useDocumentsStore } from '../../stores/documentsStore';
 import { showSuccessToast, showErrorToast } from '../../stores/uiStore';
 
 const DocumentList: React.FC = () => {
-  const { 
-    documents, 
-    selectedDocuments, 
-    isLoading, 
+  const {
+    documents,
+    selectedDocuments,
+    isLoading,
     error,
     fetchDocuments,
     deleteDocument,
     toggleDocumentSelection,
-    clearError
+    clearError,
   } = useDocumentsStore();
 
   useEffect(() => {
@@ -88,14 +88,13 @@ const DocumentList: React.FC = () => {
                       <div className="mt-2 flex">
                         <div className="flex items-center text-sm text-gray-500">
                           <span>
-                            {document.mime_type} • {formatFileSize(document.file_size)}
+                            {document.mime_type} •{' '}
+                            {formatFileSize(document.file_size)}
                           </span>
                         </div>
                       </div>
                       <div className="flex mt-1 items-center">
-                        <span
-                          className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800"
-                        >
+                        <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
                           uploaded
                         </span>
                         <span className="ml-2 text-xs text-gray-500">
@@ -124,7 +123,9 @@ const DocumentList: React.FC = () => {
                   </div>
                   <div className="ml-4 flex-shrink-0 flex">
                     <button
-                      onClick={() => handleDeleteDocument(document.id, document.filename)}
+                      onClick={() =>
+                        handleDeleteDocument(document.id, document.filename)
+                      }
                       className="inline-flex items-center px-2.5 py-1.5 border border-transparent text-xs font-medium rounded text-red-700 bg-red-100 hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
                       aria-label={`Delete ${document.filename}`}
                     >
@@ -141,7 +142,8 @@ const DocumentList: React.FC = () => {
       {selectedDocuments.length > 0 && (
         <div className="mt-4 p-4 bg-blue-50 rounded-lg">
           <p className="text-sm text-blue-700">
-            {selectedDocuments.length} document{selectedDocuments.length !== 1 ? 's' : ''} selected
+            {selectedDocuments.length} document
+            {selectedDocuments.length !== 1 ? 's' : ''} selected
           </p>
         </div>
       )}

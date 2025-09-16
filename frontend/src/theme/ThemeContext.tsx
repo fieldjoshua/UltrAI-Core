@@ -135,7 +135,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
 
   // Update theme handler
   const setTheme = (newTheme: Partial<ThemePreferences>) => {
-    setThemeState((prevTheme) => {
+    setThemeState(prevTheme => {
       const updatedTheme = { ...prevTheme, ...newTheme };
 
       // Save to localStorage
@@ -151,7 +151,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
 
   // Update branding handler
   const setBranding = (newBranding: Partial<BrandingOptions>) => {
-    setBrandingState((prevBranding) => {
+    setBrandingState(prevBranding => {
       const updatedBranding = { ...prevBranding, ...newBranding };
 
       // Save to localStorage
@@ -194,7 +194,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
     const handleChange = (e: MediaQueryListEvent) => {
       // Only update if user hasn't explicitly set a preference
       if (!localStorage.getItem(THEME_STORAGE_KEY)) {
-        setThemeState((prev) => ({
+        setThemeState(prev => ({
           ...prev,
           mode: e.matches ? 'dark' : 'light',
         }));

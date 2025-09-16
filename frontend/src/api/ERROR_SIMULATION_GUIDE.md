@@ -13,16 +13,19 @@ The mock orchestrator now includes comprehensive error simulation capabilities f
 ## Error Scenarios
 
 ### Network Timeout (`network_timeout`)
+
 - Waits 30 seconds before throwing a timeout error
 - Simulates real network timeout conditions
 - Error message: "Network timeout: Request took too long to complete"
 
 ### No Models Available (`no_models_available`)
+
 - Returns HTTP 503 Service Unavailable
 - Simulates when all LLM providers are down
 - Returns empty model lists and appropriate error messages
 
 ### Authentication Failure (`authentication_failure`)
+
 - Returns HTTP 401 Unauthorized
 - Simulates expired or invalid authentication tokens
 - Includes detailed error response with error codes
@@ -56,10 +59,10 @@ console.log(window.mockOrchestratorErrors.scenarios);
 ### 2. In Test Files
 
 ```javascript
-import { 
-  simulateError, 
-  clearErrorSimulation, 
-  ERROR_SCENARIOS 
+import {
+  simulateError,
+  clearErrorSimulation,
+  ERROR_SCENARIOS,
 } from './api/mockOrchestrator';
 
 // In your test
@@ -85,7 +88,7 @@ import { simulateError, ERROR_SCENARIOS } from './api/mockOrchestrator';
 if (process.env.NODE_ENV === 'development') {
   // Simulate authentication failures
   simulateError(ERROR_SCENARIOS.AUTHENTICATION_FAILURE);
-  
+
   // Or enable random errors
   simulateError('random');
 }
@@ -94,11 +97,13 @@ if (process.env.NODE_ENV === 'development') {
 ## Error Response Formats
 
 ### Network Timeout
+
 ```javascript
-Error: "Network timeout: Request took too long to complete"
+Error: 'Network timeout: Request took too long to complete';
 ```
 
 ### No Models Available
+
 ```javascript
 {
   status: 503,
@@ -110,6 +115,7 @@ Error: "Network timeout: Request took too long to complete"
 ```
 
 ### Authentication Failure
+
 ```javascript
 {
   status: 401,
@@ -122,16 +128,19 @@ Error: "Network timeout: Request took too long to complete"
 ## Testing Strategies
 
 ### 1. Manual Testing
+
 - Open the application in demo mode
 - Use browser console to enable different error scenarios
 - Test UI behavior and error handling
 
 ### 2. Automated Testing
+
 - Use the test file examples to write automated tests
 - Test error boundaries and fallback UI
 - Verify retry logic and error recovery
 
 ### 3. Random Error Testing
+
 - Enable random errors to test overall application resilience
 - Useful for stress testing and finding edge cases
 - Adjust probability based on testing needs
@@ -147,6 +156,7 @@ Error: "Network timeout: Request took too long to complete"
 ## Example Test Scenarios
 
 ### Testing Retry Logic
+
 ```javascript
 // Enable network timeout
 window.mockOrchestratorErrors.simulateError('network_timeout');
@@ -161,6 +171,7 @@ window.mockOrchestratorErrors.clearErrorSimulation();
 ```
 
 ### Testing Fallback UI
+
 ```javascript
 // Enable no models available
 window.mockOrchestratorErrors.simulateError('no_models_available');
@@ -171,6 +182,7 @@ window.mockOrchestratorErrors.simulateError('no_models_available');
 ```
 
 ### Testing Authentication Flow
+
 ```javascript
 // Enable authentication failure
 window.mockOrchestratorErrors.simulateError('authentication_failure');

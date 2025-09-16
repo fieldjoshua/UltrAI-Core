@@ -94,11 +94,11 @@
     padding: 6px 8px;
     gap: 6px;
   }
-  
+
   .background-toggle {
     font-size: 16px;
   }
-  
+
   .intensity-selector,
   .performance-selector {
     font-size: 11px;
@@ -113,7 +113,7 @@
     gap: 4px;
     padding: 6px;
   }
-  
+
   .intensity-selector,
   .performance-selector {
     font-size: 10px;
@@ -128,7 +128,7 @@
   .performance-selector {
     transition: none;
   }
-  
+
   .background-toggle:hover {
     transform: none;
   }
@@ -140,7 +140,7 @@
     background: rgba(0, 0, 0, 0.95);
     border: 2px solid #ffffff;
   }
-  
+
   .intensity-selector,
   .performance-selector {
     background: #000000;
@@ -181,17 +181,22 @@
 }
 
 @keyframes performance-indicator {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.3; }
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.3;
+  }
 }
 
 /* Battery mode indicator */
-.cyberpunk-controls[data-performance="battery"]::after {
+.cyberpunk-controls[data-performance='battery']::after {
   background: #e92e00;
 }
 
 /* High performance mode indicator */
-.cyberpunk-controls[data-performance="high"]::after {
+.cyberpunk-controls[data-performance='high']::after {
   background: #00f4c0;
   animation-duration: 1s;
 }

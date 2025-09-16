@@ -81,7 +81,7 @@ const PrimaryUIPanel: React.FC<PrimaryUIPanelProps> = ({
 
   // Remove an attachment
   const removeAttachment = (index: number) => {
-    setAttachments((current) => current.filter((_, i) => i !== index));
+    setAttachments(current => current.filter((_, i) => i !== index));
   };
 
   // Open file picker
@@ -108,7 +108,7 @@ const PrimaryUIPanel: React.FC<PrimaryUIPanelProps> = ({
         <div className="relative">
           <textarea
             value={prompt}
-            onChange={(e) => setPrompt(e.target.value)}
+            onChange={e => setPrompt(e.target.value)}
             placeholder={placeholder}
             rows={4}
             className={cn(

@@ -36,7 +36,7 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
     this.setState({ errorInfo });
 
     // Report to Sentry
-    Sentry.withScope((scope) => {
+    Sentry.withScope(scope => {
       scope.setExtras(errorInfo);
       const eventId = Sentry.captureException(error);
       this.setState({ eventId });

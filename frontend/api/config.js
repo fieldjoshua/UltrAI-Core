@@ -12,7 +12,8 @@ const API_BASE_URL_TEMPLATE = 'http://localhost:PORT';
 const PRODUCTION_API_URL = 'https://ultrai-core.onrender.com';
 
 // Check if running in production
-const isProduction = import.meta?.env?.PROD || process.env.NODE_ENV === 'production';
+const isProduction =
+  import.meta?.env?.PROD || process.env.NODE_ENV === 'production';
 
 // Time to cache server availability check (5 seconds)
 const SERVER_CACHE_TIME = 5000;
@@ -102,7 +103,7 @@ export const getApiBaseUrl = async () => {
   if (isProduction) {
     return PRODUCTION_API_URL;
   }
-  
+
   // In development, try to find an available local server
   try {
     return await findAvailableServer();
@@ -114,14 +115,14 @@ export const getApiBaseUrl = async () => {
 };
 
 // Helper function to add a listener for API errors
-export const addApiErrorListener = (callback) => {
-  document.addEventListener(API_ERROR_EVENT, (event) => {
+export const addApiErrorListener = callback => {
+  document.addEventListener(API_ERROR_EVENT, event => {
     callback(event.detail);
   });
 };
 
 // Helper function to remove a listener for API errors
-export const removeApiErrorListener = (callback) => {
+export const removeApiErrorListener = callback => {
   document.removeEventListener(API_ERROR_EVENT, callback);
 };
 

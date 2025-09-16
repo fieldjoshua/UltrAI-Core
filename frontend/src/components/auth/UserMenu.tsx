@@ -1,13 +1,13 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../stores/authStore';
-import { 
-  User, 
-  Settings, 
-  CreditCard, 
-  FileText, 
+import {
+  User,
+  Settings,
+  CreditCard,
+  FileText,
   LogOut,
-  ChevronDown
+  ChevronDown,
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -48,21 +48,23 @@ export const UserMenu: React.FC = () => {
       <DropdownMenuContent align="end" className="w-56">
         <DropdownMenuLabel>
           <div className="flex flex-col space-y-1">
-            <p className="text-sm font-medium leading-none">{user.full_name || user.username || 'User'}</p>
+            <p className="text-sm font-medium leading-none">
+              {user.full_name || user.username || 'User'}
+            </p>
             <p className="text-xs leading-none text-muted-foreground">
               {user.email}
             </p>
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        
+
         <DropdownMenuItem asChild>
           <Link to="/profile" className="flex items-center cursor-pointer">
             <User className="mr-2 h-4 w-4" />
             <span>Profile</span>
           </Link>
         </DropdownMenuItem>
-        
+
         <DropdownMenuItem asChild>
           <Link to="/billing" className="flex items-center cursor-pointer">
             <CreditCard className="mr-2 h-4 w-4" />
@@ -72,24 +74,24 @@ export const UserMenu: React.FC = () => {
             </span>
           </Link>
         </DropdownMenuItem>
-        
+
         <DropdownMenuItem asChild>
           <Link to="/transactions" className="flex items-center cursor-pointer">
             <FileText className="mr-2 h-4 w-4" />
             <span>Transactions</span>
           </Link>
         </DropdownMenuItem>
-        
+
         <DropdownMenuItem asChild>
           <Link to="/settings" className="flex items-center cursor-pointer">
             <Settings className="mr-2 h-4 w-4" />
             <span>Settings</span>
           </Link>
         </DropdownMenuItem>
-        
+
         <DropdownMenuSeparator />
-        
-        <DropdownMenuItem 
+
+        <DropdownMenuItem
           onClick={handleLogout}
           className="flex items-center cursor-pointer text-red-600 dark:text-red-400"
         >

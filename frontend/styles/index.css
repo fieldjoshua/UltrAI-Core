@@ -76,7 +76,9 @@
 @layer base {
   body {
     @apply bg-background text-foreground;
-    font-feature-settings: 'rlig' 1, 'calt' 1;
+    font-feature-settings:
+      'rlig' 1,
+      'calt' 1;
     background-image: url('/ultrai-bg.jpg');
     background-size: cover;
     background-position: center center;

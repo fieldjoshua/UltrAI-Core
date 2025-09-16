@@ -94,7 +94,7 @@ export const ThemeStylerProvider: React.FC<{ children: React.ReactNode }> = ({
     containerType: string,
     config: Partial<ContainerStyleConfig>
   ) => {
-    setCustomThemes((prev) => ({
+    setCustomThemes(prev => ({
       ...prev,
       [containerType]: {
         ...prev[containerType],
@@ -269,7 +269,7 @@ export const ThemeStylerPanel: React.FC<{
           Base Theme
         </label>
         <div className="flex flex-wrap gap-2">
-          {themeOptions.map((name) => (
+          {themeOptions.map(name => (
             <button
               key={name}
               onClick={() => setActiveTheme(name)}
@@ -291,7 +291,7 @@ export const ThemeStylerPanel: React.FC<{
           Accent Color
         </label>
         <div className="flex flex-wrap gap-3">
-          {accentColors.map((color) => (
+          {accentColors.map(color => (
             <button
               key={color}
               onClick={() => updateStyleProperty('accentColor', color)}
@@ -326,13 +326,13 @@ export const ThemeStylerPanel: React.FC<{
 
       {/* Style Properties */}
       <div className="space-y-4 mb-6">
-        {styleProperties.map((prop) => (
+        {styleProperties.map(prop => (
           <div key={prop.key}>
             <label className="block text-sm font-medium text-muted-foreground mb-2">
               {prop.label}
             </label>
             <div className="flex flex-wrap gap-2">
-              {prop.options.map((option) => (
+              {prop.options.map(option => (
                 <button
                   key={option}
                   onClick={() => updateStyleProperty(prop.key, option)}
@@ -357,7 +357,7 @@ export const ThemeStylerPanel: React.FC<{
           Decorative Elements
         </label>
         <div className="space-y-2">
-          {decorativeElements.map((elem) => (
+          {decorativeElements.map(elem => (
             <label
               key={elem.key}
               className="flex items-center gap-2 cursor-pointer"
@@ -369,7 +369,7 @@ export const ThemeStylerPanel: React.FC<{
                     elem.key as keyof typeof currentConfig.decorativeElements
                   ]
                 )}
-                onChange={(e) =>
+                onChange={e =>
                   updateDecorativeElement(elem.key, e.target.checked)
                 }
                 className="w-4 h-4 rounded border-border text-primary focus:ring-primary/50"

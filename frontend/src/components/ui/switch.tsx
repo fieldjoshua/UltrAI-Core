@@ -11,7 +11,17 @@ interface SwitchProps {
 }
 
 export const Switch = React.forwardRef<HTMLButtonElement, SwitchProps>(
-  ({ id, checked = false, onCheckedChange, disabled = false, className, ...props }, ref) => {
+  (
+    {
+      id,
+      checked = false,
+      onCheckedChange,
+      disabled = false,
+      className,
+      ...props
+    },
+    ref
+  ) => {
     const handleClick = () => {
       if (!disabled && onCheckedChange) {
         onCheckedChange(!checked);

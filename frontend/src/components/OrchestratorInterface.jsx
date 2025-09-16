@@ -5,7 +5,11 @@ import {
   processWithFeatherOrchestration,
   processWithOrchestrator,
 } from '../api/orchestrator';
-const AnalysisPatternSelector = React.lazy(() => import('./AnalysisPatternSelector').then(m => ({ default: m.AnalysisPatternSelector })));
+const AnalysisPatternSelector = React.lazy(() =>
+  import('./AnalysisPatternSelector').then(m => ({
+    default: m.AnalysisPatternSelector,
+  }))
+);
 import { AnalysisProgress } from './atoms/AnalysisProgress';
 const SSEPanel = React.lazy(() => import('./panels/SSEPanel'));
 
@@ -33,33 +37,44 @@ const OrchestratorInterface = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState(null);
   const [correlationId, setCorrelationId] = useState('');
-  
+
   // State for 4-stage progress tracking
   const [progressStatus, setProgressStatus] = useState('idle');
   const [currentStage, setCurrentStage] = useState(0);
   const [progressMessage, setProgressMessage] = useState('');
-  
+
   // State for detailed breakdown visibility
   const [showDetailedBreakdown, setShowDetailedBreakdown] = useState(false);
 
   // Simple toast notifications (success/warn/error)
-  const [toast, setToast] = useState({ visible: false, type: 'info', message: '' });
+  const [toast, setToast] = useState({
+    visible: false,
+    type: 'info',
+    message: '',
+  });
   const showToast = (type, message, timeoutMs = 3500) => {
     setToast({ visible: true, type, message });
     window.clearTimeout(showToast._t);
-    showToast._t = window.setTimeout(() => setToast({ visible: false, type: 'info', message: '' }), timeoutMs);
+    showToast._t = window.setTimeout(
+      () => setToast({ visible: false, type: 'info', message: '' }),
+      timeoutMs
+    );
   };
 
   // Load available models and patterns on component mount
   useEffect(() => {
     // Restore session
     try {
-      const saved = JSON.parse(localStorage.getItem('orchestrator_session') || 'null');
+      const saved = JSON.parse(
+        localStorage.getItem('orchestrator_session') || 'null'
+      );
       if (saved) {
         if (typeof saved.prompt === 'string') setPrompt(saved.prompt);
-        if (Array.isArray(saved.selectedModels)) setSelectedModels(saved.selectedModels);
+        if (Array.isArray(saved.selectedModels))
+          setSelectedModels(saved.selectedModels);
         if (typeof saved.leadModel === 'string') setLeadModel(saved.leadModel);
-        if (typeof saved.selectedPattern === 'string') setSelectedPattern(saved.selectedPattern);
+        if (typeof saved.selectedPattern === 'string')
+          setSelectedPattern(saved.selectedPattern);
       }
     } catch (_) {}
 
@@ -92,11 +107,17 @@ const OrchestratorInterface = () => {
         // Use fallback patterns if API fails
         setAvailablePatterns([
           { name: 'gut', description: 'Gut-based intuitive analysis' },
-          { name: 'confidence', description: 'Confidence scoring and agreement tracking' },
-          { name: 'critique', description: 'Structured critique and revision process' },
+          {
+            name: 'confidence',
+            description: 'Confidence scoring and agreement tracking',
+          },
+          {
+            name: 'critique',
+            description: 'Structured critique and revision process',
+          },
           { name: 'fact_check', description: 'Rigorous fact-checking process' },
           { name: 'perspective', description: 'Multi-perspective analysis' },
-          { name: 'scenario', description: 'Scenario-based analysis' }
+          { name: 'scenario', description: 'Scenario-based analysis' },
         ]);
       } finally {
         setIsLoadingPatterns(false);
@@ -110,21 +131,24 @@ const OrchestratorInterface = () => {
   // Persist session
   useEffect(() => {
     try {
-      localStorage.setItem('orchestrator_session', JSON.stringify({
-        prompt,
-        selectedModels,
-        leadModel,
-        selectedPattern,
-      }));
+      localStorage.setItem(
+        'orchestrator_session',
+        JSON.stringify({
+          prompt,
+          selectedModels,
+          leadModel,
+          selectedPattern,
+        })
+      );
     } catch (_) {}
   }, [prompt, selectedModels, leadModel, selectedPattern]);
 
   // Handle model selection changes
-  const handleModelToggle = (model) => {
+  const handleModelToggle = model => {
     if (selectedModels.includes(model)) {
       // Remove from selection (unless it's the last one or the lead model)
       if (selectedModels.length > 1 && model !== leadModel) {
-        setSelectedModels(selectedModels.filter((m) => m !== model));
+        setSelectedModels(selectedModels.filter(m => m !== model));
       }
     } else {
       // Add to selection
@@ -133,7 +157,7 @@ const OrchestratorInterface = () => {
   };
 
   // Handle lead model change
-  const handleLeadModelChange = (model) => {
+  const handleLeadModelChange = model => {
     setLeadModel(model);
 
     // Ensure the lead model is selected
@@ -145,9 +169,21 @@ const OrchestratorInterface = () => {
   // Simulate 3-stage progress for Ultra Synthesis™ orchestration
   const simulateFeatherProgress = () => {
     const stages = [
-      { stage: 1, message: 'Stage 1: Initial Response - Getting parallel responses from selected models...' },
-      { stage: 2, message: 'Stage 2: Peer Review & Revision - Models reviewing and refining responses...' },
-      { stage: 3, message: 'Stage 3: Ultra Synthesis™ - Creating comprehensive final synthesis...' }
+      {
+        stage: 1,
+        message:
+          'Stage 1: Initial Response - Getting parallel responses from selected models...',
+      },
+      {
+        stage: 2,
+        message:
+          'Stage 2: Peer Review & Revision - Models reviewing and refining responses...',
+      },
+      {
+        stage: 3,
+        message:
+          'Stage 3: Ultra Synthesis™ - Creating comprehensive final synthesis...',
+      },
     ];
 
     let stageIndex = 0;
@@ -172,7 +208,7 @@ const OrchestratorInterface = () => {
   };
 
   // Handle form submission
-  const handleSubmit = async (e) => {
+  const handleSubmit = async e => {
     e.preventDefault();
 
     // Validate inputs
@@ -195,37 +231,40 @@ const OrchestratorInterface = () => {
       // Generate/refresh correlation id for this run
       const newCorr = `corr_${Math.random().toString(36).slice(2, 12)}`;
       setCorrelationId(newCorr);
- 
+
       if (useFeatherOrchestration) {
         // Use Ultra Synthesis™ 3-stage orchestration
         setProgressStatus('preparing');
         setProgressMessage('Preparing Ultra Synthesis™ pipeline...');
-        
+
         // Start progress simulation
         const progressInterval = simulateFeatherProgress();
-        
-        response = await processWithFeatherOrchestration({
-          prompt,
-          models: selectedModels,
-          pattern: selectedPattern,
-          ultraModel: leadModel || selectedModels[0],
-          outputFormat: 'plain'
-        }, newCorr);
-        
+
+        response = await processWithFeatherOrchestration(
+          {
+            prompt,
+            models: selectedModels,
+            pattern: selectedPattern,
+            ultraModel: leadModel || selectedModels[0],
+            outputFormat: 'plain',
+          },
+          newCorr
+        );
+
         clearInterval(progressInterval);
         setProgressStatus('complete');
       } else {
         // Use legacy orchestration for backward compatibility
         setProgressStatus('analyzing');
         setProgressMessage('Processing with legacy orchestration...');
-        
+
         response = await processWithOrchestrator({
           prompt,
           models: selectedModels,
           leadModel: leadModel || selectedModels[0],
           analysisType,
         });
-        
+
         setProgressStatus('complete');
       }
 
@@ -234,8 +273,14 @@ const OrchestratorInterface = () => {
       // Toast on completion or degradation
       try {
         if (response && response.status === 'success') {
-          const secs = typeof response.processing_time === 'number' ? response.processing_time.toFixed(2) : undefined;
-          showToast('success', `Analysis completed${secs ? ` in ${secs}s` : ''}.`);
+          const secs =
+            typeof response.processing_time === 'number'
+              ? response.processing_time.toFixed(2)
+              : undefined;
+          showToast(
+            'success',
+            `Analysis completed${secs ? ` in ${secs}s` : ''}.`
+          );
         } else if (response && response.status === 'error') {
           showToast('error', response.error || 'Analysis failed');
         }
@@ -255,7 +300,7 @@ const OrchestratorInterface = () => {
   };
 
   // Format model display name
-  const formatModelName = (model) => {
+  const formatModelName = model => {
     const parts = model.split('-');
     if (parts.length > 1) {
       return `${parts[0].charAt(0).toUpperCase() + parts[0].slice(1)} ${parts[1].toUpperCase()}`;
@@ -267,7 +312,10 @@ const OrchestratorInterface = () => {
     <div className="max-w-6xl mx-auto p-4">
       <div className="mb-6">
         <h1 className="text-3xl font-bold mb-2">UltrAI Orchestrator</h1>
-        <p className="text-gray-600">Experience the power of Ultra Synthesis™ - multi-model intelligence multiplication</p>
+        <p className="text-gray-600">
+          Experience the power of Ultra Synthesis™ - multi-model intelligence
+          multiplication
+        </p>
       </div>
 
       {/* Orchestration Mode Toggle */}
@@ -276,20 +324,21 @@ const OrchestratorInterface = () => {
           <div>
             <h3 className="font-semibold text-blue-900">Orchestration Mode</h3>
             <p className="text-sm text-blue-700">
-              {useFeatherOrchestration 
-                ? "Ultra Synthesis™ - 3-Stage intelligence multiplication pipeline"
-                : "Legacy Mode - Basic multi-model comparison"
-              }
+              {useFeatherOrchestration
+                ? 'Ultra Synthesis™ - 3-Stage intelligence multiplication pipeline'
+                : 'Legacy Mode - Basic multi-model comparison'}
             </p>
           </div>
           <label className="flex items-center cursor-pointer">
             <input
               type="checkbox"
               checked={useFeatherOrchestration}
-              onChange={(e) => setUseFeatherOrchestration(e.target.checked)}
+              onChange={e => setUseFeatherOrchestration(e.target.checked)}
               className="mr-2"
             />
-            <span className="text-sm font-medium">Use Ultra Synthesis™ Orchestration (recommended)</span>
+            <span className="text-sm font-medium">
+              Use Ultra Synthesis™ Orchestration (recommended)
+            </span>
           </label>
         </div>
       </div>
@@ -318,17 +367,32 @@ const OrchestratorInterface = () => {
       {availableModels.length < 2 && !isLoadingModels && (
         <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
           <div className="flex items-start">
-            <svg className="w-5 h-5 text-red-600 mt-0.5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            <svg
+              className="w-5 h-5 text-red-600 mt-0.5 mr-3 flex-shrink-0"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+              />
             </svg>
             <div>
-              <h3 className="text-sm font-semibold text-red-800">Service Unavailable</h3>
+              <h3 className="text-sm font-semibold text-red-800">
+                Service Unavailable
+              </h3>
               <p className="text-sm text-red-700 mt-1">
-                UltraAI requires at least 2 different AI models for its multi-model orchestration system. 
-                Currently, only {availableModels.length} model{availableModels.length === 1 ? ' is' : 's are'} available.
+                UltraAI requires at least 2 different AI models for its
+                multi-model orchestration system. Currently, only{' '}
+                {availableModels.length} model
+                {availableModels.length === 1 ? ' is' : 's are'} available.
               </p>
               <p className="text-xs text-red-600 mt-2">
-                Please ensure API keys are configured for at least 2 different AI providers.
+                Please ensure API keys are configured for at least 2 different
+                AI providers.
               </p>
             </div>
           </div>
@@ -355,7 +419,7 @@ const OrchestratorInterface = () => {
                 id="prompt"
                 data-testid="prompt-input"
                 value={prompt}
-                onChange={(e) => setPrompt(e.target.value)}
+                onChange={e => setPrompt(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 rows={4}
                 placeholder="Enter your prompt for sophisticated multi-LLM analysis..."
@@ -381,7 +445,7 @@ const OrchestratorInterface = () => {
                 </div>
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {availableModels.map((model) => (
+                  {availableModels.map(model => (
                     <div
                       key={model}
                       className={`border rounded-lg p-4 cursor-pointer transition-all ${
@@ -401,7 +465,10 @@ const OrchestratorInterface = () => {
                             className="mt-1"
                           />
                           <div>
-                            <label htmlFor={`model-${model}`} className="font-medium text-sm cursor-pointer">
+                            <label
+                              htmlFor={`model-${model}`}
+                              className="font-medium text-sm cursor-pointer"
+                            >
                               {formatModelName(model)}
                             </label>
                             {selectedModels.includes(model) && (
@@ -412,7 +479,9 @@ const OrchestratorInterface = () => {
                                     id={`lead-${model}`}
                                     name="leadModel"
                                     checked={leadModel === model}
-                                    onChange={() => handleLeadModelChange(model)}
+                                    onChange={() =>
+                                      handleLeadModelChange(model)
+                                    }
                                     className="mr-1"
                                   />
                                   Ultra synthesis model
@@ -431,7 +500,10 @@ const OrchestratorInterface = () => {
             {/* Inline helper when insufficient models */}
             {availableModels.length < 2 && !isLoadingModels && (
               <div className="mt-2 text-xs text-gray-600">
-                At least two models are required. <a href="/admin" className="text-blue-600 underline">Configure API keys</a>
+                At least two models are required.{' '}
+                <a href="/admin" className="text-blue-600 underline">
+                  Configure API keys
+                </a>
               </div>
             )}
 
@@ -474,7 +546,11 @@ const OrchestratorInterface = () => {
                 type="submit"
                 data-testid="run-analysis"
                 disabled={isProcessing || availableModels.length < 2}
-                title={availableModels.length < 2 ? 'At least 2 AI models required for orchestration' : ''}
+                title={
+                  availableModels.length < 2
+                    ? 'At least 2 AI models required for orchestration'
+                    : ''
+                }
                 className={`px-6 py-3 rounded-lg font-medium transition-all ${
                   isProcessing || availableModels.length < 2
                     ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
@@ -485,10 +561,13 @@ const OrchestratorInterface = () => {
               >
                 {availableModels.length < 2
                   ? 'Insufficient Models (2+ Required)'
-                  : isProcessing 
-                    ? (useFeatherOrchestration ? 'Running Ultra Synthesis™...' : 'Processing...')
-                    : (useFeatherOrchestration ? 'Start Ultra Synthesis™' : 'Generate Response')
-                }
+                  : isProcessing
+                    ? useFeatherOrchestration
+                      ? 'Running Ultra Synthesis™...'
+                      : 'Processing...'
+                    : useFeatherOrchestration
+                      ? 'Start Ultra Synthesis™'
+                      : 'Generate Response'}
               </button>
             </div>
           </form>
@@ -510,22 +589,37 @@ const OrchestratorInterface = () => {
                 </div>
               ) : (
                 <AnalysisPatternSelector
-                  patterns={availablePatterns.map(p => ({ id: p.name, name: p.name, description: p.description }))}
+                  patterns={availablePatterns.map(p => ({
+                    id: p.name,
+                    name: p.name,
+                    description: p.description,
+                  }))}
                   selectedPattern={selectedPattern}
                   onPatternChange={setSelectedPattern}
                   disabled={isProcessing}
                 />
               )}
-              
+
               <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
                 <p className="text-xs text-yellow-800">
-                  <strong>Patent-Protected:</strong> Ultra Synthesis™ represents sophisticated intellectual property with 3-stage intelligence multiplication.
+                  <strong>Patent-Protected:</strong> Ultra Synthesis™
+                  represents sophisticated intellectual property with 3-stage
+                  intelligence multiplication.
                 </p>
               </div>
 
               <div className="mt-6">
-                <React.Suspense fallback={<div className="text-sm text-gray-500">Loading live events…</div>}>
-                  <SSEPanel correlationId={correlationId} title="Live Model Events" />
+                <React.Suspense
+                  fallback={
+                    <div className="text-sm text-gray-500">
+                      Loading live events…
+                    </div>
+                  }
+                >
+                  <SSEPanel
+                    correlationId={correlationId}
+                    title="Live Model Events"
+                  />
                 </React.Suspense>
               </div>
             </div>
@@ -559,10 +653,10 @@ const OrchestratorInterface = () => {
                       Intelligence Multiplication Complete
                     </div>
                   </div>
-                  
+
                   <div className="bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50 p-8 rounded-xl border-2 border-gradient-to-r from-purple-200 to-blue-200 shadow-lg">
                     <div className="prose max-w-none">
-                      <div 
+                      <div
                         data-testid="ultra-synthesis"
                         className="text-lg leading-relaxed text-gray-800 whitespace-pre-wrap font-medium"
                       >
@@ -570,7 +664,7 @@ const OrchestratorInterface = () => {
                       </div>
                     </div>
                   </div>
-                  
+
                   {/* Analysis Summary */}
                   <div className="mt-4 bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
                     <div className="flex flex-wrap items-center justify-between text-sm text-gray-600">
@@ -583,7 +677,9 @@ const OrchestratorInterface = () => {
                       <div className="flex items-center space-x-4">
                         <span className="font-medium">Models Used:</span>
                         <span className="text-gray-700">
-                          {results.models_used ? results.models_used.join(', ') : selectedModels.join(', ')}
+                          {results.models_used
+                            ? results.models_used.join(', ')
+                            : selectedModels.join(', ')}
                         </span>
                       </div>
                     </div>
@@ -594,87 +690,126 @@ const OrchestratorInterface = () => {
               {/* Detailed Analysis Breakdown (Collapsible) */}
               <div className="border-t pt-6">
                 <button
-                  onClick={() => setShowDetailedBreakdown(!showDetailedBreakdown)}
+                  onClick={() =>
+                    setShowDetailedBreakdown(!showDetailedBreakdown)
+                  }
                   className="flex items-center justify-between w-full text-left text-lg font-semibold text-gray-700 hover:text-gray-900 transition-colors"
                 >
                   <span>Detailed Analysis Breakdown</span>
-                  <svg 
+                  <svg
                     className={`w-5 h-5 transform transition-transform ${showDetailedBreakdown ? 'rotate-180' : ''}`}
-                    fill="none" 
-                    stroke="currentColor" 
+                    fill="none"
+                    stroke="currentColor"
                     viewBox="0 0 24 24"
                   >
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M19 9l-7 7-7-7"
+                    />
                   </svg>
                 </button>
-                
+
                 {showDetailedBreakdown && (
                   <div className="mt-6 space-y-6">
                     {/* Stage 1: Initial Responses */}
-                    {results.initial_responses && Object.keys(results.initial_responses).length > 0 && (
-                      <div>
-                        <h3 className="text-lg font-semibold mb-3 flex items-center">
-                          <span className="bg-green-100 text-green-800 px-2 py-1 rounded-full text-sm mr-2">1</span>
-                          Initial Analysis Responses
-                        </h3>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          {Object.entries(results.initial_responses).map(([model, response]) => (
-                            <div key={model} className="bg-gray-50 p-4 rounded-lg border">
-                              <h4 className="font-medium mb-2 flex items-center">
-                                {formatModelName(model)}
-                                {leadModel && leadModel.includes(model) && (
-                                  <span className="ml-2 text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded">
-                                    Ultra Model
-                                  </span>
-                                )}
-                              </h4>
-                              <p className="text-sm whitespace-pre-wrap text-gray-700">{response}</p>
-                            </div>
-                          ))}
+                    {results.initial_responses &&
+                      Object.keys(results.initial_responses).length > 0 && (
+                        <div>
+                          <h3 className="text-lg font-semibold mb-3 flex items-center">
+                            <span className="bg-green-100 text-green-800 px-2 py-1 rounded-full text-sm mr-2">
+                              1
+                            </span>
+                            Initial Analysis Responses
+                          </h3>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {Object.entries(results.initial_responses).map(
+                              ([model, response]) => (
+                                <div
+                                  key={model}
+                                  className="bg-gray-50 p-4 rounded-lg border"
+                                >
+                                  <h4 className="font-medium mb-2 flex items-center">
+                                    {formatModelName(model)}
+                                    {leadModel && leadModel.includes(model) && (
+                                      <span className="ml-2 text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded">
+                                        Ultra Model
+                                      </span>
+                                    )}
+                                  </h4>
+                                  <p className="text-sm whitespace-pre-wrap text-gray-700">
+                                    {response}
+                                  </p>
+                                </div>
+                              )
+                            )}
+                          </div>
                         </div>
-                      </div>
-                    )}
+                      )}
 
                     {/* Stage 2: Meta Analysis */}
-                    {results.meta_responses && Object.keys(results.meta_responses).length > 0 && (
-                      <div>
-                        <h3 className="text-lg font-semibold mb-3 flex items-center">
-                          <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-sm mr-2">2</span>
-                          Meta Analysis
-                        </h3>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          {Object.entries(results.meta_responses).map(([model, response]) => (
-                            <div key={model} className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-                              <h4 className="font-medium mb-2">{formatModelName(model)}</h4>
-                              <p className="text-sm whitespace-pre-wrap text-gray-700">{response}</p>
-                            </div>
-                          ))}
+                    {results.meta_responses &&
+                      Object.keys(results.meta_responses).length > 0 && (
+                        <div>
+                          <h3 className="text-lg font-semibold mb-3 flex items-center">
+                            <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-sm mr-2">
+                              2
+                            </span>
+                            Meta Analysis
+                          </h3>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {Object.entries(results.meta_responses).map(
+                              ([model, response]) => (
+                                <div
+                                  key={model}
+                                  className="bg-blue-50 p-4 rounded-lg border border-blue-200"
+                                >
+                                  <h4 className="font-medium mb-2">
+                                    {formatModelName(model)}
+                                  </h4>
+                                  <p className="text-sm whitespace-pre-wrap text-gray-700">
+                                    {response}
+                                  </p>
+                                </div>
+                              )
+                            )}
+                          </div>
                         </div>
-                      </div>
-                    )}
+                      )}
 
                     {/* Stage 2: Peer Review & Revision (3-stage pipeline) */}
-                    {results.peer_review_responses && Object.keys(results.peer_review_responses).length > 0 && (
-                      <div>
-                        <h3 className="text-lg font-semibold mb-3 flex items-center">
-                          <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-sm mr-2">2</span>
-                          Peer Review & Revision
-                        </h3>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          {Object.entries(results.peer_review_responses).map(([model, response]) => (
-                            <div key={model} className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-                              <h4 className="font-medium mb-2 flex items-center">
-                                {formatModelName(model)}
-                                <span className="ml-2 text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded">
-                                  Peer-Reviewed
-                                </span>
-                              </h4>
-                              <p className="text-sm whitespace-pre-wrap text-gray-700">{response}</p>
-                            </div>
-                          ))}
+                    {results.peer_review_responses &&
+                      Object.keys(results.peer_review_responses).length > 0 && (
+                        <div>
+                          <h3 className="text-lg font-semibold mb-3 flex items-center">
+                            <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-sm mr-2">
+                              2
+                            </span>
+                            Peer Review & Revision
+                          </h3>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {Object.entries(results.peer_review_responses).map(
+                              ([model, response]) => (
+                                <div
+                                  key={model}
+                                  className="bg-blue-50 p-4 rounded-lg border border-blue-200"
+                                >
+                                  <h4 className="font-medium mb-2 flex items-center">
+                                    {formatModelName(model)}
+                                    <span className="ml-2 text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded">
+                                      Peer-Reviewed
+                                    </span>
+                                  </h4>
+                                  <p className="text-sm whitespace-pre-wrap text-gray-700">
+                                    {response}
+                                  </p>
+                                </div>
+                              )
+                            )}
+                          </div>
                         </div>
-                      </div>
-                    )}
+                      )}
 
                     {/* Stage 3: Ultra Synthesis is shown prominently above */}
                   </div>
@@ -687,36 +822,49 @@ const OrchestratorInterface = () => {
           {!useFeatherOrchestration && (
             <div className="space-y-6">
               {/* Initial responses */}
-              {results.initial_responses && results.initial_responses.length > 0 && (
-                <div>
-                  <h3 className="text-lg font-medium mb-3">Model Responses</h3>
-                  <div className="space-y-4">
-                    {results.initial_responses.map((response, index) => (
-                      <div key={index} className="bg-gray-50 p-4 rounded border">
-                        <h4 className="font-medium mb-2">
-                          {response.model} ({response.provider})
-                          {leadModel === response.model && (
-                            <span className="ml-2 text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded">
-                              Primary
-                            </span>
-                          )}
-                        </h4>
-                        <p className="whitespace-pre-wrap text-sm">{response.response}</p>
-                      </div>
-                    ))}
+              {results.initial_responses &&
+                results.initial_responses.length > 0 && (
+                  <div>
+                    <h3 className="text-lg font-medium mb-3">
+                      Model Responses
+                    </h3>
+                    <div className="space-y-4">
+                      {results.initial_responses.map((response, index) => (
+                        <div
+                          key={index}
+                          className="bg-gray-50 p-4 rounded border"
+                        >
+                          <h4 className="font-medium mb-2">
+                            {response.model} ({response.provider})
+                            {leadModel === response.model && (
+                              <span className="ml-2 text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded">
+                                Primary
+                              </span>
+                            )}
+                          </h4>
+                          <p className="whitespace-pre-wrap text-sm">
+                            {response.response}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
 
               {/* Synthesis */}
               {results.synthesis && (
                 <div>
-                  <h3 className="text-lg font-medium mb-3">Synthesized Response</h3>
+                  <h3 className="text-lg font-medium mb-3">
+                    Synthesized Response
+                  </h3>
                   <div className="bg-green-50 p-4 rounded border border-green-200">
                     <h4 className="font-medium mb-2">
-                      Synthesized by {results.synthesis.model} ({results.synthesis.provider})
+                      Synthesized by {results.synthesis.model} (
+                      {results.synthesis.provider})
                     </h4>
-                    <p className="whitespace-pre-wrap">{results.synthesis.response}</p>
+                    <p className="whitespace-pre-wrap">
+                      {results.synthesis.response}
+                    </p>
                   </div>
                 </div>
               )}
@@ -727,7 +875,9 @@ const OrchestratorInterface = () => {
           {results.status === 'error' && (
             <div className="bg-red-50 p-4 rounded-lg border border-red-200">
               <h3 className="text-lg font-semibold text-red-800 mb-2">Error</h3>
-              <p className="text-red-700">{results.error || 'An unknown error occurred'}</p>
+              <p className="text-red-700">
+                {results.error || 'An unknown error occurred'}
+              </p>
             </div>
           )}
         </div>
@@ -735,10 +885,17 @@ const OrchestratorInterface = () => {
 
       {/* Toast container */}
       {toast.visible && (
-        <div className={`fixed bottom-6 right-6 z-50 px-4 py-3 rounded shadow-lg text-sm ${
-          toast.type === 'success' ? 'bg-green-600 text-white' : toast.type === 'warning' ? 'bg-yellow-600 text-white' : toast.type === 'error' ? 'bg-red-600 text-white' : 'bg-gray-800 text-white'
-        }`}
-        role="status"
+        <div
+          className={`fixed bottom-6 right-6 z-50 px-4 py-3 rounded shadow-lg text-sm ${
+            toast.type === 'success'
+              ? 'bg-green-600 text-white'
+              : toast.type === 'warning'
+                ? 'bg-yellow-600 text-white'
+                : toast.type === 'error'
+                  ? 'bg-red-600 text-white'
+                  : 'bg-gray-800 text-white'
+          }`}
+          role="status"
         >
           {toast.message}
         </div>

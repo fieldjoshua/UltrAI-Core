@@ -8,7 +8,7 @@ import {
   RefreshCw,
   Zap,
   Users,
-  Eye
+  Eye,
 } from 'lucide-react';
 import CyberpunkCity from './CyberpunkCity';
 import FullCyberCity from './FullCyberCity';
@@ -31,11 +31,17 @@ interface AnalysisResults {
 const MultimodalAnalysis: React.FC = () => {
   const [query, setQuery] = useState('');
   const [availableModels, setAvailableModels] = useState<string[]>([]);
-  const [selectedModels, setSelectedModels] = useState<string[]>(['gpt-4', 'claude-3-sonnet', 'meta-llama/Meta-Llama-3-8B-Instruct']);
+  const [selectedModels, setSelectedModels] = useState<string[]>([
+    'gpt-4',
+    'claude-3-sonnet',
+    'meta-llama/Meta-Llama-3-8B-Instruct',
+  ]);
   const [analysisResults, setAnalysisResults] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'individual' | 'combined'>('individual');
+  const [activeTab, setActiveTab] = useState<'individual' | 'combined'>(
+    'individual'
+  );
 
   // Fetch available models on component mount
   useEffect(() => {
@@ -47,7 +53,13 @@ const MultimodalAnalysis: React.FC = () => {
       } catch (error) {
         console.error('Failed to load models:', error);
         // Use fallback models
-        setAvailableModels(['gpt-4', 'gpt-4-turbo', 'claude-3-sonnet', 'claude-3-haiku', 'gemini-pro']);
+        setAvailableModels([
+          'gpt-4',
+          'gpt-4-turbo',
+          'claude-3-sonnet',
+          'claude-3-haiku',
+          'gemini-pro',
+        ]);
       }
     };
     loadModels();
@@ -85,7 +97,7 @@ const MultimodalAnalysis: React.FC = () => {
         pattern: 'comprehensive',
         ultra_model: selectedModels[0],
         output_format: 'txt',
-        options: {}
+        options: {},
       };
 
       console.log('Starting multimodal analysis with models:', selectedModels);
@@ -138,7 +150,9 @@ const MultimodalAnalysis: React.FC = () => {
         {/* Left Panel: Inputs and Controls */}
         <div className="w-full max-w-xs bg-black/70 rounded-xl p-6 flex flex-col gap-6 neon-panel border border-cyan-400 shadow-xl">
           <div>
-            <label className="block text-cyan-200 font-semibold mb-2">Query</label>
+            <label className="block text-cyan-200 font-semibold mb-2">
+              Query
+            </label>
             <textarea
               value={query}
               onChange={e => setQuery(e.target.value)}
@@ -147,17 +161,24 @@ const MultimodalAnalysis: React.FC = () => {
             />
           </div>
           <div>
-            <label className="block text-cyan-200 font-semibold mb-2">Select Models</label>
+            <label className="block text-cyan-200 font-semibold mb-2">
+              Select Models
+            </label>
             <div className="flex flex-col gap-2 max-h-40 overflow-y-auto">
               {availableModels.map(model => (
-                <label key={model} className="flex items-center gap-2 text-cyan-100 cursor-pointer">
+                <label
+                  key={model}
+                  className="flex items-center gap-2 text-cyan-100 cursor-pointer"
+                >
                   <input
                     type="checkbox"
                     checked={selectedModels.includes(model)}
                     onChange={() => handleModelToggle(model)}
                     className="accent-cyan-400"
                   />
-                  <span className="text-sm">{getProviderIcon(model)} {model}</span>
+                  <span className="text-sm">
+                    {getProviderIcon(model)} {model}
+                  </span>
                 </label>
               ))}
             </div>
@@ -168,9 +189,13 @@ const MultimodalAnalysis: React.FC = () => {
             className="neon-generate-btn mt-2 py-3 rounded-lg font-bold text-lg bg-cyan-500 text-black shadow-lg hover:bg-cyan-400 transition disabled:opacity-60"
           >
             {isLoading ? (
-              <span className="flex items-center gap-2"><Loader2 className="animate-spin w-5 h-5" /> Generating...</span>
+              <span className="flex items-center gap-2">
+                <Loader2 className="animate-spin w-5 h-5" /> Generating...
+              </span>
             ) : (
-              <span className="flex items-center gap-2"><Zap className="w-5 h-5" /> Generate</span>
+              <span className="flex items-center gap-2">
+                <Zap className="w-5 h-5" /> Generate
+              </span>
             )}
           </button>
         </div>
@@ -196,16 +221,19 @@ const MultimodalAnalysis: React.FC = () => {
                   </span>
                   {analysisResults.processing_time && (
                     <span className="text-sm text-green-600">
-                      ({typeof analysisResults.processing_time === 'number' 
-                        ? analysisResults.processing_time.toFixed(2) 
+                      (
+                      {typeof analysisResults.processing_time === 'number'
+                        ? analysisResults.processing_time.toFixed(2)
                         : typeof analysisResults.processing_time === 'string'
                           ? analysisResults.processing_time
-                          : JSON.stringify(analysisResults.processing_time)}s)
+                          : JSON.stringify(analysisResults.processing_time)}
+                      s)
                     </span>
                   )}
                 </div>
                 <div className="text-sm text-green-600">
-                  {Object.keys(analysisResults.model_responses).length} models responded
+                  {Object.keys(analysisResults.model_responses).length} models
+                  responded
                 </div>
               </div>
 
@@ -241,37 +269,51 @@ const MultimodalAnalysis: React.FC = () => {
               <div className="p-6">
                 {activeTab === 'individual' && (
                   <div className="space-y-6">
-                    {Object.entries(analysisResults.model_responses as any).map(([modelName, response]: any[]) => (
-                      <div key={modelName} className={`border rounded-lg p-4 ${getProviderColor(modelName)}`}>
-                        <div className="flex items-center justify-between mb-3">
-                          <div className="flex items-center gap-2">
-                            <span className="text-lg">{getProviderIcon(modelName)}</span>
-                            <span className="font-medium text-gray-900">{modelName}</span>
-                            <span className={`px-2 py-1 text-xs rounded-full ${
-                              response.status === 'success'
-                                ? 'bg-green-100 text-green-800'
-                                : 'bg-red-100 text-red-800'
-                            }`}>
-                              {response.status}
-                            </span>
+                    {Object.entries(analysisResults.model_responses as any).map(
+                      ([modelName, response]: any[]) => (
+                        <div
+                          key={modelName}
+                          className={`border rounded-lg p-4 ${getProviderColor(modelName)}`}
+                        >
+                          <div className="flex items-center justify-between mb-3">
+                            <div className="flex items-center gap-2">
+                              <span className="text-lg">
+                                {getProviderIcon(modelName)}
+                              </span>
+                              <span className="font-medium text-gray-900">
+                                {modelName}
+                              </span>
+                              <span
+                                className={`px-2 py-1 text-xs rounded-full ${
+                                  response.status === 'success'
+                                    ? 'bg-green-100 text-green-800'
+                                    : 'bg-red-100 text-red-800'
+                                }`}
+                              >
+                                {response.status}
+                              </span>
+                            </div>
+                            <button
+                              onClick={() => copyToClipboard(response.response)}
+                              className="p-1 hover:bg-white rounded"
+                              title="Copy response"
+                            >
+                              <Copy className="w-4 h-4 text-gray-600" />
+                            </button>
                           </div>
-                          <button
-                            onClick={() => copyToClipboard(response.response)}
-                            className="p-1 hover:bg-white rounded"
-                            title="Copy response"
-                          >
-                            <Copy className="w-4 h-4 text-gray-600" />
-                          </button>
+                          <div className="bg-white rounded p-3 text-sm text-gray-800 whitespace-pre-wrap">
+                            {typeof response.response === 'string'
+                              ? response.response
+                              : typeof response.response === 'object' &&
+                                  response.response !== null
+                                ? JSON.stringify(response.response, null, 2)
+                                : String(
+                                    response.response || 'No response available'
+                                  )}
+                          </div>
                         </div>
-                        <div className="bg-white rounded p-3 text-sm text-gray-800 whitespace-pre-wrap">
-                          {typeof response.response === 'string' 
-                            ? response.response 
-                            : typeof response.response === 'object' && response.response !== null
-                              ? JSON.stringify(response.response, null, 2)
-                              : String(response.response || 'No response available')}
-                        </div>
-                      </div>
-                    ))}
+                      )
+                    )}
                   </div>
                 )}
 
@@ -282,7 +324,9 @@ const MultimodalAnalysis: React.FC = () => {
                         Combined Analysis Results
                       </h3>
                       <button
-                        onClick={() => copyToClipboard(analysisResults.combined_response)}
+                        onClick={() =>
+                          copyToClipboard(analysisResults.combined_response)
+                        }
                         className="flex items-center gap-2 px-3 py-1 text-sm bg-gray-100 hover:bg-gray-200 rounded"
                       >
                         <Copy className="w-4 h-4" />
@@ -290,11 +334,20 @@ const MultimodalAnalysis: React.FC = () => {
                       </button>
                     </div>
                     <div className="bg-gray-50 rounded-lg p-4 text-sm text-gray-800 whitespace-pre-wrap max-h-96 overflow-y-auto">
-                      {typeof analysisResults.combined_response === 'string' 
-                        ? analysisResults.combined_response 
-                        : typeof analysisResults.combined_response === 'object' && analysisResults.combined_response !== null
-                          ? JSON.stringify(analysisResults.combined_response, null, 2)
-                          : String(analysisResults.combined_response || 'No combined response available')}
+                      {typeof analysisResults.combined_response === 'string'
+                        ? analysisResults.combined_response
+                        : typeof analysisResults.combined_response ===
+                              'object' &&
+                            analysisResults.combined_response !== null
+                          ? JSON.stringify(
+                              analysisResults.combined_response,
+                              null,
+                              2
+                            )
+                          : String(
+                              analysisResults.combined_response ||
+                                'No combined response available'
+                            )}
                     </div>
                   </div>
                 )}
@@ -304,7 +357,8 @@ const MultimodalAnalysis: React.FC = () => {
 
           {/* Info Footer */}
           <div className="text-center text-sm text-gray-500">
-            Powered by UltraAI Core • Real-time multimodal analysis with GPT-4, Claude, and Gemini
+            Powered by UltraAI Core • Real-time multimodal analysis with GPT-4,
+            Claude, and Gemini
           </div>
         </div>
       </div>

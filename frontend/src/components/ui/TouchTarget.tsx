@@ -37,9 +37,7 @@ export const TouchTarget: React.FC<TouchTargetProps> = ({
         aria-hidden="true"
       />
       {/* Actual content */}
-      <span className="relative pointer-events-auto">
-        {children}
-      </span>
+      <span className="relative pointer-events-auto">{children}</span>
     </Component>
   );
 };

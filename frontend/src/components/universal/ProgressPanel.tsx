@@ -96,7 +96,7 @@ const ProgressPanel: React.FC<ProgressPanelProps> = ({
               theme.style === 'cyberpunk' && 'animate-pulse'
             )}
             style={{
-              width: `${(steps.findIndex((s) => s.id === currentStep) / (steps.length - 1)) * 100}%`,
+              width: `${(steps.findIndex(s => s.id === currentStep) / (steps.length - 1)) * 100}%`,
             }}
           />
 
@@ -105,7 +105,7 @@ const ProgressPanel: React.FC<ProgressPanelProps> = ({
             {steps.map((step, index) => {
               const isCurrent = step.id === currentStep;
               const isCompleted =
-                steps.findIndex((s) => s.id === currentStep) > index;
+                steps.findIndex(s => s.id === currentStep) > index;
 
               return (
                 <div key={step.id} className="flex flex-col items-center">

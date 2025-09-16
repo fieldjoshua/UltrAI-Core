@@ -19,15 +19,33 @@ body {
 }
 
 /* Safety fallbacks for UI tokens */
-.bg-background { background-color: #0a0a0a; }
-.border-border { border-color: rgba(255,255,255,0.2); }
-.text-foreground { color: #f5f5f5; }
-.text-muted { color: #999999; }
-.bg-muted { background-color: #1a1a1a; }
-.text-accent { color: #00b8ff; }
-.bg-accent { background-color: #00b8ff; }
-.text-destructive { color: #ff0033; }
-.bg-destructive { background-color: #330000; }
+.bg-background {
+  background-color: #0a0a0a;
+}
+.border-border {
+  border-color: rgba(255, 255, 255, 0.2);
+}
+.text-foreground {
+  color: #f5f5f5;
+}
+.text-muted {
+  color: #999999;
+}
+.bg-muted {
+  background-color: #1a1a1a;
+}
+.text-accent {
+  color: #00b8ff;
+}
+.bg-accent {
+  background-color: #00b8ff;
+}
+.text-destructive {
+  color: #ff0033;
+}
+.bg-destructive {
+  background-color: #330000;
+}
 
 /* Animated overlay element-level effects (applies if SVG ids/classes exist) */
 .line-overlay #moon {
@@ -53,28 +71,59 @@ body {
 }
 
 @keyframes moonPulse {
-  0%, 100% { opacity: 0.6; transform: scale(1); }
-  50% { opacity: 1; transform: scale(1.03); }
+  0%,
+  100% {
+    opacity: 0.6;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.03);
+  }
 }
 
 @keyframes billboardFlicker {
-  0%, 10%, 12%, 20%, 22%, 100% { opacity: 1; }
-  11%, 21% { opacity: 0.4; }
+  0%,
+  10%,
+  12%,
+  20%,
+  22%,
+  100% {
+    opacity: 1;
+  }
+  11%,
+  21% {
+    opacity: 0.4;
+  }
 }
 
 @keyframes carGlide {
-  0% { transform: translateX(-5%); }
-  100% { transform: translateX(5%); }
+  0% {
+    transform: translateX(-5%);
+  }
+  100% {
+    transform: translateX(5%);
+  }
 }
 
 @keyframes droneHover {
-  0%, 100% { transform: translateY(0) translateX(0); }
-  50% { transform: translateY(-6px) translateX(4px); }
+  0%,
+  100% {
+    transform: translateY(0) translateX(0);
+  }
+  50% {
+    transform: translateY(-6px) translateX(4px);
+  }
 }
 
 @keyframes cableHum {
-  0%, 100% { stroke-width: 1.5; }
-  50% { stroke-width: 2.5; }
+  0%,
+  100% {
+    stroke-width: 1.5;
+  }
+  50% {
+    stroke-width: 2.5;
+  }
 }
 
 /* General moving-dash animation across all lines to make the overlay feel alive */

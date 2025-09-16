@@ -8,7 +8,11 @@
   height: 100vh;
   z-index: -1;
   overflow: hidden;
-  background: radial-gradient(ellipse at center, rgba(20, 20, 30, 0.95) 0%, rgba(0, 0, 0, 0.98) 100%);
+  background: radial-gradient(
+    ellipse at center,
+    rgba(20, 20, 30, 0.95) 0%,
+    rgba(0, 0, 0, 0.98) 100%
+  );
   pointer-events: none;
   /* Trigger fresh deployment */
 }
@@ -99,7 +103,8 @@
 
 /* Purple building animations (background) */
 @keyframes building-pulse {
-  0%, 100% {
+  0%,
+  100% {
     fill: #2a1a3e;
     stroke: #a374ff;
     opacity: 0.9;
@@ -112,8 +117,14 @@
 }
 
 @keyframes window-flicker {
-  0%, 90%, 100% { opacity: 1; }
-  95% { opacity: 0.3; }
+  0%,
+  90%,
+  100% {
+    opacity: 1;
+  }
+  95% {
+    opacity: 0.3;
+  }
 }
 
 .cyberpunk-background path,
@@ -130,8 +141,8 @@
 
 /* Circuit building animations (midground) */
 @keyframes circuit-flow {
-  0% { 
-    stroke-dashoffset: 100; 
+  0% {
+    stroke-dashoffset: 100;
     fill: #1a2e2a;
     stroke: #00f4c0;
   }
@@ -139,7 +150,7 @@
     fill: #2a3e3a;
     stroke: #10f4d0;
   }
-  100% { 
+  100% {
     stroke-dashoffset: 0;
     fill: #1a2e2a;
     stroke: #00f4c0;
@@ -147,12 +158,13 @@
 }
 
 @keyframes data-stream {
-  0%, 100% { 
-    stroke: #00f4c0; 
+  0%,
+  100% {
+    stroke: #00f4c0;
     fill: #1a2e2a;
   }
-  50% { 
-    stroke: #19df00; 
+  50% {
+    stroke: #19df00;
     fill: #2a3e2a;
   }
 }
@@ -171,20 +183,22 @@
 
 /* Bridge structure animations (foreground) */
 @keyframes connection-pulse {
-  0%, 100% { 
-    stroke: #19df00; 
+  0%,
+  100% {
+    stroke: #19df00;
     fill: #1a2e1a;
     opacity: 0.9;
   }
-  50% { 
-    stroke: #00f4c0; 
+  50% {
+    stroke: #00f4c0;
     fill: #2a3e2a;
     opacity: 1;
   }
 }
 
 @keyframes structure-glow {
-  0%, 100% {
+  0%,
+  100% {
     fill: #1a2e1a;
     stroke: #19df00;
   }
@@ -211,24 +225,51 @@
    ================================ */
 
 @keyframes float-gentle {
-  0%, 100% { transform: translateY(-50%) translateX(0px) scale(0.8); }
-  25% { transform: translateY(-50%) translateX(2px) scale(0.8); }
-  50% { transform: translateY(-50%) translateX(-1px) scale(0.8); }
-  75% { transform: translateY(-50%) translateX(1px) scale(0.8); }
+  0%,
+  100% {
+    transform: translateY(-50%) translateX(0px) scale(0.8);
+  }
+  25% {
+    transform: translateY(-50%) translateX(2px) scale(0.8);
+  }
+  50% {
+    transform: translateY(-50%) translateX(-1px) scale(0.8);
+  }
+  75% {
+    transform: translateY(-50%) translateX(1px) scale(0.8);
+  }
 }
 
 @keyframes float-medium {
-  0%, 100% { transform: translateY(-50%) translateX(0px) scale(1.2); }
-  25% { transform: translateY(-50%) translateX(3px) scale(1.2); }
-  50% { transform: translateY(-50%) translateX(-2px) scale(1.2); }
-  75% { transform: translateY(-50%) translateX(2px) scale(1.2); }
+  0%,
+  100% {
+    transform: translateY(-50%) translateX(0px) scale(1.2);
+  }
+  25% {
+    transform: translateY(-50%) translateX(3px) scale(1.2);
+  }
+  50% {
+    transform: translateY(-50%) translateX(-2px) scale(1.2);
+  }
+  75% {
+    transform: translateY(-50%) translateX(2px) scale(1.2);
+  }
 }
 
 @keyframes float-strong {
-  0%, 100% { transform: translateY(-50%) translateX(0px) scale(0.6); }
-  25% { transform: translateY(-50%) translateX(4px) scale(0.6); }
-  50% { transform: translateY(-50%) translateX(-3px) scale(0.6); }
-  75% { transform: translateY(-50%) translateX(3px) scale(0.6); }
+  0%,
+  100% {
+    transform: translateY(-50%) translateX(0px) scale(0.6);
+  }
+  25% {
+    transform: translateY(-50%) translateX(4px) scale(0.6);
+  }
+  50% {
+    transform: translateY(-50%) translateX(-3px) scale(0.6);
+  }
+  75% {
+    transform: translateY(-50%) translateX(3px) scale(0.6);
+  }
 }
 
 /* ================================
@@ -250,8 +291,13 @@
   width: 200px;
   height: 200px;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(163, 116, 255, 0.3) 0%, transparent 70%);
-  transform: translate(var(--mouse-x, 0), var(--mouse-y, 0)) translate(-50%, -50%);
+  background: radial-gradient(
+    circle,
+    rgba(163, 116, 255, 0.3) 0%,
+    transparent 70%
+  );
+  transform: translate(var(--mouse-x, 0), var(--mouse-y, 0))
+    translate(-50%, -50%);
   opacity: calc(var(--glow-intensity, 0) * 0.5);
   transition: opacity 0.3s ease;
 }
@@ -261,8 +307,13 @@
   width: 300px;
   height: 300px;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(0, 244, 192, 0.2) 0%, transparent 60%);
-  transform: translate(var(--mouse-x, 0), var(--mouse-y, 0)) translate(-50%, -50%);
+  background: radial-gradient(
+    circle,
+    rgba(0, 244, 192, 0.2) 0%,
+    transparent 60%
+  );
+  transform: translate(var(--mouse-x, 0), var(--mouse-y, 0))
+    translate(-50%, -50%);
   opacity: calc(var(--glow-intensity, 0) * 0.3);
   transition: opacity 0.3s ease;
   filter: blur(2px);
@@ -292,7 +343,9 @@
   top: var(--start-y, 50%);
   animation: particle-drift var(--duration, 3s) linear infinite;
   animation-delay: var(--delay, 0s);
-  box-shadow: 0 0 4px #00f4c0, 0 0 8px #00f4c0;
+  box-shadow:
+    0 0 4px #00f4c0,
+    0 0 8px #00f4c0;
 }
 
 @keyframes particle-drift {
@@ -307,7 +360,10 @@
     opacity: 1;
   }
   100% {
-    transform: translate(calc(var(--mouse-x, 0) * 0.5), calc(var(--mouse-y, 0) * 0.5));
+    transform: translate(
+      calc(var(--mouse-x, 0) * 0.5),
+      calc(var(--mouse-y, 0) * 0.5)
+    );
     opacity: 0;
   }
 }
@@ -375,15 +431,21 @@
 
 /* High performance mode */
 .cyberpunk-city-background.high .cyberpunk-background path {
-  animation: building-pulse 4s ease-in-out infinite, window-flicker 8s ease-in-out infinite;
+  animation:
+    building-pulse 4s ease-in-out infinite,
+    window-flicker 8s ease-in-out infinite;
 }
 
 .cyberpunk-city-background.high .cyberpunk-midground path {
-  animation: circuit-flow 2s linear infinite, data-stream 3s ease-in-out infinite;
+  animation:
+    circuit-flow 2s linear infinite,
+    data-stream 3s ease-in-out infinite;
 }
 
 .cyberpunk-city-background.high .cyberpunk-foreground path {
-  animation: connection-pulse 3s ease-in-out infinite alternate, structure-glow 4s ease-in-out infinite;
+  animation:
+    connection-pulse 3s ease-in-out infinite alternate,
+    structure-glow 4s ease-in-out infinite;
 }
 
 /* ================================
@@ -397,19 +459,19 @@
     right: -75px;
     transform: translateY(-50%) scale(0.25);
   }
-  
+
   .cyberpunk-layer.midground {
     width: 175px;
     left: 12%;
     transform: translateY(-50%) scale(0.35);
   }
-  
+
   .cyberpunk-layer.foreground {
     width: 200px;
     left: -40px;
     transform: translateY(-50%) scale(0.2);
   }
-  
+
   .data-stream-container {
     opacity: 0.7;
   }
@@ -422,27 +484,27 @@
     right: -50px;
     transform: translateY(-50%) scale(0.2);
   }
-  
+
   .cyberpunk-layer.midground {
     width: 150px;
     left: 8%;
     transform: translateY(-50%) scale(0.3);
   }
-  
+
   .cyberpunk-layer.foreground {
     width: 150px;
     left: -30px;
     transform: translateY(-50%) scale(0.15);
   }
-  
+
   .data-stream-container {
     display: none;
   }
-  
+
   .interactive-glow {
     opacity: 0.5;
   }
-  
+
   .cyberpunk-background path,
   .cyberpunk-midground path,
   .cyberpunk-foreground path {
@@ -458,13 +520,13 @@
     right: -40px;
     transform: translateY(-50%) scale(0.15);
   }
-  
+
   .cyberpunk-layer.midground {
     width: 125px;
     left: 5%;
     transform: translateY(-50%) scale(0.25);
   }
-  
+
   .cyberpunk-layer.foreground {
     width: 100px;
     left: -20px;
@@ -487,7 +549,7 @@
     animation: none !important;
     transition: none !important;
   }
-  
+
   .interactive-glow,
   .data-stream-container {
     display: none !important;
@@ -499,12 +561,12 @@
     stroke: #ffffff;
     fill: #ffffff;
   }
-  
+
   .cyberpunk-midground path {
     stroke: #00ff00;
     fill: #00ff00;
   }
-  
+
   .cyberpunk-foreground path {
     stroke: #0099ff;
     fill: #0099ff;
@@ -529,17 +591,24 @@
 
 /* Full intensity */
 .cyberpunk-city-background.full .cyberpunk-background path {
-  animation: building-pulse 4s ease-in-out infinite, window-flicker 6s ease-in-out infinite;
-  filter: drop-shadow(0 0 6px #a374ff) drop-shadow(0 0 12px #a374ff) drop-shadow(0 0 18px #a374ff);
+  animation:
+    building-pulse 4s ease-in-out infinite,
+    window-flicker 6s ease-in-out infinite;
+  filter: drop-shadow(0 0 6px #a374ff) drop-shadow(0 0 12px #a374ff)
+    drop-shadow(0 0 18px #a374ff);
 }
 
 .cyberpunk-city-background.full .cyberpunk-midground path {
-  animation: circuit-flow 2s linear infinite, data-stream 2.5s ease-in-out infinite;
+  animation:
+    circuit-flow 2s linear infinite,
+    data-stream 2.5s ease-in-out infinite;
   filter: drop-shadow(0 0 6px #00f4c0) drop-shadow(0 0 12px #00f4c0);
 }
 
 .cyberpunk-city-background.full .cyberpunk-foreground path {
-  animation: connection-pulse 2.5s ease-in-out infinite alternate, structure-glow 3s ease-in-out infinite;
+  animation:
+    connection-pulse 2.5s ease-in-out infinite alternate,
+    structure-glow 3s ease-in-out infinite;
   filter: drop-shadow(0 0 6px #19df00) drop-shadow(0 0 12px #19df00);
 }
 
@@ -548,9 +617,17 @@
 }
 
 .cyberpunk-city-background.full .radial-glow {
-  background: radial-gradient(circle, rgba(163, 116, 255, 0.5) 0%, transparent 70%);
+  background: radial-gradient(
+    circle,
+    rgba(163, 116, 255, 0.5) 0%,
+    transparent 70%
+  );
 }
 
 .cyberpunk-city-background.full .spotlight-effect {
-  background: radial-gradient(circle, rgba(0, 244, 192, 0.4) 0%, transparent 60%);
+  background: radial-gradient(
+    circle,
+    rgba(0, 244, 192, 0.4) 0%,
+    transparent 60%
+  );
 }

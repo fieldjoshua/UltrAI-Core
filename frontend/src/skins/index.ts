@@ -1,23 +1,21 @@
 export function loadSkin(skin: string) {
   switch (skin) {
-    case "afternoon":
-      import("./afternoon.css");
+    case 'afternoon':
+      import('./afternoon.css');
       break;
-    case "sunset":
-      import("./sunset.css");
+    case 'sunset':
+      import('./sunset.css');
       break;
-    case "morning":
-      import("./morning.css");
+    case 'morning':
+      import('./morning.css');
       break;
-    case "minimalist":
-      import("./minimalist.css");
+    case 'minimalist':
+      import('./minimalist.css');
       break;
-    case "business":
-      import("./business.css");
+    case 'business':
+      import('./business.css');
       break;
     default:
-      import("./night.css");
+      import('./night.css');
   }
 }
-
-

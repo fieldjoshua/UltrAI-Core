@@ -1,95 +1,97 @@
-/* Billboard Animations */
+/* Additional animations not included in Tailwind config */
+
+/* Ultra billboard sweep with gradient */
+@keyframes ultrai-billboard-sweep {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* Background shift for textures */
 @keyframes backgroundShift {
-  0% { background-position: 0 0; }
-  100% { background-position: 20px 20px; }
-}
-
-@keyframes billboardPulse {
-  0%, 100% { 
-    opacity: 0.2;
-    filter: brightness(1.2) drop-shadow(0 0 10px #00ff00);
+  0% {
+    background-position: 0 0;
   }
-  50% { 
-    opacity: 0.4;
-    filter: brightness(1.8) drop-shadow(0 0 30px #00ff00);
+  100% {
+    background-position: 20px 20px;
   }
 }
 
-@keyframes scan {
-  0% { 
-    transform: translateY(-60px); 
-    opacity: 0; 
-  }
-  10% { 
-    opacity: 1; 
-  }
-  90% { 
-    opacity: 1; 
-  }
-  100% { 
-    transform: translateY(60px); 
-    opacity: 0; 
-  }
-}
-
-@keyframes glitch {
-  0% { transform: translate(0); }
-  20% { transform: translate(-2px, 2px); }
-  40% { transform: translate(-2px, -2px); }
-  60% { transform: translate(2px, 2px); }
-  80% { transform: translate(2px, -2px); }
-  100% { transform: translate(0); }
-}
-
-@keyframes neonFlash {
-  0%, 100% { 
-    filter: brightness(1); 
-  }
-  50% { 
-    filter: brightness(1.5); 
-  }
-}
-
-@keyframes pulse {
-  0%, 100% { 
+/* Drop down animation */
+@keyframes dropDown {
+  0% {
+    transform: translateY(0) scale(1);
     opacity: 1;
-    box-shadow: 0 4px 20px rgba(0, 255, 159, 0.4), 0 0 60px rgba(0, 212, 255, 0.3);
   }
-  50% { 
-    opacity: 0.9;
-    box-shadow: 0 4px 30px rgba(0, 255, 159, 0.6), 0 0 80px rgba(0, 212, 255, 0.5);
+  50% {
+    transform: translateY(20px) scale(0.95);
+    opacity: 0.8;
+  }
+  100% {
+    transform: translateY(100px) scale(0.9);
+    opacity: 0;
   }
 }
 
-.animate-glitch {
-  animation: glitch 0.3s ease;
-}
-
-.animate-neonFlash {
-  animation: neonFlash 1s ease;
-}
-
-/* Optimize background image rendering */
-.bg-optimized {
-  image-rendering: -webkit-optimize-contrast;
-  image-rendering: crisp-edges;
-  backface-visibility: hidden;
-  transform: translateZ(0);
-  will-change: filter;
-}
-
-/* Blur-up loading effect */
-@keyframes blurUp {
-  from {
-    filter: blur(20px);
-    transform: scale(1.1);
+/* Slide progress */
+@keyframes slideProgress {
+  0% {
+    transform: translateX(-100%);
   }
+  100% {
+    transform: translateX(400%);
+  }
+}
+
+/* Line draw animation for SVG */
+@keyframes lineDraw {
   to {
-    filter: blur(0);
-    transform: scale(1);
+    stroke-dashoffset: 0;
   }
 }
 
-.bg-loading {
-  animation: blurUp 0.8s ease-out forwards;
+/* Line glow animation for SVG */
+@keyframes lineGlow {
+  0% {
+    filter: drop-shadow(0 0 8px #2ffcff) drop-shadow(0 0 16px #2ffcff);
+    opacity: 0.7;
+  }
+  100% {
+    filter: drop-shadow(0 0 24px #2ffcff) drop-shadow(0 0 48px #ff4fcb);
+    opacity: 1;
+  }
+}
+
+/* Cyber glow animations */
+@keyframes cyberGlow {
+  0% {
+    filter: drop-shadow(0 0 8px #00fff7) drop-shadow(0 0 24px #00fff7);
+  }
+  100% {
+    filter: drop-shadow(0 0 32px #00fff7) drop-shadow(0 0 64px #00fff7);
+  }
+}
+
+@keyframes cyberGlowBridge {
+  0% {
+    filter: drop-shadow(0 0 8px #ff00ea) drop-shadow(0 0 24px #ff00ea);
+  }
+  100% {
+    filter: drop-shadow(0 0 32px #ff00ea) drop-shadow(0 0 64px #ff00ea);
+  }
+}
+
+/* Sky glow animation */
+@keyframes skyGlow {
+  0% {
+    filter: drop-shadow(0 0 32px #2ffcff) drop-shadow(0 0 64px #ff4fcb)
+      hue-rotate(0deg);
+  }
+  100% {
+    filter: drop-shadow(0 0 64px #2ffcff) drop-shadow(0 0 128px #ff4fcb)
+      hue-rotate(30deg);
+  }
 }

@@ -53,6 +53,6 @@ module.exports = {
   sentryWebpackPluginOptions,
 
   // For applying to Next.js or other frameworks
-  withSentryConfig: (config) =>
+  withSentryConfig: config =>
     withSentryConfig(config, sentryWebpackPluginOptions),
 };

@@ -58,7 +58,7 @@ const DocumentItem = React.memo(
     const [isExpanded, setIsExpanded] = useState(false);
 
     const toggleExpand = useCallback(() => {
-      setIsExpanded((prev) => !prev);
+      setIsExpanded(prev => !prev);
     }, []);
 
     // Only render visible chunks to improve performance
@@ -166,7 +166,7 @@ export const DocumentViewer = React.memo(
         </div>
 
         <div className="space-y-2">
-          {documents.map((document) => (
+          {documents.map(document => (
             <DocumentItem key={document.id} document={document} />
           ))}
         </div>

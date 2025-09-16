@@ -63,7 +63,7 @@ const ThemeToggle: React.FC<ThemeToggleProps> = ({
   }, []);
 
   const toggleTheme = () => {
-    setTheme((prevTheme) => (prevTheme === 'light' ? 'dark' : 'light'));
+    setTheme(prevTheme => (prevTheme === 'light' ? 'dark' : 'light'));
   };
 
   return (

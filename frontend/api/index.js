@@ -33,7 +33,7 @@ const mockResponses = {
  * @param {Object} request - Request containing prompt, models, and pattern
  * @returns {Promise<Object>} - Analysis results
  */
-const analyzePrompt = async (request) => {
+const analyzePrompt = async request => {
   try {
     // Ensure API discovery has completed
     if (!API_BASE_URL.includes('localhost')) {
@@ -73,7 +73,7 @@ const analyzePrompt = async (request) => {
       return {
         result: 'Simulated response - backend returned invalid JSON',
         model_responses: Object.fromEntries(
-          request.selectedModels.map((model) => [
+          request.selectedModels.map(model => [
             model,
             `This is a simulated response for ${model} since the backend returned invalid JSON.`,
           ])
@@ -101,7 +101,7 @@ const analyzePrompt = async (request) => {
  * @param {File[]} files - Files to upload
  * @returns {Promise<Object>} - Processed document information
  */
-const uploadDocuments = async (files) => {
+const uploadDocuments = async files => {
   try {
     // Ensure API discovery has completed
     if (!API_BASE_URL.includes('localhost')) {
@@ -194,7 +194,7 @@ const analyzeWithDocuments = async ({
     formData.append('pattern', pattern || 'Confidence Analysis');
 
     // Add files to the form data
-    files.forEach((file) => {
+    files.forEach(file => {
       formData.append('files', file);
     });
 
@@ -215,14 +215,14 @@ const analyzeWithDocuments = async ({
       data: {
         analysis: `Analysis of ${files.length} documents with prompt: "${prompt}" (simulated frontend response)`,
         model_responses: Object.fromEntries(
-          selectedModels.map((model) => [
+          selectedModels.map(model => [
             model,
             `This is a simulated response for ${model} analyzing the documents.`,
           ])
         ),
       },
       document_metadata: {
-        documents_used: files.map((f) => f.name),
+        documents_used: files.map(f => f.name),
         chunks_used: files.length * 3,
         timestamp: new Date().toISOString(),
       },
@@ -266,7 +266,10 @@ const analyzeWithDocuments = async ({
 export { analyzePrompt, uploadDocuments, analyzeWithDocuments };
 
 // Handle orchestrator exports (source of truth lives in src/api/orchestrator.js)
-export { getAvailableModels as getOrchestratorModels, processWithFeatherOrchestration as processWithOrchestrator } from '../src/api/orchestrator';
+export {
+  getAvailableModels as getOrchestratorModels,
+  processWithFeatherOrchestration as processWithOrchestrator,
+} from '../src/api/orchestrator';
 
 // Additional client functions with different names to avoid conflicts
 export async function getApiStatus() {

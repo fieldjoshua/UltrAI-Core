@@ -17,7 +17,6 @@ const CyberpunkDemo: React.FC = () => {
       performanceMode="balanced"
     >
       <div className="cyberpunk-demo-page min-h-screen p-8">
-        
         {/* Header Section */}
         <UniversalContainer
           variant="primary"
@@ -26,8 +25,8 @@ const CyberpunkDemo: React.FC = () => {
             decorativeElements: {
               drones: true,
               neonTrim: true,
-              holographicDisplay: true
-            }
+              holographicDisplay: true,
+            },
           }}
           isFloating={true}
           animationLevel="moderate"
@@ -37,39 +36,47 @@ const CyberpunkDemo: React.FC = () => {
             🏙️ Cyberpunk City Background Demo
           </h1>
           <p className="text-gray-300 text-lg mb-4">
-            Interactive multi-layer cyberpunk cityscape with parallax depth, neon glow effects, and mouse tracking.
+            Interactive multi-layer cyberpunk cityscape with parallax depth,
+            neon glow effects, and mouse tracking.
           </p>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
             <div className="text-center p-4 bg-gray-800/50 rounded">
               <h3 className="text-cyan-400 font-semibold">Purple Building</h3>
-              <p className="text-sm text-gray-400">Background layer with building pulse animation</p>
+              <p className="text-sm text-gray-400">
+                Background layer with building pulse animation
+              </p>
             </div>
             <div className="text-center p-4 bg-gray-800/50 rounded">
               <h3 className="text-green-400 font-semibold">Circuit Building</h3>
-              <p className="text-sm text-gray-400">Midground layer with data flow effects</p>
+              <p className="text-sm text-gray-400">
+                Midground layer with data flow effects
+              </p>
             </div>
             <div className="text-center p-4 bg-gray-800/50 rounded">
               <h3 className="text-blue-400 font-semibold">Bridge Structure</h3>
-              <p className="text-sm text-gray-400">Foreground layer with connection pulses</p>
+              <p className="text-sm text-gray-400">
+                Foreground layer with connection pulses
+              </p>
             </div>
           </div>
         </UniversalContainer>
 
         {/* Feature Testing Sections */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-          
           {/* Interactive Features */}
           <UniversalContainer
             variant="secondary"
             size="lg"
             styleConfig={{
               accentColor: 'cyan',
-              decorativeElements: { neonTrim: true }
+              decorativeElements: { neonTrim: true },
             }}
             animationLevel="subtle"
           >
-            <h2 className="text-2xl font-bold text-cyan-400 mb-4">🎮 Interactive Features</h2>
+            <h2 className="text-2xl font-bold text-cyan-400 mb-4">
+              🎮 Interactive Features
+            </h2>
             <ul className="space-y-3 text-gray-300">
               <li className="flex items-center">
                 <span className="w-2 h-2 bg-cyan-400 rounded-full mr-3"></span>
@@ -96,24 +103,28 @@ const CyberpunkDemo: React.FC = () => {
             size="lg"
             styleConfig={{
               accentColor: 'purple',
-              decorativeElements: { holographicDisplay: true }
+              decorativeElements: { holographicDisplay: true },
             }}
             animationLevel="subtle"
           >
-            <h2 className="text-2xl font-bold text-purple-400 mb-4">⚡ Performance Modes</h2>
+            <h2 className="text-2xl font-bold text-purple-400 mb-4">
+              ⚡ Performance Modes
+            </h2>
             <div className="space-y-3 text-gray-300">
               <div className="p-3 bg-gray-800/30 rounded">
-                <strong className="text-green-400">High:</strong> Full effects, 60fps animations
+                <strong className="text-green-400">High:</strong> Full effects,
+                60fps animations
               </div>
               <div className="p-3 bg-gray-800/30 rounded">
-                <strong className="text-blue-400">Balanced:</strong> Moderate effects, good performance
+                <strong className="text-blue-400">Balanced:</strong> Moderate
+                effects, good performance
               </div>
               <div className="p-3 bg-gray-800/30 rounded">
-                <strong className="text-orange-400">Battery:</strong> Minimal effects, optimized for mobile
+                <strong className="text-orange-400">Battery:</strong> Minimal
+                effects, optimized for mobile
               </div>
             </div>
           </UniversalContainer>
-
         </div>
 
         {/* Theme Controls */}
@@ -124,28 +135,40 @@ const CyberpunkDemo: React.FC = () => {
             accentColor: 'pink',
             decorativeElements: {
               drones: true,
-              neonTrim: true
-            }
+              neonTrim: true,
+            },
           }}
           isFloating={true}
           className="mb-8"
         >
-          <h2 className="text-2xl font-bold text-pink-400 mb-4">🎨 Theme Controls</h2>
+          <h2 className="text-2xl font-bold text-pink-400 mb-4">
+            🎨 Theme Controls
+          </h2>
           <div className="flex flex-wrap gap-4">
             <button
-              onClick={() => setTheme({ ...theme, style: 'cyberpunk', accentColor: 'cyan' })}
+              onClick={() =>
+                setTheme({ ...theme, style: 'cyberpunk', accentColor: 'cyan' })
+              }
               className="px-4 py-2 bg-cyan-500/20 border border-cyan-500/40 text-cyan-300 rounded hover:bg-cyan-500/30 transition-colors"
             >
               Cyberpunk Cyan
             </button>
             <button
-              onClick={() => setTheme({ ...theme, style: 'cyberpunk', accentColor: 'purple' })}
+              onClick={() =>
+                setTheme({
+                  ...theme,
+                  style: 'cyberpunk',
+                  accentColor: 'purple',
+                })
+              }
               className="px-4 py-2 bg-purple-500/20 border border-purple-500/40 text-purple-300 rounded hover:bg-purple-500/30 transition-colors"
             >
               Cyberpunk Purple
             </button>
             <button
-              onClick={() => setTheme({ ...theme, style: 'cyberpunk', accentColor: 'pink' })}
+              onClick={() =>
+                setTheme({ ...theme, style: 'cyberpunk', accentColor: 'pink' })
+              }
               className="px-4 py-2 bg-pink-500/20 border border-pink-500/40 text-pink-300 rounded hover:bg-pink-500/30 transition-colors"
             >
               Cyberpunk Pink
@@ -164,12 +187,13 @@ const CyberpunkDemo: React.FC = () => {
           variant="card"
           size="full"
           styleConfig={{
-            accentColor: 'cyan'
+            accentColor: 'cyan',
           }}
         >
-          <h2 className="text-2xl font-bold text-cyan-400 mb-4">🔧 Technical Implementation</h2>
+          <h2 className="text-2xl font-bold text-cyan-400 mb-4">
+            🔧 Technical Implementation
+          </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 text-sm text-gray-300">
-            
             <div>
               <h3 className="text-green-400 font-semibold mb-2">SVG Assets</h3>
               <ul className="space-y-1">
@@ -191,7 +215,9 @@ const CyberpunkDemo: React.FC = () => {
             </div>
 
             <div>
-              <h3 className="text-blue-400 font-semibold mb-2">Accessibility</h3>
+              <h3 className="text-blue-400 font-semibold mb-2">
+                Accessibility
+              </h3>
               <ul className="space-y-1">
                 <li>• Reduced motion support</li>
                 <li>• High contrast mode</li>
@@ -199,7 +225,6 @@ const CyberpunkDemo: React.FC = () => {
                 <li>• Performance auto-detection</li>
               </ul>
             </div>
-
           </div>
         </UniversalContainer>
 
@@ -210,7 +235,7 @@ const CyberpunkDemo: React.FC = () => {
             size="md"
             styleConfig={{
               accentColor: 'cyan',
-              decorativeElements: { neonTrim: true }
+              decorativeElements: { neonTrim: true },
             }}
           >
             <p className="text-center text-cyan-400 text-lg">
@@ -218,7 +243,6 @@ const CyberpunkDemo: React.FC = () => {
             </p>
           </UniversalContainer>
         </div>
-
       </div>
     </CyberpunkWrapper>
   );

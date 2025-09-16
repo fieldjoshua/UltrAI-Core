@@ -12,6 +12,8 @@ describe('Navigation', () => {
     const onItemSelect = jest.fn();
     render(<Navigation items={items as any} onItemSelect={onItemSelect} />);
     fireEvent.click(screen.getByRole('menuitem', { name: 'Wizard' }));
-    expect(onItemSelect).toHaveBeenCalledWith(expect.objectContaining({ id: 'wizard' }));
+    expect(onItemSelect).toHaveBeenCalledWith(
+      expect.objectContaining({ id: 'wizard' })
+    );
   });
-})
+});

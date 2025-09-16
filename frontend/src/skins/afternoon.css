@@ -1,6 +1,9 @@
-:root { --bg: #f6f7fb; --fg: #0b1020; }
-body { 
-  background-color: var(--bg); 
+:root {
+  --bg: #f6f7fb;
+  --fg: #0b1020;
+}
+body {
+  background-color: var(--bg);
   color: var(--fg);
 }
 
@@ -11,4 +14,3 @@ body.skin-afternoon {
   background-position: center;
   background-attachment: fixed;
 }
-

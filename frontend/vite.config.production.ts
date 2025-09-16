@@ -9,7 +9,7 @@ export default defineConfig({
     alias: {
       '@': path.resolve(__dirname, './src'),
       '/api': path.resolve(__dirname, './api'),
-      'react': path.resolve(__dirname, 'node_modules/react'),
+      react: path.resolve(__dirname, 'node_modules/react'),
       'react-dom': path.resolve(__dirname, 'node_modules/react-dom'),
     },
   },
@@ -24,6 +24,8 @@ export default defineConfig({
     },
   },
   define: {
-    'import.meta.env.VITE_API_URL': JSON.stringify('https://ultrai-core-4lut.onrender.com/api'),
+    'import.meta.env.VITE_API_URL': JSON.stringify(
+      'https://ultrai-core-4lut.onrender.com/api'
+    ),
   },
 });

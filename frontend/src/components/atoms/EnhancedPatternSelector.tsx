@@ -49,7 +49,7 @@ export const EnhancedPatternSelector: React.FC<PatternSelectorProps> = ({
         <div className="animate-pulse">
           <div className="h-6 bg-gray-200 rounded w-1/3 mb-4"></div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {[1, 2, 3, 4].map((i) => (
+            {[1, 2, 3, 4].map(i => (
               <div key={i} className="h-32 bg-gray-200 rounded"></div>
             ))}
           </div>
@@ -83,7 +83,7 @@ export const EnhancedPatternSelector: React.FC<PatternSelectorProps> = ({
       </p>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {availablePatterns.map((pattern) => {
+        {availablePatterns.map(pattern => {
           const isSelected = selectedPattern === pattern.id;
           const isExpanded = expandedDetail === pattern.id;
 
@@ -129,7 +129,7 @@ export const EnhancedPatternSelector: React.FC<PatternSelectorProps> = ({
 
                   <button
                     type="button"
-                    onClick={(e) => {
+                    onClick={e => {
                       e.stopPropagation();
                       toggleDetails(pattern.id);
                     }}
@@ -174,7 +174,7 @@ export const EnhancedPatternSelector: React.FC<PatternSelectorProps> = ({
                           Configuration options:
                         </h4>
                         <div className="space-y-2">
-                          {pattern.configOptions.map((option) => (
+                          {pattern.configOptions.map(option => (
                             <div key={option.id} className="flex items-center">
                               <div className="text-sm text-gray-600">
                                 {option.name}:

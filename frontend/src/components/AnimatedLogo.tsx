@@ -52,7 +52,7 @@ const AnimatedLogo: React.FC<AnimatedLogoProps> = ({
     }
 
     const interval = setInterval(() => {
-      setAngle((prev) => (prev + 0.2) % 360);
+      setAngle(prev => (prev + 0.2) % 360);
     }, 50);
 
     return () => clearInterval(interval);

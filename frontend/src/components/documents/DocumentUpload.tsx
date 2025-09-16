@@ -3,13 +3,9 @@ import { useDocumentsStore } from '../../stores/documentsStore';
 import { showSuccessToast, showErrorToast } from '../../stores/uiStore';
 
 const DocumentUpload: React.FC = () => {
-  const { 
-    uploadDocument, 
-    uploadProgress, 
-    error,
-    clearError 
-  } = useDocumentsStore();
-  
+  const { uploadDocument, uploadProgress, error, clearError } =
+    useDocumentsStore();
+
   const [dragActive, setDragActive] = useState<boolean>(false);
   const [isUploading, setIsUploading] = useState<boolean>(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -49,7 +45,7 @@ const DocumentUpload: React.FC = () => {
   const handleUpload = async (file: File) => {
     // Clear any previous errors
     clearError();
-    
+
     // Validate file size (10MB limit)
     const maxSize = 10 * 1024 * 1024; // 10MB
     if (file.size > maxSize) {
@@ -58,11 +54,11 @@ const DocumentUpload: React.FC = () => {
     }
 
     setIsUploading(true);
-    
+
     try {
       await uploadDocument(file);
       showSuccessToast(`Successfully uploaded ${file.name}`);
-      
+
       // Reset the file input
       if (fileInputRef.current) {
         fileInputRef.current.value = '';

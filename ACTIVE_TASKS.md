@@ -30,11 +30,41 @@
    - Verify health check fixes
    - Set environment variables
 
-4. **Production Prep**
-   - Status: 📅 Planned
-   - Owner: TBD
-   - Create deployment checklist
-   - Add security scan, secret scan, and endpoint verification steps
+4. **Frontend: React Query Integration**
+   - Status: 🆕 Not Started
+   - Owner: Claude-1
+   - Scope: Migrate orchestrator/auth/models API calls to React Query
+   - Acceptance: caching, retries, loading/error states; no regressions
+
+5. **TypeScript Migration (remaining .js/.jsx)**
+   - Status: 🆕 Not Started
+   - Owner: Claude-1
+   - Scope: Convert remaining files; add interfaces; remove any
+   - Acceptance: tsc passes; no `any` in migrated files
+
+6. **Break down `CyberWizard.tsx`**
+   - Status: 🆕 Not Started
+   - Owner: Claude-1
+   - Scope: Extract child components; maintain behavior
+   - Acceptance: existing tests pass; no functional change
+
+7. **CSS Standardization**
+   - Status: 🆕 Not Started
+   - Owner: Claude-1
+   - Scope: Consolidate to Tailwind + CSS modules
+   - Acceptance: visual parity; remove stray global styles
+
+8. **Bundle Size Analysis & Optimization**
+   - Status: 🆕 Not Started
+   - Owner: Claude-1
+   - Scope: Analyze bundles; code-splitting; audit large deps
+   - Acceptance: report + PR; measurable size reduction
+
+9. **Investigate `/api/orchestrator/status` async timeout**
+   - Status: 🆕 Not Started
+   - Owner: Claude-1
+   - Scope: Root cause analysis of intermittent timeout in async tests
+   - Acceptance: targeted fix or stable skip with rationale
 
 ---
 
@@ -50,7 +80,7 @@
 ### From Oversight AI
 | Task | Status | Result |
 |------|--------|--------|
-| - | - | - |
+| Assign Claude frontend infra tasks | ✅ Completed | Tasks 4–9 assigned |
 
 ---
 

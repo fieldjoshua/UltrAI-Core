@@ -10,7 +10,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 export const LoginForm: React.FC = () => {
   const navigate = useNavigate();
   const { login, isLoading, error, clearError } = useAuthStore();
-  
+
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -19,7 +19,7 @@ export const LoginForm: React.FC = () => {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData(prev => ({
       ...prev,
-      [e.target.name]: e.target.value
+      [e.target.name]: e.target.value,
     }));
     // Clear error when user types
     if (error) clearError();
@@ -27,11 +27,12 @@ export const LoginForm: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     try {
       await login(formData.email, formData.password);
       // Redirect to dashboard or previous page
-      const redirectTo = new URLSearchParams(window.location.search).get('redirect') || '/';
+      const redirectTo =
+        new URLSearchParams(window.location.search).get('redirect') || '/';
       navigate(redirectTo);
     } catch (err) {
       // Error is handled by the store
@@ -73,8 +74,8 @@ export const LoginForm: React.FC = () => {
         <div className="space-y-2">
           <div className="flex items-center justify-between">
             <Label htmlFor="password">Password</Label>
-            <Link 
-              to="/forgot-password" 
+            <Link
+              to="/forgot-password"
               className="text-sm text-blue-600 hover:underline dark:text-blue-400"
             >
               Forgot password?
@@ -92,11 +93,7 @@ export const LoginForm: React.FC = () => {
           />
         </div>
 
-        <Button 
-          type="submit" 
-          className="w-full"
-          disabled={isLoading}
-        >
+        <Button type="submit" className="w-full" disabled={isLoading}>
           {isLoading ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -113,8 +110,8 @@ export const LoginForm: React.FC = () => {
 
       <div className="text-center text-sm">
         Don't have an account?{' '}
-        <Link 
-          to="/register" 
+        <Link
+          to="/register"
           className="text-blue-600 hover:underline dark:text-blue-400 font-medium"
         >
           Sign up

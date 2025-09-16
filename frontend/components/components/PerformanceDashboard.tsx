@@ -228,7 +228,7 @@ export const PerformanceDashboard = () => {
 
   // Add metrics to history
   const updateMetricsHistory = useCallback((newMetrics: PerformanceMetrics) => {
-    setMetricsHistory((prev) => {
+    setMetricsHistory(prev => {
       const now = new Date().toISOString();
 
       // Add new data points
@@ -331,7 +331,7 @@ export const PerformanceDashboard = () => {
 
   // Toggle auto-refresh
   const toggleAutoRefresh = () => {
-    setAutoRefresh((prev) => !prev);
+    setAutoRefresh(prev => !prev);
   };
 
   // Dashboard layout

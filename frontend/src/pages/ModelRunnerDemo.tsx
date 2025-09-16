@@ -56,8 +56,8 @@ const ModelRunnerDemo: React.FC = () => {
 
       const apiResponse = response.data.response;
       setResponse(
-        typeof apiResponse === 'string' 
-          ? apiResponse 
+        typeof apiResponse === 'string'
+          ? apiResponse
           : typeof apiResponse === 'object' && apiResponse !== null
             ? JSON.stringify(apiResponse, null, 2)
             : String(apiResponse || 'No response received')
@@ -89,9 +89,9 @@ const ModelRunnerDemo: React.FC = () => {
             <select
               className="w-full p-2 border rounded"
               value={selectedModel}
-              onChange={(e) => setSelectedModel(e.target.value)}
+              onChange={e => setSelectedModel(e.target.value)}
             >
-              {models.map((model) => (
+              {models.map(model => (
                 <option key={model} value={model}>
                   {model}
                 </option>
@@ -115,7 +115,7 @@ const ModelRunnerDemo: React.FC = () => {
               className="w-full p-2 border rounded"
               rows={4}
               value={prompt}
-              onChange={(e) => setPrompt(e.target.value)}
+              onChange={e => setPrompt(e.target.value)}
               placeholder="Enter your prompt here..."
               disabled={isLoading}
             />

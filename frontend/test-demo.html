@@ -1,22 +1,22 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
-<head>
+  <head>
     <title>Demo Test</title>
-</head>
-<body>
+  </head>
+  <body>
     <h1>Testing UltrAI Demo</h1>
     <p>If you can see this, the server is working.</p>
     <a href="/wizard">Go to Wizard</a>
     <script>
-        // Test if the API is responding
-        fetch('/api/health')
-            .then(res => res.json())
-            .then(data => {
-                document.body.innerHTML += `<pre>API Status: ${JSON.stringify(data, null, 2)}</pre>`;
-            })
-            .catch(err => {
-                document.body.innerHTML += `<p style="color: red;">API Error: ${err}</p>`;
-            });
+      // Test if the API is responding
+      fetch('/api/health')
+        .then(res => res.json())
+        .then(data => {
+          document.body.innerHTML += `<pre>API Status: ${JSON.stringify(data, null, 2)}</pre>`;
+        })
+        .catch(err => {
+          document.body.innerHTML += `<p style="color: red;">API Error: ${err}</p>`;
+        });
     </script>
-</body>
+  </body>
 </html>

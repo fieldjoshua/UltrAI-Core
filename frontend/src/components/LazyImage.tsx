@@ -17,7 +17,7 @@ const LazyImage: React.FC<LazyImageProps> = ({
   placeholder,
   fallback,
   onLoad,
-  onError
+  onError,
 }) => {
   const [isLoaded, setIsLoaded] = useState(false);
   const [isInView, setIsInView] = useState(false);
@@ -35,7 +35,7 @@ const LazyImage: React.FC<LazyImageProps> = ({
         }
       },
       {
-        rootMargin: '50px' // Start loading 50px before the image comes into view
+        rootMargin: '50px', // Start loading 50px before the image comes into view
       }
     );
 
@@ -63,11 +63,9 @@ const LazyImage: React.FC<LazyImageProps> = ({
   return (
     <div ref={containerRef} className={`lazy-image-container ${className}`}>
       {!isLoaded && placeholder && (
-        <div className="lazy-image-placeholder">
-          {placeholder}
-        </div>
+        <div className="lazy-image-placeholder">{placeholder}</div>
       )}
-      
+
       {isInView && (
         <img
           ref={imgRef}
@@ -78,7 +76,7 @@ const LazyImage: React.FC<LazyImageProps> = ({
           className={`lazy-image ${isLoaded ? 'loaded' : 'loading'}`}
           style={{
             opacity: isLoaded ? 1 : 0,
-            transition: 'opacity 0.3s ease-in-out'
+            transition: 'opacity 0.3s ease-in-out',
           }}
         />
       )}

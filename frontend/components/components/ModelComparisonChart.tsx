@@ -81,7 +81,7 @@ const ModelComparisonChart: React.FC<ModelComparisonChartProps> = ({
         // Assuming response time is in milliseconds and normalize to 0-100 scale
         const maxResponseTime = Math.max(...responseTime);
         const normalizedResponseTime = responseTime.map(
-          (time) => 100 - (time / maxResponseTime) * 100
+          time => 100 - (time / maxResponseTime) * 100
         );
 
         chartInstance.current = new Chart(ctx, {

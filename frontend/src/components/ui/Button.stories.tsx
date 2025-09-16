@@ -17,5 +17,3 @@ export const Default: Story = {};
 export const Primary: Story = { args: { variant: 'primary' } };
 export const Destructive: Story = { args: { variant: 'destructive' } };
 export const Loading: Story = { args: { isLoading: true } };
-
-

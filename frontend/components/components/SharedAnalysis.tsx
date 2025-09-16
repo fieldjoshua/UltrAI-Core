@@ -37,7 +37,7 @@ export default function SharedAnalysis() {
         const savedSharedItems = localStorage.getItem('ultraAiSharedItems');
         if (savedSharedItems) {
           const parsedItems: ShareItem[] = JSON.parse(savedSharedItems);
-          const item = parsedItems.find((item) => item.shareId === shareId);
+          const item = parsedItems.find(item => item.shareId === shareId);
 
           if (item) {
             setSharedItem(item);

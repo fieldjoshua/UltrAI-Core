@@ -36,7 +36,9 @@ const Admin: React.FC = () => {
               {Object.entries(data.keys || {}).map(([k, v]: any) => (
                 <li key={k} className="flex justify-between border-b py-1">
                   <span>{k}</span>
-                  <span className={v ? 'text-green-600' : 'text-red-600'}>{String(v)}</span>
+                  <span className={v ? 'text-green-600' : 'text-red-600'}>
+                    {String(v)}
+                  </span>
                 </li>
               ))}
             </ul>
@@ -44,14 +46,34 @@ const Admin: React.FC = () => {
 
           <section className="bg-white rounded-md border p-4">
             <h2 className="font-semibold mb-2">Orchestrator</h2>
-            <div className="text-sm">Available: <span className={data?.orchestrator?.available ? 'text-green-600' : 'text-red-600'}>{String(data?.orchestrator?.available)}</span></div>
+            <div className="text-sm">
+              Available:{' '}
+              <span
+                className={
+                  data?.orchestrator?.available
+                    ? 'text-green-600'
+                    : 'text-red-600'
+                }
+              >
+                {String(data?.orchestrator?.available)}
+              </span>
+            </div>
           </section>
 
           <section className="bg-white rounded-md border p-4">
             <h2 className="font-semibold mb-2">Providers</h2>
-            <div className="text-sm mb-2">System: {data?.providers?._system?.status || 'unknown'}</div>
-            <div className="text-sm mb-2">Available providers: {(data?.providers?._system?.available_providers || []).join(', ') || 'none'}</div>
-            <pre className="text-xs bg-gray-50 p-2 rounded overflow-auto max-h-64">{JSON.stringify(data.providers, null, 2)}</pre>
+            <div className="text-sm mb-2">
+              System: {data?.providers?._system?.status || 'unknown'}
+            </div>
+            <div className="text-sm mb-2">
+              Available providers:{' '}
+              {(data?.providers?._system?.available_providers || []).join(
+                ', '
+              ) || 'none'}
+            </div>
+            <pre className="text-xs bg-gray-50 p-2 rounded overflow-auto max-h-64">
+              {JSON.stringify(data.providers, null, 2)}
+            </pre>
           </section>
         </div>
       )}

@@ -8,9 +8,9 @@ interface ProtectedRouteProps {
   requiredRole?: string;
 }
 
-export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ 
-  children, 
-  requiredRole 
+export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
+  children,
+  requiredRole,
 }) => {
   const location = useLocation();
   const { user, isAuthenticated, isLoading, fetchCurrentUser } = useAuthStore();

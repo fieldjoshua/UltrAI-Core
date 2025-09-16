@@ -17,7 +17,7 @@ export const CyberpunkWrapper: React.FC<CyberpunkWrapperProps> = ({
   children,
   enableBackground = true,
   intensity = 'medium',
-  performanceMode = 'balanced'
+  performanceMode = 'balanced',
 }) => {
   const [backgroundEnabled, setBackgroundEnabled] = useState(() => {
     // Check localStorage for user preference
@@ -37,7 +37,10 @@ export const CyberpunkWrapper: React.FC<CyberpunkWrapperProps> = ({
 
   // Save preferences to localStorage
   useEffect(() => {
-    localStorage.setItem('cyberpunk-background-enabled', JSON.stringify(backgroundEnabled));
+    localStorage.setItem(
+      'cyberpunk-background-enabled',
+      JSON.stringify(backgroundEnabled)
+    );
   }, [backgroundEnabled]);
 
   useEffect(() => {
@@ -45,7 +48,10 @@ export const CyberpunkWrapper: React.FC<CyberpunkWrapperProps> = ({
   }, [userIntensity]);
 
   useEffect(() => {
-    localStorage.setItem('cyberpunk-background-performance', userPerformanceMode);
+    localStorage.setItem(
+      'cyberpunk-background-performance',
+      userPerformanceMode
+    );
   }, [userPerformanceMode]);
 
   // Auto-detect performance mode based on device capabilities
@@ -53,7 +59,7 @@ export const CyberpunkWrapper: React.FC<CyberpunkWrapperProps> = ({
     const detectPerformanceMode = () => {
       const hardwareConcurrency = navigator.hardwareConcurrency || 2;
       const memory = (navigator as any).deviceMemory || 4;
-      
+
       if (hardwareConcurrency <= 2 || memory <= 2) {
         setUserPerformanceMode('battery');
       } else if (hardwareConcurrency >= 8 && memory >= 8) {
@@ -75,10 +81,12 @@ export const CyberpunkWrapper: React.FC<CyberpunkWrapperProps> = ({
         <CyberpunkCityBackground
           intensity={userIntensity as 'minimal' | 'medium' | 'full'}
           interactive={true}
-          performanceMode={userPerformanceMode as 'high' | 'balanced' | 'battery'}
+          performanceMode={
+            userPerformanceMode as 'high' | 'balanced' | 'battery'
+          }
         />
       )}
-      
+
       {/* Background Controls */}
       <div className="cyberpunk-controls">
         <button
@@ -89,12 +97,12 @@ export const CyberpunkWrapper: React.FC<CyberpunkWrapperProps> = ({
         >
           {backgroundEnabled ? '🏙️' : '🌑'}
         </button>
-        
+
         {backgroundEnabled && (
           <>
             <select
               value={userIntensity}
-              onChange={(e) => setUserIntensity(e.target.value)}
+              onChange={e => setUserIntensity(e.target.value)}
               className="intensity-selector"
               title="Animation intensity"
               aria-label="Animation intensity"
@@ -103,10 +111,10 @@ export const CyberpunkWrapper: React.FC<CyberpunkWrapperProps> = ({
               <option value="medium">Medium</option>
               <option value="full">Full</option>
             </select>
-            
+
             <select
               value={userPerformanceMode}
-              onChange={(e) => setUserPerformanceMode(e.target.value)}
+              onChange={e => setUserPerformanceMode(e.target.value)}
               className="performance-selector"
               title="Performance mode"
               aria-label="Performance mode"
@@ -120,7 +128,9 @@ export const CyberpunkWrapper: React.FC<CyberpunkWrapperProps> = ({
       </div>
 
       {/* Content with overlay */}
-      <div className={`content-wrapper ${backgroundEnabled ? 'with-background' : 'without-background'}`}>
+      <div
+        className={`content-wrapper ${backgroundEnabled ? 'with-background' : 'without-background'}`}
+      >
         {children}
       </div>
     </div>

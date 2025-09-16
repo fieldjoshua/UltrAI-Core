@@ -1,4 +1,8 @@
-import apiClient, { setSecureToken, clearSecureTokens, getSecureToken } from './api';
+import apiClient, {
+  setSecureToken,
+  clearSecureTokens,
+  getSecureToken,
+} from './api';
 
 // Auth types
 export interface User {
@@ -58,11 +62,14 @@ class AuthService {
   // Login user
   async login(credentials: LoginCredentials): Promise<User> {
     try {
-      const response = await apiClient.post<AuthResponse>('/auth/login', credentials);
-      
+      const response = await apiClient.post<AuthResponse>(
+        '/auth/login',
+        credentials
+      );
+
       // Store the token securely
       setSecureToken(response.data.access_token);
-      
+
       return response.data.user;
     } catch (error: any) {
       console.error('Login error:', error);
@@ -121,11 +128,17 @@ class AuthService {
   }
 
   // Get transaction history
-  async getTransactions(limit: number = 50, offset: number = 0): Promise<Transaction[]> {
+  async getTransactions(
+    limit: number = 50,
+    offset: number = 0
+  ): Promise<Transaction[]> {
     try {
-      const response = await apiClient.get<{ transactions: Transaction[] }>('/user/transactions', {
-        params: { limit, offset }
-      });
+      const response = await apiClient.get<{ transactions: Transaction[] }>(
+        '/user/transactions',
+        {
+          params: { limit, offset },
+        }
+      );
       return response.data.transactions;
     } catch (error: any) {
       console.error('Get transactions error:', error);
@@ -168,7 +181,7 @@ class AuthService {
     try {
       await apiClient.post('/auth/reset-password', {
         token,
-        new_password: newPassword
+        new_password: newPassword,
       });
     } catch (error: any) {
       console.error('Password reset error:', error);

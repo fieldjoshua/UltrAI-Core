@@ -50,7 +50,7 @@ export const ErrorDisplay: React.FC<ErrorDisplayProps> = ({
 
       {!isCollapsed && (
         <div className="mt-2 max-h-[240px] overflow-y-auto">
-          {errors.map((error) => (
+          {errors.map(error => (
             <div
               key={error.id}
               className="bg-red-900/50 mb-2 p-3 rounded border border-red-800 flex items-start justify-between"

@@ -1,4 +1,15 @@
 import React from 'react';
+// Ensure Vite-like env defaults exist during tests
+// @ts-ignore
+globalThis.import = globalThis.import || {};
+// @ts-ignore
+globalThis.import.meta = globalThis.import.meta || { env: {} };
+// @ts-ignore
+globalThis.import.meta.env = {
+  ...(globalThis.import.meta.env || {}),
+  VITE_API_MODE: globalThis.import.meta.env?.VITE_API_MODE || 'test',
+  VITE_DEMO_MODE: globalThis.import.meta.env?.VITE_DEMO_MODE || 'false',
+};
 import { render, RenderOptions } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 
@@ -9,16 +20,11 @@ interface CustomRenderOptions extends Omit<RenderOptions, 'wrapper'> {
 
 export function renderWithProviders(
   ui: React.ReactElement,
-  {
-    initialRoutes = ['/'],
-    ...renderOptions
-  }: CustomRenderOptions = {}
+  { initialRoutes = ['/'], ...renderOptions }: CustomRenderOptions = {}
 ) {
   function Wrapper({ children }: { children: React.ReactNode }) {
     return (
-      <MemoryRouter initialEntries={initialRoutes}>
-        {children}
-      </MemoryRouter>
+      <MemoryRouter initialEntries={initialRoutes}>{children}</MemoryRouter>
     );
   }
 
@@ -57,7 +63,7 @@ export const mockOrchestratorResult = (overrides = {}) => ({
 });
 
 // Common test helpers
-export const waitForLoadingToFinish = () => 
+export const waitForLoadingToFinish = () =>
   screen.findByText((content, element) => {
     return element?.tagName.toLowerCase() !== 'script';
   });

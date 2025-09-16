@@ -12,7 +12,7 @@ vi.mock('../../services/api', () => ({
 }));
 
 // Helper function to render component with router
-const renderWithRouter = (ui) => {
+const renderWithRouter = ui => {
   return render(<BrowserRouter>{ui}</BrowserRouter>);
 };
 
@@ -146,7 +146,7 @@ describe('AnalysisForm Component', () => {
   test('displays loading state during analysis', async () => {
     // Mock delayed response
     apiService.analyzePrompt.mockImplementation(() => {
-      return new Promise((resolve) => {
+      return new Promise(resolve => {
         setTimeout(() => {
           resolve({
             status: 'success',

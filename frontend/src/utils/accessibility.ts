@@ -6,7 +6,8 @@ export { ARIA_ROLES, ARIA_STATES } from './aria';
 type Politeness = 'polite' | 'assertive';
 
 function getOrCreateLiveRegion(politeness: Politeness): HTMLElement {
-  const id = politeness === 'assertive' ? 'sr-live-assertive' : 'sr-live-polite';
+  const id =
+    politeness === 'assertive' ? 'sr-live-assertive' : 'sr-live-polite';
   let region = document.getElementById(id) as HTMLElement | null;
   if (!region) {
     region = document.createElement('div');
@@ -56,51 +57,54 @@ export const a11yLabels = {
   mainNavigation: 'Main navigation',
   skipToContent: 'Skip to main content',
   closeModal: 'Close modal',
-  
+
   // Theme
   themeSelector: 'Select visual theme',
   selectTheme: (theme: string) => `Select ${theme} theme`,
   currentTheme: (theme: string) => `Current theme: ${theme}`,
-  
+
   // Wizard steps
   wizardProgress: 'Analysis wizard progress',
   currentStep: (step: number, total: number) => `Step ${step} of ${total}`,
   goToStep: (step: number) => `Go to step ${step}`,
   nextStep: 'Continue to next step',
   previousStep: 'Go back to previous step',
-  
+
   // Form elements
   selectGoal: (goal: string) => `Select goal: ${goal}`,
   selectedGoal: (goal: string) => `${goal} goal selected`,
   queryInput: 'Enter your analysis query',
-  characterCount: (current: number, max: number) => `${current} of ${max} characters`,
-  
+  characterCount: (current: number, max: number) =>
+    `${current} of ${max} characters`,
+
   // Model selection
   selectModel: (model: string) => `Select AI model: ${model}`,
   selectedModel: (model: string) => `${model} model selected`,
-  modelStatus: (model: string, status: string) => `${model} model status: ${status}`,
+  modelStatus: (model: string, status: string) =>
+    `${model} model status: ${status}`,
   autoModelSelection: 'Automatic model selection based on your preferences',
   manualModelSelection: 'Manually select AI models',
-  
+
   // Receipt
   receiptTotal: (amount: string) => `Total cost: ${amount}`,
   receiptItem: (item: string, cost: string) => `${item}: ${cost}`,
   expandReceipt: 'Expand receipt details',
   collapseReceipt: 'Collapse receipt details',
-  
+
   // Processing
   processingStatus: 'Analysis processing status',
   processingPhase: (phase: string) => `Processing phase: ${phase}`,
   processingComplete: 'Analysis complete',
   viewResults: 'View analysis results',
   startNewAnalysis: 'Start a new analysis',
-  
+
   // Status indicators
   systemOnline: 'System status: Online',
   systemOffline: 'System status: Offline',
-  modelsAvailable: (count: number, total: number) => `${count} of ${total} models available`,
+  modelsAvailable: (count: number, total: number) =>
+    `${count} of ${total} models available`,
   latency: (time: string) => `Average latency: ${time}`,
-  
+
   // Actions
   submit: 'Submit for analysis',
   cancel: 'Cancel',
@@ -108,16 +112,16 @@ export const a11yLabels = {
   copy: 'Copy to clipboard',
   download: 'Download results',
   share: 'Share results',
-  
+
   // Loading states
   loading: 'Loading...',
   loadingStep: (step: string) => `Loading ${step}...`,
-  
+
   // Errors
   error: 'Error',
   errorMessage: (message: string) => `Error: ${message}`,
   retry: 'Retry',
-  
+
   // Success
   success: 'Success',
   successMessage: (message: string) => `Success: ${message}`,
@@ -126,16 +130,19 @@ export const a11yLabels = {
 /**
  * Generate ARIA live region announcement
  */
-export const announce = (message: string, priority: 'polite' | 'assertive' = 'polite') => {
+export const announce = (
+  message: string,
+  priority: 'polite' | 'assertive' = 'polite'
+) => {
   const announcement = document.createElement('div');
   announcement.setAttribute('role', 'status');
   announcement.setAttribute('aria-live', priority);
   announcement.setAttribute('aria-atomic', 'true');
   announcement.className = 'sr-only';
   announcement.textContent = message;
-  
+
   document.body.appendChild(announcement);
-  
+
   // Remove after announcement
   setTimeout(() => {
     document.body.removeChild(announcement);
@@ -157,9 +164,11 @@ export const focusManagement = {
       'a[href], button, textarea, input[type="text"], input[type="radio"], input[type="checkbox"], select'
     );
     const firstFocusable = focusableElements[0] as HTMLElement;
-    const lastFocusable = focusableElements[focusableElements.length - 1] as HTMLElement;
+    const lastFocusable = focusableElements[
+      focusableElements.length - 1
+    ] as HTMLElement;
 
-    container.addEventListener('keydown', (e) => {
+    container.addEventListener('keydown', e => {
       if (e.key === 'Tab') {
         if (e.shiftKey && document.activeElement === firstFocusable) {
           e.preventDefault();

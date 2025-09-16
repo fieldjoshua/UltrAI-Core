@@ -7,5 +7,3 @@ describe('Smoke test', () => {
     expect(screen.getByTestId('ok')).toHaveTextContent('ok');
   });
 });
-
-

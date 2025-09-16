@@ -28,13 +28,13 @@ export default function ErrorTest() {
     };
 
     console.log('Adding error:', newError);
-    setErrors((prev) => [...prev, newError]);
+    setErrors(prev => [...prev, newError]);
   };
 
   // Dismiss an error from the error state
   const dismissError = (id: string) => {
     console.log('Dismissing error with id:', id);
-    setErrors((prev) => prev.filter((error) => error.id !== id));
+    setErrors(prev => prev.filter(error => error.id !== id));
   };
 
   // Function to trigger different types of errors
