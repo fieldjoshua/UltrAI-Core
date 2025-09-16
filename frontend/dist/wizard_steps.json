@@ -29,7 +29,7 @@
     "type": "textarea",
     "narrative": "What do you want AI to do? Think of your goals. What things are they made of?\nAttach a document if it helps in the creation.",
     "options": [
-      { "label": "Upload document or media", "icon": "📎", "cost": 0.10 }
+      { "label": "Upload document or media", "icon": "📎", "cost": 0.1 }
     ]
   },
   {
@@ -48,7 +48,7 @@
         "label": "Fact-check & Confidence (Coming soon)",
         "icon": "✔️",
         "description": "Rate truthfulness across models and provide confidence scores.",
-        "cost": 0.10
+        "cost": 0.1
       },
       {
         "label": "Devil’s Advocate (Coming soon)",
@@ -70,10 +70,10 @@
     "type": "checkbox",
     "narrative": "Which AI models do you want to perform your query?",
     "options": [
-      { "label": "Auto: Cost-Saving", "icon": "💲", "cost": 0.00 },
-      { "label": "Auto: Premium Quality", "icon": "🎯", "cost": 0.00 },
-      { "label": "Auto: Speed", "icon": "⏩", "cost": 0.00 },
-      { "label": "Manual selection", "icon": "🛠️", "cost": 0.00 }
+      { "label": "Auto: Cost-Saving", "icon": "💲", "cost": 0.0 },
+      { "label": "Auto: Premium Quality", "icon": "🎯", "cost": 0.0 },
+      { "label": "Auto: Speed", "icon": "⏩", "cost": 0.0 },
+      { "label": "Manual selection", "icon": "🛠️", "cost": 0.0 }
     ]
   },
   {

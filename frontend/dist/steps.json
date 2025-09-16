@@ -4,9 +4,9 @@
     "color": "mint",
     "type": "checkbox",
     "options": [
-      { "label": "Create Image/Video", "cost": 0.10 },
+      { "label": "Create Image/Video", "cost": 0.1 },
       { "label": "Document Analysis", "cost": 0.15 },
-      { "label": "Deep Research", "cost": 0.20 }
+      { "label": "Deep Research", "cost": 0.2 }
     ]
   },
   {

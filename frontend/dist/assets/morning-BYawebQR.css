@@ -1,1 +1,0 @@
-:root{--bg: #fffdf5;--fg: #1a1a1a}body{background-color:var(--bg);color:var(--fg)}body.skin-morning{background-image:url(/bg-morning.jpeg);background-size:cover;background-position:center;background-attachment:fixed}
