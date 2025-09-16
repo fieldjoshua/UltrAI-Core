@@ -23,6 +23,17 @@ export async function processWithFeatherOrchestration({
   }
 
   try {
+    // Prefer streaming endpoint by default, aggregate SSE events into a final result
+    const streamed = await streamOrchestration({
+      prompt,
+      models,
+      pattern,
+      ultraModel,
+      outputFormat,
+    });
+    if (streamed) return streamed;
+
+    // Fallback to non-streaming endpoint if streaming fails
     const response = await fetch(`${API_BASE}/orchestrator/analyze`, {
       method: 'POST',
       headers: {
@@ -48,8 +59,7 @@ export async function processWithFeatherOrchestration({
     }
 
     const data = await response.json();
-    
-    // Transform the response to match expected format
+
     return {
       status: 'success',
       ultra_response: data.results?.ultra_synthesis?.content || data.results?.content || '',
@@ -66,6 +76,133 @@ export async function processWithFeatherOrchestration({
       error: error.message || 'Network error',
       status: 'error',
     };
+  }
+}
+
+// Internal: streaming orchestration aggregator (SSE)
+async function streamOrchestration({ prompt, models, pattern, ultraModel, outputFormat }) {
+  try {
+    const response = await fetch(`${API_BASE}/orchestrator/analyze/stream`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'text/event-stream',
+      },
+      body: JSON.stringify({
+        query: prompt,
+        selected_models: models,
+        options: {
+          ultra_model: ultraModel,
+          output_format: outputFormat,
+        },
+        // Enable streaming of model responses and synthesis chunks
+        stream_stages: ['model_responses', 'synthesis_chunks'],
+        chunk_size: 80,
+      }),
+    });
+
+    if (!response.ok || !response.body) {
+      return null;
+    }
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder('utf-8');
+    let buffer = '';
+
+    // Accumulators
+    const initialResponses = {};
+    const synthesisChunks = [];
+    let hadError = null;
+
+    const flushEvents = () => {
+      const events = [];
+      const parts = buffer.split('\n\n');
+      // Keep the last incomplete part in buffer
+      buffer = parts.pop() || '';
+      for (const part of parts) {
+        const lines = part.split('\n');
+        for (const line of lines) {
+          const trimmed = line.trim();
+          if (trimmed.startsWith('data:')) {
+            const jsonStr = trimmed.slice(5).trim();
+            if (!jsonStr) continue;
+            try {
+              const evt = JSON.parse(jsonStr);
+              events.push(evt);
+            } catch (_) {
+              // ignore malformed chunks
+            }
+          }
+        }
+      }
+      return events;
+    };
+
+    // Read stream
+    for (;;) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+      const events = flushEvents();
+      for (const evt of events) {
+        const type = evt?.event;
+        const data = evt?.data || {};
+        if (type === 'MODEL_RESPONSE') {
+          if (data.model && typeof data.response_text === 'string') {
+            initialResponses[data.model] = data.response_text;
+          }
+        } else if (type === 'synthesis_chunks' || type === 'SYNTHESIS_CHUNK') {
+          if (typeof data.chunk_text === 'string') {
+            synthesisChunks.push(data.chunk_text);
+          }
+        } else if (type === 'PIPELINE_ERROR' || type === 'STAGE_ERROR') {
+          hadError = data?.error || 'Streaming pipeline error';
+        } else if (type === 'PIPELINE_COMPLETE') {
+          // Build final result
+          const text = synthesisChunks.length > 0 ? synthesisChunks.join(' ') : '';
+          if (hadError) {
+            return {
+              status: 'error',
+              error: hadError,
+              ultra_response: text,
+              initial_responses: Object.keys(initialResponses).length ? initialResponses : undefined,
+              meta_analysis: undefined,
+              ultra_synthesis: text ? { content: text } : undefined,
+            };
+          }
+          return {
+            status: 'success',
+            ultra_response: text,
+            models_used: models || [],
+            processing_time: 0,
+            pattern_used: pattern,
+            initial_responses: Object.keys(initialResponses).length ? initialResponses : undefined,
+            meta_analysis: undefined,
+            ultra_synthesis: text ? { content: text } : undefined,
+          };
+        }
+      }
+    }
+
+    // If stream ended without PIPELINE_COMPLETE, return what we have or null to fallback
+    if (synthesisChunks.length > 0) {
+      const text = synthesisChunks.join(' ');
+      return {
+        status: hadError ? 'error' : 'success',
+        error: hadError || undefined,
+        ultra_response: text,
+        models_used: models || [],
+        processing_time: 0,
+        pattern_used: pattern,
+        initial_responses: Object.keys(initialResponses).length ? initialResponses : undefined,
+        ultra_synthesis: { content: text },
+      };
+    }
+
+    return hadError ? { status: 'error', error: hadError } : null;
+  } catch (e) {
+    // If streaming not supported or fails, fallback will be used
+    return null;
   }
 }
 
