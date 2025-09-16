@@ -265,7 +265,18 @@ def create_router() -> APIRouter:
             # Enforce minimum model requirement
             from app.config import Config as _Cfg  # local import to avoid top-level cycles
             required_models_cfg = getattr(_Cfg, "MINIMUM_MODELS_REQUIRED", 3)
-            if model_count < required_models_cfg:
+            # Enforce required providers: OpenAI, Anthropic, Google
+            required_providers = set(getattr(_Cfg, "REQUIRED_PROVIDERS", ["openai","anthropic","google"]))
+            try:
+                health_summary = await provider_health_manager.get_health_summary()
+                available_providers_list = health_summary.get("_system", {}).get("available_providers", [])
+                available_provider_set = set(available_providers_list)
+                missing = [p for p in required_providers if p not in available_provider_set]
+            except Exception:
+                available_provider_set = set()
+                missing = list(required_providers)
+
+            if model_count < required_models_cfg or missing:
                 logger.error(f"Insufficient models available: {model_count} < {required_models_cfg}")
                 # Gather provider availability details for human-readable error
                 try:
@@ -284,7 +295,10 @@ def create_router() -> APIRouter:
                     status_code=503,
                     detail={
                         "error": "SERVICE_UNAVAILABLE",
-                        "message": f"UltraAI requires at least {required_models_cfg} AI models for orchestration",
+                        "message": (
+                            f"UltraAI requires at least {required_models_cfg} AI models and providers: "
+                            f"{sorted(list(required_providers))}. Missing: {sorted(missing)}"
+                        ),
                         "details": {
                             "available_models": model_count,
                             "required_models": required_models_cfg,

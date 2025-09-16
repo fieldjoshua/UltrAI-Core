@@ -183,6 +183,14 @@ class Config:
     MINIMUM_MODELS_REQUIRED = int(os.getenv("MINIMUM_MODELS_REQUIRED", "3"))
     # Explicitly control single-model fallback behavior
     ENABLE_SINGLE_MODEL_FALLBACK = os.getenv("ENABLE_SINGLE_MODEL_FALLBACK", "false").lower() == "true"
+    # Required providers policy: enforce presence of these provider backends
+    # Supported values: "openai", "anthropic", "google", "huggingface"
+    REQUIRED_PROVIDERS = [
+        p.strip() for p in os.getenv(
+            "REQUIRED_PROVIDERS",
+            "openai,anthropic,google"
+        ).split(",") if p.strip()
+    ]
 
     @classmethod
     def create_directories(cls) -> None:

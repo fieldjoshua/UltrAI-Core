@@ -84,17 +84,32 @@ class StreamingOrchestrationService(OrchestrationService):
 
         # Enforce minimum required models for streaming pipeline
         from app.config import Config as _Cfg
-        if not selected_models or len(selected_models) < _Cfg.MINIMUM_MODELS_REQUIRED:
+        # Check providers
+        try:
+            from app.services.provider_health_manager import provider_health_manager
+            health_summary = await provider_health_manager.get_health_summary()
+            available_providers = health_summary["_system"]["available_providers"]
+        except Exception:
+            available_providers = []
+
+        required_providers = getattr(_Cfg, "REQUIRED_PROVIDERS", ["openai", "anthropic", "google"])
+        missing_providers = [p for p in required_providers if p not in available_providers]
+
+        if (not selected_models) or (len(selected_models) < _Cfg.MINIMUM_MODELS_REQUIRED) or missing_providers:
             error_text = (
                 "Service requires at least "
-                f"{_Cfg.MINIMUM_MODELS_REQUIRED} models; "
-                f"{len(selected_models or [])} provided"
+                f"{_Cfg.MINIMUM_MODELS_REQUIRED} models and providers: "
+                f"{sorted(required_providers)}; "
+                f"{len(selected_models or [])} models provided; "
+                f"missing providers: {sorted(missing_providers)}"
             )
             error_event = self._create_event(
                 StreamEventType.PIPELINE_ERROR.value,
                 {
                     "error": error_text,
-                    "models_provided": selected_models or []
+                    "models_provided": selected_models or [],
+                    "required_providers": required_providers,
+                    "missing_providers": missing_providers
                 }
             )
             yield self._format_sse(error_event)

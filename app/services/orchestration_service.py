@@ -382,6 +382,36 @@ class OrchestrationService:
 
         logger.info(f"✨ Healthy models available: {healthy}")
 
+        # Prefer diversity across providers when selecting defaults
+        try:
+            if len(healthy) >= 3:
+                by_provider: Dict[str, List[str]] = {}
+                for m in healthy:
+                    provider = self._get_provider_from_model(m)
+                    by_provider.setdefault(provider or "unknown", []).append(m)
+
+                preferred_order = ["openai", "anthropic", "google", "huggingface", "unknown"]
+                diversified: List[str] = []
+                # First pass: pick at most one per provider in preferred order
+                for prov in preferred_order:
+                    if prov in by_provider and by_provider[prov]:
+                        diversified.append(by_provider[prov][0])
+                        if len(diversified) >= Config.MINIMUM_MODELS_REQUIRED:
+                            break
+                # Second pass: fill remaining up to 3 from remaining models preserving original order
+                if len(diversified) < 3:
+                    for m in healthy:
+                        if m not in diversified:
+                            diversified.append(m)
+                            if len(diversified) >= 3:
+                                break
+                # Replace healthy ordering with diversified ordering (up to 3)
+                if diversified and diversified != healthy[: len(diversified)]:
+                    logger.info(f"🔀 Diversified default models: {diversified}")
+                    healthy = diversified + [m for m in healthy if m not in diversified]
+        except Exception as _e:
+            logger.warning(f"Default model diversification failed: {_e}")
+
         # Only ensure multiple models if required by configuration
         if len(healthy) < Config.MINIMUM_MODELS_REQUIRED and Config.MINIMUM_MODELS_REQUIRED > 1:
             if Config.ENVIRONMENT == "production":
@@ -479,16 +509,23 @@ class OrchestrationService:
         
         selected_models = final_models[:3]  # Limit to 3 models max
 
-        # Enforce minimum required models for orchestration
+        # Enforce minimum required models and providers for orchestration
         if not selected_models or len(selected_models) < Config.MINIMUM_MODELS_REQUIRED:
             # Get provider health status for detailed error message
             health_summary = await provider_health_manager.get_health_summary()
             available_providers = health_summary["_system"]["available_providers"]
+        else:
+            available_providers = (await provider_health_manager.get_health_summary())["_system"]["available_providers"]
 
+        required_providers = getattr(Config, "REQUIRED_PROVIDERS", ["openai", "anthropic", "google"])
+        missing_providers = [p for p in required_providers if p not in available_providers]
+
+        if (not selected_models) or (len(selected_models) < Config.MINIMUM_MODELS_REQUIRED) or missing_providers:
             error_msg = (
                 f"Service temporarily unavailable. UltrAI requires at least {Config.MINIMUM_MODELS_REQUIRED} "
                 "different AI models to provide multi-model intelligence multiplication. "
-                f"Currently {len(available_providers)} provider(s) are operational."
+                f"Currently {len(available_providers)} provider(s) are operational. "
+                f"Missing providers: {missing_providers}"
             )
 
             # Add degradation message if available
@@ -503,6 +540,8 @@ class OrchestrationService:
                     "models_required": Config.MINIMUM_MODELS_REQUIRED,
                     "providers_available": len(available_providers),
                     "providers_operational": available_providers,
+                    "required_providers": required_providers,
+                    "missing_providers": missing_providers,
                     "service_status": "unavailable"
                 }
             }
@@ -1004,6 +1043,7 @@ class OrchestrationService:
         # Create model execution tasks for concurrent processing
         async def execute_model(model: str) -> tuple[str, dict]:
             """Execute a single model and return (model_name, result)"""
+            logger.info(f"🔄 Starting execution for model: {model}")
             start_time = time.time()
             provider = self._get_provider_from_model(model)
 
@@ -1034,7 +1074,12 @@ class OrchestrationService:
                     resilient_adapter = create_resilient_adapter(base_adapter) if base_adapter else None
                     adapter = wrap_llm_adapter_with_telemetry(resilient_adapter, "openai", model) if resilient_adapter else None
                     if adapter:
-                        result = await adapter.generate(prompt)
+                        # Add per-model timeout to prevent individual models from hanging
+                        try:
+                            result = await asyncio.wait_for(adapter.generate(prompt), timeout=60.0)
+                        except asyncio.TimeoutError:
+                            logger.error(f"⏱️ Model {model} timed out after 60s")
+                            return model, {"error": "Model request timed out after 60 seconds", "provider": "OpenAI"}
                         # If OpenAI replies "model not found" try GPT-4o as a
                         # graceful fallback (some orgs only have GPT-4o).
                         if (
@@ -1114,7 +1159,12 @@ class OrchestrationService:
                     base_adapter = AnthropicAdapter(api_key, mapped_model)
                     resilient_adapter = create_resilient_adapter(base_adapter)
                     adapter = wrap_llm_adapter_with_telemetry(resilient_adapter, "anthropic", model)
-                    result = await adapter.generate(prompt)
+                    # Add per-model timeout to prevent individual models from hanging
+                    try:
+                        result = await asyncio.wait_for(adapter.generate(prompt), timeout=60.0)
+                    except asyncio.TimeoutError:
+                        logger.error(f"⏱️ Model {model} timed out after 60s")
+                        return model, {"error": "Model request timed out after 60 seconds", "provider": "Anthropic"}
                     if "Error:" not in result.get("generated_text", ""):
                         logger.info(f"✅ Successfully got response from {model}")
                         gen_text = result.get(
@@ -1178,7 +1228,12 @@ class OrchestrationService:
                     base_adapter = GeminiAdapter(api_key, mapped_model)
                     resilient_adapter = create_resilient_adapter(base_adapter)
                     adapter = wrap_llm_adapter_with_telemetry(resilient_adapter, "google", model)
-                    result = await adapter.generate(prompt)
+                    # Add per-model timeout to prevent individual models from hanging
+                    try:
+                        result = await asyncio.wait_for(adapter.generate(prompt), timeout=60.0)
+                    except asyncio.TimeoutError:
+                        logger.error(f"⏱️ Model {model} timed out after 60s")
+                        return model, {"error": "Model request timed out after 60 seconds", "provider": "Google"}
                     if "Error:" not in result.get("generated_text", ""):
                         logger.info(f"✅ Successfully got response from {model}")
                         gen_text = result.get(
@@ -1239,7 +1294,12 @@ class OrchestrationService:
                         base_adapter = HuggingFaceAdapter(api_key, model)
                         resilient_adapter = create_resilient_adapter(base_adapter)
                         adapter = wrap_llm_adapter_with_telemetry(resilient_adapter, "huggingface", model)
-                        result = await adapter.generate(prompt)
+                        # Add per-model timeout to prevent individual models from hanging
+                        try:
+                            result = await asyncio.wait_for(adapter.generate(prompt), timeout=60.0)
+                        except asyncio.TimeoutError:
+                            logger.error(f"⏱️ Model {model} timed out after 60s")
+                            return model, {"error": "Model request timed out after 60 seconds", "provider": "HuggingFace"}
                         if "Error:" not in result.get("generated_text", ""):
                             logger.info(f"✅ Successfully got response from {model}")
                             gen_text = result.get(
@@ -1344,12 +1404,26 @@ class OrchestrationService:
             len(executable_models),
             executable_models,
         )
+        
+        # Log HTTP client info for debugging
+        from app.services.llm_adapters import CLIENT
+        if hasattr(CLIENT, '_transport') and hasattr(CLIENT._transport, '_pool'):
+            pool = CLIENT._transport._pool
+            logger.info(f"📊 HTTP Client Pool - Connections: {len(pool._pool) if hasattr(pool, '_pool') else 'unknown'}")
+        else:
+            logger.info("📊 HTTP Client Pool info not available")
 
         # Create asyncio tasks for proper timeout handling
-        async_tasks = [asyncio.create_task(execute_model(model)) for model in executable_models]
+        async_tasks = []
+        for model in executable_models:
+            task = asyncio.create_task(execute_model(model))
+            # Add model name to task for debugging
+            task.set_name(f"execute_{model}")
+            async_tasks.append(task)
 
         # Add timeout protection for concurrent execution
         try:
+            logger.info(f"⏱️ Starting concurrent execution with timeout of {Config.CONCURRENT_EXECUTION_TIMEOUT}s")
             results = await asyncio.wait_for(
                 asyncio.gather(*async_tasks, return_exceptions=True),
                 timeout=Config.CONCURRENT_EXECUTION_TIMEOUT
@@ -1357,6 +1431,10 @@ class OrchestrationService:
             logger.info(f"✅ Concurrent execution completed with {len(results)} results")
         except asyncio.TimeoutError:
             logger.error(f"🚨 Concurrent model execution timed out after {Config.CONCURRENT_EXECUTION_TIMEOUT} seconds")
+            # Log which tasks are still pending
+            for task in async_tasks:
+                if not task.done():
+                    logger.error(f"❌ Task '{task.get_name()}' is still pending after timeout")
             # Cancel incomplete tasks and collect partial results
             results = []
             for task in async_tasks:
