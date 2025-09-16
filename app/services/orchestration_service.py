@@ -1814,19 +1814,30 @@ Prepare this analysis to enable true intelligence multiplication in the subseque
 
         # Extract the original prompt properly
         original_prompt = "Unknown prompt"
-        if "input_data" in data:
-            if isinstance(data["input_data"], dict):
-                if "prompt" in data["input_data"]:
-                    original_prompt = data["input_data"]["prompt"]
-                elif "revised_responses" in data["input_data"]:
-                    # Get from peer review stage
-                    peer_data = data["input_data"]
-                    if "original_responses" in peer_data and isinstance(
-                        peer_data["original_responses"], dict
-                    ):
-                        original_prompt = peer_data["original_responses"].get(
-                            "prompt", original_prompt
-                        )
+        
+        # Try multiple paths to find the prompt
+        # Path 1: Direct in input_data (unlikely but check first)
+        if "input_data" in data and isinstance(data["input_data"], dict):
+            if "prompt" in data["input_data"]:
+                original_prompt = data["input_data"]["prompt"]
+            elif "revised_responses" in data["input_data"]:
+                # Get from peer review stage
+                peer_data = data["input_data"]
+                if "original_responses" in peer_data and isinstance(
+                    peer_data["original_responses"], dict
+                ):
+                    original_prompt = peer_data["original_responses"].get(
+                        "prompt", original_prompt
+                    )
+        
+        # Path 2: When peer review is skipped, prompt is in data["input"]["prompt"]
+        if original_prompt == "Unknown prompt" and "input" in data and isinstance(data["input"], dict):
+            if "prompt" in data["input"]:
+                original_prompt = data["input"]["prompt"]
+        
+        # Path 3: Direct in data (from initial response stage)
+        if original_prompt == "Unknown prompt" and "prompt" in data:
+            original_prompt = data["prompt"]
 
         logger.info(
             f"Ultra Synthesis using original prompt: {original_prompt[:100]}..."
