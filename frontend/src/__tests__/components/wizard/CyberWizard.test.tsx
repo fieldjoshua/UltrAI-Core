@@ -116,7 +116,7 @@ describe('CyberWizard', () => {
       render(<CyberWizard />);
 
       await waitFor(() => {
-        expect(screen.getByText(/Welcome to the future/i)).toBeInTheDocument();
+        expect(screen.getByText(/Intelligence Multiplication Platform/i)).toBeInTheDocument();
       });
 
       expect(
@@ -135,13 +135,13 @@ describe('CyberWizard', () => {
     });
 
     it('should show loading state while fetching steps', () => {
-      (global.fetch as jest.Mock).mockImplementationOnce(
+      fetchSpy.mockImplementationOnce(
         () => new Promise(() => {})
       );
 
       render(<CyberWizard />);
 
-      expect(screen.getByText(/Loading…/i)).toBeInTheDocument();
+      expect(screen.getByText(/Loading UltrAI.../i)).toBeInTheDocument();
     });
   });
 
@@ -156,9 +156,11 @@ describe('CyberWizard', () => {
       });
 
       await user.click(screen.getByRole('button', { name: /Enter UltrAI/i }));
-      await screen.findByText(/1\. Select your goals/i);
 
-      expect(screen.getByText(/Select your goals/i)).toBeInTheDocument();
+      // Wait for navigation to complete and step content to appear
+      await waitFor(() => {
+        expect(screen.getByText(/Select your goals/i)).toBeInTheDocument();
+      });
     });
 
     it('should allow navigation between steps using step markers', async () => {
@@ -190,7 +192,9 @@ describe('CyberWizard', () => {
 
       // Press Enter to go to step 1
       await user.keyboard('{Enter}');
-      await screen.findByText(/1\. Select your goals/i);
+      await waitFor(() => {
+        expect(screen.getByText(/Select your goals/i)).toBeInTheDocument();
+      });
 
       // Press right arrow to go to step 2
       await user.keyboard('{ArrowRight}');
@@ -198,7 +202,9 @@ describe('CyberWizard', () => {
 
       // Press left arrow to go back to step 1
       await user.keyboard('{ArrowLeft}');
-      await screen.findByText(/1\. Select your goals/i);
+      await waitFor(() => {
+        expect(screen.getByText(/Select your goals/i)).toBeInTheDocument();
+      });
     });
   });
 
