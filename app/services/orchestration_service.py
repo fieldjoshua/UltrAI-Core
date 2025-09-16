@@ -49,11 +49,13 @@ from app.utils.sentry_integration import sentry_context
 
 logger = get_logger("orchestration_service")
 
+
 STUB_RESPONSE = (
     "Stubbed response for testing purposes. This placeholder text simulates a realistic model answer "
     "with sufficient length and detail to satisfy downstream validation checks that require at least 20 "
     "meaningful words in the synthesis output."
 )
+
 
 @dataclass
 class PipelineStage:
@@ -63,6 +65,7 @@ class PipelineStage:
     description: str
     required_models: List[str]
     timeout_seconds: int = 30
+
 
 @dataclass
 class PipelineResult:
@@ -74,6 +77,7 @@ class PipelineResult:
     performance_metrics: Optional[Dict[str, Any]] = None
     error: Optional[str] = None
     token_usage: Optional[Dict[str, int]] = None
+
 
 class OrchestrationService:
     """
@@ -186,7 +190,7 @@ class OrchestrationService:
                 logger.warning(f"⚠️ Invalid model type: {type(model)}, skipping")
                 continue
 
-            if len(model) > 100:  # Reasonable length limit
+            if len(model) > 100:  # Reasonable length limi
                 logger.warning(f"⚠️ Model name too long: {model[:50]}..., skipping")
                 continue
 
@@ -266,7 +270,7 @@ class OrchestrationService:
                 telemetry_adapter = wrap_llm_adapter_with_telemetry(resilient_adapter, "google", mapped_model)
                 return telemetry_adapter, mapped_model
 
-            elif "/" in model:  # HuggingFace model ID format
+            elif "/" in model:  # HuggingFace model ID forma
                 api_key = os.getenv("HUGGINGFACE_API_KEY")
                 if not api_key:
                     logger.warning(f"No HuggingFace API key found for {model}")
@@ -323,7 +327,7 @@ class OrchestrationService:
             else:
                 logger.info(f"  ✅ {model}: API key found ({key[:4]}...{key[-4:]})")
 
-            # Check centralized cache first
+            # Check centralized cache firs
             cached_health = model_health_cache.get_cached_health(model)
             if cached_health is not None:
                 if cached_health:
@@ -362,7 +366,7 @@ class OrchestrationService:
                 # Last resort: if single model fallback is enabled and we have NO models
                 logger.warning("🚨 CRITICAL: No API keys found! Using mock response mode")
                 if has_openai:
-                    healthy = ["gpt-3.5-turbo"]  # Try OpenAI as last resort
+                    healthy = ["gpt-3.5-turbo"]  # Try OpenAI as last resor
                 else:
                     # Return empty to signal no models available
                     logger.error("❌ No API keys configured at all")
@@ -372,7 +376,7 @@ class OrchestrationService:
                 logger.error(
                     "🚨 SERVICE UNAVAILABLE: No healthy models and multi-model is required in production."
                 )
-                # Return empty list to signal upstream logic to fail fast
+                # Return empty list to signal upstream logic to fail fas
                 return []
             # In non-production or when single-model is acceptable, allow minimal fallback
             elif Config.MINIMUM_MODELS_REQUIRED > 1:
@@ -461,7 +465,7 @@ class OrchestrationService:
         cache_enabled = options.get("enable_cache", True) if options else True
 
         if cache_enabled:
-            # Generate cache key from inputs using hash for long content
+            # Generate cache key from inputs using hash for long conten
             import hashlib
             input_hash = hashlib.sha256(str(input_data).encode()).hexdigest()
             cache_key_data = {
@@ -490,7 +494,7 @@ class OrchestrationService:
         # Default model selection for test environment when none provided
         if not selected_models:
             selected_models = await self._default_models_from_env()
-        
+
         # Check for rate-limited models and get fallbacks if needed
         final_models = []
         for model in selected_models:
@@ -506,9 +510,8 @@ class OrchestrationService:
                     final_models.append(model)
             else:
                 final_models.append(model)
-        
-        selected_models = final_models[:3]  # Limit to 3 models max
 
+        selected_models = final_models[:3]  # Limit to 3 models max
         # Enforce minimum required models and providers for orchestration
         if not selected_models or len(selected_models) < Config.MINIMUM_MODELS_REQUIRED:
             # Get provider health status for detailed error message
@@ -622,7 +625,7 @@ class OrchestrationService:
                                 error="service_unavailable",
                                 performance_metrics={"reason": "insufficient_models", "available": model_count, "required": Config.MINIMUM_MODELS_REQUIRED}  # noqa: E501
                             )
-                            # Return early with service unavailable as a typed PipelineResult
+                            # Return early with service unavailable as a typed PipelineResul
                             results["service_unavailable"] = PipelineResult(
                                 stage_name="service_unavailable",
                                 output={
@@ -674,7 +677,7 @@ class OrchestrationService:
                                 working_models[0] if working_models else None
                             )
 
-                    # Fallback to first selected model, then default
+                    # Fallback to first selected model, then defaul
                     if not working_model:
                         working_model = (
                             selected_models[0]
@@ -723,7 +726,7 @@ class OrchestrationService:
                             output_tokens=output_tokens,
                             user_id=user_id,
                         )
-                        total_cost += cost.total_cost
+                        total_cost += cost.total_cos
 
                 # Update data for next stage
                 current_data = results[stage.name].output
@@ -868,8 +871,8 @@ class OrchestrationService:
             },
         }
 
-        # Check for performance issues and alert
-        expected_duration = stage.timeout_seconds * 0.8  # Alert at 80% of timeout
+        # Check for performance issues and aler
+        expected_duration = stage.timeout_seconds * 0.8  # Alert at 80% of timeou
         if duration > expected_duration and error is None:
             sentry_context.capture_performance_warning(
                 f"Stage {stage.name} took {duration:.2f}s (expected < {expected_duration:.2f}s)",
@@ -949,10 +952,10 @@ class OrchestrationService:
             if self.retry_handler.detect_rate_limit(error_str, provider):
                 # Mark provider as rate limited
                 provider_fallback_manager.mark_rate_limited(provider)
-                
+
                 # Log rate limit for monitoring
                 logger.warning(f"Rate limit detected for {provider} provider with model {model}")
-                
+
                 # Add fallback suggestion to error
                 alternative = provider_fallback_manager.suggest_alternative_provider(provider)
                 if alternative:
@@ -962,7 +965,7 @@ class OrchestrationService:
                         "models": fallback_models,
                         "message": f"Consider using {alternative} provider as {provider} is rate limited"
                     }
-            
+
             # Return error from retry handler
             return result
 
@@ -974,7 +977,7 @@ class OrchestrationService:
             return "anthropic"
         elif model.startswith("gemini"):
             return "google"
-        elif "/" in model:  # HuggingFace format
+        elif "/" in model:  # HuggingFace forma
             return "huggingface"
         else:
             return "unknown"
@@ -1056,7 +1059,7 @@ class OrchestrationService:
                 if mapped_model.startswith("gpt") or mapped_model.startswith("o1"):
                     api_key = os.getenv("OPENAI_API_KEY")
                     if not api_key:
-                        # In TESTING mode, return stubbed response instead of error so downstream stages have content
+                        # In TESTING mode, return stubbed response instead of error so downstream stages have conten
                         if os.getenv("TESTING") == "true":
                             logger.info(
                                 f"🧪 TESTING mode – providing stubbed OpenAI response for {model}"
@@ -1404,7 +1407,6 @@ class OrchestrationService:
             len(executable_models),
             executable_models,
         )
-        
         # Log HTTP client info for debugging
         from app.services.llm_adapters import CLIENT
         if hasattr(CLIENT, '_transport') and hasattr(CLIENT._transport, '_pool'):
@@ -1542,7 +1544,7 @@ class OrchestrationService:
             }
 
         initial_responses = data["responses"]
-        # original_prompt was previously captured for logs, but it is unused here; removing assignment
+        # original_prompt was previously captured for logs, but it is unused here; removing assignmen
         successful_models = data.get("successful_models", [])
 
         logger.info(f"Initial responses from: {list(initial_responses.keys())}")
@@ -1899,7 +1901,7 @@ Prepare this analysis to enable true intelligence multiplication in the subseque
                     meta_prompt, [analysis_model], options
                 )
 
-                # Check for valid response structure and non-rate-limit content
+                # Check for valid response structure and non-rate-limit conten
                 if (
                     "responses" in meta_result
                     and meta_result["responses"]
@@ -2067,7 +2069,7 @@ Prepare this analysis to enable true intelligence multiplication in the subseque
             )
             logger.info(f"📝 Using query type: {self.synthesis_prompt_manager.detect_query_type(original_prompt).value}")
         else:
-            # Fallback to original prompt
+            # Fallback to original promp
             synthesis_prompt = """Given the user's initial query, please review the revised drafts from all LLMs. Keep commentary to a minimum unless it helps with the original inquiry. Do not reference the process, but produce the best, most thorough answer to the original query. Include process analysis only if helpful. Do not omit ANY relevant data from the other models.  # noqa: E501
 
 ORIGINAL QUERY: {original_prompt}
@@ -2083,7 +2085,7 @@ Create a comprehensive Ultra Synthesis™ document that:
 
 Begin with the ultra synthesis document."""
 
-        # Build available model list
+        # Build available model lis
         available_models: List[str] = []
         if models:
             available_models.extend(models)
@@ -2181,7 +2183,7 @@ Begin with the ultra synthesis document."""
                             "source_models": _source_models,
                         }
                     else:
-                        # Fallback to original response format
+                        # Fallback to original response forma
                         return {
                             "stage": "ultra_synthesis",
                             "synthesis": synthesis_response,
@@ -2200,7 +2202,7 @@ Begin with the ultra synthesis document."""
                         model=synthesis_model,
                         success=False,
                         quality_score=0,
-                        response_time=30.0  # Assume timeout
+                        response_time=30.0  # Assume timeou
                     )
             except Exception as e:
                 last_error = str(e)
@@ -2271,7 +2273,7 @@ Begin with the ultra synthesis document."""
             Dict[str, str]: Paths to the saved files (json_file, txt_file)
         """
         try:
-            # Create outputs directory if it doesn't exist
+            # Create outputs directory if it doesn't exis
             outputs_dir = Path("pipeline_outputs")
             outputs_dir.mkdir(exist_ok=True)
 

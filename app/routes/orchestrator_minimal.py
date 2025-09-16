@@ -246,14 +246,7 @@ def create_router() -> APIRouter:
             if not hasattr(http_request.app.state, "orchestration_service"):
                 raise HTTPException(
                     status_code=503,
-                    detail={
-                        "error": "SERVICE_UNAVAILABLE",
-                        "message": "Orchestration service is not initialized",
-                        "details": {
-                            "reason": "The orchestration service has not been properly started. This is typically a server configuration issue.",
-                            "action": "Please try again in a few moments or contact support if the issue persists."
-                        }
-                    }
+                    detail="Orchestration service is not initialized"
                 )
 
             orchestration_service = http_request.app.state.orchestration_service
@@ -291,27 +284,12 @@ def create_router() -> APIRouter:
                     "google": bool(os.getenv("GOOGLE_API_KEY")),
                     "huggingface": bool(os.getenv("HUGGINGFACE_API_KEY")),
                 }
-                raise HTTPException(
-                    status_code=503,
-                    detail={
-                        "error": "SERVICE_UNAVAILABLE",
-                        "message": (
-                            f"UltraAI requires at least {required_models_cfg} AI models and providers: "
-                            f"{sorted(list(required_providers))}. Missing: {sorted(missing)}"
-                        ),
-                        "details": {
-                            "available_models": model_count,
-                            "required_models": required_models_cfg,
-                            "reason": "Multi-model orchestration ensures higher quality responses through peer review",
-                            "provider_counts": {
-                                "available": len(available_providers),
-                                "total": total_providers,
-                                "available_providers": available_providers,
-                            },
-                            "configured_providers": api_key_status,
-                        }
-                    }
+                message = (
+                    f"UltraAI requires at least {required_models_cfg} models and providers: "
+                    f"{sorted(list(required_providers))}; missing: {sorted(missing)}; "
+                    f"available_models={model_count}"
                 )
+                raise HTTPException(status_code=503, detail=message)
 
             # Use tracked orchestration if available
             if hasattr(orchestration_service, "set_request_context"):
@@ -332,7 +310,12 @@ def create_router() -> APIRouter:
                     logger.info(f"🔍 Default models from env: {default_models}")
 
                     if default_models:
-                        selected_models = default_models[:2]  # Use first 2 available models
+                        try:
+                            from app.config import Config as _Cfg2
+                            required_n = getattr(_Cfg2, "MINIMUM_MODELS_REQUIRED", 3)
+                        except Exception:
+                            required_n = 3
+                        selected_models = default_models[:required_n]
                         logger.info(f"✅ Using default models: {selected_models}")
                     else:
                         # Fallback to model selector service
@@ -377,28 +360,11 @@ def create_router() -> APIRouter:
             # Check for SERVICE_UNAVAILABLE error
             if isinstance(pipeline_results, dict) and pipeline_results.get("error") == "SERVICE_UNAVAILABLE":
                 logger.error(f"Service unavailable: {pipeline_results.get('message')}")
-                # Return 503 Service Unavailable
                 await sse_event_bus.publish(corr_id, "service_unavailable", pipeline_results)
-                # Enrich details with provider counts if missing
-                try:
-                    details = pipeline_results.get("details") or {}
-                    health_summary = await provider_health_manager.get_health_summary()
-                    available_providers = health_summary.get("_system", {}).get("available_providers", [])
-                    total_providers = health_summary.get("_system", {}).get("total_providers", 0)
-                    details.setdefault("provider_counts", {
-                        "available": len(available_providers),
-                        "total": total_providers,
-                        "available_providers": available_providers,
-                    })
-                except Exception:
-                    details = pipeline_results.get("details") or {}
+                # Raise 503 with a flat message to satisfy error handler
                 raise HTTPException(
                     status_code=503,
-                    detail={
-                        "error": "SERVICE_UNAVAILABLE",
-                        "message": pipeline_results.get("message", "Service temporarily unavailable"),
-                        "details": details,
-                    }
+                    detail=str(pipeline_results.get("message", "Service temporarily unavailable"))
                 )
 
             # Process results into response format
@@ -635,6 +601,9 @@ def create_router() -> APIRouter:
                 pipeline_info=pipeline_info,
             )
 
+        except HTTPException:
+            # Propagate HTTP errors (e.g., 503 when requirements aren't met)
+            raise
         except Exception as e:
             logger.error(f"Analysis failed: {str(e)}")
             return AnalysisResponse(success=False, results={}, error=str(e))
