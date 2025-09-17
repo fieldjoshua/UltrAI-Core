@@ -73,9 +73,11 @@ const SSEPanel: React.FC<SSEPanelProps> = ({
     const namedEvents = [
       'connected',
       'analysis_start',
-      'initial_start',
-      'model_selected',
+      'stage_started',
       'model_completed',
+      'stage_completed',
+      'synthesis_chunk',
+      'error',
       'pipeline_complete',
       'service_unavailable',
     ];

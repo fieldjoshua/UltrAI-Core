@@ -25,6 +25,7 @@ import {
   Download,
 } from 'lucide-react';
 import SkinSwitcher from '@components/SkinSwitcher';
+import StatusUpdater from '@components/StatusUpdater';
 // Bridge animation disabled for professional static look
 
 interface StepOption {
@@ -135,15 +136,13 @@ export default function CyberWizard() {
     'cost' | 'premium' | 'speed'
   >('premium');
   // const [selectedAddons, setSelectedAddons] = useState<string[]>([]);
-  const [showStatus, setShowStatus] = useState<boolean>(false);
+  const [showStatus, setShowStatus] = useState(false);
   const [stepFadeKey, setStepFadeKey] = useState(0);
   const [userQuery, setUserQuery] = useState<string>('');
   const [queryFocused, setQueryFocused] = useState<boolean>(false);
-  const [isRunning, setIsRunning] = useState<boolean>(false);
+  const [isRunning, setIsRunning] = useState(false);
   const [orchestratorResult, setOrchestratorResult] = useState<any>(null);
-  const [orchestratorError, setOrchestratorError] = useState<string | null>(
-    null
-  );
+  const [orchestratorError, setOrchestratorError] = useState<any>(null);
   const [showResults, setShowResults] = useState<boolean>(false);
   const [isOptimizing] = useState<boolean>(false);
   const [optimizationStep] = useState<number>(0);
@@ -316,21 +315,42 @@ export default function CyberWizard() {
         });
 
         // Check if the API returned an error in the response
-        if ((res as any)?.error) {
-          const errVal: any = (res as any).error;
+        if (res.status === 503) {
+          try {
+            const errorJson = await res.json();
+            setOrchestratorError(errorJson);
+          } catch {
+            setOrchestratorError({ detail: 'Service is temporarily unavailable.' });
+          }
+          setOrchestratorResult(null);
+          return;
+        }
+
+        if (!res.ok) {
+          const errorText = await res.text();
+          setOrchestratorError({ detail: errorText || `Request failed with status ${res.status}` });
+          setOrchestratorResult(null);
+          return;
+        }
+
+        const resultData = await res.json();
+
+        // Check for application-level error in the JSON response
+        if (resultData?.error) {
+          const errVal: any = resultData.error;
           const errorMessage =
             typeof errVal === 'object'
-              ? errVal?.message || JSON.stringify(errVal)
-              : String(errVal);
+              ? { detail: errVal?.message || JSON.stringify(errVal) }
+              : { detail: String(errVal) };
           setOrchestratorError(errorMessage);
           setOrchestratorResult(null);
         } else {
-          setOrchestratorResult(res);
-          console.log('Ultra Synthesis result', res);
+          setOrchestratorResult(resultData);
+          console.log('Ultra Synthesis result', resultData);
         }
       } catch (e: any) {
         console.error('Ultra Synthesis failed', e);
-        setOrchestratorError(e?.message || String(e));
+        setOrchestratorError({ detail: e?.message || String(e) });
       } finally {
         setIsRunning(false);
       }

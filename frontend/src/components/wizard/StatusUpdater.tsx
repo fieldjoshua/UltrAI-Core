@@ -34,6 +34,13 @@ interface StatusUpdaterProps {
   onStartNew?: () => void;
   hasError?: boolean;
   errorStep?: number;
+  errorMessage?: {
+    detail: string;
+    error_details?: {
+      providers_present: string[];
+      required_providers: string[];
+    }
+  } | null;
 }
 
 export default function StatusUpdater({
@@ -44,6 +51,7 @@ export default function StatusUpdater({
   onStartNew,
   hasError = false,
   errorStep = 0,
+  errorMessage = null,
 }: StatusUpdaterProps) {
   const [steps, setSteps] = useState<StatusStep[]>([]);
   const [idx, setIdx] = useState(0);
@@ -134,6 +142,19 @@ export default function StatusUpdater({
           <p className="text-sm opacity-90 mt-3 max-w-md mx-auto leading-relaxed text-white/80">
             {s.narrative}
           </p>
+        )}
+
+        {hasError && errorMessage && (
+          <div className="mt-4 p-3 bg-red-500/10 rounded-lg border border-red-500/30 text-white/80 text-xs">
+            <p className="font-bold mb-1">Service Unavailable</p>
+            <p>{errorMessage.detail}</p>
+            {errorMessage.error_details && (
+              <div className="mt-2 text-left">
+                <p><strong>Providers Present:</strong> {errorMessage.error_details.providers_present.join(', ')}</p>
+                <p><strong>Providers Required:</strong> {errorMessage.error_details.required_providers.join(', ')}</p>
+              </div>
+            )}
+          </div>
         )}
 
         {/* Substeps as centered cards */}

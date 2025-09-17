@@ -13,6 +13,7 @@ from typing import Dict, List, Optional, Tuple
 from dataclasses import dataclass, field
 
 from app.utils.logging import get_logger
+from app.services.provider_probe import provider_probe
 
 logger = get_logger("provider_health_manager")
 
@@ -58,6 +59,35 @@ class ProviderHealthManager:
         self._request_history: Dict[str, List[Tuple[bool, float]]] = defaultdict(list)
         self._lock = asyncio.Lock()
         
+    async def probe_providers(self) -> None:
+        """Actively probe providers to update their health status."""
+        # This can be called periodically or at startup
+        # For now, it will be used by get_health_summary
+        providers_to_check = {
+            "openai": os.getenv("OPENAI_API_KEY"),
+            "anthropic": os.getenv("ANTHROPIC_API_KEY"),
+            "google": os.getenv("GOOGLE_API_KEY"),
+        }
+
+        tasks = []
+        for provider, api_key in providers_to_check.items():
+            if api_key:
+                tasks.append(provider_probe.check_provider(provider, api_key))
+        
+        results = await asyncio.gather(*tasks, return_exceptions=True)
+
+        for result in results:
+            if isinstance(result, Exception):
+                logger.error(f"Provider probe task failed: {result}")
+                continue
+            
+            provider = result.get("provider")
+            if provider:
+                if result.get("status") == "healthy":
+                    await self.record_success(provider, "probe", result.get("latency_ms", 0))
+                else:
+                    await self.record_failure(provider, result.get("error", "Probe failed"))
+    
     async def get_provider_health(self, provider: str) -> ProviderHealth:
         """Get health status for a specific provider."""
         async with self._lock:
@@ -154,6 +184,9 @@ class ProviderHealthManager:
     async def get_health_summary(self) -> Dict[str, Dict]:
         """Get comprehensive health summary for all providers."""
         try:
+            # Actively probe providers before generating the summary
+            await self.probe_providers()
+
             async with self._lock:
                 summary = {}
                 for provider, health in self._provider_health.items():

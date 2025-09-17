@@ -50,24 +50,39 @@ class TestRunner:
     
     def run_quick_health_check(self):
         """Quick health check of orchestration"""
-        cmd = f"cd {self.test_dir} && python -m pytest production/test_orchestration_comprehensive.py::TestOrchestrationHealth -v"
+        cmd = f"cd {self.test_dir} && python3 -m pytest production/test_orchestration_comprehensive.py::TestOrchestrationHealth -v"
         return self.run_command(cmd, "Quick Health Check")
     
     def run_orchestration_test(self):
         """Test orchestration functionality"""
-        cmd = f"cd {self.test_dir} && python -m pytest production/test_orchestration_comprehensive.py::TestOrchestrationFunctionality::test_simple_orchestration -v -s"
+        cmd = f"cd {self.test_dir} && python3 -m pytest production/test_orchestration_comprehensive.py::TestOrchestrationFunctionality::test_simple_orchestration -v -s"
         return self.run_command(cmd, "Orchestration Functionality Test")
     
     def run_all_production_tests(self):
         """Run all production tests"""
-        cmd = f"cd {self.test_dir} && python -m pytest production/ -v"
+        cmd = f"cd {self.test_dir} && python3 -m pytest integration/ --cov=app --cov-report=term-missing"
         return self.run_command(cmd, "All Production Tests")
     
     def run_specific_test(self, test_path):
         """Run a specific test file or test"""
-        cmd = f"cd {self.test_dir} && python -m pytest {test_path} -v"
+        cmd = f"cd {self.test_dir} && python3 -m pytest {test_path} -v --cov=app --cov-report=term-missing"
         return self.run_command(cmd, f"Specific Test: {test_path}")
-    
+
+    def run_frontend_tests(self):
+        """Run frontend Jest tests"""
+        cmd = "cd frontend && npm test"
+        return self.run_command(cmd, "Frontend Jest Tests")
+
+    def run_frontend_lint(self):
+        """Run frontend ESLint checks"""
+        cmd = "cd frontend && npm run lint"
+        return self.run_command(cmd, "Frontend ESLint")
+
+    def run_frontend_format_check(self):
+        """Run frontend Prettier format check"""
+        cmd = "cd frontend && npm run format:check"
+        return self.run_command(cmd, "Frontend Format Check")
+
     def print_summary(self):
         """Print test run summary"""
         print(f"\n{'='*60}")
@@ -99,6 +114,7 @@ def main():
     parser.add_argument('--all', action='store_true', help='Run all production tests')
     parser.add_argument('--test', type=str, help='Run specific test file or path')
     parser.add_argument('--install', action='store_true', help='Install test requirements')
+    parser.add_argument('--frontend', action='store_true', help='Run all frontend checks (Jest, Lint, Format)')
     
     args = parser.parse_args()
     
@@ -112,13 +128,6 @@ def main():
         print("✅ Requirements installed")
         return
     
-    # Ensure pytest is available
-    try:
-        import pytest
-    except ImportError:
-        print("❌ pytest not found. Installing...")
-        subprocess.run([sys.executable, "-m", "pip", "install", "pytest", "pytest-asyncio", "httpx"])
-    
     # Run requested tests
     if args.quick:
         runner.run_quick_health_check()
@@ -129,9 +138,11 @@ def main():
     elif args.test:
         runner.run_specific_test(args.test)
     else:
-        # Default: run health check and orchestration test
-        runner.run_quick_health_check()
-        runner.run_orchestration_test()
+        # Default: run backend integration tests and all frontend checks
+        runner.run_all_production_tests()
+        runner.run_frontend_tests()
+        runner.run_frontend_lint()
+        runner.run_frontend_format_check()
     
     # Print summary
     success = runner.print_summary()
