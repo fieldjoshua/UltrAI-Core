@@ -142,7 +142,7 @@ def create_router() -> APIRouter:
                 orchestration_service = http_request.app.state.orchestration_service
                 try:
                     available_models = await asyncio.wait_for(
-                        orchestration_service._default_models_from_env(), timeout=0.3
+                        orchestration_service._default_models_from_env(), timeout=2.0
                     )
                 except Exception:
                     # On timeout or error, keep fast-fail behavior (no probes)
