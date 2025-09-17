@@ -1,7 +1,7 @@
 module.exports = {
   testEnvironment: 'jsdom',
   setupFilesAfterEnv: [
-    '<rootDir>/src/tests/setup/jest.setup.cjs'
+    '<rootDir>/src/tests/jest/jest.setup.js'
   ],
   transform: {
     '^.+\\.(js|jsx|ts|tsx)$': 'babel-jest',
@@ -19,7 +19,7 @@ module.exports = {
   testMatch: [
     '**/__tests__/**/*.js?(x)',
     '**/?(*.)+(spec|test).js?(x)',
-    '**/tests/auto/**/*.test.{js,jsx,ts,tsx}'
+    '<rootDir>/src/tests/jest/**/*.test.{js,jsx,ts,tsx}'
   ],
   collectCoverageFrom: [
     'src/**/*.{js,jsx,ts,tsx}',

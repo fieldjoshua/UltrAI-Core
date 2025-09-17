@@ -67,7 +67,22 @@ class TestRunner:
         """Run a specific test file or test"""
         cmd = f"cd {self.test_dir} && python3 -m pytest {test_path} -v"
         return self.run_command(cmd, f"Specific Test: {test_path}")
-    
+
+    def run_frontend_tests(self):
+        """Run frontend Jest tests"""
+        cmd = "cd frontend && npm test"
+        return self.run_command(cmd, "Frontend Jest Tests")
+
+    def run_frontend_lint(self):
+        """Run frontend ESLint checks"""
+        cmd = "cd frontend && npm run lint"
+        return self.run_command(cmd, "Frontend ESLint")
+
+    def run_frontend_format_check(self):
+        """Run frontend Prettier format check"""
+        cmd = "cd frontend && npm run format:check"
+        return self.run_command(cmd, "Frontend Format Check")
+
     def print_summary(self):
         """Print test run summary"""
         print(f"\n{'='*60}")
@@ -99,6 +114,7 @@ def main():
     parser.add_argument('--all', action='store_true', help='Run all production tests')
     parser.add_argument('--test', type=str, help='Run specific test file or path')
     parser.add_argument('--install', action='store_true', help='Install test requirements')
+    parser.add_argument('--frontend', action='store_true', help='Run all frontend checks (Jest, Lint, Format)')
     
     args = parser.parse_args()
     
@@ -122,9 +138,11 @@ def main():
     elif args.test:
         runner.run_specific_test(args.test)
     else:
-        # Default: run health check and orchestration test
-        runner.run_quick_health_check()
-        runner.run_orchestration_test()
+        # Default: run backend integration tests and all frontend checks
+        runner.run_all_production_tests()
+        runner.run_frontend_tests()
+        runner.run_frontend_lint()
+        runner.run_frontend_format_check()
     
     # Print summary
     success = runner.print_summary()
