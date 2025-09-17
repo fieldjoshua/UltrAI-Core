@@ -194,6 +194,22 @@ def create_router() -> APIRouter:
                         f"Service unavailable. Only {model_count} model(s) available, {required_models} required"
                     )
 
+            # Staging-only readiness override: if enabled, treat keys-present as ready
+            try:
+                allow_staging_override = os.getenv("STATUS_ALLOW_STAGING_KEYS_READY", "false").lower() == "true"
+                from app.config import Config as _Cfg2
+                if allow_staging_override and getattr(_Cfg2, "ENVIRONMENT", "").lower() == "staging":
+                    if model_count == 0 and (
+                        os.getenv("OPENAI_API_KEY")
+                        or os.getenv("ANTHROPIC_API_KEY")
+                        or os.getenv("GOOGLE_API_KEY")
+                    ):
+                        status = "healthy"
+                        service_available = True
+                        message = "Service operational (staging override: provider keys present)"
+            except Exception:
+                pass
+
             return {
                 "status": status,
                 "service_available": service_available,
