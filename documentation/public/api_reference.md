@@ -25,11 +25,126 @@ The API implements rate limiting to prevent abuse:
 
 ## Endpoints
 
-### Analyze Prompt
+### Orchestrator
 
-```http
-POST /api/analyze
+#### `GET /api/orchestrator/status`
+
+Check the service status, including model availability and provider health.
+
+**Successful Response (200 OK):**
+```json
+{
+  "status": "healthy",
+  "service_available": true,
+  "message": "Service operational with 4 models",
+  "environment": "development",
+  "api_keys_configured": {
+    "openai": true,
+    "anthropic": true,
+    "google": true,
+    "huggingface": false
+  },
+  "models": {
+    "available": [
+      "gpt-4o",
+      "claude-3-5-sonnet-20241022",
+      "gemini-1.5-pro",
+      "gpt-3.5-turbo"
+    ],
+    "count": 4,
+    "required": 3,
+    "single_model_fallback": false
+  },
+  "provider_health": {
+    "available_providers": ["openai", "anthropic", "google"],
+    "total_providers": 3,
+    "meets_requirements": true,
+    "details": {
+      "openai": { "status": "healthy", "is_available": true, "average_latency_ms": 1200 },
+      "anthropic": { "status": "healthy", "is_available": true, "average_latency_ms": 980 },
+      "google": { "status": "healthy", "is_available": true, "average_latency_ms": 1100 }
+    }
+  },
+  "timestamp": 1678886400.0
+}
 ```
+
+#### `POST /api/orchestrator/analyze`
+
+Submit a query for multi-stage analysis.
+
+**Request Body:**
+```json
+{
+  "query": "Analyze the impact of climate change on global supply chains.",
+  "selected_models": ["gpt-4o", "claude-3-5-sonnet-20241022", "gemini-1.5-pro"]
+}
+```
+
+**Successful Response (200 OK):**
+```json
+{
+  "success": true,
+  "results": {
+    "ultra_synthesis": "Comprehensive analysis of climate change impact...",
+    "status": "completed"
+  },
+  "processing_time": 15.7,
+  "pipeline_info": {
+    "stages_completed": ["initial_response", "peer_review_and_revision", "ultra_synthesis"],
+    "models_used": ["gpt-4o", "claude-3-5-sonnet-20241022", "gemini-1.5-pro"]
+  }
+}
+```
+
+**Service Unavailable Response (503 Service Unavailable):**
+```json
+{
+  "detail": "UltraAI requires at least 3 models and providers: ['anthropic', 'google', 'openai']; missing: ['google']; available_models=2",
+  "error_details": {
+    "providers_present": ["anthropic", "openai"],
+    "required_providers": ["anthropic", "google", "openai"]
+  }
+}
+```
+
+#### `POST /api/orchestrator/analyze/stream`
+
+Submit a query for analysis and stream back real-time events via Server-Sent Events (SSE).
+
+**Request Body:**
+```json
+{
+  "query": "Analyze the impact of climate change on global supply chains.",
+  "selected_models": ["gpt-4o", "claude-3-5-sonnet-20241022", "gemini-1.5-pro"],
+  "stream_stages": ["stage_events", "synthesis_chunks"]
+}
+```
+
+**SSE Event Stream:**
+```
+event: stage_started
+data: {"stage": "initial_response"}
+
+event: model_completed
+data: {"model": "gpt-4o"}
+
+event: stage_completed
+data: {"stage": "initial_response"}
+
+event: synthesis_chunk
+data: {"chunk": "The impact of climate change..."}
+
+...
+
+event: analysis_complete
+data: {"processing_time": 15.7}
+```
+
+### Legacy Endpoints
+
+#### `POST /api/analyze`
+*This endpoint is deprecated. Please use `/api/orchestrator/analyze`.*
 
 Analyze a prompt using multiple LLMs and an Ultra LLM.
 
@@ -185,3 +300,4 @@ Common HTTP status codes:
 - 404: Not Found
 - 429: Too Many Requests
 - 500: Internal Server Error
+- 503: Service Unavailable

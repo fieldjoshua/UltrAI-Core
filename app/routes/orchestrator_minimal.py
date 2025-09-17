@@ -7,7 +7,7 @@ import os
 from typing import Dict, Any, Optional, List
 from fastapi import APIRouter, HTTPException, Request, Depends
 from fastapi.responses import StreamingResponse
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 from app.utils.logging import get_logger
 from app.services.output_formatter import OutputFormatter
@@ -67,6 +67,28 @@ class AnalysisResponse(BaseModel):
     )
 
 
+class StatusResponse(BaseModel):
+    """Response model for the service status endpoint."""
+    status: str = Field(..., description="Service status (e.g., 'healthy', 'degraded', 'unavailable')")
+    service_available: bool = Field(..., description="Whether the service is available to handle requests")
+    message: str = Field(..., description="A human-readable message about the service status")
+    environment: str = Field(..., description="The current application environment (e.g., 'development', 'production')")
+    api_keys_configured: Dict[str, bool] = Field(..., description="Status of API key configuration for each provider")
+    models: Dict[str, Any] = Field(..., description="Information about available and required models")
+    provider_health: Dict[str, Any] = Field(..., description="Health status of the underlying model providers")
+    timestamp: float = Field(..., description="The timestamp of the status check")
+
+class ErrorDetail(BaseModel):
+    """Standardized error detail for 503 responses."""
+    providers_present: List[str] = Field(..., description="List of providers that are currently available.")
+    required_providers: List[str] = Field(..., description="List of providers required for the service to be healthy.")
+
+class ServiceUnavailableResponse(BaseModel):
+    """Response model for 503 Service Unavailable errors."""
+    detail: str = Field(..., description="A human-readable error message.")
+    error_details: Optional[ErrorDetail] = Field(None, description="Detailed provider information for readiness failures.")
+
+
 def create_router() -> APIRouter:
     """
     Create the router with all endpoints.
@@ -101,7 +123,16 @@ def create_router() -> APIRouter:
             },
         )
 
-    @router.get("/orchestrator/status")
+    @router.get(
+        "/orchestrator/status",
+        response_model=StatusResponse,
+        summary="Get Service Status",
+        description="Checks the operational status of the orchestration service, including model availability and provider health.",
+        responses={
+            200: {"description": "Service is operational."},
+            503: {"description": "Service is not initialized or in an error state.", "model": ServiceUnavailableResponse},
+        }
+    )
     async def get_service_status(http_request: Request):
         """
         Check the service status including model availability.
@@ -111,11 +142,10 @@ def create_router() -> APIRouter:
         """
         try:
             if not hasattr(http_request.app.state, "orchestration_service"):
-                return {
-                    "status": "error",
-                    "message": "Orchestration service not initialized",
-                    "service_available": False
-                }
+                raise HTTPException(
+                    status_code=503,
+                    detail="Orchestration service not initialized"
+                )
 
             orchestration_service = http_request.app.state.orchestration_service
 
@@ -204,13 +234,21 @@ def create_router() -> APIRouter:
 
         except Exception as e:
             logger.error(f"Error checking service status: {e}", exc_info=True)
-            return {
-                "status": "error",
-                "message": str(e),
-                "service_available": False
-            }
+            raise HTTPException(
+                status_code=503,
+                detail=f"An unexpected error occurred: {str(e)}"
+            )
 
-    @router.post("/orchestrator/analyze", response_model=AnalysisResponse)
+    @router.post(
+        "/orchestrator/analyze",
+        response_model=AnalysisResponse,
+        summary="Run Multi-Stage Analysis",
+        description="Submits a query for analysis through a multi-stage pipeline involving multiple AI models.",
+        responses={
+            200: {"description": "Analysis completed successfully."},
+            503: {"description": "Service is unavailable due to insufficient models or providers.", "model": ServiceUnavailableResponse},
+        }
+    )
     async def analyze_query(
         request: AnalysisRequest,
         http_request: Request,
@@ -270,26 +308,23 @@ def create_router() -> APIRouter:
                 missing = list(required_providers)
 
             if model_count < required_models_cfg or missing:
-                logger.error(f"Insufficient models available: {model_count} < {required_models_cfg}")
-                # Gather provider availability details for human-readable error
-                try:
-                    health_summary = await provider_health_manager.get_health_summary()
-                    available_providers = health_summary.get("_system", {}).get("available_providers", [])
-                    total_providers = health_summary.get("_system", {}).get("total_providers", 0)
-                except Exception:
-                    available_providers, total_providers = [], 0
-                api_key_status = {
-                    "openai": bool(os.getenv("OPENAI_API_KEY")),
-                    "anthropic": bool(os.getenv("ANTHROPIC_API_KEY")),
-                    "google": bool(os.getenv("GOOGLE_API_KEY")),
-                    "huggingface": bool(os.getenv("HUGGINGFACE_API_KEY")),
-                }
+                logger.error(f"Insufficient models available: {model_count} < {required_models_cfg} or missing providers: {missing}")
                 message = (
                     f"UltraAI requires at least {required_models_cfg} models and providers: "
                     f"{sorted(list(required_providers))}; missing: {sorted(missing)}; "
                     f"available_models={model_count}"
                 )
-                raise HTTPException(status_code=503, detail=message)
+                error_detail = ErrorDetail(
+                    providers_present=sorted(list(available_provider_set)),
+                    required_providers=sorted(list(required_providers)),
+                )
+                raise HTTPException(
+                    status_code=503,
+                    detail={
+                        "detail": message,
+                        "error_details": error_detail.dict()
+                    }
+                )
 
             # Use tracked orchestration if available
             if hasattr(orchestration_service, "set_request_context"):
@@ -605,10 +640,19 @@ def create_router() -> APIRouter:
             # Propagate HTTP errors (e.g., 503 when requirements aren't met)
             raise
         except Exception as e:
-            logger.error(f"Analysis failed: {str(e)}")
-            return AnalysisResponse(success=False, results={}, error=str(e))
+            logger.error(f"Analysis failed: {str(e)}", exc_info=True)
+            raise HTTPException(status_code=500, detail=f"An unexpected error occurred: {str(e)}")
 
-    @router.post("/orchestrator/analyze/stream")
+    @router.post(
+        "/orchestrator/analyze/stream",
+        summary="Stream Multi-Stage Analysis via SSE",
+        description="Submits a query for analysis and streams back real-time events as the pipeline progresses.",
+        responses={
+            200: {"description": "SSE stream successfully initiated."},
+            503: {"description": "Service is unavailable or not initialized.", "model": ServiceUnavailableResponse},
+            501: {"description": "Streaming functionality is not implemented or enabled."},
+        }
+    )
     async def analyze_query_stream(
         request: StreamingAnalysisRequest,
         http_request: Request,
@@ -724,6 +768,7 @@ def create_router() -> APIRouter:
             )
 
         except HTTPException:
+            # Propagate HTTP errors
             raise
         except Exception as e:
             logger.error(f"Streaming analysis failed: {str(e)}")

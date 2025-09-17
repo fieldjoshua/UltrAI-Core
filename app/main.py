@@ -17,8 +17,43 @@ from app.utils.logging import get_logger
 from app.config import Config
 import os
 import sys
+import asyncio
 
 logger = get_logger("main")
+
+
+async def log_startup_readiness():
+    """Logs a summary of service readiness at startup."""
+    logger.info("--- Startup Readiness Check ---")
+    try:
+        health_summary = await provider_health_manager.get_health_summary()
+        available_providers = health_summary.get("_system", {}).get("available_providers", [])
+        required_providers = Config.REQUIRED_PROVIDERS
+        missing_providers = [p for p in required_providers if p not in available_providers]
+
+        big_3_status = {p: ("✅" if p in available_providers else "❌") for p in ["openai", "anthropic", "google"]}
+        logger.info(f"Provider Health (Big 3): OpenAI: {big_3_status['openai']}, Anthropic: {big_3_status['anthropic']}, Google: {big_3_status['google']}")
+
+        if missing_providers:
+            logger.warning(f"Missing required providers: {', '.join(missing_providers)}")
+        else:
+            logger.info("All required providers are present.")
+
+        # Log available models
+        try:
+            # Temporarily create an orchestration service to access model discovery
+            temp_orchestrator = OrchestrationService(ModelRegistry(), QualityEvaluationService(), RateLimiter())
+            default_models = await temp_orchestrator._default_models_from_env()
+            if default_models:
+                logger.info(f"Found {len(default_models)} available models at boot: {', '.join(default_models)}")
+            else:
+                logger.warning("No models found at boot. Service may be degraded.")
+        except Exception as e:
+            logger.error(f"Error discovering models at startup: {e}")
+
+    except Exception as e:
+        logger.error(f"Failed to perform startup readiness check: {e}", exc_info=True)
+    logger.info("---------------------------------")
 
 
 def validate_production_requirements() -> bool:
@@ -123,6 +158,11 @@ def configure_app(app: FastAPI, services: Dict[str, Any]) -> None:
     app.state.prompt_service = services["prompt_service"]
     app.state.orchestration_service = services["orchestration_service"]
     app.state.services = services  # Store all services for route access
+
+    @app.on_event("startup")
+    async def startup_event():
+        """On startup, run readiness check."""
+        await log_startup_readiness()
 
     # Log startup message
     logger.info("✅ App loaded correctly")

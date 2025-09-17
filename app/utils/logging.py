@@ -20,6 +20,22 @@ from datetime import datetime
 from functools import wraps
 from pathlib import Path
 from typing import Any, Callable, Dict, Optional
+import re
+
+# Simple redaction for API keys
+SECRET_PATTERNS = {
+    re.compile(r"(sk-[a-zA-Z0-9]{20}T3BlbkFJ[a-zA-Z0-9]{20})"): "REDACTED_OPENAI_KEY",
+    re.compile(r"(xkeys-v1\.[a-zA-Z0-9=_\-]{100,})"): "REDACTED_ANTHROPIC_KEY",
+    re.compile(r"(AIzaSy[a-zA-Z0-9\-_]{33})"): "REDACTED_GOOGLE_KEY",
+}
+
+def redact_secrets(message: str) -> str:
+    """Redacts known secret patterns from a log message."""
+    if not isinstance(message, str):
+        message = str(message)
+    for pattern, placeholder in SECRET_PATTERNS.items():
+        message = pattern.sub(placeholder, message)
+    return message
 
 # Create logs directory if it doesn't exist
 logs_dir = Path("logs")
@@ -71,7 +87,7 @@ class StructuredLogFormatter(logging.Formatter):
             "timestamp": datetime.fromtimestamp(record.created).isoformat(),
             "level": record.levelname,
             "logger": record.name,
-            "message": record.getMessage(),
+            "message": redact_secrets(record.getMessage()),
             "correlation_id": getattr(
                 record, "correlation_id", CorrelationContext.get_correlation_id()
             ),
@@ -84,13 +100,22 @@ class StructuredLogFormatter(logging.Formatter):
         if record.exc_info:
             log_data["exception"] = {
                 "type": str(record.exc_info[0].__name__),
-                "message": str(record.exc_info[1]),
+                "message": redact_secrets(str(record.exc_info[1])),
                 "traceback": self.formatException(record.exc_info),
             }
 
         # Add extra fields from record
         if hasattr(record, "extra"):
             log_data.update(record.extra)
+
+        # Ensure all string values in the final log data are redacted
+        for key, value in log_data.items():
+            if isinstance(value, str):
+                log_data[key] = redact_secrets(value)
+            elif isinstance(value, dict):
+                for k, v in value.items():
+                    if isinstance(v, str):
+                        value[k] = redact_secrets(v)
 
         return json.dumps(log_data)
 

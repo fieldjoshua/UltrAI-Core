@@ -541,8 +541,8 @@ class OrchestrationService:
                 "message": error_msg,
                 "details": {
                     "models_required": Config.MINIMUM_MODELS_REQUIRED,
-                    "providers_available": len(available_providers),
-                    "providers_operational": available_providers,
+                    "models_available": len(selected_models),
+                    "providers_present": available_providers,
                     "required_providers": required_providers,
                     "missing_providers": missing_providers,
                     "service_status": "unavailable"
@@ -1594,17 +1594,17 @@ class OrchestrationService:
                         peer_responses_text += f"\n{peer_model}: {peer_response}\n"
 
                 # Create the peer review prompt - more critical and less assumptive
-                peer_review_prompt = """Please review the responses from other LLMs given the same query you just completed. Do not assume anything is factual, but would you like to edit your initial response after seeing the work of your peers?  # noqa: E501
-
-Original Query: {original_prompt}
-
-Your Initial Response:
-{own_response}
-
-Responses from Other LLMs:
-{peer_responses_text}
-
-After critically reviewing these peer responses, please provide your revised answer to the original query. You may keep your original response if you believe it's already optimal, or incorporate insights from the peer responses where they improve accuracy, completeness, or clarity."""  # noqa: E501
+                peer_review_prompt = (
+                    "Please review the responses from other LLMs given the same query you just completed. "
+                    "Do not assume anything is factual, but would you like to edit your initial response "
+                    "after seeing the work of your peers?\\n\\n"
+                    "Original Query: {original_prompt}\\n\\n"
+                    "Your Initial Response:\\n{own_response}\\n\\n"
+                    "Responses from Other LLMs:\\n{peer_responses_text}\\n\\n"
+                    "After critically reviewing these peer responses, please provide your revised answer to the "
+                    "original query. You may keep your original response if you believe it's already optimal, "
+                    "or incorporate insights from the peer responses where they improve accuracy, completeness, or clarity."
+                )
 
                 # Execute the peer review using the same model adapters as initial_response
                 if model.startswith("gpt") or model.startswith("o1"):
@@ -1780,11 +1780,9 @@ After critically reviewing these peer responses, please provide your revised ans
             if "original_responses" in data and isinstance(
                 data["original_responses"], dict
             ):
-                _ = data["original_responses"].get(
-                    "prompt", "Unknown prompt"
-                )
+                pass
             else:
-                _ = "Unknown prompt"
+                pass
             logger.info(
                 f"✅ Meta-analysis using {len(responses_to_analyze)} peer-revised responses"
             )
@@ -1796,7 +1794,6 @@ After critically reviewing these peer responses, please provide your revised ans
             inner = data["input"] if isinstance(data["input"], dict) else {}
             if "responses" in inner:
                 responses_to_analyze = inner["responses"]
-                # remove unused original_prompt
                 logger.info(
                     "⚠️ Peer review skipped. Using initial responses for meta-analysis."
                 )
@@ -1861,30 +1858,27 @@ After critically reviewing these peer responses, please provide your revised ans
         )
 
         # Meta-analysis prompt (requires multiple responses)
-        meta_prompt = """MULTI-COGNITIVE FRAMEWORK ANALYSIS
-
-Original Inquiry: {original_prompt}
-
-AI Model Responses:
-{analysis_text}
-
-Your task is to perform a comprehensive meta-analysis that prepares for Ultra Synthesis™ intelligence multiplication. Analyze these responses as different cognitive frameworks approaching the same problem.  # noqa: E501
-
-ANALYSIS REQUIREMENTS:
-1. **Cross-Model Validation**: Identify areas where multiple models converge (high confidence insights)
-2. **Complementary Perspectives**: Highlight how different models contribute unique valuable insights
-3. **Analytical Tensions**: Address contradictions constructively - where models disagree and why
-4. **Knowledge Integration**: Synthesize factual claims with appropriate confidence levels
-5. **Cognitive Framework Mapping**: Identify the different analytical approaches each model used
-
-OUTPUT STRUCTURE:
-- **Convergent Insights**: Where models agree (highest confidence)
-- **Complementary Analysis**: Unique valuable contributions from each perspective
-- **Constructive Tensions**: Contradictions that reveal complexity or nuance
-- **Integrated Knowledge Base**: Verified facts and evidence with confidence levels
-- **Framework Synthesis**: How different analytical approaches enhance understanding
-
-Prepare this analysis to enable true intelligence multiplication in the subsequent Ultra Synthesis™ stage."""
+        meta_prompt = (
+            "MULTI-COGNITIVE FRAMEWORK ANALYSIS\\n\\n"
+            "Original Inquiry: {original_prompt}\\n\\n"
+            "AI Model Responses:\\n{analysis_text}\\n\\n"
+            "Your task is to perform a comprehensive meta-analysis that prepares for "
+            "Ultra Synthesis™ intelligence multiplication. Analyze these responses as "
+            "different cognitive frameworks approaching the same problem.\\n\\n"
+            "ANALYSIS REQUIREMENTS:\\n"
+            "1. **Cross-Model Validation**: Identify areas where multiple models converge (high confidence insights)\\n"
+            "2. **Complementary Perspectives**: Highlight how different models contribute unique valuable insights\\n"
+            "3. **Analytical Tensions**: Address contradictions constructively - where models disagree and why\\n"
+            "4. **Knowledge Integration**: Synthesize factual claims with appropriate confidence levels\\n"
+            "5. **Cognitive Framework Mapping**: Identify the different analytical approaches each model used\\n\\n"
+            "OUTPUT STRUCTURE:\\n"
+            "- **Convergent Insights**: Where models agree (highest confidence)\\n"
+            "- **Complementary Analysis**: Unique valuable contributions from each perspective\\n"
+            "- **Constructive Tensions**: Contradictions that reveal complexity or nuance\\n"
+            "- **Integrated Knowledge Base**: Verified facts and evidence with confidence levels\\n"
+            "- **Framework Synthesis**: How different analytical approaches enhance understanding\\n\\n"
+            "Prepare this analysis to enable true intelligence multiplication in the subsequent Ultra Synthesis™ stage."
+        )
 
         # Try multiple successful models in case the first choice is rate-limited
         successful_models = list(responses_to_analyze.keys()) or [
