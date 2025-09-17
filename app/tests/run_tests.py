@@ -60,12 +60,12 @@ class TestRunner:
     
     def run_all_production_tests(self):
         """Run all production tests"""
-        cmd = f"cd {self.test_dir} && python3 -m pytest production/ -v"
+        cmd = f"cd {self.test_dir} && python3 -m pytest integration/ --cov=app --cov-report=term-missing"
         return self.run_command(cmd, "All Production Tests")
     
     def run_specific_test(self, test_path):
         """Run a specific test file or test"""
-        cmd = f"cd {self.test_dir} && python3 -m pytest {test_path} -v"
+        cmd = f"cd {self.test_dir} && python3 -m pytest {test_path} -v --cov=app --cov-report=term-missing"
         return self.run_command(cmd, f"Specific Test: {test_path}")
 
     def run_frontend_tests(self):

@@ -6,13 +6,6 @@ from fastapi.testclient import TestClient
 from app.app import create_app
 
 
-@pytest.fixture
-def client():
-    os.environ["TESTING"] = "true"
-    app = create_app()
-    return TestClient(app)
-
-
 def test_orchestrator_status_ready(client):
     """Smoke test for status ready: mock 3 healthy providers → expect ready: true."""
     with patch('app.services.provider_health_manager.ProviderHealthManager.get_health_summary', new_callable=AsyncMock) as mock_health:
