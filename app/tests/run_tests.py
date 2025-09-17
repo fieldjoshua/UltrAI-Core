@@ -50,22 +50,22 @@ class TestRunner:
     
     def run_quick_health_check(self):
         """Quick health check of orchestration"""
-        cmd = f"cd {self.test_dir} && python -m pytest production/test_orchestration_comprehensive.py::TestOrchestrationHealth -v"
+        cmd = f"cd {self.test_dir} && python3 -m pytest production/test_orchestration_comprehensive.py::TestOrchestrationHealth -v"
         return self.run_command(cmd, "Quick Health Check")
     
     def run_orchestration_test(self):
         """Test orchestration functionality"""
-        cmd = f"cd {self.test_dir} && python -m pytest production/test_orchestration_comprehensive.py::TestOrchestrationFunctionality::test_simple_orchestration -v -s"
+        cmd = f"cd {self.test_dir} && python3 -m pytest production/test_orchestration_comprehensive.py::TestOrchestrationFunctionality::test_simple_orchestration -v -s"
         return self.run_command(cmd, "Orchestration Functionality Test")
     
     def run_all_production_tests(self):
         """Run all production tests"""
-        cmd = f"cd {self.test_dir} && python -m pytest production/ -v"
+        cmd = f"cd {self.test_dir} && python3 -m pytest production/ -v"
         return self.run_command(cmd, "All Production Tests")
     
     def run_specific_test(self, test_path):
         """Run a specific test file or test"""
-        cmd = f"cd {self.test_dir} && python -m pytest {test_path} -v"
+        cmd = f"cd {self.test_dir} && python3 -m pytest {test_path} -v"
         return self.run_command(cmd, f"Specific Test: {test_path}")
     
     def print_summary(self):
@@ -111,13 +111,6 @@ def main():
                       cwd=runner.test_dir)
         print("✅ Requirements installed")
         return
-    
-    # Ensure pytest is available
-    try:
-        import pytest
-    except ImportError:
-        print("❌ pytest not found. Installing...")
-        subprocess.run([sys.executable, "-m", "pip", "install", "pytest", "pytest-asyncio", "httpx"])
     
     # Run requested tests
     if args.quick:

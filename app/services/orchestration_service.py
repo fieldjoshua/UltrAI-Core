@@ -1820,15 +1820,7 @@ class OrchestrationService:
             logger.warning(
                 "⚠️ Emergency fallback: synthesizing directly from initial responses"
             )
-            initial_responses = data["input"]["responses"]
-            analysis_text = "\n\n".join(
-                [
-                    f"**{model}:** {response}"
-                    for model, response in initial_responses.items()
-                ]
-            )
-            # Use analysis_text downstream if needed; avoid unused locals
-            _ = analysis_text
+            responses_to_analyze = data["input"]["responses"]
         elif (
             "input" in data
             and isinstance(data["input"], dict)

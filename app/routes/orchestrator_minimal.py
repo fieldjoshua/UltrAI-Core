@@ -669,17 +669,18 @@ def create_router() -> APIRouter:
         """
         try:
             logger.info(f"Starting streaming analysis for query: {request.query[:100]}...")
-
+            from app.config import Config
             # Get orchestration service
             if not hasattr(http_request.app.state, "orchestration_service"):
                 raise HTTPException(
                     status_code=503,
                     detail={
-                        "error": "SERVICE_UNAVAILABLE",
-                        "message": "Orchestration service is not initialized",
-                        "details": {
+                        "detail": "Orchestration service is not initialized",
+                        "error_details": {
                             "reason": "The orchestration service has not been properly started. This is typically a server configuration issue.",
-                            "action": "Please try again in a few moments or contact support if the issue persists."
+                            "action": "Please try again in a few moments or contact support if the issue persists.",
+                            "providers_present": [],
+                            "required_providers": sorted(list(getattr(Config, "REQUIRED_PROVIDERS", ["openai", "anthropic", "google"])))
                         }
                     }
                 )
