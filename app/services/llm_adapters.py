@@ -172,7 +172,10 @@ class AnthropicAdapter(BaseAdapter):
         try:
             logger.info(
                 "Anthropic request",
-                extra={"requestId": CorrelationContext.get_correlation_id(), "model": self.model},
+                extra={
+                    "requestId": CorrelationContext.get_correlation_id(),
+                    "model": self.model,
+                },
             )
             response = await self.__class__.CLIENT.post(
                 "https://api.anthropic.com/v1/messages", headers=headers, json=payload
@@ -247,17 +250,19 @@ class GeminiAdapter(BaseAdapter):
     async def generate(self, prompt: str) -> Dict[str, Any]:
         # SECURITY FIX: Move API key from URL to secure header
         url = f"https://generativelanguage.googleapis.com/v1beta/models/{self.model}:generateContent"
-        headers = {
-            "Content-Type": "application/json",
-            "x-goog-api-key": self.api_key
-        }
+        headers = {"Content-Type": "application/json", "x-goog-api-key": self.api_key}
         payload = {"contents": [{"parts": [{"text": prompt}]}]}
         try:
             logger.info(
                 "Google Gemini request",
-                extra={"requestId": CorrelationContext.get_correlation_id(), "model": self.model},
+                extra={
+                    "requestId": CorrelationContext.get_correlation_id(),
+                    "model": self.model,
+                },
             )
-            response = await self.__class__.CLIENT.post(url, headers=headers, json=payload)
+            response = await self.__class__.CLIENT.post(
+                url, headers=headers, json=payload
+            )
             response.raise_for_status()
             data = response.json()
             try:
@@ -370,7 +375,9 @@ class HuggingFaceAdapter(BaseAdapter):
             }
 
         try:
-            response = await self.__class__.CLIENT.post(url, headers=headers, json=payload)
+            response = await self.__class__.CLIENT.post(
+                url, headers=headers, json=payload
+            )
             response.raise_for_status()
             data = response.json()
 

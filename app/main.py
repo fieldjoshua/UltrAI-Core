@@ -12,7 +12,8 @@ from app.services.orchestration_service import OrchestrationService
 from app.services.quality_evaluation import QualityEvaluationService
 from app.services.rate_limiter import RateLimiter
 from app.services.model_selection import SmartModelSelector
-from app.services.provider_health_manager import provider_health_manager
+
+# from app.services.provider_health_manager import provider_health_manager
 from app.utils.logging import get_logger
 from app.config import Config
 import os
@@ -24,13 +25,13 @@ logger = get_logger("main")
 def validate_production_requirements() -> bool:
     """
     Validate that production requirements are met.
-    
+
     Returns:
         bool: True if requirements are met, False otherwise
     """
     if Config.ENVIRONMENT != "production":
         return True  # Skip validation for non-production environments
-    
+
     # Check minimum models requirement
     if Config.MINIMUM_MODELS_REQUIRED < 2:
         logger.error(
@@ -38,10 +39,10 @@ def validate_production_requirements() -> bool:
             f"Current value: {Config.MINIMUM_MODELS_REQUIRED}"
         )
         return False
-    
+
     # Check for required API keys (at least 2 providers must be configured)
     configured_providers = []
-    
+
     if os.getenv("OPENAI_API_KEY"):
         configured_providers.append("OpenAI")
     if os.getenv("ANTHROPIC_API_KEY"):
@@ -50,7 +51,7 @@ def validate_production_requirements() -> bool:
         configured_providers.append("Google")
     if os.getenv("HUGGINGFACE_API_KEY"):
         configured_providers.append("HuggingFace")
-    
+
     if len(configured_providers) < 2:
         logger.error(
             "⚠️ PRODUCTION CONFIG ERROR: At least 2 LLM provider API keys must be configured. "
@@ -61,19 +62,19 @@ def validate_production_requirements() -> bool:
             "OPENAI_API_KEY, ANTHROPIC_API_KEY, GOOGLE_API_KEY, HUGGINGFACE_API_KEY"
         )
         return False
-    
+
     # Check single model fallback is disabled
     if Config.ENABLE_SINGLE_MODEL_FALLBACK:
         logger.warning(
             "⚠️ PRODUCTION WARNING: ENABLE_SINGLE_MODEL_FALLBACK is enabled. "
             "This should be disabled in production for proper multi-model orchestration."
         )
-    
+
     logger.info(
         f"✅ Production validation passed: {len(configured_providers)} providers configured "
         f"({', '.join(configured_providers)}), minimum models: {Config.MINIMUM_MODELS_REQUIRED}"
     )
-    
+
     return True
 
 
@@ -87,12 +88,13 @@ def initialize_services() -> Dict[str, Any]:
 
     # Initialize rate limiter
     rate_limiter = RateLimiter()
-    
+
     # Initialize model selector (shared across services)
     model_selector = SmartModelSelector()
-    
+
     # Initialize cache service (singleton, will be reused)
     from app.services.cache_service import get_cache_service
+
     cache_service = get_cache_service()
 
     # Initialize orchestration service with required dependencies
@@ -131,6 +133,76 @@ def configure_app(app: FastAPI, services: Dict[str, Any]) -> None:
     logger.info("  - POST /api/orchestrator/compare")
     logger.info("  - POST /api/orchestrator/evaluate")
 
+    # Log Big 3 provider readiness
+    import asyncio
+    from app.config import Config
+
+    async def check_big3_readiness():
+        try:
+            orchestration_service = services["orchestration_service"]
+            available_models = await orchestration_service._default_models_from_env()
+
+            # Check which Big 3 providers are present
+            providers_found = {"openai": False, "anthropic": False, "google": False}
+
+            for model in available_models:
+                if model.startswith("gpt") or model.startswith("o1"):
+                    providers_found["openai"] = True
+                elif model.startswith("claude"):
+                    providers_found["anthropic"] = True
+                elif model.startswith("gemini"):
+                    providers_found["google"] = True
+
+            # Log provider status
+            logger.info("🚀 Big 3 Provider Status:")
+            logger.info(
+                f"  - OpenAI: {'✅ READY' if providers_found['openai'] else '❌ NOT AVAILABLE'}"
+            )
+            logger.info(
+                f"  - Anthropic: {'✅ READY' if providers_found['anthropic'] else '❌ NOT AVAILABLE'}"
+            )
+            logger.info(
+                f"  - Google: {'✅ READY' if providers_found['google'] else '❌ NOT AVAILABLE'}"
+            )
+
+            # Check if minimum requirements are met
+            total_models = len(available_models)
+            required_models = Config.MINIMUM_MODELS_REQUIRED
+            required_providers = set(getattr(Config, "REQUIRED_PROVIDERS", []))
+
+            providers_present = [p for p, found in providers_found.items() if found]
+            all_required_present = (
+                not required_providers
+                or required_providers.issubset(set(providers_present))
+            )
+
+            if total_models >= required_models and all_required_present:
+                logger.info(
+                    f"✅ Service READY: {total_models} models available (minimum: {required_models})"
+                )
+            else:
+                logger.warning(
+                    f"⚠️ Service NOT READY: {total_models} models available (minimum: {required_models})"
+                )
+                if required_providers and not all_required_present:
+                    missing = list(required_providers - set(providers_present))
+                    logger.warning(f"⚠️ Missing required providers: {missing}")
+
+        except Exception as e:
+            logger.error(f"Failed to check Big 3 readiness: {e}")
+
+    # Run the readiness check (defer if no running loop yet)
+    try:
+        loop = asyncio.get_running_loop()
+        loop.create_task(check_big3_readiness())
+    except RuntimeError:
+
+        def _run_on_startup():
+            loop = asyncio.get_event_loop()
+            loop.create_task(check_big3_readiness())
+
+        app.add_event_handler("startup", _run_on_startup)
+
 
 def create_production_app() -> FastAPI:
     """Create and configure the production FastAPI application."""
@@ -140,7 +212,7 @@ def create_production_app() -> FastAPI:
         if Config.ENVIRONMENT == "production":
             # In production, fail fast to prevent deploying a broken service
             sys.exit(1)
-    
+
     # Create base app
     app = create_app()
 

@@ -75,11 +75,12 @@ source venv/bin/activate                 # Fix import errors
 ### Core System Design
 The UltrAI project implements a **patented LLM orchestration system** using intelligence multiplication patterns:
 
-1. **Multi-Stage Analysis Pipeline**
-   - Initial Analysis: Multiple LLMs analyze independently
-   - Meta Analysis: A meta-model reviews all responses
-   - Ultra Synthesis: Final synthesis combining all insights
+1. **3-Stage Orchestration Pipeline**
+   - **Stage 1 - Initial Response**: Multiple LLMs (minimum 3) receive the exact user query and respond independently
+   - **Stage 2 - Peer Review**: Each model reviews others' responses and provides revised insights
+   - **Stage 3 - Ultra Synthesis™**: A non-participant model synthesizes all peer-reviewed responses into a comprehensive answer
    - Implementation: `app/services/orchestration_service.py`
+   - Required providers: OpenAI, Anthropic, Google (the "Big 3")
 
 2. **Service Architecture**
    ```
@@ -99,15 +100,16 @@ The UltrAI project implements a **patented LLM orchestration system** using inte
    - Redis caching with local memory fallback
    - JWT + API key authentication on protected endpoints
    - Request ID tracking across all services
-   - At least 2 LLM models must be functional for viability (configurable via `MINIMUM_MODELS_REQUIRED`)
+   - At least 3 models must be functional for viability (configurable via `MINIMUM_MODELS_REQUIRED`)
+   - Big 3 provider gating enforced in production
 
 ### Frontend Architecture
 - **Framework**: React + TypeScript + Vite
 - **API Client**: Custom hooks with type-safe API integration
-- **State Management**: Zustand stores
+- **State Management**: Zustand stores + Redux Toolkit for complex state
 - **Styling**: Tailwind CSS + custom design tokens
 - **Themes**: Multiple skins (night, morning, afternoon, sunset)
-- **Key Components**: OrchestratorInterface, ModelMonitor, SSEPanel
+- **Key Components**: CyberWizard (multi-step interface), ModelMonitor, SSEPanel
 
 ### Deployment Architecture
 - **Backend Services**:
@@ -122,7 +124,8 @@ The UltrAI project implements a **patented LLM orchestration system** using inte
 
 ### API Endpoints
 Key endpoints:
-- `POST /api/orchestrate` - Main orchestration (multi-stage analysis)
+- `POST /api/orchestrator/analyze` - Main orchestration (multi-stage analysis)
+- `GET /api/orchestrator/status` - Service availability check
 - `GET /api/models` - Available LLM models
 - `GET /api/model-health` - Model availability/performance
 - `POST /api/auth/login` - Authentication
@@ -142,7 +145,7 @@ Key endpoints:
 ### Git Workflow & Branches
 - **main**: Staging branch (active development)
 - **production**: Production branch (stable, curated features)
-- **ultrai-play-***: Playground branches for experiments
+- **feature/*****: Feature branches for new development
 - Never commit directly to production
 - Promote staging → production via merge or cherry-pick
 
@@ -152,16 +155,23 @@ Key endpoints:
 3. **Test-Driven Development** - Tests before implementation
 4. **Deployment Verification** - Test production URL before marking complete
 
+### Big 3 Provider Gating
+- **Required Providers**: OpenAI, Anthropic, Google
+- **Minimum Models**: 3 models across all providers
+- **Production Enforcement**: Service returns 503 if requirements not met
+- **Configuration**: `MINIMUM_MODELS_REQUIRED=3`, `REQUIRED_PROVIDERS=[openai,anthropic,google]`
+- **Single Model Fallback**: Disabled in production (`ENABLE_SINGLE_MODEL_FALLBACK=false`)
+
 ### Collaboration & Oversight (Required)
 - Adhere to signals: `[PLAN]`, `[CLAUDE_DO]`, `[ULTRA_DO]`, `[STATUS]`, `[REVIEW]`, `[BLOCKER]`, `[COMPLETE]`
 - Before push/merge you must provide evidence:
   - Local test outputs and commands
   - Security checks (dependency audit, secret/regex scan, injection/XSS basics)
-  - Model availability policy satisfied (≥2 healthy models; single-model fallback disabled)
-  - Endpoint verifications (`/api/available-models?healthy_only=true`, `/api/orchestrator/status`)
+  - Model availability policy satisfied (≥3 healthy models; single-model fallback disabled)
+  - Endpoint verifications (`/api/orchestrator/status`, `/api/models?healthy_only=true`)
 - Drift prevention: if off track, say "I'm getting off track. Returning to [ORIGINAL_TASK]" and realign
 - No refactors/optimizations/features unless explicitly requested
-- See `docs/OVERSIGHT_README.md` and `docs/cursor-rules.md` for full policies
+- See `.aicheck/rules.md` and `CURSOR_RULES.md` for full policies
 
 #### Real-time Monitoring & Check-ins
 - Subscribe to SSE when applicable: `GET /api/orchestrator/events?correlation_id=…`
@@ -211,8 +221,9 @@ FEATURE_FLAGS = {
 
 ### Model Availability Policy
 ```python
-MINIMUM_MODELS_REQUIRED = 2  # Configurable in app/config.py
+MINIMUM_MODELS_REQUIRED = 3  # Configurable in app/config.py
 ENABLE_SINGLE_MODEL_FALLBACK = False
+REQUIRED_PROVIDERS = ["openai", "anthropic", "google"]  # Big 3 enforcement
 ```
 
 ## Testing Strategy
@@ -229,11 +240,19 @@ ENABLE_SINGLE_MODEL_FALLBACK = False
 - `@pytest.mark.live_online` - Requires real API keys
 - `@pytest.mark.slow` - Long-running tests
 
+### Critical Tests
+- Big 3 provider gating validation
+- Service 503 responses when requirements not met
+- SSE event schema compliance
+- Cost field sanitization (no financial data leaks)
+- Provider health probe functionality
+
 ## Security Notes
 - `.env.staging` is excluded from git (contains secrets)
 - All secrets must be in environment variables or Render dashboard
 - GitHub push protection will block commits with exposed secrets
 - Run security checks before pushing (see Collaboration section)
+- Response sanitizer prevents cost/billing field leaks
 
 ## Render Deployment Notes
 - **Config Files**: `render.yaml` (main), `render-staging.yaml`, `render-production.yaml`
@@ -242,3 +261,30 @@ ENABLE_SINGLE_MODEL_FALLBACK = False
 - **Health Check**: `/api/health` endpoint
 - **Auto-deploy**: Staging only; Production requires manual deploy
 - **Verification Script**: Run `./scripts/verify-render-config.sh` to check setup
+
+## Key Implementation Details
+
+### LLM Orchestration Pipeline
+1. **Input Validation**: Query validation, model selection, provider availability check
+2. **Initial Response Stage**: Parallel execution across selected models (asyncio.gather)
+3. **Peer Review Stage**: Each model reviews others' responses (if ≥3 models)
+4. **Ultra Synthesis**: Meta-model synthesizes all insights into final response
+5. **Output Processing**: Format synthesis, apply modules, sanitize responses
+
+### Provider Health Management
+- 5-second health probes for each provider
+- Circuit breaker patterns for failed providers
+- Automatic failover within provider requirements
+- Real-time health status via `/api/orchestrator/status`
+
+### Error Handling
+- Standardized error responses across all adapters
+- 503 Service Unavailable when Big 3 requirements not met
+- Detailed error payloads including provider status
+- Request ID tracking for debugging
+
+### Performance Optimizations
+- Shared httpx.AsyncClient across all adapters
+- Redis caching with local memory fallback
+- Concurrent execution in orchestration stages
+- Connection pooling and request timeouts
