@@ -2,10 +2,10 @@
   "gpt-4": {
     "model_name": "gpt-4",
     "successful_syntheses": 0,
-    "failed_syntheses": 0,
-    "average_quality_score": 0.0,
-    "average_response_time": 0.0,
-    "last_used": null,
+    "failed_syntheses": 1,
+    "average_quality_score": 0,
+    "average_response_time": 30.0,
+    "last_used": "2025-09-16T18:25:22.514352",
     "expertise_areas": [
       "reasoning",
       "technical",
@@ -58,11 +58,11 @@
   },
   "claude-3-5-sonnet-20241022": {
     "model_name": "claude-3-5-sonnet-20241022",
-    "successful_syntheses": 28,
-    "failed_syntheses": 0,
-    "average_quality_score": 8.5,
-    "average_response_time": 5.0,
-    "last_used": "2025-09-12T23:18:36.114570",
+    "successful_syntheses": 29,
+    "failed_syntheses": 1,
+    "average_quality_score": 5.949999999999999,
+    "average_response_time": 12.5,
+    "last_used": "2025-09-16T18:25:22.513922",
     "expertise_areas": [
       "nuanced",
       "ethical",

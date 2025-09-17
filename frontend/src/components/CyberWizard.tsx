@@ -89,6 +89,8 @@ export default function CyberWizard() {
   const [isOptimizing] = useState<boolean>(false);
   const [optimizationStep] = useState<number>(0);
   const [modelStatuses, setModelStatuses] = useState<Record<string, 'checking' | 'ready' | 'error'>>({});
+  const [serviceReady, setServiceReady] = useState<boolean | null>(null);
+  const [serviceMessage, setServiceMessage] = useState<string>("");
   // Sync bgTheme with currentSkin for non-minimalist skins
   const [bgTheme, setBgTheme] = useState<'morning' | 'afternoon' | 'sunset' | 'night'>('night');
   
@@ -134,6 +136,25 @@ export default function CyberWizard() {
       }
     };
     load();
+  }, []);
+
+  // Health check banner and gating (require ≥3 models and all providers)
+  useEffect(() => {
+    const checkStatus = async () => {
+      try {
+        const r = await fetch('/api/orchestrator/status', { cache: 'no-store' });
+        const data = await r.json().catch(() => ({}));
+        const ready = !!data?.ready && data?.service_available === true && data?.status === 'healthy';
+        setServiceReady(ready);
+        setServiceMessage(typeof data?.message === 'string' ? data.message : (ready ? 'Service ready' : 'Service unavailable'));
+      } catch (e: any) {
+        setServiceReady(false);
+        setServiceMessage('Service status unavailable');
+      }
+    };
+    checkStatus();
+    const id = setInterval(checkStatus, 15000);
+    return () => clearInterval(id);
   }, []);
 
   if (steps.length === 0) {
@@ -625,7 +646,8 @@ The convergence of autonomous vehicles, renewable energy, and smart city infrast
                 <Button
                   variant="primary"
                   size="lg"
-                  onClick={() => { setCurrentStep(1); setStepFadeKey(k => k + 1); }}
+                  onClick={() => { if (serviceReady !== false) { setCurrentStep(1); setStepFadeKey(k => k + 1); } }}
+                  disabled={serviceReady === false}
                   className="px-12 py-5 text-xl font-bold"
                 >
                   <span className="flex items-center gap-3 justify-center">
@@ -859,6 +881,14 @@ The convergence of autonomous vehicles, renewable energy, and smart city infrast
         <div className="flex items-center justify-center" style={{ minHeight: '100vh', paddingTop: isNonTimeSkin ? '25vh' : '37.5vh' }}>
           <div className="w-full max-w-7xl px-8">
             <div className="grid grid-cols-12 gap-4">
+              {serviceReady === false && (
+                <div className="col-span-12">
+                  <div className="p-3 rounded-xl border-2" style={{ borderColor: '#ff5a5f', background: 'rgba(255,90,95,0.1)' }}>
+                    <div className="text-[12px] font-bold" style={{ color: '#ff5a5f' }}>Service Unavailable</div>
+                    <div className="text-[11px] text-white/80">{serviceMessage || 'Requires at least 3 healthy models across OpenAI, Anthropic, and Google.'}</div>
+                  </div>
+                </div>
+              )}
 
           {/* Left Panel: System Status */}
               <div className="col-span-2">
@@ -908,7 +938,7 @@ The convergence of autonomous vehicles, renewable energy, and smart city infrast
                       <div className="text-[10px] font-semibold text-white">Status</div>
                     </div>
                     <div className="text-[14px] font-bold" style={{ color: colorHex }}>
-                      {availableModels && availableModels.filter(m => modelStatuses[m] === 'ready').length >= 2 ? 'Online' : 'Offline'}
+                      {serviceReady ? 'Online' : 'Offline'}
                     </div>
                   </div>
                 </Card>

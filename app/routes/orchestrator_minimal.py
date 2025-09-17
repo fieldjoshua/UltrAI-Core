@@ -4,6 +4,7 @@ Route handlers for the orchestrator service.
 
 import time
 from typing import Dict, Any, Optional, List
+import os
 from fastapi import APIRouter, HTTPException, Request, Depends
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
@@ -36,10 +37,12 @@ class AnalysisRequest(BaseModel):
         default=False, description="Whether to save pipeline outputs as JSON/TXT files"
     )
     include_pipeline_details: bool = Field(
-        default=False, description="Include all pipeline stages (initial responses, peer review) in output. Default returns only Ultra Synthesis."
+        default=False,
+        description="Include all pipeline stages (initial responses, peer review) in output. Default returns only Ultra Synthesis.",
     )
     include_initial_responses: bool = Field(
-        default=False, description="Include initial model responses even in streamlined output"
+        default=False,
+        description="Include initial model responses even in streamlined output",
     )
 
 
@@ -73,33 +76,70 @@ def create_router() -> APIRouter:
     """
     router = APIRouter(tags=["Orchestrator"])
 
-    @router.get("/orchestrator/status")
+    @router.get(
+        "/orchestrator/status",
+        summary="Get orchestration service status",
+        description="Check if the orchestration service is ready to handle requests. Returns model availability and provider status.",
+        responses={
+            200: {
+                "description": "Service status",
+                "content": {
+                    "application/json": {
+                        "example": {
+                            "status": "healthy",
+                            "service_available": True,
+                            "message": "Service operational with 3 models",
+                            "models": {
+                                "available": ["gpt-4", "claude-3-5-sonnet-20241022", "gemini-1.5-flash"],
+                                "count": 3,
+                                "required": 3,
+                                "single_model_fallback": False,
+                                "providers_present": ["openai", "anthropic", "google"],
+                                "required_providers": ["openai", "anthropic", "google"]
+                            },
+                            "ready": True,
+                            "timestamp": 1234567890.123
+                        }
+                    }
+                }
+            }
+        }
+    )
     async def get_service_status(http_request: Request):
-        """
-        Check the service status including model availability.
-        
-        Returns:
-            dict: Service status with model counts and health
-        """
+        """Check the service status including model availability."""
         try:
             if not hasattr(http_request.app.state, "orchestration_service"):
                 return {
                     "status": "error",
                     "message": "Orchestration service not initialized",
-                    "service_available": False
+                    "service_available": False,
                 }
-            
+
             orchestration_service = http_request.app.state.orchestration_service
-            
+
             # Get available models
             available_models = await orchestration_service._default_models_from_env()
             model_count = len(available_models)
-            
+
             # Determine service status
             from app.config import Config
+
             required_models = Config.MINIMUM_MODELS_REQUIRED
-            
-            if model_count >= required_models:
+            required_providers = set(getattr(Config, "REQUIRED_PROVIDERS", []))
+
+            # Infer providers from model names
+            providers_present = set()
+            for m in available_models:
+                if m.startswith("gpt") or m.startswith("o1"):
+                    providers_present.add("openai")
+                elif m.startswith("claude"):
+                    providers_present.add("anthropic")
+                elif m.startswith("gemini"):
+                    providers_present.add("google")
+
+            if model_count >= required_models and (
+                not required_providers or required_providers.issubset(providers_present)
+            ):
                 status = "healthy"
                 service_available = True
                 message = f"Service operational with {model_count} models"
@@ -110,8 +150,14 @@ def create_router() -> APIRouter:
             else:
                 status = "unavailable"
                 service_available = False
-                message = f"Service unavailable. Only {model_count} model(s) available, {required_models} required"
-            
+                if required_providers and not required_providers.issubset(
+                    providers_present
+                ):
+                    missing = list(required_providers - providers_present)
+                    message = f"Service unavailable. Missing providers: {missing}"
+                else:
+                    message = f"Service unavailable. Only {model_count} model(s) available, {required_models} required"
+
             return {
                 "status": status,
                 "service_available": service_available,
@@ -120,31 +166,74 @@ def create_router() -> APIRouter:
                     "available": available_models,
                     "count": model_count,
                     "required": required_models,
-                    "single_model_fallback": Config.ENABLE_SINGLE_MODEL_FALLBACK
+                    "single_model_fallback": Config.ENABLE_SINGLE_MODEL_FALLBACK,
+                    "providers_present": list(providers_present),
+                    "required_providers": (
+                        list(required_providers) if required_providers else []
+                    ),
                 },
-                "timestamp": time.time()
+                "ready": service_available and status == "healthy",
+                "timestamp": time.time(),
             }
-            
+
         except Exception as e:
             logger.error(f"Error checking service status: {e}")
-            return {
-                "status": "error",
-                "message": str(e),
-                "service_available": False
+            return {"status": "error", "message": str(e), "service_available": False}
+
+    @router.post(
+        "/orchestrator/analyze",
+        response_model=AnalysisResponse,
+        summary="Analyze text using multi-model orchestration",
+        description="Process text through the 3-stage Ultra Synthesis™ pipeline with multiple LLMs.",
+        responses={
+            200: {
+                "description": "Analysis completed successfully",
+                "content": {
+                    "application/json": {
+                        "example": {
+                            "success": True,
+                            "results": {
+                                "ultra_synthesis": "The comprehensive analysis shows...",
+                                "formatted_synthesis": "# Analysis Results\n\nThe comprehensive analysis...",
+                                "status": "completed"
+                            },
+                            "processing_time": 12.34,
+                            "pipeline_info": {
+                                "stages_completed": ["initial_response", "peer_review_and_revision", "ultra_synthesis"],
+                                "total_stages": 3,
+                                "models_used": ["gpt-4", "claude-3-5-sonnet-20241022", "gemini-1.5-flash"],
+                                "pipeline_type": "3-stage optimized",
+                                "include_details": False
+                            }
+                        }
+                    }
+                }
+            },
+            503: {
+                "description": "Service unavailable due to insufficient models or missing providers",
+                "content": {
+                    "application/json": {
+                        "example": {
+                            "error": "SERVICE_UNAVAILABLE",
+                            "message": "Missing required providers: ['anthropic']",
+                            "details": {
+                                "providers_present": ["openai", "google"],
+                                "required_providers": ["openai", "anthropic", "google"],
+                                "missing_providers": ["anthropic"],
+                                "selected_models": ["gpt-4", "gemini-1.5-flash"]
+                            }
+                        }
+                    }
+                }
             }
-
-    @router.post("/orchestrator/analyze", response_model=AnalysisResponse)
+        }
+    )
     async def analyze_query(
-        request: AnalysisRequest, 
+        request: AnalysisRequest,
         http_request: Request,
-        current_user: AuthUser = Depends(require_auth)
+        current_user: AuthUser = Depends(require_auth),
     ):
-        """
-        Main analysis endpoint using the orchestration service.
-
-        This endpoint provides the core analysis functionality by routing
-        requests through the multi-stage orchestration pipeline.
-        """
+        """Main analysis endpoint using the orchestration service."""
         try:
             import time
 
@@ -154,8 +243,10 @@ def create_router() -> APIRouter:
                 f"Starting analysis for query: {request.query[:100]}...",
                 extra={
                     "request_id": getattr(http_request.state, "request_id", None),
-                    "correlation_id": getattr(http_request.state, "correlation_id", None)
-                }
+                    "correlation_id": getattr(
+                        http_request.state, "correlation_id", None
+                    ),
+                },
             )
 
             # Get orchestration service from app state
@@ -165,7 +256,7 @@ def create_router() -> APIRouter:
                 )
 
             orchestration_service = http_request.app.state.orchestration_service
-            
+
             # Use tracked orchestration if available
             if hasattr(orchestration_service, "set_request_context"):
                 orchestration_service.set_request_context(http_request)
@@ -174,39 +265,73 @@ def create_router() -> APIRouter:
             pipeline_options = request.options or {}
             pipeline_options["save_outputs"] = request.save_outputs
 
-            # If models not provided, select smartly
+            # If models not provided, select smartly (require 3 healthy models)
             selected_models = request.selected_models
             logger.info(f"📊 Models requested by client: {selected_models}")
-            
+            from app.config import Config as _Cfg
+
+            required_models = _Cfg.MINIMUM_MODELS_REQUIRED
+            # Parse REQUIRED_PROVIDERS from env at request time so tests can control it dynamically
+            env_req = os.getenv("REQUIRED_PROVIDERS", "").strip()
+            if env_req:
+                required_providers = set([p for p in env_req.replace(" ", "").split(",") if p])
+            else:
+                required_providers = set()
+
             if not selected_models:
                 try:
-                    # Try to use defaults from orchestration service
-                    default_models = await orchestration_service._default_models_from_env()
+                    default_models = (
+                        await orchestration_service._default_models_from_env()
+                    )
                     logger.info(f"🔍 Default models from env: {default_models}")
-                    
                     if default_models:
-                        selected_models = default_models[:2]  # Use first 2 available models
+                        selected_models = default_models[:required_models]
                         logger.info(f"✅ Using default models: {selected_models}")
-                    else:
-                        # Fallback to model selector service
-                        if hasattr(http_request.app.state, "services"):
-                            svc = http_request.app.state.services.get("model_selector")
-                        else:
-                            svc = None
-                        if svc:
-                            top = await svc.choose_models(
-                                query=request.query,
-                                candidate_models=None,
-                                desired_count=2,
-                                query_type=request.analysis_type,
-                            )
-                            selected_models = top
-                            logger.info(f"🤖 Auto-selected model(s): {selected_models}")
                 except Exception as e:
                     logger.error(f"Model selection failed: {e}")
-                    # Hard fallback to ensure we have at least one model
-                    selected_models = ["gpt-4o"]
-                    logger.warning(f"⚠️ Using fallback model: {selected_models}")
+
+            # Calculate providers present from selected models
+            providers_present = set()
+            if selected_models:
+                for m in selected_models:
+                    if m.startswith("gpt") or m.startswith("o1"):
+                        providers_present.add("openai")
+                    elif m.startswith("claude"):
+                        providers_present.add("anthropic")
+                    elif m.startswith("gemini"):
+                        providers_present.add("google")
+
+            # Enforce gating: prefer explicit missing provider error over count error
+            if required_providers and not required_providers.issubset(providers_present):
+                missing = list(required_providers - providers_present)
+                raise HTTPException(
+                    status_code=503,
+                    detail={
+                        "error": "SERVICE_UNAVAILABLE",
+                        "message": f"Missing required providers: {missing}",
+                        "details": {
+                            "providers_present": list(providers_present),
+                            "required_providers": list(required_providers),
+                            "missing_providers": missing,
+                            "selected_models": selected_models
+                        },
+                    },
+                )
+
+            if not selected_models or len(selected_models) < required_models:
+                raise HTTPException(
+                    status_code=503,
+                    detail={
+                        "error": "SERVICE_UNAVAILABLE",
+                        "message": f"Insufficient healthy models. Require {required_models}.",
+                        "details": {
+                            "selected_models": selected_models or [],
+                            "required_models": required_models,
+                            "providers_present": list(providers_present),
+                            "required_providers": list(required_providers),
+                        },
+                    },
+                )
 
             # Run the analysis pipeline
             pipeline_results = await orchestration_service.run_pipeline(
@@ -217,16 +342,21 @@ def create_router() -> APIRouter:
             )
 
             # Check for SERVICE_UNAVAILABLE error
-            if isinstance(pipeline_results, dict) and pipeline_results.get("error") == "SERVICE_UNAVAILABLE":
+            if (
+                isinstance(pipeline_results, dict)
+                and pipeline_results.get("error") == "SERVICE_UNAVAILABLE"
+            ):
                 logger.error(f"Service unavailable: {pipeline_results.get('message')}")
                 # Return 503 Service Unavailable
                 raise HTTPException(
                     status_code=503,
                     detail={
                         "error": "SERVICE_UNAVAILABLE",
-                        "message": pipeline_results.get("message", "Service temporarily unavailable"),
-                        "details": pipeline_results.get("details", {})
-                    }
+                        "message": pipeline_results.get(
+                            "message", "Service temporarily unavailable"
+                        ),
+                        "details": pipeline_results.get("details", {}),
+                    },
                 )
 
             # Process results into response format
@@ -239,7 +369,9 @@ def create_router() -> APIRouter:
 
             # Ensure pipeline_results is a dict
             if not isinstance(pipeline_results, dict):
-                logger.error(f"Pipeline returned unexpected type: {type(pipeline_results)}")
+                logger.error(
+                    f"Pipeline returned unexpected type: {type(pipeline_results)}"
+                )
                 return AnalysisResponse(
                     success=False,
                     results={},
@@ -275,13 +407,18 @@ def create_router() -> APIRouter:
                                 else stage_result
                             )
                             quality = None
-                            if hasattr(stage_result, "quality") and stage_result.quality:
+                            if (
+                                hasattr(stage_result, "quality")
+                                and stage_result.quality
+                            ):
                                 quality = stage_result.quality.__dict__
 
                             if isinstance(output, dict):
                                 # Check for synthesis or synthesis_enhanced
                                 if "synthesis_enhanced" in output:
-                                    ultra_synthesis_result = output["synthesis_enhanced"]
+                                    ultra_synthesis_result = output[
+                                        "synthesis_enhanced"
+                                    ]
                                 elif "synthesis" in output:
                                     synthesis_val = output.get("synthesis")
                                     if isinstance(synthesis_val, dict):
@@ -298,7 +435,9 @@ def create_router() -> APIRouter:
                                 ultra_synthesis_result = output
 
             except Exception as e:
-                logger.error(f"Error processing pipeline results: {str(e)}", exc_info=True)
+                logger.error(
+                    f"Error processing pipeline results: {str(e)}", exc_info=True
+                )
                 return AnalysisResponse(
                     success=False,
                     results={},
@@ -326,7 +465,10 @@ def create_router() -> APIRouter:
                                 else stage_result
                             )
                             quality = None
-                            if hasattr(stage_result, "quality") and stage_result.quality:
+                            if (
+                                hasattr(stage_result, "quality")
+                                and stage_result.quality
+                            ):
                                 quality = stage_result.quality.__dict__
 
                             analysis_results[stage_name] = {
@@ -336,7 +478,9 @@ def create_router() -> APIRouter:
                             }
 
                 except Exception as e:
-                    logger.error(f"Error processing pipeline details: {str(e)}", exc_info=True)
+                    logger.error(
+                        f"Error processing pipeline details: {str(e)}", exc_info=True
+                    )
                     # Fall back to simple output on error
                     if ultra_synthesis_result is not None:
                         analysis_results = {
@@ -358,9 +502,11 @@ def create_router() -> APIRouter:
                             pipeline_results,
                             include_initial_responses=True,
                             include_peer_review=True,
-                            include_metadata=request.options.get("include_metadata", False)
-                            if request.options
-                            else False,
+                            include_metadata=(
+                                request.options.get("include_metadata", False)
+                                if request.options
+                                else False
+                            ),
                         )
 
                         # Add formatted output to results
@@ -371,10 +517,15 @@ def create_router() -> APIRouter:
                 # Return only Ultra Synthesis (default behavior)
                 if ultra_synthesis_result is not None:
                     # Build pipeline data for formatter
-                    formatter_input = {"ultra_synthesis": {"synthesis": ultra_synthesis_result}}
+                    formatter_input = {
+                        "ultra_synthesis": {"synthesis": ultra_synthesis_result}
+                    }
 
                     # Add initial responses if requested
-                    if request.include_initial_responses and "initial_response" in pipeline_results:
+                    if (
+                        request.include_initial_responses
+                        and "initial_response" in pipeline_results
+                    ):
                         initial_stage = pipeline_results["initial_response"]
                         if hasattr(initial_stage, "output"):
                             formatter_input["initial_response"] = initial_stage.output
@@ -398,8 +549,13 @@ def create_router() -> APIRouter:
                     }
 
                     # Add initial responses if requested
-                    if request.include_initial_responses and "initial_responses" in simple_formatted:
-                        analysis_results["initial_responses"] = simple_formatted["initial_responses"]
+                    if (
+                        request.include_initial_responses
+                        and "initial_responses" in simple_formatted
+                    ):
+                        analysis_results["initial_responses"] = simple_formatted[
+                            "initial_responses"
+                        ]
 
                 else:
                     analysis_results = {
@@ -418,7 +574,9 @@ def create_router() -> APIRouter:
                 "stages_completed": completed_stages,
                 "total_stages": len(completed_stages),
                 "models_used": selected_models or [],
-                "pipeline_type": "3-stage optimized" if len(completed_stages) >= 3 else "partial",
+                "pipeline_type": (
+                    "3-stage optimized" if len(completed_stages) >= 3 else "partial"
+                ),
                 "include_details": request.include_pipeline_details,
             }
 
@@ -435,82 +593,161 @@ def create_router() -> APIRouter:
                 pipeline_info=pipeline_info,
             )
 
+        except HTTPException as exc:
+            # Bubble up HTTP exceptions so tests/clients receive intended status codes (e.g., 503 gating)
+            raise exc
         except Exception as e:
             logger.error(f"Analysis failed: {str(e)}")
             return AnalysisResponse(success=False, results={}, error=str(e))
 
-    @router.post("/orchestrator/analyze/stream")
+    @router.post(
+        "/orchestrator/analyze/stream",
+        summary="Stream analysis results using SSE",
+        description="Process text through the orchestration pipeline with real-time Server-Sent Events updates.",
+        responses={
+            200: {
+                "description": "SSE stream established",
+                "content": {
+                    "text/event-stream": {
+                        "example": "data: {\"event\": \"analysis_start\", \"timestamp\": 1234567890.123}\n\n"
+                    }
+                }
+            },
+            503: {
+                "description": "Service unavailable due to insufficient models or missing providers",
+                "content": {
+                    "application/json": {
+                        "example": {
+                            "error": "SERVICE_UNAVAILABLE",
+                            "message": "Insufficient healthy models. Require 3.",
+                            "details": {
+                                "selected_models": ["gpt-4"],
+                                "required_models": 3,
+                                "providers_present": ["openai"],
+                                "required_providers": ["openai", "anthropic", "google"]
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    )
     async def analyze_query_stream(
         request: StreamingAnalysisRequest,
         http_request: Request,
-        current_user: AuthUser = Depends(require_auth)
+        current_user: AuthUser = Depends(require_auth),
     ):
-        """
-        Streaming analysis endpoint using Server-Sent Events.
-        
-        This endpoint provides real-time updates as the orchestration pipeline
-        processes through its stages, enabling responsive user interfaces.
-        
-        Returns:
-            StreamingResponse: Server-Sent Events stream
-        """
+        """Streaming analysis endpoint using Server-Sent Events."""
         try:
-            logger.info(f"Starting streaming analysis for query: {request.query[:100]}...")
-            
+            logger.info(
+                f"Starting streaming analysis for query: {request.query[:100]}..."
+            )
+
             # Get orchestration service
             if not hasattr(http_request.app.state, "orchestration_service"):
                 raise HTTPException(
                     status_code=503, detail="Orchestration service not available"
                 )
-            
+
             orchestration_service = http_request.app.state.orchestration_service
-            
+
             # Check if service supports streaming
             if not hasattr(orchestration_service, "stream_pipeline"):
                 # Try to import and create streaming service
                 try:
-                    from app.services.streaming_orchestration_service import StreamingOrchestrationService
-                    
+                    from app.services.streaming_orchestration_service import (
+                        StreamingOrchestrationService,
+                    )
+
                     # Create streaming service with same dependencies
                     streaming_service = StreamingOrchestrationService(
                         model_registry=orchestration_service.model_registry,
                         quality_evaluator=orchestration_service.quality_evaluator,
                         rate_limiter=orchestration_service.rate_limiter,
                         token_manager=orchestration_service.token_manager,
-                        transaction_service=orchestration_service.transaction_service
+                        transaction_service=orchestration_service.transaction_service,
                     )
-                    
+
                     # Store for future requests
-                    http_request.app.state.streaming_orchestration_service = streaming_service
+                    http_request.app.state.streaming_orchestration_service = (
+                        streaming_service
+                    )
                     orchestration_service = streaming_service
-                    
+
                 except ImportError:
                     raise HTTPException(
-                        status_code=501, 
-                        detail="Streaming not implemented. Use /orchestrator/analyze for non-streaming."
+                        status_code=501,
+                        detail="Streaming not implemented. Use /orchestrator/analyze for non-streaming.",
                     )
-            
+
             # Configure streaming
             streaming_config = StreamingConfig(
                 enabled=True,
                 chunk_size=request.chunk_size,
                 synthesis_streaming="synthesis_chunks" in request.stream_stages,
-                include_partial_responses="model_responses" in request.stream_stages
+                include_partial_responses="model_responses" in request.stream_stages,
             )
-            
+
             # Model selection (similar to non-streaming endpoint)
             selected_models = request.selected_models
+            from app.config import Config as _Cfg
+
+            required_models = _Cfg.MINIMUM_MODELS_REQUIRED
+            required_providers = set(getattr(_Cfg, "REQUIRED_PROVIDERS", []))
             if not selected_models:
                 try:
-                    default_models = await orchestration_service._default_models_from_env()
+                    default_models = (
+                        await orchestration_service._default_models_from_env()
+                    )
                     if default_models:
-                        selected_models = default_models[:2]
-                    else:
-                        selected_models = ["gpt-4o", "claude-3-5-sonnet-20241022"]
+                        selected_models = default_models[:required_models]
                 except Exception as e:
                     logger.error(f"Model selection failed: {e}")
-                    selected_models = ["gpt-4o"]
-            
+
+            # Calculate providers present from selected models
+            providers_present = set()
+            if selected_models:
+                for m in selected_models:
+                    if m.startswith("gpt") or m.startswith("o1"):
+                        providers_present.add("openai")
+                    elif m.startswith("claude"):
+                        providers_present.add("anthropic")
+                    elif m.startswith("gemini"):
+                        providers_present.add("google")
+
+            if not selected_models or len(selected_models) < required_models:
+                raise HTTPException(
+                    status_code=503,
+                    detail={
+                        "error": "SERVICE_UNAVAILABLE",
+                        "message": f"Insufficient healthy models. Require {required_models}.",
+                        "details": {
+                            "selected_models": selected_models or [],
+                            "required_models": required_models,
+                            "providers_present": list(providers_present),
+                            "required_providers": list(required_providers)
+                        },
+                    },
+                )
+
+            if required_providers and not required_providers.issubset(
+                providers_present
+            ):
+                missing = list(required_providers - providers_present)
+                raise HTTPException(
+                    status_code=503,
+                    detail={
+                        "error": "SERVICE_UNAVAILABLE",
+                        "message": f"Missing required providers: {missing}",
+                        "details": {
+                            "providers_present": list(providers_present),
+                            "required_providers": list(required_providers),
+                            "missing_providers": missing,
+                            "selected_models": selected_models
+                        },
+                    },
+                )
+
             # Create async generator for streaming
             async def event_stream():
                 """Generate Server-Sent Events."""
@@ -520,13 +757,13 @@ def create_router() -> APIRouter:
                         options=request.options,
                         user_id=request.user_id,
                         selected_models=selected_models,
-                        stream_config=streaming_config
+                        stream_config=streaming_config,
                     ):
                         yield event
                 except Exception as e:
                     logger.error(f"Streaming error: {str(e)}")
                     yield f"data: {{'event': 'error', 'data': {{'error': '{str(e)}'}}}}\n\n"
-            
+
             # Return streaming response
             return StreamingResponse(
                 event_stream(),
@@ -534,10 +771,10 @@ def create_router() -> APIRouter:
                 headers={
                     "Cache-Control": "no-cache",
                     "Connection": "keep-alive",
-                    "X-Accel-Buffering": "no"  # Disable proxy buffering
-                }
+                    "X-Accel-Buffering": "no",  # Disable proxy buffering
+                },
             )
-            
+
         except HTTPException:
             raise
         except Exception as e:

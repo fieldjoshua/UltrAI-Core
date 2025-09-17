@@ -52,8 +52,18 @@ export async function processWithFeatherOrchestration({
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
+      // Map 503 gating errors into a clear message
+      if (response.status === 503) {
+        const detail = errorData?.detail;
+        const message = typeof detail === 'object' ? (detail?.message || 'Service temporarily unavailable') : (detail || 'Service temporarily unavailable');
+        return {
+          error: message,
+          status: 'error',
+          code: 'SERVICE_UNAVAILABLE',
+        };
+      }
       return {
-        error: errorData.detail || `HTTP ${response.status}`,
+        error: (errorData && (errorData.detail || errorData.message)) || `HTTP ${response.status}`,
         status: 'error',
       };
     }

@@ -56,15 +56,24 @@ class Config:
     RETRY_MAX_DELAY = float(os.getenv("RETRY_MAX_DELAY", "60.0"))
     RETRY_EXPONENTIAL_BASE = float(os.getenv("RETRY_EXPONENTIAL_BASE", "2.0"))
 
-    # Rate Limiting Settings  
+    # Rate Limiting Settings
     RATE_LIMIT_DETECTION_ENABLED = os.getenv("RATE_LIMIT_DETECTION_ENABLED", "true").lower() == "true"
     RATE_LIMIT_RETRY_ENABLED = os.getenv("RATE_LIMIT_RETRY_ENABLED", "true").lower() == "true"
 
     # Multi-model policy
     # Enforce at least N healthy models to keep UltrAI online.
-    MINIMUM_MODELS_REQUIRED = int(os.getenv("MINIMUM_MODELS_REQUIRED", "2"))
+    MINIMUM_MODELS_REQUIRED = int(os.getenv("MINIMUM_MODELS_REQUIRED", "3"))
+    REQUIRED_PROVIDERS = []  # Empty means no specific provider requirements
     # Explicitly control single-model fallback behavior
     ENABLE_SINGLE_MODEL_FALLBACK = os.getenv("ENABLE_SINGLE_MODEL_FALLBACK", "false").lower() == "true"
+
+    # Required providers for readiness (used by status/gating checks)
+    # Accepts subset of {"openai", "anthropic", "google"}
+    REQUIRED_PROVIDERS = (
+        os.getenv("REQUIRED_PROVIDERS", "openai,anthropic,google").replace(" ", "").split(",")
+        if os.getenv("REQUIRED_PROVIDERS") is not None
+        else ["openai", "anthropic", "google"]
+    )
 
     @classmethod
     def create_directories(cls) -> None:
