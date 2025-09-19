@@ -247,6 +247,7 @@ def create_app() -> FastAPI:
     from app.routes.model_availability_routes import router as model_availability_router
     from app.routes.cache_routes import router as cache_router
     from app.routes.test_env_routes import router as test_env_router
+    from app.routes.error_monitoring import router as error_monitoring_router
 
     # Register API routers under /api prefix
     api_prefix = "/api"
@@ -269,6 +270,7 @@ def create_app() -> FastAPI:
     app.include_router(model_availability_router, prefix=api_prefix)
     app.include_router(cache_router, prefix=api_prefix)
     app.include_router(test_env_router, prefix=api_prefix)
+    app.include_router(error_monitoring_router)  # Already has /api/errors prefix
 
     # Enforce single /api prefix (no root mount for orchestrator)
 

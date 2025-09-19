@@ -18,6 +18,17 @@ from app.services.quality_evaluation import QualityEvaluationService, ResponseQu
 from app.services.rate_limiter import RateLimiter
 from app.services.token_management_service import TokenManagementService
 
+# Enhanced synthesis components
+try:
+    from app.services.synthesis_prompts import SynthesisPromptManager
+    from app.services.model_selection import SmartModelSelector
+    from app.services.synthesis_output import StructuredSynthesisOutput
+except ImportError as e:
+    # Graceful degradation if enhanced synthesis components aren't available
+    SynthesisPromptManager = None
+    SmartModelSelector = None
+    StructuredSynthesisOutput = None
+
 # Transaction service - only imported if billing is enabled
 try:
     from app.config import Config
@@ -34,6 +45,7 @@ from app.services.llm_adapters import (
     GeminiAdapter,
     HuggingFaceAdapter,
 )
+from app.services.enhanced_error_handler import enhanced_error_handler, ErrorSeverity
 from app.services.resilient_llm_adapter import create_resilient_adapter
 from app.services.telemetry_service import telemetry
 from app.services.telemetry_llm_wrapper import wrap_llm_adapter_with_telemetry
@@ -114,18 +126,30 @@ class OrchestrationService:
         else:
             self.transaction_service = None
 
-        # Initialize new Ultra Synthesis™ optimization components with error handling
-        try:
-            self.synthesis_prompt_manager = SynthesisPromptManager()
-            self.model_selector = SmartModelSelector()
-            self.synthesis_output_formatter = StructuredSynthesisOutput()
-            self.use_enhanced_synthesis = True
-        except Exception as e:
-            logger.warning(f"Failed to initialize enhanced synthesis components: {e}")
+        # Initialize Enhanced Synthesis™ components based on feature flag
+        self.use_enhanced_synthesis = Config.ENHANCED_SYNTHESIS_ENABLED
+        
+        if self.use_enhanced_synthesis and SynthesisPromptManager is not None:
+            try:
+                self.synthesis_prompt_manager = SynthesisPromptManager()
+                self.model_selector = SmartModelSelector() if SmartModelSelector else None
+                self.synthesis_output_formatter = StructuredSynthesisOutput() if StructuredSynthesisOutput else None
+                logger.info("✅ Enhanced Synthesis™ components initialized (prompt_set=enhanced)")
+            except Exception as e:
+                logger.warning(f"Failed to initialize enhanced synthesis components: {e}")
+                self.synthesis_prompt_manager = None
+                self.model_selector = None
+                self.synthesis_output_formatter = None
+                self.use_enhanced_synthesis = False
+                logger.info("⚠️ Falling back to standard synthesis (prompt_set=fallback)")
+        else:
             self.synthesis_prompt_manager = None
             self.model_selector = None
             self.synthesis_output_formatter = None
-            self.use_enhanced_synthesis = False
+            if not Config.ENHANCED_SYNTHESIS_ENABLED:
+                logger.info("ℹ️ Enhanced synthesis disabled by feature flag (prompt_set=fallback)")
+            else:
+                logger.warning("⚠️ Enhanced synthesis components not available (prompt_set=fallback)")
 
         # Initialize retry handler
         self.retry_handler = OrchestrationRetryHandler()
@@ -621,6 +645,36 @@ class OrchestrationService:
                 logger.info(
                     f"📊 PIPELINE PROGRESS: {((i/len(self.pipeline_stages))*100):.0f}% complete"
                 )
+                
+                # Emit SSE events for synthesis stages
+                from app.services.sse_event_bus import sse_event_bus
+                
+                # Enhanced Correlation ID extraction with fallback hierarchy
+                correlation_id = self._extract_correlation_id(options)
+                
+                # Log pipeline stage progress with correlation tracking
+                logger.info(
+                    f"🔄 Stage {i+1}/{len(self.pipeline_stages)} - {stage.name}",
+                    extra={
+                        "correlation_id": correlation_id,
+                        "stage": stage.name,
+                        "stage_number": i+1,
+                        "total_stages": len(self.pipeline_stages),
+                        "progress_percent": int((i/len(self.pipeline_stages))*100)
+                    }
+                )
+                
+                # Emit stage-specific events using standardized schema
+                if stage.name == "peer_review_and_revision":
+                    await sse_event_bus.publish(correlation_id, "stage_started", {
+                        "stage": stage.name,
+                        "models": stage.required_models or selected_models or []
+                    })
+                elif stage.name == "ultra_synthesis":
+                    await sse_event_bus.publish(correlation_id, "stage_started", {
+                        "stage": stage.name,
+                        "synthesis_model": stage.required_models[0] if stage.required_models else "unknown"
+                    })
                 # Check if we should skip peer review for single-model scenarios
                 if stage.name == "peer_review_and_revision":
 
@@ -759,6 +813,20 @@ class OrchestrationService:
                     logger.error(f"Error in {stage.name}: {stage_result.error}")
                     break
 
+                # Emit stage completion events using standardized schema
+                if stage.name == "ultra_synthesis":
+                    await sse_event_bus.publish(correlation_id, "stage_completed", {
+                        "stage": stage.name,
+                        "success": True,
+                        "synthesis_model": stage.required_models[0] if stage.required_models else "unknown"
+                    })
+                elif stage.name == "peer_review_and_revision":
+                    await sse_event_bus.publish(correlation_id, "stage_completed", {
+                        "stage": stage.name,
+                        "success": True,
+                        "models": stage.required_models or selected_models or []
+                    })
+
                 # Track token usage and costs if user_id is provided
                 if user_id and stage_result.token_usage:
                     for model, usage in stage_result.token_usage.items():
@@ -839,6 +907,45 @@ class OrchestrationService:
 
         return results
 
+    def _extract_correlation_id(self, options: Optional[Dict[str, Any]] = None) -> str:
+        """
+        Enhanced correlation ID extraction with fallback hierarchy.
+        
+        Priority order:
+        1. Explicitly passed correlation_id in options
+        2. X-Correlation-ID header from request context
+        3. Generate new correlation ID
+        
+        Args:
+            options: Pipeline options that may contain correlation_id
+            
+        Returns:
+            str: Correlation ID for request tracking
+        """
+        # Priority 1: Explicit correlation_id in options
+        if options and options.get('correlation_id'):
+            return str(options['correlation_id'])
+            
+        # Priority 2: Get from logging context (set by middleware)
+        from app.utils.logging import CorrelationContext
+        context_id = CorrelationContext.get_correlation_id()
+        if context_id and context_id != "unknown":
+            return context_id
+            
+        # Priority 3: Generate new correlation ID
+        import uuid
+        new_correlation_id = f"orch_{uuid.uuid4().hex[:12]}"
+        
+        # Set in context for downstream use
+        CorrelationContext.set_correlation_id(new_correlation_id)
+        
+        logger.info(
+            f"Generated new correlation ID: {new_correlation_id}",
+            extra={"correlation_id": new_correlation_id, "stage": "correlation_id_generation"}
+        )
+        
+        return new_correlation_id
+
     async def _run_stage(
         self,
         stage: PipelineStage,
@@ -861,6 +968,19 @@ class OrchestrationService:
         quality = None
         error = None
         token_usage = {}
+        
+        # Extract correlation ID for stage-level tracking
+        correlation_id = self._extract_correlation_id(options)
+        
+        logger.info(
+            f"🎬 Starting stage: {stage.name}",
+            extra={
+                "correlation_id": correlation_id,
+                "stage": stage.name,
+                "required_models": stage.required_models,
+                "timeout_seconds": stage.timeout_seconds
+            }
+        )
 
         # Use telemetry context manager to track stage duration
         with telemetry.measure_stage(stage.name):
@@ -895,8 +1015,21 @@ class OrchestrationService:
                 if not callable(method):
                     raise ValueError(f"Stage method {stage.name} not found")
 
+                logger.debug(
+                    f"Executing stage method: {stage.name}",
+                    extra={
+                        "correlation_id": correlation_id,
+                        "stage": stage.name,
+                        "method_found": method is not None
+                    }
+                )
+
+                # Ensure correlation ID is passed to stage method
+                enhanced_options = (options or {}).copy()
+                enhanced_options['correlation_id'] = correlation_id
+
                 # Run the stage (support both async and sync stage methods)
-                result_obj = method(input_data, stage.required_models, options)
+                result_obj = method(input_data, stage.required_models, enhanced_options)
                 if inspect.isawaitable(result_obj):
                     stage_output = await result_obj
                 else:
@@ -917,23 +1050,44 @@ class OrchestrationService:
 
             except Exception as e:
                 error = str(e)
-                logger.error(f"Error in {stage.name}: {error}")
+                logger.error(
+                    f"Error in stage {stage.name}: {error}",
+                    extra={
+                        "correlation_id": correlation_id,
+                        "stage": stage.name,
+                        "error": error
+                    },
+                    exc_info=True
+                )
 
             finally:
                 # Release rate limit tokens
                 for model in stage.required_models:
                     await self.rate_limiter.release(model, success=error is None)
 
-        # Calculate performance metrics
+        # Calculate performance metrics with correlation tracking
         duration = (datetime.now() - start_time).total_seconds()
         performance_metrics = {
             "duration_seconds": duration,
             "success": error is None,
+            "correlation_id": correlation_id,
             "rate_limit_stats": {
                 model: self.rate_limiter.get_endpoint_stats(model)
                 for model in stage.required_models
             },
         }
+        
+        # Log stage completion with correlation tracking
+        logger.info(
+            f"🏁 Stage {stage.name} completed in {duration:.2f}s",
+            extra={
+                "correlation_id": correlation_id,
+                "stage": stage.name,
+                "duration_seconds": duration,
+                "success": error is None,
+                "output_size": len(str(stage_output)) if stage_output else 0
+            }
+        )
 
         # Check for performance issues and aler
         expected_duration = stage.timeout_seconds * 0.8  # Alert at 80% of timeou
@@ -1113,6 +1267,19 @@ class OrchestrationService:
         responses = {}
         # Use the user's query directly - no meta-prompting
         prompt = str(data)
+        
+        # Extract correlation ID for request tracking
+        correlation_id = options.get('correlation_id', '') if options else ''
+        
+        logger.info(
+            f"🚀 Starting initial response generation with {len(models)} models",
+            extra={
+                "correlation_id": correlation_id,
+                "stage": "initial_response",
+                "models": models,
+                "prompt_length": len(prompt)
+            }
+        )
 
         # Optional model name remapping – can be disabled via env flag
         model_mappings = {}
@@ -1120,15 +1287,59 @@ class OrchestrationService:
         # Create model execution tasks for concurrent processing
         async def execute_model(model: str) -> tuple[str, dict]:
             """Execute a single model and return (model_name, result)"""
-            logger.info(f"🔄 Starting execution for model: {model}")
+            logger.info(
+                f"🔄 Starting execution for model: {model}",
+                extra={
+                    "correlation_id": correlation_id,
+                    "stage": "initial_response",
+                    "model": model,
+                    "provider": self._get_provider_from_model(model)
+                }
+            )
             start_time = time.time()
             provider = self._get_provider_from_model(model)
 
             try:
+                # Enhanced Error Handling: Check circuit breaker before attempting provider
+                should_attempt, circuit_message = await enhanced_error_handler.should_attempt_provider(provider)
+                if not should_attempt:
+                    logger.warning(
+                        f"🔴 Circuit breaker blocking {provider}: {circuit_message}",
+                        extra={
+                            "correlation_id": correlation_id,
+                            "stage": "initial_response",
+                            "model": model,
+                            "provider": provider
+                        }
+                    )
+                    return model, {
+                        "error": "Circuit breaker open",
+                        "error_details": circuit_message,
+                        "provider": provider,
+                    }
+                elif circuit_message:
+                    # Provider is in degraded state but still allowed
+                    logger.info(
+                        f"⚠️ Provider in degraded state: {circuit_message}",
+                        extra={
+                            "correlation_id": correlation_id,
+                            "stage": "initial_response", 
+                            "model": model,
+                            "provider": provider
+                        }
+                    )
+                
                 # Apply model name mapping if needed
                 mapped_model = model_mappings.get(model, model)
                 if mapped_model != model:
-                    logger.info(f"🔄 Mapping {model} → {mapped_model}")
+                    logger.info(
+                        f"🔄 Mapping {model} → {mapped_model}",
+                        extra={
+                            "correlation_id": correlation_id,
+                            "original_model": model,
+                            "mapped_model": mapped_model
+                        }
+                    )
 
                 if mapped_model.startswith("gpt") or mapped_model.startswith("o1"):
                     api_key = os.getenv("OPENAI_API_KEY")
@@ -1166,11 +1377,23 @@ class OrchestrationService:
                             result = await asyncio.wait_for(
                                 adapter.generate(prompt), timeout=60.0
                             )
-                        except asyncio.TimeoutError:
+                        except asyncio.TimeoutError as e:
+                            # Enhanced timeout handling with error handler
+                            timeout_error = await enhanced_error_handler.handle_provider_error(
+                                provider="openai",
+                                model=model,
+                                error=e,
+                                stage="initial_response",
+                                correlation_id=correlation_id
+                            )
                             logger.error(f"⏱️ Model {model} timed out after 60s")
                             return model, {
                                 "error": "Model request timed out after 60 seconds",
                                 "provider": "OpenAI",
+                                "error_context": {
+                                    "severity": timeout_error.severity.value,
+                                    "suggested_action": timeout_error.suggested_action
+                                }
                             }
                         # If OpenAI replies "model not found" try GPT-4o as a
                         # graceful fallback (some orgs only have GPT-4o).
@@ -1203,10 +1426,16 @@ class OrchestrationService:
                             ):
                                 gen_text = STUB_RESPONSE
 
-                            # Record success in provider health manager
+                            # Record success in provider health manager and circuit breaker
                             latency_ms = (time.time() - start_time) * 1000
                             await provider_health_manager.record_success(
                                 provider="openai", model=model, latency_ms=latency_ms
+                            )
+                            
+                            # Enhanced Success Recording: Update circuit breaker
+                            await enhanced_error_handler.record_provider_success(
+                                provider="openai", 
+                                response_time=latency_ms / 1000.0
                             )
 
                             return model, {"generated_text": gen_text}
@@ -1216,12 +1445,27 @@ class OrchestrationService:
                                 f"❌ Error response from {model}: {error_msg}"
                             )
 
+                            # Enhanced Error Recording: Use error handler for circuit breaker management
+                            error_context = await enhanced_error_handler.handle_provider_error(
+                                provider="openai",
+                                model=model,
+                                error=Exception(error_msg),
+                                stage="initial_response", 
+                                correlation_id=correlation_id
+                            )
+
                             # Record failure in provider health manager
                             await provider_health_manager.record_failure(
                                 provider="openai", error_message=error_msg, model=model
                             )
 
-                            return model, {"error": error_msg}
+                            return model, {
+                                "error": error_msg,
+                                "error_context": {
+                                    "severity": error_context.severity.value,
+                                    "suggested_action": error_context.suggested_action
+                                }
+                            }
                 elif model.startswith("claude"):
                     api_key = os.getenv("ANTHROPIC_API_KEY")
                     if not api_key:
@@ -1534,9 +1778,22 @@ class OrchestrationService:
             logger.info(
                 f"✅ Concurrent execution completed with {len(results)} results"
             )
-        except asyncio.TimeoutError:
+        except asyncio.TimeoutError as e:
+            # Enhanced timeout handling with error handler
+            timeout_error = await enhanced_error_handler.handle_stage_timeout(
+                stage="initial_response",
+                elapsed_time=Config.CONCURRENT_EXECUTION_TIMEOUT,
+                correlation_id=correlation_id
+            )
+            
             logger.error(
-                f"🚨 Concurrent model execution timed out after {Config.CONCURRENT_EXECUTION_TIMEOUT} seconds"
+                f"🚨 Concurrent model execution timed out after {Config.CONCURRENT_EXECUTION_TIMEOUT} seconds",
+                extra={
+                    "correlation_id": correlation_id,
+                    "stage": "initial_response",
+                    "timeout_seconds": Config.CONCURRENT_EXECUTION_TIMEOUT,
+                    "suggested_action": timeout_error.suggested_action
+                }
             )
             # Log which tasks are still pending
             for task in async_tasks:
@@ -1600,22 +1857,55 @@ class OrchestrationService:
                     f"Only {len(responses)} model(s) produced a response out of {len(models)} attempted. "
                     f"Minimum required: {Config.MINIMUM_MODELS_REQUIRED}"
                 )
-                # In TESTING mode, allow pipeline to continue with stubs so tests can assert structure
+                # Enhanced Error Handling: Generate intelligent fallback responses
                 if os.getenv("TESTING") == "true":
                     logger.warning(
                         "🧪 TESTING – proceeding with degraded single-model pipeline"
                     )
                 else:
                     logger.error(warning_msg)
+                    
+                    # Generate fallback response when insufficient models succeed
+                    if len(responses) == 0 and not os.getenv("TESTING"):
+                        logger.warning(
+                            "🔄 No models succeeded - generating fallback response",
+                            extra={
+                                "correlation_id": correlation_id,
+                                "stage": "initial_response",
+                                "failed_models": list(failed_models.keys())
+                            }
+                        )
+                        fallback_response = enhanced_error_handler.generate_fallback_response(
+                            stage="initial_response",
+                            original_prompt=prompt,
+                            available_context={"failed_models": failed_models, "attempted_models": models},
+                            correlation_id=correlation_id
+                        )
+                        responses["fallback"] = fallback_response
 
         logger.info(
-            f"✅ Real responses from {len(responses)}/{len(models)} models: {list(responses.keys())}"
+            f"✅ Initial response stage completed: {len(responses)}/{len(models)} models succeeded",
+            extra={
+                "correlation_id": correlation_id,
+                "stage": "initial_response",
+                "successful_models": list(responses.keys()),
+                "total_models": len(models),
+                "success_rate": len(responses) / len(models) if models else 0
+            }
         )
 
         # Log sample of responses for verification
         for model, response in responses.items():
             sample = (response[:100] + "...") if len(response) > 100 else response
-            logger.info("  %s: %s", model, sample)
+            logger.info(
+                f"  {model}: {sample}",
+                extra={
+                    "correlation_id": correlation_id,
+                    "stage": "initial_response",
+                    "model": model,
+                    "response_length": len(response)
+                }
+            )
 
         return {
             "stage": "initial_response",
@@ -1635,7 +1925,18 @@ class OrchestrationService:
         This is the core of the Ultra Synthesis™ collaborative intelligence architecture.
         Each model sees what their peers said and has the opportunity to improve their own response.
         """
-        logger.info(f"🔄 Starting peer review and revision with {len(models)} models")
+        # Extract correlation ID for request tracking
+        correlation_id = options.get('correlation_id', '') if options else ''
+        
+        logger.info(
+            f"🔄 Starting peer review and revision with {len(models)} models",
+            extra={
+                "correlation_id": correlation_id,
+                "stage": "peer_review_and_revision",
+                "models": models,
+                "model_count": len(models)
+            }
+        )
 
         # Accept data from meta_analysis stage (may be nested)
         if isinstance(data, dict) and "responses" not in data and "input" in data:
@@ -2058,13 +2359,27 @@ Prepare this analysis to enable true intelligence multiplication in the subseque
         Returns:
             Any: Ultra-synthesis results
         """
+        # Extract correlation ID for request tracking
+        correlation_id = options.get('correlation_id', '') if options else ''
+        
         # Handle failed meta-analysis by checking if there's an error
         if not isinstance(data, dict):
-            logger.warning("Invalid data structure for ultra-synthesis - not a dict")
+            logger.warning(
+                "Invalid data structure for ultra-synthesis - not a dict",
+                extra={"correlation_id": correlation_id, "stage": "ultra_synthesis"}
+            )
             return {"stage": "ultra_synthesis", "error": "Invalid input data structure"}
 
-        # Debug: log what ultra-synthesis received
-        logger.info(f"🔍 Ultra-synthesis received data type: {type(data)}")
+        # Debug: log what ultra-synthesis received with correlation tracking
+        logger.info(
+            f"🔍 Ultra-synthesis received data type: {type(data)}",
+            extra={
+                "correlation_id": correlation_id,
+                "stage": "ultra_synthesis",
+                "data_type": str(type(data)),
+                "data_keys": list(data.keys()) if isinstance(data, dict) else None
+            }
+        )
         logger.info(f"🔍 Ultra-synthesis data keys: {list(data.keys())}")
         if "analysis" in data:
             logger.info(f"🔍 Analysis length: {len(str(data['analysis']))}")
@@ -2246,7 +2561,7 @@ Create a comprehensive Ultra Synthesis™ document that:
 
 Begin with the ultra synthesis document."""
 
-        # Build available model lis
+        # Build available model list
         available_models: List[str] = []
         if models:
             available_models.extend(models)
@@ -2256,6 +2571,29 @@ Begin with the ultra synthesis document."""
                     available_models.append(model)
         if "claude-3-5-sonnet-20241022" not in available_models:
             available_models.append("claude-3-5-sonnet-20241022")
+
+        # Non-Participant Model Selection: Filter out models that participated in earlier stages
+        participant_models = set(_source_models) if _source_models else set()
+        non_participant_models = [m for m in available_models if m not in participant_models]
+        
+        logger.info(f"🎭 Participant models (from earlier stages): {list(participant_models)}")
+        logger.info(f"🎯 Non-participant models available for synthesis: {non_participant_models}")
+        
+        # Intelligent fallback strategy for synthesis model selection
+        if non_participant_models:
+            # IDEAL: Use non-participant models for unbiased synthesis
+            synthesis_candidate_pool = non_participant_models
+            synthesis_strategy = "non_participant"
+            logger.info(f"✅ Using {len(non_participant_models)} non-participant models for unbiased synthesis")
+        else:
+            # FALLBACK: Use participant models if no alternatives exist
+            synthesis_candidate_pool = available_models
+            synthesis_strategy = "participant_fallback"
+            logger.warning("⚠️ No non-participant models available - falling back to participant models")
+            logger.info("📝 Note: Synthesis may have inherent bias due to model self-consistency preferences")
+            
+        # Log the strategy being used
+        logger.info(f"🔄 Synthesis strategy: {synthesis_strategy}")
 
         # Use smart model selection if available, otherwise use original order
         if (
@@ -2267,16 +2605,27 @@ Begin with the ultra synthesis document."""
                 original_prompt
             )
             candidate_models = await self.model_selector.select_best_synthesis_model(
-                available_models=available_models,
+                available_models=synthesis_candidate_pool,  # Use non-participant pool
                 query_type=query_type.value,
                 recent_performers=(
                     _source_models[:3] if _source_models else None
-                ),  # Top 3 performers from peer review
+                ),  # Top 3 performers from peer review (for reference only)
             )
-            logger.info(f"🎯 Smart model selection ranked models: {candidate_models}")
+            logger.info(f"🎯 Smart model selection ranked non-participant models: {candidate_models}")
+            
+            # Additional validation: ensure selected models are truly non-participants
+            validated_candidates = [m for m in candidate_models if m not in participant_models]
+            if validated_candidates != candidate_models:
+                logger.warning(f"⚠️ Filtered out participant models from selection: {set(candidate_models) - set(validated_candidates)}")
+                candidate_models = validated_candidates
+                
+            # If no valid non-participants after smart selection, fall back to the full non-participant pool
+            if not candidate_models:
+                logger.warning("⚠️ Smart selection resulted in no non-participant models, using full non-participant pool")
+                candidate_models = synthesis_candidate_pool
         else:
-            # Fallback to original model order
-            candidate_models = available_models
+            # Fallback to non-participant pool or all available models
+            candidate_models = synthesis_candidate_pool
 
         last_error: Optional[str] = None
 
@@ -2339,6 +2688,9 @@ Begin with the ultra synthesis document."""
                                 model_responses=model_responses,
                                 metadata={
                                     "synthesis_model": synthesis_model,
+                                    "synthesis_strategy": synthesis_strategy,
+                                    "participant_models": list(participant_models),
+                                    "non_participant_models": non_participant_models,
                                     "query_type": query_type_value,
                                     "models_attempted": len(available_models),
                                     "timestamp": datetime.now().isoformat(),
@@ -2380,11 +2732,14 @@ Begin with the ultra synthesis document."""
                             "source_models": _source_models,
                         }
                     else:
-                        # Fallback to original response forma
+                        # Fallback to original response format
                         return {
                             "stage": "ultra_synthesis",
                             "synthesis": synthesis_response,
                             "model_used": synthesis_model,
+                            "synthesis_strategy": synthesis_strategy,
+                            "participant_models": list(participant_models),
+                            "non_participant_models": non_participant_models,
                             "meta_analysis": _meta_analysis,
                             "source_models": _source_models,
                         }
