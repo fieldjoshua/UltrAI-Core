@@ -75,33 +75,38 @@ source venv/bin/activate                 # Fix import errors
 ### Core System Design
 The UltrAI project implements a **patented LLM orchestration system** using intelligence multiplication patterns:
 
-1. **3-Stage Orchestration Pipeline**
+1. **Enhanced 3-Stage Orchestration Pipeline with Enhanced Synthesis™**
    - **Stage 1 - Initial Response**: Multiple LLMs (minimum 3) receive the exact user query and respond independently
    - **Stage 2 - Peer Review**: Each model reviews others' responses and provides revised insights
-   - **Stage 3 - Ultra Synthesis™**: A non-participant model synthesizes all peer-reviewed responses into a comprehensive answer
-   - Implementation: `app/services/orchestration_service.py`
-   - Supports multiple providers: OpenAI, Anthropic, Google, HuggingFace, and others
+   - **Stage 3 - Ultra Synthesis™**: A non-participant model synthesizes all peer-reviewed responses using context-aware prompts
+   - **Enhanced Features**: Smart model selection, circuit breaker patterns, correlation ID tracking, intelligent fallbacks
+   - Implementation: `app/services/orchestration_service.py`, `app/services/enhanced_error_handler.py`
+   - Required providers: OpenAI, Anthropic, Google (the "Big 3")
 
 2. **Service Architecture**
    ```
    app/
    ├── routes/          # API endpoints (validate & delegate)
    ├── services/        # Core business logic
-   │   ├── orchestration_service.py   # Multi-stage coordinator
+   │   ├── orchestration_service.py   # Enhanced multi-stage coordinator
+   │   ├── enhanced_error_handler.py  # Circuit breaker & fallback logic
    │   ├── llm_adapters.py            # Unified LLM interface
-   │   ├── interfaces/                # Service abstractions
-   │   └── synthesis_prompts.py       # Stage-specific prompts
+   │   ├── synthesis_prompts.py       # Context-aware synthesis prompts
+   │   ├── model_selection.py         # Smart model selection
+   │   └── interfaces/                # Service abstractions
    ├── middleware/      # Auth, CSRF, telemetry, rate limiting
    └── database/        # PostgreSQL + Alembic migrations
    ```
 
 3. **Critical Design Decisions**
-   - All LLM adapters share single `httpx.AsyncClient` (25s timeout)
+   - All LLM adapters share single `httpx.AsyncClient` (45s timeout)
    - Redis caching with local memory fallback
    - JWT + API key authentication on protected endpoints
-   - Request ID tracking across all services
-   - Multiple models required for orchestration (configurable via `MINIMUM_MODELS_REQUIRED`)
-   - Graceful degradation when fewer models are available
+   - Enhanced correlation ID tracking with hierarchical extraction
+   - Circuit breaker patterns for provider health management
+   - Non-participant model selection for unbiased synthesis
+   - Intelligent fallback responses when stages fail
+   - Big 3 provider gating (OpenAI, Anthropic, Google) enforced in production
 
 ### Frontend Architecture
 - **Framework**: React + TypeScript + Vite
@@ -124,13 +129,16 @@ The UltrAI project implements a **patented LLM orchestration system** using inte
 
 ### API Endpoints
 Key endpoints:
-- `POST /api/orchestrator/analyze` - Main orchestration (multi-stage analysis)
-- `GET /api/orchestrator/status` - Service availability check
+- `POST /api/orchestrator/analyze` - Main orchestration (Enhanced Synthesis™ pipeline)
+- `GET /api/orchestrator/status` - Service availability check with Big 3 provider status
+- `GET /api/orchestrator/events` - SSE for real-time monitoring with correlation tracking
+- `GET /api/errors/summary` - Comprehensive error summary and provider health
+- `GET /api/errors/circuit-breakers` - Circuit breaker states for all providers
+- `POST /api/errors/reset-circuit-breaker/{provider}` - Manual circuit breaker reset
 - `GET /api/models` - Available LLM models
 - `GET /api/model-health` - Model availability/performance
 - `POST /api/auth/login` - Authentication
 - `GET /api/metrics` - System metrics (cache hits, response times)
-- `GET /api/orchestrator/events` - SSE for real-time monitoring
 - `GET /docs` - Swagger UI documentation
 
 ## Project Rules & Conventions
@@ -155,28 +163,31 @@ Key endpoints:
 3. **Test-Driven Development** - Tests before implementation
 4. **Deployment Verification** - Test production URL before marking complete
 
-### Model Availability Requirements
-- **Minimum Models**: Configurable minimum for optimal orchestration (typically 3+)
-- **Provider Flexibility**: Supports OpenAI, Anthropic, Google, HuggingFace, and others
-- **Graceful Degradation**: Service adapts when fewer models are available
-- **Configuration**: `MINIMUM_MODELS_REQUIRED` (configurable), fallback options available
-- **Production Resilience**: Service remains functional with fewer providers when needed
+### Big 3 Provider Gating & Model Requirements
+- **Required Providers**: OpenAI, Anthropic, Google (the "Big 3")
+- **Minimum Models**: 3 models across all providers
+- **Production Enforcement**: Service returns 503 if requirements not met
+- **Configuration**: `MINIMUM_MODELS_REQUIRED=3`, `REQUIRED_PROVIDERS=[openai,anthropic,google]`
+- **Single Model Fallback**: Disabled in production (`ENABLE_SINGLE_MODEL_FALLBACK=false`)
+- **Circuit Breaker Protection**: Provider failures trigger intelligent fallbacks
 
 ### Collaboration & Oversight (Required)
 - Adhere to signals: `[PLAN]`, `[CLAUDE_DO]`, `[ULTRA_DO]`, `[STATUS]`, `[REVIEW]`, `[BLOCKER]`, `[COMPLETE]`
 - Before push/merge you must provide evidence:
   - Local test outputs and commands
   - Security checks (dependency audit, secret/regex scan, injection/XSS basics)
-  - Model availability verified (multiple providers functional)
+  - Big 3 provider gating satisfied (≥3 healthy models; single-model fallback disabled)
   - Endpoint verifications (`/api/orchestrator/status`, `/api/models?healthy_only=true`)
+  - Circuit breaker states healthy (`/api/errors/circuit-breakers`)
 - Drift prevention: if off track, say "I'm getting off track. Returning to [ORIGINAL_TASK]" and realign
 - No refactors/optimizations/features unless explicitly requested
 - See `.aicheck/rules.md` and `CURSOR_RULES.md` for full policies
 
 #### Real-time Monitoring & Check-ins
 - Subscribe to SSE when applicable: `GET /api/orchestrator/events?correlation_id=…`
-- Events to expect: analysis_start, model_selected, initial_start, pipeline_complete, model_completed, analysis_complete, service_unavailable
-- Post oversight check-ins as needed: `POST /api/oversight/checkin` with `{task_id, status, evidence?, notes?}`
+- Events to expect: stage_started, model_completed, stage_completed, synthesis_chunk, error
+- Monitor circuit breaker states: `GET /api/errors/circuit-breakers`
+- Track error patterns: `GET /api/errors/summary?correlation_id=...`
 
 ### Multi-AI Coordination (if using worktrees)
 1. Check `STATUS.md` for current AI assignment
@@ -212,18 +223,23 @@ VITE_API_MODE=live|mock
 
 ### Feature Flags (app/config.py)
 ```python
-FEATURE_FLAGS = {
-    "billing_enabled": os.getenv("ENABLE_BILLING", "false") == "true",
-    "new_ui": os.getenv("ENABLE_NEW_UI", "false") == "true",
-    "advanced_recovery": os.getenv("ENABLE_RECOVERY", "false") == "true",
-}
+# Enhanced synthesis feature flag (default: on for staging, off for production)
+ENHANCED_SYNTHESIS_ENABLED = os.getenv(
+    "ENHANCED_SYNTHESIS_ENABLED", 
+    "true" if ENVIRONMENT in ["development", "staging"] else "false"
+).lower() == "true"
+
+# Other feature flags
+ENABLE_BILLING = os.getenv("ENABLE_BILLING", "false") == "true"
+ENABLE_SINGLE_MODEL_FALLBACK = os.getenv("ENABLE_SINGLE_MODEL_FALLBACK", "false") == "true"
+ENABLE_CACHE = os.getenv("ENABLE_CACHE", "true") == "true"
 ```
 
-### Model Availability Policy
+### Big 3 Provider Gating Policy
 ```python
 MINIMUM_MODELS_REQUIRED = 3  # Configurable in app/config.py
-ENABLE_SINGLE_MODEL_FALLBACK = True  # Allow fallback when needed
-SUPPORTED_PROVIDERS = ["openai", "anthropic", "google", "huggingface"]  # Flexible provider support
+REQUIRED_PROVIDERS = ["openai", "anthropic", "google"]  # Big 3 enforcement
+ENABLE_SINGLE_MODEL_FALLBACK = False  # Disabled in production
 ```
 
 ## Testing Strategy
@@ -241,12 +257,14 @@ SUPPORTED_PROVIDERS = ["openai", "anthropic", "google", "huggingface"]  # Flexib
 - `@pytest.mark.slow` - Long-running tests
 
 ### Critical Tests
-- Multi-provider orchestration validation
-- Service resilience when providers are unavailable
-- SSE event schema compliance
+- Big 3 provider gating validation
+- Service 503 responses when requirements not met
+- Enhanced Synthesis™ pipeline with non-participant selection
+- Circuit breaker patterns and recovery
+- SSE event schema compliance (stage_started, stage_completed, etc.)
 - Cost field sanitization (no financial data leaks)
 - Provider health probe functionality
-- Graceful degradation with fewer models
+- Correlation ID tracking across requests
 
 ## Security Notes
 - `.env.staging` is excluded from git (contains secrets)
@@ -278,15 +296,25 @@ SUPPORTED_PROVIDERS = ["openai", "anthropic", "google", "huggingface"]  # Flexib
 - Automatic failover within provider requirements
 - Real-time health status via `/api/orchestrator/status`
 
-### Error Handling
+### Enhanced Error Handling & Circuit Breakers
 - Standardized error responses across all adapters
-- Graceful degradation when providers are unavailable
-- Detailed error payloads including provider status
-- Request ID tracking for debugging
-- Fallback mechanisms for reduced functionality
+- Circuit breaker patterns for provider health management
+- Service 503 responses when Big 3 requirements not met
+- Intelligent fallback response generation when stages fail
+- Enhanced correlation ID tracking for debugging
+- Provider state management (HEALTHY → DEGRADED → CIRCUIT_OPEN → CIRCUIT_CLOSED)
+- Automatic recovery with exponential backoff
+
+### Enhanced Synthesis™ Implementation Details
+1. **Non-Participant Model Selection**: Models that didn't participate in earlier stages are preferred for synthesis to ensure unbiased results
+2. **Context-Aware Synthesis Prompts**: Intelligent prompt generation based on query type and available responses
+3. **Smart Model Selection**: Algorithmic selection of optimal synthesis models based on performance history
+4. **Intelligent Fallback Strategies**: When no non-participant models are available, gracefully fall back to participant models
+5. **Feature Flag Control**: `ENHANCED_SYNTHESIS_ENABLED` allows safe rollout and rollback
 
 ### Performance Optimizations
-- Shared httpx.AsyncClient across all adapters
+- Shared httpx.AsyncClient across all adapters (45s timeout)
 - Redis caching with local memory fallback
 - Concurrent execution in orchestration stages
 - Connection pooling and request timeouts
+- Circuit breaker patterns prevent cascading failures

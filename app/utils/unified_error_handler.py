@@ -1069,9 +1069,11 @@ def register_exception_handlers(app: FastAPI) -> None:
         log_exception(request, exc, level=level)
 
         # Create error response
+        # Ensure message is always a string
+        message = exc.detail if isinstance(exc.detail, str) else str(exc.detail)
         error_response = create_error_response(
             error_code=f"http_{exc.status_code}",
-            message=exc.detail,
+            message=message,
             request_id=getattr(request.state, "correlation_id", None),
         )
 

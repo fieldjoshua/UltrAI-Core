@@ -25,42 +25,116 @@ The API implements rate limiting to prevent abuse:
 
 ## Endpoints
 
-### Analyze Prompt
+### Orchestrator Service Status
 
 ```http
-POST /api/analyze
+GET /api/orchestrator/status
 ```
 
-Analyze a prompt using multiple LLMs and an Ultra LLM.
+Get the current status of the orchestration service, including provider availability and system readiness.
+
+**Response (Service Ready):**
+
+```json
+{
+  "ready": true,
+  "models_available": 3,
+  "models_required": 3,
+  "providers_present": ["openai", "anthropic", "google"],
+  "required_providers": ["openai", "anthropic", "google"],
+  "service_status": "ready",
+  "message": "Service is ready for orchestration",
+  "degradation_message": null,
+  "healthy_models": ["gpt-4o", "claude-3-5-sonnet-20241022", "gemini-1.5-flash"]
+}
+```
+
+**Response (Service Unavailable - 503):**
+
+```json
+{
+  "error": "SERVICE_UNAVAILABLE",
+  "message": "UltraAI requires at least 3 models from the required providers to be functional",
+  "details": {
+    "models_required": 3,
+    "models_available": 1,
+    "required_providers": ["openai", "anthropic", "google"],
+    "providers_present": ["openai"],
+    "service_status": "degraded"
+  }
+}
+```
+
+### Analyze Query
+
+```http
+POST /api/orchestrator/analyze
+```
+
+Analyze a query using the UltraAI 3-stage orchestration pipeline with multiple LLMs.
 
 **Request Body:**
 
 ```json
 {
-  "prompt": "string",
-  "selected_models": ["string"],
-  "ultra_model": "string",
-  "pattern": "string",
-  "options": ["string"],
-  "max_tokens": 0,
+  "query": "Explain the benefits of microservices architecture",
+  "selected_models": ["gpt-4o", "claude-3-5-sonnet-20241022", "gemini-1.5-flash"],
+  "modules": ["confidence", "traceability"],
   "stream": false
 }
 ```
 
-**Response:**
+**Response (Success):**
 
 ```json
 {
-  "status": "success",
-  "analysis_id": "string",
+  "success": true,
+  "analysis_id": "uuid-string",
+  "request_id": "correlation-id",
   "results": {
-    "model_responses": {},
-    "ultra_response": {},
+    "initial_responses": {
+      "gpt-4o": {
+        "content": "Microservices architecture offers...",
+        "model": "gpt-4o",
+        "provider": "openai",
+        "latency_ms": 1250
+      }
+    },
+    "peer_reviews": {
+      "claude-3-5-sonnet-20241022": {
+        "content": "Building on the previous response...",
+        "confidence_score": 0.9
+      }
+    },
+    "ultra_synthesis": {
+      "content": "Comprehensive analysis of microservices...",
+      "consensus_score": 0.85,
+      "key_insights": ["scalability", "maintainability", "fault_tolerance"]
+    },
     "performance": {
-      "total_time_seconds": 0,
-      "model_times": {},
-      "token_counts": {}
+      "total_time_ms": 4500,
+      "stage_times": {
+        "initial": 1250,
+        "peer_review": 1100,
+        "synthesis": 2150
+      }
     }
+  }
+}
+```
+
+**Response (Service Unavailable - 503):**
+
+```json
+{
+  "error": "SERVICE_UNAVAILABLE",
+  "message": "UltraAI requires at least 3 models from the required providers to be functional",
+  "details": {
+    "models_required": 3,
+    "models_available": 1,
+    "required_providers": ["openai", "anthropic", "google"],
+    "providers_present": ["openai"],
+    "service_status": "degraded"
   }
 }
 ```

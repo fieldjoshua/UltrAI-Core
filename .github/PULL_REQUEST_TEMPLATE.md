@@ -1,3 +1,28 @@
+## Focus Declaration
+
+- I understand our current project goal is <describe the current goal>.
+- These changes work toward this goal by: <state the concrete impact>.
+
+## Summary
+
+- Scope:
+- Risk level:
+- Related issues/labels: (include `aux` / `aux-ok` when applicable)
+
+## Editor Checklist (Pre‑Merge)
+
+- [ ] Gating intact (3 models + Big 3 providers) with consistent 503 payload
+- [ ] No cost/billing fields in API or UI
+- [ ] SSE events use the documented names/payload
+- [ ] Wizard enforces health gating
+- [ ] Changes align with DFD constraints above
+
+## Notes for Aux Models (if labeled `aux`)
+
+- Default scope allowed: tests / docs / CI / monitoring
+- Core logic changes require `aux-ok`
+- One-task lock; keep PR focused and within timebox
+
 ## Summary
 
 - Focus Declaration

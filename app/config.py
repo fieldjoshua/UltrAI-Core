@@ -140,6 +140,12 @@ class Config:
         os.getenv("ALLOW_PUBLIC_ORCHESTRATION", "false").lower() == "true"
     )
 
+    # Enhanced synthesis feature flag (default: on for staging, off for production)
+    ENHANCED_SYNTHESIS_ENABLED = os.getenv(
+        "ENHANCED_SYNTHESIS_ENABLED", 
+        "true" if ENVIRONMENT in ["development", "staging"] else "false"
+    ).lower() == "true"
+
     # Pricing and billing feature flags
     ENABLE_PRICING = os.getenv("ENABLE_PRICING", "false").lower() == "true"
     ENABLE_BUDGET_ENFORCEMENT = os.getenv("ENABLE_BUDGET_ENFORCEMENT", "false").lower() == "true"
