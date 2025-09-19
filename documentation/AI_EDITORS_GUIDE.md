@@ -84,3 +84,11 @@ CI/PR Oversight
   - When a cap is reached, output a one-line reason and next action, and request user confirmation if needed.
 - Status updates
   - Include attempt counts when retries occur (e.g., “retry 2/2”).
+
+## Auxiliary Model Guardrails (Claude / Google)
+- Contribution mode: PR-only; no direct pushes.
+- Focus Declaration: required at kickoff and in PR (1–2 lines).
+- One-task lock: may work on one labeled task at a time; switching tasks requires explicit “Go”.
+- Timebox: 15–30 minutes per task segment; apply loop caps (max 2 retries per error/tool).
+- Scope preference: verification/tests/docs/CI/monitoring first; core logic only with prior approval.
+- Labels: use `aux` for PRs and issues; maintainers add `aux-ok` to permit work.

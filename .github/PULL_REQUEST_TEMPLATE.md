@@ -11,6 +11,7 @@
 - [ ] SSE event names unchanged and schema respected
 - [ ] Logs redact secrets; no keys printed
 - [ ] CI: Staging Big 3 smoke passed
+- [ ] Auxiliary model guardrails observed (PR-only, one-task, timebox, Focus Declaration)
 - [ ] Docs updated if policy/contract changed (AI_EDITORS_GUIDE.md / API reference)
 
 ## Risk & Rollback

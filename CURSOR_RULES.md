@@ -100,3 +100,11 @@ Refer also to: `documentation/AI_EDITORS_GUIDE.md` for a compact spec AI tools c
   - HTTP 429/5xx: exponential backoff, max 2 retries; then mark blocked.
 - Require a state change before repeating an action; note what changed.
 - On cap reached: emit concise reason and proposed next action; ask for confirmation if needed.
+
+## Auxiliary Model Guardrails (PR-only + scope)
+- PR-only contributions; no direct pushes by auxiliary models.
+- Focus Declaration required at kickoff and in PRs (1–2 lines).
+- One-task lock: auxiliary model may work on a single labeled issue at a time.
+- Timebox per segment: 15–30 minutes; respect loop caps (2 retries per error/tool).
+- Allowed scope by default: tests/docs/CI/monitoring. Core logic requires explicit approval.
+- Label control: `aux` and `aux-ok` labels gate participation; removing label pauses work.
