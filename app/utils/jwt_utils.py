@@ -19,6 +19,25 @@ try:
 except ImportError:
     pass  # Config might not be available in some contexts
 
+# Also try to load .env file directly if not already loaded
+from pathlib import Path
+from dotenv import load_dotenv
+
+def _ensure_env_loaded():
+    """Ensure environment variables are loaded from .env file"""
+    # Try multiple possible .env locations
+    env_paths = [
+        Path(os.path.dirname(__file__)).parent.parent / ".env",  # Project root
+        Path(".env"),  # Current directory
+    ]
+    
+    for env_path in env_paths:
+        if env_path.exists():
+            load_dotenv(env_path, override=False)  # Don't override already set vars
+            break
+
+_ensure_env_loaded()
+
 # Get secret keys from environment variables - REQUIRED in production
 # Support both JWT_SECRET_KEY and JWT_SECRET for backward compatibility
 SECRET_KEY = os.getenv("JWT_SECRET_KEY") or os.getenv("JWT_SECRET")

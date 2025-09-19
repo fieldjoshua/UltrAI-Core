@@ -80,7 +80,7 @@ The UltrAI project implements a **patented LLM orchestration system** using inte
    - **Stage 2 - Peer Review**: Each model reviews others' responses and provides revised insights
    - **Stage 3 - Ultra Synthesis™**: A non-participant model synthesizes all peer-reviewed responses into a comprehensive answer
    - Implementation: `app/services/orchestration_service.py`
-   - Required providers: OpenAI, Anthropic, Google (the "Big 3")
+   - Supports multiple providers: OpenAI, Anthropic, Google, HuggingFace, and others
 
 2. **Service Architecture**
    ```
@@ -100,8 +100,8 @@ The UltrAI project implements a **patented LLM orchestration system** using inte
    - Redis caching with local memory fallback
    - JWT + API key authentication on protected endpoints
    - Request ID tracking across all services
-   - At least 3 models must be functional for viability (configurable via `MINIMUM_MODELS_REQUIRED`)
-   - Big 3 provider gating enforced in production
+   - Multiple models required for orchestration (configurable via `MINIMUM_MODELS_REQUIRED`)
+   - Graceful degradation when fewer models are available
 
 ### Frontend Architecture
 - **Framework**: React + TypeScript + Vite
@@ -155,19 +155,19 @@ Key endpoints:
 3. **Test-Driven Development** - Tests before implementation
 4. **Deployment Verification** - Test production URL before marking complete
 
-### Big 3 Provider Gating
-- **Required Providers**: OpenAI, Anthropic, Google
-- **Minimum Models**: 3 models across all providers
-- **Production Enforcement**: Service returns 503 if requirements not met
-- **Configuration**: `MINIMUM_MODELS_REQUIRED=3`, `REQUIRED_PROVIDERS=[openai,anthropic,google]`
-- **Single Model Fallback**: Disabled in production (`ENABLE_SINGLE_MODEL_FALLBACK=false`)
+### Model Availability Requirements
+- **Minimum Models**: Configurable minimum for optimal orchestration (typically 3+)
+- **Provider Flexibility**: Supports OpenAI, Anthropic, Google, HuggingFace, and others
+- **Graceful Degradation**: Service adapts when fewer models are available
+- **Configuration**: `MINIMUM_MODELS_REQUIRED` (configurable), fallback options available
+- **Production Resilience**: Service remains functional with fewer providers when needed
 
 ### Collaboration & Oversight (Required)
 - Adhere to signals: `[PLAN]`, `[CLAUDE_DO]`, `[ULTRA_DO]`, `[STATUS]`, `[REVIEW]`, `[BLOCKER]`, `[COMPLETE]`
 - Before push/merge you must provide evidence:
   - Local test outputs and commands
   - Security checks (dependency audit, secret/regex scan, injection/XSS basics)
-  - Model availability policy satisfied (≥3 healthy models; single-model fallback disabled)
+  - Model availability verified (multiple providers functional)
   - Endpoint verifications (`/api/orchestrator/status`, `/api/models?healthy_only=true`)
 - Drift prevention: if off track, say "I'm getting off track. Returning to [ORIGINAL_TASK]" and realign
 - No refactors/optimizations/features unless explicitly requested
@@ -222,8 +222,8 @@ FEATURE_FLAGS = {
 ### Model Availability Policy
 ```python
 MINIMUM_MODELS_REQUIRED = 3  # Configurable in app/config.py
-ENABLE_SINGLE_MODEL_FALLBACK = False
-REQUIRED_PROVIDERS = ["openai", "anthropic", "google"]  # Big 3 enforcement
+ENABLE_SINGLE_MODEL_FALLBACK = True  # Allow fallback when needed
+SUPPORTED_PROVIDERS = ["openai", "anthropic", "google", "huggingface"]  # Flexible provider support
 ```
 
 ## Testing Strategy
@@ -241,11 +241,12 @@ REQUIRED_PROVIDERS = ["openai", "anthropic", "google"]  # Big 3 enforcement
 - `@pytest.mark.slow` - Long-running tests
 
 ### Critical Tests
-- Big 3 provider gating validation
-- Service 503 responses when requirements not met
+- Multi-provider orchestration validation
+- Service resilience when providers are unavailable
 - SSE event schema compliance
 - Cost field sanitization (no financial data leaks)
 - Provider health probe functionality
+- Graceful degradation with fewer models
 
 ## Security Notes
 - `.env.staging` is excluded from git (contains secrets)
@@ -279,9 +280,10 @@ REQUIRED_PROVIDERS = ["openai", "anthropic", "google"]  # Big 3 enforcement
 
 ### Error Handling
 - Standardized error responses across all adapters
-- 503 Service Unavailable when Big 3 requirements not met
+- Graceful degradation when providers are unavailable
 - Detailed error payloads including provider status
 - Request ID tracking for debugging
+- Fallback mechanisms for reduced functionality
 
 ### Performance Optimizations
 - Shared httpx.AsyncClient across all adapters

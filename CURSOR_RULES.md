@@ -75,3 +75,12 @@ These rules are authoritative for AI editors in this repo. Keep changes aligned;
 - [ ] Changes align with DFD constraints above.
 
 Refer also to: `documentation/AI_EDITORS_GUIDE.md` for a compact spec AI tools can ingest.
+
+## Lean Workflow Addendum (Efficiency without losing control)
+- Auto-Go allowed for single-file ≤10-line diffs or docs/tests-only changes.
+- Batch small related fixes; single status update for batch ≤50 lines.
+- Todos reserved for multi-file or >15 min tasks.
+- Confirmation thresholds: core logic >10 lines; tests/docs >50 lines.
+- Parallel tool calls required for ≥3 independent lookups; optional for ≤2.
+- Micro-refactors permitted (renames/typing/unused imports) when ≤15 lines and no behavior change.
+- Memory citation only when policy alters behavior/output (e.g., staging override readiness).

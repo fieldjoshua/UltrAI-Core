@@ -1,0 +1,35 @@
+name: Staging Smoke (Big3 + No-Cost Scan)
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '*/30 * * * *'
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run Big 3 staging smoke
+        env:
+          STAGING_API_BASE: https://ultrai-staging-api.onrender.com/api
+        run: |
+          pytest -q tests/smoke/test_staging_big3_health.py --maxfail=1 --disable-warnings -k 'big3'
+
+      - name: No-cost UI scan
+        run: |
+          python scripts/ci_scan_no_cost.py
+

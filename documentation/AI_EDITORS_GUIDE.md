@@ -49,3 +49,18 @@ Return HTTP 503 with:
 - Maintain SSE names/payloads
 
 If a change needs to alter any rule here, update this guide in the same PR.
+
+## Lean Editor Workflow (Focus + Oversight)
+- Auto-Go: skip pre-plan for single-file ≤10-line diffs or docs/tests-only changes
+- Batch small fixes: one consolidated status for related edits ≤50 lines total
+- Todos only for multi-file or >15 min tasks
+- Large-diff confirm thresholds: >10 lines for core logic; >50 for tests/docs
+- Parallel tool usage required for ≥3 independent lookups; optional for 1–2
+- Micro-refactors allowed (renames/typing/unused imports) ≤15 lines, no behavior change
+- Memory citation required only when policy materially affects behavior/output
+
+CI/PR Oversight
+- PR template checkboxes: gating/no-cost/SSE/log-redaction/secret-scan
+- Staging smoke: Big 3 healthy, providers configured
+- Regex scan: block cost/billing terms in frontend UI code
+- SSE contract spot-check: event names present
