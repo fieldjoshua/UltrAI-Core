@@ -1,6 +1,8 @@
 ## Summary
 
-- What changed and why
+- Focus Declaration
+  - I understand our current project goal is: <fill>
+  - These changes work toward this goal by: <fill>
 
 ## Pre-Merge Checklist
 

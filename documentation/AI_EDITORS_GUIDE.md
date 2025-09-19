@@ -65,6 +65,12 @@ CI/PR Oversight
 - Regex scan: block cost/billing terms in frontend UI code
 - SSE contract spot-check: event names present
 
+## Focus Declaration (keep alignment, low ceremony)
+- Before starting any task and in every PR, include:
+  - One-line goal statement: "I understand our current project goal is <X>."
+  - One-line mapping: "These changes work toward this goal by: <Y>."
+- Keep to 1–2 lines total. Required for all tasks (including trivial edits) and in PR descriptions.
+
 ## Loop Limiting Rules (No spin, escalate fast)
 - Attempt caps
   - File edit retries: max 2 attempts per file per error class (e.g., patch apply, linter fix). On 3rd, stop and ask.

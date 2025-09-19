@@ -85,6 +85,12 @@ Refer also to: `documentation/AI_EDITORS_GUIDE.md` for a compact spec AI tools c
 - Micro-refactors permitted (renames/typing/unused imports) when ≤15 lines and no behavior change.
 - Memory citation only when policy alters behavior/output (e.g., staging override readiness).
 
+## Focus Declaration (Minimal but mandatory)
+- At the start of every task and in PR descriptions, include:
+  - "I understand our current project goal is <X>."
+  - "These changes work toward this goal by: <Y>."
+- Limit to 1–2 lines; optimize for clarity, not verbosity.
+
 ## Loop Limiting Rules (Prevent spin; escalate)
 - Caps
   - File edit retry cap: 2 per error class; on 3rd, stop and ask.
