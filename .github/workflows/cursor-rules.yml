@@ -1,0 +1,86 @@
+name: Enforce Cursor Rules
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize, labeled, unlabeled]
+
+jobs:
+  check-cursor-rules:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate PR Template Sections and Labels
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const core = require('@actions/core');
+            const pr = context.payload.pull_request;
+            const body = pr.body || '';
+            const labels = (pr.labels || []).map(l => l.name);
+
+            // Focus Declaration required
+            const focusOk = /I understand our current project goal is/i.test(body) && /These changes work toward this goal by/i.test(body);
+            if (!focusOk) {
+              core.setFailed('Missing Focus Declaration in PR body.');
+            }
+
+            // Editor checklist presence (checkbox lines)
+            const checklistRequired = [
+              'Gating intact',
+              'No cost/billing fields',
+              'SSE events use the documented names/payload',
+              'Wizard enforces health gating',
+              'Changes align with DFD constraints'
+            ];
+            for (const item of checklistRequired) {
+              if (!body.includes(item)) {
+                core.setFailed(`PR body missing checklist item: ${item}`);
+              }
+            }
+
+            // If labeled aux, enforce aux-ok for core logic changes
+            const isAux = labels.includes('aux');
+            const isAuxOk = labels.includes('aux-ok');
+
+            // Determine touched files
+            const files = await github.paginate(github.rest.pulls.listFiles, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: pr.number,
+              per_page: 100,
+            });
+
+            const corePaths = [
+              'app/',
+              'UltrAI-Core/',
+              'backend/',
+              'orchestration',
+            ];
+
+            const testsDocsCiMonitoringAllow = (path) => (
+              path.startsWith('tests/') ||
+              path.startsWith('documentation/') ||
+              path.startsWith('docs/') ||
+              path.startsWith('.github/') ||
+              path.startsWith('monitoring/') ||
+              path.startsWith('frontend/') && path.includes('__tests__')
+            );
+
+            const touchesCore = files.some(f => corePaths.some(cp => f.filename.startsWith(cp)) && !testsDocsCiMonitoringAllow(f.filename));
+
+            if (isAux) {
+              if (!isAuxOk && touchesCore) {
+                core.setFailed('Aux PR touches core logic but is missing the aux-ok label.');
+              }
+            }
+
+            // Enforce one-task lock hint by requiring concise title
+            if ((pr.title || '').length > 120) {
+              core.warning('PR title is long; ensure one-task focus.');
+            }
+
+            core.info('Cursor rules validation completed.');
+
+
