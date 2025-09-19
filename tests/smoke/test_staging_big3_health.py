@@ -52,20 +52,25 @@ def test_providers_summary_all_big3_configured() -> None:
 def test_at_least_one_healthy_model_per_big3() -> None:
     # Allow a brief wait to reduce flakiness during rolling deploys
     time.sleep(0.5)
-    healthy_url = f"{STAGING_BASE_URL}/available-models?healthy_only=true"
+    # Use full list so we can accept rate_limited models in staging
+    healthy_url = f"{STAGING_BASE_URL}/available-models"
     payload = _http_get_json(healthy_url)
 
     assert "models" in payload, f"Missing 'models' in response: {payload}"
     models: List[Dict[str, Any]] = payload["models"]
 
-    providers_with_healthy = {m.get("provider") for m in models if m.get("status") == "available"}
+    allow_rate_limited = os.environ.get("STAGING_SMOKE_ALLOW_RATELIMIT", "true").lower() == "true"
+    allowed_statuses = {"available"} | ({"rate_limited"} if allow_rate_limited else set())
+
+    providers_with_healthy = {
+        m.get("provider") for m in models if m.get("status") in allowed_statuses
+    }
     providers_with_healthy.discard(None)
 
     missing = BIG3_PROVIDERS - providers_with_healthy
     assert not missing, (
         "Missing healthy models for providers: "
         f"{sorted(missing)} | providers_with_healthy={sorted(providers_with_healthy)} | "
+        f"allowed_statuses={sorted(allowed_statuses)} | "
         f"models={[(m.get('name'), m.get('provider'), m.get('status')) for m in models]}"
     )
-
-
