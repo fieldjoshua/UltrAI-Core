@@ -23,6 +23,26 @@ The API implements rate limiting to prevent abuse:
   - `X-RateLimit-Remaining`: Remaining requests
   - `X-RateLimit-Reset`: Time when the limit resets
 
+## Request Tracing
+
+To facilitate end-to-end request tracing and debugging, all orchestration endpoints accept an optional `X-Correlation-ID` header.
+
+-   **Header:** `X-Correlation-ID`
+-   **Behavior:** If you provide a value in this header (e.g., a UUID), it will be propagated through the entire system, from the initial API request to all log messages and SSE events. This allows you to easily trace the lifecycle of a single request.
+-   **Generation:** If you do not provide a `X-Correlation-ID`, a new one will be generated automatically and returned in the response headers.
+
+## Feature Flags
+
+### Enhanced Synthesis
+
+The application includes a feature flag to safely manage the rollout of the Enhanced Synthesis feature.
+
+-   **Environment Variable:** `ENHANCED_SYNTHESIS_ENABLED`
+-   **Behavior:** When enabled, the orchestration service will use an improved set of prompts and a more sophisticated model selection strategy for the final synthesis stage. When disabled, it uses the original, stable synthesis logic.
+-   **Defaults:**
+    -   **Staging:** `true` (Enabled by default for testing)
+    -   **Production:** `false` (Disabled by default for safe rollout)
+
 ## Endpoints
 
 ### Orchestrator
@@ -122,23 +142,59 @@ Submit a query for analysis and stream back real-time events via Server-Sent Eve
 ```
 
 **SSE Event Stream:**
+
+The stream provides real-time updates on the analysis pipeline.
+
+**Existing Events:**
+- `analysis_start`: The overall analysis process has begun.
+- `initial_start`: The initial response generation stage has started.
+- `model_selected`: A specific model has been chosen for a stage.
+- `model_completed`: A specific model has finished its task for a stage.
+- `pipeline_complete`: All stages of the pipeline have finished.
+- `service_unavailable`: The service is not available.
+
+**New Events for Enhanced Synthesis:**
+- `peer_review_start`: The peer review stage has begun.
+- `ultra_synthesis_start`: The final synthesis stage has begun.
+- `synthesis_complete`: The final synthesis stage has finished.
+- `synthesis_chunk` (optional): A token or chunk of the final synthesis is streamed.
+- `error`: An error occurred during a stage.
+
+**Standardized Event Payload:**
+
+All new events will follow this schema to provide detailed context.
+
+```json
+{
+  "event": "ultra_synthesis_start",
+  "data": {
+    "stage": "synthesis",
+    "model": "claude-3-5-sonnet-20241022",
+    "provider": "anthropic",
+    "correlation_id": "req_abc123",
+    "latency_ms": null,
+    "data": {
+      "synthesis_type": "enhanced",
+      "prompt_set": "enhanced",
+      "non_participant": true
+    }
+  }
+}
 ```
-event: stage_started
-data: {"stage": "initial_response"}
 
-event: model_completed
-data: {"model": "gpt-4o"}
+**Example New Event Flow:**
+```
+event: peer_review_start
+data: {"stage": "peer_review", "correlation_id": "req_abc123"}
 
-event: stage_completed
-data: {"stage": "initial_response"}
+event: ultra_synthesis_start
+data: {"stage": "synthesis", "model": "claude-3-5-sonnet-20241022", "provider": "anthropic", "correlation_id": "req_abc123"}
 
 event: synthesis_chunk
-data: {"chunk": "The impact of climate change..."}
+data: {"chunk": "The impact of AI..."}
 
-...
-
-event: analysis_complete
-data: {"processing_time": 15.7}
+event: synthesis_complete
+data: {"stage": "synthesis", "correlation_id": "req_abc123", "latency_ms": 4500}
 ```
 
 ### Legacy Endpoints

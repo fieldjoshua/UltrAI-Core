@@ -54,3 +54,41 @@ async def test_sse_contract_emits_stage_events(client):
         ]
         assert "initial_response" in completed_stages
         assert "peer_review" in completed_stages
+
+@pytest.mark.asyncio
+async def test_sse_new_event_schema(client):
+    """Smoke test to validate the schema of new SSE events."""
+    from app.services.sse_event_bus import sse_event_bus
+    correlation_id = "test_correlation_id_schema"
+    
+    with patch('app.services.sse_event_bus.SSEEventBus.publish', new_callable=AsyncMock) as mock_publish:
+        # Simulate emitting a new event type
+        event_payload = {
+            "stage": "synthesis",
+            "model": "claude-3-5-sonnet-20241022",
+            "provider": "anthropic",
+            "correlation_id": correlation_id,
+            "latency_ms": 1234,
+            "data": {
+                "synthesis_type": "enhanced"
+            }
+        }
+        await sse_event_bus.publish(correlation_id, "ultra_synthesis_start", event_payload)
+
+        # Assertion
+        mock_publish.assert_called_once()
+        call_args = mock_publish.call_args.args
+        
+        # Verify the event name and payload structure
+        assert call_args[0] == correlation_id
+        assert call_args[1] == "ultra_synthesis_start"
+        
+        # Validate the payload against the specified schema
+        payload = call_args[2]
+        assert "stage" in payload
+        assert "model" in payload
+        assert "provider" in payload
+        assert "correlation_id" in payload
+        assert "latency_ms" in payload
+        assert "data" in payload
+        assert payload["correlation_id"] == correlation_id
