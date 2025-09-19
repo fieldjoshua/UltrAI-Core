@@ -64,3 +64,17 @@ CI/PR Oversight
 - Staging smoke: Big 3 healthy, providers configured
 - Regex scan: block cost/billing terms in frontend UI code
 - SSE contract spot-check: event names present
+
+## Loop Limiting Rules (No spin, escalate fast)
+- Attempt caps
+  - File edit retries: max 2 attempts per file per error class (e.g., patch apply, linter fix). On 3rd, stop and ask.
+  - Linter fix loops: max 2 cycles on the same file in a session. On 3rd, print errors and request guidance.
+  - Identical tool calls (same params): max 2. On 3rd, change parameters/approach or pause for input.
+  - Deploy/status polling: max 2 checks in 2 minutes. Otherwise wait 5 minutes or notify.
+  - Network 429/5xx: exponential backoff up to 2 retries; then mark blocked and ask.
+- State-change requirement
+  - Do not repeat an action without a state change (e.g., different params, new file read). Document the change.
+- Escalation
+  - When a cap is reached, output a one-line reason and next action, and request user confirmation if needed.
+- Status updates
+  - Include attempt counts when retries occur (e.g., “retry 2/2”).

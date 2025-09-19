@@ -84,3 +84,13 @@ Refer also to: `documentation/AI_EDITORS_GUIDE.md` for a compact spec AI tools c
 - Parallel tool calls required for ≥3 independent lookups; optional for ≤2.
 - Micro-refactors permitted (renames/typing/unused imports) when ≤15 lines and no behavior change.
 - Memory citation only when policy alters behavior/output (e.g., staging override readiness).
+
+## Loop Limiting Rules (Prevent spin; escalate)
+- Caps
+  - File edit retry cap: 2 per error class; on 3rd, stop and ask.
+  - Linter correction cycles: 2 per file per session; on 3rd, request guidance.
+  - Identical tool invocations: max 2; change input or pause on 3rd.
+  - Deploy/status polling: 2 checks within 2 minutes; then wait/backoff.
+  - HTTP 429/5xx: exponential backoff, max 2 retries; then mark blocked.
+- Require a state change before repeating an action; note what changed.
+- On cap reached: emit concise reason and proposed next action; ask for confirmation if needed.
