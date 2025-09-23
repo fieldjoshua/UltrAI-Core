@@ -1,0 +1,19 @@
+version: 1.0.0
+policies:
+  api_keys:
+    ask_user_for_keys: false
+    min_provider_keys_required: 2
+    allowed_providers: [openai, anthropic, google, huggingface]
+  mocks:
+    allow_mocks_in_prod: false
+    allow_mocks_in_staging: false
+    allow_mocks_in_local: true
+    mock_branch_prefixes: ["mock/", "local/"]
+  routing:
+    api_issues_must_use_mcp_editor: true
+  readiness:
+    staging_keys_override_flag: STATUS_ALLOW_STAGING_KEYS_READY
+  redis:
+    require_redis_url_in_prod: true
+
+

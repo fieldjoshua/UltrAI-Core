@@ -245,6 +245,7 @@ def create_app() -> FastAPI:
     from app.routes.debug_env_routes import router as debug_env_router
     from app.routes.metrics import metrics_router
     from app.routes.model_availability_routes import router as model_availability_router
+    from app.routes.policy_routes import router as policy_router
     from app.routes.cache_routes import router as cache_router
     from app.routes.test_env_routes import router as test_env_router
     from app.routes.error_monitoring import router as error_monitoring_router
@@ -268,6 +269,7 @@ def create_app() -> FastAPI:
     app.include_router(debug_env_router, prefix=api_prefix)
     app.include_router(metrics_router, prefix=api_prefix)
     app.include_router(model_availability_router, prefix=api_prefix)
+    app.include_router(policy_router)
     app.include_router(cache_router, prefix=api_prefix)
     app.include_router(test_env_router, prefix=api_prefix)
     app.include_router(error_monitoring_router)  # Already has /api/errors prefix
