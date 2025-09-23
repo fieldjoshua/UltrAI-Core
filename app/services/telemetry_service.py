@@ -10,7 +10,7 @@ This module provides:
 
 import os
 import time
-from typing import Any, Dict, Optional, Callable
+from typing import Any, Dict, Optional
 from contextlib import contextmanager
 from functools import wraps
 import asyncio
@@ -179,7 +179,7 @@ class TelemetryService:
             self.prometheus_metrics["tokens_total"] = PrometheusCounter(
                 "ultrai_tokens_total",
                 "Total tokens used",
-                ["provider", "model", "type"]  # type: input/output
+                ["provider", "model", "type"]  # label indicates input or output
             )
             
             self.prometheus_metrics["cost_total"] = PrometheusCounter(
@@ -314,7 +314,7 @@ class TelemetryService:
                     engine=engine,
                     service="ultrai-db"
                 )
-            except:
+            except Exception:
                 pass
             
             logger.info("Auto-instrumentation completed")

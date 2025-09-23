@@ -25,9 +25,19 @@ pytest tests/test_file.py::test_function -v  # Single test function
 pytest tests/ -k "pattern" -v               # Tests matching pattern
 pytest tests/ --lf                          # Only last failed tests
 
+# Test modes (via Makefile)
+make test                 # Default: offline tests with mocks
+make test-offline         # All external dependencies mocked
+make test-mock           # Sophisticated mocks
+make test-integration    # Tests with local services
+make test-live           # Tests against real LLM providers
+make test-production     # Tests against production endpoints
+make test-all            # Run offline, live, then demo tests
+
 # Test reporting
 make test-report          # Run with Allure and HTML reports
 make test-demo            # Test against staging/production endpoints
+make e2e                 # End-to-end tests with pre-checks
 ```
 
 ### Database Commands
@@ -68,6 +78,7 @@ make clean-ports                         # Kill stuck processes on 8000-8001
 poetry sync                              # Fix dependency issues
 source venv/bin/activate                 # Fix import errors
 ./scripts/verify-render-config.sh        # Verify Render configuration
+make clean                               # Clean temporary files and caches
 ```
 
 ## High-Level Architecture
@@ -142,6 +153,19 @@ Key endpoints:
 - `GET /docs` - Swagger UI documentation
 
 ## Project Rules & Conventions
+
+### Pull Request Requirements
+**Every PR must include a Focus Declaration**:
+```markdown
+## Focus Declaration
+This PR implements [specific feature/fix] by [approach].
+Changes are limited to [scope].
+```
+
+- Follow PR template in `.github/pull_request_template.md`
+- Complete all checklist items before merge
+- Include risk assessment and rollback plan
+- Test against staging environment before production merge
 
 ### AICheck Deployment Requirements (CRITICAL)
 **NO ACTION IS COMPLETE WITHOUT DEPLOYMENT VERIFICATION**
@@ -281,6 +305,35 @@ ENABLE_SINGLE_MODEL_FALLBACK = False  # Disabled in production
 - **Auto-deploy**: Staging only; Production requires manual deploy
 - **Verification Script**: Run `./scripts/verify-render-config.sh` to check setup
 
+## Additional Resources
+
+### Documentation Structure
+- `documentation/testing/` - Comprehensive testing guides and framework documentation
+- `documentation/ops/` - Production deployment checklists and operational guides
+- `documentation/proposals/` - Architecture proposals and design documents
+- `documentation/validation/` - Validation reports and compliance documentation
+- `.aicheck/` - AICheck system documentation and templates
+
+### Key Scripts
+- `scripts/verify-render-config.sh` - Validates Render deployment configuration
+- `scripts/run_tests_all.sh` - Comprehensive test runner with reporting
+- `scripts/run_tests_production.sh` - Production endpoint validation
+- `scripts/deploy_to_render.sh` - Deployment automation script
+
+### Frontend Development
+```bash
+# Frontend-specific commands
+cd frontend
+npm install              # Install dependencies
+npm run dev             # Start development server (port 5173)
+npm run build           # Build for production
+npm run preview         # Preview production build
+npm run lint            # Run ESLint
+npm run type-check      # Run TypeScript checks
+npm test                # Run Jest tests
+npm run storybook       # Start Storybook (port 6006)
+```
+
 ## Key Implementation Details
 
 ### LLM Orchestration Pipeline
@@ -318,3 +371,17 @@ ENABLE_SINGLE_MODEL_FALLBACK = False  # Disabled in production
 - Concurrent execution in orchestration stages
 - Connection pooling and request timeouts
 - Circuit breaker patterns prevent cascading failures
+
+## CI/CD Pipeline
+
+### GitHub Actions Workflows
+- **CI**: Runs on all PRs - unit tests, integration tests, linting
+- **Cursor Rules Enforcement**: Validates PR compliance with project rules
+- **Security Scanning**: Dependency audits and secret scanning
+- **Staging Smoke Tests**: Automatic validation of staging deployments
+
+### Deployment Pipeline
+1. Push to `main` → Auto-deploy to staging
+2. Manual promotion to `production` branch
+3. Production deployment requires manual trigger in Render
+4. Always verify deployment with health checks and smoke tests
