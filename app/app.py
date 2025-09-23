@@ -29,6 +29,7 @@ from app.utils.recovery_workflows import (
     RecoveryAction,
     HealthCheckRecovery,
 )
+from app.services.policy_service import policy_service
 
 logger = get_logger("test_app_setup")
 
@@ -225,6 +226,18 @@ def create_app() -> FastAPI:
         logger.info("Recovery health monitor wired")
     except Exception as e:
         logger.warning(f"Failed to wire recovery hooks: {e}")
+
+    # ---------------- Policy refresh background task ----------------
+    try:
+        @app.on_event("startup")
+        async def _start_policy_refresh():
+            try:
+                # Start 5-minute background refresh
+                policy_service.start_background_refresh(interval_seconds=300)
+            except Exception as _e:
+                logger.warning(f"Policy refresh failed to start: {_e}")
+    except Exception as e:
+        logger.warning(f"Failed to register policy refresh: {e}")
 
     # Include initial routers (mounted under API prefix below)
     app.include_router(user_router, prefix="/api")

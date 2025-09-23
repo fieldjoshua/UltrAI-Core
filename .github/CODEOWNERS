@@ -1,0 +1,7 @@
+# Require review for policy and ops files
+/ops/policies.yaml  @fieldjoshua
+/app/services/policy_service.py  @fieldjoshua
+/app/routes/policy_routes.py  @fieldjoshua
+/.github/workflows/policy-lint.yml  @fieldjoshua
+
+

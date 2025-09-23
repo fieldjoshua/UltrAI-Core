@@ -6,6 +6,7 @@ from fastapi import APIRouter, HTTPException, status
 from typing import Optional
 
 from app.services.health_service import HealthService
+from app.services.policy_service import policy_service
 from app.database.connection import get_db_session
 from app.database.connection import is_using_fallback
 
@@ -39,6 +40,11 @@ def create_router(health_service: Optional[HealthService] = None) -> APIRouter:
         """
         # Always return at minimum { status: "ok", ... }
         health_data = health_service.get_health_status(detailed=detailed)
+        # include policy version for visibility
+        try:
+            health_data["policy_version"] = policy_service.get_version()
+        except Exception:
+            pass
         return health_data
 
     @router.get("/health/services")

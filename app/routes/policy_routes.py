@@ -3,6 +3,7 @@ from typing import Optional
 import os
 
 from app.services.policy_service import policy_service
+from app.utils.notifications import notify_policy_reload
 
 
 router = APIRouter(prefix="/api/ops", tags=["Ops"])
@@ -27,6 +28,12 @@ async def reload_policies(x_policy_token: Optional[str] = Header(None)):
     ok = policy_service.reload()
     if not ok:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Reload failed")
+    try:
+        # fire-and-forget notification; don't block response on failure
+        import asyncio
+        asyncio.create_task(notify_policy_reload(policy_service.get_version()))
+    except Exception:
+        pass
     return {
         "status": "ok",
         "version": policy_service.get_version(),
