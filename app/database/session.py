@@ -20,22 +20,22 @@ logger = get_logger(__name__)
 def get_database_url() -> str:
     """Get database URL from environment or use default."""
     database_url = os.getenv("DATABASE_URL", "sqlite:///./ultrai_dev.db")
-    
+
     # Handle Render.com PostgreSQL URL format
     if database_url.startswith("postgres://"):
         database_url = database_url.replace("postgres://", "postgresql://", 1)
-    
+
     return database_url
 
 
 def create_session_factory() -> sessionmaker:
     """Create SQLAlchemy session factory."""
     database_url = get_database_url()
-    
+
     # Handle empty or invalid database URL for tests
     if not database_url or database_url == "":
         raise ValueError("Invalid or empty DATABASE_URL")
-    
+
     # Configure engine based on database type
     if "sqlite" in database_url:
         # SQLite configuration
@@ -55,7 +55,7 @@ def create_session_factory() -> sessionmaker:
             pool_pre_ping=True,  # Verify connections before using
             echo=os.getenv("SQL_ECHO", "false").lower() == "true",
         )
-    
+
     # Create session factory
     session_factory = sessionmaker(
         bind=engine,
@@ -63,7 +63,7 @@ def create_session_factory() -> sessionmaker:
         autoflush=False,
         expire_on_commit=False,
     )
-    
+
     return session_factory
 
 
@@ -79,15 +79,10 @@ except Exception as e:
 def get_db() -> Generator[Session, None, None]:
     """
     Dependency to get database session.
-    
+
     Yields:
         Database session that auto-closes after use.
     """
-    if SessionLocal.bind is None:
-        # Database not configured, yield None for tests
-        yield None
-        return
-        
     db = SessionLocal()
     try:
         yield db
@@ -99,7 +94,7 @@ def get_db() -> Generator[Session, None, None]:
 def get_db_session() -> Generator[Session, None, None]:
     """
     Context manager for database sessions.
-    
+
     Usage:
         with get_db_session() as db:
             # Use db session
@@ -115,9 +110,9 @@ def get_db_session() -> Generator[Session, None, None]:
 def init_db() -> None:
     """Initialize database tables."""
     from app.database.models import Base
-    
+
     database_url = get_database_url()
-    
+
     # Create engine
     if "sqlite" in database_url:
         engine = create_engine(
@@ -126,7 +121,7 @@ def init_db() -> None:
         )
     else:
         engine = create_engine(database_url)
-    
+
     # Create all tables
     Base.metadata.create_all(bind=engine)
     logger.info(f"Database tables created at {database_url}")
