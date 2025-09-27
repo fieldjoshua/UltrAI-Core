@@ -41,7 +41,7 @@ sse_starlette
 fastapi-limiter
 
 # Email validation (required by Pydantic networks)
-email-validator
+email-validator>=2.0.0
 
 # Markdown
 markdown
