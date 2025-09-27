@@ -1,33 +1,26 @@
+## Summary
+
+Describe the change.
+
 ## Focus Declaration
 
-- I understand our current project goal is <describe the current goal>.
-- These changes work toward this goal by: <state the concrete impact>.
+- I understand our current project goal is: <describe the current goal>
+- These changes work toward this goal by: <state the concrete impact>
 
-## Summary
+## Checklist
+
+- [ ] Policy changes included? If yes:
+  - [ ] Bumped `version` in `ops/policies.yaml`
+  - [ ] Included impact notes
+  - [ ] CI policy-lint passes
+
+- [ ] If Render/MCP related, confirm MCP-connected editor will execute changes
+
+## Details
 
 - Scope:
 - Risk level:
 - Related issues/labels: (include `aux` / `aux-ok` when applicable)
-
-## Editor Checklist (Pre‑Merge)
-
-- [ ] Gating intact (3 models + Big 3 providers) with consistent 503 payload
-- [ ] No cost/billing fields in API or UI
-- [ ] SSE events use the documented names/payload
-- [ ] Wizard enforces health gating
-- [ ] Changes align with DFD constraints above
-
-## Notes for Aux Models (if labeled `aux`)
-
-- Default scope allowed: tests / docs / CI / monitoring
-- Core logic changes require `aux-ok`
-- One-task lock; keep PR focused and within timebox
-
-## Summary
-
-- Focus Declaration
-  - I understand our current project goal is: <fill>
-  - These changes work toward this goal by: <fill>
 
 ## Pre-Merge Checklist
 

@@ -55,6 +55,9 @@ TEST_CONFIGS = {
             "ENABLE_AUTH": "false",
             "REDIS_URL": "",
             "DATABASE_URL": "",
+            "MINIMUM_MODELS_REQUIRED": "1",
+            "ENABLE_SINGLE_MODEL_FALLBACK": "true",
+            "REQUIRED_PROVIDERS": "openai",
         }
     ),
     TestMode.MOCK: TestConfig(
@@ -73,6 +76,9 @@ TEST_CONFIGS = {
             "MOCK_MODE": "true",
             "ENABLE_AUTH": "true",
             "MOCK_RESPONSES": "sophisticated",
+            "MINIMUM_MODELS_REQUIRED": "1",
+            "ENABLE_SINGLE_MODEL_FALLBACK": "true",
+            "REQUIRED_PROVIDERS": "openai",
         }
     ),
     TestMode.INTEGRATION: TestConfig(
@@ -91,6 +97,9 @@ TEST_CONFIGS = {
             "ENABLE_AUTH": "true",
             "REDIS_URL": os.getenv("REDIS_URL", "redis://localhost:6379"),
             "DATABASE_URL": os.getenv("TEST_DATABASE_URL", "postgresql://localhost/ultra_test"),
+            "MINIMUM_MODELS_REQUIRED": "1",
+            "ENABLE_SINGLE_MODEL_FALLBACK": "true",
+            "REQUIRED_PROVIDERS": "openai",
         }
     ),
     TestMode.LIVE: TestConfig(
