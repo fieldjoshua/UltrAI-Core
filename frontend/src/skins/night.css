@@ -9,11 +9,7 @@ body {
 
 /* Apply background image for night skin */
 body.skin-night {
-  background-image: image-set(
-    url('/bg-night.avif') type('image/avif'),
-    url('/bg-night.webp') type('image/webp'),
-    url('/bg-night.jpg') type('image/jpeg')
-  );
+  background-image: url('/bg-night.jpg');
   background-size: cover;
   background-position: center;
   background-attachment: fixed;

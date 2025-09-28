@@ -7,7 +7,7 @@ import os
 from typing import Dict, Any, Optional, List
 from fastapi import APIRouter, HTTPException, Request, Depends
 from fastapi.responses import StreamingResponse
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field
 
 from app.utils.logging import get_logger
 from app.services.output_formatter import OutputFormatter
@@ -82,6 +82,7 @@ class ErrorDetail(BaseModel):
     """Standardized error detail for 503 responses."""
     providers_present: List[str] = Field(..., description="List of providers that are currently available.")
     required_providers: List[str] = Field(..., description="List of providers required for the service to be healthy.")
+
 
 class ServiceUnavailableResponse(BaseModel):
     """Response model for 503 Service Unavailable errors."""
@@ -381,6 +382,29 @@ def create_router() -> APIRouter:
                         await sse_event_bus.publish(corr_id, "model_selected", {"model": m})
             except Exception:
                 pass
+
+            # Enforce minimum model count on the selected list as a defensive gate
+            try:
+                from app.config import Config as _Cfg3
+                _required_models = getattr(_Cfg3, "MINIMUM_MODELS_REQUIRED", 3)
+            except Exception:
+                _required_models = 3
+
+            if not selected_models or len(selected_models) < _required_models:
+                raise HTTPException(
+                    status_code=503,
+                    detail=(
+                        {
+                            "detail": f"UltraAI requires at least {_required_models} models to proceed",
+                            "error_details": {
+                                "providers_present": sorted(list(available_provider_set)) if 'available_provider_set' in locals() else [],
+                                "required_providers": sorted(list(required_providers)) if 'required_providers' in locals() else [],
+                            },
+                        }
+                        if isinstance(required_providers, set)
+                        else f"UltraAI requires at least {_required_models} models to proceed"
+                    ),
+                )
 
             # Run the analysis pipeline
             # Stage start events

@@ -9,12 +9,7 @@ body {
 
 /* Apply background image for morning skin */
 body.skin-morning {
-  /* Prefer AVIF/WebP with JPEG fallback */
-  background-image: image-set(
-    url('/bg-morning.avif') type('image/avif'),
-    url('/bg-morning.webp') type('image/webp'),
-    url('/bg-morning.jpg') type('image/jpeg')
-  );
+  background-image: url('/bg-morning.jpg');
   background-size: cover;
   background-position: center;
   background-attachment: fixed;

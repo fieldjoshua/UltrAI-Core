@@ -101,7 +101,7 @@ class ProviderConfig:
 PROVIDER_CONFIGS = {
     "openai": ProviderConfig(
         name="openai",
-        timeout=30.0,
+        timeout=25.0,
         circuit_breaker=CircuitBreakerConfig(
             failure_threshold=5,
             success_threshold=2,
@@ -115,9 +115,9 @@ PROVIDER_CONFIGS = {
     ),
     "anthropic": ProviderConfig(
         name="anthropic",
-        timeout=45.0,
+        timeout=30.0,
         circuit_breaker=CircuitBreakerConfig(
-            failure_threshold=3,
+            failure_threshold=4,
             success_threshold=2,
             timeout=90.0,  # Longer recovery time
         ),
@@ -129,14 +129,14 @@ PROVIDER_CONFIGS = {
     ),
     "google": ProviderConfig(
         name="google",
-        timeout=25.0,
+        timeout=35.0,
         circuit_breaker=CircuitBreakerConfig(
             failure_threshold=6,
             success_threshold=3,
             timeout=45.0,
         ),
         retry=RetryConfig(
-            max_attempts=4,
+            max_attempts=3,
             initial_delay=0.5,  # Faster initial retry
             max_delay=15.0,
         ),
