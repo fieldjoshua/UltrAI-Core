@@ -1,8 +1,18 @@
 import React from 'react';
+import { config } from '../config';
 import DocumentList from '../components/documents/DocumentList';
 import DocumentUpload from '../components/documents/DocumentUpload';
 
 const DocumentsPage: React.FC = () => {
+  if (!config.ragEnabled) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <h1 className="text-3xl font-bold text-gray-900 mb-6">Document Management</h1>
+        <div className="text-gray-600">Document features are disabled.</div>
+      </div>
+    );
+  }
+
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-3xl font-bold text-gray-900 mb-6">

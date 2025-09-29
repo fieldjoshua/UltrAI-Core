@@ -13,6 +13,7 @@ export interface AppConfig {
   apiMode: ApiMode;
   defaultSkin: Skin;
   availableSkins: Skin[];
+  ragEnabled: boolean;
 }
 
 // Support Vite env in browser and Jest (where we polyfill globalThis["import"].meta.env)
@@ -21,6 +22,7 @@ const viteEnv: any = (globalThis as any)['import']?.meta?.env ?? {};
 const envAppMode = (viteEnv.VITE_APP_MODE as AppMode) || 'staging';
 const envApiMode = (viteEnv.VITE_API_MODE as ApiMode) || 'live';
 const envDefaultSkin = (viteEnv.VITE_DEFAULT_SKIN as Skin) || 'night';
+const envRagEnabled = String(viteEnv.VITE_RAG_ENABLED || 'false').toLowerCase() === 'true';
 
 export const config: AppConfig = {
   appMode: envAppMode,
@@ -34,4 +36,5 @@ export const config: AppConfig = {
     'minimalist',
     'business',
   ],
+  ragEnabled: envRagEnabled,
 };
