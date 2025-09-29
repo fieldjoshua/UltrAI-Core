@@ -135,6 +135,8 @@ class Config:
     ENABLE_HTTPS_REDIRECT = (
         os.getenv("ENABLE_HTTPS_REDIRECT", "false").lower() == "true"
     )
+    # Retrieval-Augmented Generation / Document features (disabled by default)
+    RAG_ENABLED = os.getenv("RAG_ENABLED", "false").lower() == "true"
     # Allow public access to orchestration analyze endpoints for demos (default: false)
     ALLOW_PUBLIC_ORCHESTRATION = (
         os.getenv("ALLOW_PUBLIC_ORCHESTRATION", "false").lower() == "true"
