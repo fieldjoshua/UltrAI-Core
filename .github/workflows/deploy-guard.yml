@@ -1,0 +1,50 @@
+name: Deploy Guard
+
+on:
+  pull_request:
+    branches:
+      - main
+      - production
+
+jobs:
+  frontend-build:
+    name: Frontend build (Netlify parity)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Use Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install and build frontend
+        working-directory: frontend
+        run: |
+          npm ci --no-audit --no-fund
+          npm run build
+
+      - name: Verify build output exists
+        run: |
+          test -d frontend/dist || (echo "frontend/dist missing" && exit 1)
+
+  preview-config-checks:
+    name: Preview config checks
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Verify netlify.toml (if present)
+        run: |
+          if [ -f netlify.toml ]; then
+            grep -q 'base = "frontend"' netlify.toml || (echo "netlify base should be 'frontend'" && exit 1)
+            grep -q 'publish = "dist"' netlify.toml || (echo "netlify publish should be 'dist' with base 'frontend'" && exit 1)
+            grep -q '\[\[redirects\]\]' netlify.toml || (echo "SPA redirects missing in netlify.toml" && exit 1)
+            grep -q 'to = "/index.html"' netlify.toml || (echo "SPA redirect target missing" && exit 1)
+          else
+            echo "netlify.toml not present; skipping Netlify checks"
+          fi
+
+
