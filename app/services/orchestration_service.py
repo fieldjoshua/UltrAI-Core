@@ -23,7 +23,7 @@ try:
     from app.services.synthesis_prompts import SynthesisPromptManager
     from app.services.model_selection import SmartModelSelector
     from app.services.synthesis_output import StructuredSynthesisOutput
-except ImportError as e:
+except ImportError:
     # Graceful degradation if enhanced synthesis components aren't available
     SynthesisPromptManager = None
     SmartModelSelector = None
@@ -45,7 +45,7 @@ from app.services.llm_adapters import (
     GeminiAdapter,
     HuggingFaceAdapter,
 )
-from app.services.enhanced_error_handler import enhanced_error_handler, ErrorSeverity
+from app.services.enhanced_error_handler import enhanced_error_handler
 from app.services.resilient_llm_adapter import create_resilient_adapter
 from app.services.telemetry_service import telemetry
 from app.services.telemetry_llm_wrapper import wrap_llm_adapter_with_telemetry
@@ -1375,7 +1375,7 @@ class OrchestrationService:
                         # Add per-model timeout to prevent individual models from hanging
                         try:
                             result = await asyncio.wait_for(
-                                adapter.generate(prompt), timeout=60.0
+                                adapter.generate(prompt), timeout=Config.INITIAL_RESPONSE_TIMEOUT
                             )
                         except asyncio.TimeoutError as e:
                             # Enhanced timeout handling with error handler
@@ -1386,9 +1386,9 @@ class OrchestrationService:
                                 stage="initial_response",
                                 correlation_id=correlation_id
                             )
-                            logger.error(f"⏱️ Model {model} timed out after 60s")
+                            logger.error(f"⏱️ Model {model} timed out after {Config.INITIAL_RESPONSE_TIMEOUT}s")
                             return model, {
-                                "error": "Model request timed out after 60 seconds",
+                                "error": f"Model request timed out after {Config.INITIAL_RESPONSE_TIMEOUT} seconds",
                                 "provider": "OpenAI",
                                 "error_context": {
                                     "severity": timeout_error.severity.value,
@@ -1500,13 +1500,25 @@ class OrchestrationService:
                     # Add per-model timeout to prevent individual models from hanging
                     try:
                         result = await asyncio.wait_for(
-                            adapter.generate(prompt), timeout=60.0
+                            adapter.generate(prompt), timeout=Config.INITIAL_RESPONSE_TIMEOUT
                         )
-                    except asyncio.TimeoutError:
-                        logger.error(f"⏱️ Model {model} timed out after 60s")
+                    except asyncio.TimeoutError as e:
+                        # Enhanced timeout handling with error handler
+                        timeout_error = await enhanced_error_handler.handle_provider_error(
+                            provider="anthropic",
+                            model=model,
+                            error=e,
+                            stage="initial_response",
+                            correlation_id=correlation_id
+                        )
+                        logger.error(f"⏱️ Model {model} timed out after {Config.INITIAL_RESPONSE_TIMEOUT}s")
                         return model, {
-                            "error": "Model request timed out after 60 seconds",
+                            "error": f"Model request timed out after {Config.INITIAL_RESPONSE_TIMEOUT} seconds",
                             "provider": "Anthropic",
+                            "error_context": {
+                                "severity": timeout_error.severity.value,
+                                "suggested_action": timeout_error.suggested_action
+                            }
                         }
                     if "Error:" not in result.get("generated_text", ""):
                         logger.info(f"✅ Successfully got response from {model}")
@@ -1570,13 +1582,25 @@ class OrchestrationService:
                     # Add per-model timeout to prevent individual models from hanging
                     try:
                         result = await asyncio.wait_for(
-                            adapter.generate(prompt), timeout=60.0
+                            adapter.generate(prompt), timeout=Config.INITIAL_RESPONSE_TIMEOUT
                         )
-                    except asyncio.TimeoutError:
-                        logger.error(f"⏱️ Model {model} timed out after 60s")
+                    except asyncio.TimeoutError as e:
+                        # Enhanced timeout handling with error handler
+                        timeout_error = await enhanced_error_handler.handle_provider_error(
+                            provider="google",
+                            model=model,
+                            error=e,
+                            stage="initial_response",
+                            correlation_id=correlation_id
+                        )
+                        logger.error(f"⏱️ Model {model} timed out after {Config.INITIAL_RESPONSE_TIMEOUT}s")
                         return model, {
-                            "error": "Model request timed out after 60 seconds",
+                            "error": f"Model request timed out after {Config.INITIAL_RESPONSE_TIMEOUT} seconds",
                             "provider": "Google",
+                            "error_context": {
+                                "severity": timeout_error.severity.value,
+                                "suggested_action": timeout_error.suggested_action
+                            }
                         }
                     if "Error:" not in result.get("generated_text", ""):
                         logger.info(f"✅ Successfully got response from {model}")
@@ -1637,13 +1661,25 @@ class OrchestrationService:
                         # Add per-model timeout to prevent individual models from hanging
                         try:
                             result = await asyncio.wait_for(
-                                adapter.generate(prompt), timeout=60.0
+                                adapter.generate(prompt), timeout=Config.INITIAL_RESPONSE_TIMEOUT
                             )
-                        except asyncio.TimeoutError:
-                            logger.error(f"⏱️ Model {model} timed out after 60s")
+                        except asyncio.TimeoutError as e:
+                            # Enhanced timeout handling with error handler
+                            timeout_error = await enhanced_error_handler.handle_provider_error(
+                                provider="huggingface",
+                                model=model,
+                                error=e,
+                                stage="initial_response",
+                                correlation_id=correlation_id
+                            )
+                            logger.error(f"⏱️ Model {model} timed out after {Config.INITIAL_RESPONSE_TIMEOUT}s")
                             return model, {
-                                "error": "Model request timed out after 60 seconds",
+                                "error": f"Model request timed out after {Config.INITIAL_RESPONSE_TIMEOUT} seconds",
                                 "provider": "HuggingFace",
+                                "error_context": {
+                                    "severity": timeout_error.severity.value,
+                                    "suggested_action": timeout_error.suggested_action
+                                }
                             }
                         if "Error:" not in result.get("generated_text", ""):
                             logger.info(f"✅ Successfully got response from {model}")
@@ -1758,10 +1794,19 @@ class OrchestrationService:
         else:
             logger.info("📊 HTTP Client Pool info not available")
 
+        # Create semaphore to cap concurrent model execution
+        max_concurrent = min(len(executable_models), 4)
+        semaphore = asyncio.Semaphore(max_concurrent)
+        
+        async def execute_model_with_semaphore(model: str) -> tuple[str, dict]:
+            """Execute model with semaphore to limit concurrency"""
+            async with semaphore:
+                return await execute_model(model)
+        
         # Create asyncio tasks for proper timeout handling
         async_tasks = []
         for model in executable_models:
-            task = asyncio.create_task(execute_model(model))
+            task = asyncio.create_task(execute_model_with_semaphore(model))
             # Add model name to task for debugging
             task.set_name(f"execute_{model}")
             async_tasks.append(task)
@@ -1769,7 +1814,7 @@ class OrchestrationService:
         # Add timeout protection for concurrent execution
         try:
             logger.info(
-                f"⏱️ Starting concurrent execution with timeout of {Config.CONCURRENT_EXECUTION_TIMEOUT}s"
+                f"⏱️ Starting concurrent execution with timeout of {Config.CONCURRENT_EXECUTION_TIMEOUT}s (max {max_concurrent} concurrent)"
             )
             results = await asyncio.wait_for(
                 asyncio.gather(*async_tasks, return_exceptions=True),
@@ -1778,7 +1823,7 @@ class OrchestrationService:
             logger.info(
                 f"✅ Concurrent execution completed with {len(results)} results"
             )
-        except asyncio.TimeoutError as e:
+        except asyncio.TimeoutError:
             # Enhanced timeout handling with error handler
             timeout_error = await enhanced_error_handler.handle_stage_timeout(
                 stage="initial_response",
@@ -1795,16 +1840,24 @@ class OrchestrationService:
                     "suggested_action": timeout_error.suggested_action
                 }
             )
-            # Log which tasks are still pending
-            for task in async_tasks:
-                if not task.done():
-                    logger.error(
-                        f"❌ Task '{task.get_name()}' is still pending after timeout"
-                    )
-            # Cancel incomplete tasks and collect partial results
+            
+            # Cancel all pending tasks properly
+            pending_tasks = [task for task in async_tasks if not task.done()]
+            if pending_tasks:
+                logger.warning(f"⚠️ Cancelling {len(pending_tasks)} pending tasks")
+                for task in pending_tasks:
+                    task.cancel()
+                
+                # Wait for cancellation to complete
+                try:
+                    await asyncio.gather(*pending_tasks, return_exceptions=True)
+                except Exception as cancel_err:
+                    logger.warning(f"Task cancellation generated exception: {cancel_err}")
+            
+            # Collect completed results and create timeout errors for cancelled tasks
             results = []
             for task in async_tasks:
-                if task.done():
+                if task.done() and not task.cancelled():
                     try:
                         results.append(task.result())
                         logger.info("✅ Collected completed task result")
@@ -1812,10 +1865,19 @@ class OrchestrationService:
                         logger.error(f"Task completed with error: {e}")
                         results.append(e)
                 else:
-                    logger.warning("⚠️ Cancelling incomplete task")
-                    task.cancel()
-                    # Add a timeout error result for this task
-                    results.append(TimeoutError("Task cancelled due to timeout"))
+                    # Add structured timeout error for cancelled/pending tasks
+                    model_name = task.get_name().replace("execute_", "")
+                    timeout_result = (model_name, {
+                        "error": "Model request timed out during concurrent execution",
+                        "error_context": {
+                            "severity": timeout_error.severity.value,
+                            "suggested_action": timeout_error.suggested_action
+                        }
+                    })
+                    results.append(timeout_result)
+            
+            # Return structured timeout error via enhanced error handler
+            return timeout_error
 
         # Process results and collect successful responses
         failed_models = {}
