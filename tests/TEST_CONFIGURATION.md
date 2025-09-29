@@ -51,6 +51,14 @@ The Ultra project uses a comprehensive test configuration system that allows tes
   - Useful for deployment verification
 - **Command**: `make test-production`
 
+### 6. E2E Mode
+- **Purpose**: End-to-end tests with full user flows
+- **Characteristics**:
+  - Tests complete user journeys
+  - May include browser automation
+  - Requires full stack running
+- **Command**: `make e2e`
+
 ## Configuration Files
 
 ### Core Configuration
@@ -227,7 +235,7 @@ def test_configuration_aware():
 ### Running specific test categories
 ```bash
 # Run only unit tests in OFFLINE mode
-TEST_MODE=OFFLINE pytest -m unit
+make test-offline
 
 # Run integration tests with local services
 make test-integration
@@ -236,24 +244,43 @@ make test-integration
 TEST_MODE=MOCK pytest tests/test_orchestration_service.py -v
 
 # Run live tests for specific provider
-TEST_MODE=LIVE pytest tests/live/test_live_providers.py::test_openai_smoke -v
+make test-live
+
+# Run end-to-end tests
+make e2e
+
+# Run all test suites
+make test-all
 ```
 
 ### CI/CD Pipeline Example
 ```yaml
-# .github/workflows/test.yml
-test:
-  steps:
-    - name: Run offline tests
-      run: make test
+# .github/workflows/test-matrix.yml
+name: Test Matrix
+
+on:
+  push:
+    branches: [ main, production ]
+  pull_request:
+    branches: [ main, production ]
+
+jobs:
+  test-matrix:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        test-category: [unit, integration, e2e]
     
-    - name: Run mock tests
-      run: make test-mock
-    
-    - name: Run integration tests
-      run: |
-        docker-compose up -d postgres redis
-        make test-integration
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Run ${{ matrix.test-category }} tests
+        run: pytest -v -m "${{ matrix.test-category }}"
 ```
 
 ## Migration Guide
