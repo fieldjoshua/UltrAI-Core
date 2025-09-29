@@ -15,6 +15,10 @@ from app.middleware.combined_auth_middleware import require_auth, AuthUser
 from app.models.streaming_response import StreamingAnalysisRequest, StreamingConfig
 from app.services.provider_health_manager import provider_health_manager
 from app.services.sse_event_bus import sse_event_bus
+from app.services.analysis_storage_service import AnalysisStorageService
+from app.database.session import get_db
+from app.database.models.analysis import AnalysisType, OutputFormat
+from sqlalchemy.orm import Session
 
 logger = get_logger("orchestrator_routes")
 
@@ -258,7 +262,8 @@ def create_router() -> APIRouter:
     async def analyze_query(
         request: AnalysisRequest,
         http_request: Request,
-        current_user: AuthUser = Depends(require_auth)
+        current_user: AuthUser = Depends(require_auth),
+        db: Session = Depends(get_db)
     ):
         """
         Main analysis endpoint using the orchestration service.
@@ -403,6 +408,23 @@ def create_router() -> APIRouter:
                     detail=f"UltraAI requires at least {_required_models} models to proceed",
                 )
 
+            # Create analysis session for tracking
+            storage_service = AnalysisStorageService()
+            analysis_session = None
+            try:
+                analysis_session = await storage_service.create_analysis_session(
+                    db=db,
+                    user_id=current_user.user_id,
+                    prompt=request.query,
+                    selected_models=selected_models,
+                    analysis_type=AnalysisType.STANDARD,  # Map from request.analysis_type if needed
+                    ultra_model=selected_models[0] if selected_models else "gpt-4",
+                    output_format=OutputFormat.TEXT
+                )
+                logger.info(f"Created analysis session {analysis_session.uuid}")
+            except Exception as e:
+                logger.warning(f"Failed to create analysis session: {e}")
+            
             # Run the analysis pipeline
             # Stage start events
             await sse_event_bus.publish(corr_id, "initial_start", {})
@@ -650,6 +672,22 @@ def create_router() -> APIRouter:
                 {"processing_time": processing_time, "stages": completed_stages},
             )
 
+            # Complete analysis session with results
+            if analysis_session:
+                try:
+                    await storage_service.complete_analysis_session(
+                        db=db,
+                        analysis_id=analysis_session.id,
+                        ultra_response=ultra_synthesis_result or "",
+                        model_results=analysis_results,
+                        total_time_seconds=processing_time,
+                        total_tokens=None,  # TODO: Extract token count from pipeline_results
+                        estimated_cost=None  # TODO: Calculate cost from model usage
+                    )
+                    logger.info(f"Completed analysis session {analysis_session.uuid}")
+                except Exception as e:
+                    logger.warning(f"Failed to complete analysis session: {e}")
+
             return AnalysisResponse(
                 success=True,
                 results=analysis_results,
@@ -663,6 +701,21 @@ def create_router() -> APIRouter:
             raise
         except Exception as e:
             logger.error(f"Analysis failed: {str(e)}", exc_info=True)
+            
+            # Mark analysis session as failed if it exists
+            if analysis_session:
+                try:
+                    await storage_service.complete_analysis_session(
+                        db=db,
+                        analysis_id=analysis_session.id,
+                        ultra_response="",
+                        model_results={},
+                        total_time_seconds=time.time() - start_time,
+                        error_message=str(e)
+                    )
+                except Exception as storage_error:
+                    logger.warning(f"Failed to mark analysis session as failed: {storage_error}")
+            
             raise HTTPException(status_code=500, detail=f"An unexpected error occurred: {str(e)}")
 
     @router.post(
