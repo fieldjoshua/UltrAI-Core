@@ -1,8 +1,15 @@
 [build]
-base = "UltrAI-Core/frontend"
-publish = "UltrAI-Core/frontend/dist"
-command = "npm ci && npm run build"
+base = "frontend"
+publish = "dist"
+command = "npm ci --no-audit --no-fund && npm run build"
 
 [build.environment]
 NODE_VERSION = "20"
-VITE_API_URL = "https://ultrai-core.onrender.com"
+
+[context.deploy-preview.environment]
+VITE_API_URL = "https://ultrai-staging-api.onrender.com"
+
+[[redirects]]
+from = "/*"
+to = "/index.html"
+status = 200
