@@ -144,7 +144,7 @@ class Config:
 
     # Enhanced synthesis feature flag (default: on for staging, off for production)
     ENHANCED_SYNTHESIS_ENABLED = os.getenv(
-        "ENHANCED_SYNTHESIS_ENABLED", 
+        "ENHANCED_SYNTHESIS_ENABLED",
         "true" if ENVIRONMENT in ["development", "staging"] else "false"
     ).lower() == "true"
 

@@ -3,10 +3,9 @@ Route handlers for the Ultra backend.
 """
 
 import logging
-from typing import Dict, List, Optional
-from fastapi import APIRouter, Depends, HTTPException, status, File, UploadFile, Form
+from typing import Dict, List
+from fastapi import APIRouter, Depends, HTTPException, status, File, UploadFile
 import os
-from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 
 from app.database.session import get_db
@@ -28,7 +27,6 @@ def create_router(document_processor=None) -> APIRouter:
 
     # Feature gate: return 501 for all document endpoints when RAG is disabled
     rag_enabled = os.getenv("RAG_ENABLED", "false").lower() == "true"
-    
     if not rag_enabled:
         @router.get("/documents")
         async def _documents_disabled():
@@ -50,14 +48,12 @@ def create_router(document_processor=None) -> APIRouter:
                 status_code=status.HTTP_501_NOT_IMPLEMENTED,
                 detail="Document features are disabled",
             )
-            
         @router.get("/documents/{document_id}")
         async def _get_document_disabled(document_id: str):
             raise HTTPException(
                 status_code=status.HTTP_501_NOT_IMPLEMENTED,
                 detail="Document features are disabled",
             )
-            
         @router.get("/documents/{document_id}/chunks")
         async def _get_chunks_disabled(document_id: str):
             raise HTTPException(
