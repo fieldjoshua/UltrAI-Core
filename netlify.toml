@@ -1,0 +1,15 @@
+[build]
+base = "frontend"
+publish = "dist"
+command = "npm ci --no-audit --no-fund && npm run build"
+
+[build.environment]
+NODE_VERSION = "20"
+
+[context.deploy-preview.environment]
+VITE_API_URL = "https://ultrai-staging-api.onrender.com"
+
+[[redirects]]
+from = "/*"
+to = "/index.html"
+status = 200
