@@ -33,6 +33,14 @@ services:
       - key: ENABLE_RATE_LIMIT
         value: "false"
       
+      # Core service configuration
+      - key: RAG_ENABLED
+        value: "false"
+      - key: MINIMUM_MODELS_REQUIRED
+        value: "3"
+      - key: ENABLE_SINGLE_MODEL_FALLBACK
+        value: "false"
+      
       # LLM API Keys (copy from production)
       - key: OPENAI_API_KEY
         sync: false

@@ -32,6 +32,16 @@ services:
       - key: ENABLE_RATE_LIMIT
         value: "true"
       
+      # Core service configuration
+      - key: RAG_ENABLED
+        value: "false"
+      - key: MINIMUM_MODELS_REQUIRED
+        value: "3"
+      - key: ENABLE_SINGLE_MODEL_FALLBACK
+        value: "false"
+      - key: ALLOW_PUBLIC_ORCHESTRATION
+        value: "false"
+      
       # Security
       - key: JWT_SECRET
         generateValue: true
