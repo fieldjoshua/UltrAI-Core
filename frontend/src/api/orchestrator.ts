@@ -34,7 +34,7 @@ export async function processWithFeatherOrchestration(
     if (correlationId) {
       headers['X-Correlation-ID'] = correlationId;
     }
-    const response = await fetch(`${API_BASE}/orchestrator/analyze`, {
+    const response = await fetch(`${API_BASE}/orchestrator/demo`, {
       method: 'POST',
       headers,
       body: JSON.stringify({
