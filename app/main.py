@@ -30,7 +30,11 @@ async def log_startup_readiness():
     """Logs a summary of service readiness at startup."""
     logger.info("--- Startup Readiness Check ---")
     try:
-        health_summary = await provider_health_manager.get_health_summary()
+        # Use asyncio.wait_for to prevent infinite blocking
+        health_summary = await asyncio.wait_for(
+            provider_health_manager.get_health_summary(),
+            timeout=5.0
+        )
         available_providers = health_summary.get("_system", {}).get("available_providers", [])
         required_providers = Config.REQUIRED_PROVIDERS
         missing_providers = [p for p in required_providers if p not in available_providers]
@@ -48,18 +52,11 @@ async def log_startup_readiness():
         else:
             logger.info("All required providers are present.")
 
-        # Log available models
-        try:
-            # Temporarily create an orchestration service to access model discovery
-            temp_orchestrator = OrchestrationService(ModelRegistry(), QualityEvaluationService(), RateLimiter())
-            default_models = await temp_orchestrator._default_models_from_env()
-            if default_models:
-                logger.info(f"Found {len(default_models)} available models at boot: {', '.join(default_models)}")
-            else:
-                logger.warning("No models found at boot. Service may be degraded.")
-        except Exception as e:
-            logger.error(f"Error discovering models at startup: {e}")
+        # Skip detailed model discovery at startup to prevent blocking
+        logger.info("Skipping detailed model discovery at startup (will run in background)")
 
+    except asyncio.TimeoutError:
+        logger.warning("Startup readiness check timed out after 5s - continuing anyway")
     except Exception as e:
         logger.error(f"Failed to perform startup readiness check: {e}", exc_info=True)
     logger.info("---------------------------------")
@@ -241,17 +238,7 @@ def configure_app(app: FastAPI, services: Dict[str, Any]) -> None:
 
     # Optionally skip heavy readiness checks for faster startup
     if not FAST_STARTUP:
-        # Run the readiness check (defer if no running loop yet)
-        try:
-            loop = asyncio.get_running_loop()
-            loop.create_task(check_big3_readiness())
-        except RuntimeError:
-
-            def _run_on_startup():
-                loop = asyncio.get_event_loop()
-                loop.create_task(check_big3_readiness())
-
-            app.add_event_handler("startup", _run_on_startup)
+        app.add_event_handler("startup", check_big3_readiness)
 
 
 def create_production_app() -> FastAPI:
