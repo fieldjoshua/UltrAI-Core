@@ -1,0 +1,35 @@
+# Communal TODO
+
+Generated: 2025-09-30 03:04:30Z
+
+## High
+
+| Title | Status | Owner | Source |
+|-------|--------|-------|--------|
+| Security Vulnerabilities Fix | 🆕 Not Started | Claude Code | `ACTIVE_TASKS.md` |
+| Auth Endpoint Investigation | 🆕 Not Started | Cursor | `ACTIVE_TASKS.md` |
+
+## Medium
+
+| Title | Status | Owner | Source |
+|-------|--------|-------|--------|
+| Staging Monitoring | 🔄 In Progress | Claude-1 | `ACTIVE_TASKS.md` |
+| Create Verification Script | Not Started | Claude Code | `RENDER_TASKS_FOR_OTHER_AI.md` |
+| Handle render.yaml | Not Started | Claude Code | `RENDER_TASKS_FOR_OTHER_AI.md` |
+| Update Backend Configurations | Not Started | Claude Code | `RENDER_TASKS_FOR_OTHER_AI.md` |
+| Break down `CyberWizard.tsx` | 🆕 Not Started | Claude-1 | `ACTIVE_TASKS.md` |
+| Bundle Size Analysis & Optimization | 🆕 Not Started | Claude-1 | `ACTIVE_TASKS.md` |
+| CSS Standardization | 🆕 Not Started | Claude-1 | `ACTIVE_TASKS.md` |
+| Frontend: React Query Integration | 🆕 Not Started | Claude-1 | `ACTIVE_TASKS.md` |
+| Investigate `/api/orchestrator/status` async timeout | 🆕 Not Started | Claude-1 | `ACTIVE_TASKS.md` |
+| TypeScript Migration (remaining .js/.jsx) | 🆕 Not Started | Claude-1 | `ACTIVE_TASKS.md` |
+
+## Unspecified Priority
+
+| Title | Status | Owner | Source |
+|-------|--------|-------|--------|
+| Confirm authentication mode | Not Started | Claude Code | `AI_COORDINATION.md` |
+| Run basic smoke tests | Not Started | Claude Code | `AI_COORDINATION.md` |
+| Test frontend-backend connectivity | Not Started | Claude Code | `AI_COORDINATION.md` |
+| Verify Render environment variables | Not Started | Claude Code | `AI_COORDINATION.md` |
+
