@@ -653,7 +653,7 @@ const OrchestratorInterface = () => {
                     </div>
                   </div>
 
-                  <div className="bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50 p-8 rounded-xl border-2 border-gradient-to-r from-purple-200 to-blue-200 shadow-lg ultra-sheen">
+                  <div className="bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50 p-8 rounded-xl border-2 shadow-lg ultra-sheen">
                     <div className="prose max-w-none">
                       <div
                         data-testid="ultra-synthesis"
