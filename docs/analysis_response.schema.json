@@ -1,0 +1,139 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "AnalysisResponse",
+  "description": "Response schema for orchestration analysis results",
+  "type": "object",
+  "properties": {
+    "success": {
+      "type": "boolean",
+      "description": "Whether the analysis was successful"
+    },
+    "results": {
+      "type": "object",
+      "description": "Analysis results container",
+      "properties": {
+        "ultra_synthesis": {
+          "oneOf": [
+            { "type": "string" },
+            {
+              "type": "object",
+              "properties": {
+                "text": { "type": "string" },
+                "sections": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "title": { "type": "string" },
+                      "content": { "type": "string" },
+                      "level": { "type": "integer" }
+                    }
+                  }
+                },
+                "word_count": { "type": "integer" },
+                "formatted_text": { "type": "string" }
+              }
+            }
+          ],
+          "description": "Ultra synthesis result (normalized format)"
+        },
+        "formatted_synthesis": {
+          "type": "string",
+          "description": "Formatted synthesis text for display"
+        },
+        "initial_responses": {
+          "type": "object",
+          "properties": {
+            "responses": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "object",
+                "properties": {
+                  "text": { "type": "string" },
+                  "word_count": { "type": "integer" },
+                  "preview": { "type": "string" }
+                }
+              }
+            },
+            "model_count": { "type": "integer" },
+            "successful_models": {
+              "type": "array",
+              "items": { "type": "string" }
+            }
+          },
+          "description": "Initial model responses"
+        },
+        "meta_analysis": {
+          "type": "object",
+          "properties": {
+            "responses": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "object",
+                "properties": {
+                  "text": { "type": "string" },
+                  "word_count": { "type": "integer" },
+                  "preview": { "type": "string" }
+                }
+              }
+            },
+            "revision_count": { "type": "integer" },
+            "models_with_revisions": {
+              "type": "array",
+              "items": { "type": "string" }
+            }
+          },
+          "description": "Peer review and meta analysis responses"
+        },
+        "pipeline_summary": {
+          "type": "object",
+          "properties": {
+            "stages_completed": {
+              "type": "array",
+              "items": { "type": "string" }
+            },
+            "total_models_used": {
+              "type": "array",
+              "items": { "type": "string" }
+            },
+            "stage_count": { "type": "integer" },
+            "success": { "type": "boolean" },
+            "metadata": {
+              "type": "object",
+              "properties": {
+                "timestamp": { "type": "string" },
+                "pipeline_version": { "type": "string" }
+              }
+            }
+          },
+          "description": "Pipeline execution summary"
+        },
+        "formatted_output": {
+          "type": "object",
+          "description": "Formatted output matching OutputFormatter structure"
+        }
+      },
+      "additionalProperties": true
+    },
+    "error": {
+      "type": "string",
+      "description": "Error message if analysis failed"
+    },
+    "processing_time": {
+      "type": "number",
+      "description": "Processing time in seconds"
+    },
+    "saved_files": {
+      "type": "object",
+      "additionalProperties": { "type": "string" },
+      "description": "Paths to saved output files"
+    },
+    "pipeline_info": {
+      "type": "object",
+      "description": "Information about pipeline execution including progress and stages",
+      "additionalProperties": true
+    }
+  },
+  "required": ["success", "results"],
+  "additionalProperties": false
+}

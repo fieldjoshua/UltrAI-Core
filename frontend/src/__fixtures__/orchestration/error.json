@@ -1,0 +1,21 @@
+{
+  "success": false,
+  "results": {},
+  "error": "Service temporarily unavailable. All required model providers are currently experiencing issues. Please check the status endpoint for more details.",
+  "processing_time": 2.1,
+  "pipeline_info": {
+    "correlation_id": "analysis_12345",
+    "error_stage": "initial_response",
+    "failed_models": [
+      "gpt-4",
+      "claude-3-opus"
+    ],
+    "available_providers": [
+      "gemini-pro"
+    ],
+    "required_providers": [
+      "openai",
+      "anthropic"
+    ]
+  }
+}
