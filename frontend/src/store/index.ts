@@ -2,6 +2,7 @@ import { configureStore } from '@reduxjs/toolkit';
 import { setupListeners } from '@reduxjs/toolkit/query';
 import { combineReducers } from 'redux';
 import documentsReducer from '../features/documents/documentsSlice';
+import errorsReducer from '../features/errors/errorsSlice';
 
 // Import reducers as they are created
 // import authReducer from '../features/auth/authSlice';
@@ -12,6 +13,7 @@ import documentsReducer from '../features/documents/documentsSlice';
 const rootReducer = combineReducers({
   // auth: authReducer,
   documents: documentsReducer,
+  errors: errorsReducer,
   // analysis: analysisReducer,
   // ui: uiReducer,
 });
