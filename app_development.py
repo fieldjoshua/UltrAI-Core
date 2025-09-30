@@ -223,6 +223,15 @@ try:
         logger.info("Admin routes mounted under /api")
     except Exception:
         logger.warning("Admin routes not available in dev app", exc_info=True)
+
+    # Include orchestrator routes for local testing
+    try:
+        from app.routes.orchestrator_minimal import create_router
+        orchestrator_router = create_router()
+        app.include_router(orchestrator_router, prefix="/api")
+        logger.info("Orchestrator routes mounted under /api")
+    except Exception:
+        logger.warning("Orchestrator routes not available in dev app", exc_info=True)
 except Exception:
     logger.warning("Failed to initialize dev static/API helpers", exc_info=True)
 
