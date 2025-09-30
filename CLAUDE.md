@@ -162,10 +162,25 @@ CONCURRENT_EXECUTION_TIMEOUT=70     # Synthesis timeout (seconds)
 ## 🚢 Deployment
 
 **Production:** https://ultrai-core.onrender.com  
-**Dashboard:** https://dashboard.render.com/web/srv-cp2i4nmd3nmc73ceaphg
+**Dashboard:** https://dashboard.render.com
 
+### Quick Deploy
 ```bash
-git push origin main    # Auto-deploys to Render
+./scripts/deploy.sh           # Push to main + verify all services
+./scripts/render-check-deploys.sh  # Check deploy status only
+```
+
+### All Services
+All services track `main` branch with auto-deploy enabled:
+- ultrai-prod-api (https://ultrai-prod-api.onrender.com)
+- UltrAI (https://ultrai-core.onrender.com)  
+- ultrai-core (https://ultrai-core-4lut.onrender.com)
+- ultrai-staging-api (https://ultrai-staging-api.onrender.com)
+- Plus 5 frontend static sites
+
+### Manual Deploy
+```bash
+git add . && git commit -m "msg" && git push origin main
 ```
 
 ## 💡 Development Tips

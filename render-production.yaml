@@ -9,9 +9,8 @@ services:
     buildCommand: pip install -r requirements-production.txt
     startCommand: python app_production.py
     
-    # Auto-deploy enabled temporarily for LLM health fix
     branch: main
-    autoDeploy: true  # TODO: Set back to false after fix is deployed
+    autoDeploy: true
     
     # Health check
     healthCheckPath: /api/health
