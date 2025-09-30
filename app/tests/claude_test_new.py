@@ -1,10 +1,11 @@
 from anthropic import Anthropic
+import os
 
 print("Starting test...")
 
 # Initialize the client
 client = Anthropic(
-    api_key="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"
+    api_key=os.getenv("ANTHROPIC_API_KEY", "sk-ant-test-mock-key-for-testing")  # gitleaks:allow
 )
 
 try:
