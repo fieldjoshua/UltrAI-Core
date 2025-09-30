@@ -106,12 +106,19 @@ def test_api_models_available():
     response = requests.get(models_url, timeout=30)
     assert response.status_code == 200, f"Available models endpoint failed: {response.status_code}"
     
-    models = response.json()
-    assert len(models) > 0, "No models available"
-    assert len(models) >= 15, f"Expected 15+ models, got {len(models)}"
+    data = response.json()
+    models = data.get("models", data)
+    if isinstance(models, list):
+        model_count = len(models)
+        providers = set(model.get("provider") for model in models)
+    else:
+        model_count = len(models)
+        providers = set(model.get("provider") for model in models.values())
+    
+    assert model_count > 0, "No models available"
+    assert model_count >= 15, f"Expected 15+ models, got {model_count}"
     
     # Verify we have models from multiple providers
-    providers = set(model.get("provider") for model in models.values())
     assert len(providers) >= 3, f"Expected 3+ providers, got {len(providers)}: {providers}"
 
 
