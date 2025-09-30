@@ -1,0 +1,177 @@
+{
+  "timestamp": "2025-09-28T21:59:47.284572",
+  "project_structure": {
+    "project_type": "UltraAI Core - LLM Orchestration Platform",
+    "description": "Sophisticated multi-model AI platform implementing Enhanced Synthesis\u2122",
+    "main_technologies": {
+      "backend": [
+        "Python 3.12",
+        "FastAPI",
+        "SQLAlchemy",
+        "Poetry"
+      ],
+      "frontend": [
+        "React 18",
+        "TypeScript",
+        "Vite",
+        "Zustand"
+      ],
+      "infrastructure": [
+        "Docker",
+        "PostgreSQL",
+        "Redis",
+        "Render.com"
+      ],
+      "llm_providers": [
+        "OpenAI",
+        "Anthropic",
+        "Google",
+        "HuggingFace"
+      ]
+    },
+    "key_directories": {
+      "backend": {
+        "app/": "Main backend application",
+        "app/routes/": "API endpoints",
+        "app/services/": "Business logic and orchestration",
+        "app/models/": "Data models",
+        "app/middleware/": "Cross-cutting concerns",
+        "app/database/": "Database layer"
+      },
+      "frontend": {
+        "frontend/": "React TypeScript application",
+        "frontend/src/components/": "UI components including cyberpunk wizard",
+        "frontend/src/api/": "Type-safe API client",
+        "frontend/src/stores/": "Zustand state management",
+        "frontend/src/pages/": "Route-level components"
+      },
+      "testing": {
+        "tests/": "Comprehensive test suite",
+        "tests/unit/": "Unit tests",
+        "tests/integration/": "Integration tests",
+        "tests/e2e/": "End-to-end tests",
+        "tests/live/": "Live provider tests",
+        "tests/production/": "Production smoke tests"
+      },
+      "documentation": {
+        "documentation/": "Product documentation",
+        ".aicheck/": "AICheck development system",
+        ".aicheck/actions/": "Action-based development tracking"
+      }
+    }
+  },
+  "build_configuration": {
+    "build_tools": {
+      "python": {
+        "package_manager": "Poetry",
+        "config_file": "pyproject.toml",
+        "dependency_files": [
+          "requirements.txt",
+          "requirements-production.txt"
+        ],
+        "python_version": "^3.12"
+      },
+      "frontend": {
+        "package_manager": "npm",
+        "config_file": "package.json",
+        "build_tool": "Vite",
+        "typescript": true
+      }
+    },
+    "development_commands": {
+      "setup": "make setup",
+      "dev_server": "make dev",
+      "prod_server": "make prod",
+      "test": "make test",
+      "deploy": "make deploy"
+    },
+    "deployment": {
+      "platform": "Render.com",
+      "config_file": "render.yaml",
+      "production_url": "https://ultrai-core.onrender.com",
+      "auto_deploy": "On push to main branch"
+    }
+  },
+  "testing_setup": {
+    "test_framework": "pytest",
+    "test_modes": {
+      "OFFLINE": "Fully mocked, no external dependencies",
+      "MOCK": "Sophisticated mocks",
+      "INTEGRATION": "Local PostgreSQL/Redis",
+      "LIVE": "Real LLM providers (costs money)",
+      "PRODUCTION": "Against deployed endpoints"
+    },
+    "test_statistics": {
+      "total_tests": "512+",
+      "code_coverage": "31%",
+      "test_files": 51,
+      "service_coverage": "52% (28/54 services)"
+    },
+    "test_commands": {
+      "default": "make test",
+      "with_coverage": "make test-coverage",
+      "html_report": "make test-report",
+      "e2e": "./scripts/test-e2e.sh"
+    }
+  },
+  "aicheck_system": {
+    "description": "Structured development workflow with action-based task management",
+    "key_features": [
+      "Documentation-first approach",
+      "Test-driven development",
+      "AI assistant integration",
+      "Deployment verification requirements",
+      "One active action per editor"
+    ],
+    "current_action": {
+      "name": "directory-cleanup-organization",
+      "status": "ActiveAction",
+      "progress": "0%",
+      "owner": "Claude",
+      "description": "Comprehensive cleanup and reorganization of project directory structure"
+    },
+    "workflow": [
+      "Create action with plan",
+      "Get approval",
+      "Write tests first",
+      "Implement code",
+      "Verify deployment",
+      "Complete action"
+    ],
+    "rules_location": ".aicheck/rules.md"
+  },
+  "api_architecture": {
+    "api_style": "RESTful with OpenAPI/Swagger",
+    "main_endpoints": {
+      "/api/orchestrator/analyze": "Main LLM orchestration endpoint",
+      "/api/auth/login": "Authentication",
+      "/api/user/balance": "User management",
+      "/api/metrics": "Prometheus metrics",
+      "/health": "Health check"
+    },
+    "orchestration_flow": {
+      "1_initial_generation": "Multiple models generate responses concurrently",
+      "2_peer_review": "Each model reviews others' outputs",
+      "3_ultra_synthesis": "Lead model synthesizes all responses"
+    },
+    "key_patterns": [
+      "Adapter pattern for LLM providers",
+      "Correlation IDs for request tracking",
+      "Feature flags for gradual rollout",
+      "Circuit breaker for provider fallback",
+      "Redis-based response caching"
+    ]
+  },
+  "summary": {
+    "project_maturity": "Production-ready with comprehensive testing",
+    "development_methodology": "AICheck-driven with strict deployment verification",
+    "key_strengths": [
+      "Multi-provider LLM orchestration",
+      "Comprehensive test coverage across 5 modes",
+      "Structured development workflow",
+      "Production deployment automation",
+      "Type-safe frontend with modern React"
+    ],
+    "current_focus": "Directory cleanup and organization to reduce technical debt"
+  }
+}

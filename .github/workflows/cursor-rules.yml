@@ -54,7 +54,6 @@ jobs:
 
             const corePaths = [
               'app/',
-              'UltrAI-Core/',
               'backend/',
               'orchestration',
             ];

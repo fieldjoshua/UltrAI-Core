@@ -81,9 +81,9 @@ class StructuredLogFormatter(logging.Formatter):
         }
 
         # Add exception info if available
-        if record.exc_info:
+        if record.exc_info and record.exc_info[0]:
             log_data["exception"] = {
-                "type": str(record.exc_info[0].__name__),
+                "type": record.exc_info[0].__name__,
                 "message": str(record.exc_info[1]),
                 "traceback": self.formatException(record.exc_info),
             }

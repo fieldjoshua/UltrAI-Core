@@ -115,6 +115,7 @@ logs/
 # Specific large directories
 Nontechnical/
 outputs/
+UltrAI-Core/
 
 # Ollama
 /ollama

@@ -90,29 +90,29 @@ test: test-offline
 # Run tests in OFFLINE mode (all external dependencies mocked)
 test-offline:
 	@echo "🧪 Running tests in OFFLINE mode..."
-	@. venv/bin/activate && TEST_MODE=offline pytest tests/ -v
+	@./venv/bin/python -m pytest tests/ -v --override-ini="env_vars=TEST_MODE=offline"
 
 # Run tests in MOCK mode (sophisticated mocks)
 test-mock:
 	@echo "🧪 Running tests in MOCK mode..."
-	@. venv/bin/activate && TEST_MODE=mock pytest tests/ -v
+	@TEST_MODE=mock ./venv/bin/python -m pytest tests/ -v
 
 # Run tests in INTEGRATION mode (local services)
 test-integration:
 	@echo "🧪 Running tests in INTEGRATION mode..."
-	@. venv/bin/activate && TEST_MODE=integration pytest tests/ -v
+	@TEST_MODE=integration ./venv/bin/python -m pytest tests/ -v
 
 # Run tests in LIVE mode (real LLM providers)
 test-live: clean-ports
 	@echo "🧪 Running tests in LIVE mode..."
 	@echo "⚠️  Requires API keys for LLM providers"
-	@. venv/bin/activate && TEST_MODE=live pytest tests/ -v -m live
+	@TEST_MODE=live ./venv/bin/python -m pytest tests/ -v -m live
 
 # Run tests in PRODUCTION mode (against deployed endpoints)
 test-production:
 	@echo "🧪 Running tests in PRODUCTION mode..."
 	@echo "⚠️  Tests against production endpoints"
-	@. venv/bin/activate && TEST_MODE=production pytest tests/ -v -m ""
+	@TEST_MODE=production ./venv/bin/python -m pytest tests/ -v -m ""
 	@./scripts/run_tests_production.sh
 
 # Run end-to-end tests (E2E) with a pre-check step
@@ -133,16 +133,16 @@ test-report:
 # Demo endpoint tests (env DEMO_BASE_URL can override)
 test-demo: clean-ports
 	@echo "🌐 Running demo endpoint tests against $${DEMO_BASE_URL:-https://ultrai-staging-api.onrender.com}"
-	@. venv/bin/activate && bash scripts/run_tests_all.sh --mode demo --report report_demo.html
+	@bash scripts/run_tests_all.sh --mode demo --report report_demo.html
 
 # Run offline, live providers, then demo endpoints
 test-all: clean-ports
 	@echo "🧪 Running offline suite..."
-	@. venv/bin/activate && bash scripts/run_tests_all.sh --mode offline --report report_offline.html || true
+	@bash scripts/run_tests_all.sh --mode offline --report report_offline.html || true
 	@echo "🔌 Running live provider smoke..."
-	@. venv/bin/activate && bash scripts/run_tests_all.sh --mode live --report report_live.html || true
+	@bash scripts/run_tests_all.sh --mode live --report report_live.html || true
 	@echo "🌐 Running demo endpoint tests..."
-	@. venv/bin/activate && bash scripts/run_tests_all.sh --mode demo --report report_demo.html || true
+	@bash scripts/run_tests_all.sh --mode demo --report report_demo.html || true
 
 # Deploy to production
 deploy:
