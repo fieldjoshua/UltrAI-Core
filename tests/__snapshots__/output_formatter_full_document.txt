@@ -1,0 +1,49 @@
+# OutputFormatter full_document snapshot
+# Generated from test_output_formatter.py::test_full_document_snapshot
+# Sample pipeline with 3 models, 3 stages
+
+🌟 ULTRA SYNTHESIS™ RESULTS 🌟
+
+================================================================================
+
+📊 ULTRA SYNTHESIS
+
+------------------------------------------------------------
+
+## Key Benefits
+
+• Environmental Impact
+• Economic Advantages
+
+## **Conclusion**
+
+Renewable energy is essential.
+
+
+💡 Synthesized by: gpt-4o
+
+================================================================================
+
+🎯 INITIAL RESPONSES (3 models)
+
+------------------------------------------------------------
+
+### gpt-4o
+Renewable energy offers multiple benefits including reduced carbon emissions.
+
+### claude-3-5-sonnet-20241022
+The advantages of renewable energy span environmental protection.
+
+### gemini-1.5-pro
+Key benefits include clean energy production and job creation.
+
+
+================================================================================
+
+📈 PIPELINE SUMMARY
+
+------------------------------------------------------------
+
+✅ Stages Completed: initial_response, peer_review_and_revision, ultra_synthesis
+🤖 Models Used: claude-3-5-sonnet-20241022, gemini-1.5-pro, gpt-4o
+📊 Total Stages: 3

@@ -865,6 +865,175 @@ def create_router() -> APIRouter:
         except Exception as e:
             return {"status": "error", "service": "orchestration", "error": str(e)}
 
+    @router.post(
+        "/orchestrator/demo",
+        response_model=AnalysisResponse,
+        summary="Demo Analysis (No Auth Required)",
+        description="Public demo endpoint for testing orchestration without authentication. Not for production use.",
+        responses={
+            200: {"description": "Analysis completed successfully."},
+            503: {"description": "Service is unavailable due to insufficient models or providers.", "model": ServiceUnavailableResponse},
+        }
+    )
+    async def demo_analyze_query(
+        request: AnalysisRequest,
+        http_request: Request,
+        db: Session = Depends(get_db)
+    ):
+        """
+        Demo analysis endpoint - no authentication required.
+        
+        This endpoint provides the same functionality as /orchestrator/analyze
+        but without requiring user authentication. For development/testing only.
+        """
+        try:
+            import time
+
+            start_time = time.time()
+
+            logger.info(
+                f"[DEMO] Starting analysis for query: {request.query[:100]}...",
+                extra={
+                    "request_id": getattr(http_request.state, "request_id", None),
+                    "correlation_id": getattr(http_request.state, "correlation_id", None)
+                }
+            )
+            corr_id = (
+                getattr(http_request.state, "correlation_id", None)
+                or getattr(http_request.state, "request_id", None)
+                or ""
+            )
+            await sse_event_bus.publish(corr_id, "analysis_start", {"models": request.selected_models or []})
+
+            if not hasattr(http_request.app.state, "orchestration_service"):
+                raise HTTPException(
+                    status_code=503,
+                    detail="Orchestration service is not initialized"
+                )
+
+            orchestration_service = http_request.app.state.orchestration_service
+
+            available_models = await orchestration_service._default_models_from_env()
+            model_count = len(available_models)
+
+            from app.config import Config as _Cfg
+            _env_min_required = os.getenv("MINIMUM_MODELS_REQUIRED", "").strip()
+            try:
+                required_models_cfg = int(_env_min_required) if _env_min_required else getattr(_Cfg, "MINIMUM_MODELS_REQUIRED", 3)
+            except Exception:
+                required_models_cfg = getattr(_Cfg, "MINIMUM_MODELS_REQUIRED", 3)
+            _env_req_providers = os.getenv("REQUIRED_PROVIDERS", "").strip()
+            if _env_req_providers:
+                required_providers = set(
+                    p.strip() for p in _env_req_providers.split(",") if p.strip()
+                )
+            else:
+                required_providers = set(
+                    getattr(_Cfg, "REQUIRED_PROVIDERS", ["openai", "anthropic", "google"])
+                )
+            try:
+                health_summary = await provider_health_manager.get_health_summary()
+                available_providers_list = health_summary.get("_system", {}).get("available_providers", [])
+                available_provider_set = set(available_providers_list)
+                missing = [p for p in required_providers if p not in available_provider_set]
+            except Exception:
+                available_provider_set = set()
+                missing = list(required_providers)
+
+            if model_count < required_models_cfg or missing:
+                logger.error(f"Insufficient models available: {model_count} < {required_models_cfg} or missing providers: {missing}")
+                message = (
+                    f"UltraAI requires at least {required_models_cfg} models to proceed"
+                )
+                raise HTTPException(status_code=503, detail=message)
+
+            if hasattr(orchestration_service, "set_request_context"):
+                orchestration_service.set_request_context(http_request)
+
+            pipeline_options = request.options or {}
+            pipeline_options["save_outputs"] = request.save_outputs
+            pipeline_options["correlation_id"] = corr_id
+
+            result = await orchestration_service.run_pipeline(
+                query=request.query,
+                selected_models=request.selected_models,
+                options=pipeline_options
+            )
+
+            if not result or not isinstance(result, dict):
+                raise HTTPException(
+                    status_code=500, detail="Pipeline returned invalid result"
+                )
+
+            processing_time = time.time() - start_time
+
+            formatter = OutputFormatter()
+            formatted_output = formatter.format_pipeline_output(
+                result,
+                include_initial_responses=request.include_initial_responses,
+                include_peer_review=request.include_pipeline_details
+            )
+
+            analysis_response = AnalysisResponse(
+                success=True,
+                results={
+                    "ultra_synthesis": result.get("ultra_synthesis", ""),
+                    "formatted_synthesis": formatted_output.get("synthesis", {}),
+                    "formatted_output": formatted_output,
+                    "status": "completed",
+                },
+                processing_time=processing_time,
+                pipeline_info={
+                    "stages_completed": result.get("stages_completed", []),
+                    "total_stages": result.get("total_stages", 3),
+                    "models_used": result.get("models_used", []),
+                    "pattern_used": result.get("pattern_used"),
+                    "service_status": result.get("service_status"),
+                },
+            )
+
+            if request.save_outputs:
+                try:
+                    storage_service = AnalysisStorageService()
+                    saved_paths = await storage_service.save_analysis(
+                        analysis_id=corr_id or f"demo_{int(time.time())}",
+                        analysis_type=AnalysisType.ULTRA_SYNTHESIS,
+                        output_format=OutputFormat.JSON,
+                        results=result,
+                        user_id="demo",
+                        db=db
+                    )
+                    logger.info(f"[DEMO] Saved analysis outputs: {saved_paths}")
+                except Exception as save_error:
+                    logger.warning(f"[DEMO] Failed to save outputs: {save_error}")
+
+            await sse_event_bus.publish(
+                corr_id,
+                "analysis_complete",
+                {
+                    "status": "success",
+                    "processing_time": processing_time,
+                    "ultra_synthesis_preview": result.get("ultra_synthesis", "")[:200],
+                },
+            )
+
+            logger.info(
+                f"[DEMO] Analysis completed in {processing_time:.2f}s",
+                extra={
+                    "request_id": getattr(http_request.state, "request_id", None),
+                    "correlation_id": corr_id,
+                    "processing_time": processing_time,
+                }
+            )
+
+            return analysis_response
+
+        except HTTPException:
+            raise
+        except Exception as e:
+            logger.error(f"[DEMO] Analysis failed: {str(e)}", exc_info=True)
+            raise HTTPException(status_code=500, detail=str(e))
+
     return router
 
 
