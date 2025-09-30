@@ -51,7 +51,8 @@ async def test_run_pipeline_completes_all_stages():
         transaction_service=DummyTransactionService(),
     )
     input_data = "test_input"
-    results = await service.run_pipeline(input_data)
+    # Provide explicit models to avoid API key validation
+    results = await service.run_pipeline(input_data, selected_models=["gpt-4o", "claude-3-opus"])
     expected_stages = [stage.name for stage in service.pipeline_stages]
     assert list(results.keys()) == expected_stages
     # Verify each stage output contains correct stage name and nested input
@@ -83,7 +84,7 @@ async def test_run_pipeline_stops_on_stage_error(monkeypatch):
 
     monkeypatch.setattr(service, "peer_review_and_revision", fail_peer_review)
 
-    results = await service.run_pipeline("input")
+    results = await service.run_pipeline("input", selected_models=["gpt-4o", "claude-3-opus"])
     # Initial stage should succeed, peer review stage should error, then stop
     assert list(results.keys())[:2] == ["initial_response", "peer_review_and_revision"]
     peer_review_res = results["peer_review_and_revision"]

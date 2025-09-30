@@ -49,10 +49,20 @@ tests/
 ```
 
 ### Test Coverage Summary
-- **Total Tests**: 512+ test functions
+- **Total Tests**: 322 cataloged test functions (393 collected by pytest including parametrized)
 - **Code Coverage**: ~31% (10,447 of 15,053 lines)
 - **Service Coverage**: 52% (28 of 54 services have tests)
-- **Test Files**: 51 test modules
+- **Test Files**: 51+ test modules
+
+### Test Inventory
+
+For a complete catalog of all tests organized by category and module, see:
+- **[TEST_INVENTORY.md](../TEST_INVENTORY.md)** - Comprehensive test catalog with descriptions
+
+To regenerate the test inventory:
+```bash
+python scripts/generate_test_inventory.py
+```
 
 ## Test Modes
 

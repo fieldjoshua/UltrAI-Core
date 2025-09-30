@@ -21,18 +21,50 @@ BLUE = "\033[94m"
 BOLD = "\033[1m"
 END = "\033[0m"
 
-# Test categories and their descriptions
+# Test categories and their descriptions - organized by module
 TEST_CATEGORIES = {
-    "api": {"description": "API Endpoint Tests", "critical": True},
-    "auth": {"description": "Authentication Tests", "critical": True},
-    "rate-limit": {"description": "Rate Limiting Tests", "critical": True},
-    "document": {"description": "Document Analysis Tests", "critical": True},
-    "integration": {"description": "Integration Tests", "critical": True},
-    "orchestrator": {"description": "Orchestrator Tests", "critical": False},
-    "frontend": {"description": "Frontend Tests", "critical": True},
-    "e2e": {"description": "End-to-End Tests", "critical": False},
-    "lint": {"description": "Linting", "critical": False},
-    "security": {"description": "Security Scan", "critical": False},
+    # Core Functionality
+    "1_core_synthesis": {"description": "Core Synthesis", "critical": True, "module": "Core"},
+    "2_llm_providers": {"description": "LLM Providers", "critical": True, "module": "Core"},
+    
+    # Security & Access
+    "3_authentication": {"description": "Authentication", "critical": True, "module": "Security"},
+    "4_financial": {"description": "Financial", "critical": True, "module": "Security"},
+    "5_rate_limiting": {"description": "Rate Limiting", "critical": True, "module": "Security"},
+    
+    # Infrastructure
+    "6_caching": {"description": "Caching", "critical": False, "module": "Infrastructure"},
+    "7_health_monitoring": {"description": "Health & Monitoring", "critical": True, "module": "Infrastructure"},
+    "8_prompts_templates": {"description": "Prompts & Templates", "critical": False, "module": "Infrastructure"},
+    
+    # Quality & Tracking
+    "9_quality_evaluation": {"description": "Quality Evaluation", "critical": False, "module": "Quality"},
+    "10_token_management": {"description": "Token Management", "critical": True, "module": "Quality"},
+    "11_model_registry": {"description": "Model Registry", "critical": False, "module": "Quality"},
+    
+    # Data & Content
+    "12_documents": {"description": "Documents", "critical": False, "module": "Data"},
+    "13_analysis": {"description": "Analysis", "critical": False, "module": "Data"},
+    
+    # API & Integration
+    "14_api_endpoints": {"description": "API Endpoints", "critical": True, "module": "API"},
+    "15_streaming": {"description": "Streaming", "critical": False, "module": "API"},
+    "16_configuration": {"description": "Configuration", "critical": False, "module": "API"},
+    "17_database": {"description": "Database", "critical": True, "module": "API"},
+    
+    # User Experience
+    "18_ui_frontend": {"description": "UI/Frontend", "critical": True, "module": "UX"},
+    "19_network": {"description": "Network", "critical": False, "module": "UX"},
+    
+    # Resilience
+    "20_error_handling": {"description": "Error Handling", "critical": False, "module": "Resilience"},
+    "21_miscellaneous": {"description": "Miscellaneous", "critical": False, "module": "Other"},
+    
+    # Test Types
+    "e2e": {"description": "End-to-End Tests", "critical": False, "module": "Test Types"},
+    "integration": {"description": "Integration Tests", "critical": True, "module": "Test Types"},
+    "live": {"description": "Live API Tests", "critical": False, "module": "Test Types"},
+    "production": {"description": "Production Tests", "critical": True, "module": "Test Types"},
 }
 
 
@@ -159,7 +191,7 @@ class TestProgressTracker:
             json.dump(report, f, indent=2)
 
     def print_summary(self) -> None:
-        """Print a summary of all test results"""
+        """Print a summary of all test results organized by module"""
         elapsed = time.time() - self.start_time
 
         print(f"\n{BOLD}=== ULTRA TEST PROGRESS SUMMARY ==={END}")
@@ -175,57 +207,70 @@ class TestProgressTracker:
         total_skipped = sum(c["skipped"] for c in self.results.values())
         total_tests = total_passed + total_failed + total_skipped
 
-        # Print category table
-        print(
-            f"{BOLD}{'CATEGORY':<15} {'DESCRIPTION':<30} {'STATUS':<10} {'PASS':<6} {'FAIL':<6} {'SKIP':<6} {'TIME':<8}{END}"
-        )
-        print("-" * 85)
-
+        # Group by module
+        modules = {}
         for category, results in self.results.items():
-            description = TEST_CATEGORIES.get(category, {}).get("description", "")
-            critical = TEST_CATEGORIES.get(category, {}).get("critical", False)
+            module = TEST_CATEGORIES.get(category, {}).get("module", "Other")
+            if module not in modules:
+                modules[module] = []
+            modules[module].append((category, results))
 
-            if critical:
-                description = f"{BOLD}{description}{END}"
+        # Print by module
+        print(
+            f"{BOLD}{'MODULE':<12} {'CATEGORY':<25} {'DESCRIPTION':<30} {'STATUS':<10} {'PASS':<6} {'FAIL':<6} {'SKIP':<6} {'TIME':<8}{END}"
+        )
+        print("-" * 115)
 
-            status_str = ""
-            if results["status"] == "pending":
-                status_str = "Pending"
-            elif results["status"] == "running":
-                status_str = f"{BLUE}Running{END}"
-            elif results["status"] == "success":
-                status_str = f"{GREEN}Success{END}"
-            elif results["status"] == "failed":
-                status_str = f"{RED}Failed{END}"
+        for module in sorted(modules.keys()):
+            module_printed = False
+            for category, results in sorted(modules[module], key=lambda x: x[0]):
+                description = TEST_CATEGORIES.get(category, {}).get("description", "")
+                critical = TEST_CATEGORIES.get(category, {}).get("critical", False)
 
-            duration_str = (
-                f"{results['duration']:.1f}s"
-                if results.get("duration") is not None
-                else ""
-            )
+                if critical:
+                    description = f"{BOLD}{description}{END}"
 
-            passed_str = (
-                f"{GREEN}{results['passed']}{END}" if results["passed"] > 0 else "0"
-            )
-            failed_str = (
-                f"{RED}{results['failed']}{END}" if results["failed"] > 0 else "0"
-            )
-            skipped_str = (
-                f"{YELLOW}{results['skipped']}{END}" if results["skipped"] > 0 else "0"
-            )
+                status_str = ""
+                if results["status"] == "pending":
+                    status_str = "Pending"
+                elif results["status"] == "running":
+                    status_str = f"{BLUE}Running{END}"
+                elif results["status"] == "success":
+                    status_str = f"{GREEN}Success{END}"
+                elif results["status"] == "failed":
+                    status_str = f"{RED}Failed{END}"
 
-            print(
-                f"{category:<15} {description:<30} {status_str:<10} {passed_str:<6} {failed_str:<6} {skipped_str:<6} {duration_str:<8}"
-            )
+                duration_str = (
+                    f"{results['duration']:.1f}s"
+                    if results.get("duration") is not None
+                    else ""
+                )
 
-        print("-" * 85)
+                passed_str = (
+                    f"{GREEN}{results['passed']}{END}" if results["passed"] > 0 else "0"
+                )
+                failed_str = (
+                    f"{RED}{results['failed']}{END}" if results["failed"] > 0 else "0"
+                )
+                skipped_str = (
+                    f"{YELLOW}{results['skipped']}{END}" if results["skipped"] > 0 else "0"
+                )
+
+                module_str = module if not module_printed else ""
+                module_printed = True
+
+                print(
+                    f"{module_str:<12} {category:<25} {description:<30} {status_str:<10} {passed_str:<6} {failed_str:<6} {skipped_str:<6} {duration_str:<8}"
+                )
+
+        print("-" * 115)
 
         # Print totals
         overall_status = (
             f"{GREEN}PASSING{END}" if total_failed == 0 else f"{RED}FAILING{END}"
         )
         print(
-            f"{BOLD}{'TOTAL':<15} {'':<30} {overall_status:<10} {total_passed:<6} {total_failed:<6} {total_skipped:<6}{END}"
+            f"{BOLD}{'TOTAL':<12} {'':<25} {'':<30} {overall_status:<10} {total_passed:<6} {total_failed:<6} {total_skipped:<6}{END}"
         )
 
         # Print failure details if any

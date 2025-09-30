@@ -97,10 +97,20 @@ class HealthService:
             # Add LLM provider information if available
             if llm_config_service:
                 available_models = llm_config_service.get_available_models()
-                # available_models is a dict: {"gpt-4o": {"provider": "openai", "model": "gpt-4o"}, ...}
-                unique_providers = list(set(model["provider"] for model in available_models.values()))
+                # available_models should be a dict: {"gpt-4o": {"provider": "openai", "model": "gpt-4o"}, ...}
+                # Handle both dict and list formats for backward compatibility
+                if isinstance(available_models, dict):
+                    unique_providers = list(set(model["provider"] for model in available_models.values()))
+                    model_count = len(available_models)
+                elif isinstance(available_models, list):
+                    unique_providers = list(set(model["provider"] for model in available_models))
+                    model_count = len(available_models)
+                else:
+                    unique_providers = []
+                    model_count = 0
+                
                 health_info["llm_providers"] = {
-                    "count": len(available_models),
+                    "count": model_count,
                     "providers": unique_providers,
                     "default_provider": Config.DEFAULT_PROVIDER,
                     "default_model": Config.DEFAULT_MODEL,
