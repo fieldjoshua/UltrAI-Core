@@ -49,14 +49,24 @@ services:
       - key: HUGGINGFACE_API_KEY
         sync: false
       
-      # Database (if needed)
+      # Database
       - key: DATABASE_URL
-        sync: false  # Set in dashboard if using database
+        fromDatabase:
+          name: ultrai-prod-db
+          property: connectionString
       
       # Redis (if needed)
       - key: REDIS_URL
         sync: false  # Set in dashboard if using Redis
       
       # CORS
-      - key: CORS_ALLOWED_ORIGINS
+      - key: CORS_ORIGINS
         value: "https://ultrai.com,https://www.ultrai.com,https://demo-ultrai.onrender.com,https://ultrai-prod-api.onrender.com"
+
+# Database configuration
+databases:
+  - name: ultrai-prod-db
+    plan: free
+    databaseName: ultrai_production
+    user: ultrai_prod_user
+    postgresMajorVersion: "15"
