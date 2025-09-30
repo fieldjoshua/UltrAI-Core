@@ -33,3 +33,5 @@ services:
         value: night
       - key: VITE_DEMO_MODE
         value: "true"  # Additional flag for demo-specific features
+      - key: VITE_RAG_ENABLED
+        value: "false"
