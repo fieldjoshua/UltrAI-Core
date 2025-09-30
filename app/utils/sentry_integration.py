@@ -60,11 +60,11 @@ def init_sentry() -> bool:
             debug=Config.DEBUG,
             release=os.getenv("APP_VERSION", "unknown"),
             server_name=os.getenv("SERVER_NAME", "ultrai-backend"),
-            tags={
-                "service": "ultrai-orchestrator",
-                "environment": Config.ENVIRONMENT,
-            },
         )
+        
+        # Set tags after initialization
+        sentry_sdk.set_tag("service", "ultrai-orchestrator")
+        sentry_sdk.set_tag("environment", Config.ENVIRONMENT)
         
         logger.info(f"Sentry initialized for environment: {Config.ENVIRONMENT}")
         return True
