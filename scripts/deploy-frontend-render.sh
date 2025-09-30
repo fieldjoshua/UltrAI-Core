@@ -35,7 +35,7 @@ create_service() {
         echo "Manual steps:"
         echo "1. Go to https://dashboard.render.com"
         echo "2. Click 'New +' → 'Static Site'"
-        echo "3. Connect GitHub repo: fieldjoshua/UltrAI-Core"
+        echo "3. Connect GitHub repo: fieldjoshua/Ultra"
         echo "4. Service name: $name"
         echo "5. Branch: $branch"
         echo "6. Build Command: cd frontend && npm ci && npm run build"

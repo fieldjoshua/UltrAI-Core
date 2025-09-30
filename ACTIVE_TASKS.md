@@ -14,13 +14,13 @@
 ### 🔴 High Priority Queue
 1. **Security Vulnerabilities Fix**
    - Status: 🆕 Not Started
-   - Owner: TBD
+   - Owner: Claude Code
    - 10 vulnerabilities (1 high, 3 moderate, 6 low)
    - Push Gates: local tests green; doc run commands; ≥2 healthy models
    
 2. **Auth Endpoint Investigation**
    - Status: 🆕 Not Started  
-   - Owner: TBD
+   - Owner: Cursor
    - `/api/auth/login` returns 405 in staging
 
 ### 🟡 Medium Priority Queue

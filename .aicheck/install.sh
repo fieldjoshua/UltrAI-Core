@@ -18,7 +18,7 @@ NC='\033[0m' # No Color
 # Configuration
 AICHECK_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(dirname "$AICHECK_DIR")"
-REPO_URL="https://github.com/fieldjoshua/UltrAI-Core.git"
+REPO_URL="https://github.com/fieldjoshua/Ultra.git"
 
 # Parse command line arguments
 FRESH_INSTALL=false

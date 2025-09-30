@@ -35,8 +35,8 @@ cd /opt/ultra
 
 # Clone repository
 echo "📥 Cloning repository..."
-git clone https://github.com/fieldjoshua/UltrAI-Core.git
-cd UltrAI-Core
+git clone https://github.com/fieldjoshua/Ultra.git
+cd Ultra
 
 # Make scripts executable
 chmod +x deploy.sh
@@ -44,8 +44,8 @@ chmod +x deploy.sh
 echo "✅ Server setup complete!"
 echo ""
 echo "Next steps:"
-echo "1. Copy your .env.production file to /opt/ultra/UltrAI-Core/"
-echo "2. Run: cd /opt/ultra/UltrAI-Core && ./deploy.sh"
+echo "1. Copy your .env.production file to /opt/ultra/Ultra/"
+echo "2. Run: cd /opt/ultra/Ultra && ./deploy.sh"
 echo "3. Configure your DNS to point to this server"
 echo ""
 echo "Your server IP: $(curl -s ifconfig.me)"
