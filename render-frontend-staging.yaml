@@ -9,7 +9,7 @@ services:
     buildCommand: |
       cd frontend
       npm ci
-      npm run build
+      npm run build:staging
     staticPublishPath: ./frontend/dist
     
     # Auto-deploy from main branch
