@@ -389,7 +389,7 @@ export const AnalysisInterface: React.FC = () => {
             </Card>
           ) : (
             <Card className="p-6 text-center text-gray-500">
-              No results to display. Submit a prompt for analysis.
+              Nothing here yet — launch an analysis to light it up.
             </Card>
           )}
         </TabsContent>

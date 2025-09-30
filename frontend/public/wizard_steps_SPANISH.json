@@ -1,0 +1,116 @@
+[
+  {
+    "title": "0. Bienvenido a UltrAI",
+    "color": "mint",
+    "type": "intro",
+    "narrative": "Obtén mejores respuestas de IA combinando múltiples modelos de inteligencia artificial. Paga solo por lo que uses—muchas consultas cuestan menos de $1. Sin suscripciones. Sin compromisos. Solo resultados más inteligentes.",
+    "options": []
+  },
+  {
+    "title": "1. Selecciona tus objetivos",
+    "color": "mint",
+    "type": "checkbox",
+    "narrative": "¿En qué estás trabajando hoy?",
+    "options": [
+      { "label": "Investigación", "icon": "🔬" },
+      { "label": "Escritura/Edición", "icon": "✍️" },
+      { "label": "Análisis de documentos", "icon": "📄" },
+      { "label": "Creación de código", "icon": "💻" },
+      { "label": "Estrategia empresarial", "icon": "📊" },
+      { "label": "Proyectos creativos", "icon": "🎨" },
+      { "label": "Aprendizaje y educación", "icon": "📚" },
+      { "label": "Análisis de datos", "icon": "📈" },
+      { "label": "Otro", "icon": "✨" }
+    ]
+  },
+  {
+    "title": "2. Ingresa tu consulta",
+    "color": "blue",
+    "type": "textarea",
+    "narrative": "Describe lo que necesitas. Cuanto más detalle, mejores resultados.\n\n💡 Consejo: Adjunta un documento para más contexto (añade $0.10)",
+    "options": [
+      { "label": "Subir documento o multimedia", "icon": "📎", "cost": 0.1 }
+    ]
+  },
+  {
+    "title": "3. Análisis",
+    "color": "purple",
+    "type": "groupbox",
+    "narrative": "Elige cómo debemos combinar y mejorar tus resultados.",
+    "options": [
+      {
+        "label": "Multiplicador de Inteligencia UltrAI",
+        "icon": "🚀",
+        "description": "Combina las mejores ideas de todos los modelos en una sola respuesta.",
+        "cost": 0.08
+      },
+      {
+        "label": "Verificación y confianza (Próximamente)",
+        "icon": "✔️",
+        "description": "Verifica la precisión entre modelos con puntuaciones de confianza.",
+        "cost": 0.1
+      },
+      {
+        "label": "Abogado del diablo (Próximamente)",
+        "icon": "⚔️",
+        "description": "Desafía suposiciones para encontrar puntos ciegos.",
+        "cost": 0.07
+      },
+      {
+        "label": "Análisis de acuerdos (Próximamente)",
+        "icon": "🔀",
+        "description": "Muestra dónde los modelos están de acuerdo y en desacuerdo.",
+        "cost": 0.08
+      }
+    ]
+  },
+  {
+    "title": "4. Selección de modelo",
+    "color": "deepblue",
+    "type": "checkbox",
+    "narrative": "¿Qué modelos de IA deben trabajar en esto?",
+    "options": [
+      { 
+        "label": "Modo Económico", 
+        "icon": "💲", 
+        "cost": 0.0,
+        "hint": "Modelos rápidos, $0.25-0.50 por consulta"
+      },
+      { 
+        "label": "Premium", 
+        "icon": "🎯", 
+        "cost": 0.0,
+        "hint": "GPT-4 + Claude Opus, $1-2 por consulta"
+      },
+      { 
+        "label": "Velocidad", 
+        "icon": "⏩", 
+        "cost": 0.0,
+        "hint": "Resultados rápidos, $0.50-1 por consulta"
+      },
+      { 
+        "label": "Personalizado", 
+        "icon": "🛠️", 
+        "cost": 0.0,
+        "hint": "Elige modelos específicos"
+      }
+    ]
+  },
+  {
+    "title": "5. Complementos y formato",
+    "color": "pink",
+    "type": "checkbox",
+    "narrative": "Añade extras como exportación a PDF, citas o procesamiento prioritario.",
+    "options": [
+      { "label": "Exportar como PDF/Word", "icon": "📄", "cost": 0.02 },
+      { "label": "Procesamiento prioritario", "icon": "⚡", "cost": 0.05 },
+      { "label": "Formato avanzado", "icon": "✨", "cost": 0.03 },
+      { "label": "Citas de fuentes", "icon": "📚", "cost": 0.04 },
+      { "label": "Multi-idioma", "icon": "🌍", "cost": 0.06 },
+      { "label": "Diagramas visuales", "icon": "📊", "cost": 0.05 },
+      { "label": "Resumen por correo electrónico", "icon": "📧", "cost": 0.02 },
+      { "label": "Historial de versiones", "icon": "🔄", "cost": 0.03 },
+      { "label": "Colaboración en equipo", "icon": "👥", "cost": 0.04 }
+    ]
+  }
+]

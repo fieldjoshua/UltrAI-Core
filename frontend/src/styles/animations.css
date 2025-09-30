@@ -10,6 +10,95 @@
   }
 }
 
+/* Soft pulse for hero title */
+@keyframes softPulse {
+  0%, 100% { opacity: 1; transform: translateZ(0); }
+  50% { opacity: 0.92; transform: translateZ(0) scale(1.01); }
+}
+
+/* Sheen sweep across a container */
+@keyframes sheenMove {
+  0% { transform: translateX(-150%) rotate(20deg); }
+  100% { transform: translateX(150%) rotate(20deg); }
+}
+
+/* Neon pulse for progress glow */
+@keyframes neonPulse {
+  0% { box-shadow: 0 0 6px rgba(0,255,255,0.35), 0 0 12px rgba(0,255,255,0.2); }
+  100% { box-shadow: 0 0 12px rgba(0,255,255,0.6), 0 0 24px rgba(255,79,203,0.25); }
+}
+
+/* Fade in up for SSE items */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Pop in for stage badges */
+@keyframes popIn {
+  0% { transform: scale(0.9); opacity: 0.8; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+/* Sparkle pulse for headings */
+@keyframes sparklePulse {
+  0% { text-shadow: 0 0 0 rgba(255,255,255,0); }
+  50% { text-shadow: 0 0 24px rgba(255,255,255,0.5), 0 0 48px rgba(0,255,255,0.35); }
+  100% { text-shadow: 0 0 0 rgba(255,255,255,0); }
+}
+
+/* Utility classes */
+.ultra-hero-title {
+  animation: softPulse 3.2s ease-in-out infinite;
+}
+
+.ultra-hero-subtitle {
+  background: linear-gradient(90deg, #8b5cf6, #06b6d4, #f472b6);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  background-size: 200% 100%;
+  animation: ultrai-billboard-sweep 6s linear infinite;
+}
+
+.ultra-sheen {
+  position: relative;
+  overflow: hidden;
+}
+.ultra-sheen::after {
+  content: '';
+  position: absolute;
+  top: 0; left: -30%;
+  width: 30%; height: 100%;
+  background: linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,0.25), rgba(255,255,255,0));
+  transform: rotate(20deg);
+  animation: sheenMove 2.4s ease-in-out infinite;
+}
+
+.ultra-neon-progress {
+  animation: neonPulse 1.8s ease-in-out infinite alternate;
+}
+
+.sse-item-enter {
+  animation: fadeInUp 240ms ease-out both;
+}
+
+.tilt-card {
+  transition: transform 180ms ease, box-shadow 200ms ease;
+}
+.tilt-card:hover {
+  transform: translateY(-2px) rotateX(1deg) rotateY(-1deg);
+  box-shadow: 0 10px 24px rgba(0,0,0,0.08), 0 6px 12px rgba(0,0,0,0.06);
+}
+
+.stage-badge {
+  animation: popIn 200ms ease-out both;
+}
+
+.sparkle-once {
+  animation: sparklePulse 1.2s ease-out 1;
+}
+
 /* Background shift for textures */
 @keyframes backgroundShift {
   0% {

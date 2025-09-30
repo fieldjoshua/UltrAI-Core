@@ -1,0 +1,116 @@
+[
+  {
+    "title": "0. Yo what's good",
+    "color": "mint",
+    "type": "intro",
+    "narrative": "Welcome to UltrAI—basically like having a study group of AI nerds working on your stuff at the same time. We're talking GPT-4, Claude, Gemini, all collaborating on your questions. Pay per use (most queries are literally less than the cost of a coffee), no monthly fees, no BS. Perfect for broke college students tbh.",
+    "options": []
+  },
+  {
+    "title": "1. What's the assignment?",
+    "color": "mint",
+    "type": "checkbox",
+    "narrative": "What are you procrastinating on rn?",
+    "options": [
+      { "label": "Research paper (ugh)", "icon": "🔬" },
+      { "label": "Essay/Writing", "icon": "✍️" },
+      { "label": "Reading analysis (didn't read it)", "icon": "📄" },
+      { "label": "Coding assignment", "icon": "💻" },
+      { "label": "Business case study", "icon": "📊" },
+      { "label": "Creative project", "icon": "🎨" },
+      { "label": "Study guide / exam prep", "icon": "📚" },
+      { "label": "Data analysis (stats hell)", "icon": "📈" },
+      { "label": "Something else", "icon": "✨" }
+    ]
+  },
+  {
+    "title": "2. Drop your prompt",
+    "color": "blue",
+    "type": "textarea",
+    "narrative": "Tell us what you need. More context = better results (and fewer follow-up questions).\n\nGot a PDF syllabus or reading? Upload it (+10 cents, worth it)",
+    "options": [
+      { "label": "Upload doc/PDF", "icon": "📎", "cost": 0.1 }
+    ]
+  },
+  {
+    "title": "3. How should we analyze this?",
+    "color": "purple",
+    "type": "groupbox",
+    "narrative": "Pick your analysis style (or just go with the default, whatever)",
+    "options": [
+      {
+        "label": "UltrAI Synthesis Mode",
+        "icon": "🚀",
+        "description": "Combine insights from multiple AIs into one comprehensive answer",
+        "cost": 0.08
+      },
+      {
+        "label": "Fact-Check Mode (coming soon)",
+        "icon": "✔️",
+        "description": "Verify claims across models with confidence scores",
+        "cost": 0.1
+      },
+      {
+        "label": "Debate Mode (coming soon)",
+        "icon": "⚔️",
+        "description": "Have AIs challenge each other's reasoning",
+        "cost": 0.07
+      },
+      {
+        "label": "Consensus Check (coming soon)",
+        "icon": "🔀",
+        "description": "Show where AIs agree vs disagree",
+        "cost": 0.08
+      }
+    ]
+  },
+  {
+    "title": "4. Pick your AI squad",
+    "color": "deepblue",
+    "type": "checkbox",
+    "narrative": "Which models do you want on this?",
+    "options": [
+      { 
+        "label": "Budget Mode (broke student approved)", 
+        "icon": "💲", 
+        "cost": 0.0,
+        "hint": "Fast models, 25-50¢ per query"
+      },
+      { 
+        "label": "Premium (when GPA matters)", 
+        "icon": "🎯", 
+        "cost": 0.0,
+        "hint": "GPT-4 + Claude Opus, $1-2 per query"
+      },
+      { 
+        "label": "Speed Mode (deadline tonight)", 
+        "icon": "⏩", 
+        "cost": 0.0,
+        "hint": "Quick results, 50¢-$1"
+      },
+      { 
+        "label": "Custom (I know what I'm doing)", 
+        "icon": "🛠️", 
+        "cost": 0.0,
+        "hint": "Choose specific models"
+      }
+    ]
+  },
+  {
+    "title": "5. Want any extras?",
+    "color": "pink",
+    "type": "checkbox",
+    "narrative": "Add-ons that might save your grade (or at least make life easier)",
+    "options": [
+      { "label": "Export as PDF/Word", "icon": "📄", "cost": 0.02 },
+      { "label": "Priority Processing (for procrastinators)", "icon": "⚡", "cost": 0.05 },
+      { "label": "Better Formatting", "icon": "✨", "cost": 0.03 },
+      { "label": "Citations (avoid plagiarism check)", "icon": "📚", "cost": 0.04 },
+      { "label": "Translate to another language", "icon": "🌍", "cost": 0.06 },
+      { "label": "Visual Diagrams (for visual learners)", "icon": "📊", "cost": 0.05 },
+      { "label": "Email me the results", "icon": "📧", "cost": 0.02 },
+      { "label": "Save version history", "icon": "🔄", "cost": 0.03 },
+      { "label": "Share with study group", "icon": "👥", "cost": 0.04 }
+    ]
+  }
+]

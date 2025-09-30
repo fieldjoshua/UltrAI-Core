@@ -1,0 +1,116 @@
+[
+  {
+    "title": "0. UltrAIへようこそ",
+    "color": "mint",
+    "type": "intro",
+    "narrative": "複数のAIモデルを組み合わせることで、より優れたAI回答を得られます。使用した分だけお支払い—ほとんどのクエリは1ドル未満です。サブスクリプションなし。契約なし。よりスマートな結果だけ。",
+    "options": []
+  },
+  {
+    "title": "1. 目標を選択",
+    "color": "mint",
+    "type": "checkbox",
+    "narrative": "今日は何に取り組んでいますか？",
+    "options": [
+      { "label": "リサーチ", "icon": "🔬" },
+      { "label": "執筆・編集", "icon": "✍️" },
+      { "label": "ドキュメント分析", "icon": "📄" },
+      { "label": "コード作成", "icon": "💻" },
+      { "label": "ビジネス戦略", "icon": "📊" },
+      { "label": "クリエイティブプロジェクト", "icon": "🎨" },
+      { "label": "学習・教育", "icon": "📚" },
+      { "label": "データ分析", "icon": "📈" },
+      { "label": "その他", "icon": "✨" }
+    ]
+  },
+  {
+    "title": "2. クエリを入力",
+    "color": "blue",
+    "type": "textarea",
+    "narrative": "必要なことを説明してください。詳細が多いほど、結果が良くなります。\n\n💡 ヒント：コンテキスト用のドキュメントを添付（$0.10追加）",
+    "options": [
+      { "label": "ドキュメントまたはメディアをアップロード", "icon": "📎", "cost": 0.1 }
+    ]
+  },
+  {
+    "title": "3. 分析",
+    "color": "purple",
+    "type": "groupbox",
+    "narrative": "結果をどのように組み合わせて改善するかを選択してください。",
+    "options": [
+      {
+        "label": "UltrAI インテリジェンスマルチプライヤー",
+        "icon": "🚀",
+        "description": "すべてのモデルの最良の洞察を1つの回答に統合します。",
+        "cost": 0.08
+      },
+      {
+        "label": "ファクトチェックと信頼性（近日公開）",
+        "icon": "✔️",
+        "description": "信頼スコアを使用してモデル間で精度を検証します。",
+        "cost": 0.1
+      },
+      {
+        "label": "悪魔の代弁者（近日公開）",
+        "icon": "⚔️",
+        "description": "盲点を見つけるために仮定に挑戦します。",
+        "cost": 0.07
+      },
+      {
+        "label": "合意分析（近日公開）",
+        "icon": "🔀",
+        "description": "モデルが合意している場所と不一致の場所を表示します。",
+        "cost": 0.08
+      }
+    ]
+  },
+  {
+    "title": "4. モデル選択",
+    "color": "deepblue",
+    "type": "checkbox",
+    "narrative": "どのAIモデルを使用しますか？",
+    "options": [
+      { 
+        "label": "予算モード", 
+        "icon": "💲", 
+        "cost": 0.0,
+        "hint": "高速モデル、クエリあたり$0.25-0.50"
+      },
+      { 
+        "label": "プレミアム", 
+        "icon": "🎯", 
+        "cost": 0.0,
+        "hint": "GPT-4 + Claude Opus、クエリあたり$1-2"
+      },
+      { 
+        "label": "スピード", 
+        "icon": "⏩", 
+        "cost": 0.0,
+        "hint": "素早い結果、クエリあたり$0.50-1"
+      },
+      { 
+        "label": "カスタム", 
+        "icon": "🛠️", 
+        "cost": 0.0,
+        "hint": "特定のモデルを選択"
+      }
+    ]
+  },
+  {
+    "title": "5. アドオンとフォーマット",
+    "color": "pink",
+    "type": "checkbox",
+    "narrative": "PDF エクスポート、引用、優先処理などのエクストラを追加します。",
+    "options": [
+      { "label": "PDF/Word としてエクスポート", "icon": "📄", "cost": 0.02 },
+      { "label": "優先処理", "icon": "⚡", "cost": 0.05 },
+      { "label": "高度なフォーマット", "icon": "✨", "cost": 0.03 },
+      { "label": "出典引用", "icon": "📚", "cost": 0.04 },
+      { "label": "多言語", "icon": "🌍", "cost": 0.06 },
+      { "label": "ビジュアル図", "icon": "📊", "cost": 0.05 },
+      { "label": "メールサマリー", "icon": "📧", "cost": 0.02 },
+      { "label": "バージョン履歴", "icon": "🔄", "cost": 0.03 },
+      { "label": "チームコラボレーション", "icon": "👥", "cost": 0.04 }
+    ]
+  }
+]

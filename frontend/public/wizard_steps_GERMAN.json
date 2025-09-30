@@ -1,0 +1,116 @@
+[
+  {
+    "title": "0. Willkommen bei UltrAI",
+    "color": "mint",
+    "type": "intro",
+    "narrative": "Erhalten Sie bessere KI-Antworten durch die Kombination mehrerer KI-Modelle. Bezahlen Sie nur, was Sie nutzen—die meisten Anfragen kosten weniger als 1$. Keine Abonnements. Keine Verpflichtungen. Nur intelligentere Ergebnisse.",
+    "options": []
+  },
+  {
+    "title": "1. Wählen Sie Ihre Ziele",
+    "color": "mint",
+    "type": "checkbox",
+    "narrative": "Woran arbeiten Sie heute?",
+    "options": [
+      { "label": "Forschung", "icon": "🔬" },
+      { "label": "Schreiben/Bearbeiten", "icon": "✍️" },
+      { "label": "Dokumentenanalyse", "icon": "📄" },
+      { "label": "Code-Erstellung", "icon": "💻" },
+      { "label": "Geschäftsstrategie", "icon": "📊" },
+      { "label": "Kreative Projekte", "icon": "🎨" },
+      { "label": "Lernen & Bildung", "icon": "📚" },
+      { "label": "Datenanalyse", "icon": "📈" },
+      { "label": "Sonstiges", "icon": "✨" }
+    ]
+  },
+  {
+    "title": "2. Geben Sie Ihre Anfrage ein",
+    "color": "blue",
+    "type": "textarea",
+    "narrative": "Beschreiben Sie, was Sie benötigen. Je mehr Details, desto bessere Ergebnisse.\n\n💡 Tipp: Laden Sie ein Dokument für mehr Kontext hoch (fügt 0,10$ hinzu)",
+    "options": [
+      { "label": "Dokument oder Medien hochladen", "icon": "📎", "cost": 0.1 }
+    ]
+  },
+  {
+    "title": "3. Analysen",
+    "color": "purple",
+    "type": "groupbox",
+    "narrative": "Wählen Sie, wie wir Ihre Ergebnisse kombinieren und verbessern sollen.",
+    "options": [
+      {
+        "label": "UltrAI Intelligenz-Multiplikator",
+        "icon": "🚀",
+        "description": "Kombinieren Sie die besten Erkenntnisse aller Modelle zu einer Antwort.",
+        "cost": 0.08
+      },
+      {
+        "label": "Faktencheck & Vertrauen (Demnächst)",
+        "icon": "✔️",
+        "description": "Überprüfen Sie die Genauigkeit über Modelle hinweg mit Vertrauenswerten.",
+        "cost": 0.1
+      },
+      {
+        "label": "Advocatus Diaboli (Demnächst)",
+        "icon": "⚔️",
+        "description": "Hinterfragen Sie Annahmen, um blinde Flecken zu finden.",
+        "cost": 0.07
+      },
+      {
+        "label": "Übereinstimmungsanalyse (Demnächst)",
+        "icon": "🔀",
+        "description": "Zeigen Sie, wo Modelle übereinstimmen und nicht übereinstimmen.",
+        "cost": 0.08
+      }
+    ]
+  },
+  {
+    "title": "4. Modellauswahl",
+    "color": "deepblue",
+    "type": "checkbox",
+    "narrative": "Welche KI-Modelle sollen hieran arbeiten?",
+    "options": [
+      { 
+        "label": "Budget-Modus", 
+        "icon": "💲", 
+        "cost": 0.0,
+        "hint": "Schnelle Modelle, 0,25$-0,50$ pro Anfrage"
+      },
+      { 
+        "label": "Premium", 
+        "icon": "🎯", 
+        "cost": 0.0,
+        "hint": "GPT-4 + Claude Opus, 1$-2$ pro Anfrage"
+      },
+      { 
+        "label": "Geschwindigkeit", 
+        "icon": "⏩", 
+        "cost": 0.0,
+        "hint": "Schnelle Ergebnisse, 0,50$-1$ pro Anfrage"
+      },
+      { 
+        "label": "Benutzerdefiniert", 
+        "icon": "🛠️", 
+        "cost": 0.0,
+        "hint": "Wählen Sie spezifische Modelle"
+      }
+    ]
+  },
+  {
+    "title": "5. Zusatzoptionen",
+    "color": "pink",
+    "type": "checkbox",
+    "narrative": "Fügen Sie Extras wie PDF-Export, Zitate oder prioritäre Verarbeitung hinzu.",
+    "options": [
+      { "label": "Als PDF/Word exportieren", "icon": "📄", "cost": 0.02 },
+      { "label": "Prioritäre Verarbeitung", "icon": "⚡", "cost": 0.05 },
+      { "label": "Erweiterte Formatierung", "icon": "✨", "cost": 0.03 },
+      { "label": "Quellenzitate", "icon": "📚", "cost": 0.04 },
+      { "label": "Mehrsprachig", "icon": "🌍", "cost": 0.06 },
+      { "label": "Visuelle Diagramme", "icon": "📊", "cost": 0.05 },
+      { "label": "E-Mail-Zusammenfassung", "icon": "📧", "cost": 0.02 },
+      { "label": "Versionsverlauf", "icon": "🔄", "cost": 0.03 },
+      { "label": "Team-Zusammenarbeit", "icon": "👥", "cost": 0.04 }
+    ]
+  }
+]

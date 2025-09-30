@@ -1,0 +1,116 @@
+[
+  {
+    "title": "0. LLM Orchestration API",
+    "color": "mint",
+    "type": "intro",
+    "narrative": "Multi-model inference pipeline with consensus synthesis. Parallel execution across OpenAI (GPT-4/3.5), Anthropic (Claude 3), and Google (Gemini) endpoints. Token-based billing, no subscription overhead. Typical p50 latency: 20-30s for full pipeline. API docs at /docs.",
+    "options": []
+  },
+  {
+    "title": "1. Task classification",
+    "color": "mint",
+    "type": "checkbox",
+    "narrative": "Select applicable domains for context optimization:",
+    "options": [
+      { "label": "Information retrieval / RAG", "icon": "🔬" },
+      { "label": "Text generation / completion", "icon": "✍️" },
+      { "label": "Document parsing / extraction", "icon": "📄" },
+      { "label": "Code generation / debugging", "icon": "💻" },
+      { "label": "Strategic analysis / reasoning", "icon": "📊" },
+      { "label": "Creative content synthesis", "icon": "🎨" },
+      { "label": "Knowledge graph / semantic", "icon": "📚" },
+      { "label": "Structured data / analytics", "icon": "📈" },
+      { "label": "Custom pipeline", "icon": "✨" }
+    ]
+  },
+  {
+    "title": "2. Prompt input",
+    "color": "blue",
+    "type": "textarea",
+    "narrative": "Enter system + user prompt. Supports markdown, code blocks, and JSON. Context window varies by model (8k-200k tokens).\n\nDocument upload adds vector embedding step (+$0.10, uses text-embedding-3-large)",
+    "options": [
+      { "label": "Upload context docs (PDF/TXT/MD)", "icon": "📎", "cost": 0.1 }
+    ]
+  },
+  {
+    "title": "3. Synthesis strategy",
+    "color": "purple",
+    "type": "groupbox",
+    "narrative": "Configure output aggregation method:",
+    "options": [
+      {
+        "label": "Consensus Synthesis",
+        "icon": "🚀",
+        "description": "Weighted merge of model outputs using meta-model scoring. Reduces hallucinations ~40%.",
+        "cost": 0.08
+      },
+      {
+        "label": "Factual Verification (beta)",
+        "icon": "✔️",
+        "description": "Cross-reference claims with confidence intervals. Adds ~15s latency.",
+        "cost": 0.1
+      },
+      {
+        "label": "Adversarial Critique (beta)",
+        "icon": "⚔️",
+        "description": "Model A critiques Model B output. Exposes reasoning flaws.",
+        "cost": 0.07
+      },
+      {
+        "label": "Variance Analysis (beta)",
+        "icon": "🔀",
+        "description": "Statistical divergence metrics across model outputs.",
+        "cost": 0.08
+      }
+    ]
+  },
+  {
+    "title": "4. Model selection",
+    "color": "deepblue",
+    "type": "checkbox",
+    "narrative": "Configure inference pipeline:",
+    "options": [
+      { 
+        "label": "Cost-optimized (gpt-3.5-turbo, claude-instant)", 
+        "icon": "💲", 
+        "cost": 0.0,
+        "hint": "$0.25-0.50/query, ~10s p50 latency"
+      },
+      { 
+        "label": "Premium (gpt-4-turbo, claude-3-opus, gemini-pro)", 
+        "icon": "🎯", 
+        "cost": 0.0,
+        "hint": "$1-2/query, 128k-200k context window"
+      },
+      { 
+        "label": "Low-latency (optimized for speed)", 
+        "icon": "⏩", 
+        "cost": 0.0,
+        "hint": "$0.50-1/query, streaming enabled"
+      },
+      { 
+        "label": "Manual model config", 
+        "icon": "🛠️", 
+        "cost": 0.0,
+        "hint": "Custom model selection + temperature tuning"
+      }
+    ]
+  },
+  {
+    "title": "5. Output configuration",
+    "color": "pink",
+    "type": "checkbox",
+    "narrative": "Response formatting and delivery options:",
+    "options": [
+      { "label": "Export (PDF/DOCX via pandoc)", "icon": "📄", "cost": 0.02 },
+      { "label": "Priority queue (skip rate limits)", "icon": "⚡", "cost": 0.05 },
+      { "label": "Markdown + syntax highlighting", "icon": "✨", "cost": 0.03 },
+      { "label": "Citation metadata (BibTeX/JSON)", "icon": "📚", "cost": 0.04 },
+      { "label": "Translation (multi-lingual output)", "icon": "🌍", "cost": 0.06 },
+      { "label": "Visualization (Mermaid/PlantUML)", "icon": "📊", "cost": 0.05 },
+      { "label": "Webhook delivery", "icon": "📧", "cost": 0.02 },
+      { "label": "Version control (Git-backed)", "icon": "🔄", "cost": 0.03 },
+      { "label": "Collaborative workspace (CRDT)", "icon": "👥", "cost": 0.04 }
+    ]
+  }
+]

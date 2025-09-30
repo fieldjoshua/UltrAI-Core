@@ -129,7 +129,7 @@ const SSEPanel: React.FC<SSEPanelProps> = ({
         ) : (
           <ul className="space-y-2">
             {events.map((e, idx) => (
-              <li key={idx} className="border-b pb-2">
+              <li key={idx} className="border-b pb-2 sse-item-enter">
                 <div className="text-gray-600">
                   [{e.time}]{' '}
                   <span className="font-semibold text-gray-800">{e.event}</span>

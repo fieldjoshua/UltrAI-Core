@@ -172,17 +172,17 @@ const OrchestratorInterface = () => {
       {
         stage: 1,
         message:
-          'Stage 1: Initial Response - Getting parallel responses from selected models...',
+          'Spinning up parallel minds… gathering first drafts.',
       },
       {
         stage: 2,
         message:
-          'Stage 2: Peer Review & Revision - Models reviewing and refining responses...',
+          'Critique circle activated… sharpening ideas.',
       },
       {
         stage: 3,
         message:
-          'Stage 3: Ultra Synthesis™ - Creating comprehensive final synthesis...',
+          'Ultra Synthesis™ in motion… weaving the final masterpiece.',
       },
     ];
 
@@ -200,7 +200,7 @@ const OrchestratorInterface = () => {
         clearInterval(progressInterval);
         setProgressStatus('complete');
         setCurrentStage(3);
-        setProgressMessage('Ultra Synthesis™ orchestration complete');
+        setProgressMessage('Ultra Synthesis complete — nice work.');
       }
     }, 2000); // Update every 2 seconds
 
@@ -311,10 +311,9 @@ const OrchestratorInterface = () => {
   return (
     <div className="max-w-6xl mx-auto p-4">
       <div className="mb-6">
-        <h1 className="text-3xl font-bold mb-2">UltrAI Orchestrator</h1>
-        <p className="text-gray-600">
-          Experience the power of Ultra Synthesis™ - multi-model intelligence
-          multiplication
+        <h1 className="text-3xl font-bold mb-2 ultra-hero-title">UltrAI Orchestrator</h1>
+        <p className="text-gray-600 ultra-hero-subtitle">
+          Multiply your mind with Ultra Synthesis™ — many AIs, one spectacular answer.
         </p>
       </div>
 
@@ -325,8 +324,8 @@ const OrchestratorInterface = () => {
             <h3 className="font-semibold text-blue-900">Orchestration Mode</h3>
             <p className="text-sm text-blue-700">
               {useFeatherOrchestration
-                ? 'Ultra Synthesis™ - 3-Stage intelligence multiplication pipeline'
-                : 'Legacy Mode - Basic multi-model comparison'}
+                ? 'Ultra Synthesis™ — 3-stage intelligence multiplier: draft → refine → synth'
+                : 'Legacy Mode — basic multi-model comparison'}
             </p>
           </div>
           <label className="flex items-center cursor-pointer">
@@ -448,7 +447,7 @@ const OrchestratorInterface = () => {
                   {availableModels.map(model => (
                     <div
                       key={model}
-                      className={`border rounded-lg p-4 cursor-pointer transition-all ${
+                      className={`border rounded-lg p-4 cursor-pointer transition-all tilt-card ${
                         selectedModels.includes(model)
                           ? 'border-blue-500 bg-blue-50 shadow-sm'
                           : 'border-gray-200 hover:border-gray-300'
@@ -560,13 +559,13 @@ const OrchestratorInterface = () => {
                 }`}
               >
                 {availableModels.length < 2
-                  ? 'Insufficient Models (2+ Required)'
+                  ? 'Need 2+ models to jam'
                   : isProcessing
                     ? useFeatherOrchestration
-                      ? 'Running Ultra Synthesis™...'
-                      : 'Processing...'
+                      ? 'Synthesizing brilliance…'
+                      : 'Processing…'
                     : useFeatherOrchestration
-                      ? 'Start Ultra Synthesis™'
+                      ? 'Launch Ultra Synthesis™'
                       : 'Generate Response'}
               </button>
             </div>
@@ -618,7 +617,7 @@ const OrchestratorInterface = () => {
                 >
                   <SSEPanel
                     correlationId={correlationId}
-                    title="Live Model Events"
+                    title="Live Model Event Stream"
                   />
                 </React.Suspense>
               </div>
@@ -649,12 +648,12 @@ const OrchestratorInterface = () => {
                     <h2 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
                       Ultra Synthesis™
                     </h2>
-                    <div className="text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
+                    <div className="text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded-full sparkle-once">
                       Intelligence Multiplication Complete
                     </div>
                   </div>
 
-                  <div className="bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50 p-8 rounded-xl border-2 border-gradient-to-r from-purple-200 to-blue-200 shadow-lg">
+                  <div className="bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50 p-8 rounded-xl border-2 border-gradient-to-r from-purple-200 to-blue-200 shadow-lg ultra-sheen">
                     <div className="prose max-w-none">
                       <div
                         data-testid="ultra-synthesis"
@@ -718,10 +717,10 @@ const OrchestratorInterface = () => {
                       Object.keys(results.initial_responses).length > 0 && (
                         <div>
                           <h3 className="text-lg font-semibold mb-3 flex items-center">
-                            <span className="bg-green-100 text-green-800 px-2 py-1 rounded-full text-sm mr-2">
+                            <span className="bg-green-100 text-green-800 px-2 py-1 rounded-full text-sm mr-2 stage-badge">
                               1
                             </span>
-                            Initial Analysis Responses
+                            First Drafts (Model-by-Model)
                           </h3>
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             {Object.entries(results.initial_responses).map(
@@ -783,10 +782,10 @@ const OrchestratorInterface = () => {
                       Object.keys(results.peer_review_responses).length > 0 && (
                         <div>
                           <h3 className="text-lg font-semibold mb-3 flex items-center">
-                            <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-sm mr-2">
+                            <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-sm mr-2 stage-badge">
                               2
                             </span>
-                            Peer Review & Revision
+                            Meta Drafts (Peer-Reviewed)
                           </h3>
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             {Object.entries(results.peer_review_responses).map(

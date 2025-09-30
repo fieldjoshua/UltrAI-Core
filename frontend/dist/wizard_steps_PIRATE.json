@@ -1,0 +1,116 @@
+[
+  {
+    "title": "0. Ahoy, matey!",
+    "color": "mint",
+    "type": "intro",
+    "narrative": "Avast ye landlubbers! Welcome aboard UltrAI where we be plunderin' the seven seas of artificial intelligence! We've got a whole crew of AI buccaneers—GPT-4, Claude, and Gemini—all workin' together to find ye the finest treasure of answers. Pay only fer what ye use, most queries be less than a doubloon! No subscriptions, no walkin' the plank. Arrr!",
+    "options": []
+  },
+  {
+    "title": "1. Chart yer course",
+    "color": "mint",
+    "type": "checkbox",
+    "narrative": "What be yer quest today, sailor?",
+    "options": [
+      { "label": "Research (seekin' knowledge)", "icon": "🔬" },
+      { "label": "Writin' (scribin' documents)", "icon": "✍️" },
+      { "label": "Document Analysis (readin' the maps)", "icon": "📄" },
+      { "label": "Code Creation (buildin' the ship)", "icon": "💻" },
+      { "label": "Business Strategy (plottin' the route)", "icon": "📊" },
+      { "label": "Creative Projects (craftin' treasures)", "icon": "🎨" },
+      { "label": "Learnin' (studyin' the charts)", "icon": "📚" },
+      { "label": "Data Analysis (countin' the loot)", "icon": "📈" },
+      { "label": "Other adventures", "icon": "✨" }
+    ]
+  },
+  {
+    "title": "2. State yer business",
+    "color": "blue",
+    "type": "textarea",
+    "narrative": "Tell the crew what ye be needin', savvy? The more details ye provide, the better treasure we'll find fer ye!\n\n☠️ Got a map or document? Upload it fer better navigation (costs 10 pieces o' eight more)",
+    "options": [
+      { "label": "Upload yer documents", "icon": "📎", "cost": 0.1 }
+    ]
+  },
+  {
+    "title": "3. Battle strategy",
+    "color": "purple",
+    "type": "groupbox",
+    "narrative": "How should the crew tackle this voyage?",
+    "options": [
+      {
+        "label": "Full Crew Assembly ⚓",
+        "icon": "🚀",
+        "description": "All hands on deck! Combine the wisdom of all AI pirates into one grand answer",
+        "cost": 0.08
+      },
+      {
+        "label": "Truth Seeker (Soon, me hearties)",
+        "icon": "✔️",
+        "description": "Check the facts across all navigators to avoid scurvy lies",
+        "cost": 0.1
+      },
+      {
+        "label": "Mutiny Mode (Soon, ye scallywags)",
+        "icon": "⚔️",
+        "description": "Make the AIs challenge each other in combat of wits",
+        "cost": 0.07
+      },
+      {
+        "label": "Crew Consensus (Soon, aye)",
+        "icon": "🔀",
+        "description": "See where the crew agrees and where they be feudin'",
+        "cost": 0.08
+      }
+    ]
+  },
+  {
+    "title": "4. Choose yer crew",
+    "color": "deepblue",
+    "type": "checkbox",
+    "narrative": "Which AI buccaneers be joinin' this expedition?",
+    "options": [
+      { 
+        "label": "Scallywag Crew (budget pirates)", 
+        "icon": "💲", 
+        "cost": 0.0,
+        "hint": "Fast sailors, 25-50 doubloons per voyage"
+      },
+      { 
+        "label": "Admiral's Fleet (finest ships)", 
+        "icon": "🎯", 
+        "cost": 0.0,
+        "hint": "GPT-4 + Claude flagships, 1-2 gold coins per quest"
+      },
+      { 
+        "label": "Swift Sloop (speedy vessels)", 
+        "icon": "⏩", 
+        "cost": 0.0,
+        "hint": "Quick sailin', 50 cents to a doubloon"
+      },
+      { 
+        "label": "Custom Fleet (ye be the captain)", 
+        "icon": "🛠️", 
+        "cost": 0.0,
+        "hint": "Pick yer own crew members"
+      }
+    ]
+  },
+  {
+    "title": "5. Plunder more treasures?",
+    "color": "pink",
+    "type": "checkbox",
+    "narrative": "Add some extra booty to yer haul, matey?",
+    "options": [
+      { "label": "Export to PDF/Word (official scrolls)", "icon": "📄", "cost": 0.02 },
+      { "label": "Priority Processing (skip the line)", "icon": "⚡", "cost": 0.05 },
+      { "label": "Fancy Formatting (polish the treasure)", "icon": "✨", "cost": 0.03 },
+      { "label": "Source Citations (show yer sources)", "icon": "📚", "cost": 0.04 },
+      { "label": "Multi-Language (speak all tongues)", "icon": "🌍", "cost": 0.06 },
+      { "label": "Visual Maps (diagrams ahoy)", "icon": "📊", "cost": 0.05 },
+      { "label": "Message in a Bottle (email)", "icon": "📧", "cost": 0.02 },
+      { "label": "Ship's Log (version history)", "icon": "🔄", "cost": 0.03 },
+      { "label": "Crew Sharing (team access)", "icon": "👥", "cost": 0.04 }
+    ]
+  }
+]

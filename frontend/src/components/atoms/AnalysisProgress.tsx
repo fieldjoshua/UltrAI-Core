@@ -169,7 +169,7 @@ export const AnalysisProgress: React.FC<AnalysisProgressProps> = ({
       {/* Progress bar */}
       <Progress
         value={progress}
-        className={`h-2 ${
+        className={`h-2 ultra-neon-progress ${
           status === 'error'
             ? 'bg-red-100'
             : status === 'complete'

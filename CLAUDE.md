@@ -10,17 +10,24 @@ source venv/bin/activate
 
 # 2. Start development server (minimal deps, fast)
 make dev
+# → Uses app_development.py
 # → http://localhost:8000 (frontend)
 # → http://localhost:8000/docs (API docs)
 
 # 3. Or start production server (full features)
 make prod
+# → Uses app_production.py
+# → Includes database, auth, caching
 ```
 
 **First time setup:**
 ```bash
 make setup    # Install deps + build frontend (takes 5-10 min)
 ```
+
+**Note:** This project uses TWO app entry points:
+- `app_development.py` - Fast startup, minimal dependencies, no auth/DB required
+- `app_production.py` - Full features, database, Redis cache, JWT auth
 
 ## 📋 Essential Commands
 
@@ -50,23 +57,32 @@ cd frontend && npm run lint     # Lint frontend
 
 ```
 app/
-├── routes/              # API endpoints - START HERE for endpoints
-├── services/            # Business logic - orchestration lives here
-│   ├── orchestration_service.py        # MAIN: Full synthesis
-│   ├── minimal_orchestrator.py         # Faster, simpler synthesis
-│   └── llm_adapters.py                 # LLM provider adapters
-├── models/              # Pydantic + SQLAlchemy models
-└── middleware/          # Auth, CORS, rate limiting
+├── routes/              # API endpoints (24 route files)
+│   ├── orchestrator_minimal.py         # Main orchestration endpoint
+│   ├── health_routes.py                # Health checks
+│   ├── auth_routes.py                  # Authentication
+│   └── user_routes.py                  # User management
+├── services/            # Business logic
+│   ├── orchestration_service.py        # CORE: 3-stage synthesis pipeline
+│   ├── llm_adapters.py                 # Provider adapters (OpenAI/Anthropic/Google)
+│   ├── provider_health_manager.py      # Provider health checks
+│   └── model_selection.py              # Model selection logic
+├── models/              # Pydantic models (API contracts)
+├── database/models/     # SQLAlchemy models (DB schema)
+├── middleware/          # 10+ middleware layers (auth, rate limit, CORS, etc.)
+└── utils/               # Utilities, error handling, logging
 
 frontend/
-├── src/components/      # React components
-├── src/api/             # API client
-└── src/stores/          # State management
+├── src/components/wizard/  # Multi-step wizard (main UI)
+├── src/api/                # API client + React Query hooks
+├── src/stores/             # Zustand stores (auth, documents, UI)
+├── src/services/           # Frontend business logic
+└── src/skins/              # 6 theme variants (night/morning/afternoon/sunset/minimalist/business)
 
 tests/
-├── unit/                # Fast unit tests
-├── integration/         # Requires services
-└── e2e/                 # End-to-end (slow)
+├── unit/                # Fast unit tests (~30s)
+├── integration/         # Service integration tests
+└── e2e/                 # End-to-end tests (Cypress)
 ```
 
 ## 🎯 Core System: Enhanced Synthesis™
@@ -77,10 +93,11 @@ tests/
 3. **Ultra Synthesis** - Lead model synthesizes best response
 
 **Key Files:**
-- `app/services/orchestration_service.py` - Main orchestration
-- `app/services/minimal_orchestrator.py` - Streamlined version
-- `app/routes/orchestrator_minimal.py` - Minimal API endpoint
-- `app/services/llm_adapters.py` - OpenAI, Anthropic, Google adapters
+- `app/services/orchestration_service.py` - Main orchestration logic (patent implementation)
+- `app/routes/orchestrator_minimal.py` - API endpoint `/api/orchestrator/analyze`
+- `app/services/llm_adapters.py` - Provider adapters (OpenAI, Anthropic, Google, HuggingFace)
+- `app/services/provider_health_manager.py` - Circuit breaker + fallback logic
+- `app/services/model_selection.py` - Smart model selection (Premium/Speed/Budget)
 
 ## 🔑 Environment Variables (Copy to .env)
 
@@ -126,6 +143,14 @@ CONCURRENT_EXECUTION_TIMEOUT=70     # Synthesis timeout (seconds)
 ### Issue: Redis connection refused
 **Fix:** Rate limiting is disabled automatically, app still works
 
+### Issue: Frontend shows black screen
+**Cause:** Missing Redux Provider or incorrect build configuration  
+**Fix:** Check `frontend/src/main.tsx` has Redux Provider wrapper, rebuild frontend
+
+### Issue: Render deployment not updating
+**Cause:** Changes not pushed to GitHub (Render deploys from GitHub, not local files)  
+**Fix:** `git push origin main` - Render watches `main` branch for auto-deploy
+
 ## 📍 Key API Endpoints
 
 **Public:**
@@ -141,28 +166,43 @@ CONCURRENT_EXECUTION_TIMEOUT=70     # Synthesis timeout (seconds)
 **Auth:**
 - `POST /api/auth/login` - Get JWT token
 
-## 🔧 Quick Fixes
+## 🔧 Common Workflows
 
-### Add a new endpoint
-1. Create route in `app/routes/`
+### Add a new API endpoint
+1. Create route file in `app/routes/` (follow pattern from existing routes)
 2. Add service logic in `app/services/`
-3. Test: `curl http://localhost:8000/your-endpoint`
+3. Register route in `app_production.py` or `app_development.py`
+4. Test locally: `curl http://localhost:8000/your-endpoint`
+5. Add tests in `tests/unit/` or `tests/integration/`
 
 ### Fix a failing test
 1. Find test: `grep -r "test_name" tests/`
 2. Run it: `pytest tests/path/to/test.py::test_name -v`
-3. Debug with print or breakpoint()
+3. Debug with print or `breakpoint()`
+4. Check logs: test failures often include detailed error messages
 
-### Update frontend
+### Update frontend component
 1. `cd frontend`
-2. Edit files in `src/`
+2. Edit files in `src/components/`
 3. Dev mode auto-reloads: `npm run dev`
-4. Production: `npm run build`
+4. Test changes: `npm test -- ComponentName`
+5. Build for production: `npm run build`
+6. Frontend is served by backend, so rebuild triggers full deploy
+
+### Deploy to production
+1. Commit changes: `git add . && git commit -m "description"`
+2. Push to GitHub: `git push origin main` (CRITICAL - Render deploys from GitHub)
+3. Monitor deploy: Check https://dashboard.render.com
+4. Verify production: Visit https://ultrai-prod-api.onrender.com/api/health
+5. Check logs if issues: Render dashboard → Service → Logs
 
 ## 🚢 Deployment
 
-**Production:** https://ultrai-core.onrender.com  
+**Production:** https://ultrai-prod-api.onrender.com (ACTIVE)  
+**Staging:** https://ultrai-staging-api.onrender.com  
 **Dashboard:** https://dashboard.render.com
+
+**Note:** `ultrai-core.onrender.com` appears suspended - use `ultrai-prod-api` as primary
 
 ### Quick Deploy
 ```bash
@@ -172,15 +212,27 @@ CONCURRENT_EXECUTION_TIMEOUT=70     # Synthesis timeout (seconds)
 
 ### All Services
 All services track `main` branch with auto-deploy enabled:
-- ultrai-prod-api (https://ultrai-prod-api.onrender.com)
-- UltrAI (https://ultrai-core.onrender.com)  
-- ultrai-core (https://ultrai-core-4lut.onrender.com)
-- ultrai-staging-api (https://ultrai-staging-api.onrender.com)
-- Plus 5 frontend static sites
+- **ultrai-prod-api** (https://ultrai-prod-api.onrender.com) - ✅ PRIMARY PRODUCTION
+- **ultrai-staging-api** (https://ultrai-staging-api.onrender.com) - ✅ Staging environment
+- ultrai-core (https://ultrai-core.onrender.com) - ⚠️ SUSPENDED (not in use)
+- Plus 5 frontend static sites (demo, staging, production variants)
 
 ### Manual Deploy
 ```bash
 git add . && git commit -m "msg" && git push origin main
+# Then verify: curl https://ultrai-prod-api.onrender.com/api/health
+```
+
+### Quick Health Checks
+```bash
+# Production
+curl https://ultrai-prod-api.onrender.com/api/health
+
+# Staging
+curl https://ultrai-staging-api.onrender.com/api/health
+
+# Expected response (healthy):
+# {"status":"ok","uptime":"...","services":{"database":"healthy","cache":"healthy","llm":"healthy"}}
 ```
 
 ## 💡 Development Tips
@@ -200,12 +252,21 @@ git add . && git commit -m "msg" && git push origin main
 ```bash
 pytest tests/unit/ -v              # Unit tests (30s)
 pytest -k "test_specific" -v       # One test (5s)
+pytest tests/unit/test_model_registry.py -v  # Single file
 ```
 
 **Full testing:**
 ```bash
 make test                          # Offline mode (2 min)
 make test-integration              # With services (5 min)
+make test-live                     # Real LLM providers (requires API keys)
+```
+
+**Frontend testing:**
+```bash
+cd frontend && npm test            # Jest tests
+cd frontend && npm run test:watch  # Watch mode
+npx cypress open                   # E2E tests
 ```
 
 **Skip slow tests:**
@@ -215,12 +276,21 @@ pytest -m "not e2e" -v             # Skip E2E
 
 ## 📖 Architecture Patterns
 
-- **Adapter Pattern:** All LLM providers implement `BaseAdapter`
+**Backend (FastAPI + Python):**
+- **Adapter Pattern:** All LLM providers implement `BaseAdapter` interface
 - **Dependency Injection:** Services passed via FastAPI `Depends()`
-- **Feature Flags:** `RAG_ENABLED`, etc.
-- **Graceful Degradation:** Falls back to SQLite, in-memory cache
-- **Circuit Breaker:** Auto provider fallback on failures
-- **Correlation IDs:** Track requests with `X-Correlation-ID`
+- **Circuit Breaker:** Provider health manager auto-fails over on errors
+- **Graceful Degradation:** Falls back to SQLite, in-memory cache, disables auth if needed
+- **Correlation IDs:** Track requests with `X-Correlation-ID` header
+- **Middleware Stack:** 10+ layers (auth, CORS, rate limit, telemetry, security headers)
+
+**Frontend (React + TypeScript):**
+- **Multi-Step Wizard:** JSON-driven wizard steps (`public/wizard_steps.json`)
+- **Zustand + Redux:** Lightweight global state + complex state management
+- **React Query:** Server state, caching, optimistic updates
+- **Theme System:** Dynamic CSS loading with 6 variants
+- **Error Boundaries:** Component-level error isolation
+- **Lazy Loading:** Route-based code splitting + dynamic imports
 
 ## ⚡ Performance
 
@@ -232,10 +302,11 @@ pytest -m "not e2e" -v             # Skip E2E
 
 ## 📚 More Info
 
-- Full testing modes: See Makefile
-- AICheck workflow: `.aicheck/rules.md`
-- Frontend architecture: `frontend/README.md`
-- Database migrations: `alembic upgrade head`
+- **Frontend deep dive:** `frontend/CLAUDE.md` (wizard architecture, theme system, testing)
+- **Testing modes:** See `Makefile` for all test variants
+- **Database migrations:** `alembic upgrade head` (auto-runs in production)
+- **API documentation:** `/docs` (Swagger UI) when server is running
+- **Provider configuration:** All LLM adapters support API key rotation without restart
 
 ## 🎯 Priority Checklist for New Developers
 

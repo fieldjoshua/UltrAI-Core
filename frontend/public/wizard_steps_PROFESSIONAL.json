@@ -1,0 +1,116 @@
+[
+  {
+    "title": "0. Welcome to UltrAI",
+    "color": "mint",
+    "type": "intro",
+    "narrative": "UltrAI delivers institutional-grade AI analysis by orchestrating multiple leading language models in parallel. Our proprietary synthesis engine combines insights from GPT-4, Claude, and Gemini to produce comprehensive, multi-perspective outputs. Usage-based pricing with transparent per-query costs. Enterprise-ready architecture with SOC2-compliant infrastructure.",
+    "options": []
+  },
+  {
+    "title": "1. Define your objective",
+    "color": "mint",
+    "type": "checkbox",
+    "narrative": "Select the primary use case for this analysis",
+    "options": [
+      { "label": "Market Research & Competitive Intelligence", "icon": "🔬" },
+      { "label": "Content Development & Editorial", "icon": "✍️" },
+      { "label": "Document Review & Analysis", "icon": "📄" },
+      { "label": "Software Development & Technical Documentation", "icon": "💻" },
+      { "label": "Strategic Planning & Business Analysis", "icon": "📊" },
+      { "label": "Creative & Marketing Initiatives", "icon": "🎨" },
+      { "label": "Training & Knowledge Management", "icon": "📚" },
+      { "label": "Data Analytics & Business Intelligence", "icon": "📈" },
+      { "label": "Other", "icon": "✨" }
+    ]
+  },
+  {
+    "title": "2. Input your query",
+    "color": "blue",
+    "type": "textarea",
+    "narrative": "Provide detailed context for optimal results. Include specific requirements, constraints, and desired output format.\n\nSupporting documentation can be uploaded for enhanced contextual analysis (+$0.10)",
+    "options": [
+      { "label": "Upload supporting documentation", "icon": "📎", "cost": 0.1 }
+    ]
+  },
+  {
+    "title": "3. Analysis methodology",
+    "color": "purple",
+    "type": "groupbox",
+    "narrative": "Select your preferred synthesis approach",
+    "options": [
+      {
+        "label": "Multi-Model Synthesis™",
+        "icon": "🚀",
+        "description": "Proprietary algorithm aggregates insights across models for comprehensive output",
+        "cost": 0.08
+      },
+      {
+        "label": "Verification & Confidence Scoring (Beta)",
+        "icon": "✔️",
+        "description": "Cross-reference factual claims with statistical confidence intervals",
+        "cost": 0.1
+      },
+      {
+        "label": "Adversarial Review (Beta)",
+        "icon": "⚔️",
+        "description": "Subject outputs to critical review for bias detection and assumption validation",
+        "cost": 0.07
+      },
+      {
+        "label": "Consensus Analysis (Beta)",
+        "icon": "🔀",
+        "description": "Identify areas of model agreement and divergence for balanced perspectives",
+        "cost": 0.08
+      }
+    ]
+  },
+  {
+    "title": "4. Model selection",
+    "color": "deepblue",
+    "type": "checkbox",
+    "narrative": "Configure your analysis pipeline",
+    "options": [
+      { 
+        "label": "Cost-Optimized Configuration", 
+        "icon": "💲", 
+        "cost": 0.0,
+        "hint": "Balanced performance tier: $0.25-0.50 per query"
+      },
+      { 
+        "label": "Premium Performance Tier", 
+        "icon": "🎯", 
+        "cost": 0.0,
+        "hint": "GPT-4 Turbo + Claude 3 Opus: $1.00-2.00 per query"
+      },
+      { 
+        "label": "Low-Latency Configuration", 
+        "icon": "⏩", 
+        "cost": 0.0,
+        "hint": "Optimized for speed: $0.50-1.00 per query"
+      },
+      { 
+        "label": "Custom Model Selection", 
+        "icon": "🛠️", 
+        "cost": 0.0,
+        "hint": "Configure specific model combinations"
+      }
+    ]
+  },
+  {
+    "title": "5. Output specifications",
+    "color": "pink",
+    "type": "checkbox",
+    "narrative": "Select additional output requirements and delivery options",
+    "options": [
+      { "label": "Export to PDF/DOCX", "icon": "📄", "cost": 0.02 },
+      { "label": "Priority Queue Processing", "icon": "⚡", "cost": 0.05 },
+      { "label": "Professional Formatting & Styling", "icon": "✨", "cost": 0.03 },
+      { "label": "Academic Citations (APA/MLA/Chicago)", "icon": "📚", "cost": 0.04 },
+      { "label": "Multilingual Output", "icon": "🌍", "cost": 0.06 },
+      { "label": "Data Visualization & Diagrams", "icon": "📊", "cost": 0.05 },
+      { "label": "Email Delivery", "icon": "📧", "cost": 0.02 },
+      { "label": "Version Control & Audit Trail", "icon": "🔄", "cost": 0.03 },
+      { "label": "Team Collaboration Workspace", "icon": "👥", "cost": 0.04 }
+    ]
+  }
+]

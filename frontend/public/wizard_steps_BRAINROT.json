@@ -1,0 +1,116 @@
+[
+  {
+    "title": "0. no cap fr fr",
+    "color": "mint",
+    "type": "intro",
+    "narrative": "Yo bestie welcome to UltrAI where we be fr multiplying the AI rizz ✨ We got ALL the models in here working overtime to cook up your responses. It's giving main character energy. Most queries? Less than a dolla. No cap. That's bussin fr fr.",
+    "options": []
+  },
+  {
+    "title": "1. what's the vibe check?",
+    "color": "mint",
+    "type": "checkbox",
+    "narrative": "Bestie what are we cooking today? 👀",
+    "options": [
+      { "label": "Research (nerd mode activated)", "icon": "🔬" },
+      { "label": "Writing (slay the essay)", "icon": "✍️" },
+      { "label": "Document stuff (ugh paperwork)", "icon": "📄" },
+      { "label": "Code (hackerman energy)", "icon": "💻" },
+      { "label": "Business strat (CEO vibes)", "icon": "📊" },
+      { "label": "Creative chaos", "icon": "🎨" },
+      { "label": "Learning (touch grass later)", "icon": "📚" },
+      { "label": "Data crunching", "icon": "📈" },
+      { "label": "Something unhinged", "icon": "✨" }
+    ]
+  },
+  {
+    "title": "2. spill the tea ☕",
+    "color": "blue",
+    "type": "textarea",
+    "narrative": "Bestie tell the AI what's up. More deets = better output, periodt.\n\nPro tip: Upload a doc if u got one (adds 10 cents but it's worth it fr)",
+    "options": [
+      { "label": "yeet a document into the void", "icon": "📎", "cost": 0.1 }
+    ]
+  },
+  {
+    "title": "3. how we cookin this?",
+    "color": "purple",
+    "type": "groupbox",
+    "narrative": "Pick your power-up fr",
+    "options": [
+      {
+        "label": "UltrAI Brain Cell Combo 🧠",
+        "icon": "🚀",
+        "description": "Mash all the big brain takes together into one chef's kiss response",
+        "cost": 0.08
+      },
+      {
+        "label": "Sus Detector (coming soon fr)",
+        "icon": "✔️",
+        "description": "Rate how cap-free the responses are. No lies detected.",
+        "cost": 0.1
+      },
+      {
+        "label": "Hater Mode (coming soon)",
+        "icon": "⚔️",
+        "description": "Make one AI roast another's answer. It's giving drama.",
+        "cost": 0.07
+      },
+      {
+        "label": "Agreement Scanner (coming soon)",
+        "icon": "🔀",
+        "description": "See which AIs are besties and which ones beefing",
+        "cost": 0.08
+      }
+    ]
+  },
+  {
+    "title": "4. pick ur squad 💅",
+    "color": "deepblue",
+    "type": "checkbox",
+    "narrative": "Which AI homies we rolling with?",
+    "options": [
+      { 
+        "label": "Broke Mode (but still valid)", 
+        "icon": "💲", 
+        "cost": 0.0,
+        "hint": "Fast bois, 25-50 cents. Gets the job done."
+      },
+      { 
+        "label": "Big Brain Energy", 
+        "icon": "🎯", 
+        "cost": 0.0,
+        "hint": "GPT-4 + Claude. $1-2 but it SLAPS"
+      },
+      { 
+        "label": "Speed Demon", 
+        "icon": "⏩", 
+        "cost": 0.0,
+        "hint": "Zoom zoom. 50 cents-$1. Fast af boiii"
+      },
+      { 
+        "label": "Custom (u do u)", 
+        "icon": "🛠️", 
+        "cost": 0.0,
+        "hint": "Pick specific models like a boss"
+      }
+    ]
+  },
+  {
+    "title": "5. extra sauce?",
+    "color": "pink",
+    "type": "checkbox",
+    "narrative": "Want some toppings on that? 👀",
+    "options": [
+      { "label": "PDF/Word (fancy paper vibes)", "icon": "📄", "cost": 0.02 },
+      { "label": "Priority (skip the line fr)", "icon": "⚡", "cost": 0.05 },
+      { "label": "Make it pretty ✨", "icon": "✨", "cost": 0.03 },
+      { "label": "Source receipts 📚", "icon": "📚", "cost": 0.04 },
+      { "label": "Different language", "icon": "🌍", "cost": 0.06 },
+      { "label": "Diagrams (visual learner energy)", "icon": "📊", "cost": 0.05 },
+      { "label": "Email it (inbox jumpscare)", "icon": "📧", "cost": 0.02 },
+      { "label": "Time machine (version history)", "icon": "🔄", "cost": 0.03 },
+      { "label": "Squad up (team collab)", "icon": "👥", "cost": 0.04 }
+    ]
+  }
+]

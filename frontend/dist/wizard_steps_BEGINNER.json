@@ -1,0 +1,116 @@
+[
+  {
+    "title": "0. Welcome! Let's get started",
+    "color": "mint",
+    "type": "intro",
+    "narrative": "Hi there! UltrAI is a tool that helps you get better answers by asking multiple AI assistants (like ChatGPT, Claude, and others) the same question, then combining their best ideas into one helpful response. Think of it like getting advice from several experts instead of just one. You only pay for each question you ask (most are under $1), and there's no monthly fee or signup commitment.",
+    "options": []
+  },
+  {
+    "title": "1. What do you need help with?",
+    "color": "mint",
+    "type": "checkbox",
+    "narrative": "Pick what you're trying to do (you can choose more than one):",
+    "options": [
+      { "label": "Finding information or researching something", "icon": "🔬" },
+      { "label": "Writing or improving text", "icon": "✍️" },
+      { "label": "Understanding a document", "icon": "📄" },
+      { "label": "Creating or fixing code (for programming)", "icon": "💻" },
+      { "label": "Planning a business or project", "icon": "📊" },
+      { "label": "Creating something artistic or creative", "icon": "🎨" },
+      { "label": "Learning something new", "icon": "📚" },
+      { "label": "Working with numbers or data", "icon": "📈" },
+      { "label": "Something else", "icon": "✨" }
+    ]
+  },
+  {
+    "title": "2. Ask your question",
+    "color": "blue",
+    "type": "textarea",
+    "narrative": "Type what you want help with. Be as detailed as you can—the more information you provide, the better the answer will be.\n\n📎 Helpful tip: If you have a file that might help (like a PDF or document), you can upload it here. This costs an extra 10 cents but can improve your results.",
+    "options": [
+      { "label": "Upload a file (optional, adds $0.10)", "icon": "📎", "cost": 0.1 }
+    ]
+  },
+  {
+    "title": "3. How should we process your question?",
+    "color": "purple",
+    "type": "groupbox",
+    "narrative": "Choose how you want your answer prepared (don't worry, the first option works great for most people):",
+    "options": [
+      {
+        "label": "Standard Processing (recommended)",
+        "icon": "🚀",
+        "description": "We ask multiple AI assistants your question and combine their best answers into one clear response. This is what most people use.",
+        "cost": 0.08
+      },
+      {
+        "label": "Fact Checking (coming soon)",
+        "icon": "✔️",
+        "description": "We'll check if the information is accurate and let you know how confident we are in the answer.",
+        "cost": 0.1
+      },
+      {
+        "label": "Different Perspectives (coming soon)",
+        "icon": "⚔️",
+        "description": "We'll show you different viewpoints on your question to help you think about it from multiple angles.",
+        "cost": 0.07
+      },
+      {
+        "label": "Agreement Check (coming soon)",
+        "icon": "🔀",
+        "description": "We'll show you where different AI assistants agree and disagree about your question.",
+        "cost": 0.08
+      }
+    ]
+  },
+  {
+    "title": "4. Which AI assistants should we use?",
+    "color": "deepblue",
+    "type": "checkbox",
+    "narrative": "Pick which AI helpers you want to use. Not sure? The first option is a good balance of speed and quality.",
+    "options": [
+      { 
+        "label": "Budget Option (saves money)", 
+        "icon": "💲", 
+        "cost": 0.0,
+        "hint": "Uses faster AI models. Costs $0.25-0.50 per question. Good for simple questions."
+      },
+      { 
+        "label": "Best Quality (recommended for important tasks)", 
+        "icon": "🎯", 
+        "cost": 0.0,
+        "hint": "Uses the smartest AI models (GPT-4 and Claude). Costs $1-2 per question. Best for complex or important questions."
+      },
+      { 
+        "label": "Fast Option (quick answers)", 
+        "icon": "⏩", 
+        "cost": 0.0,
+        "hint": "Optimized for speed. Costs $0.50-1 per question. Good when you need an answer quickly."
+      },
+      { 
+        "label": "Let me choose specific AI models", 
+        "icon": "🛠️", 
+        "cost": 0.0,
+        "hint": "Advanced option: Pick exactly which AI assistants to use"
+      }
+    ]
+  },
+  {
+    "title": "5. Would you like any extras?",
+    "color": "pink",
+    "type": "checkbox",
+    "narrative": "These are optional add-ons that might be helpful (you can skip this step if you don't need any):",
+    "options": [
+      { "label": "Save as PDF or Word document", "icon": "📄", "cost": 0.02 },
+      { "label": "Get results faster (priority processing)", "icon": "⚡", "cost": 0.05 },
+      { "label": "Make it look nicer (advanced formatting)", "icon": "✨", "cost": 0.03 },
+      { "label": "Include sources and references", "icon": "📚", "cost": 0.04 },
+      { "label": "Translate to another language", "icon": "🌍", "cost": 0.06 },
+      { "label": "Add charts or diagrams", "icon": "📊", "cost": 0.05 },
+      { "label": "Send results to my email", "icon": "📧", "cost": 0.02 },
+      { "label": "Save previous versions", "icon": "🔄", "cost": 0.03 },
+      { "label": "Share with my team", "icon": "👥", "cost": 0.04 }
+    ]
+  }
+]

@@ -3,14 +3,14 @@
     "title": "0. Welcome to UltrAI",
     "color": "mint",
     "type": "intro",
-    "narrative": "Welcome to UltrAI where the intelligence of multiple LLMs is multiplied. We use a unique cocktail of many leading LLMs working on the same (or strategically different) tasks to help users create the optimal output. And we're doing it for the people — with pay‑as‑you‑go options and no long‑term commitments. Some queries can be under a dollar!",
+    "narrative": "Get better AI answers by combining multiple AI models. Pay only for what you use—many queries cost under $1. No subscriptions. No commitments. Just smarter results.",
     "options": []
   },
   {
     "title": "1. Select your goals",
     "color": "mint",
     "type": "checkbox",
-    "narrative": "What do you want to create?",
+    "narrative": "What are you working on today?",
     "options": [
       { "label": "Research", "icon": "🔬" },
       { "label": "Writing/Editing", "icon": "✍️" },
@@ -27,7 +27,7 @@
     "title": "2. Enter your query",
     "color": "blue",
     "type": "textarea",
-    "narrative": "What do you want AI to do? Think of your goals. What things are they made of?\nAttach a document if it helps in the creation.",
+    "narrative": "Describe what you need help with. The more detail, the better the results.\n\n💡 Tip: Attach a document for context (adds $0.10)",
     "options": [
       { "label": "Upload document or media", "icon": "📎", "cost": 0.1 }
     ]
@@ -36,30 +36,30 @@
     "title": "3. Analyses",
     "color": "purple",
     "type": "groupbox",
-    "narrative": "Pick how UltraAI should orchestrate, review, and refine the outputs.",
+    "narrative": "Choose how we should combine and improve your results.",
     "options": [
       {
         "label": "UltrAI Intelligence Multiplier",
         "icon": "🚀",
-        "description": "Blend the best insights from all models into one cohesive output.",
+        "description": "Combine the best insights from all models into one answer.",
         "cost": 0.08
       },
       {
         "label": "Fact-check & Confidence (Coming soon)",
         "icon": "✔️",
-        "description": "Rate truthfulness across models and provide confidence scores.",
+        "description": "Verify accuracy across models with confidence scores.",
         "cost": 0.1
       },
       {
-        "label": "Devil’s Advocate (Coming soon)",
+        "label": "Devil's Advocate (Coming soon)",
         "icon": "⚔️",
-        "description": "One model critiques another to expose blind spots and biases.",
+        "description": "Challenge assumptions to find blind spots.",
         "cost": 0.07
       },
       {
-        "label": "Convergence/Divergence (Coming soon)",
+        "label": "Agreement Analysis (Coming soon)",
         "icon": "🔀",
-        "description": "Highlight where models agree and where they differ significantly.",
+        "description": "See where models agree and disagree.",
         "cost": 0.08
       }
     ]
@@ -68,19 +68,39 @@
     "title": "4. Model selection",
     "color": "deepblue",
     "type": "checkbox",
-    "narrative": "Which AI models do you want to perform your query?",
+    "narrative": "Which AI models should work on this?",
     "options": [
-      { "label": "Auto: Cost-Saving", "icon": "💲", "cost": 0.0 },
-      { "label": "Auto: Premium Quality", "icon": "🎯", "cost": 0.0 },
-      { "label": "Auto: Speed", "icon": "⏩", "cost": 0.0 },
-      { "label": "Manual selection", "icon": "🛠️", "cost": 0.0 }
+      { 
+        "label": "Budget Mode", 
+        "icon": "💲", 
+        "cost": 0.0,
+        "hint": "Fast models, $0.25-0.50 per query"
+      },
+      { 
+        "label": "Premium", 
+        "icon": "🎯", 
+        "cost": 0.0,
+        "hint": "GPT-4 + Claude Opus, $1-2 per query"
+      },
+      { 
+        "label": "Speed", 
+        "icon": "⏩", 
+        "cost": 0.0,
+        "hint": "Quick results, $0.50-1 per query"
+      },
+      { 
+        "label": "Custom", 
+        "icon": "🛠️", 
+        "cost": 0.0,
+        "hint": "Choose specific models"
+      }
     ]
   },
   {
     "title": "5. Add-ons & formatting",
     "color": "pink",
     "type": "checkbox",
-    "narrative": "Choose how your result is delivered, secured, and polished.",
+    "narrative": "Add extras like PDF export, citations, or priority processing.",
     "options": [
       { "label": "Export as PDF/Word", "icon": "📄", "cost": 0.02 },
       { "label": "Priority Processing", "icon": "⚡", "cost": 0.05 },

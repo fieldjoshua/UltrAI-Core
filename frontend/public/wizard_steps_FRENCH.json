@@ -1,0 +1,116 @@
+[
+  {
+    "title": "0. Bienvenue sur UltrAI",
+    "color": "mint",
+    "type": "intro",
+    "narrative": "Obtenez de meilleures réponses d'IA en combinant plusieurs modèles d'intelligence artificielle. Payez uniquement ce que vous utilisez—la plupart des requêtes coûtent moins de 1$. Pas d'abonnement. Pas d'engagement. Juste des résultats plus intelligents.",
+    "options": []
+  },
+  {
+    "title": "1. Sélectionnez vos objectifs",
+    "color": "mint",
+    "type": "checkbox",
+    "narrative": "Sur quoi travaillez-vous aujourd'hui?",
+    "options": [
+      { "label": "Recherche", "icon": "🔬" },
+      { "label": "Rédaction/Édition", "icon": "✍️" },
+      { "label": "Analyse de documents", "icon": "📄" },
+      { "label": "Création de code", "icon": "💻" },
+      { "label": "Stratégie d'entreprise", "icon": "📊" },
+      { "label": "Projets créatifs", "icon": "🎨" },
+      { "label": "Apprentissage et éducation", "icon": "📚" },
+      { "label": "Analyse de données", "icon": "📈" },
+      { "label": "Autre", "icon": "✨" }
+    ]
+  },
+  {
+    "title": "2. Entrez votre requête",
+    "color": "blue",
+    "type": "textarea",
+    "narrative": "Décrivez ce dont vous avez besoin. Plus vous donnez de détails, meilleurs seront les résultats.\n\n💡 Astuce: Joignez un document pour plus de contexte (ajoute 0,10$)",
+    "options": [
+      { "label": "Télécharger un document ou média", "icon": "📎", "cost": 0.1 }
+    ]
+  },
+  {
+    "title": "3. Analyses",
+    "color": "purple",
+    "type": "groupbox",
+    "narrative": "Choisissez comment nous devons combiner et améliorer vos résultats.",
+    "options": [
+      {
+        "label": "Multiplicateur d'Intelligence UltrAI",
+        "icon": "🚀",
+        "description": "Combinez les meilleures idées de tous les modèles en une seule réponse.",
+        "cost": 0.08
+      },
+      {
+        "label": "Vérification et confiance (Bientôt)",
+        "icon": "✔️",
+        "description": "Vérifiez la précision entre les modèles avec scores de confiance.",
+        "cost": 0.1
+      },
+      {
+        "label": "Avocat du diable (Bientôt)",
+        "icon": "⚔️",
+        "description": "Remettez en question les hypothèses pour trouver les angles morts.",
+        "cost": 0.07
+      },
+      {
+        "label": "Analyse de consensus (Bientôt)",
+        "icon": "🔀",
+        "description": "Montrez où les modèles sont d'accord et en désaccord.",
+        "cost": 0.08
+      }
+    ]
+  },
+  {
+    "title": "4. Sélection de modèle",
+    "color": "deepblue",
+    "type": "checkbox",
+    "narrative": "Quels modèles d'IA doivent travailler là-dessus?",
+    "options": [
+      { 
+        "label": "Mode Économique", 
+        "icon": "💲", 
+        "cost": 0.0,
+        "hint": "Modèles rapides, 0,25$-0,50$ par requête"
+      },
+      { 
+        "label": "Premium", 
+        "icon": "🎯", 
+        "cost": 0.0,
+        "hint": "GPT-4 + Claude Opus, 1$-2$ par requête"
+      },
+      { 
+        "label": "Vitesse", 
+        "icon": "⏩", 
+        "cost": 0.0,
+        "hint": "Résultats rapides, 0,50$-1$ par requête"
+      },
+      { 
+        "label": "Personnalisé", 
+        "icon": "🛠️", 
+        "cost": 0.0,
+        "hint": "Choisissez des modèles spécifiques"
+      }
+    ]
+  },
+  {
+    "title": "5. Modules complémentaires",
+    "color": "pink",
+    "type": "checkbox",
+    "narrative": "Ajoutez des extras comme l'export PDF, les citations ou le traitement prioritaire.",
+    "options": [
+      { "label": "Exporter en PDF/Word", "icon": "📄", "cost": 0.02 },
+      { "label": "Traitement prioritaire", "icon": "⚡", "cost": 0.05 },
+      { "label": "Formatage avancé", "icon": "✨", "cost": 0.03 },
+      { "label": "Citations de sources", "icon": "📚", "cost": 0.04 },
+      { "label": "Multi-langue", "icon": "🌍", "cost": 0.06 },
+      { "label": "Diagrammes visuels", "icon": "📊", "cost": 0.05 },
+      { "label": "Résumé par e-mail", "icon": "📧", "cost": 0.02 },
+      { "label": "Historique des versions", "icon": "🔄", "cost": 0.03 },
+      { "label": "Collaboration d'équipe", "icon": "👥", "cost": 0.04 }
+    ]
+  }
+]
