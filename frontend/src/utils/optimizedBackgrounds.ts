@@ -33,3 +33,11 @@ export const preloadBackground = (theme: string): Promise<void> => {
     img.src = getOptimizedBackground(theme);
   });
 };
+
+// Return a CSS image-set string with 1x/2x/3x sources for high-DPI displays
+export const getBackgroundImageSet = (theme: 'morning' | 'afternoon' | 'sunset' | 'night'): string => {
+  const base = `/bg-${theme}.jpg`;
+  const twoK = `/bg-${theme}-2k.jpg`;
+  const fourK = `/bg-${theme}-4k.jpg`;
+  return `image-set(url('${base}') 1x, url('${twoK}') 2x, url('${fourK}') 3x)`;
+};
