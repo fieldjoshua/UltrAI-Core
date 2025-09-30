@@ -39,3 +39,5 @@ services:
         value: https://ultrai-prod-api.onrender.com
       - key: VITE_DEFAULT_SKIN
         value: night
+      - key: VITE_RAG_ENABLED
+        value: "false"

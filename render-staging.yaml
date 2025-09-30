@@ -43,6 +43,20 @@ services:
       - key: HUGGINGFACE_API_KEY
         sync: false
       
+      # Database
+      - key: DATABASE_URL
+        fromDatabase:
+          name: ultrai-staging-db
+          property: connectionString
+      
       # CORS
-      - key: CORS_ALLOWED_ORIGINS
+      - key: CORS_ORIGINS
         value: "https://staging-ultrai.onrender.com,https://ultrai-staging-api.onrender.com,http://localhost:5173,http://localhost:3009"
+
+# Database configuration
+databases:
+  - name: ultrai-staging-db
+    plan: free
+    databaseName: ultrai_staging
+    user: ultrai_staging_user
+    postgresMajorVersion: "15"

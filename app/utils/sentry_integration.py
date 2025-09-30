@@ -20,23 +20,23 @@ logger = logging.getLogger(__name__)
 def init_sentry() -> bool:
     """
     Initialize Sentry SDK for error tracking and performance monitoring.
-
+    
     Returns:
         bool: True if Sentry was initialized, False otherwise
     """
     sentry_dsn = os.getenv("SENTRY_DSN")
-
+    
     if not sentry_dsn:
         logger.info("Sentry DSN not configured, skipping Sentry initialization")
         return False
-
+    
     try:
         # Configure logging integration
         logging_integration = LoggingIntegration(
             level=logging.INFO,        # Capture info and above as breadcrumbs
             event_level=logging.ERROR  # Send errors as events
         )
-
+        
         # Initialize Sentry
         sentry_sdk.init(
             dsn=sentry_dsn,
@@ -61,10 +61,14 @@ def init_sentry() -> bool:
             release=os.getenv("APP_VERSION", "unknown"),
             server_name=os.getenv("SERVER_NAME", "ultrai-backend"),
         )
-
+        
+        # Set tags after initialization
+        sentry_sdk.set_tag("service", "ultrai-orchestrator")
+        sentry_sdk.set_tag("environment", Config.ENVIRONMENT)
+        
         logger.info(f"Sentry initialized for environment: {Config.ENVIRONMENT}")
         return True
-
+        
     except Exception as e:
         logger.error(f"Failed to initialize Sentry: {e}")
         return False
@@ -73,70 +77,70 @@ def init_sentry() -> bool:
 def before_send_filter(event: Dict[str, Any], hint: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     """
     Filter events before sending to Sentry.
-
+    
     Args:
         event: The event dictionary
         hint: Additional information about the event
-
+        
     Returns:
         The filtered event or None to drop it
     """
     # Filter out specific errors we don't want to track
     if "exc_info" in hint:
         exc_type, exc_value, tb = hint["exc_info"]
-
+        
         # Don't send rate limit errors
         if exc_type.__name__ == "RateLimitError":
             return None
-
+            
         # Don't send authentication errors (too noisy)
         if exc_type.__name__ in ["AuthenticationError", "InvalidTokenError"]:
             return None
-
+    
     # Remove sensitive data from request
     if "request" in event:
         request = event["request"]
-
+        
         # Remove authorization headers
         if "headers" in request:
             headers = dict(request["headers"])
             for key in ["authorization", "x-api-key", "cookie"]:
                 headers.pop(key, None)
             request["headers"] = headers
-
+        
         # Remove sensitive query params
         if "query_string" in request:
             # Parse and filter query string
             pass
-
+    
     return event
 
 
 def before_send_transaction_filter(event: Dict[str, Any], hint: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     """
     Filter transaction events (performance monitoring).
-
+    
     Args:
         event: The transaction event
         hint: Additional information
-
+        
     Returns:
         The filtered event or None to drop it
     """
     # Skip health check transactions
     if event.get("transaction") in ["/health", "/api/health", "/ping"]:
         return None
-
+    
     # Skip metrics endpoint
     if event.get("transaction") == "/api/metrics":
         return None
-
+    
     return event
 
 
 class SentryContextManager:
     """Context manager for Sentry operations."""
-
+    
     @staticmethod
     def set_user_context(user_id: str, email: Optional[str] = None, username: Optional[str] = None):
         """Set user context for Sentry."""
@@ -145,7 +149,7 @@ class SentryContextManager:
             "email": email,
             "username": username,
         })
-
+    
     @staticmethod
     def set_request_context(request_id: str, correlation_id: str, endpoint: str):
         """Set request context for Sentry."""
@@ -154,11 +158,11 @@ class SentryContextManager:
             "correlation_id": correlation_id,
             "endpoint": endpoint,
         })
-
+    
     @staticmethod
     def set_orchestration_context(
-        models: list[str],
-        stage: str,
+        models: list[str], 
+        stage: str, 
         query_type: str,
         model_count: int
     ):
@@ -169,28 +173,28 @@ class SentryContextManager:
             "query_type": query_type,
             "model_count": model_count,
         })
-
+        
         # Also set tags for easier filtering
         set_tag("orchestration.stage", stage)
         set_tag("orchestration.model_count", str(model_count))
         set_tag("orchestration.query_type", query_type)
-
+    
     @staticmethod
     def capture_model_error(
-        model: str,
-        error: Exception,
+        model: str, 
+        error: Exception, 
         stage: str,
         additional_data: Optional[Dict[str, Any]] = None
     ):
         """Capture model-specific errors with context."""
         set_tag("model", model)
         set_tag("error.stage", stage)
-
+        
         if additional_data:
             set_context("model_error", additional_data)
-
+        
         capture_exception(error)
-
+    
     @staticmethod
     def capture_performance_warning(
         message: str,
@@ -206,10 +210,10 @@ class SentryContextManager:
             "stage": stage,
             "exceeded_by": duration - threshold,
         }
-
+        
         if additional_data:
             data.update(additional_data)
-
+        
         set_context("performance", data)
         capture_message(message, level="warning")
 
