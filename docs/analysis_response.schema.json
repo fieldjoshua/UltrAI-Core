@@ -1,0 +1,150 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "AnalysisResponse",
+  "description": "Response model for /orchestrator/analyze endpoint. Matches AnalysisResponse pydantic model in app/routes/orchestrator_minimal.py and OutputFormatter output.",
+  "type": "object",
+  "required": ["success", "results"],
+  "properties": {
+    "success": {
+      "type": "boolean",
+      "description": "Whether the analysis was successful"
+    },
+    "results": {
+      "type": "object",
+      "description": "Analysis results containing synthesis and optionally pipeline stages",
+      "properties": {
+        "ultra_synthesis": {
+          "description": "Primary synthesis result from the Ultra Synthesis stage",
+          "oneOf": [
+            {"type": "string"},
+            {"type": "object"}
+          ]
+        },
+        "formatted_synthesis": {
+          "type": "string",
+          "description": "Full document formatted output from OutputFormatter (simple mode)"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["completed", "failed"],
+          "description": "Status of the analysis"
+        },
+        "initial_responses": {
+          "type": "object",
+          "description": "Initial model responses (optional, when include_initial_responses=true)",
+          "properties": {
+            "responses": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "object",
+                "properties": {
+                  "text": {"type": "string"},
+                  "word_count": {"type": "integer"},
+                  "preview": {"type": "string"}
+                }
+              }
+            },
+            "model_count": {"type": "integer"},
+            "successful_models": {
+              "type": "array",
+              "items": {"type": "string"}
+            }
+          }
+        },
+        "meta_analysis": {
+          "description": "Meta-analysis stage output (optional, exposed in simple mode)",
+          "oneOf": [
+            {"type": "string"},
+            {"type": "object"}
+          ]
+        },
+        "peer_review_responses": {
+          "type": "object",
+          "description": "Peer review responses (only in detailed mode with include_pipeline_details=true)"
+        },
+        "formatted_output": {
+          "type": "object",
+          "description": "Formatted output from OutputFormatter (detailed mode)",
+          "properties": {
+            "synthesis": {
+              "type": "object",
+              "required": ["text", "sections"],
+              "properties": {
+                "text": {"type": "string"},
+                "sections": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "title": {"type": "string"},
+                      "content": {"type": "string"},
+                      "level": {"type": "integer"}
+                    }
+                  }
+                },
+                "word_count": {"type": "integer"},
+                "formatted_text": {"type": "string"}
+              }
+            },
+            "synthesis_model": {"type": "string"},
+            "pipeline_summary": {
+              "type": "object",
+              "required": ["stages_completed", "total_models_used", "success"],
+              "properties": {
+                "stages_completed": {
+                  "type": "array",
+                  "items": {"type": "string"}
+                },
+                "total_models_used": {
+                  "type": "array",
+                  "items": {"type": "string"}
+                },
+                "stage_count": {"type": "integer"},
+                "success": {"type": "boolean"}
+              }
+            },
+            "full_document": {"type": "string"}
+          }
+        },
+        "error": {
+          "type": "string",
+          "description": "Error message if analysis failed"
+        }
+      }
+    },
+    "error": {
+      "type": ["string", "null"],
+      "description": "Error message if analysis failed at top level"
+    },
+    "processing_time": {
+      "type": ["number", "null"],
+      "description": "Processing time in seconds"
+    },
+    "saved_files": {
+      "type": ["object", "null"],
+      "description": "Paths to saved output files if save_outputs was enabled",
+      "additionalProperties": {"type": "string"}
+    },
+    "pipeline_info": {
+      "type": ["object", "null"],
+      "description": "Information about the pipeline execution",
+      "properties": {
+        "stages_completed": {
+          "type": "array",
+          "items": {"type": "string"}
+        },
+        "total_stages": {"type": "integer"},
+        "models_used": {
+          "type": "array",
+          "items": {"type": "string"}
+        },
+        "pipeline_type": {"type": "string"},
+        "include_details": {"type": "boolean"},
+        "service_status": {
+          "type": "string",
+          "description": "Degradation message if service is degraded"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,58 @@
+{
+  "success": true,
+  "results": {
+    "initial_response": {
+      "output": {
+        "responses": {
+          "gpt-4o": "Renewable energy offers multiple benefits including reduced carbon emissions, energy independence, and long-term cost savings.",
+          "claude-3-5-sonnet-20241022": "The advantages of renewable energy span environmental protection, economic growth, and sustainable resource management.",
+          "gemini-1.5-pro": "Key benefits include clean energy production, job creation in green sectors, and reduced dependence on finite fossil fuel resources."
+        }
+      },
+      "status": "completed"
+    },
+    "peer_review_and_revision": {
+      "output": {
+        "revised_responses": {
+          "gpt-4o": "Renewable energy provides crucial environmental benefits through dramatically reduced greenhouse gas emissions.",
+          "claude-3-5-sonnet-20241022": "The comprehensive benefits of renewable energy include mitigating climate change and enhancing energy security.",
+          "gemini-1.5-pro": "Renewable energy delivers measurable benefits: up to 90% reduction in carbon emissions."
+        }
+      },
+      "status": "completed"
+    },
+    "ultra_synthesis": {
+      "output": "Based on comprehensive analysis, here is the Ultra Synthesis:\n\n## Key Benefits\n\n1. Environmental Impact\n2. Economic Advantages\n3. Energy Independence\n4. Job Creation\n\n## Conclusion\n\nRenewable energy is essential for sustainable development.",
+      "status": "completed"
+    },
+    "formatted_output": {
+      "synthesis": {
+        "text": "Based on comprehensive analysis...",
+        "sections": [
+          {
+            "title": "Key Benefits",
+            "content": "1. Environmental Impact\n2. Economic Advantages",
+            "level": 2
+          }
+        ],
+        "word_count": 42
+      },
+      "synthesis_model": "gpt-4o",
+      "pipeline_summary": {
+        "stages_completed": ["initial_response", "peer_review_and_revision", "ultra_synthesis"],
+        "total_models_used": ["gpt-4o", "claude-3-5-sonnet-20241022", "gemini-1.5-pro"],
+        "stage_count": 3,
+        "success": true
+      },
+      "full_document": "🌟 ULTRA SYNTHESIS™ RESULTS 🌟\n\nDetailed output..."
+    }
+  },
+  "processing_time": 18.72,
+  "pipeline_info": {
+    "stages_completed": ["initial_response", "peer_review_and_revision", "ultra_synthesis"],
+    "total_stages": 3,
+    "models_used": ["gpt-4o", "claude-3-5-sonnet-20241022", "gemini-1.5-pro"],
+    "pipeline_type": "3-stage optimized",
+    "include_details": true
+  }
+}

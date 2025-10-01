@@ -1,0 +1,17 @@
+{
+  "success": false,
+  "results": {
+    "error": "Ultra Synthesis stage not completed",
+    "status": "failed"
+  },
+  "error": "An unexpected error occurred: Request timeout after 70 seconds",
+  "processing_time": 70.12,
+  "pipeline_info": {
+    "stages_completed": ["initial_response"],
+    "total_stages": 1,
+    "models_used": ["gpt-4o", "claude-3-5-sonnet-20241022"],
+    "pipeline_type": "partial",
+    "include_details": false,
+    "service_status": "Service degraded: Only 2 of 3 required providers available"
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "success": true,
+  "results": {
+    "ultra_synthesis": "Based on comprehensive analysis of the query 'What are the benefits of renewable energy?', here is the Ultra Synthesis:\n\n## Key Benefits\n\n1. **Environmental Impact**: Renewable energy sources produce significantly lower greenhouse gas emissions compared to fossil fuels, helping combat climate change.\n\n2. **Economic Advantages**: Long-term cost savings through reduced fuel costs and price stability, as renewable resources are free and abundant.\n\n3. **Energy Independence**: Reduces reliance on imported fossil fuels, improving national energy security.\n\n4. **Job Creation**: The renewable energy sector creates more jobs per unit of energy than traditional fossil fuel industries.\n\n## Conclusion\n\nRenewable energy presents a compelling solution for sustainable development, combining environmental stewardship with economic benefits and energy security.",
+    "formatted_synthesis": "🌟 ULTRA SYNTHESIS™ RESULTS 🌟\n\n📊 ULTRA SYNTHESIS\n\nBased on comprehensive analysis...\n\n💡 Synthesized by: gpt-4o",
+    "status": "completed"
+  },
+  "processing_time": 12.45,
+  "pipeline_info": {
+    "stages_completed": ["initial_response", "peer_review_and_revision", "ultra_synthesis"],
+    "total_stages": 3,
+    "models_used": ["gpt-4o", "claude-3-5-sonnet-20241022", "gemini-1.5-pro"],
+    "pipeline_type": "3-stage optimized",
+    "include_details": false
+  }
+}
