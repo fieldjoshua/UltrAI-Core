@@ -1,0 +1,66 @@
+{
+  "success": true,
+  "results": {
+    "ultra_synthesis": {
+      "text": "Based on the analysis of multiple AI models, the key findings indicate that machine learning algorithms perform best when trained on diverse, high-quality datasets. The most significant factor affecting model performance is the quality and variety of training data rather than the specific algorithm used.",
+      "sections": [
+        {
+          "title": "Key Findings",
+          "content": "Machine learning algorithms perform best when trained on diverse, high-quality datasets.",
+          "level": 1
+        },
+        {
+          "title": "Performance Factors",
+          "content": "The most significant factor affecting model performance is the quality and variety of training data rather than the specific algorithm used.",
+          "level": 1
+        }
+      ],
+      "word_count": 68,
+      "formatted_text": "**Key Findings**\n\nMachine learning algorithms perform best when trained on diverse, high-quality datasets.\n\n**Performance Factors**\n\n• The most significant factor affecting model performance is the quality and variety of training data rather than the specific algorithm used."
+    },
+    "formatted_synthesis": "**Key Findings**\n\nMachine learning algorithms perform best when trained on diverse, high-quality datasets.\n\n**Performance Factors**\n\n• The most significant factor affecting model performance is the quality and variety of training data rather than the specific algorithm used.",
+    "pipeline_summary": {
+      "stages_completed": [
+        "initial_response",
+        "peer_review_and_revision",
+        "ultra_synthesis"
+      ],
+      "total_models_used": [
+        "gpt-4",
+        "claude-3-opus",
+        "gemini-pro"
+      ],
+      "stage_count": 3,
+      "success": true,
+      "metadata": {
+        "timestamp": "2025-01-01T12:00:00.000Z",
+        "pipeline_version": "3-stage optimized"
+      }
+    }
+  },
+  "processing_time": 15.7,
+  "saved_files": {
+    "output.md": "/tmp/analysis_12345.md",
+    "output.txt": "/tmp/analysis_12345.txt"
+  },
+  "pipeline_info": {
+    "correlation_id": "analysis_12345",
+    "stages": [
+      {
+        "name": "initial_response",
+        "status": "completed",
+        "models": ["gpt-4", "claude-3-opus", "gemini-pro"]
+      },
+      {
+        "name": "peer_review_and_revision",
+        "status": "completed",
+        "models": ["claude-3-opus"]
+      },
+      {
+        "name": "ultra_synthesis",
+        "status": "completed",
+        "models": ["gpt-4"]
+      }
+    ]
+  }
+}
