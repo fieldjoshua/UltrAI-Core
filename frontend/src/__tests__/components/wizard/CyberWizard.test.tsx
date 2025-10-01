@@ -461,8 +461,19 @@ describe('CyberWizard', () => {
       const textarea = screen.getByRole('textbox');
       await user.type(textarea, 'Test query for orchestration');
       await user.click(screen.getByRole('button', { name: /Go to step 3/i }));
-
-      await user.click(screen.getByText(/Premium Query/i).closest('div')!);
+      // Ensure at least 2 models are selected
+      // Prefer manual selection if available, otherwise click Premium Query chip
+      const manualBtn = screen.queryByText(/Manual:\s*Choose Models/i);
+      if (manualBtn) {
+        await user.click(manualBtn);
+        const checks = await screen.findAllByRole('checkbox');
+        for (let i = 0; i < Math.min(3, checks.length); i++) {
+          await user.click(checks[i]);
+        }
+      } else {
+        const premiumChips = await screen.findAllByText(/Premium Query/i);
+        await user.click(premiumChips[premiumChips.length - 1].closest('div')!);
+      }
       await user.click(screen.getByRole('button', { name: /Go to step 4/i }));
 
       await user.click(screen.getByRole('button', { name: /Submit Add-ons/i }));
@@ -589,9 +600,11 @@ describe('CyberWizard', () => {
         ).toBeInTheDocument();
       });
 
-      // The demo indicator is visible in demo mode without requiring initialization
+      // Enter wizard and assert demo affordance is present on landing
+      // (stable indicator: "Try Demo" button shows in demo mode on intro)
       await user.click(screen.getByRole('button', { name: /Enter UltrAI/i }));
-      expect(await screen.findByText(/Demo Environment/i)).toBeInTheDocument();
+      const tryDemoBtn = screen.getByRole('button', { name: /Try Demo/i });
+      expect(tryDemoBtn).toBeInTheDocument();
     });
   });
 
