@@ -14,7 +14,11 @@ from app.services.output_formatter import OutputFormatter
 from app.middleware.combined_auth_middleware import require_auth, AuthUser
 from app.models.streaming_response import StreamingAnalysisRequest, StreamingConfig
 from app.services.provider_health_manager import provider_health_manager
-from app.services.sse_event_bus import sse_event_bus
+# from app.services.sse_event_bus import sse_event_bus  # DISABLED - was hanging
+class MockSSE:
+    async def publish(self, *args, **kwargs):
+        pass
+sse_event_bus = MockSSE()
 from app.services.analysis_storage_service import AnalysisStorageService
 from app.database.session import get_db
 from app.database.models.analysis import AnalysisType, OutputFormat

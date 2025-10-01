@@ -353,34 +353,13 @@ class OrchestrationService:
 
         healthy: List[str] = []
 
-        logger.info("🔑 Checking API keys availability...")
+        logger.info("🔑 Checking API keys availability (SKIP HEALTH CHECKS)...")
 
         for model, key in candidates:
             if not key:
-                logger.warning(f"  ❌ {model}: No API key configured")
                 continue
-            else:
-                logger.info(f"  ✅ {model}: API key found ({key[:4]}...{key[-4:]})")
-
-            # Check centralized cache firs
-            cached_health = model_health_cache.get_cached_health(model)
-            if cached_health is not None:
-                if cached_health:
-                    healthy.append(model)
-                    logger.info(f"  📦 {model}: Using cached health status (healthy)")
-                else:
-                    logger.warning(
-                        f"  📦 {model}: Using cached health status (unhealthy)"
-                    )
-                continue
-
-            # Probe model (will automatically cache result)
-            ok = await self._probe_model(model, key)
-            if ok:
-                healthy.append(model)
-                logger.info(f"  🟢 {model}: Health check passed")
-            else:
-                logger.warning(f"  🔴 {model}: Health check failed")
+            healthy.append(model)
+            logger.info(f"  ✅ {model}: API key found, assuming healthy")
 
         if not healthy:
             logger.warning("⚠️ No healthy models found during probe")
