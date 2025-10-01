@@ -1,22 +1,43 @@
-import React, { memo } from 'react';
+import React from 'react';
 import { Activity, Wifi, WifiOff, AlertCircle } from 'lucide-react';
 
-interface SystemStatusPanelProps {
-  modelStatuses: Record<string, 'checking' | 'ready' | 'error'>;
-  isNonTimeSkin: boolean;
-  isDemoMode: boolean;
-  isStagingEnv: boolean;
+export type ModelStatus = 'checking' | 'ready' | 'error';
+
+export interface SystemStatusPanelProps {
+  modelStatuses: Record<string, ModelStatus>;
+  isDemoMode?: boolean;
+  isStagingEnv?: boolean;
+  isNonTimeSkin?: boolean;
 }
 
-const SystemStatusPanel = memo(function SystemStatusPanel({
+export default function SystemStatusPanel({
   modelStatuses,
-  isNonTimeSkin,
-  isDemoMode,
-  isStagingEnv,
+  isDemoMode = false,
+  isStagingEnv = false,
+  isNonTimeSkin = false,
 }: SystemStatusPanelProps) {
-  const readyModels = Object.values(modelStatuses).filter(s => s === 'ready').length;
-  const totalModels = Object.keys(modelStatuses).length;
-  const allReady = readyModels === totalModels && totalModels > 0;
+  const readyCount = Object.values(modelStatuses).filter((s) => s === 'ready').length;
+  const totalCount = Object.keys(modelStatuses).length;
+  const allReady = readyCount === totalCount && totalCount > 0;
+  const partialReady = readyCount > 0 && readyCount < totalCount;
+  const noneReady = readyCount === 0;
+
+  const getConnectionStatus = () => {
+    if (allReady) return { icon: Wifi, label: 'Connected', color: 'text-green-400' };
+    if (partialReady) return { icon: WifiOff, label: 'Partial connection', color: 'text-yellow-400' };
+    return { icon: AlertCircle, label: 'Connection error', color: 'text-red-400' };
+  };
+
+  const connectionStatus = getConnectionStatus();
+  const ConnectionIcon = connectionStatus.icon;
+
+  const getStatusColor = () => {
+    if (allReady) return 'bg-green-400';
+    if (partialReady) return 'bg-yellow-400';
+    return 'bg-red-400';
+  };
+
+  const latency = isDemoMode ? '~12ms' : '~250ms';
 
   return (
     <div
@@ -28,54 +49,57 @@ const SystemStatusPanel = memo(function SystemStatusPanel({
       `}
       role="status"
       aria-live="polite"
+      aria-label={`System status: ${readyCount} of ${totalCount} models ready`}
     >
       {/* Connection status */}
       <div className="flex items-center gap-2">
-        {allReady ? (
-          <Wifi className="w-3 h-3 text-green-400" aria-label="Connected" />
-        ) : readyModels > 0 ? (
-          <WifiOff className="w-3 h-3 text-yellow-400" aria-label="Partial connection" />
-        ) : (
-          <AlertCircle className="w-3 h-3 text-red-400" aria-label="Connection error" />
-        )}
+        <ConnectionIcon
+          className={`w-3 h-3 ${connectionStatus.color}`}
+          aria-label={connectionStatus.label}
+        />
         <span className="font-mono">
-          {readyModels}/{totalModels}
+          {readyCount}/{totalCount}
         </span>
       </div>
 
       {/* Latency indicator */}
-      <div className="flex items-center gap-2">
-        <Activity className="w-3 h-3" />
-        <span className="font-mono">
-          {isDemoMode ? '~12ms' : '~250ms'}
-        </span>
+      <div className="flex items-center gap-2" aria-label={`Latency: ${latency}`}>
+        <Activity className="w-3 h-3" aria-hidden="true" />
+        <span className="font-mono">{latency}</span>
       </div>
 
-      {/* Environment indicator */}
+      {/* Environment badges */}
       {(isDemoMode || isStagingEnv) && (
         <div className="flex items-center gap-2 ml-2 pl-2 border-l border-white/20">
-          <span className={`
-            px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider
-            ${isDemoMode 
-              ? 'bg-cyan-500/20 text-cyan-400' 
-              : 'bg-orange-500/20 text-orange-400'
-            }
-          `}>
-            {isDemoMode ? 'DEMO' : 'STAGING'}
-          </span>
+          {isDemoMode && (
+            <span
+              className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-cyan-500/20 text-cyan-400"
+              role="note"
+              aria-label="Demo mode active"
+            >
+              DEMO
+            </span>
+          )}
+          {isStagingEnv && (
+            <span
+              className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-orange-500/20 text-orange-400"
+              role="note"
+              aria-label="Staging environment"
+            >
+              STAGING
+            </span>
+          )}
         </div>
       )}
 
-      {/* API status */}
+      {/* API status pulse */}
       <div className="flex items-center gap-2 ml-2 pl-2 border-l border-white/20">
-        <div className={`
-          w-2 h-2 rounded-full animate-pulse
-          ${allReady ? 'bg-green-400' : readyModels > 0 ? 'bg-yellow-400' : 'bg-red-400'}
-        `} />
+        <div
+          className={`w-2 h-2 rounded-full animate-pulse ${getStatusColor()}`}
+          aria-hidden="true"
+        />
         <span>API</span>
       </div>
     </div>
   );
-});
-
-export default SystemStatusPanel;
+}

@@ -5,6 +5,7 @@ interface StepMarkersProps {
   totalSteps: number;
   onStepClick: (step: number) => void;
   disabled?: boolean;
+  labels?: string[];
 }
 
 export default function StepMarkers({
@@ -12,70 +13,88 @@ export default function StepMarkers({
   totalSteps,
   onStepClick,
   disabled = false,
+  labels = [],
 }: StepMarkersProps) {
+  const getStepState = (idx: number) => {
+    if (idx === currentStep) return 'current';
+    if (idx < currentStep) return 'past';
+    return 'future';
+  };
+
+  const isClickable = (idx: number) => {
+    return !disabled && idx <= currentStep;
+  };
+
   return (
-    <div 
-      className="flex items-center justify-center gap-3 mb-8 select-none" 
+    <nav
+      className="flex items-center justify-center gap-3 mb-8"
       role="navigation"
-      aria-label="Wizard steps"
+      aria-label="Step progress"
     >
       {Array.from({ length: totalSteps }).map((_, idx) => {
-        const isActive = idx === currentStep;
-        const isPast = idx < currentStep;
-        const isFuture = idx > currentStep;
-        
+        const state = getStepState(idx);
+        const clickable = isClickable(idx);
+        const label = labels[idx] || `Step ${idx + 1}`;
+
         return (
           <button
             key={idx}
-            onClick={() => {
-              if (!disabled && (isPast || isActive)) {
-                onStepClick(idx);
-              }
-            }}
-            disabled={disabled || isFuture}
+            type="button"
+            onClick={() => clickable && onStepClick(idx)}
+            disabled={!clickable}
+            aria-label={label}
+            aria-current={state === 'current' ? 'step' : undefined}
+            aria-disabled={!clickable}
+            tabIndex={clickable ? 0 : -1}
             className={`
-              relative group transition-all duration-300
-              ${isActive ? 'scale-110' : 'scale-100'}
+              relative group transition-all duration-200
+              focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900
+              ${state === 'current' ? 'scale-110' : 'scale-100'}
+              ${clickable ? 'cursor-pointer' : 'cursor-not-allowed'}
             `}
-            aria-label={`Go to step ${idx + 1}`}
-            aria-current={isActive ? 'step' : undefined}
           >
             {/* Step dot */}
             <div
               className={`
-                w-3 h-3 rounded-full transition-all duration-300
-                ${isActive 
-                  ? 'bg-white shadow-[0_0_12px_rgba(255,255,255,0.8)]' 
-                  : isPast 
-                    ? 'bg-white/60 hover:bg-white/80' 
-                    : 'bg-white/20 cursor-not-allowed'
+                w-3 h-3 rounded-full transition-all duration-200
+                ${
+                  state === 'current'
+                    ? 'bg-purple-500 shadow-[0_0_12px_rgba(168,85,247,0.8)]'
+                    : state === 'past'
+                    ? 'bg-purple-400 hover:bg-purple-300'
+                    : 'bg-gray-600 opacity-50'
                 }
               `}
+              aria-hidden="true"
             />
-            
-            {/* Active step glow */}
-            {isActive && (
-              <div className="absolute inset-0 animate-ping">
-                <div className="w-3 h-3 rounded-full bg-white/50" />
+
+            {/* Active step pulse */}
+            {state === 'current' && (
+              <div className="absolute inset-0 animate-pulse" aria-hidden="true">
+                <div className="w-3 h-3 rounded-full bg-purple-400/50" />
               </div>
             )}
-            
-            {/* Step tooltip */}
-            {!disabled && (isPast || isActive) && (
-              <div className="
-                absolute -top-8 left-1/2 -translate-x-1/2
-                opacity-0 group-hover:opacity-100
-                transition-opacity duration-200
-                pointer-events-none whitespace-nowrap
-                px-2 py-1 text-xs rounded
-                bg-black/80 text-white
-              ">
-                Step {idx + 1}
-              </div>
+
+            {/* Tooltip */}
+            {clickable && (
+              <span
+                className="
+                  absolute -top-8 left-1/2 -translate-x-1/2
+                  opacity-0 group-hover:opacity-100 group-focus:opacity-100
+                  transition-opacity duration-200
+                  pointer-events-none whitespace-nowrap
+                  px-2 py-1 text-xs rounded
+                  bg-gray-800 text-white border border-gray-700
+                  z-10
+                "
+                role="tooltip"
+              >
+                {label}
+              </span>
             )}
           </button>
         );
       })}
-    </div>
+    </nav>
   );
 }
