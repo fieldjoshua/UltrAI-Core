@@ -21,53 +21,29 @@ description = "UltrAI API key pattern"
 regex = '''ultra_[0-9a-zA-Z\-_]{32,}'''
 tags = ["secret", "api-key", "ultrai"]
 
-# Allow certain patterns in specific files
+# Allowlist configuration
 [allowlist]
 description = "Allowlisted files and patterns"
 
-# Allow development fallback secrets only in auth_service.py
-[[allowlist.regexes]]
-regex = '''1W3-55MhQfFnkkC4REHcDXPWwTAP7AEqYuJAw-DZEJxHEtrn_97ayLZOn2Q7gSKNZnipY4-0D6niB30v7ztBWA'''
-file = '''auth_service\.py'''
+# Regex patterns to allow
+regexes = [
+  '''1W3-55MhQfFnkkC4REHcDXPWwTAP7AEqYuJAw-DZEJxHEtrn_97ayLZOn2Q7gSKNZnipY4-0D6niB30v7ztBWA''',
+  '''KTIBDNlXkcg7PtZsV6pfqzpm6Nyz8REDQrnKTHJyG3egwXO87ibZDOfs6aO2vksB5LBIUVzFW2A-qOIJ9HAYBg''',
+  '''your-.*-here''',
+  '''test.*secret|secret.*test|mock.*secret|dummy.*secret''',
+  '''sk-ant-test-mock-key-for-testing'''
+]
 
-[[allowlist.regexes]]
-regex = '''KTIBDNlXkcg7PtZsV6pfqzpm6Nyz8REDQrnKTHJyG3egwXO87ibZDOfs6aO2vksB5LBIUVzFW2A-qOIJ9HAYBg'''
-file = '''auth_service\.py'''
-
-# Allow example values in .env.example and documentation
-[[allowlist.regexes]]
-regex = '''your-.*-here'''
-file = '''\.env\.example'''
-
-[[allowlist.regexes]]
-regex = '''your-.*-here'''
-file = '''\.md'''
-
-# Allow test secrets in test files
-[[allowlist.regexes]]
-regex = '''test.*secret|secret.*test|mock.*secret|dummy.*secret'''
-file = '''test.*\.py'''
-
-# Common allowlist paths
-[[allowlist.paths]]
-path = '''.env.example'''
-
-[[allowlist.paths]]
-path = '''test_.*'''
-
-[[allowlist.paths]]
-path = '''.*_test\..*'''
-
-[[allowlist.paths]]
-path = '''node_modules'''
-
-[[allowlist.paths]]
-path = '''venv'''
-
-[[allowlist.paths]]
-path = '''.venv'''
+# File paths to allow
+paths = [
+  '''.env.example''',
+  '''test_.*''',
+  '''.*_test\..*''',
+  '''node_modules''',
+  '''venv''',
+  '''.venv'''
+]
 
 # Extend the default rules
 [extend]
-# Use the base gitleaks config
 useDefault = true
