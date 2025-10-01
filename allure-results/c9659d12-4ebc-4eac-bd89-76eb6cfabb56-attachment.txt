@@ -1,1 +1,0 @@
-[31m[1mERROR   [0m app.services.base_llm_adapter:base_llm_adapter.py:62 huggingface error: model_loading - Model is loading, please retry in 45 seconds

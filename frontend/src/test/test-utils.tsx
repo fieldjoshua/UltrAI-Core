@@ -67,3 +67,50 @@ export const waitForLoadingToFinish = () =>
   screen.findByText((content, element) => {
     return element?.tagName.toLowerCase() !== 'script';
   });
+
+// Orchestrator test helpers
+// Provide global helpers that individual tests can call without importing
+// These wire into the jest-mocked orchestrator API when available
+try {
+  // Lazy import to avoid issues in non-test runtimes
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const orchestratorApi = require('../api/orchestrator');
+
+  const setNextOrchestrationResult = (result: unknown) => {
+    const fn: any = orchestratorApi?.processWithFeatherOrchestration;
+    if (fn && typeof fn.mockImplementationOnce === 'function') {
+      fn.mockImplementationOnce(async () => result);
+    } else if (typeof fn === 'function') {
+      orchestratorApi.processWithFeatherOrchestration = async () => result;
+    }
+  };
+
+  const setNextOrchestrationError = (error: unknown) => {
+    const fn: any = orchestratorApi?.processWithFeatherOrchestration;
+    if (fn && typeof fn.mockImplementationOnce === 'function') {
+      fn.mockImplementationOnce(async () => {
+        throw error;
+      });
+    } else if (typeof fn === 'function') {
+      orchestratorApi.processWithFeatherOrchestration = async () => {
+        throw error;
+      };
+    }
+  };
+
+  const setAvailableModels = (models: string[]) => {
+    const fn: any = orchestratorApi?.getAvailableModels;
+    const value = { models } as any;
+    if (fn && typeof fn.mockResolvedValueOnce === 'function') {
+      fn.mockResolvedValueOnce(value);
+    } else if (typeof fn === 'function') {
+      orchestratorApi.getAvailableModels = async () => value;
+    }
+  };
+
+  (globalThis as any).__setOrchestrationNextResult = setNextOrchestrationResult;
+  (globalThis as any).__setOrchestrationNextError = setNextOrchestrationError;
+  (globalThis as any).__setAvailableModels = setAvailableModels;
+} catch {
+  // Ignore if orchestrator API cannot be required in this context
+}

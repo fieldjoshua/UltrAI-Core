@@ -1,2 +1,0 @@
-[31m[1mERROR   [0m rate_limit_service:rate_limit_service.py:193 Error connecting to Redis: Error 61 connecting to localhost:6379. Connection refused.
-[33mWARNING [0m rate_limit_service:rate_limit_service.py:194 Rate limiting will be disabled

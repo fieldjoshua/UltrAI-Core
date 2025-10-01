@@ -1,3 +1,0 @@
-[32mINFO    [0m auth_service:auth_service.py:97 Authentication service initialized
-[31m[1mERROR   [0m auth_service:auth_service.py:362 Token verification error: Not enough segments
-[31m[1mERROR   [0m auth_service:auth_service.py:390 Refresh token verification error: Not enough segments

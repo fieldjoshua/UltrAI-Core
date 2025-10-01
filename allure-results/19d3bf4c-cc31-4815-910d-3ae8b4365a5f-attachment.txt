@@ -1,1 +1,0 @@
-{"timestamp": "2025-09-11T22:57:31.520108", "level": "INFO", "logger": "token_management_service", "message": "Tracked usage for gpt-4: 100 input, 200 output tokens. Cost: $0.0150", "correlation_id": "76900215-147c-4cff-9ec8-852491a2ab42", "module": "token_management_service", "function": "track_usage", "line": 79}

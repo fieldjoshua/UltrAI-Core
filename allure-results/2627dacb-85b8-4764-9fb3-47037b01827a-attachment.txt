@@ -1,2 +1,0 @@
-[32mINFO    [0m transaction_service:transaction_service.py:113 Loaded financial data from file
-[33mWARNING [0m transaction_service:transaction_service.py:221 Insufficient funds for user user2. Required: $10.00, Available: $0.00

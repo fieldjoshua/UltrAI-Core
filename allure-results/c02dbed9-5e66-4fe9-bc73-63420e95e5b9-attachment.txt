@@ -1,3 +1,0 @@
-[32mINFO    [0m cache_service:cache_service.py:76 Cache disabled or Redis URL not configured
-[33mWARNING [0m cache_service:cache_service.py:187 Redis set error, falling back to memory: Redis error
-[33mWARNING [0m cache_service:cache_service.py:142 Redis get error, falling back to memory: Redis error

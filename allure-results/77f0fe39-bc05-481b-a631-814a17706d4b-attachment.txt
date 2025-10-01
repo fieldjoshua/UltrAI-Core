@@ -1,4 +1,0 @@
-[1m[31mERROR   [0m app.services.llm_adapters:llm_adapters.py:212 Anthropic API error for model claude-3-opus-20240229: 'coroutine' object has no attribute 'get'
-[1m[31mERROR   [0m app.services.llm_adapters:llm_adapters.py:212 Anthropic API error for model claude-3-opus: 'coroutine' object has no attribute 'get'
-[1m[31mERROR   [0m app.services.llm_adapters:llm_adapters.py:212 Anthropic API error for model claude-3-sonnet: 'coroutine' object has no attribute 'get'
-[1m[31mERROR   [0m app.services.llm_adapters:llm_adapters.py:212 Anthropic API error for model claude-2.1: 'coroutine' object has no attribute 'get'

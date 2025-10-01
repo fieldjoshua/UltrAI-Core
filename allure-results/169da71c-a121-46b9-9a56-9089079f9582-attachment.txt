@@ -1,1 +1,0 @@
-[1m[31mERROR   [0m app.services.telemetry_service:telemetry_service.py:226 Failed to initialize Prometheus metrics: Duplicated timeseries in CollectorRegistry: {'ultrai_request_created', 'ultrai_request', 'ultrai_request_total'}

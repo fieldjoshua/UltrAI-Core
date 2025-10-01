@@ -1,1 +1,0 @@
-{"timestamp": "2025-09-11T22:57:29.563589", "level": "WARNING", "logger": "app.services.resilient_llm_adapter", "message": "Circuit breaker opened after 3 failures", "correlation_id": "76900215-147c-4cff-9ec8-852491a2ab42", "module": "resilient_llm_adapter", "function": "_on_failure", "line": 178}

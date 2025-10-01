@@ -1,4 +1,0 @@
-[32mINFO    [0m transaction_service:transaction_service.py:113 Loaded financial data from file
-[32mINFO    [0m orchestration_service:orchestration_service.py:1348 🔄 Starting peer review and revision with 1 models
-[32mINFO    [0m orchestration_service:orchestration_service.py:1369 Initial responses from: ['gpt-4o']
-[33mWARNING [0m orchestration_service:orchestration_service.py:1384 ⚠️ Only 1 model available - peer review requires multiple models

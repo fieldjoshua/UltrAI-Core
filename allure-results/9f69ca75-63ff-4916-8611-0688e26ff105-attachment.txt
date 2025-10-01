@@ -1,2 +1,0 @@
-{"timestamp": "2025-09-12T02:09:17.999138", "level": "ERROR", "logger": "rate_limit_service", "message": "Error connecting to Redis: Authentication required.", "correlation_id": "ultra-1400cbdd-97ed-4d41-9074-295146231cbb", "module": "rate_limit_service", "function": "__init__", "line": 193}
-{"timestamp": "2025-09-12T02:09:17.999247", "level": "WARNING", "logger": "rate_limit_service", "message": "Rate limiting will be disabled", "correlation_id": "ultra-1400cbdd-97ed-4d41-9074-295146231cbb", "module": "rate_limit_service", "function": "__init__", "line": 194}

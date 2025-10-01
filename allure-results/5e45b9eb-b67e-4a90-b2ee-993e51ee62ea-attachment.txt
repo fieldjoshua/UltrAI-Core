@@ -1,1 +1,0 @@
-{"timestamp": "2025-09-12T02:09:22.675295", "level": "INFO", "logger": "app.services.telemetry_llm_wrapper", "message": "LLM request completed: anthropic/claude-3", "correlation_id": "57337b02-d890-4e78-ab06-a9a6d4e8ff9a", "module": "telemetry_llm_wrapper", "function": "generate", "line": 169}

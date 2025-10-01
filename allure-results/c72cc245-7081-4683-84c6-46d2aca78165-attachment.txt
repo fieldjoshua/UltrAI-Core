@@ -1,1 +1,0 @@
-[33mWARNING [0m app.services.analysis_service:analysis_service.py:148 User other attempted to update analysis 4 owned by owner

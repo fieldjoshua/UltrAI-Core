@@ -1,1 +1,0 @@
-[32mINFO    [0m token_management_service:token_management_service.py:79 Tracked usage for gpt-4: 100 input, 200 output tokens. Cost: $0.0150

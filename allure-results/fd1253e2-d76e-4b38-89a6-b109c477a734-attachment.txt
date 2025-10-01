@@ -1,1 +1,0 @@
-{"timestamp": "2025-09-11T23:10:38.689619", "level": "INFO", "logger": "prompt_service", "message": "Registered template: custom", "correlation_id": "7910d5f8-f2f9-48e4-a863-fdadbfaac340", "module": "prompt_service", "function": "register_template", "line": 134}

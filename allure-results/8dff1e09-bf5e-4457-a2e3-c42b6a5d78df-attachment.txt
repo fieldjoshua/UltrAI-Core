@@ -1,1 +1,0 @@
-[1m[31mERROR   [0m app.services.llm_adapters:llm_adapters.py:182 Anthropic API authentication failed for model claude-3: Invalid API key

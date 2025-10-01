@@ -1,1 +1,0 @@
-[32mINFO    [0m transaction_service:transaction_service.py:113 Loaded financial data from file

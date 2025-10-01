@@ -1,1 +1,0 @@
-{"timestamp": "2025-09-11T23:10:30.264597", "level": "INFO", "logger": "app.services.telemetry_llm_wrapper", "message": "LLM request completed: openai/gpt-4", "correlation_id": "4e02ed0d-ba99-4ae5-a855-5835ada3c9dc", "module": "telemetry_llm_wrapper", "function": "generate", "line": 169}

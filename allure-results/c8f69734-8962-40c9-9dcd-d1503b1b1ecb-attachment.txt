@@ -1,1 +1,0 @@
-[31m[1mERROR   [0m app.services.llm_adapters:llm_adapters.py:369 HuggingFace API error for model mistral: Unauthorized

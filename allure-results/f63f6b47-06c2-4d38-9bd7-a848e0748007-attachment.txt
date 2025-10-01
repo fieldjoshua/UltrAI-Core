@@ -1,1 +1,0 @@
-[31m[1mERROR   [0m app.services.base_llm_adapter:base_llm_adapter.py:62 anthropic error: authentication_failed - Invalid Anthropic API key

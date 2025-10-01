@@ -1,1 +1,0 @@
-[1m[31mERROR   [0m app.services.llm_adapters:llm_adapters.py:262 Google Gemini API authentication failed for model gemini-1.5-pro: Invalid API key

@@ -362,3 +362,13 @@ minimal_orchestrator.py
 ultra_models_comparison.md
 ultra_streamlined_version_1.md
 .env.render-*
+
+# Old/deprecated directories (cleanup 2025-10-01)
+test_env/
+ultrai-ui/
+render-old-deprecated.yaml
+
+# AICheck backups (should never be committed)
+.aicheck*backup*/
+.aicheck.backup*/
+**/removed_files_backup/

@@ -1,1 +1,0 @@
-{"uuid": "12cb4757-0e3c-42c0-92cf-b4adfa1fb885", "children": ["22e2bfc2-a77a-47fd-bb78-b788e88b70f8"], "befores": [{"name": "mock_llm_adapters", "status": "passed", "start": 1757657423074, "stop": 1757657423079}], "afters": [{"name": "mock_llm_adapters::0", "status": "passed", "start": 1757657423080, "stop": 1757657423080}], "start": 1757657423074, "stop": 1757657423080}

@@ -1,2 +1,0 @@
-[1m[31mERROR   [0m app.services.llm_adapters:llm_adapters.py:369 HuggingFace API error for model mistralai/Mistral-7B-Instruct-v0.1: Client error '404 Not Found' for url 'https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.1'
-For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/404

@@ -1,8 +1,0 @@
-[1m[31mERROR   [0m app.services.telemetry_llm_wrapper:telemetry_llm_wrapper.py:195 LLM request failed: google/gemini-pro
-Traceback (most recent call last):
-  File "/Users/joshuafield/Documents/Ultra/app/services/telemetry_llm_wrapper.py", line 137, in generate
-    result = await self.adapter.generate(prompt)
-             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/homebrew/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/lib/python3.13/unittest/mock.py", line 2321, in _execute_mock_call
-    raise effect
-Exception: Connection failed

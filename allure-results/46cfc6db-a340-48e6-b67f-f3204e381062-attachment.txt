@@ -1,1 +1,0 @@
-{"timestamp": "2025-09-12T14:05:56.502526", "level": "INFO", "logger": "cache_service", "message": "Redis client initialized successfully", "correlation_id": "71f2aec6-9f95-4d64-8418-7aa3f9c5b2f9", "module": "cache_service", "function": "_initialize_redis", "line": 90}

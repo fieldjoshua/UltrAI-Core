@@ -1,4 +1,0 @@
-[1m[31mERROR   [0m app.services.base_llm_adapter:base_llm_adapter.py:62 openai error: rate_limit_exceeded - OpenAI API rate limit exceeded
-[1m[31mERROR   [0m app.services.base_llm_adapter:base_llm_adapter.py:62 anthropic error: rate_limit_exceeded - Anthropic API rate limit exceeded
-[1m[31mERROR   [0m app.services.base_llm_adapter:base_llm_adapter.py:62 google error: quota_exceeded - Google API quota exceeded
-[1m[31mERROR   [0m app.services.base_llm_adapter:base_llm_adapter.py:62 huggingface error: rate_limit_exceeded - HuggingFace API rate limit exceeded

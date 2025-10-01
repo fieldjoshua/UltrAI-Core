@@ -1,5 +1,0 @@
-[33mWARNING [0m app.services.resilient_llm_adapter:resilient_llm_adapter.py:208 No specific config for provider test, using defaults
-[32mINFO    [0m app.services.resilient_llm_adapter:resilient_llm_adapter.py:230 Starting resilient request for test
-[32mINFO    [0m app.services.resilient_llm_adapter:resilient_llm_adapter.py:296 Retrying test after 0.09s (attempt 1)
-[32mINFO    [0m app.services.resilient_llm_adapter:resilient_llm_adapter.py:296 Retrying test after 0.20s (attempt 2)
-[31m[1mERROR   [0m app.services.resilient_llm_adapter:resilient_llm_adapter.py:301 All retries exhausted for test: Timeout

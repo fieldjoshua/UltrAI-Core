@@ -1,1 +1,0 @@
-{"timestamp": "2025-09-12T14:05:56.436633", "level": "INFO", "logger": "auth_service", "message": "Authentication service initialized", "correlation_id": "71f2aec6-9f95-4d64-8418-7aa3f9c5b2f9", "module": "auth_service", "function": "__init__", "line": 97}

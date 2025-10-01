@@ -1,2 +1,0 @@
-{"timestamp": "2025-09-11T22:59:55.491792", "level": "INFO", "logger": "model_registry", "message": "Registered model class: d", "correlation_id": "bc4979ba-4cf3-4b6e-bbf8-133eb21abc67", "module": "model_registry", "function": "register_model_class", "line": 68}
-{"timestamp": "2025-09-11T22:59:55.491851", "level": "INFO", "logger": "model_registry", "message": "Created model instance: d", "correlation_id": "bc4979ba-4cf3-4b6e-bbf8-133eb21abc67", "module": "model_registry", "function": "create_model_instance", "line": 114}

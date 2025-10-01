@@ -1,2 +1,0 @@
-[32mINFO    [0m transaction_service:transaction_service.py:113 Loaded financial data from file
-[32mINFO    [0m tracked_orchestration:tracked_orchestration_service.py:49 Set orchestration request context
