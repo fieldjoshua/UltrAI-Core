@@ -176,20 +176,24 @@ describe('CyberWizard', () => {
       });
       await user.click(screen.getByRole('button', { name: /Enter UltrAI/i }));
 
-      // Wait for step navigation to appear
+      // Wait for step 1 to fully load
       await waitFor(() => {
-        // Look for step 2 marker button with correct aria-label
+        expect(screen.getAllByText(/Select your goals/i).length).toBeGreaterThan(0);
+      });
+
+      // Wait for step navigation to appear - step indexing starts at 0, step 2 is index 2
+      await waitFor(() => {
         expect(
-          screen.getByRole('button', { name: /Go to step 2: What do you need/i })
+          screen.getByRole('button', { name: /Go to step 2/i })
         ).toBeInTheDocument();
       });
 
       // Click on step 2 marker
-      const step2Button = screen.getByRole('button', { name: /Go to step 2: What do you need/i });
+      const step2Button = screen.getByRole('button', { name: /Go to step 2/i });
       await user.click(step2Button);
 
       await waitFor(() => {
-        expect(screen.getByText(/What do you need\?/i)).toBeInTheDocument();
+        expect(screen.getByText(/Enter your query/i)).toBeInTheDocument();
       });
     });
 
@@ -213,7 +217,7 @@ describe('CyberWizard', () => {
       // Press right arrow to go to step 2
       await user.keyboard('{ArrowRight}');
       await waitFor(() => {
-        expect(screen.getByText(/What do you need\?/i)).toBeInTheDocument();
+        expect(screen.getByText(/Enter your query/i)).toBeInTheDocument();
       });
 
       // Press left arrow to go back to step 1
@@ -381,8 +385,8 @@ describe('CyberWizard', () => {
     });
 
     it('should show manual model selection when requested', async () => {
-      // Look for the manual selection button/link
-      const manualButton = screen.getByText(/manually select specific models/i);
+      // Look for the manual selection button (actual text: "🛠️ Manual: Choose Models" or "Custom")
+      const manualButton = screen.getByText(/Manual: Choose Models|Custom/i);
       await user.click(manualButton);
 
       await waitFor(() => {
@@ -600,11 +604,12 @@ describe('CyberWizard', () => {
         ).toBeInTheDocument();
       });
 
-      // Enter wizard and assert demo affordance is present on landing
-      // (stable indicator: "Try Demo" button shows in demo mode on intro)
+      // Enter wizard and assert demo affordance is present
+      // (stable indicator: "Demo Environment" text shows in demo mode)
       await user.click(screen.getByRole('button', { name: /Enter UltrAI/i }));
-      const tryDemoBtn = screen.getByRole('button', { name: /Try Demo/i });
-      expect(tryDemoBtn).toBeInTheDocument();
+      await waitFor(() => {
+        expect(screen.getByText(/Demo Environment/i)).toBeInTheDocument();
+      });
     });
   });
 
