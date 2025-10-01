@@ -5,6 +5,7 @@ This file is used by Render to start the production server.
 import os
 from pathlib import Path
 from dotenv import load_dotenv
+from fastapi.responses import FileResponse
 
 # Load environment variables FIRST before any other imports
 env_path = Path(__file__).parent / ".env"
@@ -17,6 +18,11 @@ import uvicorn
 
 # Create the production app instance
 app = create_production_app()
+
+# Serve the emergency frontend
+@app.get("/")
+async def read_root():
+    return FileResponse("frontend/public/index.html")
 
 # Run with uvicorn if this file is executed directly
 if __name__ == "__main__":
